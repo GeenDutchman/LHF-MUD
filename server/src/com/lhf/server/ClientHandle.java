@@ -4,14 +4,12 @@ import com.lhf.interfaces.ConnectionListener;
 import com.lhf.interfaces.MessageListener;
 import com.lhf.user.UserID;
 import com.lhf.messages.UserMessage;
-import sun.plugin2.message.Message;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.sql.Connection;
 import java.util.function.Consumer;
 
 public class ClientHandle extends Thread {
