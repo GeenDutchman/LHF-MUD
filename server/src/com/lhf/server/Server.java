@@ -3,7 +3,6 @@ package com.lhf.server;
 import com.lhf.interfaces.ConnectionListener;
 import com.lhf.interfaces.MessageListener;
 import com.lhf.interfaces.ServerInterface;
-import com.lhf.messages.NewUserMessage;
 import com.lhf.user.UserID;
 import com.lhf.user.UserManager;
 import com.lhf.messages.UserMessage;
@@ -12,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.Connection;
 import java.util.ArrayList;
 
 public class Server extends Thread implements ServerInterface, MessageListener, ConnectionListener {
