@@ -1,6 +1,5 @@
 package com.lhf.interfaces;
 
-import com.lhf.messages.NewUserMessage;
 import com.lhf.messages.UserMessage;
 import com.lhf.user.UserID;
 import org.jetbrains.annotations.NotNull;
