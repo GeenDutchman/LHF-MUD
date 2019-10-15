@@ -2,14 +2,16 @@ package com.lhf.server;
 
 import com.lhf.interfaces.ConnectionListener;
 import com.lhf.interfaces.MessageListener;
-import com.lhf.user.UserID;
-import com.lhf.messages.UserMessage;
+import com.lhf.messages.in.InMessage;
+import com.lhf.messages.out.BadMessage;
+import com.lhf.messages.out.OutMessage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class ClientHandle extends Thread {
@@ -17,10 +19,10 @@ public class ClientHandle extends Thread {
     private PrintWriter out;
     private BufferedReader in;
     private MessageListener listener;
-    private UserID id;
+    private ClientID id;
     private Consumer onDisconnect;
     private ConnectionListener connectionListener;
-    public ClientHandle (Socket client, UserID id, ConnectionListener connectionListener) throws IOException {
+    public ClientHandle (Socket client, ClientID id, ConnectionListener connectionListener) throws IOException {
         this.client = client;
         this.id = id;
         this.connectionListener = connectionListener;
@@ -38,15 +40,20 @@ public class ClientHandle extends Thread {
         String value = "";
         try {
             while ((value = in.readLine()) != null) {
-                UserMessage msg = UserMessage.fromString(value);
-                listener.messageReceived(id, msg);
+                Optional<InMessage> opt_msg = InMessage.fromString(value);
+                opt_msg.ifPresent(msg -> {
+                    listener.messageReceived(id, msg);
+                });
+                if (opt_msg.isEmpty()) {
+                    sendMsg(new BadMessage());
+                }
             }
         } catch (IOException e) {
             connectionListener.userLeft(id);
         }
     }
 
-    public synchronized void sendMsg(UserMessage msg) {
+    public synchronized void sendMsg(OutMessage msg) {
         out.println(msg.toString());
         out.flush();
     }

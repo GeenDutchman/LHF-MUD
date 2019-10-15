@@ -1,8 +1,9 @@
 package com.lhf.interfaces;
 
-import com.lhf.user.UserID;
+
+import com.lhf.server.ClientID;
 
 public interface ConnectionListener {
-    void userConnected(UserID id);
-    void userLeft(UserID id);
+    void userConnected(ClientID id);
+    void userLeft(ClientID id);
 }

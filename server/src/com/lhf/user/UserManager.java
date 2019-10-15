@@ -1,14 +1,15 @@
 package com.lhf.user;
 
-import com.lhf.server.ClientHandle;
+import com.lhf.messages.in.CreateInMessage;
+import com.lhf.server.ClientID;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Optional;
 
 public class UserManager {
     private HashMap<UserID, User> userMap;
-    private HashMap<UserID, ClientHandle> clientMap;
+    private HashMap<UserID, ClientID> clientMap;
     public UserManager() {
         userMap = new HashMap<>();
         clientMap = new HashMap<>();
@@ -17,30 +18,26 @@ public class UserManager {
         return userMap.get(userId);
     }
 
-    public ClientHandle getConnection(UserID userId) {
-        return clientMap.get(userId);
+    public Collection<UserID> getAllUserIds() {
+        return userMap.keySet();
     }
 
-    public void addUser(UserID userId) {
-        userMap.put(userId, new User());
-    }
-    public void addUser(UserID userId, ClientHandle connection) {
-        addUser(userId);
-        clientMap.put(userId, connection);
-    }
-    public Collection<ClientHandle> getHandles() {
-        return clientMap.values();
+    public void addUser(ClientID client, CreateInMessage msg) {
+        userMap.put(new UserID(msg), new User(msg, client));
     }
 
-    public Collection<ClientHandle> getAllHandlesExcept(UserID id) {
-        HashMap<UserID, ClientHandle> clone = (HashMap<UserID, ClientHandle>) clientMap.clone();
-        clone.remove(id);
-        return clone.values();
+    public UserID addUser(CreateInMessage msg, ClientID clientId) {
+        UserID userId = new UserID(msg);
+        userMap.put(userId, new User(msg, clientId));
+        clientMap.put(userId, clientId);
+        return userId;
+    }
+    public ClientID getClient(UserID id) {
+        System.out.println(id);
+        return clientMap.get(id);
     }
 
-    public void removeUser(UserID id) throws IOException {
-        clientMap.get(id).disconnect();
-        userMap.remove(id);
+    public void removeUser(UserID id) {
         clientMap.remove(id);
     }
 }
