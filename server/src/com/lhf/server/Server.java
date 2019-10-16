@@ -3,38 +3,44 @@ package com.lhf.server;
 import com.lhf.interfaces.ConnectionListener;
 import com.lhf.interfaces.MessageListener;
 import com.lhf.interfaces.ServerInterface;
+import com.lhf.interfaces.UserListener;
+import com.lhf.messages.out.BadMessage;
+import com.lhf.messages.in.CreateInMessage;
+import com.lhf.messages.in.ExitMessage;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.user.UserID;
 import com.lhf.user.UserManager;
-import com.lhf.messages.UserMessage;
+import com.lhf.messages.in.InMessage;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class Server extends Thread implements ServerInterface, MessageListener, ConnectionListener {
     private int port;
     private ServerSocket socket;
     private UserManager userManager;
-    ArrayList<ConnectionListener> connectionListeners;
-    ArrayList<MessageListener> messageListeners;
+    private ClientManager clientManager;
+    ArrayList<UserListener> userListeners;
 
     public Server(int port, UserManager userManager) throws IOException {
         this.port = port;
         socket = new ServerSocket(port);
         this.userManager = userManager;
-        connectionListeners = new ArrayList<ConnectionListener>();
-        messageListeners = new ArrayList<>();
+        userListeners = new ArrayList<UserListener>();
+        clientManager = new ClientManager();
     }
 
     public void run() {
         while (true) {
             try {
                 Socket connection = socket.accept();
-                UserID id = new UserID();
+                ClientID id = new ClientID();
                 ClientHandle handle = new ClientHandle(connection, id, this);
-                userManager.addUser(id, handle);
+                clientManager.addClient(id, handle);
                 handle.registerCallback(this);
                 handle.start();
                 notifyConnectionListeners(id);
@@ -46,65 +52,91 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
 
 
     @Override
-    public void registerCallback(ConnectionListener listener) {
-        connectionListeners.add(listener);
+    public void registerCallback(UserListener listener) {
+        userListeners.add(listener);
     }
 
     @Override
-    public void registerCallback(MessageListener listener) {
-        messageListeners.add(listener);
+    public void sendMessageToUser(OutMessage msg, @NotNull UserID id) {
+        sendMessageToClient(msg, userManager.getClient(id));
+    }
+
+    public void sendMessageToClient(OutMessage msg, @NotNull ClientID id) {
+        clientManager.getConnection(id).sendMsg(msg);
     }
 
     @Override
-    public void sendMessageToUser(UserMessage msg, @NotNull UserID id) {
-        userManager.getConnection(id).sendMsg(msg);
-    }
-
-    @Override
-    public void sendMessageToAll(UserMessage msg) {
-        for (ClientHandle client: userManager.getHandles()) {
+    public void sendMessageToAll(OutMessage msg) {
+        for (ClientHandle client: clientManager.getHandles()) {
             client.sendMsg(msg);
         }
     }
 
     @Override
-    public void sendMessageToAllExcept(UserMessage msg, UserID id) {
-        for (ClientHandle client: userManager.getAllHandlesExcept(id)) {
-            client.sendMsg(msg);
+    public void sendMessageToAllExcept(OutMessage msg, UserID id) {
+        for (UserID userId: userManager.getAllUserIds()) {
+            if (userId != id) {
+                clientManager.getConnection(userManager.getClient(userId));
+            }
         }
     }
 
     @Override
     public void removeUser(UserID id) {
+
+        userManager.removeUser(id);
+        removeClient(userManager.getClient(id));
+    }
+
+    public void removeClient(ClientID id) {
         try {
-            userManager.removeUser(id);
-        } catch (IOException e) {
+            clientManager.removeClient(id);
+        }catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void messageReceived(UserID id, UserMessage msg) {
-        for (MessageListener listener: messageListeners) {
-             listener.messageReceived(id, msg);
+    public void messageReceived(ClientID id, InMessage msg) {
+        Optional<UserID> user = clientManager.getUserForClient(id);
+        if (msg instanceof ExitMessage) {
+            removeClient(id);
+        } else {
+            user.ifPresent(userID -> {
+                for (UserListener listener : userListeners) {
+                    listener.messageReceived(userID, msg);
+                }
+            });
+            if (user.isEmpty()) {
+                if (msg instanceof CreateInMessage) {
+                    UserID new_user = userManager.addUser((CreateInMessage) msg, id);
+                    clientManager.addUserForClient(id, new_user);
+                } else {
+                    sendMessageToClient(new BadMessage(), id);
+                }
+            }
         }
     }
 
-    private void notifyConnectionListeners(UserID id) {
-        for (ConnectionListener listener: connectionListeners) {
-            listener.userConnected(id);
-        }
+    private void notifyConnectionListeners(ClientID id) {
+        clientManager.getUserForClient(id).ifPresent(userID -> {
+            for (UserListener listener : userListeners) {
+                listener.userConnected(userID);
+            }
+        });
     }
 
     @Override
-    public void userConnected(UserID id) {
+    public void userConnected(ClientID id) {
 
     }
 
     @Override
-    public void userLeft(UserID id) {
-        for (ConnectionListener listener: connectionListeners) {
-            listener.userLeft(id);
-        }
+    public void userLeft(ClientID id) {
+        clientManager.getUserForClient(id).ifPresent(userID -> {
+            for (UserListener listener: userListeners) {
+                listener.userLeft(userID);
+            }
+        });
     }
 }

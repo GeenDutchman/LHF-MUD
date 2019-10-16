@@ -1,11 +1,33 @@
 package com.lhf.user;
 
+import com.lhf.messages.in.CreateInMessage;
+
 public class UserID {
-    private int index;
-    // This is purely a placeholder, we probably want something better in here
-    // Maybe include username in here at some point?
-    private static int total_count = 0;
-    public UserID() {
-        index = total_count++;
+    private String username;
+    public UserID(CreateInMessage create_user) {
+        username = create_user.getUsername();
+    }
+
+    public UserID(String username) {
+        this.username = username;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+    @Override
+    public int hashCode() {
+        return username.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof UserID) {
+            UserID userObj = (UserID) obj;
+            if (userObj.getUsername().equals(username)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
