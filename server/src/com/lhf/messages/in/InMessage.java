@@ -24,6 +24,8 @@ public class InMessage {
                     return Optional.of(new ExitMessage());
                 case "create":
                     return Optional.of(new CreateInMessage(arguments));
+                case "examine":
+                    return Optional.of(new ExamineMessage(arguments));
                 default:
                     return Optional.empty();
             }
