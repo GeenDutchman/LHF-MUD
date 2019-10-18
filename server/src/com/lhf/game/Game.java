@@ -20,7 +20,7 @@ public class Game implements UserListener {
     private Logger logger;
 
     public Game(ServerInterface server, UserManager userManager) {
-        this.logger = Logger.getLogger(this.getClass().toString());
+        this.logger = Logger.getLogger(this.getClass().getName());
         this.server = server;
         this.userManager = userManager;
         server.registerCallback((UserListener) this);

@@ -26,7 +26,7 @@ public class ClientHandle extends Thread {
     private Logger logger;
 
     public ClientHandle (Socket client, ClientID id, ConnectionListener connectionListener) throws IOException {
-        this.logger = Logger.getLogger(this.getClass().toString());
+        this.logger = Logger.getLogger(this.getClass().getName());
         this.logger.finest("Creating ClientHandle");
         this.client = client;
         this.id = id;

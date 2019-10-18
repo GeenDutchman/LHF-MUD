@@ -29,7 +29,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
     ArrayList<UserListener> userListeners;
 
     public Server(int port, UserManager userManager) throws IOException {
-        this.logger = Logger.getLogger(this.getClass().toString());
+        this.logger = Logger.getLogger(this.getClass().getName());
         this.port = port;
         socket = new ServerSocket(port);
         this.userManager = userManager;
@@ -48,6 +48,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
                 ClientHandle handle = new ClientHandle(connection, id, this);
                 clientManager.addClient(id, handle);
                 handle.registerCallback(this);
+                this.logger.fine("Starting handle");
                 handle.start();
                 notifyConnectionListeners(id);
             } catch (IOException e) {
