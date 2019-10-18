@@ -66,12 +66,12 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
 
     @Override
     public void sendMessageToUser(OutMessage msg, @NotNull UserID id) {
-        logger.fine("Sending message" + msg + " to " + id);
+        logger.fine("Sending message\"" + msg + "\" to User " + id);
         sendMessageToClient(msg, userManager.getClient(id));
     }
 
     public void sendMessageToClient(OutMessage msg, @NotNull ClientID id) {
-        logger.finest("Sending message " + msg + " to Client " + id);
+        logger.finest("Sending message \"" + msg + "\" to Client " + id);
         clientManager.getConnection(id).sendMsg(msg);
     }
 
@@ -86,7 +86,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
     @Override
     public void sendMessageToAllExcept(OutMessage msg, UserID id) {
         logger.entering(this.getClass().toString(), "sendMessageToAllExcept()");
-        logger.fine("Message:" + msg + " Except:" + id);
+        logger.fine("Message:\"" + msg + "\" Except:" + id);
         for (UserID userId: userManager.getAllUserIds()) {
             if (userId != id) {
                 clientManager.getConnection(userManager.getClient(userId));
