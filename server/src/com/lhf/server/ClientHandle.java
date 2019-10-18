@@ -13,6 +13,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 public class ClientHandle extends Thread {
     private Socket client;
@@ -22,12 +23,17 @@ public class ClientHandle extends Thread {
     private ClientID id;
     private Consumer onDisconnect;
     private ConnectionListener connectionListener;
+    private Logger logger;
+
     public ClientHandle (Socket client, ClientID id, ConnectionListener connectionListener) throws IOException {
+        this.logger = Logger.getLogger(this.getClass().toString());
+        this.logger.finest("Creating ClientHandle");
         this.client = client;
         this.id = id;
         this.connectionListener = connectionListener;
         out = new PrintWriter(client.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+        this.logger.finest("ClientHandle created");
     }
 
     public synchronized void registerCallback(MessageListener listener) {
@@ -37,14 +43,18 @@ public class ClientHandle extends Thread {
     @Override
     public void run() {
         super.run();
+        this.logger.finer("Running ClientHandle");
         String value = "";
         try {
             while ((value = in.readLine()) != null) {
+                this.logger.fine("message received: " + value);
                 Optional<InMessage> opt_msg = InMessage.fromString(value);
                 opt_msg.ifPresent(msg -> {
+                    this.logger.finer("Post Processing:" + msg);
                     listener.messageReceived(id, msg);
                 });
                 if (opt_msg.isEmpty()) {
+                    this.logger.fine("Message was bad");
                     sendMsg(new BadMessage());
                 }
             }
@@ -54,11 +64,13 @@ public class ClientHandle extends Thread {
     }
 
     public synchronized void sendMsg(OutMessage msg) {
+        this.logger.entering(this.getClass().toString(), "sendMsg()", msg);
         out.println(msg.toString());
         out.flush();
     }
 
     public void disconnect() throws IOException {
+        this.logger.info("Disconnecting ClientHandler");
         client.close();
     }
 }
