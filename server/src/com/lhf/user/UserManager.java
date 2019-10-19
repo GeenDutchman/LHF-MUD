@@ -30,9 +30,11 @@ public class UserManager {
 
     public UserID addUser(CreateInMessage msg, ClientID clientId) {
         UserID userId = new UserID(msg);
+        if (!userMap.containsKey(userId)) {
+            game.addNewPlayerToGame(userId);
+        }
         userMap.put(userId, new User(msg, clientId));
         clientMap.put(userId, clientId);
-        game.addNewPlayerToGame(userId);
         return userId;
     }
     public ClientID getClient(UserID id) {

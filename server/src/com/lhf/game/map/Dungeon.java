@@ -5,6 +5,7 @@ import com.lhf.user.UserID;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Dungeon {
     private Room startingRoom = null;
@@ -36,12 +37,13 @@ public class Dungeon {
         return null;
     }
 
-    public String goCommand(UserID id, String direction) {
+    public String goCommand(UserID id, String direction, AtomicBoolean didMove) {
         Room room = getPlayerRoom(id);
         if (room == null) {
             return "You are not in this dungeon.";
         }
         if(room.exitRoom(id, direction)) {
+            didMove.set(true);
             return "You went " + direction + ". \r\n\n" + getPlayerRoom(id).toString();
         }
         return "That isn't a valid direction to go.";

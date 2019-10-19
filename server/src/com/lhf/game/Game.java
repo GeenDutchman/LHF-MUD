@@ -15,6 +15,7 @@ import com.lhf.user.UserManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Game implements UserListener {
     ServerInterface server;
@@ -55,12 +56,22 @@ public class Game implements UserListener {
         }
 
         if (msg instanceof GoMessage) {
+            AtomicBoolean didMove = new AtomicBoolean(false);
+
             server.sendMessageToUser(
                     new GameMessage(
-                        dungeon.goCommand(id, ((GoMessage) msg).getDirection())
+                        dungeon.goCommand(id, ((GoMessage) msg).getDirection(), didMove)
                     ),
                     id
             );
+            if (didMove.get()) {
+                sendMessageToAllInRoomExceptPlayer(
+                        new GameMessage(
+                                id.getUsername() + " has entered the room."
+                        ),
+                        id
+                );
+            }
         }
 
         if (msg instanceof ExamineMessage) {
