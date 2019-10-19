@@ -26,6 +26,10 @@ public class InMessage {
                     return Optional.of(new CreateInMessage(arguments));
                 case "examine":
                     return Optional.of(new ExamineMessage(arguments));
+                case "go":
+                    return Optional.of(new GoMessage(arguments));
+                case "look":
+                    return Optional.of(new LookMessage());
                 default:
                     return Optional.empty();
             }

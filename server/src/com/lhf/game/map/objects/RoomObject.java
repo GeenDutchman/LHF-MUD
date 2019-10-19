@@ -25,4 +25,12 @@ public abstract class RoomObject {
         return false;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof RoomObject)) {
+            return false;
+        }
+        RoomObject ro = (RoomObject)obj;
+        return objectName.equals(ro.objectName);
+    }
 }

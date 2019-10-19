@@ -1,5 +1,6 @@
 package com.lhf.user;
 
+import com.lhf.game.Game;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.server.ClientID;
 
@@ -10,6 +11,7 @@ import java.util.Optional;
 public class UserManager {
     private HashMap<UserID, User> userMap;
     private HashMap<UserID, ClientID> clientMap;
+    private Game game;
     public UserManager() {
         userMap = new HashMap<>();
         clientMap = new HashMap<>();
@@ -30,6 +32,7 @@ public class UserManager {
         UserID userId = new UserID(msg);
         userMap.put(userId, new User(msg, clientId));
         clientMap.put(userId, clientId);
+        game.addNewPlayerToGame(userId);
         return userId;
     }
     public ClientID getClient(UserID id) {
@@ -39,5 +42,9 @@ public class UserManager {
 
     public void removeUser(UserID id) {
         clientMap.remove(id);
+    }
+
+    public void setGame(Game g) {
+        game = g;
     }
 }
