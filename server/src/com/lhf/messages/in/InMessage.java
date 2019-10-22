@@ -28,6 +28,8 @@ public class InMessage {
                     return Optional.of(new ExamineMessage(arguments));
                 case "go":
                     return Optional.of(new GoMessage(arguments));
+                case "interact":
+                    return Optional.of(new InteractMessage(arguments));
                 case "look":
                     return Optional.of(new LookMessage());
                 default:

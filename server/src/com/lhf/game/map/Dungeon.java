@@ -37,12 +37,22 @@ public class Dungeon {
         return null;
     }
 
+    private Player getPlayerById(UserID id) {
+        for (Room r : rooms) {
+            Player p = r.getPlayerInRoom(id);
+            if (p != null) {
+                return p;
+            }
+        }
+        return null;
+    }
+
     public String goCommand(UserID id, String direction, AtomicBoolean didMove) {
         Room room = getPlayerRoom(id);
         if (room == null) {
             return "You are not in this dungeon.";
         }
-        if(room.exitRoom(id, direction)) {
+        if(room.exitRoom(getPlayerById(id), direction)) {
             didMove.set(true);
             return "You went " + direction + ". \r\n\n" + getPlayerRoom(id).toString();
         }
@@ -54,7 +64,15 @@ public class Dungeon {
         if (room == null) {
             return "You are not in this dungeon.";
         }
-        return room.examine(id, name);
+        return room.examine(getPlayerById(id), name);
+    }
+
+    public String interactCommand(UserID id, String name) {
+        Room room = getPlayerRoom(id);
+        if (room == null) {
+            return "You are not in this dungeon.";
+        }
+        return room.interact(getPlayerById(id), name);
     }
 
     public String lookCommand(UserID id) {

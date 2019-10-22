@@ -1,4 +1,4 @@
-package com.lhf.game.map.objects.interfaces;
+package com.lhf.game.map.objects.item.interfaces;
 
 public interface Examinable {
 

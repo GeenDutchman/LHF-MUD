@@ -1,11 +1,13 @@
-package com.lhf.game.map.objects;
+package com.lhf.game.map.objects.item;
 
-public abstract class RoomObject {
+public abstract class Item {
 
-    String objectName;
-    boolean isVisible;
+    //Name it will be known by
+    private String objectName;
+    //Will not output with look if false
+    private boolean isVisible;
 
-    public RoomObject(String name, boolean isVisible) {
+    public Item(String name, boolean isVisible) {
         this.objectName = name;
         this.isVisible = isVisible;
     }
@@ -27,10 +29,10 @@ public abstract class RoomObject {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof RoomObject)) {
+        if (!(obj instanceof Item)) {
             return false;
         }
-        RoomObject ro = (RoomObject)obj;
+        Item ro = (Item)obj;
         return objectName.equals(ro.objectName);
     }
 }

@@ -1,9 +1,9 @@
 package com.lhf.game.map;
 
-import com.lhf.game.map.objects.RoomObject;
-import com.lhf.game.map.objects.interfaces.Examinable;
-import com.lhf.game.map.objects.interfaces.Obtainable;
-import com.lhf.game.map.objects.interfaces.Usable;
+import com.lhf.game.map.objects.item.Item;
+import com.lhf.game.map.objects.item.interfaces.Examinable;
+import com.lhf.game.map.objects.roomobject.abstractclasses.InteractObject;
+import com.lhf.game.map.objects.roomobject.abstractclasses.RoomObject;
 import com.lhf.user.UserID;
 
 import java.util.*;
@@ -12,6 +12,7 @@ public class Room {
 
     private Set<Player> players;
     private Map<String, Room> exits;
+    private List<Item> items;
     private List<RoomObject> objects;
     private String description;
 
@@ -19,6 +20,7 @@ public class Room {
         this.description = description;
         players = new HashSet<>();
         exits = new HashMap<>();
+        items = new ArrayList<>();
         objects = new ArrayList<>();
     }
 
@@ -30,8 +32,7 @@ public class Room {
         return players.remove(p);
     }
 
-    public boolean exitRoom(UserID id, String direction) {
-        Player p = getPlayerInRoom(id);
+    public boolean exitRoom(Player p, String direction) {
         if (p == null) {
             return false;
         }
@@ -54,6 +55,14 @@ public class Room {
         return true;
     }
 
+    public boolean addItem(Item obj) {
+        if (items.contains(obj)) {
+            return false;
+        }
+        items.add(obj);
+        return true;
+    }
+
     public boolean addObject(RoomObject obj) {
         if (objects.contains(obj)) {
             return false;
@@ -62,8 +71,27 @@ public class Room {
         return true;
     }
 
+
     public String getDescription() {
         return description;
+    }
+
+    public String getListOfAllVisibleItems() {
+        StringJoiner output = new StringJoiner(",");
+        for (Item o : items) {
+            if (o.checkVisibility()) {
+                output.add(o.getName());
+            }
+        }
+        return output.toString();
+    }
+
+    public String getListOfAllItems() {
+        StringJoiner output = new StringJoiner(",");
+        for (Item o : items) {
+            output.add(o.getName());
+        }
+        return output.toString();
     }
 
     public String getListOfAllVisibleObjects() {
@@ -84,8 +112,8 @@ public class Room {
         return output.toString();
     }
 
-    public String examine(UserID id, String name) {
-        for (RoomObject ro : objects) {
+    public String examine(Player p, String name) {
+        for (Item ro : items) {
             if (ro.checkName(name)) {
                 if (ro instanceof Examinable) {
                     Examinable ex = (Examinable)ro;
@@ -100,36 +128,20 @@ public class Room {
         return "You couldn't find " + name + " to examine.";
     }
 
-    public String use(UserID id, String name) {
+    public String interact(Player p, String name) {
         for (RoomObject ro : objects) {
             if (ro.checkName(name)) {
-                if (ro instanceof Usable) {
-                    Examinable ex = (Examinable)ro;
-                    return "You used " + name;
+                if (ro instanceof InteractObject) {
+                    InteractObject ex = (InteractObject)ro;
+                    return ex.doUseAction(p);
                 }
                 else {
-                    return "You cannot use " + name + ".";
+                    return "You cannot interact with " + name + ".";
                 }
             }
         }
 
-        return "You couldn't find " + name + " to use.";
-    }
-
-    public String obtain(UserID id, String name) {
-        for (RoomObject ro : objects) {
-            if (ro.checkName(name)) {
-                if (ro instanceof Obtainable) {
-                    Examinable ex = (Examinable)ro;
-                    return "You tried to obtain " + name + ", but alas, this feature has not been implemented yet.";
-                }
-                else {
-                    return "You cannot obtain " + name + ".";
-                }
-            }
-        }
-
-        return "You couldn't find " + name + " to obtain.";
+        return "You couldn't find " + name + " to interact with.";
     }
 
     public Player getPlayerInRoom(UserID id) {
@@ -165,12 +177,15 @@ public class Room {
     public String toString() {
 
         String output = getDescription() +
-                "\r\n\n" +
+                "\r\n" +
                 "The possible directions are:\r\n";
         output += getDirections();
         output += "\r\n";
         output += "Objects you can see:\r\n";
         output += getListOfAllVisibleObjects();
+        output += "\r\n";
+        output += "Items you can see:\r\n";
+        output += getListOfAllVisibleItems();
         output += "\r\n";
         output += "Players in room:\r\n";
         output += getListOfPlayers();

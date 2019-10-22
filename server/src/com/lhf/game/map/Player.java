@@ -4,9 +4,11 @@ import com.lhf.user.UserID;
 
 public class Player {
     private UserID id;
+    private boolean inBattle;
 
     public Player(UserID id) {
         this.id = id;
+        inBattle = false;
     }
 
     @Override

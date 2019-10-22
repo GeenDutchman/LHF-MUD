@@ -90,6 +90,14 @@ public class Game implements UserListener {
                     id
             );
         }
+        if (msg instanceof InteractMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.interactCommand(id, ((InteractMessage) msg).getObject())
+                    ),
+                    id
+            );
+        }
     }
 
     private void sendMessageToAllInRoom(OutMessage msg, @NotNull UserID id) {
