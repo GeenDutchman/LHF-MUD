@@ -1,7 +1,7 @@
 package com.lhf.game.map;
 
 import com.lhf.game.map.objects.item.Item;
-import com.lhf.game.map.objects.item.interfaces.Examinable;
+import com.lhf.game.map.objects.sharedinterfaces.Examinable;
 import com.lhf.game.map.objects.roomobject.abstractclasses.InteractObject;
 import com.lhf.game.map.objects.roomobject.abstractclasses.RoomObject;
 import com.lhf.user.UserID;
@@ -114,6 +114,18 @@ public class Room {
 
     public String examine(Player p, String name) {
         for (Item ro : items) {
+            if (ro.checkName(name)) {
+                if (ro instanceof Examinable) {
+                    Examinable ex = (Examinable)ro;
+                    return ex.getDescription();
+                }
+                else {
+                    return "You cannot examine " + name + ".";
+                }
+            }
+        }
+
+        for (RoomObject ro : objects) {
             if (ro.checkName(name)) {
                 if (ro instanceof Examinable) {
                     Examinable ex = (Examinable)ro;
