@@ -2,7 +2,7 @@
 School Project
 
 
-See our (class wiki)[https://github.com/cs428TAs/f2019/wiki/L.H.F.-M.U.D.] page.
+See our class wiki <https://github.com/cs428TAs/f2019/wiki/L.H.F.-M.U.D.>  page.
 
 # The Team:
 * Drake Foltz (Project Manager) - I come up with PBIs, keep track of tasks and generating reports, as well as hop in on the coding.
