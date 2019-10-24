@@ -7,6 +7,7 @@ import com.lhf.interfaces.UserListener;
 import com.lhf.messages.out.BadMessage;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.in.ExitMessage;
+import com.lhf.messages.out.NoUserMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.user.UserID;
 import com.lhf.user.UserManager;
@@ -129,8 +130,9 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
                     UserID new_user = userManager.addUser((CreateInMessage) msg, id);
                     clientManager.addUserForClient(id, new_user);
                 } else {
+                    // if there is no User
                     logger.fine("Sending BadMessage to client");
-                    sendMessageToClient(new BadMessage(), id);
+                    sendMessageToClient(new NoUserMessage(), id);
                 }
             }
         }
@@ -138,6 +140,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
 
     private void notifyConnectionListeners(ClientID id) {
         logger.entering(this.getClass().toString(), "notifyConnectionListeners()", id);
+        //This will only take action if they have created a user
         clientManager.getUserForClient(id).ifPresent(userID -> {
             logger.info("Notifying that a user has connected! " + userID);
             for (UserListener listener : userListeners) {
@@ -152,6 +155,10 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
         logger.info("User connected");
     }
 
+    /**
+     * This will notify other created Users that a User has left.
+     * @param id id of the User who has left
+     */
     @Override
     public void userLeft(ClientID id) {
         logger.entering(this.getClass().toString(), "userLeft()", id);

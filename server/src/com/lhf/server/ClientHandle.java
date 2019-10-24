@@ -55,6 +55,7 @@ public class ClientHandle extends Thread {
                     listener.messageReceived(id, msg);
                 });
                 if (opt_msg.isEmpty()) {
+                    //The message was not recognized
                     this.logger.fine("Message was bad");
                     sendMsg(new BadMessage());
                 }
