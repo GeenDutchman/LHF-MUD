@@ -1,7 +1,9 @@
 package com.lhf.messages.out;
 
-public class BadMessage extends OutMessage {
+public class BadMessage extends HelpMessage {
     public String toString() {
-       return "I did not understand that message only \"say [msg]\" is supported so far";
+        StringBuilder sb = new StringBuilder("I did not understand that command!\n");
+        sb.append(super.toString());
+        return sb.toString();
     }
 }

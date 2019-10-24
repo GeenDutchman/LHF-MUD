@@ -4,14 +4,15 @@ import com.lhf.interfaces.ConnectionListener;
 import com.lhf.interfaces.MessageListener;
 import com.lhf.interfaces.ServerInterface;
 import com.lhf.interfaces.UserListener;
-import com.lhf.messages.out.BadMessage;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.in.ExitMessage;
+import com.lhf.messages.in.InMessage;
+import com.lhf.messages.out.HelpMessage;
 import com.lhf.messages.out.NoUserMessage;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.user.UserID;
 import com.lhf.user.UserManager;
-import com.lhf.messages.in.InMessage;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -51,7 +52,8 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
                 handle.registerCallback(this);
                 this.logger.fine("Starting handle");
                 handle.start();
-                notifyConnectionListeners(id);
+                //notifyConnectionListeners(id);
+                handle.sendMsg(new WelcomeMessage());
             } catch (IOException e) {
                 logger.info(e.getMessage());
                 e.printStackTrace();
@@ -117,21 +119,25 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
         Optional<UserID> user = clientManager.getUserForClient(id);
         if (msg instanceof ExitMessage) {
             logger.info("That was an exit message");
+            //TODO: some goodbye message here?
             removeClient(id);
         } else {
+            // if there is a User associated with the sending Client, tell UserListener (e.g. Game) about it
             user.ifPresent(userID -> {
                 for (UserListener listener : userListeners) {
                     listener.messageReceived(userID, msg);
                 }
             });
+            // if there is no associated User...
             if (user.isEmpty()) {
                 if (msg instanceof CreateInMessage) {
                     logger.fine("Creating new user");
                     UserID new_user = userManager.addUser((CreateInMessage) msg, id);
                     clientManager.addUserForClient(id, new_user);
+                    sendMessageToUser(new HelpMessage(), new_user);
                 } else {
-                    // if there is no User
-                    logger.fine("Sending BadMessage to client");
+                    // but it was a recognized command
+                    logger.fine("Sending NoUserMessage to client");
                     sendMessageToClient(new NoUserMessage(), id);
                 }
             }
