@@ -139,7 +139,9 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
     private void notifyConnectionListeners(ClientID id) {
         logger.entering(this.getClass().toString(), "notifyConnectionListeners()", id);
         clientManager.getUserForClient(id).ifPresent(userID -> {
+            logger.info("Notifying that a user has connected! " + userID);
             for (UserListener listener : userListeners) {
+                logger.finest("Notifying userListener " + listener);
                 listener.userConnected(userID);
             }
         });

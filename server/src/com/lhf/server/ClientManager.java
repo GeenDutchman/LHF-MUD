@@ -8,14 +8,17 @@ import java.lang.ref.Cleaner;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 public class ClientManager {
     private HashMap<ClientID, ClientHandle> clientMap;
     private HashMap<ClientID, UserID> userMap;
+    private Logger logger;
 
     public ClientManager() {
         clientMap = new HashMap<>();
         userMap = new HashMap<>();
+        logger = Logger.getLogger(this.getClass().getName());
     }
 
     public ClientHandle getConnection(ClientID id) {
@@ -31,6 +34,7 @@ public class ClientManager {
     }
 
     public void addUserForClient(@NotNull ClientID clientID, @NotNull UserID userId){
+        logger.finer("Pairing client " + clientID + " with user " + userId);
         userMap.put(clientID, userId);
     }
 
@@ -39,6 +43,9 @@ public class ClientManager {
     }
 
     public Optional<UserID> getUserForClient(ClientID id) {
-        return Optional.ofNullable(userMap.get(id));
+        logger.finer("Checking if client " + id + " is here.");
+        Optional<UserID> result = Optional.ofNullable((userMap.get(id)));
+        logger.finer("isHere:" + result.isPresent());
+        return result;
     }
 }
