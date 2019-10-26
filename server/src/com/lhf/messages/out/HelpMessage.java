@@ -5,8 +5,9 @@ public class HelpMessage extends OutMessage {
         StringBuilder sb = new StringBuilder("Some commands that you can use:\n");
         sb.append("say [message]\twill tell everyone in your current room the message\n");
         sb.append("tell [username] [message]\twill tell that specific user your message\n");
-        sb.append("look\nwill give you some information about your surroundings\n");
-        sb.append("examine\nwill tell you about some things about interactable objects\n");
+        sb.append("look\twill give you some information about your surroundings\n");
+        sb.append("examine\twill tell you about some things about interactable objects\n");
+        sb.append("go [direction]\twill move you in the desired direction, if that direction exists\n");
 
 
         //lastly
