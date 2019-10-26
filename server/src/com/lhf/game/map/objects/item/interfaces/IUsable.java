@@ -1,5 +1,5 @@
 package com.lhf.game.map.objects.item.interfaces;
 
-public interface Usable {
+public interface IUsable {
     String performUsage();
 }
