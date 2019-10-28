@@ -1,5 +1,6 @@
 package com.lhf.game;
 
+import com.lhf.game.inventory.Inventory;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
 import com.lhf.game.map.Player;
@@ -105,6 +106,32 @@ public class Game implements UserListener {
             server.sendMessageToUser(
                     new GameMessage(
                             dungeon.interactCommand(id, ((InteractMessage) msg).getObject())
+                    ),
+                    id
+            );
+        }
+
+        if (msg instanceof TakeMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.takeCommand(id, ((TakeMessage) msg).getTarget())
+                    ),
+                    id
+            );
+        }
+        if (msg instanceof EquipMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.equip(id, ((EquipMessage) msg).getItemName())
+                    ),
+                    id
+            );
+        }
+
+        if (msg instanceof InventoryMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.inventory(id)
                     ),
                     id
             );

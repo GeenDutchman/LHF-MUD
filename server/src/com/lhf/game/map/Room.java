@@ -1,6 +1,7 @@
 package com.lhf.game.map;
 
 import com.lhf.game.map.objects.item.Item;
+import com.lhf.game.map.objects.item.interfaces.Takeable;
 import com.lhf.game.map.objects.sharedinterfaces.Examinable;
 import com.lhf.game.map.objects.roomobject.abstractclasses.InteractObject;
 import com.lhf.game.map.objects.roomobject.abstractclasses.RoomObject;
@@ -205,4 +206,17 @@ public class Room {
     }
 
 
+    public String take(Player player, String name) {
+        Optional<Item> maybeItem = this.items.stream().filter(i -> i.getName().equals(name)).findAny();
+        if (maybeItem.isEmpty()) {
+            return "Could not find that item in this room";
+        }
+        Item item = maybeItem.get();
+        if (item instanceof Takeable) {
+            player.takeItem((Takeable) item);
+            this.items.remove(item);
+            return "Successfully taken";
+        }
+        return "You cannot take that item";
+    }
 }

@@ -32,6 +32,12 @@ public class InMessage {
                     return Optional.of(new InteractMessage(arguments));
                 case "look":
                     return Optional.of(new LookMessage());
+                case "take":
+                    return Optional.of(new TakeMessage(arguments));
+                case "inventory":
+                    return Optional.of(new InventoryMessage());
+                case "equip":
+                    return Optional.of(new EquipMessage(arguments));
                 default:
                     return Optional.empty();
             }
