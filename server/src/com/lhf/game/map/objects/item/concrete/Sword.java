@@ -38,12 +38,12 @@ public class Sword implements IWeapon {
 
     @Override
     public List<Pair<String, Integer>> equip() {
-        return new ArrayList<>(); // changes nothing
+        return new ArrayList<>(0); // changes nothing
     }
 
     @Override
     public List<Pair<String, Integer>> unequip() {
-        return new ArrayList<>(); // changes nothing
+        return new ArrayList<>(0); // changes nothing
     }
 
     @Override
