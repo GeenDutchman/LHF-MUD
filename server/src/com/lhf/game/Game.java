@@ -5,14 +5,15 @@ import com.lhf.game.map.DungeonBuilder;
 import com.lhf.game.map.Player;
 import com.lhf.interfaces.ServerInterface;
 import com.lhf.interfaces.UserListener;
-import com.lhf.messages.in.*;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.in.TellMessage;
+import com.lhf.messages.in.*;
 import com.lhf.messages.out.*;
 import com.lhf.user.User;
 import com.lhf.user.UserID;
 import com.lhf.user.UserManager;
 import org.jetbrains.annotations.NotNull;
+
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -105,6 +106,32 @@ public class Game implements UserListener {
             server.sendMessageToUser(
                     new GameMessage(
                             dungeon.interactCommand(id, ((InteractMessage) msg).getObject())
+                    ),
+                    id
+            );
+        }
+
+        if (msg instanceof TakeMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.takeCommand(id, ((TakeMessage) msg).getTarget())
+                    ),
+                    id
+            );
+        }
+        if (msg instanceof EquipMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.equip(id, ((EquipMessage) msg).getItemName())
+                    ),
+                    id
+            );
+        }
+
+        if (msg instanceof InventoryMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.inventory(id)
                     ),
                     id
             );

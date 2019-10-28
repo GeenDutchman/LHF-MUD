@@ -91,4 +91,26 @@ public class Dungeon {
         }
         return ids;
     }
+
+    public String takeCommand(UserID id, String name) {
+        Room room = getPlayerRoom(id);
+        if (room == null) {
+            return "You are not in this dungeon";
+        }
+        return room.take(getPlayerById(id), name);
+    }
+
+    public String inventory(UserID id) {
+        Player player = getPlayerById(id);
+        return player.getInventory().toString();
+    }
+
+    public String equip(UserID id, String itemName) {
+        Player player = getPlayerById(id);
+        if (player.equipItem(itemName)) {
+            return "Successfully equipped";
+        } else {
+            return "Could not equip that";
+        }
+    }
 }
