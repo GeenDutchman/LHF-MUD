@@ -5,9 +5,9 @@ import com.lhf.game.Attack;
 public interface IWeapon extends IEquipable {
     WeaponSubtype getWeaponSubtype();
 
-    int rollAttack();
+    int rollToHit();
 
-    int getDamage();
+    int rollDamage();
 
-    Attack getAttack();
+    Attack rollAttack();
 }
