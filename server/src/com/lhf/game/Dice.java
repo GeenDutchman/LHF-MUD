@@ -19,7 +19,7 @@ public class Dice {
         this.rand = new Random();
     }
 
-    public Dice getInstance() {
+    public static Dice getInstance() {
         if (Dice._instance == null) {
             Dice._instance = new Dice();
         }
