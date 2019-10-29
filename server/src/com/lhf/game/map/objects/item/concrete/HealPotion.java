@@ -1,11 +1,10 @@
 package com.lhf.game.map.objects.item.concrete;
 
 import com.lhf.game.Dice;
-import com.lhf.game.map.objects.item.StackableItem;
-import com.lhf.game.map.objects.item.interfaces.IUsable;
-import com.lhf.game.map.objects.sharedinterfaces.Examinable;
+import com.lhf.game.map.objects.item.Item;
+import com.lhf.game.map.objects.item.interfaces.Consumable;
 
-public class HealPotion extends StackableItem implements Examinable, IUsable {
+public class HealPotion extends Item implements Consumable {
 
     public enum HEALTYPE {
         Regular,
@@ -26,19 +25,14 @@ public class HealPotion extends StackableItem implements Examinable, IUsable {
         this.healtype = healtype;
     }
 
-    int use() throws StackableItemException {
-        if (this.getCount() > 0) {
-            super.take();
-            switch (this.healtype) {
-                case Regular:
-                    return Dice.roll(1, 4);
-                case Greater:
-                    return Dice.roll(1, 6);
-                case Critical:
-                    return Dice.roll(1, 8);
-            }
-        } else {
-            throw new StackableItemException("You don't have any to use!");
+    int use() {
+        switch (this.healtype) {
+            case Regular:
+                return Dice.roll(1, 4);
+            case Greater:
+                return Dice.roll(1, 6);
+            case Critical:
+                return Dice.roll(1, 8);
         }
         return 0;
     }
@@ -50,12 +44,8 @@ public class HealPotion extends StackableItem implements Examinable, IUsable {
 
     @Override
     public String getDescription() {
-        StringBuilder sb = new StringBuilder("This is a stack of ");
-        sb.append(this.getCount()).append(" bottle");
-        if (this.getCount() > 1) {
-            sb.append('s');
-        }
-        sb.append(" of ").append(this.getName());
+        StringBuilder sb = new StringBuilder("This is a bottle of ");
+        sb.append(this.getName());
         return sb.toString();
     }
 }
