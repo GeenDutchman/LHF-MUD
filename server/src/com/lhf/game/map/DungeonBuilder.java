@@ -1,7 +1,7 @@
 package com.lhf.game.map;
 
 import com.lhf.game.map.objects.item.Note;
-import com.lhf.game.map.objects.item.interfaces.RustyDagger;
+import com.lhf.game.map.objects.item.concrete.RustyDagger;
 import com.lhf.game.map.objects.roomobject.Dispenser;
 import com.lhf.game.map.objects.roomobject.Switch;
 import com.lhf.game.map.objects.roomobject.actions.DispenserAction;
@@ -51,7 +51,7 @@ public class DungeonBuilder {
         Note loreNote = new Note("ominous lore", true, "You read the page and it says 'This page intentionally left blank.'");
         historyHall.addItem(loreNote);
 
-        RustyDagger dagger = new RustyDagger("Rusty Dagger", true);
+        RustyDagger dagger = new RustyDagger(true);
         historyHall.addItem(dagger);
         //Test dispenser start - could be used for other items
         Dispenser dispenser = new Dispenser("note dispenser", true, false);
