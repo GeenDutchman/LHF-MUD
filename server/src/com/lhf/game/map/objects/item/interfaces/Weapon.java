@@ -2,7 +2,7 @@ package com.lhf.game.map.objects.item.interfaces;
 
 import com.lhf.game.Attack;
 
-public interface IWeapon extends IEquipable {
+public interface Weapon extends Equipable, Usable {
     WeaponSubtype getWeaponSubtype();
 
     int rollToHit();
