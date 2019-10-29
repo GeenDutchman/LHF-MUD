@@ -6,6 +6,7 @@ import com.lhf.game.map.Player;
 import com.lhf.interfaces.ServerInterface;
 import com.lhf.interfaces.UserListener;
 import com.lhf.messages.in.SayMessage;
+import com.lhf.messages.in.ShoutMessage;
 import com.lhf.messages.in.TellMessage;
 import com.lhf.messages.in.*;
 import com.lhf.messages.out.*;
@@ -53,9 +54,13 @@ public class Game implements UserListener {
         this.logger.entering(this.getClass().toString(), "messageReceived()");
         this.logger.fine("Message:" + msg + " for:" + id);
         User user = userManager.getUser(id);
+        if (msg instanceof ShoutMessage) {
+            this.logger.finer("Shouting");
+            server.sendMessageToAll(new com.lhf.messages.out.ShoutMessage(((ShoutMessage) msg).getMessage(), user));
+        }
         if (msg instanceof SayMessage) {
             this.logger.finer("Saying");
-            server.sendMessageToAll(new com.lhf.messages.out.SayMessage(((SayMessage)msg).getMessage(), user));
+            this.sendMessageToAllInRoom(new com.lhf.messages.out.SayMessage(((SayMessage) msg).getMessage(), user), id);
         }
         if (msg instanceof TellMessage) {
             this.logger.finer("Telling");
