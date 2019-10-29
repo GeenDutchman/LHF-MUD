@@ -2,15 +2,20 @@ package com.lhf.game.map.objects.item.concrete;
 
 import com.lhf.game.Attack;
 import com.lhf.game.Dice;
+import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.item.interfaces.EquipType;
-import com.lhf.game.map.objects.item.interfaces.IWeapon;
+import com.lhf.game.map.objects.item.interfaces.Weapon;
 import com.lhf.game.map.objects.item.interfaces.WeaponSubtype;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Sword implements IWeapon {
+public class Sword extends Item implements Weapon {
+    public Sword(boolean isVisible) {
+        super("Sword", isVisible);
+    }
+
     @Override
     public WeaponSubtype getWeaponSubtype() {
         return WeaponSubtype.SIMPLE;
@@ -28,7 +33,7 @@ public class Sword implements IWeapon {
 
     @Override
     public Attack rollAttack() {
-        return new Attack(this.rollToHit()).addFlavorAndDamage("Slashing---", this.rollDamage());
+        return new Attack(this.rollToHit()).addFlavorAndDamage("Slashing", this.rollDamage());
     }
 
     @Override
@@ -52,5 +57,10 @@ public class Sword implements IWeapon {
         sb.append("This is a nice, shiny sword.  It's a bit simple though...");
         //TODO: should this describe that it does 1d6 damage?
         return sb.toString();
+    }
+
+    @Override
+    public String performUsage() {
+        return "You swung a sword..."; //TODO: generalize this
     }
 }

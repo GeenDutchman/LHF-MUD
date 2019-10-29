@@ -1,14 +1,19 @@
 package com.lhf.game.map.objects.item.concrete;
 
+import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.item.interfaces.EquipType;
-import com.lhf.game.map.objects.item.interfaces.IEquipable;
+import com.lhf.game.map.objects.item.interfaces.Equipable;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Shield implements IEquipable {
+public class Shield extends Item implements Equipable {
     private int AC = 2;
+
+    public Shield(boolean isVisible) {
+        super("Shield", isVisible);
+    }
 
     @Override
     public EquipType getType() {

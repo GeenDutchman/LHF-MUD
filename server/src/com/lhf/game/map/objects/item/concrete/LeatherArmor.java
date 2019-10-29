@@ -1,14 +1,19 @@
 package com.lhf.game.map.objects.item.concrete;
 
+import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.item.interfaces.EquipType;
-import com.lhf.game.map.objects.item.interfaces.IEquipable;
+import com.lhf.game.map.objects.item.interfaces.Equipable;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class LeatherArmor implements IEquipable {
+public class LeatherArmor extends Item implements Equipable {
     private int AC = 2;
+
+    public LeatherArmor(boolean isVisible) {
+        super("Leather Armor", isVisible);
+    }
 
     @Override
     public EquipType getType() {
