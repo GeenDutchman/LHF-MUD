@@ -1,5 +1,6 @@
 package com.lhf.game.inventory;
 
+import com.lhf.game.inventory.Inventory;
 import com.lhf.game.map.objects.item.interfaces.Takeable;
 
 public interface InventoryOwner {

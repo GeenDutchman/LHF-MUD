@@ -1,6 +1,6 @@
 package com.lhf.game.map.objects.roomobject.interfaces;
 
-import com.lhf.game.map.Player;
+import com.lhf.game.creature.Player;
 
 import java.util.Map;
 
