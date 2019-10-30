@@ -97,12 +97,6 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         this.equipmentSlots = statblock.equipmentSlots;
     }
 
-    /*public void drop(String itemName){
-        if(inventory.find(itemName)){
-            inventory.remove(item);
-        }
-    }*/
-
     public void updateHitpoints(int value) {
         int current = stats.get(Stats.CURRENTHP);
         int max = stats.get(Stats.MAXHP);
@@ -181,51 +175,12 @@ public class Creature implements InventoryOwner, EquipmentOwner {
 
     //public void ( Ability ability, String target);
 
-    // STR:0, DEX:1, CON:2 , INT:3, WIS:4, CHA:5
-    private int getAttributeIndex(Attributes attribute) {
-        switch (attribute) {
-            case STR:
-                return 0;
-            case DEX:
-                return 1;
-            case CON:
-                return 2;
-            case INT:
-                return 3;
-            case WIS:
-                return 4;
-            case CHA:
-                return 5;
-            default:
-                return -1;
-        }
+    private int getAttribute(Attributes attribute) {
+        return this.attributes.getOrDefault(attribute, 10);
     }
 
-    // HAT:0, NECKLACE:1, ARMOR:2, SHIELD:3, ARM:4,
-    // LEFTHAND:5, RIGHTHAND:6, BELT:7, BOOTS:8
-    private int getSlotIndex(EquipmentSlots slot) {
-        switch (slot) {
-            case HAT:
-                return 0;
-            case NECKLACE:
-                return 1;
-            case ARMOR:
-                return 2;
-            case SHIELD:
-                return 3;
-            case ARM:
-                return 4;
-            case LEFTHAND:
-                return 5;
-            case RIGHTHAND:
-                return 6;
-            case BELT:
-                return 7;
-            case BOOTS:
-                return 8;
-            default:
-                return -1;
-        }
+    private Item getWhatInSlot(EquipmentSlots slot) {
+        return this.equipmentSlots.get(slot);
     }
 
     //Setters
@@ -292,6 +247,12 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         Creature c = (Creature) obj;
         return c.getName().equals(getName());
     }
+
+    /*public void drop(String itemName){
+        if(inventory.find(itemName)){
+            inventory.remove(item);
+        }
+    }*/
 
     @Override
     public void takeItem(Takeable item) {
