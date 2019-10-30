@@ -1,5 +1,7 @@
 package com.lhf.game.map;
 
+import com.lhf.game.creature.Player;
+import com.lhf.game.shared.enums.EquipmentSlots;
 import com.lhf.user.UserID;
 
 import java.util.HashSet;
@@ -105,9 +107,9 @@ public class Dungeon {
         return player.getInventory().toString();
     }
 
-    public String equip(UserID id, String itemName) {
+    public String equip(UserID id, String itemName, EquipmentSlots slot) {
         Player player = getPlayerById(id);
-        if (player.equipItem(itemName)) {
+        if (player.equipItem(itemName, slot)) {
             return "Successfully equipped";
         } else {
             return "Could not equip that";

@@ -12,7 +12,7 @@ public class InMessage {
         Optional<String> first = Optional.ofNullable(words[0]);
         String arguments = stream.skip(1).collect(Collectors.joining(" "));
         return first.flatMap(val -> {
-            switch (val) {
+            switch (val.toLowerCase()) {
                 case "say":
                     return Optional.of(new SayMessage(arguments));
                 case "tell":
@@ -20,7 +20,12 @@ public class InMessage {
                 case "exit":
                     return Optional.of(new ExitMessage());
                 case "create":
-                    return Optional.of(new CreateInMessage(arguments));
+                    CreateInMessage create_message = new CreateInMessage(arguments);
+                    if (!create_message.getUsername().equals("")) {
+                        return Optional.of(create_message);
+                    } else {
+                        return Optional.empty();
+                    }
                 case "examine":
                     return Optional.of(new ExamineMessage(arguments));
                 case "go":

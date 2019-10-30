@@ -6,7 +6,6 @@ import com.lhf.server.ClientID;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Optional;
 
 public class UserManager {
     private HashMap<UserID, User> userMap;
@@ -31,7 +30,7 @@ public class UserManager {
     public UserID addUser(CreateInMessage msg, ClientID clientId) {
         UserID userId = new UserID(msg);
         if (!userMap.containsKey(userId)) {
-            game.addNewPlayerToGame(userId);
+            game.addNewPlayerToGame(userId, msg.getUsername());
         }
         userMap.put(userId, new User(msg, clientId));
         clientMap.put(userId, clientId);

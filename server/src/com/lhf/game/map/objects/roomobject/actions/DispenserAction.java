@@ -1,6 +1,6 @@
 package com.lhf.game.map.objects.roomobject.actions;
 
-import com.lhf.game.map.Player;
+import com.lhf.game.creature.Player;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.roomobject.Dispenser;

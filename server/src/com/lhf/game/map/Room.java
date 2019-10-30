@@ -1,5 +1,6 @@
 package com.lhf.game.map;
 
+import com.lhf.game.creature.Player;
 import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.item.interfaces.Takeable;
 import com.lhf.game.map.objects.roomobject.abstractclasses.InteractObject;
