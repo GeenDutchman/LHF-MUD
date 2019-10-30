@@ -2,23 +2,18 @@ package com.lhf.game.map.objects.item.concrete;
 
 import com.lhf.game.Attack;
 import com.lhf.game.map.objects.item.Item;
-import com.lhf.game.map.objects.item.interfaces.EquipType;
 import com.lhf.game.map.objects.item.interfaces.Weapon;
-import com.lhf.game.map.objects.item.interfaces.WeaponSubtype;
 import com.lhf.game.shared.dice.Dice;
+import com.lhf.game.shared.enums.EquipmentSlots;
+import com.lhf.game.shared.enums.EquipmentTypes;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Sword extends Item implements Weapon {
-    public Sword(boolean isVisible) {
+public class Longsword extends Item implements Weapon {
+    public Longsword(boolean isVisible) {
         super("Sword", isVisible);
-    }
-
-    @Override
-    public WeaponSubtype getWeaponSubtype() {
-        return WeaponSubtype.SIMPLE;
     }
 
     @Override
@@ -37,8 +32,18 @@ public class Sword extends Item implements Weapon {
     }
 
     @Override
-    public EquipType getType() {
-        return EquipType.WEAPON;
+    public List<EquipmentTypes> getType() {
+        List result = new ArrayList<EquipmentTypes>();
+        result.add(EquipmentTypes.SIMPLEMELEEWEAPONS);
+        result.add(EquipmentTypes.LONGSWORD);
+        return result;
+    }
+
+    @Override
+    public List<EquipmentSlots> getWhichSlots() {
+        List<EquipmentSlots> result = new ArrayList<>();
+        result.add(EquipmentSlots.WEAPON);
+        return result;
     }
 
     @Override
@@ -54,7 +59,7 @@ public class Sword extends Item implements Weapon {
     @Override
     public String getDescription() {
         StringBuilder sb = new StringBuilder();
-        sb.append("This is a nice, shiny sword.  It's a bit simple though...");
+        sb.append("This is a nice, long, shiny sword.  It's a bit simple though...");
         //TODO: should this describe that it does 1d6 damage?
         return sb.toString();
     }

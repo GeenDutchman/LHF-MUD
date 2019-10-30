@@ -1,8 +1,9 @@
 package com.lhf.game.map.objects.item.concrete;
 
 import com.lhf.game.map.objects.item.Item;
-import com.lhf.game.map.objects.item.interfaces.EquipType;
 import com.lhf.game.map.objects.item.interfaces.Equipable;
+import com.lhf.game.shared.enums.EquipmentSlots;
+import com.lhf.game.shared.enums.EquipmentTypes;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
@@ -16,8 +17,18 @@ public class LeatherArmor extends Item implements Equipable {
     }
 
     @Override
-    public EquipType getType() {
-        return EquipType.BODY;
+    public List<EquipmentTypes> getType() {
+        List<EquipmentTypes> result = new ArrayList<>();
+        result.add(EquipmentTypes.LIGHTARMOR);
+        result.add(EquipmentTypes.LEATHER);
+        return result;
+    }
+
+    @Override
+    public List<EquipmentSlots> getWhichSlots() {
+        List<EquipmentSlots> result = new ArrayList<>();
+        result.add(EquipmentSlots.ARMOR);
+        return result;
     }
 
     @Override

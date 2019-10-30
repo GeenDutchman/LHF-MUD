@@ -1,8 +1,9 @@
 package com.lhf.game.map.objects.item.concrete;
 
 import com.lhf.game.map.objects.item.Item;
-import com.lhf.game.map.objects.item.interfaces.EquipType;
 import com.lhf.game.map.objects.item.interfaces.Equipable;
+import com.lhf.game.shared.enums.EquipmentSlots;
+import com.lhf.game.shared.enums.EquipmentTypes;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
@@ -16,8 +17,17 @@ public class Shield extends Item implements Equipable {
     }
 
     @Override
-    public EquipType getType() {
-        return EquipType.HAND;
+    public List<EquipmentTypes> getType() {
+        List result = new ArrayList<EquipmentTypes>();
+        result.add(EquipmentTypes.SHIELD);
+        return result;
+    }
+
+    @Override
+    public List<EquipmentSlots> getWhichSlots() {
+        List result = new ArrayList<EquipmentSlots>();
+        result.add(EquipmentSlots.SHIELD);
+        return result;
     }
 
     @Override

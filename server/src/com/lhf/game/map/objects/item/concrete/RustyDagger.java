@@ -2,25 +2,34 @@ package com.lhf.game.map.objects.item.concrete;
 
 import com.lhf.game.Attack;
 import com.lhf.game.map.objects.item.Item;
-import com.lhf.game.map.objects.item.interfaces.EquipType;
 import com.lhf.game.map.objects.item.interfaces.Weapon;
-import com.lhf.game.map.objects.item.interfaces.WeaponSubtype;
 import com.lhf.game.shared.dice.Dice;
+import com.lhf.game.shared.enums.EquipmentSlots;
+import com.lhf.game.shared.enums.EquipmentTypes;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class RustyDagger extends Item implements Weapon {
-    private static EquipType TYPE = EquipType.WEAPON;
 
     public RustyDagger(boolean isVisible) {
         super("Rusty Dagger", isVisible);
     }
 
     @Override
-    public EquipType getType() {
-        return TYPE;
+    public List<EquipmentTypes> getType() {
+        List<EquipmentTypes> result = new ArrayList<>();
+        result.add(EquipmentTypes.SIMPLEMELEEWEAPONS);
+        result.add(EquipmentTypes.DAGGER);
+        return result;
+    }
+
+    @Override
+    public List<EquipmentSlots> getWhichSlots() {
+        List<EquipmentSlots> result = new ArrayList<>();
+        result.add(EquipmentSlots.WEAPON);
+        return result;
     }
 
     @Override
@@ -36,11 +45,6 @@ public class RustyDagger extends Item implements Weapon {
     @Override
     public String getDescription() {
         return "Rusty Dagger to stab monsters with";
-    }
-
-    @Override
-    public WeaponSubtype getWeaponSubtype() {
-        return WeaponSubtype.SIMPLE;
     }
 
     @Override

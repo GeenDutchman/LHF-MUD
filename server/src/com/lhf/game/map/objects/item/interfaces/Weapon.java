@@ -3,7 +3,7 @@ package com.lhf.game.map.objects.item.interfaces;
 import com.lhf.game.Attack;
 
 public interface Weapon extends Equipable, Usable {
-    WeaponSubtype getWeaponSubtype();
+//    List<EquipmentTypes> getWeaponSubtype();
 
     int rollToHit();
 
