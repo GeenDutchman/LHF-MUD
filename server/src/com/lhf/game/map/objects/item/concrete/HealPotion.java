@@ -1,8 +1,8 @@
 package com.lhf.game.map.objects.item.concrete;
 
-import com.lhf.game.Dice;
 import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.item.interfaces.Consumable;
+import com.lhf.game.shared.dice.Dice;
 
 public class HealPotion extends Item implements Consumable {
 
@@ -26,13 +26,14 @@ public class HealPotion extends Item implements Consumable {
     }
 
     int use() {
+        Dice die = Dice.getInstance();
         switch (this.healtype) {
             case Regular:
-                return Dice.roll(1, 4);
+                return die.d4(1);
             case Greater:
-                return Dice.roll(1, 6);
+                return die.d6(1);
             case Critical:
-                return Dice.roll(1, 8);
+                return die.d8(1);
         }
         return 0;
     }

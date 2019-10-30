@@ -1,11 +1,11 @@
 package com.lhf.game.map.objects.item.concrete;
 
 import com.lhf.game.Attack;
-import com.lhf.game.Dice;
 import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.item.interfaces.EquipType;
 import com.lhf.game.map.objects.item.interfaces.Weapon;
 import com.lhf.game.map.objects.item.interfaces.WeaponSubtype;
+import com.lhf.game.shared.dice.Dice;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
@@ -45,12 +45,12 @@ public class RustyDagger extends Item implements Weapon {
 
     @Override
     public int rollToHit() {
-        return Dice.roll(1, 20);
+        return Dice.getInstance().d20(1);
     }
 
     @Override
     public int rollDamage() {
-        return Dice.roll(1, 4);
+        return Dice.getInstance().d4(1);
     }
 
     @Override
