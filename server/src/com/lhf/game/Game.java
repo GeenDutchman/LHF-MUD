@@ -1,9 +1,8 @@
 package com.lhf.game;
 
-import com.lhf.game.inventory.Inventory;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
-import com.lhf.game.map.Player;
+import com.lhf.game.creature.Player;
 import com.lhf.interfaces.ServerInterface;
 import com.lhf.interfaces.UserListener;
 import com.lhf.messages.in.SayMessage;
@@ -128,7 +127,7 @@ public class Game implements UserListener {
         if (msg instanceof EquipMessage) {
             server.sendMessageToUser(
                     new GameMessage(
-                            dungeon.equip(id, ((EquipMessage) msg).getItemName())
+                            dungeon.equip(id, ((EquipMessage) msg).getItemName(), ((EquipMessage) msg).getEquipSlot())
                     ),
                     id
             );
@@ -160,8 +159,8 @@ public class Game implements UserListener {
         }
     }
 
-    public void addNewPlayerToGame(UserID id) {
-        Player newPlayer = new Player(id);
+    public void addNewPlayerToGame(UserID id, String name) {
+        Player newPlayer = new Player(id, name);
         dungeon.addNewPlayer(newPlayer);
     }
 }

@@ -1,4 +1,4 @@
-package com.lhf.game;
+package com.lhf.game.shared.dice;
 
 import java.util.List;
 import java.util.Random;

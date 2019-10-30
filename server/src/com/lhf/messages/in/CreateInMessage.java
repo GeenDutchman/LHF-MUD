@@ -4,9 +4,14 @@ public class CreateInMessage extends InMessage {
     String username;
     String password;
     public CreateInMessage(String payload) {
-         String[] words = payload.split(" ");
-         username = words[0];
-         password = words[1];
+        if(payload.length() > 1 && payload.contains(" ")) {
+            String[] words = payload.split(" ");
+            username = words[0];
+            password = words[1];
+        }else{
+            username = "";
+            password = "";
+        }
     }
 
     public String getUsername() {

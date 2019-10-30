@@ -1,6 +1,6 @@
 package com.lhf.game.map.objects.roomobject.abstractclasses;
 
-import com.lhf.game.map.Player;
+import com.lhf.game.creature.Player;
 import com.lhf.game.map.objects.roomobject.interfaces.InteractAction;
 
 import java.util.HashMap;
