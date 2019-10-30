@@ -33,7 +33,7 @@ public class LeatherArmor extends Item implements Equipable {
 
     @Override
     public List<Pair<String, Integer>> equip() {
-        ArrayList result = new ArrayList<Pair<String, Integer>>();
+        ArrayList<Pair<String, Integer>> result = new ArrayList<Pair<String, Integer>>();
         result.add(new Pair<String, Integer>("AC", this.AC));
         return result;
     }
