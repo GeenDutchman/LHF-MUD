@@ -10,10 +10,7 @@ import com.lhf.game.map.objects.item.interfaces.Usable;
 import com.lhf.game.shared.enums.*;
 import javafx.util.Pair;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.lhf.game.shared.enums.Attributes.*;
 
@@ -333,6 +330,9 @@ public class Creature implements InventoryOwner, EquipmentOwner {
 
     @Override
     public String equipItem(String itemName, EquipmentSlots slot) {
+        if (slot == null) {
+            return "That is not a slot.  These are your options: " + Arrays.toString(EquipmentSlots.values()) + "\n\r";
+        }
         if (this.inventory.hasItem(itemName)) {
             Optional<Takeable> item = this.inventory.getItem(itemName);
             if (item.get() instanceof Equipable) {
@@ -340,6 +340,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
                 if (thing.getWhichSlots().contains(slot)) {
                     String unequipMessage = this.unequipItem(slot);
                     this.applyUse(thing.equip());
+                    this.inventory.removeItem(thing);
                     this.equipmentSlots.putIfAbsent(slot, (Item) thing);
                     return unequipMessage + thing.getName() + " successfully equipped!\n\r";
                 }

@@ -109,10 +109,11 @@ public class Dungeon {
 
     public String equip(UserID id, String itemName, EquipmentSlots slot) {
         Player player = getPlayerById(id);
-        if (player.equipItem(itemName, slot)) {
-            return "Successfully equipped";
-        } else {
-            return "Could not equip that";
-        }
+//        if (player.equipItem(itemName, slot)) {
+//            return "Successfully equipped";
+//        } else {
+//            return "Could not equip that";
+//        }
+        return player.equipItem(itemName, slot);
     }
 }

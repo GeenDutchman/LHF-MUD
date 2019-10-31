@@ -38,6 +38,9 @@ public class EquipMessage extends InMessage {
             case "boots":
                 equipSlot = BOOTS;
                 break;
+            case "weapon":
+                equipSlot = WEAPON;
+                break;
             default:
                 equipSlot = null;
         }
