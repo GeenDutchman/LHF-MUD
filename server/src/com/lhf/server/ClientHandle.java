@@ -49,8 +49,8 @@ public class ClientHandle extends Thread {
             while ((value = in.readLine()) != null) {
                 this.logger.fine("message received: " + value);
                 Optional<InMessage> opt_msg = InMessage.fromString(value);
-                this.logger.finest("the message received was deemed: " + opt_msg.getClass().getTypeName());
                 opt_msg.ifPresent(msg -> {
+                    this.logger.finest("the message received was deemed" + msg.getClass().toString());
                     this.logger.finer("Post Processing:" + msg);
                     listener.messageReceived(id, msg);
                 });
