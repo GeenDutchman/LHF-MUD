@@ -7,5 +7,5 @@ public interface InventoryOwner {
 
     Inventory getInventory();
 
-    void useItem(int itemIndex);
+    void useItem(String itemName);
 }

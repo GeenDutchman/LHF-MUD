@@ -4,11 +4,16 @@ import com.lhf.game.inventory.EquipmentOwner;
 import com.lhf.game.inventory.Inventory;
 import com.lhf.game.inventory.InventoryOwner;
 import com.lhf.game.map.objects.item.Item;
+import com.lhf.game.map.objects.item.interfaces.Equipable;
 import com.lhf.game.map.objects.item.interfaces.Takeable;
+import com.lhf.game.map.objects.item.interfaces.Usable;
 import com.lhf.game.shared.enums.*;
+import javafx.util.Pair;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 
 import static com.lhf.game.shared.enums.Attributes.*;
 
@@ -133,6 +138,10 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         this.attributes.put(attribute, this.attributes.get(attribute) + value);
     }
 
+    public void updateStat(Stats stat, int value) {
+        this.stats.put(stat, this.stats.get(stat) + value);
+    }
+
 
 
     /* start getters*/
@@ -248,11 +257,23 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         return c.getName().equals(getName());
     }
 
-    /*public void drop(String itemName){
-        if(inventory.find(itemName)){
-            inventory.remove(item);
+    public void drop(String itemName) {
+        Optional<Takeable> item = this.inventory.getItem(itemName);
+        if (item.isPresent()) {
+            this.inventory.removeItem(item.get());
+            //TODO: add to environment
+            return;
         }
-    }*/
+
+        for (EquipmentSlots slot : this.equipmentSlots.keySet()) {
+            Item thing = this.equipmentSlots.get(slot);
+            if (thing.getName().equals(itemName)) {
+                this.equipmentSlots.remove(slot);
+                //TODO: add to environment
+                return;
+            }
+        }
+    }
 
     @Override
     public void takeItem(Takeable item) {
@@ -265,39 +286,79 @@ public class Creature implements InventoryOwner, EquipmentOwner {
     }
 
     @Override
-    public void useItem(int itemIndex) {
-        //Code here
-        //System.out.println( name + " is attempting to use item: " + itemName);
+    public void useItem(String itemName) {
+        Optional<Takeable> item = this.inventory.getItem(itemName);
+        if (item.isPresent()) {
+            Takeable takeable = item.get();
+            if (takeable instanceof Usable) {
+                System.out.println(((Usable) takeable).performUsage());
+                //TODO: this should somehow interact with environment as well as player...
+                return;
+            }
+            //TODO: should report not usable
+            return;
+        }
+
+        for (Item equipped : this.equipmentSlots.values()) {
+            if (equipped.getName().equals(itemName)) {
+                if (equipped instanceof Usable) {
+                    System.out.println(((Usable) equipped).performUsage());
+                    //TODO: this should somehow interact with environment as well as player...
+                    return;
+                }
+                //TODO: report not usable
+                return;
+            }
+        }
+        //TODO: report itemName not found
     }
 
-    @Override
-    public boolean equipItem(String itemName, EquipmentSlots slot) {
-        /*
-        if(inventory.find(itemName)){
-            Item item = inventory.remove(itemName);
-        }
-        if(item.isEquipable()){
-            index = getSlotIndex(item.getType);
-            Item formerlyEquiped = equipmentSlots[index];
-            equipmentSlots[index] = item;
-            item.equip(); //im imagining this returns a modifer or AC to update and its value
-            //call appropriate update function
-
-            if(formerlyEquiped != null){
-                unequip(formerlyEquiped);
+    private boolean applyUse(List<Pair<String, Integer>> applications) {
+        for (Pair<String, Integer> p : applications) {
+            try {
+                Attributes attribute = Attributes.valueOf(p.getKey());
+                this.updateAttribute(attribute, p.getValue());
+            } catch (IllegalArgumentException e) {
+                try {
+                    Stats stat = Stats.valueOf(p.getKey());
+                    this.updateStat(stat, p.getValue());
+                } catch (IllegalArgumentException e2) {
+                    e2.printStackTrace();
+                    return false;
+                }
             }
-            System.out.println(name + " equiped: " + itemName);
-
         }
-         */
         return true;
     }
 
     @Override
-    public void unequipItem(EquipmentSlots slot) {
-        //Code here
-        //item.unequip(); //im imagining this returns a modifer or AC to update and its value
-        // call appropriate update function
-        //System.out.println(name + " unequiped: " + item.name);
+    public String equipItem(String itemName, EquipmentSlots slot) {
+        if (this.inventory.hasItem(itemName)) {
+            Optional<Takeable> item = this.inventory.getItem(itemName);
+            if (item.get() instanceof Equipable) {
+                Equipable thing = (Equipable) item.get();
+                if (thing.getWhichSlots().contains(slot)) {
+                    String unequipMessage = this.unequipItem(slot);
+                    this.applyUse(thing.equip());
+                    this.equipmentSlots.putIfAbsent(slot, (Item) thing);
+                    return unequipMessage + thing.getName() + " successfully equipped!\n\r";
+                }
+                return "You cannot equip the " + thing.getName() + " to " + slot.toString() + "\n\r";
+            }
+            return itemName + " is not equippable!\n\r";
+        }
+
+        return itemName + " is not in your inventory, so you cannot equip it!\n\r";
+    }
+
+    @Override
+    public String unequipItem(EquipmentSlots slot) {
+        Equipable thing = (Equipable) this.equipmentSlots.remove(slot);
+        if (thing != null) {
+            this.applyUse(thing.unequip());
+            this.inventory.addItem(thing);
+            return "You have unequipped your " + thing.getName() + "\n\r";
+        }
+        return "That slot is empty.\n\r";
     }
 }
