@@ -283,6 +283,29 @@ public class Creature implements InventoryOwner, EquipmentOwner {
     }
 
     @Override
+    public String listInventory() {
+        StringBuilder sb = new StringBuilder();
+        if (this.inventory.isEmpty()) {
+            sb.append("Your inventory is empty.");
+        } else {
+            sb.append(this.inventory.toString());
+        }
+        sb.append('\n');
+
+        for (EquipmentSlots slot : EquipmentSlots.values()) {
+            Item item = this.equipmentSlots.get(slot);
+
+            if (item == null) {
+                sb.append(slot.toString()).append(": ").append("empty. ");
+            } else {
+                sb.append(slot.toString()).append(": ").append(item.getName()).append(". ");
+            }
+        }
+
+        return sb.toString();
+    }
+
+    @Override
     public void useItem(String itemName) {
         Optional<Takeable> item = this.inventory.getItem(itemName);
         if (item.isPresent()) {
@@ -354,6 +377,9 @@ public class Creature implements InventoryOwner, EquipmentOwner {
 
     @Override
     public String unequipItem(EquipmentSlots slot) {
+        if (slot == null) {
+            return "That is not a slot.  These are your options: " + Arrays.toString(EquipmentSlots.values()) + "\n\r";
+        }
         Equipable thing = (Equipable) this.equipmentSlots.remove(slot);
         if (thing != null) {
             this.applyUse(thing.unequip());

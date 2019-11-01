@@ -133,6 +133,15 @@ public class Game implements UserListener {
             );
         }
 
+        if (msg instanceof UnequipMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.unequip(id, ((UnequipMessage) msg).getEquipSlot())
+                    ),
+                    id
+            );
+        }
+
         if (msg instanceof InventoryMessage) {
             server.sendMessageToUser(
                     new GameMessage(

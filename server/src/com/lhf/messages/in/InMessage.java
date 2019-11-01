@@ -40,6 +40,8 @@ public class InMessage {
                     return Optional.of(new InventoryMessage());
                 case "equip":
                     return Optional.of(new EquipMessage(arguments));
+                case "unequip":
+                    return Optional.of(new UnequipMessage(arguments));
                 default:
                     return Optional.empty();
             }

@@ -7,5 +7,7 @@ public interface InventoryOwner {
 
     Inventory getInventory();
 
+    String listInventory();
+
     void useItem(String itemName);
 }

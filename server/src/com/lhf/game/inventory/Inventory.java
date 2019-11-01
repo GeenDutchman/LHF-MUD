@@ -28,6 +28,10 @@ public class Inventory {
         return this.items.stream().filter(i -> i.getName().equals(itemName)).findAny();
     }
 
+    public boolean isEmpty() {
+        return this.items.isEmpty();
+    }
+
     @Override
     public String toString() {
         return this.items.stream().map(item -> item.getName()).reduce("", (val, acc) -> acc + val + ", ");

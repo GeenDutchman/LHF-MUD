@@ -104,7 +104,7 @@ public class Dungeon {
 
     public String inventory(UserID id) {
         Player player = getPlayerById(id);
-        return player.getInventory().toString();
+        return player.listInventory();
     }
 
     public String equip(UserID id, String itemName, EquipmentSlots slot) {
@@ -115,5 +115,10 @@ public class Dungeon {
 //            return "Could not equip that";
 //        }
         return player.equipItem(itemName, slot);
+    }
+
+    public String unequip(UserID id, EquipmentSlots slot) {
+        Player player = getPlayerById(id);
+        return player.unequipItem(slot);
     }
 }
