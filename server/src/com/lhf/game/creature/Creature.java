@@ -5,6 +5,7 @@ import com.lhf.game.inventory.Inventory;
 import com.lhf.game.inventory.InventoryOwner;
 import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.item.interfaces.Takeable;
+import com.lhf.game.map.objects.roomobject.Corpse;
 import com.lhf.game.shared.enums.*;
 
 import java.util.HashSet;
@@ -336,5 +337,10 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         //item.unequip(); //im imagining this returns a modifer or AC to update and its value
         // call appropriate update function
         //System.out.println(name + " unequiped: " + item.name);
+    }
+
+    public Corpse generateCorpseFromCreature() {
+        //Make the corpse if called
+        return null;
     }
 }

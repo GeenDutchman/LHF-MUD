@@ -1,7 +1,7 @@
 package com.lhf.game.map;
 
 import com.lhf.game.map.objects.item.Note;
-import com.lhf.game.map.objects.item.interfaces.RustyDagger;
+import com.lhf.game.map.objects.item.weapons.RustyDagger;
 import com.lhf.game.map.objects.roomobject.Dispenser;
 import com.lhf.game.map.objects.roomobject.Switch;
 import com.lhf.game.map.objects.roomobject.actions.DispenserAction;
