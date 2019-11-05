@@ -1,21 +1,13 @@
 package com.lhf.game.creature;
 
-import com.lhf.game.inventory.*;
-import com.lhf.game.map.objects.item.interfaces.EquipType;
-import com.lhf.game.map.objects.item.interfaces.Equipable;
-import com.lhf.game.map.objects.item.interfaces.Takeable;
 import com.lhf.game.shared.enums.CreatureType;
-import com.lhf.game.shared.enums.EquipmentSlots;
 import com.lhf.game.shared.enums.EquipmentTypes;
 import com.lhf.game.shared.enums.Stats;
 import com.lhf.user.UserID;
 
-import java.util.HashMap;
-import java.util.Optional;
-
 import static com.lhf.game.shared.enums.Attributes.*;
 
-public class Player extends Creature{
+public class Player extends Creature {
     private UserID id;
 
     public Player(UserID id, String name) {
@@ -61,7 +53,7 @@ public class Player extends Creature{
         if (!(obj instanceof Player)) {
             return false;
         }
-        Player p = (Player)obj;
+        Player p = (Player) obj;
         return p.getId().equals(getId());
     }
 

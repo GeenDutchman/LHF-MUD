@@ -1,8 +1,8 @@
 package com.lhf.game;
 
+import com.lhf.game.creature.Player;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
-import com.lhf.game.creature.Player;
 import com.lhf.interfaces.ServerInterface;
 import com.lhf.interfaces.UserListener;
 import com.lhf.messages.in.SayMessage;
@@ -124,10 +124,30 @@ public class Game implements UserListener {
                     id
             );
         }
+
+        if (msg instanceof DropMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.dropCommand(id, ((DropMessage) msg).getTarget())
+                    ),
+                    id
+            );
+            this.sendMessageToAllInRoomExceptPlayer(new GameMessage("An item just dropped to the floor."), id);
+        }
+
         if (msg instanceof EquipMessage) {
             server.sendMessageToUser(
                     new GameMessage(
                             dungeon.equip(id, ((EquipMessage) msg).getItemName(), ((EquipMessage) msg).getEquipSlot())
+                    ),
+                    id
+            );
+        }
+
+        if (msg instanceof UnequipMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.unequip(id, ((UnequipMessage) msg).getEquipSlot())
                     ),
                     id
             );

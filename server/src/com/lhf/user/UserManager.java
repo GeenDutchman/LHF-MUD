@@ -6,7 +6,6 @@ import com.lhf.server.ClientID;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Optional;
 
 public class UserManager {
     private HashMap<UserID, User> userMap;

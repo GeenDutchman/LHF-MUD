@@ -1,8 +1,5 @@
 package com.lhf.messages.in;
 
-import com.lhf.messages.out.BadMessage;
-import com.lhf.user.User;
-
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,9 +21,9 @@ public class InMessage {
                     return Optional.of(new ExitMessage());
                 case "create":
                     CreateInMessage create_message = new CreateInMessage(arguments);
-                    if(!create_message.getUsername().equals("")) {
+                    if (!create_message.getUsername().equals("")) {
                         return Optional.of(create_message);
-                    }else{
+                    } else {
                         return Optional.empty();
                     }
                 case "examine":
@@ -39,10 +36,14 @@ public class InMessage {
                     return Optional.of(new LookMessage());
                 case "take":
                     return Optional.of(new TakeMessage(arguments));
+                case "drop":
+                    return Optional.of(new DropMessage(arguments));
                 case "inventory":
                     return Optional.of(new InventoryMessage());
                 case "equip":
                     return Optional.of(new EquipMessage(arguments));
+                case "unequip":
+                    return Optional.of(new UnequipMessage(arguments));
                 default:
                     return Optional.empty();
             }
