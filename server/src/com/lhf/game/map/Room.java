@@ -1,5 +1,6 @@
 package com.lhf.game.map;
 
+import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.item.interfaces.Takeable;
@@ -10,6 +11,7 @@ import com.lhf.user.UserID;
 
 import java.util.*;
 
+
 public class Room {
 
     private Set<Player> players;
@@ -17,6 +19,8 @@ public class Room {
     private List<Item> items;
     private List<RoomObject> objects;
     private String description;
+    private BattleManager battleManager;
+
 
     public Room(String description) {
         this.description = description;
@@ -24,6 +28,7 @@ public class Room {
         exits = new HashMap<>();
         items = new ArrayList<>();
         objects = new ArrayList<>();
+        battleManager = new BattleManager(this);
     }
 
     public boolean addPlayer(Player p) {

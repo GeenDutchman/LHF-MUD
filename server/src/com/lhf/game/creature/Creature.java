@@ -7,6 +7,7 @@ import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.item.interfaces.Equipable;
 import com.lhf.game.map.objects.item.interfaces.Takeable;
 import com.lhf.game.map.objects.item.interfaces.Usable;
+import com.lhf.game.map.objects.roomobject.Corpse;
 import com.lhf.game.shared.enums.*;
 import javafx.util.Pair;
 
@@ -40,7 +41,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
     private boolean inBattle; // Boolean to determine if this creature is in combat
 
     //Default constructor
-    public Creature() {
+    public Creature(){
         //Instantiate creature with no name and type Monster
         this.name = "";
         this.creatureType = CreatureType.MONSTER;
@@ -387,5 +388,10 @@ public class Creature implements InventoryOwner, EquipmentOwner {
             return "You have unequipped your " + thing.getName() + "\n\r";
         }
         return "That slot is empty.\n\r";
+    }
+
+    public Corpse generateCorpseFromCreature() {
+        //Make the corpse if called
+        return null;
     }
 }
