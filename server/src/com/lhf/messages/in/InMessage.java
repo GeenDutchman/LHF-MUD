@@ -44,6 +44,8 @@ public class InMessage {
                     return Optional.of(new EquipMessage(arguments));
                 case "unequip":
                     return Optional.of(new UnequipMessage(arguments));
+                case "attack":
+                    return Optional.of(new AttackMessage(arguments));
                 default:
                     return Optional.empty();
             }
