@@ -20,7 +20,7 @@ import static com.lhf.game.shared.enums.Attributes.*;
 
 public class Creature implements InventoryOwner, EquipmentOwner {
 
-    public class Fist implements Weapon {
+    public static class Fist implements Weapon {
 
         @Override
         public int rollToHit() {
@@ -233,8 +233,25 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         return this.inBattle;
     }
 
-    public void attack(String itemName, String target) {
+    public Attack attack(String itemName, String target) {
         System.out.println(name + " is attempting to attack: " + target);
+        Weapon toUse;
+        Optional<Item> item = this.fromAllInventory(itemName);
+        if (item.isPresent() && item.get() instanceof Weapon) {
+            toUse = (Weapon) item.get();
+        } else {
+            toUse = this.getWeapon();
+        }
+        return toUse.rollAttack();
+    }
+
+    public Weapon getWeapon() {
+        Weapon weapon = (Weapon) getWhatInSlot(EquipmentSlots.WEAPON);
+        if (weapon == null) {
+            return new Creature.Fist();
+        } else {
+            return weapon;
+        }
     }
 
     //public void ( Ability ability, String target);
@@ -348,7 +365,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         } else {
             sb.append(this.inventory.toString());
         }
-        sb.append('\n');
+        sb.append("\n\r");
 
         for (EquipmentSlots slot : EquipmentSlots.values()) {
             Item item = this.equipmentSlots.get(slot);
@@ -363,32 +380,37 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         return sb.toString();
     }
 
+    private Optional<Item> fromAllInventory(String itemName) {
+        Optional<Takeable> maybeTakeable = this.inventory.getItem(itemName);
+        if (maybeTakeable.isPresent()) {
+            return Optional.of((Item) maybeTakeable.get());
+        }
+
+        for (Item equipped : this.equipmentSlots.values()) {
+            if (equipped.getName().equals(itemName)) {
+                return Optional.of((equipped));
+            }
+        }
+
+        return Optional.empty();
+    }
+
     @Override
     public void useItem(String itemName) {
-        Optional<Takeable> item = this.inventory.getItem(itemName);
-        if (item.isPresent()) {
-            Takeable takeable = item.get();
-            if (takeable instanceof Usable) {
-                System.out.println(((Usable) takeable).performUsage());
+
+        Optional<Item> maybeItem = this.fromAllInventory(itemName);
+        if (maybeItem.isPresent()) {
+            Item item = maybeItem.get();
+            if (item instanceof Usable) {
+                System.out.println(((Usable) item).performUsage());
                 //TODO: this should somehow interact with environment as well as player...
                 return;
             }
             //TODO: should report not usable
             return;
         }
-
-        for (Item equipped : this.equipmentSlots.values()) {
-            if (equipped.getName().equals(itemName)) {
-                if (equipped instanceof Usable) {
-                    System.out.println(((Usable) equipped).performUsage());
-                    //TODO: this should somehow interact with environment as well as player...
-                    return;
-                }
-                //TODO: report not usable
-                return;
-            }
-        }
         //TODO: report itemName not found
+
     }
 
     private boolean applyUse(List<Pair<String, Integer>> applications) {
