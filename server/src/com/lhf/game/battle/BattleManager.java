@@ -11,18 +11,17 @@ public class BattleManager {
 
     private Deque<Creature> participants;
     private Room room;
+    private boolean isHappening;
 
 
     public BattleManager(Room room) {
         participants = new ArrayDeque<>();
         this.room = room;
+        isHappening = false;
     }
 
     public void addCreatureToBattle(Creature c) {
         participants.addLast(c);
-        if (participants.size() == 2) {
-            startTurn();
-        }
     }
 
     public void removeCreatureFromBattle(Creature c) {
@@ -31,6 +30,18 @@ public class BattleManager {
 
     public boolean isPlayerInBattle(Player p) {
         return participants.contains(p);
+    }
+
+    public boolean isBattleOngoing() {
+        return isHappening;
+    }
+
+    public void startBattle() {
+        isHappening = true;
+    }
+
+    public void endBattle() {
+        isHappening = false;
     }
 
     private void nextTurn() {
@@ -73,8 +84,8 @@ public class BattleManager {
             return;
         }
 
-        if (participants.size() < 2) {
-            //give message saying there is no one to fight
+        if (!isHappening) {
+            //give message saying there is no battle ongoing
             return;
         }
 
