@@ -124,6 +124,17 @@ public class Game implements UserListener {
                     id
             );
         }
+
+        if (msg instanceof DropMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.dropCommand(id, ((DropMessage) msg).getTarget())
+                    ),
+                    id
+            );
+            this.sendMessageToAllInRoomExceptPlayer(new GameMessage("An item just dropped to the floor."), id);
+        }
+
         if (msg instanceof EquipMessage) {
             server.sendMessageToUser(
                     new GameMessage(

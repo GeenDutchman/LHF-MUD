@@ -36,6 +36,8 @@ public class InMessage {
                     return Optional.of(new LookMessage());
                 case "take":
                     return Optional.of(new TakeMessage(arguments));
+                case "drop":
+                    return Optional.of(new DropMessage(arguments));
                 case "inventory":
                     return Optional.of(new InventoryMessage());
                 case "equip":

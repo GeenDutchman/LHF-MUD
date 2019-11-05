@@ -220,4 +220,14 @@ public class Room {
         }
         return "You cannot take that item";
     }
+
+    public String drop(Player player, String itemName) {
+        Optional<Takeable> maybeTakeable = player.dropItem(itemName);
+        if (maybeTakeable.isEmpty()) {
+            return "You don't have a " + itemName + " to drop.";
+        }
+        Takeable takeable = maybeTakeable.get();
+        this.items.add((Item) takeable);
+        return "You glance at your empty hand as the " + takeable.getName() + " drops to the floor.";
+    }
 }

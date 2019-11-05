@@ -254,22 +254,22 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         return c.getName().equals(getName());
     }
 
-    public void drop(String itemName) {
+    @Override
+    public Optional<Takeable> dropItem(String itemName) {
         Optional<Takeable> item = this.inventory.getItem(itemName);
         if (item.isPresent()) {
             this.inventory.removeItem(item.get());
-            //TODO: add to environment
-            return;
+            return item;
         }
 
         for (EquipmentSlots slot : this.equipmentSlots.keySet()) {
-            Item thing = this.equipmentSlots.get(slot);
+            Takeable thing = (Takeable) this.equipmentSlots.get(slot);
             if (thing.getName().equals(itemName)) {
                 this.equipmentSlots.remove(slot);
-                //TODO: add to environment
-                return;
+                return Optional.of(thing);
             }
         }
+        return Optional.empty();
     }
 
     @Override

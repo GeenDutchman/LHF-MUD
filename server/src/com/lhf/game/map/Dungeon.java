@@ -102,6 +102,14 @@ public class Dungeon {
         return room.take(getPlayerById(id), name);
     }
 
+    public String dropCommand(UserID id, String name) {
+        Room room = getPlayerRoom(id);
+        if (room == null) {
+            return "You are not in this dungeon";
+        }
+        return room.drop(getPlayerById(id), name);
+    }
+
     public String inventory(UserID id) {
         Player player = getPlayerById(id);
         return player.listInventory();
