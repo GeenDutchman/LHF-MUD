@@ -110,6 +110,14 @@ public class Dungeon {
         return room.drop(getPlayerById(id), name);
     }
 
+    public String attackCommand(UserID id, String weapon, String target) {
+        Room room = getPlayerRoom(id);
+        if (room == null) {
+            return "You are not in this dungeon";
+        }
+        return room.attack(getPlayerById(id), weapon, target);
+    }
+
     public String inventory(UserID id) {
         Player player = getPlayerById(id);
         return player.listInventory();

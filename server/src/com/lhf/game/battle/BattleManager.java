@@ -22,10 +22,12 @@ public class BattleManager {
 
     public void addCreatureToBattle(Creature c) {
         participants.addLast(c);
+        c.setInBattle(true);
     }
 
     public void removeCreatureFromBattle(Creature c) {
         participants.remove(c);
+        c.setInBattle(false);
     }
 
     public boolean isPlayerInBattle(Player p) {
@@ -78,7 +80,7 @@ public class BattleManager {
         //send message to player that it is their turn
     }
 
-    public void playerAction(Player p, BattleAction action) {
+    public void playerAction(Player p, BattleAction action) {  //TODO: should this return a string??
         if (!participants.contains(p)) {
             //give message that the player is not currently engaged in a fight
             return;
