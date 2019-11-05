@@ -1,9 +1,9 @@
 package com.lhf.messages.in;
 
-public class TakeMessage extends InMessage {
+public class DropMessage extends InMessage {
     private String target;
 
-    public TakeMessage(String arguments) {
+    public DropMessage(String arguments) {
         this.target = arguments;
     }
 

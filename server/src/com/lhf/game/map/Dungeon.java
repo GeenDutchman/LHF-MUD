@@ -102,17 +102,31 @@ public class Dungeon {
         return room.take(getPlayerById(id), name);
     }
 
+    public String dropCommand(UserID id, String name) {
+        Room room = getPlayerRoom(id);
+        if (room == null) {
+            return "You are not in this dungeon";
+        }
+        return room.drop(getPlayerById(id), name);
+    }
+
     public String inventory(UserID id) {
-        Player player= getPlayerById(id);
-        return player.getInventory().toString();
+        Player player = getPlayerById(id);
+        return player.listInventory();
     }
 
     public String equip(UserID id, String itemName, EquipmentSlots slot) {
         Player player = getPlayerById(id);
-        if (player.equipItem(itemName, slot)) {
-            return "Successfully equipped";
-        } else {
-            return "Could not equip that";
-        }
+//        if (player.equipItem(itemName, slot)) {
+//            return "Successfully equipped";
+//        } else {
+//            return "Could not equip that";
+//        }
+        return player.equipItem(itemName, slot);
+    }
+
+    public String unequip(UserID id, EquipmentSlots slot) {
+        Player player = getPlayerById(id);
+        return player.unequipItem(slot);
     }
 }

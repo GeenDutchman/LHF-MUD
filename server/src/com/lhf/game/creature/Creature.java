@@ -4,11 +4,13 @@ import com.lhf.game.inventory.EquipmentOwner;
 import com.lhf.game.inventory.Inventory;
 import com.lhf.game.inventory.InventoryOwner;
 import com.lhf.game.map.objects.item.Item;
+import com.lhf.game.map.objects.item.interfaces.Equipable;
 import com.lhf.game.map.objects.item.interfaces.Takeable;
+import com.lhf.game.map.objects.item.interfaces.Usable;
 import com.lhf.game.shared.enums.*;
+import javafx.util.Pair;
 
-import java.util.HashSet;
-import java.util.HashMap;
+import java.util.*;
 
 import static com.lhf.game.shared.enums.Attributes.*;
 
@@ -38,7 +40,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
     private boolean inBattle; // Boolean to determine if this creature is in combat
 
     //Default constructor
-    public Creature(){
+    public Creature() {
         //Instantiate creature with no name and type Monster
         this.name = "";
         this.creatureType = CreatureType.MONSTER;
@@ -97,53 +99,51 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         this.equipmentSlots = statblock.equipmentSlots;
     }
 
-    /*public void drop(String itemName){
-        if(inventory.find(itemName)){
-            inventory.remove(item);
-        }
-    }*/
-
-    public void updateHitpoints(int value){
+    public void updateHitpoints(int value) {
         int current = stats.get(Stats.CURRENTHP);
         int max = stats.get(Stats.MAXHP);
         current += value;
-        if(current <= 0){
+        if (current <= 0) {
             this.die();
         }
-        if(current > max){
+        if (current > max) {
             current = max;
         }
-        stats.replace(Stats.CURRENTHP,current);
+        stats.replace(Stats.CURRENTHP, current);
     }
 
-    public void updateAc(int value){
+    public void updateAc(int value) {
         int current = stats.get(Stats.AC);
         current += value;
-        stats.replace(Stats.AC,current);
+        stats.replace(Stats.AC, current);
     }
 
-    public void updateXp( int value){
+    public void updateXp(int value) {
         int current = stats.get(Stats.XPEARNED);
         current += value;
-    stats.replace(Stats.XPEARNED,current);
-        if (this.canLevelUp(current, current- value)){
+        stats.replace(Stats.XPEARNED, current);
+        if (this.canLevelUp(current, current - value)) {
             //this.levelUp();
         }
     }
 
-    public void updateModifier(Attributes modifier, int value){
+    public void updateModifier(Attributes modifier, int value) {
         this.modifiers.put(modifier, this.modifiers.get(modifier) + value);
     }
 
-    public void updateAttribute(Attributes attribute, int value){
+    public void updateAttribute(Attributes attribute, int value) {
         this.attributes.put(attribute, this.attributes.get(attribute) + value);
+    }
+
+    public void updateStat(Stats stat, int value) {
+        this.stats.put(stat, this.stats.get(stat) + value);
     }
 
 
 
     /* start getters*/
 
-    public HashMap<Stats,Integer> getStats(){
+    public HashMap<Stats, Integer> getStats() {
         return stats;
     }
 
@@ -171,59 +171,22 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         return equipmentSlots;
     }
 
-    public boolean isInBattle() { return this.inBattle; }
+    public boolean isInBattle() {
+        return this.inBattle;
+    }
 
-    public void attack(String itemName, String target){
-        System.out.println( name + " is attempting to attack: " + target);
+    public void attack(String itemName, String target) {
+        System.out.println(name + " is attempting to attack: " + target);
     }
 
     //public void ( Ability ability, String target);
 
-    // STR:0, DEX:1, CON:2 , INT:3, WIS:4, CHA:5
-    private int getAttributeIndex(Attributes attribute){
-        switch (attribute) {
-            case STR:
-                return 0;
-            case DEX:
-                return 1;
-            case CON:
-                return 2;
-            case INT:
-                return 3;
-            case WIS:
-                return 4;
-            case CHA:
-                return 5;
-            default:
-                return -1;
-        }
+    private int getAttribute(Attributes attribute) {
+        return this.attributes.getOrDefault(attribute, 10);
     }
 
-    // HAT:0, NECKLACE:1, ARMOR:2, SHIELD:3, ARM:4,
-    // LEFTHAND:5, RIGHTHAND:6, BELT:7, BOOTS:8
-    private int getSlotIndex(EquipmentSlots slot){
-        switch (slot) {
-            case HAT:
-                return 0;
-            case NECKLACE:
-                return 1;
-            case ARMOR:
-                return 2;
-            case SHIELD:
-                return 3;
-            case ARM:
-                return 4;
-            case LEFTHAND:
-                return 5;
-            case RIGHTHAND:
-                return 6;
-            case BELT:
-                return 7;
-            case BOOTS:
-                return 8;
-            default:
-                return -1;
-        }
+    private Item getWhatInSlot(EquipmentSlots slot) {
+        return this.equipmentSlots.get(slot);
     }
 
     //Setters
@@ -263,7 +226,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         this.inBattle = inBattle;
     }
 
-    private boolean canLevelUp(int current, int former){
+    private boolean canLevelUp(int current, int former) {
         // if former is below threshold and current is above or equal.. do things
         // in normal 5e this is where we would add abilities and ASI
         // probablly we would pull them into a pocket dimension and explain
@@ -272,7 +235,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         return false;
     }
 
-    private void die(){
+    private void die() {
         System.out.println(name + "died");
         //should unequip all my stuff and put it into my inventory?
         //could also turn me into a room object called body that
@@ -287,8 +250,26 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         if (!(obj instanceof Creature)) {
             return false;
         }
-        Creature c = (Creature)obj;
+        Creature c = (Creature) obj;
         return c.getName().equals(getName());
+    }
+
+    @Override
+    public Optional<Takeable> dropItem(String itemName) {
+        Optional<Takeable> item = this.inventory.getItem(itemName);
+        if (item.isPresent()) {
+            this.inventory.removeItem(item.get());
+            return item;
+        }
+
+        for (EquipmentSlots slot : this.equipmentSlots.keySet()) {
+            Takeable thing = (Takeable) this.equipmentSlots.get(slot);
+            if (thing.getName().equals(itemName)) {
+                this.equipmentSlots.remove(slot);
+                return Optional.of(thing);
+            }
+        }
+        return Optional.empty();
     }
 
     @Override
@@ -302,39 +283,109 @@ public class Creature implements InventoryOwner, EquipmentOwner {
     }
 
     @Override
-    public void useItem(int itemIndex) {
-        //Code here
-        //System.out.println( name + " is attempting to use item: " + itemName);
+    public String listInventory() {
+        StringBuilder sb = new StringBuilder();
+        if (this.inventory.isEmpty()) {
+            sb.append("Your inventory is empty.");
+        } else {
+            sb.append(this.inventory.toString());
+        }
+        sb.append('\n');
+
+        for (EquipmentSlots slot : EquipmentSlots.values()) {
+            Item item = this.equipmentSlots.get(slot);
+
+            if (item == null) {
+                sb.append(slot.toString()).append(": ").append("empty. ");
+            } else {
+                sb.append(slot.toString()).append(": ").append(item.getName()).append(". ");
+            }
+        }
+
+        return sb.toString();
     }
 
     @Override
-    public boolean equipItem(String itemName, EquipmentSlots slot) {
-        /*
-        if(inventory.find(itemName)){
-            Item item = inventory.remove(itemName);
-        }
-        if(item.isEquipable()){
-            index = getSlotIndex(item.getType);
-            Item formerlyEquiped = equipmentSlots[index];
-            equipmentSlots[index] = item;
-            item.equip(); //im imagining this returns a modifer or AC to update and its value
-            //call appropriate update function
-
-            if(formerlyEquiped != null){
-                unequip(formerlyEquiped);
+    public void useItem(String itemName) {
+        Optional<Takeable> item = this.inventory.getItem(itemName);
+        if (item.isPresent()) {
+            Takeable takeable = item.get();
+            if (takeable instanceof Usable) {
+                System.out.println(((Usable) takeable).performUsage());
+                //TODO: this should somehow interact with environment as well as player...
+                return;
             }
-            System.out.println(name + " equiped: " + itemName);
-
+            //TODO: should report not usable
+            return;
         }
-         */
+
+        for (Item equipped : this.equipmentSlots.values()) {
+            if (equipped.getName().equals(itemName)) {
+                if (equipped instanceof Usable) {
+                    System.out.println(((Usable) equipped).performUsage());
+                    //TODO: this should somehow interact with environment as well as player...
+                    return;
+                }
+                //TODO: report not usable
+                return;
+            }
+        }
+        //TODO: report itemName not found
+    }
+
+    private boolean applyUse(List<Pair<String, Integer>> applications) {
+        for (Pair<String, Integer> p : applications) {
+            try {
+                Attributes attribute = Attributes.valueOf(p.getKey());
+                this.updateAttribute(attribute, p.getValue());
+            } catch (IllegalArgumentException e) {
+                try {
+                    Stats stat = Stats.valueOf(p.getKey());
+                    this.updateStat(stat, p.getValue());
+                } catch (IllegalArgumentException e2) {
+                    e2.printStackTrace();
+                    return false;
+                }
+            }
+        }
         return true;
     }
 
     @Override
-    public void unequipItem(EquipmentSlots slot) {
-        //Code here
-        //item.unequip(); //im imagining this returns a modifer or AC to update and its value
-        // call appropriate update function
-        //System.out.println(name + " unequiped: " + item.name);
+    public String equipItem(String itemName, EquipmentSlots slot) {
+        if (slot == null) {
+            return "That is not a slot.  These are your options: " + Arrays.toString(EquipmentSlots.values()) + "\n\r";
+        }
+        if (this.inventory.hasItem(itemName)) {
+            Optional<Takeable> item = this.inventory.getItem(itemName);
+            if (item.get() instanceof Equipable) {
+                Equipable thing = (Equipable) item.get();
+                if (thing.getWhichSlots().contains(slot)) {
+                    String unequipMessage = this.unequipItem(slot);
+                    this.applyUse(thing.equip());
+                    this.inventory.removeItem(thing);
+                    this.equipmentSlots.putIfAbsent(slot, (Item) thing);
+                    return unequipMessage + thing.getName() + " successfully equipped!\n\r";
+                }
+                return "You cannot equip the " + thing.getName() + " to " + slot.toString() + "\n\r";
+            }
+            return itemName + " is not equippable!\n\r";
+        }
+
+        return itemName + " is not in your inventory, so you cannot equip it!\n\r";
+    }
+
+    @Override
+    public String unequipItem(EquipmentSlots slot) {
+        if (slot == null) {
+            return "That is not a slot.  These are your options: " + Arrays.toString(EquipmentSlots.values()) + "\n\r";
+        }
+        Equipable thing = (Equipable) this.equipmentSlots.remove(slot);
+        if (thing != null) {
+            this.applyUse(thing.unequip());
+            this.inventory.addItem(thing);
+            return "You have unequipped your " + thing.getName() + "\n\r";
+        }
+        return "That slot is empty.\n\r";
     }
 }

@@ -1,13 +1,11 @@
 package com.lhf.game.creature;
 
 import com.lhf.game.inventory.Inventory;
-import com.lhf.game.shared.enums.*;
 import com.lhf.game.map.objects.item.Item;
+import com.lhf.game.shared.enums.*;
 
-import java.io.*;
-import java.util.HashSet;
-import  java.util.Map;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class Statblock {
     // examples include a players username or goblin1 ect.
@@ -43,7 +41,7 @@ public class Statblock {
     // and generic stats for creatures
     public Statblock(String name, CreatureType creatureType, HashMap<Attributes, Integer> attributes,
                      HashMap<Attributes, Integer> modifiers, HashMap<Stats, Integer> stats,
-                     HashSet<EquipmentTypes> proficiencies, HashMap<EquipmentSlots,Item> equipmentSlots  ) {
+                     HashSet<EquipmentTypes> proficiencies, HashMap<EquipmentSlots, Item> equipmentSlots) {
         this.name = name;
 
         this.creatureType = creatureType;

@@ -15,22 +15,22 @@ public class DispenserAction implements InteractAction {
         if (!(o1 instanceof Room)) {
             return "Switch error 1.";
         }
-        Room r = (Room)o1;
+        Room r = (Room) o1;
         Object o2 = args.get("disp");
         if (!(o2 instanceof Dispenser)) {
             return "Switch error 2.";
         }
-        Dispenser d = (Dispenser)o2;
+        Dispenser d = (Dispenser) o2;
         Object o3 = args.get("item");
         if (!(o3 instanceof Item)) {
             return "Switch error 2.";
         }
-        Item i = (Item)o3;
+        Item i = (Item) o3;
         Object o4 = args.get("message");
         if (!(o4 instanceof String)) {
             return "Switch error 2.";
         }
-        String s = (String)o4;
+        String s = (String) o4;
         r.addItem(i);
         d.incrementCount();
         return s;

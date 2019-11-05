@@ -4,12 +4,11 @@ import com.lhf.game.shared.enums.EquipmentSlots;
 
 import static com.lhf.game.shared.enums.EquipmentSlots.*;
 
-public class EquipMessage extends InMessage {
-    String itemName;
+public class UnequipMessage extends InMessage {
     EquipmentSlots equipSlot;
-    public EquipMessage(String args) {
-        itemName = args.substring(0, args.lastIndexOf(' '));
-        String cmd = args.substring(args.lastIndexOf(' ') + 1).trim();
+
+    public UnequipMessage(String args) {
+        String cmd = args.trim();
         switch (cmd.toLowerCase()) {
             case "hat":
                 equipSlot = HAT;
@@ -46,9 +45,6 @@ public class EquipMessage extends InMessage {
         }
     }
 
-    public String getItemName() {
-        return itemName;
-    }
 
     public EquipmentSlots getEquipSlot() {
         return equipSlot;
