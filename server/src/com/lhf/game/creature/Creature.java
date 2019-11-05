@@ -1,5 +1,6 @@
 package com.lhf.game.creature;
 
+import com.lhf.game.Attack;
 import com.lhf.game.inventory.EquipmentOwner;
 import com.lhf.game.inventory.Inventory;
 import com.lhf.game.inventory.InventoryOwner;
@@ -7,7 +8,9 @@ import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.item.interfaces.Equipable;
 import com.lhf.game.map.objects.item.interfaces.Takeable;
 import com.lhf.game.map.objects.item.interfaces.Usable;
+import com.lhf.game.map.objects.item.interfaces.Weapon;
 import com.lhf.game.map.objects.roomobject.Corpse;
+import com.lhf.game.shared.dice.Dice;
 import com.lhf.game.shared.enums.*;
 import javafx.util.Pair;
 
@@ -16,6 +19,60 @@ import java.util.*;
 import static com.lhf.game.shared.enums.Attributes.*;
 
 public class Creature implements InventoryOwner, EquipmentOwner {
+
+    public class Fist implements Weapon {
+
+        @Override
+        public int rollToHit() {
+            return Dice.getInstance().d20(1);
+        }
+
+        @Override
+        public int rollDamage() {
+            return Dice.getInstance().d2(1);
+        }
+
+        @Override
+        public Attack rollAttack() {
+            return new Attack(this.rollToHit()).addFlavorAndDamage("Bludgeoning", this.rollDamage());
+        }
+
+        @Override
+        public List<EquipmentTypes> getType() {
+            List<EquipmentTypes> result = new ArrayList<>();
+            result.add(EquipmentTypes.SIMPLEMELEEWEAPONS);
+            result.add(EquipmentTypes.MONSTERPART);
+            return result;
+        }
+
+        @Override
+        public List<EquipmentSlots> getWhichSlots() {
+            List<EquipmentSlots> result = new ArrayList<>();
+            result.add(EquipmentSlots.WEAPON);
+            return result;
+        }
+
+        @Override
+        public List<Pair<String, Integer>> equip() {
+            return new ArrayList<>(0); // changes nothing
+        }
+
+        @Override
+        public List<Pair<String, Integer>> unequip() {
+            return new ArrayList<>(0); // changes nothing
+        }
+
+        @Override
+        public String getName() {
+            return "Fist";
+        }
+
+        @Override
+        public String performUsage() {
+            return "It opens and closes as one can expect of a fist.  Remember, thumb *outside*!";
+        }
+    }
+
     private String name; //Username for players, description name (e.g., goblin 1) for monsters/NPCs
     private CreatureType creatureType; //See shared enum
     //private MonsterType monsterType; // I dont know if we'll need this
