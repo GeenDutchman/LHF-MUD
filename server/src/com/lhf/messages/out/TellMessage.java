@@ -10,6 +10,6 @@ public class TellMessage extends OutMessage {
         message = msg;
     }
     public String toString() {
-        return "<tell>" + from.getUsername() + ": " + message;
+        return "<tell>" + from.getUsername() + ": " + message + "</tell>";
     }
 }
