@@ -87,7 +87,7 @@ public class Room {
         StringJoiner output = new StringJoiner(",");
         for (Item o : items) {
             if (o.checkVisibility()) {
-                output.add("<item>" + o.getName() + "</item>");
+                output.add(o.getStartTagName() + o.getName() + o.getEndTagName());
             }
         }
         return output.toString();
@@ -96,7 +96,7 @@ public class Room {
     public String getListOfAllItems() {
         StringJoiner output = new StringJoiner(",");
         for (Item o : items) {
-            output.add("<item>" + o.getName() + "</item>");
+            output.add(o.getStartTagName() + o.getName() + o.getEndTagName());
         }
         return output.toString();
     }
