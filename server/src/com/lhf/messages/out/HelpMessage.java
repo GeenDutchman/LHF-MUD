@@ -10,7 +10,6 @@ public class HelpMessage extends OutMessage {
         sb.append("<command>interact [object]</command>\ttry to interact with an object in a room\n");
         sb.append("<command>go [direction]</command>\texit a room in the given direction\n");
 
-
         //lastly
         sb.append("<command>exit</command>\twill let you disconnect and leave Ibaif\n");
         return sb.toString();

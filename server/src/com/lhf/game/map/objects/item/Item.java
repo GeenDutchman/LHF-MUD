@@ -1,6 +1,8 @@
 package com.lhf.game.map.objects.item;
 
-public abstract class Item {
+import com.lhf.game.map.objects.sharedinterfaces.Examinable;
+
+public abstract class Item implements Examinable {
 
     //Name it will be known by
     private String objectName;

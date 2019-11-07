@@ -1,18 +1,20 @@
 package com.lhf.game;
 
+import com.lhf.game.creature.Player;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
-import com.lhf.game.map.Player;
 import com.lhf.interfaces.ServerInterface;
 import com.lhf.interfaces.UserListener;
-import com.lhf.messages.in.*;
 import com.lhf.messages.in.SayMessage;
+import com.lhf.messages.in.ShoutMessage;
 import com.lhf.messages.in.TellMessage;
+import com.lhf.messages.in.*;
 import com.lhf.messages.out.*;
 import com.lhf.user.User;
 import com.lhf.user.UserID;
 import com.lhf.user.UserManager;
 import org.jetbrains.annotations.NotNull;
+
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -52,9 +54,13 @@ public class Game implements UserListener {
         this.logger.entering(this.getClass().toString(), "messageReceived()");
         this.logger.fine("Message:" + msg + " for:" + id);
         User user = userManager.getUser(id);
+        if (msg instanceof ShoutMessage) {
+            this.logger.finer("Shouting");
+            server.sendMessageToAll(new com.lhf.messages.out.ShoutMessage(((ShoutMessage) msg).getMessage(), user));
+        }
         if (msg instanceof SayMessage) {
             this.logger.finer("Saying");
-            server.sendMessageToAll(new com.lhf.messages.out.SayMessage(((SayMessage)msg).getMessage(), user));
+            this.sendMessageToAllInRoom(new com.lhf.messages.out.SayMessage(((SayMessage) msg).getMessage(), user), id);
         }
         if (msg instanceof TellMessage) {
             this.logger.finer("Telling");
@@ -109,6 +115,52 @@ public class Game implements UserListener {
                     id
             );
         }
+
+        if (msg instanceof TakeMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.takeCommand(id, ((TakeMessage) msg).getTarget())
+                    ),
+                    id
+            );
+        }
+
+        if (msg instanceof DropMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.dropCommand(id, ((DropMessage) msg).getTarget())
+                    ),
+                    id
+            );
+            this.sendMessageToAllInRoomExceptPlayer(new GameMessage("An item just dropped to the floor."), id);
+        }
+
+        if (msg instanceof EquipMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.equip(id, ((EquipMessage) msg).getItemName(), ((EquipMessage) msg).getEquipSlot())
+                    ),
+                    id
+            );
+        }
+
+        if (msg instanceof UnequipMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.unequip(id, ((UnequipMessage) msg).getEquipSlot())
+                    ),
+                    id
+            );
+        }
+
+        if (msg instanceof InventoryMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.inventory(id)
+                    ),
+                    id
+            );
+        }
     }
 
     private void sendMessageToAllInRoom(OutMessage msg, @NotNull UserID id) {
@@ -127,8 +179,8 @@ public class Game implements UserListener {
         }
     }
 
-    public void addNewPlayerToGame(UserID id) {
-        Player newPlayer = new Player(id);
+    public void addNewPlayerToGame(UserID id, String name) {
+        Player newPlayer = new Player(id, name);
         dungeon.addNewPlayer(newPlayer);
     }
 }

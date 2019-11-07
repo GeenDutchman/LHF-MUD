@@ -1,12 +1,16 @@
 package com.lhf.game.map;
 
+import com.lhf.game.battle.BattleManager;
+import com.lhf.game.creature.Player;
 import com.lhf.game.map.objects.item.Item;
-import com.lhf.game.map.objects.sharedinterfaces.Examinable;
+import com.lhf.game.map.objects.item.interfaces.Takeable;
 import com.lhf.game.map.objects.roomobject.abstractclasses.InteractObject;
 import com.lhf.game.map.objects.roomobject.abstractclasses.RoomObject;
+import com.lhf.game.map.objects.sharedinterfaces.Examinable;
 import com.lhf.user.UserID;
 
 import java.util.*;
+
 
 public class Room {
 
@@ -15,6 +19,8 @@ public class Room {
     private List<Item> items;
     private List<RoomObject> objects;
     private String description;
+    private BattleManager battleManager;
+
 
     public Room(String description) {
         this.description = description;
@@ -22,6 +28,7 @@ public class Room {
         exits = new HashMap<>();
         items = new ArrayList<>();
         objects = new ArrayList<>();
+        battleManager = new BattleManager(this);
     }
 
     public boolean addPlayer(Player p) {
@@ -205,4 +212,27 @@ public class Room {
     }
 
 
+    public String take(Player player, String name) {
+        Optional<Item> maybeItem = this.items.stream().filter(i -> i.getName().equals(name)).findAny();
+        if (maybeItem.isEmpty()) {
+            return "Could not find that item in this room";
+        }
+        Item item = maybeItem.get();
+        if (item instanceof Takeable) {
+            player.takeItem((Takeable) item);
+            this.items.remove(item);
+            return "Successfully taken";
+        }
+        return "You cannot take that item";
+    }
+
+    public String drop(Player player, String itemName) {
+        Optional<Takeable> maybeTakeable = player.dropItem(itemName);
+        if (maybeTakeable.isEmpty()) {
+            return "You don't have a " + itemName + " to drop.";
+        }
+        Takeable takeable = maybeTakeable.get();
+        this.items.add((Item) takeable);
+        return "You glance at your empty hand as the " + takeable.getName() + " drops to the floor.";
+    }
 }
