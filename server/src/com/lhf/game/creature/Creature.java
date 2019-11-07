@@ -8,6 +8,7 @@ import com.lhf.game.map.objects.item.interfaces.Equipable;
 import com.lhf.game.map.objects.item.interfaces.Takeable;
 import com.lhf.game.map.objects.item.interfaces.Usable;
 import com.lhf.game.map.objects.roomobject.Corpse;
+import com.lhf.game.map.objects.sharedinterfaces.Taggable;
 import com.lhf.game.shared.enums.*;
 import javafx.util.Pair;
 
@@ -15,7 +16,7 @@ import java.util.*;
 
 import static com.lhf.game.shared.enums.Attributes.*;
 
-public class Creature implements InventoryOwner, EquipmentOwner {
+public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     private String name; //Username for players, description name (e.g., goblin 1) for monsters/NPCs
     private CreatureType creatureType; //See shared enum
     //private MonsterType monsterType; // I dont know if we'll need this
@@ -299,7 +300,8 @@ public class Creature implements InventoryOwner, EquipmentOwner {
             if (item == null) {
                 sb.append(slot.toString()).append(": ").append("empty. ");
             } else {
-                sb.append(slot.toString()).append(": ").append(item.getName()).append(". ");
+                sb.append(slot.toString()).append(": ").append("<item>").append(item.getName())
+                        .append("</item>").append(". ");
             }
         }
 
@@ -393,5 +395,15 @@ public class Creature implements InventoryOwner, EquipmentOwner {
     public Corpse generateCorpseFromCreature() {
         //Make the corpse if called
         return null;
+    }
+
+    @Override
+    public String getStartTagName() {
+        return "<creature>";
+    }
+
+    @Override
+    public String getEndTagName() {
+        return "</creature>";
     }
 }
