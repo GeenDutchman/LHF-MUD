@@ -1,5 +1,6 @@
 package com.lhf.game.map.objects.item.concrete;
 
+import com.lhf.game.map.Room;
 import com.lhf.game.map.objects.item.interfaces.Consumable;
 import com.lhf.game.map.objects.item.interfaces.Equipable;
 import com.lhf.game.map.objects.item.interfaces.Usable;
@@ -13,6 +14,25 @@ import java.util.List;
 public class RingOfSeeing extends Usable implements Equipable, Consumable {
     public RingOfSeeing(boolean isVisible) {
         super("Ring of Seeing", isVisible, 3);
+        this.setUseAction(Room.class.getName(), (object) -> {
+            if (object == null) {
+                return "That is not a valid target at all!";
+            } else if (object instanceof Room) {
+                String output = getDescription() +
+                        "\r\n" +
+                        "The possible directions are:\r\n";
+                output += ((Room) object).getDirections();
+                output += "\r\n";
+                output += "Objects you can see:\r\n";
+                output += ((Room) object).getListOfAllObjects();
+                output += "\r\n";
+                output += "Items you can see:\r\n";
+                output += ((Room) object).getListOfAllItems();
+                output += "\r\n";
+                return output;
+            }
+            return "You cannot use a " + this.getName() + " on that.";
+        });
     }
 
     @Override
@@ -48,7 +68,9 @@ public class RingOfSeeing extends Usable implements Equipable, Consumable {
     @Override
     public String getDescription() {
         String result = "This ring can help you see things that are not visible to the naked eye.\n\r";
-        result += "It can only be used so many times though, and then it disappears...\n\r";
+        result += "It can only be used so many times though, and then the ring itself disappears...\n\r";
         return result;
     }
+
+
 }
