@@ -403,7 +403,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         if (maybeItem.isPresent()) {
             Item item = maybeItem.get();
             if (item instanceof Usable) {
-                if (item instanceof Consumable) {
+                if (item instanceof Consumable && !((Usable) item).hasUsesLeft()) {
                     inventory.removeItem((Takeable) item);
                 }
                 return ((Usable) item).doUseAction(useOn);

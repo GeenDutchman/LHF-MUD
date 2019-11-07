@@ -36,11 +36,15 @@ public abstract class Usable extends Item {
         methods.put(whenItIsThis, doThis);
     }
 
+    public boolean hasUsesLeft() {
+        return (numCanUseTimes < 0) || (hasBeenUsedTimes < numCanUseTimes);
+    }
+
     public String doUseAction(Object usingOn) {
         if (methods == null || usingOn == null) {
             return "You cannot use this like that!";
         }
-        if (hasBeenUsedTimes > numCanUseTimes) {
+        if (!hasUsesLeft()) {
             return "This item has been used up.";
         }
         if (numCanUseTimes > 0) {

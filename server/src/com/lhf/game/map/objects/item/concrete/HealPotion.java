@@ -10,6 +10,11 @@ import com.lhf.game.shared.enums.Stats;
 
 public class HealPotion extends Usable implements Consumable, Takeable {
 
+    @Override
+    public boolean isUsedUp() {
+        return true;
+    }
+
     public enum HEALTYPE {
         Regular,
         Greater,
