@@ -5,6 +5,7 @@ import com.lhf.game.map.Room;
 import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.roomobject.abstractclasses.RoomObject;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class Usable extends Item {
@@ -14,6 +15,7 @@ public abstract class Usable extends Item {
 
     public Usable(String name, boolean isVisible) {
         super(name, isVisible);
+        methods = new HashMap<>();
         numCanUseTimes = 1;
     }
 
@@ -26,6 +28,7 @@ public abstract class Usable extends Item {
      */
     public Usable(String name, boolean isVisible, int useSoManyTimes) {
         super(name, isVisible);
+        methods = new HashMap<>();
         numCanUseTimes = useSoManyTimes;
     }
 

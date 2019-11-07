@@ -2,12 +2,13 @@ package com.lhf.game.map.objects.item.concrete;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.map.objects.item.interfaces.Consumable;
+import com.lhf.game.map.objects.item.interfaces.Takeable;
 import com.lhf.game.map.objects.item.interfaces.Usable;
 import com.lhf.game.map.objects.item.interfaces.UseAction;
 import com.lhf.game.shared.dice.Dice;
 import com.lhf.game.shared.enums.Stats;
 
-public class HealPotion extends Usable implements Consumable {
+public class HealPotion extends Usable implements Consumable, Takeable {
 
     public enum HEALTYPE {
         Regular,

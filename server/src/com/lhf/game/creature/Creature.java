@@ -408,9 +408,9 @@ public class Creature implements InventoryOwner, EquipmentOwner {
                 }
                 return ((Usable) item).doUseAction(useOn);
             }
-            return "That item is not usable!";
+            return itemName + " is not usable!";
         }
-        return "You do not have that item to use!";
+        return "You do not have that " + itemName + " to use!";
     }
 
     private boolean applyUse(List<Pair<String, Integer>> applications) {

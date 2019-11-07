@@ -209,7 +209,7 @@ public class Room {
                 indirectObject = getCreatureInRoom(onWhat);
             }
             if (indirectObject == null) {
-                return "You couldn't find " + onWhat + " to use " + usefulObject + " on.";
+                return "You couldn't find " + onWhat + " to use.";// " + usefulObject + " on.";
             }
         }
         return p.useItem(usefulObject, indirectObject);
