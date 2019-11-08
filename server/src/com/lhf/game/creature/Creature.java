@@ -5,10 +5,7 @@ import com.lhf.game.inventory.EquipmentOwner;
 import com.lhf.game.inventory.Inventory;
 import com.lhf.game.inventory.InventoryOwner;
 import com.lhf.game.map.objects.item.Item;
-import com.lhf.game.map.objects.item.interfaces.Equipable;
-import com.lhf.game.map.objects.item.interfaces.Takeable;
-import com.lhf.game.map.objects.item.interfaces.Usable;
-import com.lhf.game.map.objects.item.interfaces.Weapon;
+import com.lhf.game.map.objects.item.interfaces.*;
 import com.lhf.game.map.objects.roomobject.Corpse;
 import com.lhf.game.shared.dice.Dice;
 import com.lhf.game.shared.enums.*;
@@ -20,7 +17,11 @@ import static com.lhf.game.shared.enums.Attributes.*;
 
 public class Creature implements InventoryOwner, EquipmentOwner {
 
-    public static class Fist implements Weapon {
+    public class Fist extends Weapon {
+
+        public Fist() {
+            super("Fist", false);
+        }
 
         @Override
         public int rollToHit() {
@@ -63,13 +64,8 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         }
 
         @Override
-        public String getName() {
-            return "Fist";
-        }
-
-        @Override
-        public String performUsage() {
-            return "It opens and closes as one can expect of a fist.  Remember, thumb *outside*!";
+        public String getDescription() {
+            return "This is a " + getName() + " attached to a " + Creature.this.getName();
         }
     }
 
@@ -162,6 +158,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         int max = stats.get(Stats.MAXHP);
         current += value;
         if (current <= 0) {
+            current = 0;
             this.die();
         }
         if (current > max) {
@@ -252,6 +249,22 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         } else {
             return weapon;
         }
+    }
+
+    public String applyAttack(Attack attack) {
+        //add stuff to calculate if the attack hits or not, and return false if so
+        StringBuilder output = new StringBuilder();
+        for (Object o : attack) {
+            String flavor = (String) o;
+            Integer damage = attack.getDamage(flavor);
+            updateHitpoints(-damage);
+            output.append(name + " has been dealt " + damage + " " + flavor + " damage.\n");
+            if (stats.get(Stats.CURRENTHP) <= 0) {
+                output.append(name + " has died.\n");
+                break;
+            }
+        }
+        return output.toString();
     }
 
     //public void ( Ability ability, String target);
@@ -396,21 +409,25 @@ public class Creature implements InventoryOwner, EquipmentOwner {
     }
 
     @Override
-    public void useItem(String itemName) {
+    public String useItem(String itemName, Object onWhat) {
+        // if onWhat is not specified, use this creature
+        Object useOn = onWhat;
+        if (useOn == null) {
+            useOn = this;
+        }
 
         Optional<Item> maybeItem = this.fromAllInventory(itemName);
         if (maybeItem.isPresent()) {
             Item item = maybeItem.get();
             if (item instanceof Usable) {
-                System.out.println(((Usable) item).performUsage());
-                //TODO: this should somehow interact with environment as well as player...
-                return;
+                if (item instanceof Consumable && !((Usable) item).hasUsesLeft()) {
+                    inventory.removeItem((Takeable) item);
+                }
+                return ((Usable) item).doUseAction(useOn);
             }
-            //TODO: should report not usable
-            return;
+            return itemName + " is not usable!";
         }
-        //TODO: report itemName not found
-
+        return "You do not have that " + itemName + " to use!";
     }
 
     private boolean applyUse(List<Pair<String, Integer>> applications) {

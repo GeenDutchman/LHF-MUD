@@ -1,5 +1,7 @@
 package com.lhf.game.map;
 
+import com.lhf.game.Game;
+import com.lhf.game.Messenger;
 import com.lhf.game.battle.AttackAction;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
@@ -9,6 +11,8 @@ import com.lhf.game.map.objects.item.interfaces.Takeable;
 import com.lhf.game.map.objects.roomobject.abstractclasses.InteractObject;
 import com.lhf.game.map.objects.roomobject.abstractclasses.RoomObject;
 import com.lhf.game.map.objects.sharedinterfaces.Examinable;
+import com.lhf.messages.out.GameMessage;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.user.UserID;
 
 import java.util.*;
@@ -23,7 +27,7 @@ public class Room {
     private String description;
     private BattleManager battleManager;
     private Map<Creature, Integer> creatures; // how many of what type of monster
-
+    private Messenger messenger;
 
 
     public Room(String description) {
@@ -197,6 +201,24 @@ public class Room {
         return "You couldn't find " + name + " to interact with.";
     }
 
+    public String use(Player p, String usefulObject, String onWhat) {
+        Object indirectObject = null; // indirectObject is the receiver of the action
+        if (onWhat != null && onWhat.length() > 0) {
+            for (RoomObject ro : objects) {
+                if (ro.checkName(onWhat) && ro instanceof InteractObject) {
+                    indirectObject = (InteractObject) ro;
+                }
+            }
+            if (indirectObject == null) {
+                indirectObject = getCreatureInRoom(onWhat);
+            }
+            if (indirectObject == null) {
+                return "You couldn't find " + onWhat + " to use.";// " + usefulObject + " on.";
+            }
+        }
+        return p.useItem(usefulObject, indirectObject);
+    }
+
     public Player getPlayerInRoom(UserID id) {
         for (Player p : players) {
             if (p.getId().equals(id)) {
@@ -307,12 +329,13 @@ public class Room {
         return "You glance at your empty hand as the " + takeable.getName() + " drops to the floor.";
     }
 
-    public String attack(Player player, String weapon, String target) {
+    public void attack(Player player, String weapon, String target) {
         System.out.println(player.toString() + " attempts attacking " + target + " with " + weapon);
         //if the target does not exist, don't add the player to the combat
         Creature targetCreature = this.getCreatureInRoom(target);
         if (targetCreature == null) {
-            return "You cannot attack " + target + " because it does not exist.";
+            messenger.sendMessageToUser(new GameMessage("You cannot attack " + target + " because it does not exist."), player.getId());
+            return;
         }
         if (!player.isInBattle()) {
             this.battleManager.addCreatureToBattle(player);
@@ -325,8 +348,13 @@ public class Room {
             this.battleManager.startBattle();
         }
         AttackAction attackAction = new AttackAction(targetCreature, weapon);
-        this.battleManager.playerAction(player, attackAction); // if this returns, then use that instead
+        this.battleManager.playerAction(player, attackAction);
 
-        return player.getName() + ' ' + attackAction.toString();
+        return;
+    }
+
+    public void setMessenger(Messenger messenger) {
+        this.messenger = messenger;
+        battleManager.setMessenger(messenger);
     }
 }

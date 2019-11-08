@@ -13,5 +13,5 @@ public interface InventoryOwner {
 
     String listInventory();
 
-    void useItem(String itemName);
+    String useItem(String itemName, Object onWhat);
 }
