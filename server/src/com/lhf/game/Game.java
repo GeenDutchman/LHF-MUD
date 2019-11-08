@@ -170,6 +170,15 @@ public class Game implements UserListener {
                     id
             );
         }
+
+        if (msg instanceof UseMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.useCommand(id, ((UseMessage) msg).getUsefulItem(), ((UseMessage) msg).getTarget())
+                    ),
+                    id
+            );
+        }
     }
 
     private void sendMessageToAllInRoom(OutMessage msg, @NotNull UserID id) {

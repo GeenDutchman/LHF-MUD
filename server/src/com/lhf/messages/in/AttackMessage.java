@@ -2,23 +2,26 @@ package com.lhf.messages.in;
 
 
 public class AttackMessage extends InMessage {
-    private String weaponName;
-    private String targetName;
+    private String weaponName = "";
+    private String targetName = "";
 
-    static final private String prepositionFlag = "with";
+    static final private String[] prepositionFlags = {"with"};
 
     public AttackMessage(String payload) {
         String[] words = payload.split(" ");
-        if (words.length > 2 && prepositionFlag.equals(words[1])) { // attack monster with weapon
-            this.targetName = words[0];
-            this.weaponName = words[2];
-        } else if (words.length == 1) { // attack monster
-            this.targetName = words[0];
-            this.weaponName = "";
-        } else { // attack weapon monster <blah blah blah ignored>
-            this.weaponName = words[0];
-            this.targetName = words[1];
+        boolean usedFlags = areFlags(words, prepositionFlags);
+        if (usedFlags) { // attack target with weapon
+            words = prepositionSeparator(words, prepositionFlags, 2);
+            this.targetName += words[0];
+            this.weaponName += words[1];
+        } else if (words.length >= 2) { // attack weapon target
+            this.weaponName += words[0];
+            this.targetName += words[1];
+        } else {
+            this.targetName += words[0];
         }
+//        String[] words = prepositionSeparator(payload.split(" "), prepositionFlags, 2);//payload.split(" ");
+
     }
 
     public String getWeapon() {

@@ -197,6 +197,24 @@ public class Room {
         return "You couldn't find " + name + " to interact with.";
     }
 
+    public String use(Player p, String usefulObject, String onWhat) {
+        Object indirectObject = null; // indirectObject is the receiver of the action
+        if (onWhat != null && onWhat.length() > 0) {
+            for (RoomObject ro : objects) {
+                if (ro.checkName(onWhat) && ro instanceof InteractObject) {
+                    indirectObject = (InteractObject) ro;
+                }
+            }
+            if (indirectObject == null) {
+                indirectObject = getCreatureInRoom(onWhat);
+            }
+            if (indirectObject == null) {
+                return "You couldn't find " + onWhat + " to use.";// " + usefulObject + " on.";
+            }
+        }
+        return p.useItem(usefulObject, indirectObject);
+    }
+
     public Player getPlayerInRoom(UserID id) {
         for (Player p : players) {
             if (p.getId().equals(id)) {
