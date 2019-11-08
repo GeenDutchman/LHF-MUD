@@ -5,11 +5,18 @@ import com.lhf.game.shared.enums.EquipmentSlots;
 import static com.lhf.game.shared.enums.EquipmentSlots.*;
 
 public class EquipMessage extends InMessage {
-    String itemName;
+    String itemName = "";
     EquipmentSlots equipSlot;
+
+    static final private String[] prepositionFlags = {"to"};
+
     public EquipMessage(String args) {
         itemName = args.substring(0, args.lastIndexOf(' '));
-        String cmd = args.substring(args.lastIndexOf(' ') + 1).trim();
+        String cmd = args.substring(args.lastIndexOf(' ') + 1).trim(); //equip item_name slot
+        if (itemName.contains(' ' + prepositionFlags[0])) { //equip item_name to slot
+            //TODO: check this logic
+            itemName = itemName.substring(0, itemName.lastIndexOf(' ' + prepositionFlags[0]));
+        }
         switch (cmd.toLowerCase()) {
             case "hat":
                 equipSlot = HAT;

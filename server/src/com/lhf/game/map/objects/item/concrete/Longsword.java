@@ -1,7 +1,6 @@
 package com.lhf.game.map.objects.item.concrete;
 
 import com.lhf.game.Attack;
-import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.item.interfaces.Weapon;
 import com.lhf.game.shared.dice.Dice;
 import com.lhf.game.shared.enums.EquipmentSlots;
@@ -11,7 +10,7 @@ import javafx.util.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Longsword extends Item implements Weapon {
+public class Longsword extends Weapon {
     public Longsword(boolean isVisible) {
         super("Sword", isVisible);
     }
@@ -64,8 +63,4 @@ public class Longsword extends Item implements Weapon {
         return sb.toString();
     }
 
-    @Override
-    public String performUsage() {
-        return "You swung a sword..."; //TODO: generalize this
-    }
 }

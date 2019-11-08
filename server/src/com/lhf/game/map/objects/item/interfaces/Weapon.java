@@ -2,12 +2,14 @@ package com.lhf.game.map.objects.item.interfaces;
 
 import com.lhf.game.Attack;
 
-public interface Weapon extends Equipable, Usable, Takeable {
-//    List<EquipmentTypes> getWeaponSubtype();
+public abstract class Weapon extends Usable implements Equipable, Takeable {
+    public Weapon(String name, boolean isVisible) {
+        super(name, isVisible, -1);
+    }
 
-    int rollToHit();
+    public abstract int rollToHit();
 
-    int rollDamage();
+    public abstract int rollDamage();
 
-    Attack rollAttack();
+    public abstract Attack rollAttack();
 }

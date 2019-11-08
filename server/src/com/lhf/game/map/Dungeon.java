@@ -149,4 +149,11 @@ public class Dungeon {
             r.setMessenger(messenger);
         }
     }
+    public String useCommand(UserID id, String usefulItem, String target) {
+        Room room = getPlayerRoom(id);
+        if (room == null) {
+            return "You are not in this dungeon";
+        }
+        return room.use(getPlayerById(id), usefulItem, target);
+    }
 }

@@ -168,6 +168,15 @@ public class Game implements UserListener {
         if (msg instanceof AttackMessage) {
             dungeon.attackCommand(id, ((AttackMessage) msg).getWeapon(), ((AttackMessage) msg).getTarget());
         }
+
+        if (msg instanceof UseMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.useCommand(id, ((UseMessage) msg).getUsefulItem(), ((UseMessage) msg).getTarget())
+                    ),
+                    id
+            );
+        }
     }
 
 
