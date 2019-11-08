@@ -1,7 +1,9 @@
 package com.lhf.game.map;
 
+import com.lhf.game.Messenger;
 import com.lhf.game.creature.Player;
 import com.lhf.game.shared.enums.EquipmentSlots;
+import com.lhf.messages.out.GameMessage;
 import com.lhf.user.UserID;
 
 import java.util.HashSet;
@@ -12,6 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Dungeon {
     private Room startingRoom = null;
     private Set<Room> rooms;
+    Messenger messenger;
 
     public Dungeon() {
         rooms = new HashSet<>();
@@ -26,6 +29,7 @@ public class Dungeon {
     }
 
     public boolean addRoom(Room r) {
+        r.setMessenger(messenger);
         return rooms.add(r);
     }
 
@@ -110,12 +114,13 @@ public class Dungeon {
         return room.drop(getPlayerById(id), name);
     }
 
-    public String attackCommand(UserID id, String weapon, String target) {
+    public void attackCommand(UserID id, String weapon, String target) {
         Room room = getPlayerRoom(id);
         if (room == null) {
-            return "You are not in this dungeon";
+            messenger.sendMessageToUser(new GameMessage( "You are not in this dungeon"), id);
+            return;
         }
-        return room.attack(getPlayerById(id), weapon, target);
+        room.attack(getPlayerById(id), weapon, target);
     }
 
     public String inventory(UserID id) {
@@ -136,5 +141,12 @@ public class Dungeon {
     public String unequip(UserID id, EquipmentSlots slot) {
         Player player = getPlayerById(id);
         return player.unequipItem(slot);
+    }
+
+    public void setMessenger(Messenger messenger) {
+        this.messenger = messenger;
+        for (Room r : rooms) {
+            r.setMessenger(messenger);
+        }
     }
 }

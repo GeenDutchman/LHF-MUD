@@ -162,6 +162,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         int max = stats.get(Stats.MAXHP);
         current += value;
         if (current <= 0) {
+            current = 0;
             this.die();
         }
         if (current > max) {
@@ -252,6 +253,22 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         } else {
             return weapon;
         }
+    }
+
+    public String applyAttack(Attack attack) {
+        //add stuff to calculate if the attack hits or not, and return false if so
+        StringBuilder output = new StringBuilder();
+        for (Object o : attack) {
+            String flavor = (String) o;
+            Integer damage = attack.getDamage(flavor);
+            updateHitpoints(-damage);
+            output.append(name + " has been dealt " + damage + " " + flavor + " damage.\n");
+            if (stats.get(Stats.CURRENTHP) <= 0) {
+                output.append(name + " has died.\n");
+                break;
+            }
+        }
+        return output.toString();
     }
 
     //public void ( Ability ability, String target);

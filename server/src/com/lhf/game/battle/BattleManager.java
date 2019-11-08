@@ -1,17 +1,23 @@
 package com.lhf.game.battle;
 
+import com.lhf.game.Attack;
+import com.lhf.game.Messenger;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.Room;
+import com.lhf.game.map.objects.item.interfaces.Weapon;
+import com.lhf.messages.out.GameMessage;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 
 public class BattleManager {
 
     private Deque<Creature> participants;
     private Room room;
     private boolean isHappening;
+    private Messenger messenger;
 
 
     public BattleManager(Room room) {
@@ -34,12 +40,17 @@ public class BattleManager {
         return participants.contains(p);
     }
 
+    private boolean isCreatureInBattle(Creature c) {
+        return participants.contains(c);
+    }
+
     public boolean isBattleOngoing() {
         return isHappening;
     }
 
     public void startBattle() {
         isHappening = true;
+        startTurn();
     }
 
     public void endBattle() {
@@ -64,13 +75,6 @@ public class BattleManager {
     }
 
     private void performAiTurn(Creature current) {
-        //wait for a couple seconds for "realism"
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         //Do creature's turn
 
         nextTurn();
@@ -80,34 +84,61 @@ public class BattleManager {
         //send message to player that it is their turn
     }
 
-    public void playerAction(Player p, BattleAction action) {  //TODO: should this return a string??
+    public void playerAction(Player p, BattleAction action) {  //TODO: should this return a string?? Note: use messenger class because of way events are set up (Spencer)
         if (!participants.contains(p)) {
             //give message that the player is not currently engaged in a fight
+            messenger.sendMessageToUser(new GameMessage("You are not currently in a fight."), p.getId());
             return;
         }
 
         if (!isHappening) {
             //give message saying there is no battle ongoing
+            messenger.sendMessageToUser(new GameMessage("There is no battle happening."), p.getId());
             return;
         }
 
         if (p != getCurrent()) {
             //give out of turn message
+            messenger.sendMessageToUser(new GameMessage("This is not your turn."), p.getId());
             return;
         }
 
         if (action instanceof AttackAction) {
             AttackAction attackAction = (AttackAction)action;
-            //do attack action
-                //verify target exists
-                //generate attack object
-                //apply to target
-                //if target dies, kill it
-                //if anything was incorrect with the command, just message and return
-        }
-        //check for other possible actions
 
-        //action successfully done
+            if (!attackAction.hasTargets()) {
+                messenger.sendMessageToUser(new GameMessage("You did not choose any targets."), p.getId());
+                return;
+            }
+            List<Creature> targets = attackAction.getTargets();
+            for (Creature c : targets) {
+                if (!isCreatureInBattle(c)) {
+                    //invalid target in list
+                    messenger.sendMessageToUser(new GameMessage("One of your targets did not exist."), p.getId());
+                    return;
+                }
+            }
+            Weapon w;
+            if (attackAction.hasWeapon()) {
+                if (p.getInventory().getItem(attackAction.getWeapon()).isPresent() &&
+                        p.getInventory().getItem(attackAction.getWeapon()).get() instanceof Weapon) {
+                    w = (Weapon)p.getInventory().getItem(attackAction.getWeapon()).get();
+                }
+                else {
+                    //player does not have weapon that he asked to use
+                    messenger.sendMessageToUser(new GameMessage("You do not have that weapon."), p.getId());
+                    return;
+                }
+            }
+            else {
+                w = p.getWeapon();
+            }
+            Attack a = w.rollAttack();
+            for (Creature c : targets) {
+                messenger.sendMessageToAllInRoom(new GameMessage(c.applyAttack(a)), p.getId());
+            }
+            //detect if any of the creatures died to remove from game
+        }
         nextTurn();
     }
 
@@ -118,5 +149,9 @@ public class BattleManager {
 
     private Creature getCurrent() {
         return participants.getFirst();
+    }
+
+    public void setMessenger(Messenger messenger) {
+        this.messenger = messenger;
     }
 }
