@@ -254,9 +254,11 @@ public class Creature implements InventoryOwner, EquipmentOwner {
     public String applyAttack(Attack attack) {
         //add stuff to calculate if the attack hits or not, and return false if so
         StringBuilder output = new StringBuilder();
-        for (Object o : attack) {
-            String flavor = (String) o;
-            Integer damage = attack.getDamage(flavor);
+        Iterator attackIt = attack.iterator();
+        while (attackIt.hasNext()) {
+            Map.Entry entry = (Map.Entry) attackIt.next();
+            String flavor = (String)entry.getKey();
+            Integer damage = (Integer)entry.getValue();
             updateHitpoints(-damage);
             output.append(name + " has been dealt " + damage + " " + flavor + " damage.\n");
             if (stats.get(Stats.CURRENTHP) <= 0) {
