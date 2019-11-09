@@ -155,7 +155,7 @@ public class Room {
                     return "<interaction>" + ex.doUseAction(p) + "</interaction>";
                 }
                 else {
-                    return "You cannot interact with <object>" + name + "</object>.";
+                    return "You try to interact with <object>" + name + "</object>, but nothing happens.";
                 }
             }
         }
@@ -215,7 +215,11 @@ public class Room {
     public String take(Player player, String name) {
         Optional<Item> maybeItem = this.items.stream().filter(i -> i.getName().equals(name)).findAny();
         if (maybeItem.isEmpty()) {
-            return "Could not find that item in this room";
+            Optional<RoomObject> maybeRo = this.objects.stream().filter(i -> i.getName().equals(name)).findAny();
+            if (maybeRo.isEmpty()) {
+                return "Could not find that item in this room!";
+            }
+            return "That's strange--it's stuck in it's place. You can't take it.";
         }
         Item item = maybeItem.get();
         if (item instanceof Takeable) {
@@ -223,7 +227,7 @@ public class Room {
             this.items.remove(item);
             return "Successfully taken";
         }
-        return "You cannot take that item";
+        return "That's strange--it's stuck in it's place. You can't take it.";
     }
 
     public String drop(Player player, String itemName) {
