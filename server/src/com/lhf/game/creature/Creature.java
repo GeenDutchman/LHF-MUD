@@ -300,8 +300,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             if (item == null) {
                 sb.append(slot.toString()).append(": ").append("empty. ");
             } else {
-                sb.append(slot.toString()).append(": ").append("<item>").append(item.getName())
-                        .append("</item>").append(". ");
+                sb.append(slot.toString()).append(": ").append(item.getStartTagName()).append(item.getName())
+                        .append(item.getEndTagName()).append(". ");
             }
         }
 
