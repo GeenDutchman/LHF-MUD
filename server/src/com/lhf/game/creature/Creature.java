@@ -370,7 +370,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                     this.equipmentSlots.putIfAbsent(slot, (Item) thing);
                     return unequipMessage + thing.getName() + " successfully equipped!\n\r";
                 }
-                return "You cannot equip the " + thing.getName() + " to " + slot.toString() + "\n\r";
+                return "You cannot equip the " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + " to " + slot.toString() + "\n\r";
             }
             return itemName + " is not equippable!\n\r";
         }
@@ -387,7 +387,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         if (thing != null) {
             this.applyUse(thing.unequip());
             this.inventory.addItem(thing);
-            return "You have unequipped your " + thing.getName() + "\n\r";
+            return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\n\r";
         }
         return "That slot is empty.\n\r";
     }
