@@ -29,8 +29,4 @@ public class Attack implements Iterable {
     public Iterator iterator() {
         return this.flavorAndDamage.entrySet().iterator();
     }
-
-    public Integer getDamage(String flavor) {
-        return flavorAndDamage.get(flavor);
-    }
 }
