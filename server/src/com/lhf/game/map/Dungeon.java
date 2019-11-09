@@ -58,7 +58,7 @@ public class Dungeon {
             didMove.set(true);
             return "You went " + direction + ". \r\n\n" + getPlayerRoom(id).toString();
         }
-        return "That isn't a valid direction to go.";
+        return "There's only a wall there.";
     }
 
     public String examineCommand(UserID id, String name) {
