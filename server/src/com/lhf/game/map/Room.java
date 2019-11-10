@@ -217,7 +217,7 @@ public class Room {
         if (maybeItem.isEmpty()) {
             Optional<RoomObject> maybeRo = this.objects.stream().filter(i -> i.getName().equals(name)).findAny();
             if (maybeRo.isEmpty()) {
-                return "Could not find that item in this room!";
+                return "Could not find that item in this room.";
             }
             return "That's strange--it's stuck in it's place. You can't take it.";
         }
