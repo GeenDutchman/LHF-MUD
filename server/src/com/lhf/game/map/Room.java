@@ -1,0 +1,242 @@
+package com.lhf.game.map;
+
+import com.lhf.game.battle.BattleManager;
+import com.lhf.game.creature.Player;
+import com.lhf.game.map.objects.item.Item;
+import com.lhf.game.map.objects.item.interfaces.Takeable;
+import com.lhf.game.map.objects.roomobject.abstractclasses.InteractObject;
+import com.lhf.game.map.objects.roomobject.abstractclasses.RoomObject;
+import com.lhf.game.map.objects.sharedinterfaces.Examinable;
+import com.lhf.user.UserID;
+
+import java.util.*;
+
+
+public class Room {
+
+    private Set<Player> players;
+    private Map<String, Room> exits;
+    private List<Item> items;
+    private List<RoomObject> objects;
+    private String description;
+    private BattleManager battleManager;
+
+
+    public Room(String description) {
+        this.description = description;
+        players = new HashSet<>();
+        exits = new HashMap<>();
+        items = new ArrayList<>();
+        objects = new ArrayList<>();
+        battleManager = new BattleManager(this);
+    }
+
+    public boolean addPlayer(Player p) {
+        return players.add(p);
+    }
+
+    public boolean removePlayer(Player p) {
+        return players.remove(p);
+    }
+
+    public boolean exitRoom(Player p, String direction) {
+        if (p == null) {
+            return false;
+        }
+        if (!exits.containsKey(direction)) {
+            return false;
+        }
+
+        Room room = exits.get(direction);
+        removePlayer(p);
+        room.addPlayer(p);
+        return true;
+    }
+
+    public boolean addExit(String direction, Room room) {
+        if (exits.containsKey(direction))
+        {
+            return false;
+        }
+        exits.put(direction, room);
+        return true;
+    }
+
+    public boolean addItem(Item obj) {
+        if (items.contains(obj)) {
+            return false;
+        }
+        items.add(obj);
+        return true;
+    }
+
+    public boolean addObject(RoomObject obj) {
+        if (objects.contains(obj)) {
+            return false;
+        }
+        objects.add(obj);
+        return true;
+    }
+
+
+    public String getDescription() {
+        return "<description>" + description + "</description>";
+    }
+
+    public String getListOfAllVisibleItems() {
+        StringJoiner output = new StringJoiner(",");
+        for (Item o : items) {
+            if (o.checkVisibility()) {
+                output.add(o.getStartTagName() + o.getName() + o.getEndTagName());
+            }
+        }
+        return output.toString();
+    }
+
+    public String getListOfAllItems() {
+        StringJoiner output = new StringJoiner(",");
+        for (Item o : items) {
+            output.add(o.getStartTagName() + o.getName() + o.getEndTagName());
+        }
+        return output.toString();
+    }
+
+    public String getListOfAllVisibleObjects() {
+        StringJoiner output = new StringJoiner(",");
+        for (RoomObject o : objects) {
+            if (o.checkVisibility()) {
+                output.add("<object>" + o.getName() + "</object>");
+            }
+        }
+        return output.toString();
+    }
+
+    public String getListOfAllObjects() {
+        StringJoiner output = new StringJoiner(",");
+        for (RoomObject o : objects) {
+            output.add("<object>" + o.getName() + "</object>");
+        }
+        return output.toString();
+    }
+
+    public String examine(Player p, String name) {
+        for (Item ro : items) {
+            if (ro.checkName(name)) {
+                if (ro instanceof Examinable) {
+                    Examinable ex = (Examinable)ro;
+                    return "<description>" + ex.getDescription() + "</description>";
+                }
+                else {
+                    return "You cannot examine <item>" + name + "</item>.";
+                }
+            }
+        }
+
+        for (RoomObject ro : objects) {
+            if (ro.checkName(name)) {
+                if (ro instanceof Examinable) {
+                    Examinable ex = (Examinable)ro;
+                    return "<description>" + ex.getDescription() + "</description>";
+                }
+                else {
+                    return "You cannot examine <object>" + name + "</object>.";
+                }
+            }
+        }
+
+        return "You couldn't find " + name + " to examine.";
+    }
+
+    public String interact(Player p, String name) {
+        for (RoomObject ro : objects) {
+            if (ro.checkName(name)) {
+                if (ro instanceof InteractObject) {
+                    InteractObject ex = (InteractObject)ro;
+                    return "<interaction>" + ex.doUseAction(p) + "</interaction>";
+                }
+                else {
+                    return "You try to interact with <object>" + name + "</object>, but nothing happens.";
+                }
+            }
+        }
+
+        return "You couldn't find " + name + " to interact with.";
+    }
+
+    public Player getPlayerInRoom(UserID id) {
+        for (Player p : players) {
+            if (p.getId().equals(id)) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    public Set<Player> getAllPlayersInRoom() {
+        return players;
+    }
+
+    public String getDirections() {
+        StringJoiner output = new StringJoiner(",");
+        for (String s : exits.keySet()) {
+            output.add("<exit>" + s + "</exit>");
+        }
+        return output.toString();
+    }
+
+    private String getListOfPlayers() {
+        StringJoiner output = new StringJoiner(",");
+        for (Player p : players) {
+            output.add("<player>" + p.getId().getUsername() + "</player>");
+        }
+        return output.toString();
+    }
+
+    @Override
+    public String toString() {
+        String output = "";
+        output += getDescription();
+        output += "\r\n";
+        output += "The possible directions are:\r\n";
+        output += getDirections();
+        output += "\r\n";
+        output += "Objects you can see:\r\n";
+        output += getListOfAllVisibleObjects();
+        output += "\r\n";
+        output += "Items you can see:\r\n";
+        output += getListOfAllVisibleItems();
+        output += "\r\n";
+        output += "Players in room:\r\n";
+        output += getListOfPlayers();
+        return output;
+    }
+
+
+    public String take(Player player, String name) {
+        Optional<Item> maybeItem = this.items.stream().filter(i -> i.getName().equals(name)).findAny();
+        if (maybeItem.isEmpty()) {
+            Optional<RoomObject> maybeRo = this.objects.stream().filter(i -> i.getName().equals(name)).findAny();
+            if (maybeRo.isEmpty()) {
+                return "Could not find that item in this room.";
+            }
+            return "That's strange--it's stuck in it's place. You can't take it.";
+        }
+        Item item = maybeItem.get();
+        if (item instanceof Takeable) {
+            player.takeItem((Takeable) item);
+            this.items.remove(item);
+            return "Successfully taken";
+        }
+        return "That's strange--it's stuck in it's place. You can't take it.";
+    }
+
+    public String drop(Player player, String itemName) {
+        Optional<Takeable> maybeTakeable = player.dropItem(itemName);
+        if (maybeTakeable.isEmpty()) {
+            return "You don't have a " + itemName + " to drop.";
+        }
+        Takeable takeable = maybeTakeable.get();
+        this.items.add((Item) takeable);
+        return "You glance at your empty hand as the " + takeable.getName() + " drops to the floor.";
+    }
+}
