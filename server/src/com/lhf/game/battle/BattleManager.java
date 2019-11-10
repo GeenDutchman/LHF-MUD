@@ -35,6 +35,10 @@ public class BattleManager {
         participants.remove(c);
         c.setInBattle(false);
         if (participants.size() <= 1) {
+            Creature creature = participants.poll();
+            if (creature instanceof Player) {
+                messenger.sendMessageToUser(new GameMessage("Take a deep breath.  You have survived this battle!"), ((Player) creature).getId());
+            }
             endBattle();
         }
     }
@@ -62,14 +66,10 @@ public class BattleManager {
 
     public void startBattle() {
         isHappening = true;
-        boolean sentToAll = false;
+        messenger.sendMessageToAllInRoom(new GameMessage("Someone started a fight!"), room);
 
         for (Creature creature : participants) {
             if (creature instanceof Player) {
-                if (!sentToAll) {
-                    messenger.sendMessageToAllInRoom(new GameMessage("Someone started a fight!"), ((Player) creature).getId());
-                    sentToAll = true;
-                }
                 messenger.sendMessageToUser(new GameMessage("You are in the fight!"), ((Player) creature).getId());
             }
         }
@@ -77,6 +77,7 @@ public class BattleManager {
     }
 
     public void endBattle() {
+        messenger.sendMessageToAllInRoom(new GameMessage("The fight is over!"), room);
         isHappening = false;
     }
 
@@ -90,9 +91,8 @@ public class BattleManager {
         Creature current = getCurrent();
         if (current instanceof Player) {
             //prompt player to do something
-            promptPlayerToAct((Player)current);
-        }
-        else {
+            promptPlayerToAct((Player) current);
+        } else {
             performAiTurn(current);
         }
     }
@@ -128,7 +128,7 @@ public class BattleManager {
         }
 
         if (action instanceof AttackAction) {
-            AttackAction attackAction = (AttackAction)action;
+            AttackAction attackAction = (AttackAction) action;
 
             if (!attackAction.hasTargets()) {
                 messenger.sendMessageToUser(new GameMessage("You did not choose any targets."), p.getId());
@@ -146,15 +146,13 @@ public class BattleManager {
             if (attackAction.hasWeapon()) {
                 if (p.fromAllInventory(attackAction.getWeapon()).isPresent() &&
                         p.fromAllInventory(attackAction.getWeapon()).get() instanceof Weapon) {
-                    w = (Weapon)p.getInventory().getItem(attackAction.getWeapon()).get();
-                }
-                else {
+                    w = (Weapon) p.fromAllInventory(attackAction.getWeapon()).get();
+                } else {
                     //player does not have weapon that he asked to use
                     messenger.sendMessageToUser(new GameMessage("You do not have that weapon."), p.getId());
                     return;
                 }
-            }
-            else {
+            } else {
                 w = p.getWeapon();
             }
             Attack a = w.rollAttack();

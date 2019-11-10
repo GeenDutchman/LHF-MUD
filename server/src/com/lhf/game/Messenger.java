@@ -1,6 +1,7 @@
 package com.lhf.game;
 
 import com.lhf.game.map.Dungeon;
+import com.lhf.game.map.Room;
 import com.lhf.interfaces.ServerInterface;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.user.UserID;
@@ -23,6 +24,13 @@ public class Messenger {
 
     public void sendMessageToAllInRoom(OutMessage msg, @NotNull UserID id) {
         Set<UserID> ids = dungeon.getPlayersInRoom(id);
+        for (UserID playerID : ids) {
+            server.sendMessageToUser(msg, playerID);
+        }
+    }
+
+    public void sendMessageToAllInRoom(OutMessage msg, @NotNull Room room) {
+        Set<UserID> ids = room.getAllPlayerIDsInRoom();
         for (UserID playerID : ids) {
             server.sendMessageToUser(msg, playerID);
         }

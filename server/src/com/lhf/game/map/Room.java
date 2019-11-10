@@ -1,6 +1,5 @@
 package com.lhf.game.map;
 
-import com.lhf.game.Game;
 import com.lhf.game.Messenger;
 import com.lhf.game.battle.AttackAction;
 import com.lhf.game.battle.BattleManager;
@@ -12,7 +11,6 @@ import com.lhf.game.map.objects.roomobject.abstractclasses.InteractObject;
 import com.lhf.game.map.objects.roomobject.abstractclasses.RoomObject;
 import com.lhf.game.map.objects.sharedinterfaces.Examinable;
 import com.lhf.messages.out.GameMessage;
-import com.lhf.messages.out.OutMessage;
 import com.lhf.user.UserID;
 
 import java.util.*;
@@ -246,6 +244,14 @@ public class Room {
 
     public Set<Player> getAllPlayersInRoom() {
         return players;
+    }
+
+    public Set<UserID> getAllPlayerIDsInRoom() {
+        Set<UserID> ids = new HashSet<>();
+        for (Player player : players) {
+            ids.add(player.getId());
+        }
+        return ids;
     }
 
     public String getDirections() {
