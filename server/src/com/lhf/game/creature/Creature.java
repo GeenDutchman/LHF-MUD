@@ -395,7 +395,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         return sb.toString();
     }
 
-    private Optional<Item> fromAllInventory(String itemName) {
+    public Optional<Item> fromAllInventory(String itemName) {
         Optional<Takeable> maybeTakeable = this.inventory.getItem(itemName);
         if (maybeTakeable.isPresent()) {
             return Optional.of((Item) maybeTakeable.get());

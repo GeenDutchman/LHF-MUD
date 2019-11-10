@@ -34,6 +34,18 @@ public class BattleManager {
     public void removeCreatureFromBattle(Creature c) {
         participants.remove(c);
         c.setInBattle(false);
+        if (participants.size() <= 1) {
+            endBattle();
+        }
+    }
+
+    public boolean hasPlayerInBattle() {
+        for (Creature creature : participants) {
+            if (creature instanceof Player) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean isPlayerInBattle(Player p) {
@@ -50,6 +62,17 @@ public class BattleManager {
 
     public void startBattle() {
         isHappening = true;
+        boolean sentToAll = false;
+
+        for (Creature creature : participants) {
+            if (creature instanceof Player) {
+                if (!sentToAll) {
+                    messenger.sendMessageToAllInRoom(new GameMessage("Someone started a fight!"), ((Player) creature).getId());
+                    sentToAll = true;
+                }
+                messenger.sendMessageToUser(new GameMessage("You are in the fight!"), ((Player) creature).getId());
+            }
+        }
         startTurn();
     }
 
@@ -82,6 +105,7 @@ public class BattleManager {
 
     private void promptPlayerToAct(Player current) {
         //send message to player that it is their turn
+        messenger.sendMessageToUser(new GameMessage("It is your turn to fight!"), current.getId());
     }
 
     public void playerAction(Player p, BattleAction action) {  //TODO: should this return a string?? Note: use messenger class because of way events are set up (Spencer)
@@ -120,8 +144,8 @@ public class BattleManager {
             }
             Weapon w;
             if (attackAction.hasWeapon()) {
-                if (p.getInventory().getItem(attackAction.getWeapon()).isPresent() &&
-                        p.getInventory().getItem(attackAction.getWeapon()).get() instanceof Weapon) {
+                if (p.fromAllInventory(attackAction.getWeapon()).isPresent() &&
+                        p.fromAllInventory(attackAction.getWeapon()).get() instanceof Weapon) {
                     w = (Weapon)p.getInventory().getItem(attackAction.getWeapon()).get();
                 }
                 else {
