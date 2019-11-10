@@ -1,7 +1,6 @@
 package com.lhf.game.map.objects.item.concrete;
 
 import com.lhf.game.Attack;
-import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.item.interfaces.Weapon;
 import com.lhf.game.shared.dice.Dice;
 import com.lhf.game.shared.enums.EquipmentSlots;
@@ -11,7 +10,7 @@ import javafx.util.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RustyDagger extends Item implements Weapon {
+public class RustyDagger extends Weapon {
 
     public RustyDagger(boolean isVisible) {
         super("Rusty Dagger", isVisible);
@@ -60,10 +59,5 @@ public class RustyDagger extends Item implements Weapon {
     @Override
     public Attack rollAttack() {
         return new Attack(this.rollToHit()).addFlavorAndDamage("Piercing", this.rollDamage());
-    }
-
-    @Override
-    public String performUsage() {
-        return null; //TODO: get this to attack as well
     }
 }
