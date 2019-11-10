@@ -9,5 +9,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="org.jetbrains:annotations:17.0.0" level="project" />
     <orderEntry type="library" name="org.openjfx:javafx-base:12-ea+5" level="project" />
+    <orderEntry type="library" name="javafx-base-12-ea+5-win" level="project" />
   </component>
 </module>
