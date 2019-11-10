@@ -8,6 +8,21 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class Statblock {
+
+    public Statblock(String name, CreatureType creatureType, HashMap<Attributes, Integer> attributes,
+                     HashMap<Attributes, Integer> modifiers, HashMap<Stats, Integer> stats,
+                     HashSet<EquipmentTypes> proficiencies, Inventory inventory, HashMap<EquipmentSlots,
+            Item> equipmentSlots) {
+        this.name = name;
+        this.creatureType = creatureType;
+        this.attributes = attributes;
+        this.modifiers = modifiers;
+        this.stats = stats;
+        this.proficiencies = proficiencies;
+        this.inventory = inventory;
+        this.equipmentSlots = equipmentSlots;
+    }
+
     // examples include a players username or goblin1 ect.
     public String name;
     // see the enums file
@@ -36,7 +51,7 @@ public class Statblock {
 
     //TODO: add a statblock class mapped by creature type or username containing:
     // creatureType,attributes, modifiers, stats, proficiencies, inventory, and
-    // an array of Items called equiped
+    // an array of Items called equipped
     // I think this would allow us to store a logged off user
     // and generic stats for creatures
     public Statblock(String name, CreatureType creatureType, HashMap<Attributes, Integer> attributes,
