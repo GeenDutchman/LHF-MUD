@@ -1,5 +1,6 @@
 package com.lhf.game.creature;
 
+import com.lhf.game.map.objects.sharedinterfaces.Taggable;
 import com.lhf.game.shared.enums.CreatureType;
 import com.lhf.game.shared.enums.EquipmentTypes;
 import com.lhf.game.shared.enums.Stats;
@@ -7,7 +8,7 @@ import com.lhf.user.UserID;
 
 import static com.lhf.game.shared.enums.Attributes.*;
 
-public class Player extends Creature {
+public class Player extends Creature implements Taggable {
     private UserID id;
 
     public Player(UserID id, String name) {
@@ -59,5 +60,15 @@ public class Player extends Creature {
 
     public UserID getId() {
         return id;
+    }
+
+    @Override
+    public String getStartTagName() {
+        return "<player>";
+    }
+
+    @Override
+    public String getEndTagName() {
+        return "</player>";
     }
 }
