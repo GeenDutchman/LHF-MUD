@@ -8,6 +8,7 @@ import com.lhf.game.map.objects.item.interfaces.Equipable;
 import com.lhf.game.map.objects.item.interfaces.Takeable;
 import com.lhf.game.map.objects.item.interfaces.Usable;
 import com.lhf.game.map.objects.roomobject.Corpse;
+import com.lhf.game.map.objects.sharedinterfaces.Taggable;
 import com.lhf.game.shared.enums.*;
 import javafx.util.Pair;
 
@@ -15,7 +16,7 @@ import java.util.*;
 
 import static com.lhf.game.shared.enums.Attributes.*;
 
-public class Creature implements InventoryOwner, EquipmentOwner {
+public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     private String name; //Username for players, description name (e.g., goblin 1) for monsters/NPCs
     private CreatureType creatureType; //See shared enum
     //private MonsterType monsterType; // I dont know if we'll need this
@@ -299,7 +300,8 @@ public class Creature implements InventoryOwner, EquipmentOwner {
             if (item == null) {
                 sb.append(slot.toString()).append(": ").append("empty. ");
             } else {
-                sb.append(slot.toString()).append(": ").append(item.getName()).append(". ");
+                sb.append(slot.toString()).append(": ").append(item.getStartTagName()).append(item.getName())
+                        .append(item.getEndTagName()).append(". ");
             }
         }
 
@@ -368,7 +370,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
                     this.equipmentSlots.putIfAbsent(slot, (Item) thing);
                     return unequipMessage + thing.getName() + " successfully equipped!\n\r";
                 }
-                return "You cannot equip the " + thing.getName() + " to " + slot.toString() + "\n\r";
+                return "You cannot equip the " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + " to " + slot.toString() + "\n\r";
             }
             return itemName + " is not equippable!\n\r";
         }
@@ -385,7 +387,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         if (thing != null) {
             this.applyUse(thing.unequip());
             this.inventory.addItem(thing);
-            return "You have unequipped your " + thing.getName() + "\n\r";
+            return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\n\r";
         }
         return "That slot is empty.\n\r";
     }
@@ -393,5 +395,15 @@ public class Creature implements InventoryOwner, EquipmentOwner {
     public Corpse generateCorpseFromCreature() {
         //Make the corpse if called
         return null;
+    }
+
+    @Override
+    public String getStartTagName() {
+        return "<creature>";
+    }
+
+    @Override
+    public String getEndTagName() {
+        return "</creature>";
     }
 }

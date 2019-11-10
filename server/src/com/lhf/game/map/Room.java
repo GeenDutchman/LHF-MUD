@@ -80,14 +80,14 @@ public class Room {
 
 
     public String getDescription() {
-        return description;
+        return "<description>" + description + "</description>";
     }
 
     public String getListOfAllVisibleItems() {
         StringJoiner output = new StringJoiner(",");
         for (Item o : items) {
             if (o.checkVisibility()) {
-                output.add(o.getName());
+                output.add(o.getStartTagName() + o.getName() + o.getEndTagName());
             }
         }
         return output.toString();
@@ -96,7 +96,7 @@ public class Room {
     public String getListOfAllItems() {
         StringJoiner output = new StringJoiner(",");
         for (Item o : items) {
-            output.add(o.getName());
+            output.add(o.getStartTagName() + o.getName() + o.getEndTagName());
         }
         return output.toString();
     }
@@ -105,7 +105,7 @@ public class Room {
         StringJoiner output = new StringJoiner(",");
         for (RoomObject o : objects) {
             if (o.checkVisibility()) {
-                output.add(o.getName());
+                output.add("<object>" + o.getName() + "</object>");
             }
         }
         return output.toString();
@@ -114,7 +114,7 @@ public class Room {
     public String getListOfAllObjects() {
         StringJoiner output = new StringJoiner(",");
         for (RoomObject o : objects) {
-            output.add(o.getName());
+            output.add("<object>" + o.getName() + "</object>");
         }
         return output.toString();
     }
@@ -124,10 +124,10 @@ public class Room {
             if (ro.checkName(name)) {
                 if (ro instanceof Examinable) {
                     Examinable ex = (Examinable)ro;
-                    return ex.getDescription();
+                    return "<description>" + ex.getDescription() + "</description>";
                 }
                 else {
-                    return "You cannot examine " + name + ".";
+                    return "You cannot examine <item>" + name + "</item>.";
                 }
             }
         }
@@ -136,10 +136,10 @@ public class Room {
             if (ro.checkName(name)) {
                 if (ro instanceof Examinable) {
                     Examinable ex = (Examinable)ro;
-                    return ex.getDescription();
+                    return "<description>" + ex.getDescription() + "</description>";
                 }
                 else {
-                    return "You cannot examine " + name + ".";
+                    return "You cannot examine <object>" + name + "</object>.";
                 }
             }
         }
@@ -152,10 +152,10 @@ public class Room {
             if (ro.checkName(name)) {
                 if (ro instanceof InteractObject) {
                     InteractObject ex = (InteractObject)ro;
-                    return ex.doUseAction(p);
+                    return "<interaction>" + ex.doUseAction(p) + "</interaction>";
                 }
                 else {
-                    return "You cannot interact with " + name + ".";
+                    return "You cannot interact with <object>" + name + "</object>.";
                 }
             }
         }
@@ -179,7 +179,7 @@ public class Room {
     public String getDirections() {
         StringJoiner output = new StringJoiner(",");
         for (String s : exits.keySet()) {
-            output.add(s);
+            output.add("<exit>" + s + "</exit>");
         }
         return output.toString();
     }
@@ -187,17 +187,17 @@ public class Room {
     private String getListOfPlayers() {
         StringJoiner output = new StringJoiner(",");
         for (Player p : players) {
-            output.add(p.getId().getUsername());
+            output.add("<player>" + p.getId().getUsername() + "</player>");
         }
         return output.toString();
     }
 
     @Override
     public String toString() {
-
-        String output = getDescription() +
-                "\r\n" +
-                "The possible directions are:\r\n";
+        String output = "";
+        output += getDescription();
+        output += "\r\n";
+        output += "The possible directions are:\r\n";
         output += getDirections();
         output += "\r\n";
         output += "Objects you can see:\r\n";

@@ -1,8 +1,9 @@
 package com.lhf.game.map.objects.item;
 
 import com.lhf.game.map.objects.sharedinterfaces.Examinable;
+import com.lhf.game.map.objects.sharedinterfaces.Taggable;
 
-public abstract class Item implements Examinable {
+public abstract class Item implements Examinable, Taggable {
 
     //Name it will be known by
     private String objectName;
@@ -36,5 +37,15 @@ public abstract class Item implements Examinable {
         }
         Item ro = (Item)obj;
         return objectName.equals(ro.objectName);
+    }
+
+    @Override
+    public String getStartTagName() {
+        return "<item>";
+    }
+
+    @Override
+    public String getEndTagName() {
+        return "</item>";
     }
 }
