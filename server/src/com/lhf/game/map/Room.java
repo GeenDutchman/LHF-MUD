@@ -81,6 +81,9 @@ public class Room {
 
         if (p.isInBattle()) {
             //TODO: stop her!!?
+            messenger.sendMessageToUser(new GameMessage("You are fleeing the battle. Flee!  Flee!"), p.getId());
+            messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(p.getName() + " has fled the battle!"), p.getId());
+            battleManager.removeCreatureFromBattle(p);
         }
 
         Room room = exits.get(direction);
