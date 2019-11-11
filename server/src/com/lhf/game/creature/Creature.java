@@ -10,6 +10,7 @@ import com.lhf.game.map.objects.item.interfaces.Usable;
 import com.lhf.game.map.objects.roomobject.Corpse;
 import com.lhf.game.shared.enums.*;
 import javafx.util.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -388,6 +389,12 @@ public class Creature implements InventoryOwner, EquipmentOwner {
             return "You have unequipped your " + thing.getName() + "\n\r";
         }
         return "That slot is empty.\n\r";
+    }
+
+    @Override
+    public Equipable getEqupped(EquipmentSlots slot) {
+        Equipable thing = (Equipable) this.equipmentSlots.get(slot);
+        return thing;
     }
 
     public Corpse generateCorpseFromCreature() {

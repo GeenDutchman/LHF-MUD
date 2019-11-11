@@ -3,6 +3,8 @@ package com.lhf.game.battle;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.Room;
+import com.lhf.game.map.objects.item.interfaces.Equipable;
+import com.lhf.game.shared.enums.EquipmentSlots;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -61,6 +63,12 @@ public class BattleManager {
         }
     }
 
+    private Player getRandomPlayer() {
+        Player[] players = (Player[]) participants.stream().filter(creature -> creature instanceof Player).toArray();
+        int randomIndex = (int)(Math.random() * players.length);
+        return players[randomIndex];
+    }
+
     private void performAiTurn(Creature current) {
         //wait for a couple seconds for "realism"
         try {
@@ -70,7 +78,9 @@ public class BattleManager {
         }
 
         //Do creature's turn
-
+        Player target = getRandomPlayer();
+        Equipable weapon = current.getEqupped(EquipmentSlots.WEAPON);
+        current.attack(weapon.getName(), target.getName());
         nextTurn();
     }
 
