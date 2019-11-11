@@ -32,7 +32,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
     // and example item would be lightCrossbow
     private HashSet<EquipmentTypes> proficiencies;
 
-    /* TODO: or to add once things are done
+    /* TODO: or to add once things are done also needed in statblock
      Abilities... initial thought was some kind of array
     */
     private Inventory inventory; //This creature's inventory

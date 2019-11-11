@@ -24,20 +24,20 @@ public class NpcCreator {
         int response_int;
 
         String name = "default";
-        CreatureType creatureType;
+        CreatureType creatureType = null;
         HashMap<Attributes, Integer> attributes = new HashMap<>();
         HashMap<Attributes, Integer> modifiers;
         HashMap<Stats, Integer> stats = new HashMap<>();
         HashSet<EquipmentTypes> proficiencies = new HashSet<>();
         Inventory inventory = new Inventory();
         HashMap<EquipmentSlots, Item> equipmentSlots = new HashMap<>();
-/*
+
         // name
         do{
             System.out.print("Welcome to creature creator, please type the creature's name: ");
             name = input.nextLine();
 
-            System.out.println("The name is: "+ name + " is this correct? (yes/no)");
+            System.out.print("The name is: "+ name + " is this correct? (yes/no)" );
 
             validation_response = input.nextLine().toLowerCase();
 
@@ -48,9 +48,9 @@ public class NpcCreator {
         // creature type
 
         do{
-            System.out.print("Please indicate the creature's type (NPC/MONSTER):");
+            System.out.print("Please indicate the creature's type (NPC/MONSTER): ");
             response_string = input.nextLine();
-            System.out.print("The creature type is: "+ response_string + " is this correct?(yes/no)");
+            System.out.print("The creature type is: "+ response_string + " is this correct?(yes/no) ");
             validation_response = input.nextLine();
 
             valid = validate(validation_response);
@@ -70,7 +70,7 @@ public class NpcCreator {
                 }
             }
         }while (!valid);
-*/
+
         // attributes
         do{
             System.out.print("Enter " + name+"'s attributes with a space between each number (STR DEX CON INT WIS CHA): ");
@@ -84,6 +84,7 @@ public class NpcCreator {
             }catch (java.util.InputMismatchException e){
                 System.out.println("Invalid input, expected 6 integers separated by spaces.");
                 input.nextLine(); // clear buffer
+                valid = Boolean.FALSE;
                 continue;
             }
 
@@ -95,20 +96,25 @@ public class NpcCreator {
             valid = validate(validation_response);
         }while(!valid);
 
+        //modifiers
         modifiers = calculateModifiers(attributes);
 
+        //stats
         do{
             int max_hp;
+            int xp_worth;
             float cr ;
-            System.out.print("What is the max HP (integer) and approximate CR (float) of "+
+            System.out.print("What is the max HP (integer) xp worth(integer) and approximate CR (float) of "+
                     name+":(each value should be separated by a space ");
             try{
                  max_hp = input.nextInt();
+                 xp_worth = input.nextInt();
                  cr = input.nextFloat();
 
             }catch (java.util.InputMismatchException e){
-                System.out.println("Invalid input, expected one integer and a float (ex float: 0.25 2.0) separated by spaces.");
+                System.out.println("Invalid input, expected two integers and a float (ex float: 0.25 2.0) separated by spaces.");
                 input.nextLine(); // clear buffer
+                valid = Boolean.FALSE;
                 continue;
             }
 
@@ -116,24 +122,52 @@ public class NpcCreator {
 
             stats.put(Stats.MAXHP,max_hp);
             stats.put(Stats.CURRENTHP,max_hp);
-            int bonus_xp = 0;
-            if (cr > 1.0){
-                bonus_xp = Math.round(BONUS_XP_MOD * cr);
 
-            }
-            stats.put(Stats.XPWORTH, Math.round(cr * XP_FROM_CR)+bonus_xp);
+            stats.put(Stats.XPWORTH, xp_worth);
             //TODO: XpEarned, prof bonus
+            stats.put(Stats.XPEARNED,0);
+            stats.put(Stats.PROFICIENCYBONUS,0);
             // NOTE: 1 CR is roughly 4 level one players
             stats.put(Stats.AC, 10 + modifiers.get(Attributes.DEX));
 
             System.out.print("Given max HP of "+max_hp+" and cr of "+cr+
                     " max/current hp is: "+stats.get(Stats.CURRENTHP)+"" +
-                    " xp worth is: "+stats.get(Stats.XPWORTH)+ " Is this correct?(yes,no)");
+                    " xp worth is: "+stats.get(Stats.XPWORTH)+ " Is this correct?(yes,no) ");
             validation_response = input.nextLine();
             valid = validate(validation_response);
-            System.out.println(stats.get(Stats.AC));
 
         }while(!valid);
+
+
+
+
+        //TODO: proficiencies, inventory, equipped stuff
+        valid = Boolean.FALSE;
+        String proficiency_string = "";
+        EquipmentTypes proficiency = null;
+        do{
+            System.out.println("Enter one of " + name + "'s proficiencies or done if there are no more to add: ");
+            proficiency_string = input.nextLine();
+            if(proficiency_string.equalsIgnoreCase("done")){
+                break;
+            }
+            try{
+                proficiency = EquipmentTypes.valueOf(proficiency_string.toUpperCase());
+                proficiencies.add(proficiency);
+            }catch (java.lang.IllegalArgumentException e){
+                System.out.println(proficiency_string + " is not contained in EquipmentTypes file, try again or come back once you add it to the file.");
+            }
+        }while (!valid);
+
+
+
+
+        Statblock creation = new Statblock(name,creatureType,attributes,modifiers,stats,proficiencies,inventory,equipmentSlots);
+
+        Statblock test = new Statblock(creation.toString());
+        System.out.print(creation);
+        System.out.println(test);
+
 
         System.out.println("\nCreature Creation Complete!");
     }
@@ -141,7 +175,6 @@ public class NpcCreator {
     private Boolean validate(String validation_response){
         if(validation_response.equals("yes") || validation_response.equals("no")){
             if( validation_response.equals("yes")){
-                System.out.println("Validated");
                 return Boolean.TRUE;
             }
             else{
