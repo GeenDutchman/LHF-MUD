@@ -34,7 +34,7 @@ public class Inventory {
 
     @Override
     public String toString() {
-        return this.items.stream().map(item -> item.getName()).reduce("", (val, acc) -> acc + val + ", ");
+        return this.items.stream().map(item -> "<item>" + item.getName() + "</item>").reduce("", (val, acc) -> acc + val + ", ");
     }
 
     public void removeItem(Takeable item) {

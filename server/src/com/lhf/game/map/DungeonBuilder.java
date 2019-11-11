@@ -1,6 +1,7 @@
 package com.lhf.game.map;
 
 import com.lhf.game.map.objects.item.Note;
+import com.lhf.game.map.objects.item.concrete.HealPotion;
 import com.lhf.game.map.objects.item.concrete.RustyDagger;
 import com.lhf.game.map.objects.roomobject.Dispenser;
 import com.lhf.game.map.objects.roomobject.Switch;
@@ -76,6 +77,9 @@ public class DungeonBuilder {
         statueRoom.addItem(bossNote);
 
         Room secretRoom = new Room("This is the secret room!");
+
+        HealPotion healPotion = new HealPotion(true);
+        secretRoom.addItem(healPotion);
 
         Switch statue = new Switch("golden statue", true, true, "The statue has a start to a riddle, but it looks like it hasn't been finished yet.");
         statue.setItem("room1", statueRoom);
