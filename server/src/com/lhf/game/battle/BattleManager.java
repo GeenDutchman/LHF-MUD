@@ -1,5 +1,6 @@
 package com.lhf.game.battle;
 
+import com.lhf.Main;
 import com.lhf.game.Attack;
 import com.lhf.game.Messenger;
 import com.lhf.game.creature.Creature;
@@ -13,6 +14,7 @@ import com.lhf.messages.out.GameMessage;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class BattleManager {
 
@@ -36,7 +38,7 @@ public class BattleManager {
     public void removeCreatureFromBattle(Creature c) {
         participants.remove(c);
         c.setInBattle(false);
-        if (participants.size() <= 1) {
+        if (participants.size() <= 1) { // TODO: Account for when multiple friendlies are in the battle
             Creature creature = participants.poll();
             if (creature instanceof Player) {
                 messenger.sendMessageToUser(new GameMessage("Take a deep breath.  You have survived this battle!"), ((Player) creature).getId());
@@ -94,23 +96,29 @@ public class BattleManager {
         if (current instanceof Player) {
             //prompt player to do something
             promptPlayerToAct((Player) current);
+        } else if (current instanceof BattleAI){
+            AITurn((BattleAI) current);
         } else {
-            performAiTurn(current);
+            // Bad juju
+            Logger logger = Logger.getLogger(BattleManager.class.getPackageName());
+            logger.severe("Trying to perform a turn for something that can't do it");
         }
     }
 
-    private Player getRandomPlayer() {
-        Player[] players = (Player[]) participants.stream().filter(creature -> creature instanceof Player).toArray();
-        int randomIndex = (int)(Math.random() * players.length);
-        return players[randomIndex];
+    private void AITurn(BattleAI ai) {
+        messenger.sendMessageToAllInRoom(new GameMessage(ai.performBattleTurn(participants)), room);
+        clearDead();
+        if (isBattleOngoing()) {
+            nextTurn();
+        }
     }
 
-    private void performAiTurn(Creature current) {
-        //Do creature's turn
-        Player target = getRandomPlayer();
-        Equipable weapon = current.getEqupped(EquipmentSlots.WEAPON);
-        current.attack(weapon.getName(), target.getName());
-        nextTurn();
+    private void clearDead() {
+        for (Creature c: participants) {
+            if (!c.isAlive()) {
+                removeCreatureFromBattle(c);
+            }
+        }
     }
 
     private void promptPlayerToAct(Player current) {
@@ -169,9 +177,11 @@ public class BattleManager {
             for (Creature c : targets) {
                 messenger.sendMessageToAllInRoom(new GameMessage(c.applyAttack(a)), p.getId());
             }
-            //detect if any of the creatures died to remove from game
+            clearDead();
         }
-        nextTurn();
+        if(isBattleOngoing()) {
+            nextTurn();
+        }
     }
 
     private void creatureDied(Creature c) {

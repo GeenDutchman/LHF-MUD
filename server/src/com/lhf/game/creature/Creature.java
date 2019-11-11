@@ -263,12 +263,20 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             Integer damage = (Integer)entry.getValue();
             updateHitpoints(-damage);
             output.append(name + " has been dealt " + damage + " " + flavor + " damage.\n");
-            if (stats.get(Stats.CURRENTHP) <= 0) {
+            if (!isAlive()) {
                 output.append(name + " has died.\n");
                 break;
             }
         }
         return output.toString();
+    }
+
+    public int getHealth() {
+        return stats.get(Stats.CURRENTHP);
+    }
+
+    public boolean isAlive() {
+        return getHealth() > 0;
     }
 
     //public void ( Ability ability, String target);
