@@ -1,12 +1,16 @@
 package com.lhf.game.map;
 
+import com.lhf.game.creature.Monster;
+import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.item.Note;
 import com.lhf.game.map.objects.item.concrete.HealPotion;
 import com.lhf.game.map.objects.item.concrete.RustyDagger;
+import com.lhf.game.map.objects.item.interfaces.Weapon;
 import com.lhf.game.map.objects.roomobject.Dispenser;
 import com.lhf.game.map.objects.roomobject.Switch;
 import com.lhf.game.map.objects.roomobject.actions.DispenserAction;
 import com.lhf.game.map.objects.roomobject.interfaces.InteractAction;
+import com.lhf.game.shared.enums.EquipmentSlots;
 
 public class DungeonBuilder {
 
@@ -67,8 +71,12 @@ public class DungeonBuilder {
         historyHall.addObject(dispenser);
 
         Room offeringRoom = new Room("This is the offering room.");
-        Note offerNote = new Note("note from enemies", true, "The enemies couldn't come in today.");
-        offeringRoom.addItem(offerNote);
+        Monster monster = new Monster();
+        monster.setName("BasicMonster"); // TODO: Allow attacking things with a space in the name
+        Weapon monsterWeapon = new RustyDagger(true);
+        monster.takeItem(monsterWeapon);
+        monster.equipItem("Rusty Dagger", dagger.getWhichSlots().get(0));
+        offeringRoom.addCreature(monster);
 
         Room trappedHall = new Room("This is the trapped room.");
 
