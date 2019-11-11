@@ -11,6 +11,7 @@ import com.lhf.game.shared.dice.Dice;
 import com.lhf.game.map.objects.sharedinterfaces.Taggable;
 import com.lhf.game.shared.enums.*;
 import javafx.util.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -262,12 +263,20 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             Integer damage = (Integer)entry.getValue();
             updateHitpoints(-damage);
             output.append(name + " has been dealt " + damage + " " + flavor + " damage.\n");
-            if (stats.get(Stats.CURRENTHP) <= 0) {
+            if (!isAlive()) {
                 output.append(name + " has died.\n");
                 break;
             }
         }
         return output.toString();
+    }
+
+    public int getHealth() {
+        return stats.get(Stats.CURRENTHP);
+    }
+
+    public boolean isAlive() {
+        return getHealth() > 0;
     }
 
     //public void ( Ability ability, String target);
@@ -488,6 +497,12 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\n\r";
         }
         return "That slot is empty.\n\r";
+    }
+
+    @Override
+    public Equipable getEqupped(EquipmentSlots slot) {
+        Equipable thing = (Equipable) this.equipmentSlots.get(slot);
+        return thing;
     }
 
     public Corpse generateCorpseFromCreature() {
