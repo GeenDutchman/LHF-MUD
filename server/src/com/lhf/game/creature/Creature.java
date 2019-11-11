@@ -1,22 +1,76 @@
 package com.lhf.game.creature;
 
+import com.lhf.game.Attack;
 import com.lhf.game.inventory.EquipmentOwner;
 import com.lhf.game.inventory.Inventory;
 import com.lhf.game.inventory.InventoryOwner;
 import com.lhf.game.map.objects.item.Item;
-import com.lhf.game.map.objects.item.interfaces.Equipable;
-import com.lhf.game.map.objects.item.interfaces.Takeable;
-import com.lhf.game.map.objects.item.interfaces.Usable;
+import com.lhf.game.map.objects.item.interfaces.*;
 import com.lhf.game.map.objects.roomobject.Corpse;
+import com.lhf.game.shared.dice.Dice;
 import com.lhf.game.map.objects.sharedinterfaces.Taggable;
 import com.lhf.game.shared.enums.*;
 import javafx.util.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 import static com.lhf.game.shared.enums.Attributes.*;
 
 public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
+
+    public class Fist extends Weapon {
+
+        public Fist() {
+            super("Fist", false);
+        }
+
+        @Override
+        public int rollToHit() {
+            return Dice.getInstance().d20(1);
+        }
+
+        @Override
+        public int rollDamage() {
+            return Dice.getInstance().d2(1);
+        }
+
+        @Override
+        public Attack rollAttack() {
+            return new Attack(this.rollToHit()).addFlavorAndDamage("Bludgeoning", this.rollDamage());
+        }
+
+        @Override
+        public List<EquipmentTypes> getType() {
+            List<EquipmentTypes> result = new ArrayList<>();
+            result.add(EquipmentTypes.SIMPLEMELEEWEAPONS);
+            result.add(EquipmentTypes.MONSTERPART);
+            return result;
+        }
+
+        @Override
+        public List<EquipmentSlots> getWhichSlots() {
+            List<EquipmentSlots> result = new ArrayList<>();
+            result.add(EquipmentSlots.WEAPON);
+            return result;
+        }
+
+        @Override
+        public List<Pair<String, Integer>> equip() {
+            return new ArrayList<>(0); // changes nothing
+        }
+
+        @Override
+        public List<Pair<String, Integer>> unequip() {
+            return new ArrayList<>(0); // changes nothing
+        }
+
+        @Override
+        public String getDescription() {
+            return "This is a " + getName() + " attached to a " + Creature.this.getName();
+        }
+    }
+  
     private String name; //Username for players, description name (e.g., goblin 1) for monsters/NPCs
     private CreatureType creatureType; //See shared enum
     //private MonsterType monsterType; // I dont know if we'll need this
@@ -106,6 +160,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         int max = stats.get(Stats.MAXHP);
         current += value;
         if (current <= 0) {
+            current = 0;
             this.die();
         }
         if (current > max) {
@@ -177,8 +232,51 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         return this.inBattle;
     }
 
-    public void attack(String itemName, String target) {
+    public Attack attack(String itemName, String target) {
         System.out.println(name + " is attempting to attack: " + target);
+        Weapon toUse;
+        Optional<Item> item = this.fromAllInventory(itemName);
+        if (item.isPresent() && item.get() instanceof Weapon) {
+            toUse = (Weapon) item.get();
+        } else {
+            toUse = this.getWeapon();
+        }
+        return toUse.rollAttack();
+    }
+
+    public Weapon getWeapon() {
+        Weapon weapon = (Weapon) getWhatInSlot(EquipmentSlots.WEAPON);
+        if (weapon == null) {
+            return new Creature.Fist();
+        } else {
+            return weapon;
+        }
+    }
+
+    public String applyAttack(Attack attack) {
+        //add stuff to calculate if the attack hits or not, and return false if so
+        StringBuilder output = new StringBuilder();
+        Iterator attackIt = attack.iterator();
+        while (attackIt.hasNext()) {
+            Map.Entry entry = (Map.Entry) attackIt.next();
+            String flavor = (String)entry.getKey();
+            Integer damage = (Integer)entry.getValue();
+            updateHitpoints(-damage);
+            output.append(name + " has been dealt " + damage + " " + flavor + " damage.\n");
+            if (!isAlive()) {
+                output.append(name + " has died.\n");
+                break;
+            }
+        }
+        return output.toString();
+    }
+
+    public int getHealth() {
+        return stats.get(Stats.CURRENTHP);
+    }
+
+    public boolean isAlive() {
+        return getHealth() > 0;
     }
 
     //public void ( Ability ability, String target);
@@ -292,7 +390,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         } else {
             sb.append(this.inventory.toString());
         }
-        sb.append('\n');
+        sb.append("\n\r");
 
         for (EquipmentSlots slot : EquipmentSlots.values()) {
             Item item = this.equipmentSlots.get(slot);
@@ -308,32 +406,41 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         return sb.toString();
     }
 
-    @Override
-    public void useItem(String itemName) {
-        Optional<Takeable> item = this.inventory.getItem(itemName);
-        if (item.isPresent()) {
-            Takeable takeable = item.get();
-            if (takeable instanceof Usable) {
-                System.out.println(((Usable) takeable).performUsage());
-                //TODO: this should somehow interact with environment as well as player...
-                return;
-            }
-            //TODO: should report not usable
-            return;
+    public Optional<Item> fromAllInventory(String itemName) {
+        Optional<Takeable> maybeTakeable = this.inventory.getItem(itemName);
+        if (maybeTakeable.isPresent()) {
+            return Optional.of((Item) maybeTakeable.get());
         }
 
         for (Item equipped : this.equipmentSlots.values()) {
             if (equipped.getName().equals(itemName)) {
-                if (equipped instanceof Usable) {
-                    System.out.println(((Usable) equipped).performUsage());
-                    //TODO: this should somehow interact with environment as well as player...
-                    return;
-                }
-                //TODO: report not usable
-                return;
+                return Optional.of((equipped));
             }
         }
-        //TODO: report itemName not found
+
+        return Optional.empty();
+    }
+
+    @Override
+    public String useItem(String itemName, Object onWhat) {
+        // if onWhat is not specified, use this creature
+        Object useOn = onWhat;
+        if (useOn == null) {
+            useOn = this;
+        }
+
+        Optional<Item> maybeItem = this.fromAllInventory(itemName);
+        if (maybeItem.isPresent()) {
+            Item item = maybeItem.get();
+            if (item instanceof Usable) {
+                if (item instanceof Consumable && !((Usable) item).hasUsesLeft()) {
+                    inventory.removeItem((Takeable) item);
+                }
+                return ((Usable) item).doUseAction(useOn);
+            }
+            return itemName + " is not usable!";
+        }
+        return "You do not have that " + itemName + " to use!";
     }
 
     private boolean applyUse(List<Pair<String, Integer>> applications) {
@@ -370,7 +477,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                     this.equipmentSlots.putIfAbsent(slot, (Item) thing);
                     return unequipMessage + thing.getName() + " successfully equipped!\n\r";
                 }
-                return "You cannot equip the " + thing.getName() + " to " + slot.toString() + "\n\r";
+                return "You cannot equip the " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + " to " + slot.toString() + "\n\r";
             }
             return itemName + " is not equippable!\n\r";
         }
@@ -387,9 +494,15 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         if (thing != null) {
             this.applyUse(thing.unequip());
             this.inventory.addItem(thing);
-            return "You have unequipped your " + thing.getName() + "\n\r";
+            return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\n\r";
         }
         return "That slot is empty.\n\r";
+    }
+
+    @Override
+    public Equipable getEqupped(EquipmentSlots slot) {
+        Equipable thing = (Equipable) this.equipmentSlots.get(slot);
+        return thing;
     }
 
     public Corpse generateCorpseFromCreature() {
