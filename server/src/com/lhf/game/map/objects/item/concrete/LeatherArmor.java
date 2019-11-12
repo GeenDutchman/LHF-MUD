@@ -7,28 +7,49 @@ import com.lhf.game.shared.enums.EquipmentTypes;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.StringJoiner;
 
 public class LeatherArmor extends Item implements Equipable {
     private int AC = 2;
 
+    private List<EquipmentSlots> slots;
+    private List<EquipmentTypes> types;
+
     public LeatherArmor(boolean isVisible) {
         super("Leather Armor", isVisible);
+
+        slots = Arrays.asList(EquipmentSlots.ARMOR);
+        types = Arrays.asList(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
     }
 
     @Override
-    public List<EquipmentTypes> getType() {
-        List<EquipmentTypes> result = new ArrayList<>();
-        result.add(EquipmentTypes.LIGHTARMOR);
-        result.add(EquipmentTypes.LEATHER);
-        return result;
+    public List<EquipmentTypes> getTypes() {
+        return types;
     }
 
     @Override
     public List<EquipmentSlots> getWhichSlots() {
-        List<EquipmentSlots> result = new ArrayList<>();
-        result.add(EquipmentSlots.ARMOR);
-        return result;
+        return slots;
+    }
+
+    @Override
+    public String printWhichTypes() {
+        StringJoiner sj = new StringJoiner(",");
+        for (EquipmentTypes type : types) {
+            sj.add(type.toString());
+        }
+        return sj.toString();
+    }
+
+    @Override
+    public String printWhichSlots() {
+        StringJoiner sj = new StringJoiner(",");
+        for (EquipmentSlots slot : slots) {
+            sj.add(slot.toString());
+        }
+        return sj.toString();
     }
 
     @Override
@@ -49,6 +70,8 @@ public class LeatherArmor extends Item implements Equipable {
     public String getDescription() {
         StringBuilder sb = new StringBuilder("This is some simple leather armor.\n");
         sb.append("There is only a little blood on it...");
+        sb.append("\n\rThis can be equipped to: ").append(printWhichSlots());
+        sb.append("\n\rAnd best used if you have these proficiencies: ").append(printWhichTypes());
         return sb.toString();
     }
 }
