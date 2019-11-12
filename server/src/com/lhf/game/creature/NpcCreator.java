@@ -2,8 +2,13 @@ package com.lhf.game.creature;
 
 import com.lhf.game.inventory.Inventory;
 import com.lhf.game.map.objects.item.Item;
+import com.lhf.game.map.objects.item.concrete.LeatherArmor;
+import com.lhf.game.map.objects.item.interfaces.Takeable;
+import com.lhf.game.map.objects.item.interfaces.Usable;
 import com.lhf.game.shared.enums.*;
 
+import java.lang.reflect.Constructor;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
@@ -31,6 +36,7 @@ public class NpcCreator {
         HashSet<EquipmentTypes> proficiencies = new HashSet<>();
         Inventory inventory = new Inventory();
         HashMap<EquipmentSlots, Item> equipmentSlots = new HashMap<>();
+
 
         // name
         do{
@@ -105,7 +111,7 @@ public class NpcCreator {
             int xp_worth;
             float cr ;
             System.out.print("What is the max HP (integer) xp worth(integer) and approximate CR (float) of "+
-                    name+":(each value should be separated by a space ");
+                    name+":(each value should be separated by a space) ");
             try{
                  max_hp = input.nextInt();
                  xp_worth = input.nextInt();
@@ -138,34 +144,68 @@ public class NpcCreator {
 
         }while(!valid);
 
-
-
-
-        //TODO: proficiencies, inventory, equipped stuff
-        valid = Boolean.FALSE;
+        //Adds proficiencies
         String proficiency_string = "";
         EquipmentTypes proficiency = null;
-        do{
-            System.out.println("Enter one of " + name + "'s proficiencies or done if there are no more to add: ");
+
+        while(Boolean.TRUE) {
+            System.out.print("Enter one of " + name + "'s proficiencies or done if there are no more to add: ");
             proficiency_string = input.nextLine();
-            if(proficiency_string.equalsIgnoreCase("done")){
+            if (proficiency_string.equalsIgnoreCase("done")) {
                 break;
             }
-            try{
+            try {
                 proficiency = EquipmentTypes.valueOf(proficiency_string.toUpperCase());
                 proficiencies.add(proficiency);
-            }catch (java.lang.IllegalArgumentException e){
+            } catch (java.lang.IllegalArgumentException e) {
                 System.out.println(proficiency_string + " is not contained in EquipmentTypes file, try again or come back once you add it to the file.");
             }
+        }
+
+        //Adds items
+        String item = "";
+        //May need to replace this to be more adaptive?
+        String path_to_items = "com.lhf.game.map.objects.item.concrete.";
+        while (Boolean.TRUE){
+            System.out.print("Enter one of " + name + "'s inventory items(including weapons and armor) or done if there are no more: ");
+            item = input.nextLine();
+            item = item.strip();
+
+            if(item.equalsIgnoreCase("done")){
+                break;
+            }
+
+            try {
+                Class<?> clazz = Class.forName(path_to_items+item);
+                Constructor<?>constructor = clazz.getConstructor();
+                Object item_instance = constructor.newInstance();
+                inventory.addItem((Takeable) item_instance);
+
+            }catch (java.lang.NoClassDefFoundError |
+                    java.lang.ClassNotFoundException | java.lang.NoSuchMethodException |
+                    java.lang.IllegalAccessException | java.lang.InstantiationException
+                    | java.lang.reflect.InvocationTargetException e){
+                System.out.println(item+" not found in package "+path_to_items +" \nPlease enter a valid item class's filename with camelCase and all that jazz.");
+            }
+
+            System.out.println(inventory.toString());
+
+
+        }
+
+
+        //TODO: equipped stuff
+
+        /*
+        do{
+            System.out.print("Given: " + inventory.toString() +" is there anything you would like to equip?(type item name or done) ");
         }while (!valid);
-
-
-
+        */
 
         Statblock creation = new Statblock(name,creatureType,attributes,modifiers,stats,proficiencies,inventory,equipmentSlots);
+        System.out.print(creation);
 
         Statblock test = new Statblock(creation.toString());
-        System.out.print(creation);
         System.out.println(test);
 
 

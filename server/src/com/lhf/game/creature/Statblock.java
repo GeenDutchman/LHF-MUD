@@ -2,8 +2,10 @@ package com.lhf.game.creature;
 
 import com.lhf.game.inventory.Inventory;
 import com.lhf.game.map.objects.item.Item;
+import com.lhf.game.map.objects.item.interfaces.Takeable;
 import com.lhf.game.shared.enums.*;
 
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -153,6 +155,26 @@ public class Statblock {
 
     private Inventory inventoryFromString(String line){
         Inventory inventory = new Inventory();
+
+        line = line.strip();
+        String[]items = line.split(",");
+        String path_to_items = "com.lhf.game.map.objects.item.concrete.";
+        for(int i=0; i<items.length; i++){
+            String item = items[i].replace(" ","");
+            try {
+                Class<?> clazz = Class.forName(path_to_items+item);
+                Constructor<?> constructor = clazz.getConstructor();
+                Object item_instance = constructor.newInstance();
+                inventory.addItem((Takeable) item_instance);
+
+            }catch (java.lang.NoClassDefFoundError |
+                    java.lang.ClassNotFoundException | java.lang.NoSuchMethodException |
+                    java.lang.IllegalAccessException | java.lang.InstantiationException
+                    | java.lang.reflect.InvocationTargetException e){
+                System.out.println(item+" not found in package "+path_to_items +"... skipping it.");
+                continue;
+            }
+        }
 
         return inventory;
     }
