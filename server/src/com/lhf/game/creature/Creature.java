@@ -502,7 +502,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                     this.equipmentSlots.putIfAbsent(slot, (Item) equipThing);
                     return unequipMessage + ((Item) equipThing).getStartTagName() + equipThing.getName() + ((Item) equipThing).getEndTagName() + " successfully equipped!\n\r";
                 }
-                return "You cannot equip the " + ((Item) equipThing).getStartTagName() + equipThing.getName() + ((Item) equipThing).getEndTagName() + " to " + slot.toString() + "\n\r";
+                String notEquip = "You cannot equip the " + ((Item) equipThing).getStartTagName() + equipThing.getName() + ((Item) equipThing).getEndTagName() + " to " + slot.toString() + "\n";
+                return notEquip + "You can equip it to: " + equipThing.printWhichSlots() + "\n\r";
             }
             return ((Item) fromInventory).getStartTagName() + fromInventory.getName() + ((Item) fromInventory).getEndTagName() + " is not equippable!\n\r";
         }
@@ -513,20 +514,20 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     @Override
     public String unequipItem(EquipmentSlots slot, String weapon) {
         if (slot == null) {
-//            //if they specified weapon and not slot // improve this code
-//            Optional<Item> maybeItem = fromAllInventory(weapon);
-//            if (maybeItem.isPresent() && equipmentSlots.containsValue(maybeItem.get())) {
-//                Equipable thing = (Equipable) maybeItem.get();
-//                for (EquipmentSlots thingSlot : thing.getWhichSlots()) {
-//                    if (thing.equals(equipmentSlots.get(thingSlot))) {
-//                        this.equipmentSlots.remove(thingSlot);
-//                        this.applyUse(thing.unequip());
-//                        this.inventory.addItem(thing);
-//                        return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\n\r";
-//                    }
-//                }
-//                return "That is not currently equipped!";
-//            }
+            //if they specified weapon and not slot // TODO: improve this code
+            Optional<Item> maybeItem = fromAllInventory(weapon);
+            if (maybeItem.isPresent() && equipmentSlots.containsValue(maybeItem.get())) {
+                Equipable thing = (Equipable) maybeItem.get();
+                for (EquipmentSlots thingSlot : thing.getWhichSlots()) {
+                    if (thing.equals(equipmentSlots.get(thingSlot))) {
+                        this.equipmentSlots.remove(thingSlot);
+                        this.applyUse(thing.unequip());
+                        this.inventory.addItem(thing);
+                        return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\n\r";
+                    }
+                }
+                return "That is not currently equipped!";
+            }
 
             return "That is not a slot.  These are your options: " + Arrays.toString(EquipmentSlots.values()) + "\n\r";
         }
