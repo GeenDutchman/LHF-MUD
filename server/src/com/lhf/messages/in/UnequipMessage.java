@@ -6,6 +6,7 @@ import static com.lhf.game.shared.enums.EquipmentSlots.*;
 
 public class UnequipMessage extends InMessage {
     EquipmentSlots equipSlot;
+    String possibleWeapon;
 
     public UnequipMessage(String args) {
         String cmd = args.trim();
@@ -42,11 +43,16 @@ public class UnequipMessage extends InMessage {
                 break;
             default:
                 equipSlot = null;
+                possibleWeapon = args;
         }
     }
 
 
     public EquipmentSlots getEquipSlot() {
         return equipSlot;
+    }
+
+    public String getPossibleWeapon() {
+        return possibleWeapon;
     }
 }

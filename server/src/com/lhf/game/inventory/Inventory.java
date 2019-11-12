@@ -4,6 +4,7 @@ import com.lhf.game.map.objects.item.interfaces.Takeable;
 
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class Inventory {
     private ArrayList<Takeable> items;
@@ -34,7 +35,11 @@ public class Inventory {
 
     @Override
     public String toString() {
-        return this.items.stream().map(item -> "<item>" + item.getName() + "</item>").reduce("", (val, acc) -> acc + val + ", ");
+        return this.items.stream().map(item -> "<item>" + item.getName() + "</item>").collect(Collectors.joining(","));
+    }
+
+    public String toStoreString(){
+        return this.items.stream().map(item -> "<item>" + item.getName() + "</item>").collect(Collectors.joining(","));
     }
 
     public void removeItem(Takeable item) {
