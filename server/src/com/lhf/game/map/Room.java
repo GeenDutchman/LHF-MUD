@@ -268,7 +268,7 @@ public class Room {
     private String getListOfPlayers() {
         StringJoiner output = new StringJoiner(",");
         for (Player p : players) {
-            output.add("<player>" + p.getId().getUsername() + "</player>");
+            output.add(p.getColorTaggedName());
         }
         return output.toString();
     }
@@ -281,7 +281,7 @@ public class Room {
             if (numOf > 1) {
                 output.add(numOf.toString() + ' ' + c.getName() + 's');
             } else {
-                output.add(c.getName());
+                output.add(c.getColorTaggedName());
             }
         }
         return output.toString();

@@ -66,7 +66,7 @@ public class Monster extends Creature implements BattleAI {
         Player target = getRandomPlayer(participants);
         output.append(getName());
         output.append(" is attacking ");
-        output.append(target.getName());
+        output.append(target.getColorTaggedName());
         output.append('\n');
         Equipable weapon = getEqupped(EquipmentSlots.WEAPON);
         Attack atk = attack(weapon.getName(), target.getName());
