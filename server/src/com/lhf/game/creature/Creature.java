@@ -262,9 +262,9 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             String flavor = (String)entry.getKey();
             Integer damage = (Integer)entry.getValue();
             updateHitpoints(-damage);
-            output.append(name + " has been dealt " + damage + " " + flavor + " damage.\n");
+            output.append(getColorTaggedName() + " has been dealt " + damage + " " + flavor + " damage.\n");
             if (!isAlive()) {
-                output.append(name + " has died.\n");
+                output.append(getColorTaggedName() + " has died.\n");
                 break;
             }
         }
@@ -518,5 +518,9 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     @Override
     public String getEndTagName() {
         return "</creature>";
+    }
+
+    public String getColorTaggedName() {
+        return getStartTagName() + getName() + getEndTagName();
     }
 }
