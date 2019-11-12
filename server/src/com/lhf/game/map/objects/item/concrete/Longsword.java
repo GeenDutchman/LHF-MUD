@@ -8,11 +8,20 @@ import com.lhf.game.shared.enums.EquipmentTypes;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.StringJoiner;
 
 public class Longsword extends Weapon {
+
+    private List<EquipmentSlots> slots;
+    private List<EquipmentTypes> types;
+
     public Longsword(boolean isVisible) {
         super("Sword", isVisible);
+
+        slots = Arrays.asList(EquipmentSlots.WEAPON);
+        types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
     }
 
     @Override
@@ -31,18 +40,31 @@ public class Longsword extends Weapon {
     }
 
     @Override
-    public List<EquipmentTypes> getType() {
-        List result = new ArrayList<EquipmentTypes>();
-        result.add(EquipmentTypes.SIMPLEMELEEWEAPONS);
-        result.add(EquipmentTypes.LONGSWORD);
-        return result;
+    public List<EquipmentTypes> getTypes() {
+        return types;
     }
 
     @Override
     public List<EquipmentSlots> getWhichSlots() {
-        List<EquipmentSlots> result = new ArrayList<>();
-        result.add(EquipmentSlots.WEAPON);
-        return result;
+        return slots;
+    }
+
+    @Override
+    public String printWhichTypes() {
+        StringJoiner sj = new StringJoiner(",");
+        for (EquipmentTypes type : types) {
+            sj.add(type.toString());
+        }
+        return sj.toString();
+    }
+
+    @Override
+    public String printWhichSlots() {
+        StringJoiner sj = new StringJoiner(",");
+        for (EquipmentSlots slot : slots) {
+            sj.add(slot.toString());
+        }
+        return sj.toString();
     }
 
     @Override
@@ -59,6 +81,8 @@ public class Longsword extends Weapon {
     public String getDescription() {
         StringBuilder sb = new StringBuilder();
         sb.append("This is a nice, long, shiny sword.  It's a bit simple though...");
+        sb.append("\n\rThis can be equipped to: ").append(printWhichSlots());
+        //sb.append("\n\rAnd best used if you have these proficiencies: ").append(printWhichTypes());
         //TODO: should this describe that it does 1d6 damage?
         return sb.toString();
     }

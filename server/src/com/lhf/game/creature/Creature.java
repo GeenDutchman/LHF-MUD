@@ -88,7 +88,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             StringBuilder sb = new StringBuilder();
             sb.append("This is a ").append(getName()).append(" attached to a ").append(Creature.this.getName());
             sb.append("\n\rThis can be equipped to: ").append(printWhichSlots());
-            sb.append("\n\rAnd best used if you have these proficiencies: ").append(printWhichTypes());
+            //sb.append("\n\rAnd best used if you have these proficiencies: ").append(printWhichTypes());
             return sb.toString();
         }
     }
