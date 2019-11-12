@@ -12,6 +12,7 @@ public class HelpMessage extends OutMessage {
         sb.append("<command>DROP [item]</command>\t\t\twill drop an item that you have\n\r");
         sb.append("<command>EQUIP [item] [slot]</command>\t\t\twill move an item from your inventory to an equipment slot\n\r");
         sb.append("<command>UNEQUIP [slot]</command>\t\t\twill move an item from an equipment slot to your inventory\n\r");
+        sb.append("<command>UNEQUIP [item]</command>\t\t\twill move that item from your equipment to your inventory\n\r");
         sb.append("<command>INTERACT [item]</command>\t\t\twill attempt to interact with an item in the room\n\r");
         sb.append("<command>INVENTORY</command>\t\t\t\twill list what you have in your inventory and what you have equipped\n\r");
         sb.append("<command>TAKE [item]</command>\t\t\twill take an item from the room and add it to your inventory\n\r");

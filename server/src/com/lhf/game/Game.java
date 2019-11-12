@@ -5,17 +5,16 @@ import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
 import com.lhf.interfaces.ServerInterface;
 import com.lhf.interfaces.UserListener;
-import com.lhf.messages.in.SayMessage;
-import com.lhf.messages.in.ShoutMessage;
-import com.lhf.messages.in.TellMessage;
 import com.lhf.messages.in.*;
-import com.lhf.messages.out.*;
+import com.lhf.messages.out.GameMessage;
+import com.lhf.messages.out.NewInMessage;
+import com.lhf.messages.out.UserLeftMessage;
+import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.user.User;
 import com.lhf.user.UserID;
 import com.lhf.user.UserManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
@@ -150,7 +149,7 @@ public class Game implements UserListener {
         if (msg instanceof UnequipMessage) {
             server.sendMessageToUser(
                     new GameMessage(
-                            dungeon.unequip(id, ((UnequipMessage) msg).getEquipSlot())
+                            dungeon.unequip(id, ((UnequipMessage) msg).getEquipSlot(), ((UnequipMessage) msg).getPossibleWeapon())
                     ),
                     id
             );

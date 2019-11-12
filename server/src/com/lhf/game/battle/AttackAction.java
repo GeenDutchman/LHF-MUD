@@ -30,7 +30,7 @@ public class AttackAction extends BattleAction {
         }
 
         for (Creature c : targets) {
-            sb.append(c.getName()).append(' ');
+            sb.append(c.getColorTaggedName()).append(' ');
         }
         if (this.hasWeapon()) {
             sb.append("with ").append(this.weapon);

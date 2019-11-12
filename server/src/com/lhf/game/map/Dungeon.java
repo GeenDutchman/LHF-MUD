@@ -157,9 +157,9 @@ public class Dungeon {
         return player.equipItem(itemName, slot);
     }
 
-    public String unequip(UserID id, EquipmentSlots slot) {
+    public String unequip(UserID id, EquipmentSlots slot, String weapon) {
         Player player = getPlayerById(id);
-        return player.unequipItem(slot);
+        return player.unequipItem(slot, weapon);
     }
 
     public void setMessenger(Messenger messenger) {
