@@ -94,7 +94,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             return sb.toString();
         }
     }
-  
+
     private String name; //Username for players, description name (e.g., goblin 1) for monsters/NPCs
     private CreatureType creatureType; //See shared enum
     //private MonsterType monsterType; // I dont know if we'll need this
@@ -120,7 +120,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     private boolean inBattle; // Boolean to determine if this creature is in combat
 
     //Default constructor
-    public Creature(){
+    public Creature() {
         //Instantiate creature with no name and type Monster
         this.name = "";
         this.creatureType = CreatureType.MONSTER;
@@ -283,8 +283,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         Iterator attackIt = attack.iterator();
         while (attackIt.hasNext()) {
             Map.Entry entry = (Map.Entry) attackIt.next();
-            String flavor = (String)entry.getKey();
-            Integer damage = (Integer)entry.getValue();
+            String flavor = (String) entry.getKey();
+            Integer damage = (Integer) entry.getValue();
             updateHitpoints(-damage);
             output.append(name + " has been dealt " + damage + " " + flavor + " damage.\n");
             if (!isAlive()) {
@@ -496,7 +496,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                     slot = equipThing.getWhichSlots().get(0);
                 }
                 if (equipThing.getWhichSlots().contains(slot)) {
-                    String unequipMessage = this.unequipItem(slot);
+                    String unequipMessage = this.unequipItem(slot, "");
                     this.applyUse(equipThing.equip());
                     this.inventory.removeItem(equipThing);
                     this.equipmentSlots.putIfAbsent(slot, (Item) equipThing);
@@ -511,11 +511,26 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     }
 
     @Override
-    public String unequipItem(EquipmentSlots slot) {
+    public String unequipItem(EquipmentSlots slot, String weapon) {
         if (slot == null) {
+//            //if they specified weapon and not slot // improve this code
+//            Optional<Item> maybeItem = fromAllInventory(weapon);
+//            if (maybeItem.isPresent() && equipmentSlots.containsValue(maybeItem.get())) {
+//                Equipable thing = (Equipable) maybeItem.get();
+//                for (EquipmentSlots thingSlot : thing.getWhichSlots()) {
+//                    if (thing.equals(equipmentSlots.get(thingSlot))) {
+//                        this.equipmentSlots.remove(thingSlot);
+//                        this.applyUse(thing.unequip());
+//                        this.inventory.addItem(thing);
+//                        return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\n\r";
+//                    }
+//                }
+//                return "That is not currently equipped!";
+//            }
+
             return "That is not a slot.  These are your options: " + Arrays.toString(EquipmentSlots.values()) + "\n\r";
         }
-        Equipable thing = (Equipable) this.equipmentSlots.remove(slot);
+        Equipable thing = (Equipable) getEquipmentSlots().remove(slot);
         if (thing != null) {
             this.applyUse(thing.unequip());
             this.inventory.addItem(thing);

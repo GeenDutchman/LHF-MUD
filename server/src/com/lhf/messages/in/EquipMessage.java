@@ -11,13 +11,18 @@ public class EquipMessage extends InMessage {
     static final private String[] prepositionFlags = {"to"};
 
     public EquipMessage(String args) {
-        itemName = args.substring(0, args.lastIndexOf(' '));
-        String cmd = args.substring(args.lastIndexOf(' ') + 1).trim(); //equip item_name slot
-        if (itemName.contains(' ' + prepositionFlags[0])) { //equip item_name to slot
-            //TODO: check this logic
-            itemName = itemName.substring(0, itemName.lastIndexOf(' ' + prepositionFlags[0]));
+        String[] words = args.split(" ");
+        boolean usedFlags = areFlags(words, prepositionFlags);
+        String slotCmd = "";
+        if (usedFlags) {
+            words = prepositionSeparator(words, prepositionFlags, 2);
+            this.itemName += words[0];
+            slotCmd += words[1];
+        } else {
+            this.itemName = args;
         }
-        switch (cmd.toLowerCase()) {
+
+        switch (slotCmd.toLowerCase()) {
             case "hat":
                 equipSlot = HAT;
                 break;
