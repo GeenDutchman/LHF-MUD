@@ -462,9 +462,9 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                 }
                 return ((Usable) item).doUseAction(useOn);
             }
-            return itemName + " is not usable!";
+            return item.getStartTagName() + item.getName() + item.getEndTagName() + " is not usable!";
         }
-        return "You do not have that " + itemName + " to use!";
+        return "You do not have that '" + itemName + "' to use!";
     }
 
     private boolean applyUse(List<Pair<String, Integer>> applications) {
@@ -507,7 +507,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             return ((Item) fromInventory).getStartTagName() + fromInventory.getName() + ((Item) fromInventory).getEndTagName() + " is not equippable!\n\r";
         }
 
-        return itemName + " is not in your inventory, so you cannot equip it!\n\r";
+        return "'" + itemName + "' is not in your inventory, so you cannot equip it!\n\r";
     }
 
     @Override
