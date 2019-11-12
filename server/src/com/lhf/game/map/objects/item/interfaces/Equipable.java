@@ -7,9 +7,14 @@ import javafx.util.Pair;
 import java.util.List;
 
 public interface Equipable extends Takeable {
-    List<EquipmentTypes> getType();
+
+    List<EquipmentTypes> getTypes();
 
     List<EquipmentSlots> getWhichSlots();
+
+    String printWhichTypes();
+
+    String printWhichSlots();
 
     List<Pair<String, Integer>> equip();
 

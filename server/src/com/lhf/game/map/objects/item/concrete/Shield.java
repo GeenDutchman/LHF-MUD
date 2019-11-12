@@ -7,27 +7,49 @@ import com.lhf.game.shared.enums.EquipmentTypes;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.StringJoiner;
 
 public class Shield extends Item implements Equipable {
     private int AC = 2;
+    private List<EquipmentSlots> slots;
+    private List<EquipmentTypes> types;
 
     public Shield(boolean isVisible) {
         super("Shield", isVisible);
+        types = Arrays.asList(EquipmentTypes.SHIELD);
+        slots = Arrays.asList(EquipmentSlots.SHIELD);
     }
 
     @Override
-    public List<EquipmentTypes> getType() {
-        List result = new ArrayList<EquipmentTypes>();
-        result.add(EquipmentTypes.SHIELD);
-        return result;
+    public List<EquipmentTypes> getTypes() {
+        return types;
     }
 
     @Override
     public List<EquipmentSlots> getWhichSlots() {
-        List result = new ArrayList<EquipmentSlots>();
-        result.add(EquipmentSlots.SHIELD);
-        return result;
+        return slots;
+    }
+
+    @Override
+    public String printWhichTypes() {
+        StringJoiner sj = new StringJoiner(",");
+        sj.setEmptyValue("none needed!");
+        for (EquipmentTypes type : types) {
+            sj.add(type.toString());
+        }
+        return sj.toString();
+    }
+
+    @Override
+    public String printWhichSlots() {
+        StringJoiner sj = new StringJoiner(",");
+        sj.setEmptyValue("no slot!");
+        for (EquipmentSlots slot : slots) {
+            sj.add(slot.toString());
+        }
+        return sj.toString();
     }
 
     @Override
@@ -47,6 +69,8 @@ public class Shield extends Item implements Equipable {
     @Override
     public String getDescription() {
         StringBuilder sb = new StringBuilder("This is a simple shield, it should protect you a little bit.");
+        sb.append("This can be equipped to: ").append(printWhichSlots());
+        //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
         // tell how much it boosts player?
         return sb.toString();
     }
