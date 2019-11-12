@@ -58,6 +58,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         @Override
         public String printWhichSlots() {
             StringJoiner sj = new StringJoiner(",");
+            sj.setEmptyValue("no slot!");
             for (EquipmentSlots slot : slots) {
                 sj.add(slot.toString());
             }
@@ -67,6 +68,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         @Override
         public String printWhichTypes() {
             StringJoiner sj = new StringJoiner(",");
+            sj.setEmptyValue("none needed!");
             for (EquipmentTypes type : types) {
                 sj.add(type.toString());
             }
