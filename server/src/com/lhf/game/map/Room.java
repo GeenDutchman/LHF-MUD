@@ -198,7 +198,11 @@ public class Room {
                 }
             }
         }
-
+        for (Item item : items) {
+            if (item.checkName(name)) {
+                return "You poke at it, but it does nothing.";
+            }
+        }
         return "You couldn't find " + name + " to interact with.";
     }
 
@@ -315,9 +319,9 @@ public class Room {
 
 
     public String take(Player player, String name) {
-        Optional<Item> maybeItem = this.items.stream().filter(i -> i.getName().equals(name)).findAny();
+        Optional<Item> maybeItem = this.items.stream().filter(i -> i.getName().equalsIgnoreCase(name)).findAny();
         if (maybeItem.isEmpty()) {
-            Optional<RoomObject> maybeRo = this.objects.stream().filter(i -> i.getName().equals(name)).findAny();
+            Optional<RoomObject> maybeRo = this.objects.stream().filter(i -> i.getName().equalsIgnoreCase(name)).findAny();
             if (maybeRo.isEmpty()) {
                 return "Could not find that item in this room.";
             }

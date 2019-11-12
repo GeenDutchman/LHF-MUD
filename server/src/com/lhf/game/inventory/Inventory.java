@@ -21,11 +21,11 @@ public class Inventory {
     }
 
     public boolean hasItem(String itemName) {
-        return this.items.stream().anyMatch(i -> i.getName().equals(itemName));
+        return this.items.stream().anyMatch(i -> i.getName().equalsIgnoreCase(itemName));
     }
 
     public Optional<Takeable> getItem(String itemName) {
-        return this.items.stream().filter(i -> i.getName().equals(itemName)).findAny();
+        return this.items.stream().filter(i -> i.getName().equalsIgnoreCase(itemName)).findAny();
     }
 
     public boolean isEmpty() {
