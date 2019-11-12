@@ -10,8 +10,12 @@ import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 public class RingOfSeeing extends Usable implements Equipable, Consumable {
+    private List<EquipmentSlots> slots;
+    private List<EquipmentTypes> types;
+
     public RingOfSeeing(boolean isVisible) {
         super("Ring of Seeing", isVisible, 3);
         this.setUseAction(Room.class.getName(), (object) -> {
@@ -33,6 +37,11 @@ public class RingOfSeeing extends Usable implements Equipable, Consumable {
             }
             return "You cannot use a " + this.getName() + " on that.";
         });
+
+        types = new ArrayList<>();
+        slots = new ArrayList<>();
+        slots.add(EquipmentSlots.LEFTHAND);
+        slots.add(EquipmentSlots.RIGHTHAND);
     }
 
     @Override
@@ -41,18 +50,33 @@ public class RingOfSeeing extends Usable implements Equipable, Consumable {
     }
 
     @Override
-    public List<EquipmentTypes> getType() {
-        List result = new ArrayList<EquipmentTypes>();
-        //result.add(EquipmentTypes.something); //no type defined for ring
-        return result;
+    public List<EquipmentTypes> getTypes() {
+        return types;
     }
 
     @Override
     public List<EquipmentSlots> getWhichSlots() {
-        List<EquipmentSlots> result = new ArrayList<>();
-        result.add(EquipmentSlots.LEFTHAND);
-        result.add(EquipmentSlots.RIGHTHAND);
-        return result;
+        return slots;
+    }
+
+    @Override
+    public String printWhichTypes() {
+        StringJoiner sj = new StringJoiner(",");
+        sj.setEmptyValue("none needed!");
+        for (EquipmentTypes type : types) {
+            sj.add(type.toString());
+        }
+        return sj.toString();
+    }
+
+    @Override
+    public String printWhichSlots() {
+        StringJoiner sj = new StringJoiner(",");
+        sj.setEmptyValue("no slot!");
+        for (EquipmentSlots slot : slots) {
+            sj.add(slot.toString());
+        }
+        return sj.toString();
     }
 
     @Override
@@ -69,6 +93,8 @@ public class RingOfSeeing extends Usable implements Equipable, Consumable {
     public String getDescription() {
         String result = "This ring can help you see things that are not visible to the naked eye.\n\r";
         result += "It can only be used so many times though, and then the ring itself disappears...\n\r";
+        result += "This can be equipped to: " + printWhichSlots();
+//        result += "\r\nAnd can best be used if you have these proficiencies: " + printWhichTypes();
         return result;
     }
 
