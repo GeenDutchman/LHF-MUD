@@ -4,6 +4,7 @@ import com.lhf.game.Messenger;
 import com.lhf.game.creature.Player;
 import com.lhf.game.shared.enums.EquipmentSlots;
 import com.lhf.messages.out.GameMessage;
+import com.lhf.game.map.Directions;
 import com.lhf.user.UserID;
 
 import java.util.HashSet;
@@ -62,7 +63,25 @@ public class Dungeon {
             didMove.set(true);
             return "You went " + direction + ". \r\n\n" + getPlayerRoom(id).toString();
         }
-        return "There's only a wall there.";
+        else if (isValidDirection(direction)) {
+            return "There's only a wall there.";
+        }
+        else {
+            return "Couldn't understand that command.";
+        }
+    }
+
+    public boolean isValidDirection(String direction) {
+        if (!direction.equalsIgnoreCase(Directions.NORTH.toString())) {
+            if (!direction.equalsIgnoreCase(Directions.SOUTH.toString())) {
+                if (!direction.equalsIgnoreCase(Directions.WEST.toString())) {
+                    if (!direction.equalsIgnoreCase(Directions.EAST.toString())) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     public String examineCommand(UserID id, String name) {

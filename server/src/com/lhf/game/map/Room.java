@@ -231,7 +231,7 @@ public class Room {
 
     public Creature getCreatureInRoom(String creatureName) {
         for (Creature c : this.creatures.keySet()) {
-            if (c.getName().equals(creatureName)) {
+            if (c.getName().equalsIgnoreCase(creatureName)) {
                 return c;
             }
         }
