@@ -49,6 +49,8 @@ public class InMessage {
                         return Optional.of(new AttackMessage(arguments));
                     case "use":
                         return Optional.of(new UseMessage(arguments));
+                    case "status":
+                        return Optional.of(new StatusMessage());
                     default:
                         return Optional.empty();
                 }
