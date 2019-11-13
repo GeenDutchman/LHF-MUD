@@ -25,9 +25,8 @@ public class Statblock {
         this.equipmentSlots = equipmentSlots;
     }
 
-    //NOTE: if not used with a player this won't work
+
     public Statblock(Creature creature){
-        if(creature.getCreatureType().equals(CreatureType.PLAYER)){
             this.name = creature.getName();
             this.creatureType = creature.getCreatureType();
             this.attributes = creature.getAttributes();
@@ -36,7 +35,7 @@ public class Statblock {
             this.proficiencies = creature.getProficiencies();
             this.inventory = creature.getInventory();
             this.equipmentSlots = creature.getEquipmentSlots();
-        }
+
 
     }
 
@@ -109,7 +108,7 @@ public class Statblock {
                 modifiers.toString()+"\n"+
                 stats.toString()+"\n"+
                 proficiencies.toString()+"\n"+
-                inventory.toString()+"\n"+
+                inventory.toStoreString()+"\n"+
                 equipmentSlots.toString()+"\n";
 
     }
@@ -163,8 +162,8 @@ public class Statblock {
             String item = items[i].replace(" ","");
             try {
                 Class<?> clazz = Class.forName(path_to_items+item);
-                Constructor<?> constructor = clazz.getConstructor();
-                Object item_instance = constructor.newInstance();
+                Constructor<?> constructor = clazz.getConstructor(boolean.class);
+                Object item_instance = constructor.newInstance(Boolean.TRUE);
                 inventory.addItem((Takeable) item_instance);
 
             }catch (java.lang.NoClassDefFoundError |

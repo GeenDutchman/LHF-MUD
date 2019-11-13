@@ -28,6 +28,7 @@ public class NpcCreator {
         String response_string;
         int response_int;
 
+        Creature npc;
         String name = "default";
         CreatureType creatureType = null;
         HashMap<Attributes, Integer> attributes = new HashMap<>();
@@ -177,8 +178,8 @@ public class NpcCreator {
 
             try {
                 Class<?> clazz = Class.forName(path_to_items+item);
-                Constructor<?>constructor = clazz.getConstructor();
-                Object item_instance = constructor.newInstance();
+                Constructor<?>constructor = clazz.getConstructor(boolean.class);
+                Object item_instance = constructor.newInstance(Boolean.TRUE);
                 inventory.addItem((Takeable) item_instance);
 
             }catch (java.lang.NoClassDefFoundError |
@@ -188,25 +189,43 @@ public class NpcCreator {
                 System.out.println(item+" not found in package "+path_to_items +" \nPlease enter a valid item class's filename with camelCase and all that jazz.");
             }
 
-            System.out.println(inventory.toString());
+            System.out.println(inventory.toStoreString());
 
 
         }
 
+        Statblock creation = new Statblock(name,creatureType,attributes,modifiers,stats,proficiencies,inventory,equipmentSlots);
 
+        npc = new Creature(name,creation);
         //TODO: equipped stuff
 
-        /*
-        do{
-            System.out.print("Given: " + inventory.toString() +" is there anything you would like to equip?(type item name or done) ");
-        }while (!valid);
-        */
+        String item_slot_string;
+        while(Boolean.TRUE){
+            System.out.print("Given: " + inventory.toStoreString() +" \nIs there anything you would like to equip?(type item, slot or done) ");
+            item_slot_string = input.nextLine().strip();
+            if(item_slot_string.equalsIgnoreCase("done")){
+                break;
+            }
+            String[] pair = item_slot_string.split(",");
+            try{
 
-        Statblock creation = new Statblock(name,creatureType,attributes,modifiers,stats,proficiencies,inventory,equipmentSlots);
+                EquipmentSlots slot = EquipmentSlots.valueOf(pair[1].strip().toUpperCase());
+                npc.equipItem(pair[0],slot);
+
+            }catch (java.lang.IllegalArgumentException e){
+                System.err.println(e.getMessage());
+                System.err.println("Slots are: " + EquipmentSlots.values());
+            }
+
+        }
+
+        //TODO to string for equipmentslots
+
+
         System.out.print(creation);
 
-        Statblock test = new Statblock(creation.toString());
-        System.out.println(test);
+        //Statblock test = new Statblock(creation.toString());
+        //System.out.println(test);
 
 
         System.out.println("\nCreature Creation Complete!");
