@@ -10,7 +10,6 @@ import com.lhf.game.map.objects.roomobject.Corpse;
 import com.lhf.game.map.objects.sharedinterfaces.Taggable;
 import com.lhf.game.shared.dice.Dice;
 import com.lhf.game.shared.enums.*;
-import javafx.util.Pair;
 
 import java.util.*;
 
@@ -76,13 +75,13 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         }
 
         @Override
-        public List<Pair<String, Integer>> equip() {
-            return new ArrayList<>(0); // changes nothing
+        public Map<String, Integer> equip() {
+            return new HashMap<>(0); // changes nothing
         }
 
         @Override
-        public List<Pair<String, Integer>> unequip() {
-            return new ArrayList<>(0); // changes nothing
+        public Map<String, Integer> unequip() {
+            return new HashMap<>(0); // changes nothing
         }
 
         @Override
@@ -467,8 +466,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         return "You do not have that '" + itemName + "' to use!";
     }
 
-    private boolean applyUse(List<Pair<String, Integer>> applications) {
-        for (Pair<String, Integer> p : applications) {
+    private boolean applyUse(Map<String, Integer> applications) {
+        for (Map.Entry<String, Integer> p : applications.entrySet()) {
             try {
                 Attributes attribute = Attributes.valueOf(p.getKey());
                 this.updateAttribute(attribute, p.getValue());

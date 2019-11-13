@@ -6,11 +6,8 @@ import com.lhf.game.map.objects.item.interfaces.Equipable;
 import com.lhf.game.map.objects.item.interfaces.Usable;
 import com.lhf.game.shared.enums.EquipmentSlots;
 import com.lhf.game.shared.enums.EquipmentTypes;
-import javafx.util.Pair;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.*;
 
 public class RingOfSeeing extends Usable implements Equipable, Consumable {
     private List<EquipmentSlots> slots;
@@ -80,13 +77,13 @@ public class RingOfSeeing extends Usable implements Equipable, Consumable {
     }
 
     @Override
-    public List<Pair<String, Integer>> equip() {
-        return new ArrayList<>(0); // changes nothing
+    public Map<String, Integer> equip() {
+        return new HashMap<>(0); // changes nothing
     }
 
     @Override
-    public List<Pair<String, Integer>> unequip() {
-        return new ArrayList<>(0); // changes nothing
+    public Map<String, Integer> unequip() {
+        return new HashMap<>(0); // changes nothing
     }
 
     @Override
