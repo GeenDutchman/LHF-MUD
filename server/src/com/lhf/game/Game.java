@@ -176,6 +176,15 @@ public class Game implements UserListener {
                     id
             );
         }
+
+        if (msg instanceof StatusMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.statusCommand(id)
+                    ),
+                    id
+            );
+        }
     }
 
 

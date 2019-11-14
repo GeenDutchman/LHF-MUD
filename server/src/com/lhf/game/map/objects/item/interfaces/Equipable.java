@@ -2,9 +2,9 @@ package com.lhf.game.map.objects.item.interfaces;
 
 import com.lhf.game.shared.enums.EquipmentSlots;
 import com.lhf.game.shared.enums.EquipmentTypes;
-import javafx.util.Pair;
 
 import java.util.List;
+import java.util.Map;
 
 public interface Equipable extends Takeable {
 
@@ -16,7 +16,7 @@ public interface Equipable extends Takeable {
 
     String printWhichSlots();
 
-    List<Pair<String, Integer>> equip();
+    Map<String, Integer> equip();
 
-    List<Pair<String, Integer>> unequip();
+    Map<String, Integer> unequip();
 }

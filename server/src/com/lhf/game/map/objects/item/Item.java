@@ -24,7 +24,7 @@ public abstract class Item implements Examinable, Taggable {
     }
 
     public boolean checkName(String name) {
-        if (objectName.equals(name)) {
+        if (objectName.equalsIgnoreCase(name)) {
             return true;
         }
         return false;
