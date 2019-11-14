@@ -1,19 +1,23 @@
 package com.lhf.game.map.objects.item.concrete;
 
 import com.lhf.game.Attack;
-import com.lhf.game.map.objects.item.Item;
 import com.lhf.game.map.objects.item.interfaces.Weapon;
 import com.lhf.game.shared.dice.Dice;
 import com.lhf.game.shared.enums.EquipmentSlots;
 import com.lhf.game.shared.enums.EquipmentTypes;
-import javafx.util.Pair;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-public class Longsword extends Item implements Weapon {
+public class Longsword extends Weapon {
+
+    private List<EquipmentSlots> slots;
+    private List<EquipmentTypes> types;
+
     public Longsword(boolean isVisible) {
         super("Sword", isVisible);
+
+        slots = Arrays.asList(EquipmentSlots.WEAPON);
+        types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
     }
 
     @Override
@@ -32,40 +36,53 @@ public class Longsword extends Item implements Weapon {
     }
 
     @Override
-    public List<EquipmentTypes> getType() {
-        List result = new ArrayList<EquipmentTypes>();
-        result.add(EquipmentTypes.SIMPLEMELEEWEAPONS);
-        result.add(EquipmentTypes.LONGSWORD);
-        return result;
+    public List<EquipmentTypes> getTypes() {
+        return types;
     }
 
     @Override
     public List<EquipmentSlots> getWhichSlots() {
-        List<EquipmentSlots> result = new ArrayList<>();
-        result.add(EquipmentSlots.WEAPON);
-        return result;
+        return slots;
     }
 
     @Override
-    public List<Pair<String, Integer>> equip() {
-        return new ArrayList<>(0); // changes nothing
+    public String printWhichTypes() {
+        StringJoiner sj = new StringJoiner(",");
+        sj.setEmptyValue("none needed!");
+        for (EquipmentTypes type : types) {
+            sj.add(type.toString());
+        }
+        return sj.toString();
     }
 
     @Override
-    public List<Pair<String, Integer>> unequip() {
-        return new ArrayList<>(0); // changes nothing
+    public String printWhichSlots() {
+        StringJoiner sj = new StringJoiner(",");
+        sj.setEmptyValue("no slot!");
+        for (EquipmentSlots slot : slots) {
+            sj.add(slot.toString());
+        }
+        return sj.toString();
+    }
+
+    @Override
+    public Map<String, Integer> equip() {
+        return new HashMap<>(0); // changes nothing
+    }
+
+    @Override
+    public Map<String, Integer> unequip() {
+        return new HashMap<>(0); // changes nothing
     }
 
     @Override
     public String getDescription() {
         StringBuilder sb = new StringBuilder();
-        sb.append("This is a nice, long, shiny sword.  It's a bit simple though...");
+        sb.append("This is a nice, long, shiny sword.  It's a bit simple though... ");
+        sb.append("This can be equipped to: ").append(printWhichSlots());
+        //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
         //TODO: should this describe that it does 1d6 damage?
         return sb.toString();
     }
 
-    @Override
-    public String performUsage() {
-        return "You swung a sword..."; //TODO: generalize this
-    }
 }

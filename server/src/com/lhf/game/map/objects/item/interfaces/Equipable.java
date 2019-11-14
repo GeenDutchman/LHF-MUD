@@ -2,16 +2,21 @@ package com.lhf.game.map.objects.item.interfaces;
 
 import com.lhf.game.shared.enums.EquipmentSlots;
 import com.lhf.game.shared.enums.EquipmentTypes;
-import javafx.util.Pair;
 
 import java.util.List;
+import java.util.Map;
 
 public interface Equipable extends Takeable {
-    List<EquipmentTypes> getType();
+
+    List<EquipmentTypes> getTypes();
 
     List<EquipmentSlots> getWhichSlots();
 
-    List<Pair<String, Integer>> equip();
+    String printWhichTypes();
 
-    List<Pair<String, Integer>> unequip();
+    String printWhichSlots();
+
+    Map<String, Integer> equip();
+
+    Map<String, Integer> unequip();
 }

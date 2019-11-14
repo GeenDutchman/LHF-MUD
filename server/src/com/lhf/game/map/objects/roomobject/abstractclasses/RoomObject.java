@@ -1,6 +1,8 @@
 package com.lhf.game.map.objects.roomobject.abstractclasses;
 
-public abstract class RoomObject {
+import com.lhf.game.map.objects.sharedinterfaces.Taggable;
+
+public abstract class RoomObject implements Taggable {
     private String objectName;
     private boolean isVisible;
 
@@ -18,7 +20,7 @@ public abstract class RoomObject {
     }
 
     public boolean checkName(String name) {
-        if (objectName.equals(name)) {
+        if (objectName.equalsIgnoreCase(name)) {
             return true;
         }
         return false;
@@ -31,5 +33,15 @@ public abstract class RoomObject {
         }
         RoomObject ro = (RoomObject)obj;
         return objectName.equals(ro.objectName);
+    }
+
+    @Override
+    public String getStartTagName() {
+        return "<object>";
+    }
+
+    @Override
+    public String getEndTagName() {
+        return "</object>";
     }
 }

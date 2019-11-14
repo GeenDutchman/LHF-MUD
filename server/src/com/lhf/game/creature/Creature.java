@@ -1,21 +1,99 @@
 package com.lhf.game.creature;
 
+import com.lhf.game.Attack;
 import com.lhf.game.inventory.EquipmentOwner;
 import com.lhf.game.inventory.Inventory;
 import com.lhf.game.inventory.InventoryOwner;
 import com.lhf.game.map.objects.item.Item;
-import com.lhf.game.map.objects.item.interfaces.Equipable;
-import com.lhf.game.map.objects.item.interfaces.Takeable;
-import com.lhf.game.map.objects.item.interfaces.Usable;
+import com.lhf.game.map.objects.item.interfaces.*;
 import com.lhf.game.map.objects.roomobject.Corpse;
+import com.lhf.game.map.objects.sharedinterfaces.Taggable;
+import com.lhf.game.shared.dice.Dice;
 import com.lhf.game.shared.enums.*;
-import javafx.util.Pair;
 
 import java.util.*;
 
 import static com.lhf.game.shared.enums.Attributes.*;
 
-public class Creature implements InventoryOwner, EquipmentOwner {
+public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
+
+    public class Fist extends Weapon {
+
+        private List<EquipmentSlots> slots;
+        private List<EquipmentTypes> types;
+
+        public Fist() {
+            super("Fist", false);
+
+            types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
+            slots = Arrays.asList(EquipmentSlots.WEAPON);
+        }
+
+        @Override
+        public int rollToHit() {
+            return Dice.getInstance().d20(1);
+        }
+
+        @Override
+        public int rollDamage() {
+            return Dice.getInstance().d2(1);
+        }
+
+        @Override
+        public Attack rollAttack() {
+            return new Attack(this.rollToHit()).addFlavorAndDamage("Bludgeoning", this.rollDamage());
+        }
+
+        @Override
+        public List<EquipmentTypes> getTypes() {
+            return types;
+        }
+
+        @Override
+        public List<EquipmentSlots> getWhichSlots() {
+            return slots;
+        }
+
+        @Override
+        public String printWhichSlots() {
+            StringJoiner sj = new StringJoiner(",");
+            sj.setEmptyValue("no slot!");
+            for (EquipmentSlots slot : slots) {
+                sj.add(slot.toString());
+            }
+            return sj.toString();
+        }
+
+        @Override
+        public String printWhichTypes() {
+            StringJoiner sj = new StringJoiner(",");
+            sj.setEmptyValue("none needed!");
+            for (EquipmentTypes type : types) {
+                sj.add(type.toString());
+            }
+            return sj.toString();
+        }
+
+        @Override
+        public Map<String, Integer> equip() {
+            return new HashMap<>(0); // changes nothing
+        }
+
+        @Override
+        public Map<String, Integer> unequip() {
+            return new HashMap<>(0); // changes nothing
+        }
+
+        @Override
+        public String getDescription() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("This is a ").append(getName()).append(" attached to a ").append(Creature.this.getName());
+            sb.append(" This can be equipped to: ").append(printWhichSlots());
+            //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
+            return sb.toString();
+        }
+    }
+
     private String name; //Username for players, description name (e.g., goblin 1) for monsters/NPCs
     private CreatureType creatureType; //See shared enum
     //private MonsterType monsterType; // I dont know if we'll need this
@@ -41,7 +119,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
     private boolean inBattle; // Boolean to determine if this creature is in combat
 
     //Default constructor
-    public Creature(){
+    public Creature() {
         //Instantiate creature with no name and type Monster
         this.name = "";
         this.creatureType = CreatureType.MONSTER;
@@ -105,6 +183,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         int max = stats.get(Stats.MAXHP);
         current += value;
         if (current <= 0) {
+            current = 0;
             this.die();
         }
         if (current > max) {
@@ -176,8 +255,51 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         return this.inBattle;
     }
 
-    public void attack(String itemName, String target) {
+    public Attack attack(String itemName, String target) {
         System.out.println(name + " is attempting to attack: " + target);
+        Weapon toUse;
+        Optional<Item> item = this.fromAllInventory(itemName);
+        if (item.isPresent() && item.get() instanceof Weapon) {
+            toUse = (Weapon) item.get();
+        } else {
+            toUse = this.getWeapon();
+        }
+        return toUse.rollAttack();
+    }
+
+    public Weapon getWeapon() {
+        Weapon weapon = (Weapon) getWhatInSlot(EquipmentSlots.WEAPON);
+        if (weapon == null) {
+            return new Creature.Fist();
+        } else {
+            return weapon;
+        }
+    }
+
+    public String applyAttack(Attack attack) {
+        //add stuff to calculate if the attack hits or not, and return false if so
+        StringBuilder output = new StringBuilder();
+        Iterator attackIt = attack.iterator();
+        while (attackIt.hasNext()) {
+            Map.Entry entry = (Map.Entry) attackIt.next();
+            String flavor = (String) entry.getKey();
+            Integer damage = (Integer) entry.getValue();
+            updateHitpoints(-damage);
+            output.append(getColorTaggedName() + " has been dealt " + damage + " " + flavor + " damage.\n");
+            if (!isAlive()) {
+                output.append(getColorTaggedName() + " has died.\n");
+                break;
+            }
+        }
+        return output.toString();
+    }
+
+    public int getHealth() {
+        return stats.get(Stats.CURRENTHP);
+    }
+
+    public boolean isAlive() {
+        return getHealth() > 0;
     }
 
     //public void ( Ability ability, String target);
@@ -265,7 +387,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
 
         for (EquipmentSlots slot : this.equipmentSlots.keySet()) {
             Takeable thing = (Takeable) this.equipmentSlots.get(slot);
-            if (thing.getName().equals(itemName)) {
+            if (thing.getName().equalsIgnoreCase(itemName)) {
                 this.equipmentSlots.remove(slot);
                 return Optional.of(thing);
             }
@@ -291,7 +413,7 @@ public class Creature implements InventoryOwner, EquipmentOwner {
         } else {
             sb.append(this.inventory.toString());
         }
-        sb.append('\n');
+        sb.append("\n\r");
 
         for (EquipmentSlots slot : EquipmentSlots.values()) {
             Item item = this.equipmentSlots.get(slot);
@@ -299,43 +421,53 @@ public class Creature implements InventoryOwner, EquipmentOwner {
             if (item == null) {
                 sb.append(slot.toString()).append(": ").append("empty. ");
             } else {
-                sb.append(slot.toString()).append(": ").append(item.getName()).append(". ");
+                sb.append(slot.toString()).append(": ").append(item.getStartTagName()).append(item.getName())
+                        .append(item.getEndTagName()).append(". ");
             }
         }
 
         return sb.toString();
     }
 
-    @Override
-    public void useItem(String itemName) {
-        Optional<Takeable> item = this.inventory.getItem(itemName);
-        if (item.isPresent()) {
-            Takeable takeable = item.get();
-            if (takeable instanceof Usable) {
-                System.out.println(((Usable) takeable).performUsage());
-                //TODO: this should somehow interact with environment as well as player...
-                return;
-            }
-            //TODO: should report not usable
-            return;
+    public Optional<Item> fromAllInventory(String itemName) {
+        Optional<Takeable> maybeTakeable = this.inventory.getItem(itemName);
+        if (maybeTakeable.isPresent()) {
+            return Optional.of((Item) maybeTakeable.get());
         }
 
         for (Item equipped : this.equipmentSlots.values()) {
-            if (equipped.getName().equals(itemName)) {
-                if (equipped instanceof Usable) {
-                    System.out.println(((Usable) equipped).performUsage());
-                    //TODO: this should somehow interact with environment as well as player...
-                    return;
-                }
-                //TODO: report not usable
-                return;
+            if (equipped.getName().equalsIgnoreCase(itemName)) {
+                return Optional.of((equipped));
             }
         }
-        //TODO: report itemName not found
+
+        return Optional.empty();
     }
 
-    private boolean applyUse(List<Pair<String, Integer>> applications) {
-        for (Pair<String, Integer> p : applications) {
+    @Override
+    public String useItem(String itemName, Object onWhat) {
+        // if onWhat is not specified, use this creature
+        Object useOn = onWhat;
+        if (useOn == null) {
+            useOn = this;
+        }
+
+        Optional<Item> maybeItem = this.fromAllInventory(itemName);
+        if (maybeItem.isPresent()) {
+            Item item = maybeItem.get();
+            if (item instanceof Usable) {
+                if (item instanceof Consumable && !((Usable) item).hasUsesLeft()) {
+                    inventory.removeItem((Takeable) item);
+                }
+                return ((Usable) item).doUseAction(useOn);
+            }
+            return item.getStartTagName() + item.getName() + item.getEndTagName() + " is not usable!";
+        }
+        return "You do not have that '" + itemName + "' to use!";
+    }
+
+    private boolean applyUse(Map<String, Integer> applications) {
+        for (Map.Entry<String, Integer> p : applications.entrySet()) {
             try {
                 Attributes attribute = Attributes.valueOf(p.getKey());
                 this.updateAttribute(attribute, p.getValue());
@@ -354,44 +486,81 @@ public class Creature implements InventoryOwner, EquipmentOwner {
 
     @Override
     public String equipItem(String itemName, EquipmentSlots slot) {
-        if (slot == null) {
-            return "That is not a slot.  These are your options: " + Arrays.toString(EquipmentSlots.values()) + "\n\r";
-        }
-        if (this.inventory.hasItem(itemName)) {
-            Optional<Takeable> item = this.inventory.getItem(itemName);
-            if (item.get() instanceof Equipable) {
-                Equipable thing = (Equipable) item.get();
-                if (thing.getWhichSlots().contains(slot)) {
-                    String unequipMessage = this.unequipItem(slot);
-                    this.applyUse(thing.equip());
-                    this.inventory.removeItem(thing);
-                    this.equipmentSlots.putIfAbsent(slot, (Item) thing);
-                    return unequipMessage + thing.getName() + " successfully equipped!\n\r";
+        Optional<Takeable> maybeItem = this.inventory.getItem(itemName);
+        if (maybeItem.isPresent()) {
+            Takeable fromInventory = maybeItem.get();
+            if (fromInventory instanceof Equipable) {
+                Equipable equipThing = (Equipable) fromInventory;
+                if (slot == null) {
+                    slot = equipThing.getWhichSlots().get(0);
                 }
-                return "You cannot equip the " + thing.getName() + " to " + slot.toString() + "\n\r";
+                if (equipThing.getWhichSlots().contains(slot)) {
+                    String unequipMessage = this.unequipItem(slot, "");
+                    this.applyUse(equipThing.equip());
+                    this.inventory.removeItem(equipThing);
+                    this.equipmentSlots.putIfAbsent(slot, (Item) equipThing);
+                    return unequipMessage + ((Item) equipThing).getStartTagName() + equipThing.getName() + ((Item) equipThing).getEndTagName() + " successfully equipped!\n\r";
+                }
+                String notEquip = "You cannot equip the " + ((Item) equipThing).getStartTagName() + equipThing.getName() + ((Item) equipThing).getEndTagName() + " to " + slot.toString() + "\n";
+                return notEquip + "You can equip it to: " + equipThing.printWhichSlots() + "\n\r";
             }
-            return itemName + " is not equippable!\n\r";
+            return ((Item) fromInventory).getStartTagName() + fromInventory.getName() + ((Item) fromInventory).getEndTagName() + " is not equippable!\n\r";
         }
 
-        return itemName + " is not in your inventory, so you cannot equip it!\n\r";
+        return "'" + itemName + "' is not in your inventory, so you cannot equip it!\n\r";
     }
 
     @Override
-    public String unequipItem(EquipmentSlots slot) {
+    public String unequipItem(EquipmentSlots slot, String weapon) {
         if (slot == null) {
+            //if they specified weapon and not slot // TODO: improve this code
+            Optional<Item> maybeItem = fromAllInventory(weapon);
+            if (maybeItem.isPresent() && equipmentSlots.containsValue(maybeItem.get())) {
+                Equipable thing = (Equipable) maybeItem.get();
+                for (EquipmentSlots thingSlot : thing.getWhichSlots()) {
+                    if (thing.equals(equipmentSlots.get(thingSlot))) {
+                        this.equipmentSlots.remove(thingSlot);
+                        this.applyUse(thing.unequip());
+                        this.inventory.addItem(thing);
+                        return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\n\r";
+                    }
+                }
+                return "That is not currently equipped!";
+            }
+
             return "That is not a slot.  These are your options: " + Arrays.toString(EquipmentSlots.values()) + "\n\r";
         }
-        Equipable thing = (Equipable) this.equipmentSlots.remove(slot);
+        Equipable thing = (Equipable) getEquipmentSlots().remove(slot);
         if (thing != null) {
             this.applyUse(thing.unequip());
             this.inventory.addItem(thing);
-            return "You have unequipped your " + thing.getName() + "\n\r";
+            return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\n\r";
         }
         return "That slot is empty.\n\r";
+    }
+
+    @Override
+    public Equipable getEqupped(EquipmentSlots slot) {
+        Equipable thing = (Equipable) this.equipmentSlots.get(slot);
+        return thing;
     }
 
     public Corpse generateCorpseFromCreature() {
         //Make the corpse if called
         return null;
+    }
+
+    @Override
+    public String getStartTagName() {
+        return "<creature>";
+    }
+
+    @Override
+    public String getEndTagName() {
+        return "</creature>";
+    }
+
+    public String getColorTaggedName() {
+        return getStartTagName() + getName() + getEndTagName();
     }
 }

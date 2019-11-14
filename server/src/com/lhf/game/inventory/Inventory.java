@@ -4,6 +4,7 @@ import com.lhf.game.map.objects.item.interfaces.Takeable;
 
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class Inventory {
     private ArrayList<Takeable> items;
@@ -21,11 +22,11 @@ public class Inventory {
     }
 
     public boolean hasItem(String itemName) {
-        return this.items.stream().anyMatch(i -> i.getName().equals(itemName));
+        return this.items.stream().anyMatch(i -> i.getName().equalsIgnoreCase(itemName));
     }
 
     public Optional<Takeable> getItem(String itemName) {
-        return this.items.stream().filter(i -> i.getName().equals(itemName)).findAny();
+        return this.items.stream().filter(i -> i.getName().equalsIgnoreCase(itemName)).findAny();
     }
 
     public boolean isEmpty() {
@@ -34,7 +35,11 @@ public class Inventory {
 
     @Override
     public String toString() {
-        return this.items.stream().map(item -> item.getName()).reduce("", (val, acc) -> acc + val + ", ");
+        return this.items.stream().map(item -> "<item>" + item.getName() + "</item>").collect(Collectors.joining(","));
+    }
+
+    public String toStoreString(){
+        return this.items.stream().map(item -> "<item>" + item.getName() + "</item>").collect(Collectors.joining(","));
     }
 
     public void removeItem(Takeable item) {

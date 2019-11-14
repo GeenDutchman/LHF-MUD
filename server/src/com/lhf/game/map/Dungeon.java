@@ -1,7 +1,10 @@
 package com.lhf.game.map;
 
+import com.lhf.game.Messenger;
 import com.lhf.game.creature.Player;
 import com.lhf.game.shared.enums.EquipmentSlots;
+import com.lhf.messages.out.GameMessage;
+import com.lhf.game.map.Directions;
 import com.lhf.user.UserID;
 
 import java.util.HashSet;
@@ -12,6 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Dungeon {
     private Room startingRoom = null;
     private Set<Room> rooms;
+    Messenger messenger;
 
     public Dungeon() {
         rooms = new HashSet<>();
@@ -26,6 +30,7 @@ public class Dungeon {
     }
 
     public boolean addRoom(Room r) {
+        r.setMessenger(messenger);
         return rooms.add(r);
     }
 
@@ -58,7 +63,25 @@ public class Dungeon {
             didMove.set(true);
             return "You went " + direction + ". \r\n\n" + getPlayerRoom(id).toString();
         }
-        return "That isn't a valid direction to go.";
+        else if (isValidDirection(direction)) {
+            return "There's only a wall there.";
+        }
+        else {
+            return "Couldn't understand that command.";
+        }
+    }
+
+    public boolean isValidDirection(String direction) {
+        if (!direction.equalsIgnoreCase(Directions.NORTH.toString())) {
+            if (!direction.equalsIgnoreCase(Directions.SOUTH.toString())) {
+                if (!direction.equalsIgnoreCase(Directions.WEST.toString())) {
+                    if (!direction.equalsIgnoreCase(Directions.EAST.toString())) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     public String examineCommand(UserID id, String name) {
@@ -110,6 +133,15 @@ public class Dungeon {
         return room.drop(getPlayerById(id), name);
     }
 
+    public void attackCommand(UserID id, String weapon, String target) {
+        Room room = getPlayerRoom(id);
+        if (room == null) {
+            messenger.sendMessageToUser(new GameMessage( "You are not in this dungeon"), id);
+            return;
+        }
+        room.attack(getPlayerById(id), weapon, target);
+    }
+
     public String inventory(UserID id) {
         Player player = getPlayerById(id);
         return player.listInventory();
@@ -125,8 +157,26 @@ public class Dungeon {
         return player.equipItem(itemName, slot);
     }
 
-    public String unequip(UserID id, EquipmentSlots slot) {
+    public String unequip(UserID id, EquipmentSlots slot, String weapon) {
         Player player = getPlayerById(id);
-        return player.unequipItem(slot);
+        return player.unequipItem(slot, weapon);
+    }
+
+    public void setMessenger(Messenger messenger) {
+        this.messenger = messenger;
+        for (Room r : rooms) {
+            r.setMessenger(messenger);
+        }
+    }
+    public String useCommand(UserID id, String usefulItem, String target) {
+        Room room = getPlayerRoom(id);
+        if (room == null) {
+            return "You are not in this dungeon";
+        }
+        return room.use(getPlayerById(id), usefulItem, target);
+    }
+
+    public String statusCommand(UserID id) {
+        return getPlayerById(id).getStatus();
     }
 }
