@@ -71,4 +71,14 @@ public class Player extends Creature implements Taggable {
     public String getEndTagName() {
         return "</player>";
     }
+
+    public String getStatus() {
+        StringBuilder s = new StringBuilder();
+        s.append("You have ");
+        s.append(getStats().get(Stats.CURRENTHP));
+        s.append("/");
+        s.append(getStats().get(Stats.MAXHP));
+        s.append(" HP\n\r");
+        return s.toString();
+    }
 }

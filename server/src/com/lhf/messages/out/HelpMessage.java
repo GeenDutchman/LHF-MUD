@@ -17,6 +17,7 @@ public class HelpMessage extends OutMessage {
         sb.append("<command>INVENTORY</command>\t\t\t\twill list what you have in your inventory and what you have equipped\n\r");
         sb.append("<command>TAKE [item]</command>\t\t\twill take an item from the room and add it to your inventory\n\r");
         sb.append("<command>USE [item] on [target]</command>\t\t\twill attempt to apply effects from the item to the target\n\r");
+        sb.append("<command>STATUS</command>\t\t\twill tell you how much HP you currently have\n\r");
       
         //lastly
         sb.append("<command>exit</command>\twill let you disconnect and leave Ibaif\n");

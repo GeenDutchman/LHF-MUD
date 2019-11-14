@@ -175,4 +175,8 @@ public class Dungeon {
         }
         return room.use(getPlayerById(id), usefulItem, target);
     }
+
+    public String statusCommand(UserID id) {
+        return getPlayerById(id).getStatus();
+    }
 }
