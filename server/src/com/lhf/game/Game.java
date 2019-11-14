@@ -48,7 +48,7 @@ public class Game implements UserListener {
     @Override
     public void userLeft(UserID id) {
         this.logger.entering(this.getClass().toString(), "userLeft()", id);
-        server.sendMessageToAll(new UserLeftMessage());
+        server.sendMessageToAll(new UserLeftMessage(userManager.getUser(id)));
     }
 
     @Override
