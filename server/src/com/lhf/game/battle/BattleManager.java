@@ -68,16 +68,19 @@ public class BattleManager {
         return isHappening;
     }
 
-    public void startBattle() {
+    public void startBattle(Creature instigator) {
         isHappening = true;
-        messenger.sendMessageToAllInRoom(new GameMessage("Someone started a fight!"), room);
-
+        messenger.sendMessageToAllInRoom(new GameMessage(instigator.getName() + " started a fight!"), room);
         for (Creature creature : participants) {
-            if (creature instanceof Player) {
+            if (creature instanceof Player && instigator != creature) {
                 messenger.sendMessageToUser(new GameMessage("You are in the fight!"), ((Player) creature).getId());
             }
         }
-        startTurn();
+        // If the player started the fight, then it already has an action
+        // about to happen. No need to prompt them for it.
+        if (!(instigator instanceof Player)) {
+            startTurn();
+        }
     }
 
     public void endBattle() {

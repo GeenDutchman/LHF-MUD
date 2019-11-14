@@ -48,7 +48,7 @@ public class Game implements UserListener {
     @Override
     public void userLeft(UserID id) {
         this.logger.entering(this.getClass().toString(), "userLeft()", id);
-        server.sendMessageToAll(new UserLeftMessage());
+        server.sendMessageToAll(new UserLeftMessage(userManager.getUser(id)));
     }
 
     @Override
@@ -172,6 +172,15 @@ public class Game implements UserListener {
             server.sendMessageToUser(
                     new GameMessage(
                             dungeon.useCommand(id, ((UseMessage) msg).getUsefulItem(), ((UseMessage) msg).getTarget())
+                    ),
+                    id
+            );
+        }
+
+        if (msg instanceof StatusMessage) {
+            server.sendMessageToUser(
+                    new GameMessage(
+                            dungeon.statusCommand(id)
                     ),
                     id
             );

@@ -5,12 +5,8 @@ import com.lhf.game.map.objects.item.interfaces.Weapon;
 import com.lhf.game.shared.dice.Dice;
 import com.lhf.game.shared.enums.EquipmentSlots;
 import com.lhf.game.shared.enums.EquipmentTypes;
-import javafx.util.Pair;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.*;
 
 public class Longsword extends Weapon {
 
@@ -70,13 +66,13 @@ public class Longsword extends Weapon {
     }
 
     @Override
-    public List<Pair<String, Integer>> equip() {
-        return new ArrayList<>(0); // changes nothing
+    public Map<String, Integer> equip() {
+        return new HashMap<>(0); // changes nothing
     }
 
     @Override
-    public List<Pair<String, Integer>> unequip() {
-        return new ArrayList<>(0); // changes nothing
+    public Map<String, Integer> unequip() {
+        return new HashMap<>(0); // changes nothing
     }
 
     @Override
