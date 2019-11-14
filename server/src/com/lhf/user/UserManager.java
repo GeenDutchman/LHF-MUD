@@ -31,10 +31,11 @@ public class UserManager {
         UserID userId = new UserID(msg);
         if (!userMap.containsKey(userId)) {
             game.addNewPlayerToGame(userId, msg.getUsername());
+            userMap.put(userId, new User(msg, clientId));
+            clientMap.put(userId, clientId);
+            return userId;
         }
-        userMap.put(userId, new User(msg, clientId));
-        clientMap.put(userId, clientId);
-        return userId;
+        return null;
     }
     public ClientID getClient(UserID id) {
         System.out.println(id);
