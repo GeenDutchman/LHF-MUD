@@ -362,7 +362,7 @@ public class Room {
         }
 
         if (!this.battleManager.isBattleOngoing()) {
-            this.battleManager.startBattle();
+            this.battleManager.startBattle(player);
         }
         AttackAction attackAction = new AttackAction(targetCreature, weapon);
         this.battleManager.playerAction(player, attackAction);
