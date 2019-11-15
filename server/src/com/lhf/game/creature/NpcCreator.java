@@ -197,7 +197,6 @@ public class NpcCreator {
         Statblock creation = new Statblock(name,creatureType,attributes,modifiers,stats,proficiencies,inventory,equipmentSlots);
 
         npc = new Creature(name,creation);
-        //TODO: equipped stuff
 
         String item_slot_string;
         while(Boolean.TRUE){
@@ -222,13 +221,17 @@ public class NpcCreator {
 
         }
 
-        //TODO to string for equipmentslots
 
 
         System.out.print(creation);
 
         Statblock test = new Statblock(creation.toString());
         System.out.println(test);
+
+        StatblockLoader_Unloader loader_unloader = new StatblockLoader_Unloader();
+        loader_unloader.statblockToFile(test);
+        test = new Statblock(loader_unloader.statblockFromfile("test"));
+        System.err.println(test);
 
 
         System.out.println("\nCreature Creation Complete!");

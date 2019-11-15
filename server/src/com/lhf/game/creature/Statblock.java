@@ -114,6 +114,10 @@ public class Statblock {
 
     }
 
+    public String getName() {
+        return name;
+    }
+
     private String equipmentSlotsToString() {
         EquipmentSlots[] slotValues = EquipmentSlots.values();
         StringBuilder stringBuilder = new StringBuilder("{");
