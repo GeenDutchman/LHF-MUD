@@ -221,7 +221,7 @@ public class NpcCreator {
 
         }
 
-        /*
+
         System.out.print(creation);
 
         Statblock test = new Statblock(creation.toString());
@@ -231,7 +231,7 @@ public class NpcCreator {
         loader_unloader.statblockToFile(test);
         test = new Statblock(loader_unloader.statblockFromfile("test"));
         System.err.println(test);
-        */
+
 
 
         System.out.println("\nCreature Creation Complete!");
