@@ -8,6 +8,7 @@ import com.lhf.game.shared.enums.*;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 
 public class Statblock {
 
@@ -109,8 +110,22 @@ public class Statblock {
                 stats.toString()+"\n"+
                 proficiencies.toString()+"\n"+
                 inventory.toStoreString()+"\n"+
-                equipmentSlots.toString()+"\n";
+                equipmentSlotsToString()+"\n";
 
+    }
+
+    private String equipmentSlotsToString() {
+        EquipmentSlots[] slotValues = EquipmentSlots.values();
+        StringBuilder stringBuilder = new StringBuilder("{");
+        for (EquipmentSlots key: equipmentSlots.keySet()){
+            String item_name = equipmentSlots.get(key).getName();
+            if(item_name == null){
+                item_name = "empty";
+            }
+            stringBuilder.append(key +"="+item_name+",");
+        }
+        stringBuilder.append("}");
+        return stringBuilder.toString();
     }
 
     private HashMap<Attributes, Integer> attributesFromString(String line){
@@ -154,42 +169,58 @@ public class Statblock {
 
     private Inventory inventoryFromString(String line){
         Inventory inventory = new Inventory();
-
         line = line.strip();
         String[]items = line.split(",");
-        String path_to_items = "com.lhf.game.map.objects.item.concrete.";
+
         for(int i=0; i<items.length; i++){
             String item = items[i].replace(" ","");
-            try {
-                Class<?> clazz = Class.forName(path_to_items+item);
-                Constructor<?> constructor = clazz.getConstructor(boolean.class);
-                Object item_instance = constructor.newInstance(Boolean.TRUE);
-                inventory.addItem((Takeable) item_instance);
-
-            }catch (java.lang.NoClassDefFoundError |
-                    java.lang.ClassNotFoundException | java.lang.NoSuchMethodException |
-                    java.lang.IllegalAccessException | java.lang.InstantiationException
-                    | java.lang.reflect.InvocationTargetException e){
-                System.out.println(item+" not found in package "+path_to_items +"... skipping it.");
-                continue;
+            Item instance = itemFromString(item);
+            if(!(instance == null) ){
+                inventory.addItem((Takeable) instance );
             }
         }
 
         return inventory;
     }
 
+    private Item itemFromString(String itemName){
+        String path_to_items = "com.lhf.game.map.objects.item.concrete.";
+        Object item_instance = null;
+        try {
+            Class<?> clazz = Class.forName(path_to_items+itemName);
+            Constructor<?> constructor = clazz.getConstructor(boolean.class);
+            item_instance = constructor.newInstance(Boolean.TRUE);
+
+        }catch (java.lang.NoClassDefFoundError |
+                java.lang.ClassNotFoundException | java.lang.NoSuchMethodException |
+                java.lang.IllegalAccessException | java.lang.InstantiationException
+                | java.lang.reflect.InvocationTargetException e){
+            System.out.println(itemName+" not found in package "+path_to_items +"... skipping it.");
+        }
+
+        return (Item) item_instance;
+    }
+
     private HashMap<EquipmentSlots, Item> equipmentSlotsFromString(String line){
+
         HashMap equipSlots = new HashMap();
 
-        /*
+        if(line.equals("{}")){
+            return equipSlots;
+        }
+
         line = line.substring(1,line.length()-1);
+        System.out.println(line);
         String[] pairs = line.split(",");
 
-        for(int i = 0; i< EquipmentSlots.values().length; i ++){
-            String[] key_val = pairs[i].split("=");
-            equipSlots.put(EquipmentSlots.values()[i],key_val[1]);
+        //pairs
+        for(String pair : pairs){
+            String[] key_val = pair.split("=");
+            if(!key_val[1].equals("empty")){
+                Item instance = itemFromString(key_val[1].strip().replace(" ",""));
+                equipSlots.put(EquipmentSlots.valueOf(key_val[0]),instance);
+            }
         }
-        */
 
         return equipSlots;
     }

@@ -168,7 +168,7 @@ public class NpcCreator {
         //May need to replace this to be more adaptive?
         String path_to_items = "com.lhf.game.map.objects.item.concrete.";
         while (Boolean.TRUE){
-            System.out.print("Enter one of " + name + "'s inventory items(including weapons and armor) or done if there are no more: ");
+            System.out.print("Enter one of " + name + "'s inventory items(including weapons and armor) (FilenameOfItem or done): ");
             item = input.nextLine();
             item = item.strip();
 
@@ -201,7 +201,7 @@ public class NpcCreator {
 
         String item_slot_string;
         while(Boolean.TRUE){
-            System.out.print("Given: " + inventory.toStoreString() +" \nIs there anything you would like to equip?(type item, slot or done) ");
+            System.out.print("Given: " + inventory.toStoreString() +" \nIs there anything you would like to equip?(Item Name,slot or done) ");
             item_slot_string = input.nextLine().strip();
             if(item_slot_string.equalsIgnoreCase("done")){
                 break;
@@ -216,6 +216,9 @@ public class NpcCreator {
                 System.err.println(e.getMessage());
                 System.err.println("Slots are: " + EquipmentSlots.values());
             }
+            catch (java.lang.ArrayIndexOutOfBoundsException e){
+                System.err.println("Expected a comma between Item and Slot.");
+            }
 
         }
 
@@ -224,8 +227,8 @@ public class NpcCreator {
 
         System.out.print(creation);
 
-        //Statblock test = new Statblock(creation.toString());
-        //System.out.println(test);
+        Statblock test = new Statblock(creation.toString());
+        System.out.println(test);
 
 
         System.out.println("\nCreature Creation Complete!");

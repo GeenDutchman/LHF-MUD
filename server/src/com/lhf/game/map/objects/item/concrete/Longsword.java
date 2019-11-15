@@ -14,7 +14,7 @@ public class Longsword extends Weapon {
     private List<EquipmentTypes> types;
 
     public Longsword(boolean isVisible) {
-        super("Sword", isVisible);
+        super("Longsword", isVisible);
 
         slots = Arrays.asList(EquipmentSlots.WEAPON);
         types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
