@@ -9,6 +9,7 @@ import com.lhf.game.shared.enums.*;
 
 import java.lang.reflect.Constructor;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
@@ -73,7 +74,7 @@ public class NpcCreator {
                 }
                 else{
                     valid = Boolean.FALSE;
-                    System.out.println("Invalid Creature type, restarting from last prompt.");
+                    System.err.println("Invalid Creature type, restarting from last prompt.");
                 }
             }
         }while (!valid);
@@ -89,7 +90,7 @@ public class NpcCreator {
                 }
 
             }catch (java.util.InputMismatchException e){
-                System.out.println("Invalid input, expected 6 integers separated by spaces.");
+                System.err.println("Invalid input, expected 6 integers separated by spaces.");
                 input.nextLine(); // clear buffer
                 valid = Boolean.FALSE;
                 continue;
@@ -119,7 +120,7 @@ public class NpcCreator {
                  cr = input.nextFloat();
 
             }catch (java.util.InputMismatchException e){
-                System.out.println("Invalid input, expected two integers and a float (ex float: 0.25 2.0) separated by spaces.");
+                System.err.println("Invalid input, expected two integers and a float (ex float: 0.25 2.0) separated by spaces.");
                 input.nextLine(); // clear buffer
                 valid = Boolean.FALSE;
                 continue;
@@ -131,7 +132,6 @@ public class NpcCreator {
             stats.put(Stats.CURRENTHP,max_hp);
 
             stats.put(Stats.XPWORTH, xp_worth);
-            //TODO: XpEarned, prof bonus
             stats.put(Stats.XPEARNED,0);
             stats.put(Stats.PROFICIENCYBONUS,0);
             // NOTE: 1 CR is roughly 4 level one players
@@ -159,7 +159,7 @@ public class NpcCreator {
                 proficiency = EquipmentTypes.valueOf(proficiency_string.toUpperCase());
                 proficiencies.add(proficiency);
             } catch (java.lang.IllegalArgumentException e) {
-                System.out.println(proficiency_string + " is not contained in EquipmentTypes file, try again or come back once you add it to the file.");
+                System.err.println(proficiency_string + " is not contained in EquipmentTypes file, try again or come back once you add it to the file.");
             }
         }
 
@@ -186,7 +186,7 @@ public class NpcCreator {
                     java.lang.ClassNotFoundException | java.lang.NoSuchMethodException |
                     java.lang.IllegalAccessException | java.lang.InstantiationException
                     | java.lang.reflect.InvocationTargetException e){
-                System.out.println(item+" not found in package "+path_to_items +" \nPlease enter a valid item class's filename with camelCase and all that jazz.");
+                System.err.println(item+" not found in package "+path_to_items +" \nPlease enter a valid item class's filename with camelCase and all that jazz.");
             }
 
             System.out.println(inventory.toStoreString());
@@ -213,7 +213,7 @@ public class NpcCreator {
 
             }catch (java.lang.IllegalArgumentException e){
                 System.err.println(e.getMessage());
-                System.err.println("Slots are: " + EquipmentSlots.values());
+                System.err.println("Slots are: " + Arrays.toString(EquipmentSlots.values()));
             }
             catch (java.lang.ArrayIndexOutOfBoundsException e){
                 System.err.println("Expected a comma between Item and Slot.");
@@ -221,8 +221,7 @@ public class NpcCreator {
 
         }
 
-
-
+        /*
         System.out.print(creation);
 
         Statblock test = new Statblock(creation.toString());
@@ -232,6 +231,7 @@ public class NpcCreator {
         loader_unloader.statblockToFile(test);
         test = new Statblock(loader_unloader.statblockFromfile("test"));
         System.err.println(test);
+        */
 
 
         System.out.println("\nCreature Creation Complete!");
@@ -248,7 +248,7 @@ public class NpcCreator {
             }
         }
         else{
-            System.out.println("Invalid response, restarting from last prompt.");
+            System.err.println("Invalid response, restarting from last prompt.");
             return Boolean.FALSE;
         }
 
