@@ -2,7 +2,7 @@ package com.lhf.messages.out;
 
 public class HelpMessage extends OutMessage {
     public String toString() {
-        StringBuilder sb = new StringBuilder("<description>Some commands that you can use:</description>\r\n");
+        StringBuilder sb = new StringBuilder("\r\n<description>Some commands that you can use:</description>\r\n");
         sb.append("<command>SAY [message]</command>\t\t\tTells everyone in your current room the message\r\n");
         sb.append("<command>TELL [username] [message]</command>\tTells the specified user your message\r\n");
         sb.append("<command>LOOK</command>\t\t\t\tGives you some information about your surroundings\r\n");
