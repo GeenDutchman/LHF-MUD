@@ -63,7 +63,7 @@ public class RustyDagger extends Weapon {
     public String getDescription() {
         StringBuilder sb = new StringBuilder("Rusty Dagger to stab monsters with. ");
         sb.append("This can be equipped to: ").append(printWhichSlots());
-        //sb.append("\n\rAnd best used if you have these proficiencies: ").append(printWhichTypes());
+        //sb.append("\r\nAnd best used if you have these proficiencies: ").append(printWhichTypes());
         return sb.toString();
     }
 

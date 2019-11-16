@@ -11,6 +11,6 @@ public class SayMessage extends OutMessage {
     }
     @Override
     public String toString() {
-        return user.getUsername() + ": " + message + "\n\r";
+        return user.getUsername() + ": " + message;
     }
 }

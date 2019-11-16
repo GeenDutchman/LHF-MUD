@@ -285,9 +285,9 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             String flavor = (String) entry.getKey();
             Integer damage = (Integer) entry.getValue();
             updateHitpoints(-damage);
-            output.append(getColorTaggedName() + " has been dealt " + damage + " " + flavor + " damage.\n");
+            output.append(getColorTaggedName() + " has been dealt " + damage + " " + flavor + " damage.\r\n");
             if (!isAlive()) {
-                output.append(getColorTaggedName() + " has died.\n");
+                output.append(getColorTaggedName() + " has died.\r\n");
                 break;
             }
         }
@@ -408,12 +408,13 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     @Override
     public String listInventory() {
         StringBuilder sb = new StringBuilder();
+        sb.append("INVENTORY:\r\n");
         if (this.inventory.isEmpty()) {
             sb.append("Your inventory is empty.");
         } else {
             sb.append(this.inventory.toString());
         }
-        sb.append("\n\r");
+        sb.append("\r\n\r\n");
 
         for (EquipmentSlots slot : EquipmentSlots.values()) {
             Item item = this.equipmentSlots.get(slot);
@@ -499,15 +500,15 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                     this.applyUse(equipThing.equip());
                     this.inventory.removeItem(equipThing);
                     this.equipmentSlots.putIfAbsent(slot, (Item) equipThing);
-                    return unequipMessage + ((Item) equipThing).getStartTagName() + equipThing.getName() + ((Item) equipThing).getEndTagName() + " successfully equipped!\n\r";
+                    return unequipMessage + ((Item) equipThing).getStartTagName() + equipThing.getName() + ((Item) equipThing).getEndTagName() + " successfully equipped!\r\n";
                 }
                 String notEquip = "You cannot equip the " + ((Item) equipThing).getStartTagName() + equipThing.getName() + ((Item) equipThing).getEndTagName() + " to " + slot.toString() + "\n";
                 return notEquip + "You can equip it to: " + equipThing.printWhichSlots();
             }
-            return ((Item) fromInventory).getStartTagName() + fromInventory.getName() + ((Item) fromInventory).getEndTagName() + " is not equippable!\n\r";
+            return ((Item) fromInventory).getStartTagName() + fromInventory.getName() + ((Item) fromInventory).getEndTagName() + " is not equippable!\r\n";
         }
 
-        return "'" + itemName + "' is not in your inventory, so you cannot equip it!\n\r";
+        return "'" + itemName + "' is not in your inventory, so you cannot equip it!\r\n";
     }
 
     @Override
@@ -522,21 +523,21 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                         this.equipmentSlots.remove(thingSlot);
                         this.applyUse(thing.unequip());
                         this.inventory.addItem(thing);
-                        return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\n\r";
+                        return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\r\n";
                     }
                 }
                 return "That is not currently equipped!";
             }
 
-            return "That is not a slot.  These are your options: " + Arrays.toString(EquipmentSlots.values()) + "\n\r";
+            return "That is not a slot.  These are your options: " + Arrays.toString(EquipmentSlots.values()) + "\r\n";
         }
         Equipable thing = (Equipable) getEquipmentSlots().remove(slot);
         if (thing != null) {
             this.applyUse(thing.unequip());
             this.inventory.addItem(thing);
-            return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\n\r";
+            return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\r\n";
         }
-        return "That slot is empty.\n\r";
+        return "That slot is empty.";
     }
 
     @Override

@@ -293,24 +293,24 @@ public class Room {
 
     @Override
     public String toString() {
-        String output = "";
+        String output = "\r\n";
         output += getDescription();
         output += "\r\n";
         output += "The possible directions are:\r\n";
         output += getDirections();
-        output += "\r\n";
+        output += "\r\n\r\n";
         output += "Objects you can see:\r\n";
         output += getListOfAllVisibleObjects();
-        output += "\r\n";
+        output += "\r\n\r\n";
         output += "Items you can see:\r\n";
         output += getListOfAllVisibleItems();
-        output += "\r\n";
+        output += "\r\n\r\n";
         output += "Players in room:\r\n";
         output += getListOfPlayers();
-        output += "\r\n";
+        output += "\r\n\r\n";
         output += "Creatures you can see:\r\n";
         output += getListOfCreatures();
-        output += "\r\n";
+        output += "\r\n\r\n";
         if (this.battleManager.isBattleOngoing()) {
             output += "There is a battle going on!\r\n";
         }
