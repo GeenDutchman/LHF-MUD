@@ -504,7 +504,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                     return unequipMessage + ((Item) equipThing).getStartTagName() + equipThing.getName() + ((Item) equipThing).getEndTagName() + " successfully equipped!\n\r";
                 }
                 String notEquip = "You cannot equip the " + ((Item) equipThing).getStartTagName() + equipThing.getName() + ((Item) equipThing).getEndTagName() + " to " + slot.toString() + "\n";
-                return notEquip + "You can equip it to: " + equipThing.printWhichSlots() + "\n\r";
+                return notEquip + "You can equip it to: " + equipThing.printWhichSlots();
             }
             return ((Item) fromInventory).getStartTagName() + fromInventory.getName() + ((Item) fromInventory).getEndTagName() + " is not equippable!\n\r";
         }

@@ -78,7 +78,7 @@ public class Longsword extends Weapon {
     @Override
     public String getDescription() {
         StringBuilder sb = new StringBuilder();
-        sb.append("This is a nice, long, shiny sword.  It's a bit simple though... ");
+        sb.append("This is a nice, long, shiny sword.  It's a bit simple though...");
         sb.append("This can be equipped to: ").append(printWhichSlots());
         //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
         //TODO: should this describe that it does 1d6 damage?

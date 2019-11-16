@@ -65,9 +65,14 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
     }
 
     @Override
-    public void sendMessageToUser(OutMessage msg, @NotNull UserID id) {
+    public boolean sendMessageToUser(OutMessage msg, @NotNull UserID id) {
         logger.fine("Sending message\"" + msg + "\" to User " + id);
-        sendMessageToClient(msg, userManager.getClient(id));
+        ClientID cid = userManager.getClient(id);
+        if (cid != null) {
+            sendMessageToClient(msg, userManager.getClient(id));
+            return true;
+        }
+        return false;
     }
 
     public void sendMessageToClient(OutMessage msg, @NotNull ClientID id) {
