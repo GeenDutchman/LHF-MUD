@@ -1,11 +1,7 @@
 <component name="libraryTable">
   <library name="javafx-base-12-ea+5-win">
     <CLASSES>
-<<<<<<< HEAD
-      <root url="jar://$PROJECT_DIR$/server/javafx-base-12-ea+5-win.jar!/" />
-=======
       <root url="jar://$PROJECT_DIR$/javafx-base-12-ea+5-win.jar!/" />
->>>>>>> 6ce75262c3b0dd9319f878868a4b60fda2aba4d7
     </CLASSES>
     <JAVADOC />
     <SOURCES />
