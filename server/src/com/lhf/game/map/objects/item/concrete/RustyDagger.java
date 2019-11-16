@@ -79,6 +79,6 @@ public class RustyDagger extends Weapon {
 
     @Override
     public Attack rollAttack() {
-        return new Attack(this.rollToHit()).addFlavorAndDamage("Piercing", this.rollDamage());
+        return new Attack(this.rollToHit(), "").addFlavorAndDamage("Piercing", this.rollDamage());
     }
 }
