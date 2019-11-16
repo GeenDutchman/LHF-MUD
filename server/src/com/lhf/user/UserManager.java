@@ -4,8 +4,10 @@ import com.lhf.game.Game;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.server.ClientID;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 public class UserManager {
     private HashMap<UserID, User> userMap;
@@ -17,6 +19,15 @@ public class UserManager {
     }
     public User getUser(UserID userId) {
         return userMap.get(userId);
+    }
+
+    public List<String> getAllUsernames() {
+        ArrayList<User> users = new ArrayList<User>(userMap.values());
+        ArrayList<String> usernames = new ArrayList<>();
+        for (User user : users) {
+            usernames.add(user.getUsername());
+        }
+        return usernames;
     }
 
     public Collection<UserID> getAllUserIds() {
