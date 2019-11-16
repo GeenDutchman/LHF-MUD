@@ -81,8 +81,8 @@ public class Room {
 
         if (p.isInBattle()) {
             //TODO: stop her!!?
-            messenger.sendMessageToUser(new GameMessage("You are fleeing the battle. Flee!  Flee!"), p.getId());
-            messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(p.getName() + " has fled the battle!"), p.getId());
+            messenger.sendMessageToUser(new GameMessage("You are fleeing the battle. Flee!  Flee!\r\n"), p.getId());
+            messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(p.getName() + " has fled the battle!\r\n"), p.getId());
             battleManager.removeCreatureFromBattle(p);
         }
 
@@ -351,7 +351,7 @@ public class Room {
         //if the target does not exist, don't add the player to the combat
         Creature targetCreature = this.getCreatureInRoom(target);
         if (targetCreature == null) {
-            messenger.sendMessageToUser(new GameMessage("You cannot attack " + target + " because it does not exist."), player.getId());
+            messenger.sendMessageToUser(new GameMessage("You cannot attack " + target + " because it does not exist.\r\n"), player.getId());
             return;
         }
         if (!player.isInBattle()) {

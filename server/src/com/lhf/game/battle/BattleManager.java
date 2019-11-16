@@ -41,7 +41,7 @@ public class BattleManager {
         if (participants.size() <= 1) { // TODO: Account for when multiple friendlies are in the battle
             Creature creature = participants.poll();
             if (creature instanceof Player) {
-                messenger.sendMessageToUser(new GameMessage("Take a deep breath.  You have survived this battle!"), ((Player) creature).getId());
+                messenger.sendMessageToUser(new GameMessage("Take a deep breath.  You have survived this battle!\r\n"), ((Player) creature).getId());
             }
             endBattle();
         }
@@ -70,10 +70,10 @@ public class BattleManager {
 
     public void startBattle(Creature instigator) {
         isHappening = true;
-        messenger.sendMessageToAllInRoom(new GameMessage(instigator.getName() + " started a fight!"), room);
+        messenger.sendMessageToAllInRoom(new GameMessage(instigator.getName() + " started a fight!\r\n"), room);
         for (Creature creature : participants) {
             if (creature instanceof Player && instigator != creature) {
-                messenger.sendMessageToUser(new GameMessage("You are in the fight!"), ((Player) creature).getId());
+                messenger.sendMessageToUser(new GameMessage("You are in the fight!\r\n"), ((Player) creature).getId());
             }
         }
         // If the player started the fight, then it already has an action
@@ -84,7 +84,7 @@ public class BattleManager {
     }
 
     public void endBattle() {
-        messenger.sendMessageToAllInRoom(new GameMessage("The fight is over!"), room);
+        messenger.sendMessageToAllInRoom(new GameMessage("The fight is over!\r\n"), room);
         isHappening = false;
     }
 
@@ -104,7 +104,7 @@ public class BattleManager {
         } else {
             // Bad juju
             Logger logger = Logger.getLogger(BattleManager.class.getPackageName());
-            logger.severe("Trying to perform a turn for something that can't do it");
+            logger.severe("Trying to perform a turn for something that can't do it\r\n");
         }
     }
 
@@ -126,25 +126,25 @@ public class BattleManager {
 
     private void promptPlayerToAct(Player current) {
         //send message to player that it is their turn
-        messenger.sendMessageToUser(new GameMessage("It is your turn to fight!"), current.getId());
+        messenger.sendMessageToUser(new GameMessage("It is your turn to fight!\r\n"), current.getId());
     }
 
     public void playerAction(Player p, BattleAction action) {  //TODO: should this return a string?? Note: use messenger class because of way events are set up (Spencer)
         if (!participants.contains(p)) {
             //give message that the player is not currently engaged in a fight
-            messenger.sendMessageToUser(new GameMessage("You are not currently in a fight."), p.getId());
+            messenger.sendMessageToUser(new GameMessage("You are not currently in a fight.\r\n"), p.getId());
             return;
         }
 
         if (!isHappening) {
             //give message saying there is no battle ongoing
-            messenger.sendMessageToUser(new GameMessage("There is no battle happening."), p.getId());
+            messenger.sendMessageToUser(new GameMessage("There is no battle happening.\r\n"), p.getId());
             return;
         }
 
         if (p != getCurrent()) {
             //give out of turn message
-            messenger.sendMessageToUser(new GameMessage("This is not your turn."), p.getId());
+            messenger.sendMessageToUser(new GameMessage("This is not your turn.\r\n"), p.getId());
             return;
         }
 
@@ -152,14 +152,14 @@ public class BattleManager {
             AttackAction attackAction = (AttackAction) action;
 
             if (!attackAction.hasTargets()) {
-                messenger.sendMessageToUser(new GameMessage("You did not choose any targets."), p.getId());
+                messenger.sendMessageToUser(new GameMessage("You did not choose any targets.\r\n"), p.getId());
                 return;
             }
             List<Creature> targets = attackAction.getTargets();
             for (Creature c : targets) {
                 if (!isCreatureInBattle(c)) {
                     //invalid target in list
-                    messenger.sendMessageToUser(new GameMessage("One of your targets did not exist."), p.getId());
+                    messenger.sendMessageToUser(new GameMessage("One of your targets did not exist.\r\n"), p.getId());
                     return;
                 }
             }
@@ -170,7 +170,7 @@ public class BattleManager {
                     w = (Weapon) p.fromAllInventory(attackAction.getWeapon()).get();
                 } else {
                     //player does not have weapon that he asked to use
-                    messenger.sendMessageToUser(new GameMessage("You do not have that weapon."), p.getId());
+                    messenger.sendMessageToUser(new GameMessage("You do not have that weapon.\r\n"), p.getId());
                     return;
                 }
             } else {
