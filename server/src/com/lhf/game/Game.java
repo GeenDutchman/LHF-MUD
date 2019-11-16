@@ -142,7 +142,7 @@ public class Game implements UserListener {
                     ),
                     id
             );
-            messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage("An item just dropped to the floor."), id);
+            messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage("An item just dropped to the floor.\r\n"), id);
         }
 
         if (msg instanceof EquipMessage) {
