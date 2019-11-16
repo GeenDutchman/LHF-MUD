@@ -1,5 +1,6 @@
 package com.lhf.game.map;
 
+import com.lhf.game.Game;
 import com.lhf.game.Messenger;
 import com.lhf.game.battle.AttackAction;
 import com.lhf.game.battle.BattleManager;
@@ -26,6 +27,7 @@ public class Room {
     private BattleManager battleManager;
     private Map<Creature, Integer> creatures; // how many of what type of monster
     private Messenger messenger;
+    private Dungeon dungeon;
 
 
     public Room(String description) {
@@ -69,6 +71,11 @@ public class Room {
             }
         }
         return null;
+    }
+
+    public void killPlayer(Player p) {
+        players.remove(p);
+        dungeon.reincarnate(p);
     }
 
     public boolean exitRoom(Player p, String direction) {
@@ -373,5 +380,9 @@ public class Room {
     public void setMessenger(Messenger messenger) {
         this.messenger = messenger;
         battleManager.setMessenger(messenger);
+    }
+
+    public void setDungeon(Dungeon dungeon) {
+        this.dungeon = dungeon;
     }
 }

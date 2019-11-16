@@ -187,8 +187,6 @@ public class Game implements UserListener {
         }
     }
 
-
-
     public void addNewPlayerToGame(UserID id, String name) {
         Player newPlayer = new Player(id, name);
         dungeon.addNewPlayer(newPlayer);

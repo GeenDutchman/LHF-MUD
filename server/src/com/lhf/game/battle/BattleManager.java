@@ -7,11 +7,13 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.objects.item.interfaces.Equipable;
+import com.lhf.game.map.objects.roomobject.Corpse;
 import com.lhf.game.shared.enums.EquipmentSlots;
 import com.lhf.game.map.objects.item.interfaces.Weapon;
 import com.lhf.messages.out.GameMessage;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.logging.Logger;
@@ -117,9 +119,19 @@ public class BattleManager {
     }
 
     private void clearDead() {
+        List<Creature> dead = new ArrayList<>();
         for (Creature c: participants) {
             if (!c.isAlive()) {
-                removeCreatureFromBattle(c);
+                dead.add(c);
+            }
+        }
+        for (Creature c : dead) {
+            removeCreatureFromBattle(c);
+            Corpse corpse = c.die();
+            room.addObject(corpse);
+            if (c instanceof Player) {
+                Player p = (Player)c;
+                room.killPlayer(p);
             }
         }
     }
@@ -129,7 +141,7 @@ public class BattleManager {
         messenger.sendMessageToUser(new GameMessage("It is your turn to fight!"), current.getId());
     }
 
-    public void playerAction(Player p, BattleAction action) {  //TODO: should this return a string?? Note: use messenger class because of way events are set up (Spencer)
+    public void playerAction(Player p, BattleAction action) {
         if (!participants.contains(p)) {
             //give message that the player is not currently engaged in a fight
             messenger.sendMessageToUser(new GameMessage("You are not currently in a fight."), p.getId());
