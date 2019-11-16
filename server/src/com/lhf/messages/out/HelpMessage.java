@@ -20,7 +20,7 @@ public class HelpMessage extends OutMessage {
         sb.append("<command>STATUS</command>\t\t\twill tell you how much HP you currently have\n\r");
       
         //lastly
-        sb.append("<command>exit</command>\twill let you disconnect and leave Ibaif\n");
+        sb.append("<command>EXIT</command>\twill let you disconnect and leave Ibaif\n");
         return sb.toString();
     }
 }
