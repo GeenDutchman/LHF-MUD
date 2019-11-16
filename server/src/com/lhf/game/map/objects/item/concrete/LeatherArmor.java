@@ -32,7 +32,7 @@ public class LeatherArmor extends Item implements Equipable {
 
     @Override
     public String printWhichTypes() {
-        StringJoiner sj = new StringJoiner(",");
+        StringJoiner sj = new StringJoiner(", ");
         sj.setEmptyValue("none needed!");
         for (EquipmentTypes type : types) {
             sj.add(type.toString());
@@ -42,7 +42,7 @@ public class LeatherArmor extends Item implements Equipable {
 
     @Override
     public String printWhichSlots() {
-        StringJoiner sj = new StringJoiner(",");
+        StringJoiner sj = new StringJoiner(", ");
         sj.setEmptyValue("no slot!");
         for (EquipmentSlots slot : slots) {
             sj.add(slot.toString());

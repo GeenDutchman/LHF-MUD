@@ -56,7 +56,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
         @Override
         public String printWhichSlots() {
-            StringJoiner sj = new StringJoiner(",");
+            StringJoiner sj = new StringJoiner(", ");
             sj.setEmptyValue("no slot!");
             for (EquipmentSlots slot : slots) {
                 sj.add(slot.toString());
@@ -66,7 +66,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
         @Override
         public String printWhichTypes() {
-            StringJoiner sj = new StringJoiner(",");
+            StringJoiner sj = new StringJoiner(", ");
             sj.setEmptyValue("none needed!");
             for (EquipmentTypes type : types) {
                 sj.add(type.toString());
@@ -414,7 +414,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         } else {
             sb.append(this.inventory.toString());
         }
-        sb.append("\r\n\r\n");
+        sb.append("\r\n");
 
         for (EquipmentSlots slot : EquipmentSlots.values()) {
             Item item = this.equipmentSlots.get(slot);
@@ -537,7 +537,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             this.inventory.addItem(thing);
             return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\r\n";
         }
-        return "That slot is empty.";
+        return "That slot is empty.\r\n";
     }
 
     @Override
