@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface ServerInterface {
     void registerCallback(UserListener listener);
-    void sendMessageToUser(OutMessage msg, @NotNull UserID id);
+    boolean sendMessageToUser(OutMessage msg, @NotNull UserID id);
     void sendMessageToAll(OutMessage msg);
     void start();
     void sendMessageToAllExcept(OutMessage msg, UserID id);

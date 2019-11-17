@@ -35,7 +35,7 @@ public class Inventory {
 
     @Override
     public String toString() {
-        return this.items.stream().map(item -> "<item>" + item.getName() + "</item>").collect(Collectors.joining(","));
+        return this.items.stream().map(item -> "<item>" + item.getName() + "</item>").collect(Collectors.joining(", "));
     }
 
     public String toStoreString(){

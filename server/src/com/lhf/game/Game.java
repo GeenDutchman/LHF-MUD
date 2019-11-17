@@ -6,10 +6,11 @@ import com.lhf.game.map.DungeonBuilder;
 import com.lhf.interfaces.ServerInterface;
 import com.lhf.interfaces.UserListener;
 import com.lhf.messages.in.*;
-import com.lhf.messages.out.GameMessage;
-import com.lhf.messages.out.NewInMessage;
-import com.lhf.messages.out.UserLeftMessage;
-import com.lhf.messages.out.WelcomeMessage;
+import com.lhf.messages.in.ListPlayersMessage;
+import com.lhf.messages.in.SayMessage;
+import com.lhf.messages.in.ShoutMessage;
+import com.lhf.messages.in.TellMessage;
+import com.lhf.messages.out.*;
 import com.lhf.user.User;
 import com.lhf.user.UserID;
 import com.lhf.user.UserManager;
@@ -67,7 +68,20 @@ public class Game implements UserListener {
         if (msg instanceof TellMessage) {
             this.logger.finer("Telling");
             TellMessage tellMsg = (TellMessage) msg;
-            server.sendMessageToUser(new com.lhf.messages.out.TellMessage(id, tellMsg.getMessage()), tellMsg.getTarget());
+            boolean success = false;
+            if (!id.getUsername().equals(tellMsg.getTarget().getUsername())) {
+                success = server.sendMessageToUser(new com.lhf.messages.out.TellMessage(id, tellMsg.getMessage()), tellMsg.getTarget());
+                if (success) {
+                    server.sendMessageToUser(new com.lhf.messages.out.TellMessage(id, tellMsg.getMessage()), id);
+                }
+                else {
+                    server.sendMessageToUser(new com.lhf.messages.out.WrongUserMessage(tellMsg.getTarget().getUsername()), id);
+                }
+            }
+        }
+        if (msg instanceof ListPlayersMessage) {
+            this.logger.finer("Listing Players");
+            server.sendMessageToUser(new com.lhf.messages.out.ListPlayersMessage(userManager.getAllUsernames()), id);
         }
         if (msg instanceof ExitMessage) {
             this.logger.finer("Exiting");
@@ -134,7 +148,7 @@ public class Game implements UserListener {
                     ),
                     id
             );
-            messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage("An item just dropped to the floor."), id);
+            messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage("An item just dropped to the floor.\r\n"), id);
         }
 
         if (msg instanceof EquipMessage) {
@@ -186,8 +200,6 @@ public class Game implements UserListener {
             );
         }
     }
-
-
 
     public void addNewPlayerToGame(UserID id, String name) {
         Player newPlayer = new Player(id, name);

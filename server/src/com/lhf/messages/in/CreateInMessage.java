@@ -6,9 +6,14 @@ public class CreateInMessage extends InMessage {
     public CreateInMessage(String payload) {
         if (payload.length() > 1 && payload.contains(" ")) {
             String[] words = payload.split(" ");
-            username = words[0];
-            password = words[1];
-        } else {
+            if(words.length != 2) { //We only want this command to have 2 args
+                username = "";
+                password = "";
+            }else{ //If the command has 2 args, it should work properly
+                username = words[0];
+                password = words[1];
+            }
+        } else { //Command must have 2 args; if not username and password are both empty string
             username = "";
             password = "";
         }
