@@ -30,7 +30,7 @@ public class Shield extends Item implements Equipable {
 
     @Override
     public String printWhichTypes() {
-        StringJoiner sj = new StringJoiner(",");
+        StringJoiner sj = new StringJoiner(", ");
         sj.setEmptyValue("none needed!");
         for (EquipmentTypes type : types) {
             sj.add(type.toString());
@@ -40,7 +40,7 @@ public class Shield extends Item implements Equipable {
 
     @Override
     public String printWhichSlots() {
-        StringJoiner sj = new StringJoiner(",");
+        StringJoiner sj = new StringJoiner(", ");
         sj.setEmptyValue("no slot!");
         for (EquipmentSlots slot : slots) {
             sj.add(slot.toString());
@@ -64,7 +64,7 @@ public class Shield extends Item implements Equipable {
 
     @Override
     public String getDescription() {
-        StringBuilder sb = new StringBuilder("This is a simple shield, it should protect you a little bit.");
+        StringBuilder sb = new StringBuilder("This is a simple shield, it should protect you a little bit. ");
         sb.append("This can be equipped to: ").append(printWhichSlots());
         //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
         // tell how much it boosts player?

@@ -51,6 +51,8 @@ public class InMessage {
                         return Optional.of(new UseMessage(arguments));
                     case "status":
                         return Optional.of(new StatusMessage());
+                    case "players":
+                        return Optional.of(new ListPlayersMessage());
                     default:
                         return Optional.empty();
                 }

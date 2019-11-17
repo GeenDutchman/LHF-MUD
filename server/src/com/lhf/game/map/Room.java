@@ -1,5 +1,6 @@
 package com.lhf.game.map;
 
+import com.lhf.game.Game;
 import com.lhf.game.Messenger;
 import com.lhf.game.battle.AttackAction;
 import com.lhf.game.battle.BattleManager;
@@ -26,6 +27,7 @@ public class Room {
     private BattleManager battleManager;
     private Map<Creature, Integer> creatures; // how many of what type of monster
     private Messenger messenger;
+    private Dungeon dungeon;
 
 
     public Room(String description) {
@@ -71,6 +73,11 @@ public class Room {
         return null;
     }
 
+    public void killPlayer(Player p) {
+        players.remove(p);
+        dungeon.reincarnate(p);
+    }
+
     public boolean exitRoom(Player p, String direction) {
         if (p == null) {
             return false;
@@ -81,8 +88,8 @@ public class Room {
 
         if (p.isInBattle()) {
             //TODO: stop her!!?
-            messenger.sendMessageToUser(new GameMessage("You are fleeing the battle. Flee!  Flee!"), p.getId());
-            messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(p.getName() + " has fled the battle!"), p.getId());
+            messenger.sendMessageToUser(new GameMessage("You are fleeing the battle. Flee!  Flee!\r\n"), p.getId());
+            messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(p.getName() + " has fled the battle!\r\n"), p.getId());
             battleManager.removeCreatureFromBattle(p);
         }
 
@@ -123,7 +130,7 @@ public class Room {
     }
 
     public String getListOfAllVisibleItems() {
-        StringJoiner output = new StringJoiner(",");
+        StringJoiner output = new StringJoiner(", ");
         for (Item o : items) {
             if (o.checkVisibility()) {
                 output.add(o.getStartTagName() + o.getName() + o.getEndTagName());
@@ -133,7 +140,7 @@ public class Room {
     }
 
     public String getListOfAllItems() {
-        StringJoiner output = new StringJoiner(",");
+        StringJoiner output = new StringJoiner(", ");
         for (Item o : items) {
             output.add(o.getStartTagName() + o.getName() + o.getEndTagName());
         }
@@ -141,7 +148,7 @@ public class Room {
     }
 
     public String getListOfAllVisibleObjects() {
-        StringJoiner output = new StringJoiner(",");
+        StringJoiner output = new StringJoiner(", ");
         for (RoomObject o : objects) {
             if (o.checkVisibility()) {
                 output.add("<object>" + o.getName() + "</object>");
@@ -151,7 +158,7 @@ public class Room {
     }
 
     public String getListOfAllObjects() {
-        StringJoiner output = new StringJoiner(",");
+        StringJoiner output = new StringJoiner(", ");
         for (RoomObject o : objects) {
             output.add("<object>" + o.getName() + "</object>");
         }
@@ -262,7 +269,7 @@ public class Room {
     }
 
     public String getDirections() {
-        StringJoiner output = new StringJoiner(",");
+        StringJoiner output = new StringJoiner(", ");
         for (String s : exits.keySet()) {
             output.add("<exit>" + s + "</exit>");
         }
@@ -270,7 +277,7 @@ public class Room {
     }
 
     private String getListOfPlayers() {
-        StringJoiner output = new StringJoiner(",");
+        StringJoiner output = new StringJoiner(", ");
         for (Player p : players) {
             output.add(p.getColorTaggedName());
         }
@@ -293,24 +300,24 @@ public class Room {
 
     @Override
     public String toString() {
-        String output = "";
+        String output = "\r\n";
         output += getDescription();
         output += "\r\n";
         output += "The possible directions are:\r\n";
         output += getDirections();
-        output += "\r\n";
+        output += "\r\n\r\n";
         output += "Objects you can see:\r\n";
         output += getListOfAllVisibleObjects();
-        output += "\r\n";
+        output += "\r\n\r\n";
         output += "Items you can see:\r\n";
         output += getListOfAllVisibleItems();
-        output += "\r\n";
+        output += "\r\n\r\n";
         output += "Players in room:\r\n";
         output += getListOfPlayers();
-        output += "\r\n";
+        output += "\r\n\r\n";
         output += "Creatures you can see:\r\n";
         output += getListOfCreatures();
-        output += "\r\n";
+        output += "\r\n\r\n";
         if (this.battleManager.isBattleOngoing()) {
             output += "There is a battle going on!\r\n";
         }
@@ -351,7 +358,7 @@ public class Room {
         //if the target does not exist, don't add the player to the combat
         Creature targetCreature = this.getCreatureInRoom(target);
         if (targetCreature == null) {
-            messenger.sendMessageToUser(new GameMessage("You cannot attack " + target + " because it does not exist."), player.getId());
+            messenger.sendMessageToUser(new GameMessage("You cannot attack " + target + " because it does not exist.\r\n"), player.getId());
             return;
         }
         if (!player.isInBattle()) {
@@ -362,7 +369,7 @@ public class Room {
         }
 
         if (!this.battleManager.isBattleOngoing()) {
-            this.battleManager.startBattle();
+            this.battleManager.startBattle(player);
         }
         AttackAction attackAction = new AttackAction(targetCreature, weapon);
         this.battleManager.playerAction(player, attackAction);
@@ -373,5 +380,9 @@ public class Room {
     public void setMessenger(Messenger messenger) {
         this.messenger = messenger;
         battleManager.setMessenger(messenger);
+    }
+
+    public void setDungeon(Dungeon dungeon) {
+        this.dungeon = dungeon;
     }
 }
