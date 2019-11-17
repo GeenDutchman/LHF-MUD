@@ -358,14 +358,16 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         return false;
     }
 
-    private void die() {
+    public Corpse die() {
         System.out.println(name + "died");
+        Corpse corpse = new Corpse(name + "'s corpse", true);
         //should unequip all my stuff and put it into my inventory?
         //could also turn me into a room object called body that
         // might esentially be a chest with my inventory and equiped
         // items dropped into it
         // we would probally want to remove that from the room after a certain
         // amount of time
+        return corpse;
     }
 
     @Override
@@ -543,11 +545,6 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     public Equipable getEqupped(EquipmentSlots slot) {
         Equipable thing = (Equipable) this.equipmentSlots.get(slot);
         return thing;
-    }
-
-    public Corpse generateCorpseFromCreature() {
-        //Make the corpse if called
-        return null;
     }
 
     @Override
