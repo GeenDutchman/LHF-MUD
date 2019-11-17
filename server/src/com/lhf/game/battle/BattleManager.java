@@ -189,6 +189,7 @@ public class BattleManager {
                 w = p.getWeapon();
             }
             Attack a = w.rollAttack();
+            a.setAttacker(getCurrent().getColorTaggedName());
             for (Creature c : targets) {
                 messenger.sendMessageToAllInRoom(new GameMessage(c.applyAttack(a)), p.getId());
             }

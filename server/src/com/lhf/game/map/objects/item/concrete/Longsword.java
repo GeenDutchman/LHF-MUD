@@ -32,7 +32,7 @@ public class Longsword extends Weapon {
 
     @Override
     public Attack rollAttack() {
-        return new Attack(this.rollToHit()).addFlavorAndDamage("Slashing", this.rollDamage());
+        return new Attack(this.rollToHit(), "").addFlavorAndDamage("Slashing", this.rollDamage());
     }
 
     @Override

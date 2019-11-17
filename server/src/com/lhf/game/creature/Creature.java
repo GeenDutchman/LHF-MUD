@@ -41,7 +41,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
         @Override
         public Attack rollAttack() {
-            return new Attack(this.rollToHit()).addFlavorAndDamage("Bludgeoning", this.rollDamage());
+            return new Attack(this.rollToHit(), getColorTaggedName()).addFlavorAndDamage("Bludgeoning", this.rollDamage());
         }
 
         @Override
@@ -285,7 +285,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             String flavor = (String) entry.getKey();
             Integer damage = (Integer) entry.getValue();
             updateHitpoints(-damage);
-            output.append(getColorTaggedName() + " has been dealt " + damage + " " + flavor + " damage.\r\n");
+            output.append(attack.getAttacker() + " has dealt " + damage + " " + flavor + " damage to " + getColorTaggedName() + ".\n");
             if (!isAlive()) {
                 output.append(getColorTaggedName() + " has died.\r\n");
                 break;
