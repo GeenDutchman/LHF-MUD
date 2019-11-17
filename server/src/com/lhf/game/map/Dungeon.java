@@ -1,10 +1,11 @@
 package com.lhf.game.map;
 
+import com.lhf.game.Game;
 import com.lhf.game.Messenger;
 import com.lhf.game.creature.Player;
 import com.lhf.game.shared.enums.EquipmentSlots;
 import com.lhf.messages.out.GameMessage;
-import com.lhf.game.map.Directions;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.user.UserID;
 
 import java.util.HashSet;
@@ -25,12 +26,20 @@ public class Dungeon {
         return startingRoom.addPlayer(p);
     }
 
+    public void reincarnate(Player p) {
+        Player p2 = new Player(p.getId(), p.getName());
+        addNewPlayer(p2);
+        messenger.sendMessageToUser(new GameMessage("You have died. Out of mercy you have been reborn back where you began."), p2.getId());
+        messenger.sendMessageToUser(new GameMessage(startingRoom.toString()), p2.getId());
+    }
+
     public void setStartingRoom(Room r) {
         startingRoom = r;
     }
 
     public boolean addRoom(Room r) {
         r.setMessenger(messenger);
+        r.setDungeon(this);
         return rooms.add(r);
     }
 
@@ -61,7 +70,7 @@ public class Dungeon {
         }
         if(room.exitRoom(getPlayerById(id), direction)) {
             didMove.set(true);
-            return "You went " + direction + ". \r\n\n" + getPlayerRoom(id).toString();
+            return "You went " + direction + ". \r\n" + getPlayerRoom(id).toString();
         }
         else if (isValidDirection(direction)) {
             return "There's only a wall there.";
@@ -168,6 +177,7 @@ public class Dungeon {
             r.setMessenger(messenger);
         }
     }
+
     public String useCommand(UserID id, String usefulItem, String target) {
         Room room = getPlayerRoom(id);
         if (room == null) {

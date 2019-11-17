@@ -31,7 +31,7 @@ public class RustyDagger extends Weapon {
 
     @Override
     public String printWhichTypes() {
-        StringJoiner sj = new StringJoiner(",");
+        StringJoiner sj = new StringJoiner(", ");
         sj.setEmptyValue("none needed!");
         for (EquipmentTypes type : types) {
             sj.add(type.toString());
@@ -41,7 +41,7 @@ public class RustyDagger extends Weapon {
 
     @Override
     public String printWhichSlots() {
-        StringJoiner sj = new StringJoiner(",");
+        StringJoiner sj = new StringJoiner(", ");
         sj.setEmptyValue("no slot!");
         for (EquipmentSlots slot : slots) {
             sj.add(slot.toString());
@@ -63,7 +63,7 @@ public class RustyDagger extends Weapon {
     public String getDescription() {
         StringBuilder sb = new StringBuilder("Rusty Dagger to stab monsters with. ");
         sb.append("This can be equipped to: ").append(printWhichSlots());
-        //sb.append("\n\rAnd best used if you have these proficiencies: ").append(printWhichTypes());
+        //sb.append("\r\nAnd best used if you have these proficiencies: ").append(printWhichTypes());
         return sb.toString();
     }
 

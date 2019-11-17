@@ -8,6 +8,6 @@ public class UserLeftMessage extends OutMessage {
         this.user = user;
     }
     public String toString() {
-        return user.getUsername() + " has left the server\n\r";
+        return user.getUsername() + " has left the server\r\n";
     }
 }

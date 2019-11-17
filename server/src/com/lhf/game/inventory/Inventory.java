@@ -35,11 +35,11 @@ public class Inventory {
 
     @Override
     public String toString() {
-        return this.items.stream().map(item -> "<item>" + item.getName() + "</item>").collect(Collectors.joining(","));
+        return this.items.stream().map(item -> "<item>" + item.getName() + "</item>").collect(Collectors.joining(", "));
     }
 
     public String toStoreString(){
-        return this.items.stream().map(item -> "<item>" + item.getName() + "</item>").collect(Collectors.joining(","));
+        return this.items.stream().map(item -> "<item>" + item.getName() + "</item>").collect(Collectors.joining(", "));
     }
 
     public void removeItem(Takeable item) {
