@@ -68,9 +68,15 @@ public class Game implements UserListener {
         if (msg instanceof TellMessage) {
             this.logger.finer("Telling");
             TellMessage tellMsg = (TellMessage) msg;
-            boolean success = server.sendMessageToUser(new com.lhf.messages.out.TellMessage(id, tellMsg.getMessage()), tellMsg.getTarget());
-            if (!success) {
-                server.sendMessageToUser(new com.lhf.messages.out.WrongUserMessage(tellMsg.getTarget().getUsername()), id);
+            boolean success = false;
+            if (!id.getUsername().equals(tellMsg.getTarget().getUsername())) {
+                success = server.sendMessageToUser(new com.lhf.messages.out.TellMessage(id, tellMsg.getMessage()), tellMsg.getTarget());
+                if (success) {
+                    server.sendMessageToUser(new com.lhf.messages.out.TellMessage(id, tellMsg.getMessage()), id);
+                }
+                else {
+                    server.sendMessageToUser(new com.lhf.messages.out.WrongUserMessage(tellMsg.getTarget().getUsername()), id);
+                }
             }
         }
         if (msg instanceof ListPlayersMessage) {

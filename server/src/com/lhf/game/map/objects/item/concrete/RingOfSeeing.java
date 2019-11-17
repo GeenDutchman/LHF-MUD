@@ -58,7 +58,7 @@ public class RingOfSeeing extends Usable implements Equipable, Consumable {
 
     @Override
     public String printWhichTypes() {
-        StringJoiner sj = new StringJoiner(",");
+        StringJoiner sj = new StringJoiner(", ");
         sj.setEmptyValue("none needed!");
         for (EquipmentTypes type : types) {
             sj.add(type.toString());
@@ -68,7 +68,7 @@ public class RingOfSeeing extends Usable implements Equipable, Consumable {
 
     @Override
     public String printWhichSlots() {
-        StringJoiner sj = new StringJoiner(",");
+        StringJoiner sj = new StringJoiner(", ");
         sj.setEmptyValue("no slot!");
         for (EquipmentSlots slot : slots) {
             sj.add(slot.toString());

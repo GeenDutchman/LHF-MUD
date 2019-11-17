@@ -9,11 +9,11 @@ public class ListPlayersMessage extends OutMessage {
 
     public ListPlayersMessage(List<String> usernames) {
         StringBuilder sb = new StringBuilder();
-        sb.append("All players currently on this server:\n\r");
+        sb.append("All players currently on this server:\r\n");
         for (int i = 0; i < usernames.size(); i++) {
             sb.append("<player>");
             sb.append(usernames.get(i));
-            sb.append("</player>\n\r");
+            sb.append("</player>\r\n");
         }
         message = sb.toString();
     }

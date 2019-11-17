@@ -70,7 +70,7 @@ public class Dungeon {
         }
         if(room.exitRoom(getPlayerById(id), direction)) {
             didMove.set(true);
-            return "You went " + direction + ". \r\n\n" + getPlayerRoom(id).toString();
+            return "You went " + direction + ". \r\n" + getPlayerRoom(id).toString();
         }
         else if (isValidDirection(direction)) {
             return "There's only a wall there.";

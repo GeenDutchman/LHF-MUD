@@ -130,7 +130,7 @@ public class Room {
     }
 
     public String getListOfAllVisibleItems() {
-        StringJoiner output = new StringJoiner(",");
+        StringJoiner output = new StringJoiner(", ");
         for (Item o : items) {
             if (o.checkVisibility()) {
                 output.add(o.getStartTagName() + o.getName() + o.getEndTagName());
@@ -140,7 +140,7 @@ public class Room {
     }
 
     public String getListOfAllItems() {
-        StringJoiner output = new StringJoiner(",");
+        StringJoiner output = new StringJoiner(", ");
         for (Item o : items) {
             output.add(o.getStartTagName() + o.getName() + o.getEndTagName());
         }
@@ -148,7 +148,7 @@ public class Room {
     }
 
     public String getListOfAllVisibleObjects() {
-        StringJoiner output = new StringJoiner(",");
+        StringJoiner output = new StringJoiner(", ");
         for (RoomObject o : objects) {
             if (o.checkVisibility()) {
                 output.add("<object>" + o.getName() + "</object>");
@@ -158,7 +158,7 @@ public class Room {
     }
 
     public String getListOfAllObjects() {
-        StringJoiner output = new StringJoiner(",");
+        StringJoiner output = new StringJoiner(", ");
         for (RoomObject o : objects) {
             output.add("<object>" + o.getName() + "</object>");
         }
@@ -269,7 +269,7 @@ public class Room {
     }
 
     public String getDirections() {
-        StringJoiner output = new StringJoiner(",");
+        StringJoiner output = new StringJoiner(", ");
         for (String s : exits.keySet()) {
             output.add("<exit>" + s + "</exit>");
         }
@@ -277,7 +277,7 @@ public class Room {
     }
 
     private String getListOfPlayers() {
-        StringJoiner output = new StringJoiner(",");
+        StringJoiner output = new StringJoiner(", ");
         for (Player p : players) {
             output.add(p.getColorTaggedName());
         }
@@ -300,24 +300,24 @@ public class Room {
 
     @Override
     public String toString() {
-        String output = "";
+        String output = "\r\n";
         output += getDescription();
         output += "\r\n";
         output += "The possible directions are:\r\n";
         output += getDirections();
-        output += "\r\n";
+        output += "\r\n\r\n";
         output += "Objects you can see:\r\n";
         output += getListOfAllVisibleObjects();
-        output += "\r\n";
+        output += "\r\n\r\n";
         output += "Items you can see:\r\n";
         output += getListOfAllVisibleItems();
-        output += "\r\n";
+        output += "\r\n\r\n";
         output += "Players in room:\r\n";
         output += getListOfPlayers();
-        output += "\r\n";
+        output += "\r\n\r\n";
         output += "Creatures you can see:\r\n";
         output += getListOfCreatures();
-        output += "\r\n";
+        output += "\r\n\r\n";
         if (this.battleManager.isBattleOngoing()) {
             output += "There is a battle going on!\r\n";
         }
