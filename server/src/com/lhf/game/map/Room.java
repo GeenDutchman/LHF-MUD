@@ -354,6 +354,11 @@ public class Room {
             messenger.sendMessageToUser(new GameMessage("You cannot attack " + target + " because it does not exist.\r\n"), player.getId());
             return;
         }
+        String playerName = player.getId().getUsername();
+        if (targetCreature instanceof Player && targetCreature.getName().equals(playerName)) {
+            messenger.sendMessageToUser(new GameMessage("You can't attack yourself!\r\n"), player.getId());
+            return;
+        }
         if (!player.isInBattle()) {
             this.battleManager.addCreatureToBattle(player);
         }
