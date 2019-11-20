@@ -4,13 +4,13 @@ public class HelpMessage extends OutMessage {
     public String toString() {
         StringBuilder sb = new StringBuilder("<description>Some commands that you can use:</description>\r\n");
         sb.append("<command>SAY [message]</command>\t\t\tTells everyone in your current room the message\r\n");
-        sb.append("<command>TELL [username] [message]</command>\t\tTells the specified user your message\r\n");
+        sb.append("<command>TELL [username] [message]</command>\ttells the specified user your message\r\n");
         sb.append("<command>LOOK</command>\t\t\t\tGives you some information about your surroundings\r\n");
         sb.append("<command>EXAMINE [object]</command>\t\t\tTells you about some things about interactable objects\r\n");
         sb.append("<command>GO [direction]</command>\t\t\tMove in the desired direction, if that direction exists\r\n");
         sb.append("<command>ATTACK [creature] with [weapon] </command>\tAttack a creature with a weapon that you have\r\n");
         sb.append("<command>DROP [item]</command>\t\t\tDrop an item that you have\r\n");
-        sb.append("<command>EQUIP [item] [slot]</command>\t\t\tMove an item from your inventory to an equipment slot\r\n");
+        sb.append("<command>EQUIP [item] [slot]</command>\t\tMove an item from your inventory to an equipment slot\r\n");
         sb.append("<command>UNEQUIP [slot]</command>\t\t\tMove an item from an equipment slot to your inventory\r\n");
         sb.append("<command>UNEQUIP [item]</command>\t\t\tMove that item from your equipment to your inventory\r\n");
         sb.append("<command>INTERACT [item]</command>\t\t\tAttempt to interact with an item in the room\r\n");

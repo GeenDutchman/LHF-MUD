@@ -459,10 +459,11 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         if (maybeItem.isPresent()) {
             Item item = maybeItem.get();
             if (item instanceof Usable) {
+                String result = ((Usable) item).doUseAction(useOn);
                 if (item instanceof Consumable && !((Usable) item).hasUsesLeft()) {
                     inventory.removeItem((Takeable) item);
                 }
-                return ((Usable) item).doUseAction(useOn);
+                return result;
             }
             return item.getStartTagName() + item.getName() + item.getEndTagName() + " is not usable!";
         }
