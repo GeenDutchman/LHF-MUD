@@ -2,7 +2,7 @@ package com.lhf;
 
 import com.lhf.game.Game;
 import com.lhf.server.Server;
-import com.lhf.user.UserManager;
+import com.lhf.server.client.user.UserManager;
 
 import java.io.IOException;
 import java.util.logging.Handler;

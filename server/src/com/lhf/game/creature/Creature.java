@@ -1,19 +1,20 @@
 package com.lhf.game.creature;
 
-import com.lhf.game.Attack;
-import com.lhf.game.inventory.EquipmentOwner;
-import com.lhf.game.inventory.Inventory;
-import com.lhf.game.inventory.InventoryOwner;
-import com.lhf.game.map.objects.item.Item;
-import com.lhf.game.map.objects.item.interfaces.*;
+import com.lhf.game.battle.Attack;
+import com.lhf.game.creature.inventory.EquipmentOwner;
+import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.creature.inventory.InventoryOwner;
+import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.dice.Dice;
+import com.lhf.game.enums.*;
+import com.lhf.game.item.Item;
+import com.lhf.game.item.interfaces.*;
 import com.lhf.game.map.objects.roomobject.Corpse;
 import com.lhf.game.map.objects.sharedinterfaces.Taggable;
-import com.lhf.game.shared.dice.Dice;
-import com.lhf.game.shared.enums.*;
 
 import java.util.*;
 
-import static com.lhf.game.shared.enums.Attributes.*;
+import static com.lhf.game.enums.Attributes.*;
 
 public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
@@ -22,11 +23,11 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         private List<EquipmentSlots> slots;
         private List<EquipmentTypes> types;
 
-        public Fist() {
+        Fist() {
             super("Fist", false);
 
             types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
-            slots = Arrays.asList(EquipmentSlots.WEAPON);
+            slots = Collections.singletonList(EquipmentSlots.WEAPON);
         }
 
         @Override
@@ -86,11 +87,9 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
         @Override
         public String getDescription() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("This is a ").append(getName()).append(" attached to a ").append(Creature.this.getName());
-            sb.append(" This can be equipped to: ").append(printWhichSlots());
             //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
-            return sb.toString();
+            return "This is a " + getName() + " attached to a " + Creature.this.getName() +
+                    " This can be equipped to: " + printWhichSlots();
         }
     }
 
@@ -211,11 +210,11 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         this.modifiers.put(modifier, this.modifiers.get(modifier) + value);
     }
 
-    public void updateAttribute(Attributes attribute, int value) {
+    private void updateAttribute(Attributes attribute, int value) {
         this.attributes.put(attribute, this.attributes.get(attribute) + value);
     }
 
-    public void updateStat(Stats stat, int value) {
+    private void updateStat(Stats stat, int value) {
         this.stats.put(stat, this.stats.get(stat) + value);
     }
 
@@ -269,32 +268,27 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
     public Weapon getWeapon() {
         Weapon weapon = (Weapon) getWhatInSlot(EquipmentSlots.WEAPON);
-        if (weapon == null) {
-            return new Creature.Fist();
-        } else {
-            return weapon;
-        }
+        return Objects.requireNonNullElseGet(weapon, Fist::new);
     }
 
     public String applyAttack(Attack attack) {
         //add stuff to calculate if the attack hits or not, and return false if so
         StringBuilder output = new StringBuilder();
-        Iterator attackIt = attack.iterator();
-        while (attackIt.hasNext()) {
-            Map.Entry entry = (Map.Entry) attackIt.next();
+        for (Object o : attack) {
+            Map.Entry entry = (Map.Entry) o;
             String flavor = (String) entry.getKey();
             Integer damage = (Integer) entry.getValue();
             updateHitpoints(-damage);
-            output.append(attack.getAttacker() + " has dealt " + damage + " " + flavor + " damage to " + getColorTaggedName() + ".\n");
+            output.append(attack.getAttacker()).append(" has dealt ").append(damage).append(" ").append(flavor).append(" damage to ").append(getColorTaggedName()).append(".\n");
             if (!isAlive()) {
-                output.append(getColorTaggedName() + " has died.\r\n");
+                output.append(getColorTaggedName()).append(" has died.\r\n");
                 break;
             }
         }
         return output.toString();
     }
 
-    public int getHealth() {
+    private int getHealth() {
         return stats.get(Stats.CURRENTHP);
     }
 
@@ -317,7 +311,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         this.name = name;
     }
 
-    public void setCreatureType(CreatureType creatureType) {
+    void setCreatureType(CreatureType creatureType) {
         this.creatureType = creatureType;
     }
 
@@ -360,14 +354,13 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
     public Corpse die() {
         System.out.println(name + "died");
-        Corpse corpse = new Corpse(name + "'s corpse", true);
         //should unequip all my stuff and put it into my inventory?
         //could also turn me into a room object called body that
         // might esentially be a chest with my inventory and equiped
         // items dropped into it
         // we would probally want to remove that from the room after a certain
         // amount of time
-        return corpse;
+        return new Corpse(name + "'s corpse", true);
     }
 
     @Override
@@ -544,8 +537,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
     @Override
     public Equipable getEqupped(EquipmentSlots slot) {
-        Equipable thing = (Equipable) this.equipmentSlots.get(slot);
-        return thing;
+        return (Equipable) this.equipmentSlots.get(slot);
     }
 
     @Override

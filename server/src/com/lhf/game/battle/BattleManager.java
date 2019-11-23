@@ -1,16 +1,12 @@
 package com.lhf.game.battle;
 
-import com.lhf.Main;
-import com.lhf.game.Attack;
-import com.lhf.game.Messenger;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
+import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.map.Room;
-import com.lhf.game.map.objects.item.interfaces.Equipable;
 import com.lhf.game.map.objects.roomobject.Corpse;
-import com.lhf.game.shared.enums.EquipmentSlots;
-import com.lhf.game.map.objects.item.interfaces.Weapon;
-import com.lhf.messages.out.GameMessage;
+import com.lhf.server.messages.Messenger;
+import com.lhf.server.messages.out.GameMessage;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -85,7 +81,7 @@ public class BattleManager {
         }
     }
 
-    public void endBattle() {
+    private void endBattle() {
         messenger.sendMessageToAllInRoom(new GameMessage("The fight is over!\r\n"), room);
         isHappening = false;
     }
