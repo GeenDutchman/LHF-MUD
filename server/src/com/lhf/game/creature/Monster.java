@@ -1,12 +1,12 @@
 package com.lhf.game.creature;
 
-import com.lhf.game.Attack;
+import com.lhf.game.battle.Attack;
 import com.lhf.game.battle.BattleAI;
-import com.lhf.game.map.objects.item.interfaces.Equipable;
-import com.lhf.game.shared.enums.EquipmentSlots;
+import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.item.interfaces.Equipable;
 
 import java.util.Collection;
-import java.util.Deque;
 import java.util.Objects;
 
 public class Monster extends Creature implements BattleAI {

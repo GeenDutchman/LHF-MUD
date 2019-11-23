@@ -1,7 +1,7 @@
 package com.lhf.game.map.objects.roomobject;
 
-import com.lhf.game.map.objects.item.Item;
-import com.lhf.game.map.objects.roomobject.abstractclasses.RoomObject;
+import com.lhf.game.item.Item;
+import com.lhf.game.map.objects.roomobject.abstracts.RoomObject;
 import com.lhf.game.map.objects.roomobject.interfaces.Container;
 
 public class Corpse extends RoomObject implements Container {

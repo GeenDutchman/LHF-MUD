@@ -1,16 +1,14 @@
 package com.lhf.game.map;
 
 import com.lhf.game.creature.Monster;
-import com.lhf.game.map.objects.item.Item;
-import com.lhf.game.map.objects.item.Note;
-import com.lhf.game.map.objects.item.concrete.HealPotion;
-import com.lhf.game.map.objects.item.concrete.RustyDagger;
-import com.lhf.game.map.objects.item.interfaces.Weapon;
+import com.lhf.game.item.Note;
+import com.lhf.game.item.concrete.HealPotion;
+import com.lhf.game.item.concrete.RustyDagger;
+import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.map.objects.roomobject.Dispenser;
 import com.lhf.game.map.objects.roomobject.Switch;
 import com.lhf.game.map.objects.roomobject.actions.DispenserAction;
 import com.lhf.game.map.objects.roomobject.interfaces.InteractAction;
-import com.lhf.game.shared.enums.EquipmentSlots;
 
 public class DungeonBuilder {
 
