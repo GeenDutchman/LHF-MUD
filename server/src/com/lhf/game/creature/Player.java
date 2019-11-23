@@ -1,12 +1,12 @@
 package com.lhf.game.creature;
 
+import com.lhf.game.enums.CreatureType;
+import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.Stats;
 import com.lhf.game.map.objects.sharedinterfaces.Taggable;
-import com.lhf.game.shared.enums.CreatureType;
-import com.lhf.game.shared.enums.EquipmentTypes;
-import com.lhf.game.shared.enums.Stats;
-import com.lhf.user.UserID;
+import com.lhf.server.client.user.UserID;
 
-import static com.lhf.game.shared.enums.Attributes.*;
+import static com.lhf.game.enums.Attributes.*;
 
 public class Player extends Creature implements Taggable {
     private UserID id;
@@ -73,12 +73,10 @@ public class Player extends Creature implements Taggable {
     }
 
     public String getStatus() {
-        StringBuilder s = new StringBuilder();
-        s.append("You have ");
-        s.append(getStats().get(Stats.CURRENTHP));
-        s.append("/");
-        s.append(getStats().get(Stats.MAXHP));
-        s.append(" HP");
-        return s.toString();
+        return "You have " +
+                getStats().get(Stats.CURRENTHP) +
+                "/" +
+                getStats().get(Stats.MAXHP) +
+                " HP";
     }
 }

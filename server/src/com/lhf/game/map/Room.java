@@ -1,18 +1,17 @@
 package com.lhf.game.map;
 
-import com.lhf.game.Game;
-import com.lhf.game.Messenger;
 import com.lhf.game.battle.AttackAction;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
-import com.lhf.game.map.objects.item.Item;
-import com.lhf.game.map.objects.item.interfaces.Takeable;
-import com.lhf.game.map.objects.roomobject.abstractclasses.InteractObject;
-import com.lhf.game.map.objects.roomobject.abstractclasses.RoomObject;
+import com.lhf.game.item.Item;
+import com.lhf.game.item.interfaces.Takeable;
+import com.lhf.game.map.objects.roomobject.abstracts.InteractObject;
+import com.lhf.game.map.objects.roomobject.abstracts.RoomObject;
 import com.lhf.game.map.objects.sharedinterfaces.Examinable;
-import com.lhf.messages.out.GameMessage;
-import com.lhf.user.UserID;
+import com.lhf.server.client.user.UserID;
+import com.lhf.server.messages.Messenger;
+import com.lhf.server.messages.out.GameMessage;
 
 import java.util.*;
 
@@ -30,7 +29,7 @@ public class Room {
     private Dungeon dungeon;
 
 
-    public Room(String description) {
+    Room(String description) {
         this.description = description;
         players = new HashSet<>();
         exits = new HashMap<>();
@@ -40,11 +39,11 @@ public class Room {
         creatures = new HashMap<>();
     }
 
-    public boolean addPlayer(Player p) {
+    boolean addPlayer(Player p) {
         return players.add(p);
     }
 
-    public int addCreature(Creature c) {
+    int addCreature(Creature c) {
         if (this.creatures.containsKey(c)) {
             int previous = this.creatures.get(c);
             this.creatures.put(c, previous + 1);
@@ -55,7 +54,7 @@ public class Room {
         }
     }
 
-    public boolean removePlayer(Player p) {
+    boolean removePlayer(Player p) {
         return players.remove(p);
     }
 
@@ -78,7 +77,7 @@ public class Room {
         dungeon.reincarnate(p);
     }
 
-    public boolean exitRoom(Player p, String direction) {
+    boolean exitRoom(Player p, String direction) {
         if (p == null) {
             return false;
         }
@@ -99,7 +98,7 @@ public class Room {
         return true;
     }
 
-    public boolean addExit(String direction, Room room) {
+    boolean addExit(String direction, Room room) {
         if (exits.containsKey(direction))
         {
             return false;
@@ -129,7 +128,7 @@ public class Room {
         return "<description>" + description + "</description>";
     }
 
-    public String getListOfAllVisibleItems() {
+    private String getListOfAllVisibleItems() {
         StringJoiner output = new StringJoiner(", ");
         for (Item o : items) {
             if (o.checkVisibility()) {
@@ -147,7 +146,7 @@ public class Room {
         return output.toString();
     }
 
-    public String getListOfAllVisibleObjects() {
+    private String getListOfAllVisibleObjects() {
         StringJoiner output = new StringJoiner(", ");
         for (RoomObject o : objects) {
             if (o.checkVisibility()) {
@@ -165,16 +164,10 @@ public class Room {
         return output.toString();
     }
 
-    public String examine(Player p, String name) {
+    String examine(Player p, String name) {
         for (Item ro : items) {
             if (ro.checkName(name)) {
-                if (ro instanceof Examinable) {
-                    Examinable ex = (Examinable)ro;
-                    return "<description>" + ex.getDescription() + "</description>";
-                }
-                else {
-                    return "You cannot examine <item>" + name + "</item>.";
-                }
+                return "<description>" + ro.getDescription() + "</description>";
             }
         }
 
@@ -193,7 +186,7 @@ public class Room {
         return "You couldn't find " + name + " to examine.";
     }
 
-    public String interact(Player p, String name) {
+    String interact(Player p, String name) {
         for (RoomObject ro : objects) {
             if (ro.checkName(name)) {
                 if (ro instanceof InteractObject) {
@@ -218,7 +211,7 @@ public class Room {
         if (onWhat != null && onWhat.length() > 0) {
             for (RoomObject ro : objects) {
                 if (ro.checkName(onWhat) && ro instanceof InteractObject) {
-                    indirectObject = (InteractObject) ro;
+                    indirectObject = ro;
                 }
             }
             if (indirectObject == null) {
@@ -231,7 +224,7 @@ public class Room {
         return p.useItem(usefulObject, indirectObject);
     }
 
-    public Player getPlayerInRoom(UserID id) {
+    Player getPlayerInRoom(UserID id) {
         for (Player p : players) {
             if (p.getId().equals(id)) {
                 return p;
@@ -240,7 +233,7 @@ public class Room {
         return null;
     }
 
-    public Creature getCreatureInRoom(String creatureName) {
+    private Creature getCreatureInRoom(String creatureName) {
         for (Creature c : this.creatures.keySet()) {
             if (c.getName().equalsIgnoreCase(creatureName)) {
                 return c;
@@ -256,7 +249,7 @@ public class Room {
         return null;
     }
 
-    public Set<Player> getAllPlayersInRoom() {
+    Set<Player> getAllPlayersInRoom() {
         return players;
     }
 
@@ -325,7 +318,7 @@ public class Room {
     }
 
 
-    public String take(Player player, String name) {
+    String take(Player player, String name) {
         Optional<Item> maybeItem = this.items.stream().filter(i -> i.getName().equalsIgnoreCase(name)).findAny();
         if (maybeItem.isEmpty()) {
             Optional<RoomObject> maybeRo = this.objects.stream().filter(i -> i.getName().equalsIgnoreCase(name)).findAny();
@@ -343,7 +336,7 @@ public class Room {
         return "That's strange--it's stuck in it's place. You can't take it.";
     }
 
-    public String drop(Player player, String itemName) {
+    String drop(Player player, String itemName) {
         Optional<Takeable> maybeTakeable = player.dropItem(itemName);
         if (maybeTakeable.isEmpty()) {
             return "You don't have a " + itemName + " to drop.";
@@ -379,15 +372,14 @@ public class Room {
         AttackAction attackAction = new AttackAction(targetCreature, weapon);
         this.battleManager.playerAction(player, attackAction);
 
-        return;
     }
 
-    public void setMessenger(Messenger messenger) {
+    void setMessenger(Messenger messenger) {
         this.messenger = messenger;
         battleManager.setMessenger(messenger);
     }
 
-    public void setDungeon(Dungeon dungeon) {
+    void setDungeon(Dungeon dungeon) {
         this.dungeon = dungeon;
     }
 }

@@ -1,14 +1,13 @@
 package com.lhf.game.creature;
 
-import com.lhf.game.inventory.Inventory;
-import com.lhf.game.map.objects.item.Item;
-import com.lhf.game.map.objects.item.concrete.LeatherArmor;
-import com.lhf.game.map.objects.item.interfaces.Takeable;
-import com.lhf.game.map.objects.item.interfaces.Usable;
-import com.lhf.game.shared.enums.*;
+import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.enums.*;
+import com.lhf.game.item.Item;
+import com.lhf.game.item.interfaces.Takeable;
 
 import java.lang.reflect.Constructor;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,13 +23,13 @@ public class NpcCreator {
 
     private void makeCreature() {
         Scanner input = new Scanner(System.in);
-        String validation_response ="";
-        Boolean valid = Boolean.FALSE;
+        String validation_response;
+        Boolean valid;
         String response_string;
         int response_int;
 
         Creature npc;
-        String name = "default";
+        String name;
         CreatureType creatureType = null;
         HashMap<Attributes, Integer> attributes = new HashMap<>();
         HashMap<Attributes, Integer> modifiers;
@@ -146,10 +145,10 @@ public class NpcCreator {
         }while(!valid);
 
         //Adds proficiencies
-        String proficiency_string = "";
-        EquipmentTypes proficiency = null;
+        String proficiency_string;
+        EquipmentTypes proficiency;
 
-        while(Boolean.TRUE) {
+        while (true) {
             System.out.print("Enter one of " + name + "'s proficiencies or done if there are no more to add: ");
             proficiency_string = input.nextLine();
             if (proficiency_string.equalsIgnoreCase("done")) {
@@ -164,10 +163,10 @@ public class NpcCreator {
         }
 
         //Adds items
-        String item = "";
+        String item;
         //May need to replace this to be more adaptive?
-        String path_to_items = "com.lhf.game.map.objects.item.concrete.";
-        while (Boolean.TRUE){
+        String path_to_items = "com.lhf.game.item.concrete.";
+        while (true) {
             System.out.print("Enter one of " + name + "'s inventory items(including weapons and armor) (FilenameOfItem or done): ");
             item = input.nextLine();
             item = item.strip();
@@ -199,7 +198,7 @@ public class NpcCreator {
         npc = new Creature(name,creation);
 
         String item_slot_string;
-        while(Boolean.TRUE){
+        while (true) {
             System.out.print("Given: " + inventory.toStoreString() +" \nIs there anything you would like to equip?(Item Name,slot or done) ");
             item_slot_string = input.nextLine().strip();
             if(item_slot_string.equalsIgnoreCase("done")){
@@ -227,7 +226,7 @@ public class NpcCreator {
         Statblock test = new Statblock(creation.toString());
         System.out.println(test);
 
-        StatblockLoader_Unloader loader_unloader = new StatblockLoader_Unloader();
+        StatblockManager loader_unloader = new StatblockManager();
         loader_unloader.statblockToFile(test);
         test = new Statblock(loader_unloader.statblockFromfile("test"));
         System.err.println(test);

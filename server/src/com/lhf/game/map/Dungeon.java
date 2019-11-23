@@ -1,12 +1,10 @@
 package com.lhf.game.map;
 
-import com.lhf.game.Game;
-import com.lhf.game.Messenger;
 import com.lhf.game.creature.Player;
-import com.lhf.game.shared.enums.EquipmentSlots;
-import com.lhf.messages.out.GameMessage;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.user.UserID;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.server.client.user.UserID;
+import com.lhf.server.messages.Messenger;
+import com.lhf.server.messages.out.GameMessage;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -16,9 +14,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Dungeon {
     private Room startingRoom = null;
     private Set<Room> rooms;
-    Messenger messenger;
+    private Messenger messenger;
 
-    public Dungeon() {
+    Dungeon() {
         rooms = new HashSet<>();
     }
 
@@ -26,18 +24,18 @@ public class Dungeon {
         return startingRoom.addPlayer(p);
     }
 
-    public void reincarnate(Player p) {
+    void reincarnate(Player p) {
         Player p2 = new Player(p.getId(), p.getName());
         addNewPlayer(p2);
         messenger.sendMessageToUser(new GameMessage("You have died. Out of mercy you have been reborn back where you began."), p2.getId());
         messenger.sendMessageToUser(new GameMessage(startingRoom.toString()), p2.getId());
     }
 
-    public void setStartingRoom(Room r) {
+    void setStartingRoom(Room r) {
         startingRoom = r;
     }
 
-    public boolean addRoom(Room r) {
+    boolean addRoom(Room r) {
         r.setMessenger(messenger);
         r.setDungeon(this);
         return rooms.add(r);
@@ -70,7 +68,7 @@ public class Dungeon {
         }
         if(room.exitRoom(getPlayerById(id), direction)) {
             didMove.set(true);
-            return "You went " + direction + ". \r\n" + getPlayerRoom(id).toString();
+            return "You went " + direction + ". \r\n" + Objects.requireNonNull(getPlayerRoom(id)).toString();
         }
         else if (isValidDirection(direction)) {
             return "There's only a wall there.";
@@ -80,13 +78,11 @@ public class Dungeon {
         }
     }
 
-    public boolean isValidDirection(String direction) {
+    private boolean isValidDirection(String direction) {
         if (!direction.equalsIgnoreCase(Directions.NORTH.toString())) {
             if (!direction.equalsIgnoreCase(Directions.SOUTH.toString())) {
                 if (!direction.equalsIgnoreCase(Directions.WEST.toString())) {
-                    if (!direction.equalsIgnoreCase(Directions.EAST.toString())) {
-                        return false;
-                    }
+                    return direction.equalsIgnoreCase(Directions.EAST.toString());
                 }
             }
         }
@@ -139,7 +135,7 @@ public class Dungeon {
         if (room == null) {
             return "You are not in this dungeon";
         }
-        return room.drop(getPlayerById(id), name);
+        return room.drop(Objects.requireNonNull(getPlayerById(id)), name);
     }
 
     public void attackCommand(UserID id, String weapon, String target) {
@@ -148,11 +144,12 @@ public class Dungeon {
             messenger.sendMessageToUser(new GameMessage( "You are not in this dungeon"), id);
             return;
         }
-        room.attack(getPlayerById(id), weapon, target);
+        room.attack(Objects.requireNonNull(getPlayerById(id)), weapon, target);
     }
 
     public String inventory(UserID id) {
         Player player = getPlayerById(id);
+        assert player != null;
         return player.listInventory();
     }
 
@@ -163,11 +160,13 @@ public class Dungeon {
 //        } else {
 //            return "Could not equip that";
 //        }
+        assert player != null;
         return player.equipItem(itemName, slot);
     }
 
     public String unequip(UserID id, EquipmentSlots slot, String weapon) {
         Player player = getPlayerById(id);
+        assert player != null;
         return player.unequipItem(slot, weapon);
     }
 
@@ -187,6 +186,6 @@ public class Dungeon {
     }
 
     public String statusCommand(UserID id) {
-        return getPlayerById(id).getStatus();
+        return Objects.requireNonNull(getPlayerById(id)).getStatus();
     }
 }

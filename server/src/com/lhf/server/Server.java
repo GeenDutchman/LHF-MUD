@@ -1,15 +1,18 @@
 package com.lhf.server;
 
-import com.lhf.interfaces.ConnectionListener;
-import com.lhf.interfaces.MessageListener;
-import com.lhf.interfaces.ServerInterface;
-import com.lhf.interfaces.UserListener;
-import com.lhf.messages.in.CreateInMessage;
-import com.lhf.messages.in.ExitMessage;
-import com.lhf.messages.in.InMessage;
-import com.lhf.messages.out.*;
-import com.lhf.user.UserID;
-import com.lhf.user.UserManager;
+import com.lhf.server.client.ClientHandle;
+import com.lhf.server.client.ClientID;
+import com.lhf.server.client.ClientManager;
+import com.lhf.server.client.user.UserID;
+import com.lhf.server.client.user.UserManager;
+import com.lhf.server.interfaces.ConnectionListener;
+import com.lhf.server.interfaces.MessageListener;
+import com.lhf.server.interfaces.ServerInterface;
+import com.lhf.server.interfaces.UserListener;
+import com.lhf.server.messages.in.CreateInMessage;
+import com.lhf.server.messages.in.ExitMessage;
+import com.lhf.server.messages.in.InMessage;
+import com.lhf.server.messages.out.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -25,14 +28,14 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
     private UserManager userManager;
     private ClientManager clientManager;
     private Logger logger;
-    ArrayList<UserListener> userListeners;
+    private ArrayList<UserListener> userListeners;
 
     public Server(int port, UserManager userManager) throws IOException {
         this.logger = Logger.getLogger(this.getClass().getName());
         this.port = port;
         socket = new ServerSocket(port);
         this.userManager = userManager;
-        userListeners = new ArrayList<UserListener>();
+        userListeners = new ArrayList<>();
         clientManager = new ClientManager();
         this.logger.exiting(this.getClass().toString(), "Constructor");
     }
@@ -75,7 +78,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
         return false;
     }
 
-    public void sendMessageToClient(OutMessage msg, @NotNull ClientID id) {
+    private void sendMessageToClient(OutMessage msg, @NotNull ClientID id) {
         logger.finest("Sending message \"" + msg + "\" to Client " + id);
         clientManager.getConnection(id).sendMsg(msg);
     }
@@ -106,7 +109,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
         removeClient(userManager.getClient(id));
     }
 
-    public void removeClient(ClientID id) {
+    private void removeClient(ClientID id) {
         try {
             logger.finer("Removing Client " + id);
             clientManager.removeClient(id);
