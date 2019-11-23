@@ -3,28 +3,28 @@ package com.lhf.game;
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
-import com.lhf.interfaces.ServerInterface;
-import com.lhf.interfaces.UserListener;
-import com.lhf.messages.in.*;
-import com.lhf.messages.in.ListPlayersMessage;
-import com.lhf.messages.in.SayMessage;
-import com.lhf.messages.in.ShoutMessage;
-import com.lhf.messages.in.TellMessage;
-import com.lhf.messages.out.*;
-import com.lhf.user.User;
-import com.lhf.user.UserID;
-import com.lhf.user.UserManager;
+import com.lhf.server.client.user.User;
+import com.lhf.server.client.user.UserID;
+import com.lhf.server.client.user.UserManager;
+import com.lhf.server.interfaces.ServerInterface;
+import com.lhf.server.interfaces.UserListener;
+import com.lhf.server.messages.Messenger;
+import com.lhf.server.messages.in.*;
+import com.lhf.server.messages.out.GameMessage;
+import com.lhf.server.messages.out.NewInMessage;
+import com.lhf.server.messages.out.UserLeftMessage;
+import com.lhf.server.messages.out.WelcomeMessage;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 public class Game implements UserListener {
-    ServerInterface server;
-    UserManager userManager;
-    Dungeon dungeon;
+    private ServerInterface server;
+    private UserManager userManager;
+    private Dungeon dungeon;
     private Logger logger;
-    Messenger messenger;
+    private Messenger messenger;
 
     public Game(ServerInterface server, UserManager userManager) {
         this.logger = Logger.getLogger(this.getClass().getName());
@@ -34,7 +34,7 @@ public class Game implements UserListener {
         this.userManager.setGame(this);
         this.messenger = new Messenger(server, dungeon);
         dungeon.setMessenger(this.messenger);
-        server.registerCallback((UserListener) this);
+        server.registerCallback(this);
         this.logger.info("Created Game");
         server.start();
     }
@@ -59,29 +59,29 @@ public class Game implements UserListener {
         User user = userManager.getUser(id);
         if (msg instanceof ShoutMessage) {
             this.logger.finer("Shouting");
-            server.sendMessageToAll(new com.lhf.messages.out.ShoutMessage(((ShoutMessage) msg).getMessage(), user));
+            server.sendMessageToAll(new com.lhf.server.messages.out.ShoutMessage(((ShoutMessage) msg).getMessage(), user));
         }
         if (msg instanceof SayMessage) {
             this.logger.finer("Saying");
-            messenger.sendMessageToAllInRoom(new com.lhf.messages.out.SayMessage(((SayMessage) msg).getMessage(), user), id);
+            messenger.sendMessageToAllInRoom(new com.lhf.server.messages.out.SayMessage(((SayMessage) msg).getMessage(), user), id);
         }
         if (msg instanceof TellMessage) {
             this.logger.finer("Telling");
             TellMessage tellMsg = (TellMessage) msg;
-            boolean success = false;
+            boolean success;
             if (!id.getUsername().equals(tellMsg.getTarget().getUsername())) {
-                success = server.sendMessageToUser(new com.lhf.messages.out.TellMessage(id, tellMsg.getMessage()), tellMsg.getTarget());
+                success = server.sendMessageToUser(new com.lhf.server.messages.out.TellMessage(id, tellMsg.getMessage()), tellMsg.getTarget());
                 if (success) {
-                    server.sendMessageToUser(new com.lhf.messages.out.TellMessage(id, tellMsg.getMessage()), id);
+                    server.sendMessageToUser(new com.lhf.server.messages.out.TellMessage(id, tellMsg.getMessage()), id);
                 }
                 else {
-                    server.sendMessageToUser(new com.lhf.messages.out.WrongUserMessage(tellMsg.getTarget().getUsername()), id);
+                    server.sendMessageToUser(new com.lhf.server.messages.out.WrongUserMessage(tellMsg.getTarget().getUsername()), id);
                 }
             }
         }
         if (msg instanceof ListPlayersMessage) {
             this.logger.finer("Listing Players");
-            server.sendMessageToUser(new com.lhf.messages.out.ListPlayersMessage(userManager.getAllUsernames()), id);
+            server.sendMessageToUser(new com.lhf.server.messages.out.ListPlayersMessage(userManager.getAllUsernames()), id);
         }
         if (msg instanceof ExitMessage) {
             this.logger.finer("Exiting");

@@ -1,6 +1,6 @@
 package com.lhf.game.map.objects.roomobject.interfaces;
 
-import com.lhf.game.map.objects.item.Item;
+import com.lhf.game.item.Item;
 
 public interface Container {
     boolean addItem(Item item);
