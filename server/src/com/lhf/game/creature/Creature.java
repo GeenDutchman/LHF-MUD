@@ -294,9 +294,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             output.append('\n');
             return output.toString();
         }
-        Iterator attackIt = attack.iterator();
-        while (attackIt.hasNext()) {
-            Map.Entry entry = (Map.Entry) attackIt.next();
+        for (Object o : attack) {
+            Map.Entry entry = (Map.Entry) o;
             String flavor = (String) entry.getKey();
             Integer damage = (Integer) entry.getValue();
             updateHitpoints(-damage);
