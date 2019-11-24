@@ -52,7 +52,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
                 handle.registerCallback(this);
                 this.logger.fine("Starting handle");
                 handle.start();
-                //notifyConnectionListeners(id);
+                notifyConnectionListeners(id);
                 handle.sendMsg(new WelcomeMessage());
             } catch (IOException e) {
                 logger.info(e.getMessage());
@@ -105,8 +105,10 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
     @Override
     public void removeUser(UserID id) {
         logger.entering(this.getClass().toString(), "removeUser()", id);
+        System.out.println("current number of users on server: " + userManager.getAllUsernames().size());
         userManager.removeUser(id);
         removeClient(userManager.getClient(id));
+        System.out.println("current number of users on server: " + userManager.getAllUsernames().size());
     }
 
     private void removeClient(ClientID id) {
@@ -141,6 +143,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
                     if(new_user != null) {
                         clientManager.addUserForClient(id, new_user);
                         sendMessageToUser(new HelpMessage(), new_user);
+                        sendMessageToAllExcept(new SpawnMessage(new_user.getUsername()), new_user);
                     }else{
                         logger.fine("Duplicate user not allowed");
                         sendMessageToClient(new DuplicateUserMessage(), id);

@@ -53,6 +53,7 @@ public class ClientHandle extends Thread {
                     this.logger.finest("the message received was deemed" + msg.getClass().toString());
                     this.logger.finer("Post Processing:" + msg);
                     listener.messageReceived(id, msg);
+
                 });
                 if (opt_msg.isEmpty()) {
                     //The message was not recognized
