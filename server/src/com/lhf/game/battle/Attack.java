@@ -26,6 +26,10 @@ public class Attack implements Iterable {
         return this;
     }
 
+    public int getToHit() {
+        return toHit;
+    }
+
     public String getAttacker() {
         return attacker;
     }
