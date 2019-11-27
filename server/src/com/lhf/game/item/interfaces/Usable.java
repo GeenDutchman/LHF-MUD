@@ -47,9 +47,6 @@ public abstract class Usable extends Item {
         if (!hasUsesLeft()) {
             return "This item has been used up.";
         }
-        if (numCanUseTimes > 0) {
-            hasBeenUsedTimes++;
-        }
 
         UseAction method = null;
         if (usingOn instanceof Item) {
@@ -86,8 +83,13 @@ public abstract class Usable extends Item {
         }
 
         if (method == null) {
-            return "You cannot use " + this.getName() + " on that!";
+            return "You cannot use " + getStartTagName() + getName() + getEndTagName() + " on that!";
         }
+
+        if (numCanUseTimes > 0) {
+            hasBeenUsedTimes++;
+        }
+
         return method.useAction(usingOn);
     }
 
