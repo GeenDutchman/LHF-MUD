@@ -12,11 +12,11 @@ public class Attack implements Iterable {
     private int toHit;
     private Map<String, Integer> flavorAndDamage;
 
-    public Attack(int toHit, String attacker, String taggedAttacker) {
+    public Attack(int toHit, String attacker) {
         this.toHit = toHit;
         this.flavorAndDamage = new TreeMap<>();
         this.attacker = attacker;
-        this.taggedAttacker = taggedAttacker;
+        this.taggedAttacker = attacker;
     }
 
     public Attack addFlavorAndDamage(String flavor, int attackDamage) {
@@ -40,12 +40,14 @@ public class Attack implements Iterable {
         return taggedAttacker;
     }
 
-    void setAttacker(String attacker) {
+    public Attack setAttacker(String attacker) {
         this.attacker = attacker;
+        return this;
     }
 
-    void setTaggedAttacker(String taggedAttacker) {
+    public Attack setTaggedAttacker(String taggedAttacker) {
         this.taggedAttacker = taggedAttacker;
+        return this;
     }
 
     @NotNull
