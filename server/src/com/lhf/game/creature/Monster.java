@@ -64,7 +64,7 @@ public class Monster extends Creature implements BattleAI {
     public String performBattleTurn(Collection<Creature> participants) {
         StringBuilder output = new StringBuilder();
         Player target = getRandomPlayer(participants);
-        output.append(getName());
+        output.append(this.getColorTaggedName());
         output.append(" is attacking ");
         output.append(target.getColorTaggedName());
         output.append('\n');
