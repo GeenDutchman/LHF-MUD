@@ -263,7 +263,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         } else {
             toUse = this.getWeapon();
         }
-        return toUse.rollAttack();
+        return toUse.rollAttack().setAttacker(this.getName()).setTaggedAttacker(this.getColorTaggedName());
     }
 
     public Weapon getWeapon() {
