@@ -42,7 +42,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
         @Override
         public Attack rollAttack() {
-            return new Attack(this.rollToHit(), getColorTaggedName()).addFlavorAndDamage("Bludgeoning", this.rollDamage());
+            return new Attack(this.rollToHit(), getColorTaggedName(), Creature.this.getColorTaggedName()).addFlavorAndDamage("Bludgeoning", this.rollDamage());
         }
 
         @Override
@@ -278,16 +278,16 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             int which = Dice.getInstance().d2(1);
             switch (which) {
                 case 1:
-                    output.append(attack.getAttacker()).append(" misses ").append(getColorTaggedName());
+                    output.append(attack.getTaggedAttacker()).append(" misses ").append(getColorTaggedName());
                     break;
                 case 2:
-                    output.append(getColorTaggedName()).append(" dodged the attack from ").append(attack.getAttacker());
+                    output.append(getColorTaggedName()).append(" dodged the attack from ").append(attack.getTaggedAttacker());
                     break;
                 case 3:
-                    output.append(attack.getAttacker()).append(" whiffed their attack on ").append(getColorTaggedName());
+                    output.append(attack.getTaggedAttacker()).append(" whiffed their attack on ").append(getColorTaggedName());
                     break;
                 default:
-                    output.append("The attack by ").append(attack.getAttacker()).append(" on ").append(getColorTaggedName()).append(" does not land");
+                    output.append("The attack by ").append(attack.getTaggedAttacker()).append(" on ").append(getColorTaggedName()).append(" does not land");
                     break;
 
             }
@@ -299,7 +299,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             String flavor = (String) entry.getKey();
             Integer damage = (Integer) entry.getValue();
             updateHitpoints(-damage);
-            output.append(attack.getAttacker()).append(" has dealt ").append(damage).append(" ").append(flavor).append(" damage to ").append(getColorTaggedName()).append(".\n");
+            output.append(attack.getTaggedAttacker()).append(" has dealt ").append(damage).append(" ").append(flavor).append(" damage to ").append(getColorTaggedName()).append(".\n");
             if (!isAlive()) {
                 output.append(getColorTaggedName()).append(" has died.\r\n");
                 break;
