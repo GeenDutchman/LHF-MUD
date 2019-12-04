@@ -82,7 +82,7 @@ public class Monster extends Creature implements BattleAI {
     @Override
     public String applyAttack(Attack attack) {
         int prevHealth = this.getStats().get(Stats.CURRENTHP);
-        String result = super.applyAttack(attack);
+        String result = super.applyAttack(attack); //perhaps a better way to do this?
         int damageDealt = prevHealth - this.getStats().get(Stats.CURRENTHP);
         switch (aiType) {
             case RETALIATORY:
@@ -109,7 +109,7 @@ public class Monster extends Creature implements BattleAI {
         Creature target;
         if (maybeTarget.isPresent()) {
             target = maybeTarget.get();
-        } else {
+        } else { // as a backup
             target = getRandomPlayer(participants);
         }
 
