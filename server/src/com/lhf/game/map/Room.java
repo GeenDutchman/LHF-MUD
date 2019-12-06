@@ -173,13 +173,7 @@ public class Room {
 
         for (RoomObject ro : objects) {
             if (ro.checkName(name)) {
-                if (ro instanceof Examinable) {
-                    Examinable ex = (Examinable)ro;
-                    return "<description>" + ex.getDescription() + "</description>";
-                }
-                else {
-                    return "You cannot examine <object>" + name + "</object>.";
-                }
+                return "<description>" + ro.getDescription() + "</description>";
             }
         }
 
@@ -194,7 +188,7 @@ public class Room {
                     return "<interaction>" + ex.doUseAction(p) + "</interaction>";
                 }
                 else {
-                    return "You try to interact with <object>" + name + "</object>, but nothing happens.";
+                    return "You try to interact with " + ro.getStartTagName() + ro.getName() + ro.getEndTagName() + ", but nothing happens.";
                 }
             }
         }
