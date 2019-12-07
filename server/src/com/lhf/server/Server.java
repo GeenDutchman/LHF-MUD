@@ -72,7 +72,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
         logger.fine("Sending message\"" + msg + "\" to User " + id);
         ClientID cid = userManager.getClient(id);
         if (cid != null) {
-            sendMessageToClient(msg, userManager.getClient(id));
+            sendMessageToClient(msg, cid);
             return true;
         }
         return false;
@@ -80,7 +80,10 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
 
     private void sendMessageToClient(OutMessage msg, @NotNull ClientID id) {
         logger.finest("Sending message \"" + msg + "\" to Client " + id);
-        clientManager.getConnection(id).sendMsg(msg);
+        ClientHandle handle = clientManager.getConnection(id);
+        if (handle != null) {
+            handle.sendMsg(msg);
+        }
     }
 
     @Override
@@ -124,8 +127,8 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
         Optional<UserID> user = clientManager.getUserForClient(id);
         if (msg instanceof ExitMessage) {
             logger.info("That was an exit message");
-            //TODO: some goodbye message here?
-            removeClient(id);
+            sendMessageToClient(new GameMessage("Goodbye, we hope you come again."), id);
+            clientManager.killClient(id);
         } else {
             // if there is a User associated with the sending Client, tell UserListener (e.g. Game) about it
             user.ifPresent(userID -> {
@@ -182,6 +185,14 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
             for (UserListener listener: userListeners) {
                 listener.userLeft(userID);
             }
+            userManager.removeUser(userID);
         });
+    }
+
+    @Override
+    public void connectionTerminated(ClientID id) {
+        logger.entering(this.getClass().toString(), "connectionTerminated()", id);
+        userLeft(id);
+        removeClient(id);
     }
 }

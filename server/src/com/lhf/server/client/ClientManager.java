@@ -27,9 +27,20 @@ public class ClientManager {
     public void addClient(@NotNull ClientID clientID, ClientHandle connection) {
         clientMap.put(clientID, connection);
     }
+
+    public void killClient(ClientID id) {
+        if (clientMap.containsKey(id)) {
+            clientMap.get(id).kill();
+        }
+    }
+
     public void removeClient(ClientID id) throws IOException {
-        clientMap.get(id).disconnect();
+        //disconnect and remove from all
+        if (clientMap.containsKey(id)) {
+            clientMap.get(id).disconnect();
+        }
         clientMap.remove(id);
+        userMap.remove(id);
     }
 
     public void addUserForClient(@NotNull ClientID clientID, @NotNull UserID userId){
