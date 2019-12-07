@@ -10,6 +10,6 @@ public class SpawnMessage extends OutMessage {
 
     @Override
     public String toString() {
-        return username + " has spawned in this room.";
+        return "<description>" + username + " has spawned in this room." + "</description>";
     }
 }
