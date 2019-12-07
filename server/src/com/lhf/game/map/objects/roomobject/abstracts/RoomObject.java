@@ -1,14 +1,17 @@
 package com.lhf.game.map.objects.roomobject.abstracts;
 
+import com.lhf.game.map.objects.sharedinterfaces.Examinable;
 import com.lhf.game.map.objects.sharedinterfaces.Taggable;
 
-public abstract class RoomObject implements Taggable {
+public abstract class RoomObject implements Taggable, Examinable {
     private String objectName;
     private boolean isVisible;
+    private String description;
 
-    public RoomObject(String name, boolean isVisible) {
+    public RoomObject(String name, boolean isVisible, String description) {
         this.objectName = name;
         this.isVisible = isVisible;
+        this.description = description;
     }
 
     public boolean checkVisibility() {
@@ -40,5 +43,10 @@ public abstract class RoomObject implements Taggable {
     @Override
     public String getEndTagName() {
         return "</object>";
+    }
+
+    @Override
+    public String getDescription() {
+        return this.description;
     }
 }

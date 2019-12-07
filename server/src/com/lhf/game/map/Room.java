@@ -173,13 +173,22 @@ public class Room {
 
         for (RoomObject ro : objects) {
             if (ro.checkName(name)) {
-                if (ro instanceof Examinable) {
-                    Examinable ex = (Examinable)ro;
-                    return "<description>" + ex.getDescription() + "</description>";
-                }
-                else {
-                    return "You cannot examine <object>" + name + "</object>.";
-                }
+                return "<description>" + ro.getDescription() + "</description>";
+            }
+        }
+
+        Optional<Takeable> maybeThing = p.getInventory().getItem(name);
+        if (maybeThing.isPresent()) {
+            Takeable thing = maybeThing.get();
+            if (thing instanceof Examinable) {
+                return "You see it in your inventory.  <description>" + ((Examinable) thing).getDescription() + "</description>";
+            }
+            return "It seems to resist examination...weird.";
+        }
+
+        for (Item thing : p.getEquipmentSlots().values()) {
+            if (thing.checkName(name)) {
+                return "You have it equipped.  <description>" + thing.getDescription() + "</description>";
             }
         }
 
@@ -194,7 +203,7 @@ public class Room {
                     return "<interaction>" + ex.doUseAction(p) + "</interaction>";
                 }
                 else {
-                    return "You try to interact with <object>" + name + "</object>, but nothing happens.";
+                    return "You try to interact with " + ro.getStartTagName() + ro.getName() + ro.getEndTagName() + ", but nothing happens.";
                 }
             }
         }
