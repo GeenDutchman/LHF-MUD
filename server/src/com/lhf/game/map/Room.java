@@ -4,6 +4,8 @@ import com.lhf.game.battle.AttackAction;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
+import com.lhf.game.dice.Dice;
+import com.lhf.game.enums.Attributes;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Takeable;
 import com.lhf.game.map.objects.roomobject.abstracts.InteractObject;
@@ -14,6 +16,8 @@ import com.lhf.server.messages.Messenger;
 import com.lhf.server.messages.out.GameMessage;
 
 import java.util.*;
+
+import static com.lhf.game.dice.Dice.getInstance;
 
 
 public class Room {
@@ -86,10 +90,15 @@ public class Room {
         }
 
         if (p.isInBattle()) {
-            //TODO: stop her!!?
-            messenger.sendMessageToUser(new GameMessage("You are fleeing the battle. Flee!  Flee!\r\n"), p.getId());
-            messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(p.getName() + " has fled the battle!\r\n"), p.getId());
-            battleManager.removeCreatureFromBattle(p);
+            int dexCheck = Dice.getInstance().d20(1) + p.getModifiers().get(Attributes.DEX);
+            if (dexCheck > 8) {  //arbitrary boundary
+                messenger.sendMessageToUser(new GameMessage("You are fleeing the battle. Flee!  Flee!\r\n"), p.getId());
+                messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(p.getName() + " has fled the battle!\r\n"), p.getId());
+                battleManager.removeCreatureFromBattle(p);
+            } else {
+                messenger.sendMessageToUser(new GameMessage("You didn't dodge past the enemy successfully!"), p.getId());
+                return false;
+            }
         }
 
         Room room = exits.get(direction);
@@ -165,6 +174,10 @@ public class Room {
     }
 
     String examine(Player p, String name) {
+        if (p.isInBattle()) {
+            return "You are in a fight right now, you are too busy to examine that!";
+        }
+
         for (Item ro : items) {
             if (ro.checkName(name)) {
                 return "<description>" + ro.getDescription() + "</description>";
@@ -187,6 +200,10 @@ public class Room {
     }
 
     String interact(Player p, String name) {
+        if (p.isInBattle()) {
+            return "You are in a fight right now, you are too busy to interact with that!";
+        }
+
         for (RoomObject ro : objects) {
             if (ro.checkName(name)) {
                 if (ro instanceof InteractObject) {
@@ -319,6 +336,10 @@ public class Room {
 
 
     String take(Player player, String name) {
+        if (player.isInBattle()) {
+            return "You are in a fight right now, you are too busy to take that!";
+        }
+
         Optional<Item> maybeItem = this.items.stream().filter(i -> i.getName().equalsIgnoreCase(name)).findAny();
         if (maybeItem.isEmpty()) {
             Optional<RoomObject> maybeRo = this.objects.stream().filter(i -> i.getName().equalsIgnoreCase(name)).findAny();
