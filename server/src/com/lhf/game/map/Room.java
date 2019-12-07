@@ -177,6 +177,21 @@ public class Room {
             }
         }
 
+        Optional<Takeable> maybeThing = p.getInventory().getItem(name);
+        if (maybeThing.isPresent()) {
+            Takeable thing = maybeThing.get();
+            if (thing instanceof Examinable) {
+                return "You see it in your inventory.  <description>" + ((Examinable) thing).getDescription() + "</description>";
+            }
+            return "It seems to resist examination...weird.";
+        }
+
+        for (Item thing : p.getEquipmentSlots().values()) {
+            if (thing.checkName(name)) {
+                return "You have it equipped.  <description>" + thing.getDescription() + "</description>";
+            }
+        }
+
         return "You couldn't find " + name + " to examine.";
     }
 
