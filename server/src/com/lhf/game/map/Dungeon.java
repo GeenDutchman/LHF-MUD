@@ -5,6 +5,7 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.messages.Messenger;
 import com.lhf.server.messages.out.GameMessage;
+import com.lhf.server.messages.out.SpawnMessage;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -199,5 +200,9 @@ public class Dungeon {
 
     public String statusCommand(UserID id) {
         return Objects.requireNonNull(getPlayerById(id)).getStatus();
+    }
+
+    public void notifyAllInRoomOfNewPlayer(UserID id, String name) {
+        messenger.sendMessageToAllInRoomExceptPlayer(new SpawnMessage(name), id);
     }
 }
