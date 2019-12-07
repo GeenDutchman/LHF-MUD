@@ -68,7 +68,7 @@ public class BattleManager {
 
     public void startBattle(Creature instigator) {
         isHappening = true;
-        messenger.sendMessageToAllInRoom(new GameMessage(instigator.getName() + " started a fight!\r\n"), room);
+        messenger.sendMessageToAllInRoom(new GameMessage(instigator.getColorTaggedName() + " started a fight!\r\n"), room);
         for (Creature creature : participants) {
             if (creature instanceof Player && instigator != creature) {
                 messenger.sendMessageToUser(new GameMessage("You are in the fight!\r\n"), ((Player) creature).getId());
@@ -185,7 +185,8 @@ public class BattleManager {
                 w = p.getWeapon();
             }
             Attack a = w.rollAttack();
-            a.setAttacker(getCurrent().getColorTaggedName());
+            a.setAttacker(getCurrent().getName());
+            a.setTaggedAttacker(getCurrent().getColorTaggedName());
             for (Creature c : targets) {
                 messenger.sendMessageToAllInRoom(new GameMessage(c.applyAttack(a)), p.getId());
             }
