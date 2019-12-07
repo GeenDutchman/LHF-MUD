@@ -209,7 +209,8 @@ public class BattleManager {
             Attack a = w.rollAttack();
             a.setAttacker(getCurrent().getColorTaggedName());
             for (Creature c : targets) {
-                messenger.sendMessageToAllInRoom(new GameMessage(c.applyAttack(a)), p.getId());
+//                messenger.sendMessageToAllInRoom(new GameMessage(c.applyAttack(a)), p.getId());
+                sendMessageToAllParticipants(new GameMessage(c.applyAttack(a))); //not spam the room
             }
         }
         clearDead();
@@ -224,5 +225,13 @@ public class BattleManager {
 
     public void setMessenger(Messenger messenger) {
         this.messenger = messenger;
+    }
+
+    public void sendMessageToAllParticipants(GameMessage message) {
+        for (Creature c : participants) {
+            if (c instanceof Player) {
+                messenger.sendMessageToUser(message, ((Player) c).getId());
+            }
+        }
     }
 }
