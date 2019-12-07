@@ -24,6 +24,18 @@ public class Dungeon {
         return startingRoom.addPlayer(p);
     }
 
+    public boolean removePlayer(UserID id) {
+        Room room = getPlayerRoom(id);
+        if (room == null) {
+            return true;
+        }
+        return room.removePlayer(id);
+    }
+
+    public boolean removePlayer(Player p) {
+        return this.removePlayer(p.getId());
+    }
+
     void reincarnate(Player p) {
         Player p2 = new Player(p.getId(), p.getName());
         addNewPlayer(p2);
@@ -51,7 +63,7 @@ public class Dungeon {
         return null;
     }
 
-    private Player getPlayerById(UserID id) {
+    public Player getPlayerById(UserID id) {
         for (Room r : rooms) {
             Player p = r.getPlayerInRoom(id);
             if (p != null) {

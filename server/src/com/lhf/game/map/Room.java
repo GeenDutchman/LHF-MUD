@@ -54,7 +54,16 @@ public class Room {
         }
     }
 
-    boolean removePlayer(Player p) {
+    public boolean removePlayer(UserID id) {
+        Player toRemove = getPlayerInRoom(id);
+        return this.removePlayer(toRemove);
+    }
+
+    public boolean removePlayer(Player p) {
+        if (this.battleManager.isPlayerInBattle(p)) {
+            this.battleManager.removeCreatureFromBattle(p);
+            p.setInBattle(false);
+        }
         return players.remove(p);
     }
 

@@ -72,7 +72,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
         logger.fine("Sending message\"" + msg + "\" to User " + id);
         ClientID cid = userManager.getClient(id);
         if (cid != null) {
-            sendMessageToClient(msg, userManager.getClient(id));
+            sendMessageToClient(msg, cid);
             return true;
         }
         return false;
@@ -80,7 +80,10 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
 
     private void sendMessageToClient(OutMessage msg, @NotNull ClientID id) {
         logger.finest("Sending message \"" + msg + "\" to Client " + id);
-        clientManager.getConnection(id).sendMsg(msg);
+        ClientHandle handle = clientManager.getConnection(id);
+        if (handle != null) {
+            handle.sendMsg(msg);
+        }
     }
 
     @Override
