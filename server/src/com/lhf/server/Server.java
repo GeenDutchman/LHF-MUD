@@ -108,10 +108,8 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
     @Override
     public void removeUser(UserID id) {
         logger.entering(this.getClass().toString(), "removeUser()", id);
-        System.out.println("current number of users on server: " + userManager.getAllUsernames().size());
         userManager.removeUser(id);
         removeClient(userManager.getClient(id));
-        System.out.println("current number of users on server: " + userManager.getAllUsernames().size());
     }
 
     private void removeClient(ClientID id) {
