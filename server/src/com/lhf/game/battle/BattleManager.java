@@ -1,6 +1,7 @@
 package com.lhf.game.battle;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.Player;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.map.Room;
@@ -128,6 +129,8 @@ public class BattleManager {
             if (c instanceof Player) {
                 Player p = (Player)c;
                 room.killPlayer(p);
+            } else {
+                room.removeCreature(c);
             }
         }
     }
