@@ -42,7 +42,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
         @Override
         public Attack rollAttack() {
-            return new Attack(this.rollToHit(), getColorTaggedName()).addFlavorAndDamage("Bludgeoning", this.rollDamage());
+            return new Attack(this.rollToHit(), getColorTaggedName()).addFlavorAndDamage("Bludgeoning", this.rollDamage()).setTaggedAttacker(Creature.this.getColorTaggedName());
         }
 
         @Override
@@ -263,7 +263,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         } else {
             toUse = this.getWeapon();
         }
-        return toUse.rollAttack();
+        return toUse.rollAttack().setAttacker(this.getName()).setTaggedAttacker(this.getColorTaggedName());
     }
 
     public Weapon getWeapon() {
@@ -274,12 +274,32 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     public String applyAttack(Attack attack) {
         //add stuff to calculate if the attack hits or not, and return false if so
         StringBuilder output = new StringBuilder();
+        if (this.getStats().get(Stats.AC) > attack.getToHit()) {
+            int which = Dice.getInstance().d2(1);
+            switch (which) {
+                case 1:
+                    output.append(attack.getTaggedAttacker()).append(" misses ").append(getColorTaggedName());
+                    break;
+                case 2:
+                    output.append(getColorTaggedName()).append(" dodged the attack from ").append(attack.getTaggedAttacker());
+                    break;
+                case 3:
+                    output.append(attack.getTaggedAttacker()).append(" whiffed their attack on ").append(getColorTaggedName());
+                    break;
+                default:
+                    output.append("The attack by ").append(attack.getTaggedAttacker()).append(" on ").append(getColorTaggedName()).append(" does not land");
+                    break;
+
+            }
+            output.append('\n');
+            return output.toString();
+        }
         for (Object o : attack) {
             Map.Entry entry = (Map.Entry) o;
             String flavor = (String) entry.getKey();
             Integer damage = (Integer) entry.getValue();
             updateHitpoints(-damage);
-            output.append(attack.getAttacker()).append(" has dealt ").append(damage).append(" ").append(flavor).append(" damage to ").append(getColorTaggedName()).append(".\n");
+            output.append(attack.getTaggedAttacker()).append(" has dealt ").append(damage).append(" ").append(flavor).append(" damage to ").append(getColorTaggedName()).append(".\n");
             if (!isAlive()) {
                 output.append(getColorTaggedName()).append(" has died.\r\n");
                 break;
@@ -452,10 +472,11 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         if (maybeItem.isPresent()) {
             Item item = maybeItem.get();
             if (item instanceof Usable) {
+                String result = ((Usable) item).doUseAction(useOn);
                 if (item instanceof Consumable && !((Usable) item).hasUsesLeft()) {
                     inventory.removeItem((Takeable) item);
                 }
-                return ((Usable) item).doUseAction(useOn);
+                return result;
             }
             return item.getStartTagName() + item.getName() + item.getEndTagName() + " is not usable!";
         }

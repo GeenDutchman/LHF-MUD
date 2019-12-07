@@ -14,11 +14,8 @@ public class AttackMessage extends InMessage {
             words = prepositionSeparator(words, prepositionFlags, 2);
             this.targetName += words[0];
             this.weaponName += words[1];
-        } else if (words.length >= 2) { // attack weapon target
-            this.weaponName += words[0];
-            this.targetName += words[1];
-        } else {
-            this.targetName += words[0];
+        } else { // attack target
+            this.targetName += payload;
         }
 //        String[] words = prepositionSeparator(payload.split(" "), prepositionFlags, 2);//payload.split(" ");
 
