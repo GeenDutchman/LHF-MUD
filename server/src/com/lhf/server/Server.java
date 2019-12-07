@@ -127,8 +127,8 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
         Optional<UserID> user = clientManager.getUserForClient(id);
         if (msg instanceof ExitMessage) {
             logger.info("That was an exit message");
-            //TODO: some goodbye message here?
-            removeClient(id);
+            sendMessageToClient(new GameMessage("Goodbye, we hope you come again."), id);
+            clientManager.killClient(id);
         } else {
             // if there is a User associated with the sending Client, tell UserListener (e.g. Game) about it
             user.ifPresent(userID -> {
@@ -185,6 +185,14 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
             for (UserListener listener: userListeners) {
                 listener.userLeft(userID);
             }
+            userManager.removeUser(userID);
         });
+    }
+
+    @Override
+    public void connectionTerminated(ClientID id) {
+        logger.entering(this.getClass().toString(), "connectionTerminated()", id);
+        userLeft(id);
+        removeClient(id);
     }
 }
