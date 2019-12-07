@@ -21,12 +21,14 @@ public class BattleManager {
     private Room room;
     private boolean isHappening;
     private Messenger messenger;
+    private boolean playerVSplayer;
 
 
     public BattleManager(Room room) {
         participants = new ArrayDeque<>();
         this.room = room;
         isHappening = false;
+        playerVSplayer = false;
     }
 
     public void addCreatureToBattle(Creature c) {
@@ -37,11 +39,9 @@ public class BattleManager {
     public void removeCreatureFromBattle(Creature c) {
         participants.remove(c);
         c.setInBattle(false);
-        if (participants.size() <= 1) { // TODO: Account for when multiple friendlies are in the battle
-            Creature creature = participants.poll();
-            if (creature instanceof Player) {
-                messenger.sendMessageToUser(new GameMessage("Take a deep breath.  You have survived this battle!\r\n"), ((Player) creature).getId());
-            }
+        if (!playerVSplayer && !hasNonPlayerInBattle()){ //not pvp and no monsters
+            endBattle();
+        } else if (!hasPlayerInBattle() || participants.size() <= 1) { //pvp and only one survivor who did not flee OR just monsters
             endBattle();
         }
     }
@@ -49,6 +49,15 @@ public class BattleManager {
     public boolean hasPlayerInBattle() {
         for (Creature creature : participants) {
             if (creature instanceof Player) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasNonPlayerInBattle() {
+        for (Creature creature: participants) {
+            if (!(creature instanceof Player)) {
                 return true;
             }
         }
@@ -82,7 +91,14 @@ public class BattleManager {
         }
     }
 
-    private void endBattle() {
+    public void endBattle() {
+        for (Creature creature: participants) {
+            if (creature instanceof Player) {
+                messenger.sendMessageToUser(new GameMessage("Take a deep breath.  You have survived this battle!\r\n"), ((Player) creature).getId());
+            }
+            creature.setInBattle(false);
+        }
+        participants.clear();
         messenger.sendMessageToAllInRoom(new GameMessage("The fight is over!\r\n"), room);
         isHappening = false;
     }
@@ -173,6 +189,9 @@ public class BattleManager {
                     messenger.sendMessageToUser(new GameMessage("One of your targets did not exist.\r\n"), p.getId());
                     return;
                 }
+                if (c instanceof Player && !playerVSplayer) {
+                    this.playerVSplayer = true;
+                }
             }
             Weapon w;
             if (attackAction.hasWeapon()) {
@@ -192,16 +211,11 @@ public class BattleManager {
             for (Creature c : targets) {
                 messenger.sendMessageToAllInRoom(new GameMessage(c.applyAttack(a)), p.getId());
             }
-            clearDead();
         }
+        clearDead();
         if(isBattleOngoing()) {
             nextTurn();
         }
-    }
-
-    private void creatureDied(Creature c) {
-        //perform death and remove from battle
-        //generate and add corpse to room
     }
 
     private Creature getCurrent() {
