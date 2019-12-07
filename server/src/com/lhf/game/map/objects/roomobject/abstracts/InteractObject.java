@@ -10,11 +10,11 @@ public abstract class InteractObject extends RoomObject{
     private Map<String, Object> interactItems;
     private InteractAction method = null;
     //Indicates if the action can be used multiple times
-    private boolean isRepeatable;
+    protected boolean isRepeatable;
     //Indicates if an interaction has already happened
-    private boolean hasBeenInteracted = false;
-    public InteractObject(String name, boolean isVisible, boolean isRepeatable) {
-        super(name, isVisible);
+    protected boolean hasBeenInteracted = false;
+    public InteractObject(String name, boolean isVisible, boolean isRepeatable, String description) {
+        super(name, isVisible, description);
         interactItems = new HashMap<>();
         this.isRepeatable = isRepeatable;
     }
@@ -29,12 +29,21 @@ public abstract class InteractObject extends RoomObject{
 
     public String doUseAction(Player p) {
         if (method == null) {
-            return null;
+            return "Weird, this does nothing at all!  It won't move!";
         }
         if (!isRepeatable && hasBeenInteracted) {
             return "Nothing happened. It appears to already have been interacted with.";
         }
         hasBeenInteracted = true;
         return method.doAction(p, interactItems);
+    }
+
+    @Override
+    public String getDescription() {
+        String otherDescription = super.getDescription();
+        if (hasBeenInteracted) {
+            otherDescription += " It looks like it has been interacted with already, it might not work again.";
+        }
+        return otherDescription;
     }
 }

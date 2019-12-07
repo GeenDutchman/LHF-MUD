@@ -39,7 +39,7 @@ public class Dungeon {
     void reincarnate(Player p) {
         Player p2 = new Player(p.getId(), p.getName());
         addNewPlayer(p2);
-        messenger.sendMessageToUser(new GameMessage("You have died. Out of mercy you have been reborn back where you began."), p2.getId());
+        messenger.sendMessageToUser(new GameMessage("*******************************X_X*********************************************\nYou have died. Out of mercy you have been reborn back where you began."), p2.getId());
         messenger.sendMessageToUser(new GameMessage(startingRoom.toString()), p2.getId());
     }
 
