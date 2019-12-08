@@ -28,12 +28,12 @@ public class CarnivorousArmor extends Usable implements Equipable{
         types = Arrays.asList(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
 
         setUseAction(Creature.class.getName(), (object) -> {
+            if (!equipped) {
+                return "You need to equip this item in order to use it.";
+            }
             if (object == null) {
                 return "That is not a valid target at all!";
             } else if (object instanceof Creature) {
-                if (!equipped) {
-                    return "You need to equip this item in order to use it.";
-                }
                 if (equippedAndUsed) {
                     return "The " + getStartTagName() + "Carnivorous Armor" + getEndTagName() + " snuggles around you as you poke at it, but otherwise does nothing.";
                 }
@@ -50,7 +50,7 @@ public class CarnivorousArmor extends Usable implements Equipable{
                     return "You need more health to use this item.";
                 }
             }
-            return "You cannot use this on that!";
+            return "You cannot use this on that!  You can only use it on yourself.";
         } );
     }
 
