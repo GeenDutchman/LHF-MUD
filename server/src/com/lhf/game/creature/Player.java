@@ -77,6 +77,6 @@ public class Player extends Creature implements Taggable {
                 getStats().get(Stats.CURRENTHP) +
                 "/" +
                 getStats().get(Stats.MAXHP) +
-                " HP";
+                " HP\r\n";
     }
 }

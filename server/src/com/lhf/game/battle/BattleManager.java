@@ -3,16 +3,15 @@ package com.lhf.game.battle;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.Player;
+import com.lhf.game.item.Item;
+import com.lhf.game.item.interfaces.Takeable;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.objects.roomobject.Corpse;
 import com.lhf.server.messages.Messenger;
 import com.lhf.server.messages.out.GameMessage;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class BattleManager {
@@ -142,6 +141,14 @@ public class BattleManager {
             removeCreatureFromBattle(c);
             Corpse corpse = c.die();
             room.addObject(corpse);
+
+            for (String i : c.getInventory().getItemList()) {
+                Takeable drop = c.dropItem(i).get();
+                if (drop instanceof Item) {
+                    room.addItem((Item)drop);
+                }
+            }
+
             if (c instanceof Player) {
                 Player p = (Player)c;
                 room.killPlayer(p);
@@ -234,5 +241,43 @@ public class BattleManager {
                 messenger.sendMessageToUser(message, ((Player) c).getId());
             }
         }
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Battle Participants:\r\n");
+        for (Creature c : participants) {
+            if (c instanceof Player) {
+                Player p = (Player)c;
+                sb.append(p.getStartTagName());
+                sb.append(p.getName());
+                sb.append(p.getEndTagName());
+                sb.append("\r\n");
+            }
+            else {
+                sb.append(c.getStartTagName());
+                sb.append(c.getName());
+                sb.append(c.getEndTagName());
+                sb.append("\r\n");
+            }
+        }
+        sb.append("\r\n");
+        sb.append("Up Next: ");
+        Creature c = getCurrent();
+        if (c instanceof Player) {
+            Player p = (Player)c;
+            sb.append(p.getStartTagName());
+            sb.append(p.getName());
+            sb.append(p.getEndTagName());
+            sb.append("\r\n");
+        }
+        else {
+            sb.append(c.getStartTagName());
+            sb.append(c.getName());
+            sb.append(c.getEndTagName());
+            sb.append("\r\n");
+        }
+        return sb.toString();
     }
 }

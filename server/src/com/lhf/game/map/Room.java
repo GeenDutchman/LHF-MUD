@@ -1,5 +1,6 @@
 package com.lhf.game.map;
 
+import com.lhf.game.Game;
 import com.lhf.game.battle.AttackAction;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
@@ -400,7 +401,11 @@ public class Room {
         }
         if (!player.isInBattle()) {
             this.battleManager.addCreatureToBattle(player);
+            if (this.battleManager.isBattleOngoing()) {
+                messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(player.getStartTagName() + player.getName() + player.getEndTagName() + " has joined the ongoing battle!"), player.getId());
+            }
         }
+
         if (!targetCreature.isInBattle()) {
             this.battleManager.addCreatureToBattle(targetCreature);
         }
@@ -420,5 +425,9 @@ public class Room {
 
     void setDungeon(Dungeon dungeon) {
         this.dungeon = dungeon;
+    }
+
+    public String getBattleInfo() {
+        return battleManager.toString();
     }
 }

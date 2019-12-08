@@ -374,12 +374,11 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
     public Corpse die() {
         System.out.println(name + "died");
-        //should unequip all my stuff and put it into my inventory?
-        //could also turn me into a room object called body that
-        // might esentially be a chest with my inventory and equiped
-        // items dropped into it
-        // we would probally want to remove that from the room after a certain
-        // amount of time
+        for (EquipmentSlots slot : EquipmentSlots.values()) {
+            if (equipmentSlots.containsKey(slot)) {
+                unequipItem(slot, equipmentSlots.get(slot).getName());
+            }
+        }
         return new Corpse(name + "'s corpse", true);
     }
 

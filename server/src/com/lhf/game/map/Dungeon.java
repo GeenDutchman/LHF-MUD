@@ -79,6 +79,20 @@ public class Dungeon {
         if (room == null) {
             return "You are not in this dungeon.";
         }
+
+        if (direction.equals("n")) {
+            direction = "north";
+        }
+        else if (direction.equals("e")) {
+            direction = "east";
+        }
+        else if (direction.equals("s")) {
+            direction = "south";
+        }
+        else if (direction.equals("w")) {
+            direction = "west";
+        }
+
         if(room.exitRoom(getPlayerById(id), direction)) {
             didMove.set(true);
             return "You went " + direction + ". \r\n" + Objects.requireNonNull(getPlayerRoom(id)).toString();
@@ -199,7 +213,12 @@ public class Dungeon {
     }
 
     public String statusCommand(UserID id) {
-        return Objects.requireNonNull(getPlayerById(id)).getStatus();
+        String ret = Objects.requireNonNull(getPlayerById(id)).getStatus();
+        Player p = getPlayerById(id);
+        if (p != null && p.isInBattle()) {
+            ret += Objects.requireNonNull(getPlayerRoom(id)).getBattleInfo();
+        }
+        return ret;
     }
 
     public void notifyAllInRoomOfNewPlayer(UserID id, String name) {
