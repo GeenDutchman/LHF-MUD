@@ -3,11 +3,9 @@ package com.lhf.game.map;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.enums.HealType;
 import com.lhf.game.item.Note;
-import com.lhf.game.item.concrete.HealPotion;
-import com.lhf.game.item.concrete.MantleOfDeath;
-import com.lhf.game.item.concrete.ReaperScythe;
-import com.lhf.game.item.concrete.RustyDagger;
+import com.lhf.game.item.concrete.*;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.map.objects.roomobject.Dispenser;
 import com.lhf.game.map.objects.roomobject.Switch;
@@ -66,8 +64,7 @@ public class DungeonBuilder {
 
         RustyDagger dagger = new RustyDagger(true);
 
-        Monster g1 = new Monster("goblin",goblin);
-        historyHall.addCreature(g1);
+
 
         historyHall.addItem(dagger);
         //Test dispenser start - could be used for other items
@@ -87,14 +84,14 @@ public class DungeonBuilder {
 
         //RM4
         Room trappedHall = new Room("This is the trapped room.");
-        Monster rightHandMan = new Monster("Right",hobgoblin);
-        trappedHall.addCreature(rightHandMan);
+        HealPotion h1 = new HealPotion(true);
+        trappedHall.addItem(h1);
+
 
         //RM5
         Room statueRoom = new Room("This is the statue room.");
 
-        Monster boss = new Monster("Boss Bear", bugbear);
-        statueRoom.addCreature(boss);
+
         Note bossNote = new Note("note from boss", true, "The tutorial boss is on vacation right now.");
         statueRoom.addItem(bossNote);
 
@@ -132,6 +129,42 @@ public class DungeonBuilder {
         statue.setAction(statueAction);
         statueRoom.addObject(statue);
 
+        //RM6 The armory
+        Room armory = new Room("An armory");
+        CarnivorousArmor mimic = new CarnivorousArmor(true);
+        ChainMail mail = new ChainMail(true);
+        Whimsystick stick = new Whimsystick(true);
+        Shortsword shortsword = new Shortsword(true);
+        HealPotion potion = new HealPotion(true);
+        armory.addItem(mimic);
+        armory.addItem(mail);
+        armory.addItem(stick);
+        armory.addItem(shortsword);
+        armory.addItem(potion);
+
+        //RM7
+        Room passage = new Room("An old dusty passageway");
+        //RM8
+        Room treasury = new Room("A looted vault room");
+        HealPotion regular = new HealPotion(true);
+        HealPotion greater = new HealPotion(HealType.Greater);
+        HealPotion critical = new HealPotion(HealType.Critical);
+
+        treasury.addItem(regular);
+        treasury.addItem(greater);
+        treasury.addItem(critical);
+
+
+        //Monsters
+        Monster g1 = new Monster("goblin",goblin);
+        historyHall.addCreature(g1);
+
+        Monster boss = new Monster("Boss Bear", bugbear);
+        statueRoom.addCreature(boss);
+
+        Monster rightHandMan = new Monster("Right",hobgoblin);
+        offeringRoom.addCreature(rightHandMan);
+
 
 
         //Path
@@ -139,16 +172,29 @@ public class DungeonBuilder {
 
         historyHall.addExit("west", entryRoom);
         historyHall.addExit("east", offeringRoom);
+        historyHall.addExit("north", armory);
+
 
         offeringRoom.addExit("west", historyHall);
         offeringRoom.addExit("east", trappedHall);
 
         trappedHall.addExit("west", offeringRoom);
         trappedHall.addExit("south", statueRoom);
+        trappedHall.addExit("north",treasury);
 
         statueRoom.addExit("north", trappedHall);
 
         secretRoom.addExit("secret door", statueRoom);
+
+        armory.addExit("east",passage);
+        armory.addExit("south",historyHall);
+
+        passage.addExit("south",treasury);
+        passage.addExit("west", armory);
+
+        treasury.addExit("north",passage);
+        treasury.addExit("south",trappedHall);
+
 
         //Set starting room
         dungeon.setStartingRoom(entryRoom);
@@ -160,6 +206,9 @@ public class DungeonBuilder {
         dungeon.addRoom(trappedHall);
         dungeon.addRoom(statueRoom);
         dungeon.addRoom(secretRoom);
+        dungeon.addRoom(armory);
+        dungeon.addRoom(passage);
+        dungeon.addRoom(treasury);
 
         return dungeon;
     }
