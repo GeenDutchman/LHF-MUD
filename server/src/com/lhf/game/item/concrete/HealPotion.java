@@ -2,11 +2,13 @@ package com.lhf.game.item.concrete;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.dice.Dice;
+import com.lhf.game.enums.HealType;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.interfaces.Consumable;
 import com.lhf.game.item.interfaces.Takeable;
 import com.lhf.game.item.interfaces.Usable;
 import com.lhf.game.item.interfaces.UseAction;
+import com.lhf.server.messages.out.HelpMessage;
 
 public class HealPotion extends Usable implements Consumable, Takeable {
 
@@ -15,13 +17,7 @@ public class HealPotion extends Usable implements Consumable, Takeable {
         return true;
     }
 
-    public enum HEALTYPE {
-        Regular,
-        Greater,
-        Critical
-    }
-
-    private HEALTYPE healtype;
+    private HealType healtype;
 
     private void setUp() {
         UseAction useAction = (object) -> {
@@ -39,12 +35,18 @@ public class HealPotion extends Usable implements Consumable, Takeable {
 
 
     public HealPotion(boolean isVisible) {
-        super(HEALTYPE.Regular.toString() + " Potion of Healing", isVisible);
-        this.healtype = HEALTYPE.Regular;
+        super(HealType.Regular.toString() + " Potion of Healing", isVisible);
+        this.healtype = HealType.Regular;
         setUp();
     }
 
-    public HealPotion(HEALTYPE healtype, boolean isVisible) {
+    public HealPotion(HealType type) {
+        super(type.toString() + " Potion of Healing", true);
+        this.healtype = type;
+        setUp();
+    }
+
+    public HealPotion(HealType healtype, boolean isVisible) {
         super(healtype.toString() + " Potion of Healing", isVisible);
         this.healtype = healtype;
         setUp();
@@ -54,11 +56,11 @@ public class HealPotion extends Usable implements Consumable, Takeable {
         Dice die = Dice.getInstance();
         switch (this.healtype) {
             case Regular:
-                return die.d4(1);
+                return die.d4(1)+1;
             case Greater:
-                return die.d6(1);
+                return die.d6(1)+1;
             case Critical:
-                return die.d8(1);
+                return die.d8(1)+1;
         }
         return 0;
     }

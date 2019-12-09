@@ -8,13 +8,13 @@ import com.lhf.game.item.interfaces.Weapon;
 
 import java.util.*;
 
-public class Longsword extends Weapon {
+public class BossClub extends Weapon {
 
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
 
-    public Longsword(boolean isVisible) {
-        super("Longsword", isVisible);
+    public BossClub(boolean isVisible) {
+        super("Boss Club", isVisible);
 
         slots = Collections.singletonList(EquipmentSlots.WEAPON);
         types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
@@ -27,12 +27,12 @@ public class Longsword extends Weapon {
 
     @Override
     public int rollDamage() {
-        return Dice.getInstance().d8(1);
+        return Dice.getInstance().d8(2);
     }
 
     @Override
     public Attack rollAttack() {
-        return new Attack(this.rollToHit(), "").addFlavorAndDamage("Slashing", this.rollDamage());
+        return new Attack(this.rollToHit(), "").addFlavorAndDamage("Bludgeoning", this.rollDamage());
     }
 
     @Override
@@ -79,8 +79,9 @@ public class Longsword extends Weapon {
     public String getDescription() {
         //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
         //TODO: should this describe that it does 1d6 damage?
-        return "This is a nice, long, shiny sword.  It's a bit simple though..." +
+        return "This is a large club, it seems a bit rusty... wait thats not rust..." +
                 "This can be equipped to: " + printWhichSlots();
     }
 
 }
+
