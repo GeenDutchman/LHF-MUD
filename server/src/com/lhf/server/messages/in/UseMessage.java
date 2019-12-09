@@ -14,11 +14,8 @@ public class UseMessage extends InMessage {
             words = prepositionSeparator(words, prepositionFlags, 2);
             usefulItem += words[0];
             targetName += words[1];
-        } else if (words.length >= 2) { // use item target
-            usefulItem += words[0];
-            targetName += words[1];
-        } else {
-            usefulItem += words[0];
+        } else { // use item
+            usefulItem += payload;
         }
 
     }

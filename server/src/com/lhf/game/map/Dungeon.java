@@ -5,6 +5,7 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.messages.Messenger;
 import com.lhf.server.messages.out.GameMessage;
+import com.lhf.server.messages.out.SpawnMessage;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -24,10 +25,22 @@ public class Dungeon {
         return startingRoom.addPlayer(p);
     }
 
+    public boolean removePlayer(UserID id) {
+        Room room = getPlayerRoom(id);
+        if (room == null) {
+            return true;
+        }
+        return room.removePlayer(id);
+    }
+
+    public boolean removePlayer(Player p) {
+        return this.removePlayer(p.getId());
+    }
+
     void reincarnate(Player p) {
         Player p2 = new Player(p.getId(), p.getName());
         addNewPlayer(p2);
-        messenger.sendMessageToUser(new GameMessage("You have died. Out of mercy you have been reborn back where you began."), p2.getId());
+        messenger.sendMessageToUser(new GameMessage("*******************************X_X*********************************************\nYou have died. Out of mercy you have been reborn back where you began."), p2.getId());
         messenger.sendMessageToUser(new GameMessage(startingRoom.toString()), p2.getId());
     }
 
@@ -51,7 +64,7 @@ public class Dungeon {
         return null;
     }
 
-    private Player getPlayerById(UserID id) {
+    public Player getPlayerById(UserID id) {
         for (Room r : rooms) {
             Player p = r.getPlayerInRoom(id);
             if (p != null) {
@@ -66,6 +79,20 @@ public class Dungeon {
         if (room == null) {
             return "You are not in this dungeon.";
         }
+
+        if (direction.equals("n")) {
+            direction = "north";
+        }
+        else if (direction.equals("e")) {
+            direction = "east";
+        }
+        else if (direction.equals("s")) {
+            direction = "south";
+        }
+        else if (direction.equals("w")) {
+            direction = "west";
+        }
+
         if(room.exitRoom(getPlayerById(id), direction)) {
             didMove.set(true);
             return "You went " + direction + ". \r\n" + Objects.requireNonNull(getPlayerRoom(id)).toString();
@@ -186,6 +213,15 @@ public class Dungeon {
     }
 
     public String statusCommand(UserID id) {
-        return Objects.requireNonNull(getPlayerById(id)).getStatus();
+        String ret = Objects.requireNonNull(getPlayerById(id)).getStatus();
+        Player p = getPlayerById(id);
+        if (p != null && p.isInBattle()) {
+            ret += Objects.requireNonNull(getPlayerRoom(id)).getBattleInfo();
+        }
+        return ret;
+    }
+
+    public void notifyAllInRoomOfNewPlayer(UserID id, String name) {
+        messenger.sendMessageToAllInRoomExceptPlayer(new SpawnMessage(name), id);
     }
 }

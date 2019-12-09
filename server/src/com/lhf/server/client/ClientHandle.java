@@ -21,7 +21,8 @@ public class ClientHandle extends Thread {
     private BufferedReader in;
     private MessageListener listener;
     private ClientID id;
-    private Consumer onDisconnect;
+    private boolean connected;
+    private boolean killIt;
     private ConnectionListener connectionListener;
     private Logger logger;
 
@@ -33,6 +34,8 @@ public class ClientHandle extends Thread {
         this.connectionListener = connectionListener;
         out = new PrintWriter(client.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+        connected = true;
+        killIt = false;
         this.logger.finest("ClientHandle created");
     }
 
@@ -46,13 +49,14 @@ public class ClientHandle extends Thread {
         this.logger.finer("Running ClientHandle");
         String value;
         try {
-            while ((value = in.readLine()) != null) {
+            while (!killIt && ((value = in.readLine()) != null)) {
                 this.logger.fine("message received: " + value);
                 Optional<InMessage> opt_msg = InMessage.fromString(value);
                 opt_msg.ifPresent(msg -> {
                     this.logger.finest("the message received was deemed" + msg.getClass().toString());
                     this.logger.finer("Post Processing:" + msg);
                     listener.messageReceived(id, msg);
+
                 });
                 if (opt_msg.isEmpty()) {
                     //The message was not recognized
@@ -60,9 +64,11 @@ public class ClientHandle extends Thread {
                     sendMsg(new BadMessage());
                 }
             }
+            disconnect(); //clean up after itself
         } catch (IOException e) {
-            connectionListener.userLeft(id);
+            e.printStackTrace();
         }
+        connectionListener.connectionTerminated(id); //let connectionListener know that it is over
     }
 
     public synchronized void sendMsg(OutMessage msg) {
@@ -71,8 +77,17 @@ public class ClientHandle extends Thread {
         out.flush();
     }
 
+    public void kill() {
+        this.killIt = true;
+    }
+
     void disconnect() throws IOException {
         this.logger.info("Disconnecting ClientHandler");
-        client.close();
+        if (connected && client.isConnected()) {
+            out.close(); // closing these just in case
+            in.close();
+            client.close();
+            connected = false;
+        }
     }
 }

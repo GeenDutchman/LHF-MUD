@@ -49,6 +49,7 @@ public class Game implements UserListener {
     @Override
     public void userLeft(UserID id) {
         this.logger.entering(this.getClass().toString(), "userLeft()", id);
+        removePlayer(id);
         server.sendMessageToAll(new UserLeftMessage(userManager.getUser(id)));
     }
 
@@ -204,5 +205,10 @@ public class Game implements UserListener {
     public void addNewPlayerToGame(UserID id, String name) {
         Player newPlayer = new Player(id, name);
         dungeon.addNewPlayer(newPlayer);
+        dungeon.notifyAllInRoomOfNewPlayer(id, name);
+    }
+
+    public boolean removePlayer(UserID id) {
+        return dungeon.removePlayer(id);
     }
 }

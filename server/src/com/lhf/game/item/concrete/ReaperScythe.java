@@ -8,31 +8,31 @@ import com.lhf.game.item.interfaces.Weapon;
 
 import java.util.*;
 
-public class Longsword extends Weapon {
+public class ReaperScythe extends Weapon {
 
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
 
-    public Longsword(boolean isVisible) {
-        super("Longsword", isVisible);
+    public ReaperScythe(boolean isVisible) {
+        super("Reaper Scythe", isVisible);
 
-        slots = Collections.singletonList(EquipmentSlots.WEAPON);
+        slots = Arrays.asList(EquipmentSlots.WEAPON);
         types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
     }
 
     @Override
     public int rollToHit() {
-        return Dice.getInstance().d20(1);
+        return Dice.getInstance().d20(1) + 10;
     }
 
     @Override
     public int rollDamage() {
-        return Dice.getInstance().d8(1);
+        return Dice.getInstance().d8(1) + 100;
     }
 
     @Override
     public Attack rollAttack() {
-        return new Attack(this.rollToHit(), "").addFlavorAndDamage("Slashing", this.rollDamage());
+        return new Attack(this.rollToHit(), "").addFlavorAndDamage("Necrotic", this.rollDamage());
     }
 
     @Override
@@ -47,7 +47,7 @@ public class Longsword extends Weapon {
 
     @Override
     public String printWhichTypes() {
-        StringJoiner sj = new StringJoiner(", ");
+        StringJoiner sj = new StringJoiner(",");
         sj.setEmptyValue("none needed!");
         for (EquipmentTypes type : types) {
             sj.add(type.toString());
@@ -57,7 +57,7 @@ public class Longsword extends Weapon {
 
     @Override
     public String printWhichSlots() {
-        StringJoiner sj = new StringJoiner(", ");
+        StringJoiner sj = new StringJoiner(",");
         sj.setEmptyValue("no slot!");
         for (EquipmentSlots slot : slots) {
             sj.add(slot.toString());
@@ -77,10 +77,12 @@ public class Longsword extends Weapon {
 
     @Override
     public String getDescription() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("This is a nice, long, shiny sword.  It's a bit simple though...");
+        sb.append("This can be equipped to: ").append(printWhichSlots());
         //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
         //TODO: should this describe that it does 1d6 damage?
-        return "This is a nice, long, shiny sword.  It's a bit simple though..." +
-                "This can be equipped to: " + printWhichSlots();
+        return sb.toString();
     }
 
 }

@@ -8,16 +8,16 @@ import com.lhf.game.item.interfaces.Weapon;
 
 import java.util.*;
 
-public class Longsword extends Weapon {
-
+public class Whimsystick extends Weapon {
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
+    private int acBonus = 1;
 
-    public Longsword(boolean isVisible) {
-        super("Longsword", isVisible);
+    public Whimsystick(boolean isVisible) {
+        super("Whimsystick", isVisible);
 
         slots = Collections.singletonList(EquipmentSlots.WEAPON);
-        types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
+        types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.QUARTERSTAFF, EquipmentTypes.CLUB);
     }
 
     @Override
@@ -27,12 +27,24 @@ public class Longsword extends Weapon {
 
     @Override
     public int rollDamage() {
-        return Dice.getInstance().d8(1);
+        int amount = Dice.getInstance().d6(1);
+        int switchIt = Dice.getInstance().d6(1);
+        if (switchIt <= 2) {
+            amount *= -1;
+        }
+        return amount;
     }
 
     @Override
     public Attack rollAttack() {
-        return new Attack(this.rollToHit(), "").addFlavorAndDamage("Slashing", this.rollDamage());
+        Attack toReturn = new Attack(this.rollToHit(), "");
+        int damage = rollDamage();
+        if (damage < 0) {
+            toReturn.addFlavorAndDamage("Healing", damage);
+        } else {
+            toReturn.addFlavorAndDamage("Bludgeoning", damage);
+        }
+        return toReturn;
     }
 
     @Override
@@ -67,20 +79,23 @@ public class Longsword extends Weapon {
 
     @Override
     public Map<String, Integer> equip() {
-        return new HashMap<>(0); // changes nothing
+        Map<String, Integer> result = new HashMap<>();
+        result.put("AC", this.acBonus);
+        return result;
     }
 
     @Override
     public Map<String, Integer> unequip() {
-        return new HashMap<>(0); // changes nothing
+        Map<String, Integer> result = new HashMap<>();
+        result.put("AC", -1 * this.acBonus);
+        return result;
     }
 
     @Override
     public String getDescription() {
-        //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
-        //TODO: should this describe that it does 1d6 damage?
-        return "This is a nice, long, shiny sword.  It's a bit simple though..." +
+        return "This isn't quite a quarterstaff, but also not a club...it is hard to tell. " +
+                "But what you can tell is it seems to have a laughing aura around it, like it doesn't " +
+                "care about what it does to other people...it's a whimsystick. " +
                 "This can be equipped to: " + printWhichSlots();
     }
-
 }

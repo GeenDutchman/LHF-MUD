@@ -1,8 +1,13 @@
 package com.lhf.game.creature;
 
 import com.lhf.game.enums.CreatureType;
+import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.item.concrete.HealPotion;
+import com.lhf.game.item.concrete.LeatherArmor;
+import com.lhf.game.item.concrete.Longsword;
+import com.lhf.game.item.concrete.Shield;
 import com.lhf.game.map.objects.sharedinterfaces.Taggable;
 import com.lhf.server.client.user.UserID;
 
@@ -47,6 +52,19 @@ public class Player extends Creature implements Taggable {
         this.getProficiencies().add(EquipmentTypes.SIMPLERANGEDWEAPONS);
         this.getProficiencies().add(EquipmentTypes.MARTIALWEAPONS);
         this.getProficiencies().add(EquipmentTypes.RANGEDWEAPONS);
+
+        Longsword longsword = new Longsword(true);
+        LeatherArmor leatherArmor = new LeatherArmor(true);
+        HealPotion potion = new HealPotion(true);
+        Shield shield = new Shield(true);
+
+        this.getInventory().addItem(longsword);
+        this.getInventory().addItem(leatherArmor);
+        this.getInventory().addItem(shield);
+        this.getInventory().addItem(potion);
+        this.equipItem("Leather Armor", EquipmentSlots.ARMOR);
+        this.equipItem("Longsword",EquipmentSlots.WEAPON);
+        this.equipItem("Shield",EquipmentSlots.SHIELD);
     }
 
     @Override
@@ -77,6 +95,6 @@ public class Player extends Creature implements Taggable {
                 getStats().get(Stats.CURRENTHP) +
                 "/" +
                 getStats().get(Stats.MAXHP) +
-                " HP";
+                " HP\r\n";
     }
 }
