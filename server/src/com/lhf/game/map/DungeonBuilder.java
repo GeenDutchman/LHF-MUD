@@ -1,6 +1,8 @@
 package com.lhf.game.map;
 
 import com.lhf.game.creature.Monster;
+import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.item.Note;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.RustyDagger;
@@ -15,7 +17,12 @@ public class DungeonBuilder {
     public static Dungeon buildStaticDungeon() {
         Dungeon dungeon = new Dungeon();
 
-        //Entry Room
+        StatblockManager loader = new StatblockManager();
+        Statblock goblin = new Statblock(loader.statblockFromfile("goblin"));
+        Statblock bugbear = new Statblock(loader.statblockFromfile("bugbear"));
+        Statblock hobgoblin = new Statblock(loader.statblockFromfile("hobgoblin"));
+
+        //Entry Room RM1
         Room entryRoom = new Room("This is the entry room.");
         Note addNote = new Note("interact note", true, "This note is to test the switch action.");
 
@@ -49,12 +56,16 @@ public class DungeonBuilder {
 
 
 
-        //History Hall
+        //History Hall RM2
         Room historyHall = new Room("This is the history hall.");
         Note loreNote = new Note("ominous lore", true, "You read the page and it says 'This page intentionally left blank.'");
         historyHall.addItem(loreNote);
 
         RustyDagger dagger = new RustyDagger(true);
+
+        Monster g1 = new Monster("goblin",goblin);
+        historyHall.addCreature(g1);
+
         historyHall.addItem(dagger);
         //Test dispenser start - could be used for other items
         Dispenser dispenser = new Dispenser("note dispenser", true, false, "It looks like a mailbox with a big lever.  Something probably comes out of that slot.");
@@ -68,17 +79,19 @@ public class DungeonBuilder {
         //Test dispenser end
         historyHall.addObject(dispenser);
 
+        //RM3
         Room offeringRoom = new Room("This is the offering room.");
-        Monster monster = new Monster();
-        monster.setName("BasicMonster"); // TODO: Allow attacking things with a space in the name
-        Weapon monsterWeapon = new RustyDagger(true);
-        monster.takeItem(monsterWeapon);
-        monster.equipItem("Rusty Dagger", dagger.getWhichSlots().get(0));
-        offeringRoom.addCreature(monster);
 
+        //RM4
         Room trappedHall = new Room("This is the trapped room.");
+        Monster rightHandMan = new Monster("Right",hobgoblin);
+        trappedHall.addCreature(rightHandMan);
 
+        //RM5
         Room statueRoom = new Room("This is the statue room.");
+
+        Monster boss = new Monster("Boss Bear", bugbear);
+        statueRoom.addCreature(boss);
         Note bossNote = new Note("note from boss", true, "The tutorial boss is on vacation right now.");
         statueRoom.addItem(bossNote);
 

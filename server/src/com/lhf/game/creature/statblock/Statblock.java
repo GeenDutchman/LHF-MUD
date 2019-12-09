@@ -139,7 +139,7 @@ public class Statblock {
 
         for(int i = 0; i< Attributes.values().length; i ++){
             String[] key_val = pairs[i].split("=");
-            attributes.put(Attributes.valueOf(key_val[0].replace(" ","")),key_val[1]);
+            attributes.put(Attributes.valueOf(key_val[0].replace(" ","")),Integer.valueOf(key_val[1]));
         }
 
         return attributes;
@@ -152,7 +152,7 @@ public class Statblock {
 
         for(int i = 0; i< Stats.values().length; i ++){
             String[] key_val = pairs[i].split("=");
-            stats.put(Stats.valueOf(key_val[0].replace(" ","")),key_val[1]);
+            stats.put(Stats.valueOf(key_val[0].replace(" ","")),Integer.valueOf(key_val[1]));
         }
 
         return stats;

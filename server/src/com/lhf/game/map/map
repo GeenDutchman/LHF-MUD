@@ -1,0 +1,5 @@
+rooms listed by number, adjacent rooms are connected in some way
+
+x | x | x | x |
+1 | 2 | 3 | 4 |
+x | x | x | 5 | Secret room
