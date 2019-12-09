@@ -133,7 +133,8 @@ public class Statblock {
     }
 
     private HashMap attributesFromString(String line) {
-        line = line.substring(1,line.length()-1);
+        line = line.substring(1,line.length()-2);
+        line = line.replace("}","");
         String[] pairs = line.split(",");
         HashMap attributes = new HashMap();
 
@@ -147,7 +148,10 @@ public class Statblock {
 
     private HashMap statsFromString(String line) {
         HashMap stats = new HashMap();
-        line = line.substring(1,line.length()-1);
+        line = line.substring(1,line.length()-2);
+        line = line.replace("}","");
+        System.out.println(line);
+
         String[] pairs = line.split(",");
 
         for(int i = 0; i< Stats.values().length; i ++){
@@ -160,7 +164,7 @@ public class Statblock {
 
     private HashSet<EquipmentTypes> proficienciesFromString (String line){
         HashSet<EquipmentTypes> proficiencies = new HashSet<>();
-        line = line.substring(1,line.length()-1);
+        line = line.substring(1,line.length()-2);
         String [] proficiencies_strings = line.split(",");
         for (String proficiencies_string : proficiencies_strings) {
             String proficiency = proficiencies_string.replace(" ", "");
@@ -215,7 +219,7 @@ public class Statblock {
             return equipSlots;
         }
 
-        line = line.substring(1,line.length()-1);
+        line = line.substring(1,line.length()-2);
         System.out.println(line);
         String[] pairs = line.split(",");
 
