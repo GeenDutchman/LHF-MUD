@@ -228,7 +228,7 @@ public class NpcCreator {
 
         StatblockManager loader_unloader = new StatblockManager();
         loader_unloader.statblockToFile(test);
-        test = new Statblock(loader_unloader.statblockFromfile("test"));
+        test = new Statblock(loader_unloader.statblockFromfile(name));
         System.err.println(test);
 
 
