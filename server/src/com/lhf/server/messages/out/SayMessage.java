@@ -11,6 +11,6 @@ public class SayMessage extends OutMessage {
     }
     @Override
     public String toString() {
-        return user.getUsername() + ": " + message;
+        return user.getColorTaggedUsername() + ": " + message;
     }
 }

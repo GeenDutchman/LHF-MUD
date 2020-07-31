@@ -3,6 +3,7 @@ package com.lhf.game.creature.inventory;
 import com.lhf.game.item.interfaces.Takeable;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -40,6 +41,14 @@ public class Inventory {
 
     public String toStoreString(){
         return this.items.stream().map(Takeable::getName).collect(Collectors.joining(", "));
+    }
+
+    public List<String> getItemList() {
+        List<String> names = new ArrayList<>();
+        for(Takeable t : items) {
+            names.add(t.getName());
+        }
+        return names;
     }
 
     public void removeItem(Takeable item) {

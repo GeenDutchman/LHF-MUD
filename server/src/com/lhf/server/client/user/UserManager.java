@@ -54,7 +54,9 @@ public class UserManager {
     }
 
     public void removeUser(UserID id) {
+        //should remove from both
         clientMap.remove(id);
+        userMap.remove(id);
     }
 
     public void setGame(Game g) {

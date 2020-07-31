@@ -1,38 +1,23 @@
 package com.lhf.game.item.concrete;
 
-import com.lhf.game.battle.Attack;
-import com.lhf.game.dice.Dice;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
-import com.lhf.game.item.interfaces.Weapon;
+import com.lhf.game.item.Item;
+import com.lhf.game.item.interfaces.Equipable;
 
 import java.util.*;
 
-public class Longsword extends Weapon {
+public class ChainMail extends Item implements Equipable {
+    private int AC = 5;
 
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
 
-    public Longsword(boolean isVisible) {
-        super("Longsword", isVisible);
+    public ChainMail(boolean isVisible) {
+        super("Chain Mail", isVisible);
 
-        slots = Collections.singletonList(EquipmentSlots.WEAPON);
-        types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
-    }
-
-    @Override
-    public int rollToHit() {
-        return Dice.getInstance().d20(1);
-    }
-
-    @Override
-    public int rollDamage() {
-        return Dice.getInstance().d8(1);
-    }
-
-    @Override
-    public Attack rollAttack() {
-        return new Attack(this.rollToHit(), "").addFlavorAndDamage("Slashing", this.rollDamage());
+        slots = Collections.singletonList(EquipmentSlots.ARMOR);
+        types = Arrays.asList(EquipmentTypes.HEAVYARMOR);
     }
 
     @Override
@@ -67,20 +52,22 @@ public class Longsword extends Weapon {
 
     @Override
     public Map<String, Integer> equip() {
-        return new HashMap<>(0); // changes nothing
+        Map<String, Integer> result = new HashMap<>();
+        result.put("AC", this.AC);
+        return result;
     }
 
     @Override
     public Map<String, Integer> unequip() {
-        return new HashMap<>(0); // changes nothing
+        Map<String, Integer> result = new HashMap<>();
+        result.put("AC", -1 * this.AC);
+        return result;
     }
 
     @Override
     public String getDescription() {
         //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
-        //TODO: should this describe that it does 1d6 damage?
-        return "This is a nice, long, shiny sword.  It's a bit simple though..." +
+        return "This is some heavy chainmail. " + "It looks protective... now if only it wasn't so heavy" +
                 "This can be equipped to: " + printWhichSlots();
     }
-
 }

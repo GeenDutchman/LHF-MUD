@@ -8,6 +8,7 @@ import java.util.TreeMap;
 
 public class Attack implements Iterable {
     private String attacker;
+    private String taggedAttacker;
     private int toHit;
     private Map<String, Integer> flavorAndDamage;
 
@@ -15,6 +16,7 @@ public class Attack implements Iterable {
         this.toHit = toHit;
         this.flavorAndDamage = new TreeMap<>();
         this.attacker = attacker;
+        this.taggedAttacker = attacker;
     }
 
     public Attack addFlavorAndDamage(String flavor, int attackDamage) {
@@ -26,12 +28,26 @@ public class Attack implements Iterable {
         return this;
     }
 
+    public int getToHit() {
+        return toHit;
+    }
+
     public String getAttacker() {
         return attacker;
     }
 
-    void setAttacker(String attacker) {
+    public String getTaggedAttacker() {
+        return taggedAttacker;
+    }
+
+    public Attack setAttacker(String attacker) {
         this.attacker = attacker;
+        return this;
+    }
+
+    public Attack setTaggedAttacker(String taggedAttacker) {
+        this.taggedAttacker = taggedAttacker;
+        return this;
     }
 
     @NotNull
