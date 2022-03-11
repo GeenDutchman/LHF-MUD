@@ -1,7 +1,7 @@
 package com.lhf.server.client;
 
 import com.lhf.server.client.user.UserID;
-import org.jetbrains.annotations.NotNull;
+import com.lhf.server.interfaces.NotNull;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -35,7 +35,7 @@ public class ClientManager {
     }
 
     public void removeClient(ClientID id) throws IOException {
-        //disconnect and remove from all
+        // disconnect and remove from all
         if (clientMap.containsKey(id)) {
             clientMap.get(id).disconnect();
         }
@@ -43,7 +43,7 @@ public class ClientManager {
         userMap.remove(id);
     }
 
-    public void addUserForClient(@NotNull ClientID clientID, @NotNull UserID userId){
+    public void addUserForClient(@NotNull ClientID clientID, @NotNull UserID userId) {
         logger.finer("Pairing client " + clientID + " with user " + userId);
         userMap.put(clientID, userId);
     }

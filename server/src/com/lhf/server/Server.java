@@ -7,13 +7,13 @@ import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
 import com.lhf.server.interfaces.ConnectionListener;
 import com.lhf.server.interfaces.MessageListener;
+import com.lhf.server.interfaces.NotNull;
 import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
 import com.lhf.server.messages.in.CreateInMessage;
 import com.lhf.server.messages.in.ExitMessage;
 import com.lhf.server.messages.in.InMessage;
 import com.lhf.server.messages.out.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -61,7 +61,6 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
         }
     }
 
-
     @Override
     public void registerCallback(UserListener listener) {
         userListeners.add(listener);
@@ -89,7 +88,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
     @Override
     public void sendMessageToAll(OutMessage msg) {
         logger.entering(this.getClass().toString(), "sendMessageToAll()", msg);
-        for (ClientHandle client: clientManager.getHandles()) {
+        for (ClientHandle client : clientManager.getHandles()) {
             client.sendMsg(msg);
         }
     }
@@ -98,7 +97,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
     public void sendMessageToAllExcept(OutMessage msg, UserID id) {
         logger.entering(this.getClass().toString(), "sendMessageToAllExcept()");
         logger.fine("Message:\"" + msg + "\" Except:" + id);
-        for (UserID userId: userManager.getAllUserIds()) {
+        for (UserID userId : userManager.getAllUserIds()) {
             if (userId != id) {
                 clientManager.getConnection(userManager.getClient(userId));
             }
@@ -116,7 +115,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
         try {
             logger.finer("Removing Client " + id);
             clientManager.removeClient(id);
-        }catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -130,7 +129,8 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
             sendMessageToClient(new GameMessage("Goodbye, we hope you come again."), id);
             clientManager.killClient(id);
         } else {
-            // if there is a User associated with the sending Client, tell UserListener (e.g. Game) about it
+            // if there is a User associated with the sending Client, tell UserListener
+            // (e.g. Game) about it
             user.ifPresent(userID -> {
                 for (UserListener listener : userListeners) {
                     listener.messageReceived(userID, msg);
@@ -141,11 +141,11 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
                 if (msg instanceof CreateInMessage) {
                     logger.fine("Creating new user");
                     UserID new_user = userManager.addUser((CreateInMessage) msg, id);
-                    if(new_user != null) {
+                    if (new_user != null) {
                         clientManager.addUserForClient(id, new_user);
                         sendMessageToUser(new HelpMessage(), new_user);
                         sendMessageToAllExcept(new SpawnMessage(new_user.getUsername()), new_user);
-                    }else{
+                    } else {
                         logger.fine("Duplicate user not allowed");
                         sendMessageToClient(new DuplicateUserMessage(), id);
                     }
@@ -160,7 +160,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
 
     private void notifyConnectionListeners(ClientID id) {
         logger.entering(this.getClass().toString(), "notifyConnectionListeners()", id);
-        //This will only take action if they have created a user
+        // This will only take action if they have created a user
         clientManager.getUserForClient(id).ifPresent(userID -> {
             logger.info("Notifying that a user has connected! " + userID);
             for (UserListener listener : userListeners) {
@@ -177,13 +177,14 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
 
     /**
      * This will notify other created Users that a User has left.
+     * 
      * @param id id of the User who has left
      */
     @Override
     public void userLeft(ClientID id) {
         logger.entering(this.getClass().toString(), "userLeft()", id);
         clientManager.getUserForClient(id).ifPresent(userID -> {
-            for (UserListener listener: userListeners) {
+            for (UserListener listener : userListeners) {
                 listener.userLeft(userID);
             }
             userManager.removeUser(userID);
