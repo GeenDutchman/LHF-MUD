@@ -33,7 +33,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
     public Server(int port, UserManager userManager) throws IOException {
         this.logger = Logger.getLogger(this.getClass().getName());
         this.port = port;
-        socket = new ServerSocket(port);
+        socket = new ServerSocket(this.port);
         this.userManager = userManager;
         userListeners = new ArrayList<>();
         clientManager = new ClientManager();

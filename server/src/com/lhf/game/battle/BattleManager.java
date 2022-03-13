@@ -1,7 +1,6 @@
 package com.lhf.game.battle;
 
 import com.lhf.game.creature.Creature;
-import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.Player;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Takeable;
@@ -22,7 +21,6 @@ public class BattleManager {
     private Messenger messenger;
     private boolean playerVSplayer;
 
-
     public BattleManager(Room room) {
         participants = new ArrayDeque<>();
         this.room = room;
@@ -38,9 +36,10 @@ public class BattleManager {
     public void removeCreatureFromBattle(Creature c) {
         participants.remove(c);
         c.setInBattle(false);
-        if (!playerVSplayer && !hasNonPlayerInBattle()){ //not pvp and no monsters
+        if (!playerVSplayer && !hasNonPlayerInBattle()) { // not pvp and no monsters
             endBattle();
-        } else if (!hasPlayerInBattle() || participants.size() <= 1) { //pvp and only one survivor who did not flee OR just monsters
+        } else if (!hasPlayerInBattle() || participants.size() <= 1) { // pvp and only one survivor who did not flee OR
+                                                                       // just monsters
             endBattle();
         }
     }
@@ -55,7 +54,7 @@ public class BattleManager {
     }
 
     public boolean hasNonPlayerInBattle() {
-        for (Creature creature: participants) {
+        for (Creature creature : participants) {
             if (!(creature instanceof Player)) {
                 return true;
             }
@@ -77,7 +76,8 @@ public class BattleManager {
 
     public void startBattle(Creature instigator) {
         isHappening = true;
-        messenger.sendMessageToAllInRoom(new GameMessage(instigator.getColorTaggedName() + " started a fight!\r\n"), room);
+        messenger.sendMessageToAllInRoom(new GameMessage(instigator.getColorTaggedName() + " started a fight!\r\n"),
+                room);
         for (Creature creature : participants) {
             if (creature instanceof Player && instigator != creature) {
                 messenger.sendMessageToUser(new GameMessage("You are in the fight!\r\n"), ((Player) creature).getId());
@@ -91,9 +91,10 @@ public class BattleManager {
     }
 
     public void endBattle() {
-        for (Creature creature: participants) {
+        for (Creature creature : participants) {
             if (creature instanceof Player) {
-                messenger.sendMessageToUser(new GameMessage("Take a deep breath.  You have survived this battle!\r\n"), ((Player) creature).getId());
+                messenger.sendMessageToUser(new GameMessage("Take a deep breath.  You have survived this battle!\r\n"),
+                        ((Player) creature).getId());
             }
             creature.setInBattle(false);
         }
@@ -111,9 +112,9 @@ public class BattleManager {
     private void startTurn() {
         Creature current = getCurrent();
         if (current instanceof Player) {
-            //prompt player to do something
+            // prompt player to do something
             promptPlayerToAct((Player) current);
-        } else if (current instanceof BattleAI){
+        } else if (current instanceof BattleAI) {
             AITurn((BattleAI) current);
         } else {
             // Bad juju
@@ -132,7 +133,7 @@ public class BattleManager {
 
     private void clearDead() {
         List<Creature> dead = new ArrayList<>();
-        for (Creature c: participants) {
+        for (Creature c : participants) {
             if (!c.isAlive()) {
                 dead.add(c);
             }
@@ -145,12 +146,12 @@ public class BattleManager {
             for (String i : c.getInventory().getItemList()) {
                 Takeable drop = c.dropItem(i).get();
                 if (drop instanceof Item) {
-                    room.addItem((Item)drop);
+                    room.addItem((Item) drop);
                 }
             }
 
             if (c instanceof Player) {
-                Player p = (Player)c;
+                Player p = (Player) c;
                 room.killPlayer(p);
             } else {
                 room.removeCreature(c);
@@ -159,25 +160,25 @@ public class BattleManager {
     }
 
     private void promptPlayerToAct(Player current) {
-        //send message to player that it is their turn
+        // send message to player that it is their turn
         messenger.sendMessageToUser(new GameMessage("It is your turn to fight!\r\n"), current.getId());
     }
 
     public void playerAction(Player p, BattleAction action) {
         if (!participants.contains(p)) {
-            //give message that the player is not currently engaged in a fight
+            // give message that the player is not currently engaged in a fight
             messenger.sendMessageToUser(new GameMessage("You are not currently in a fight.\r\n"), p.getId());
             return;
         }
 
         if (!isHappening) {
-            //give message saying there is no battle ongoing
+            // give message saying there is no battle ongoing
             messenger.sendMessageToUser(new GameMessage("There is no battle happening.\r\n"), p.getId());
             return;
         }
 
         if (p != getCurrent()) {
-            //give out of turn message
+            // give out of turn message
             messenger.sendMessageToUser(new GameMessage("This is not your turn.\r\n"), p.getId());
             return;
         }
@@ -192,7 +193,7 @@ public class BattleManager {
             List<Creature> targets = attackAction.getTargets();
             for (Creature c : targets) {
                 if (!isCreatureInBattle(c)) {
-                    //invalid target in list
+                    // invalid target in list
                     messenger.sendMessageToUser(new GameMessage("One of your targets did not exist.\r\n"), p.getId());
                     return;
                 }
@@ -206,7 +207,7 @@ public class BattleManager {
                         p.fromAllInventory(attackAction.getWeapon()).get() instanceof Weapon) {
                     w = (Weapon) p.fromAllInventory(attackAction.getWeapon()).get();
                 } else {
-                    //player does not have weapon that he asked to use
+                    // player does not have weapon that he asked to use
                     messenger.sendMessageToUser(new GameMessage("You do not have that weapon.\r\n"), p.getId());
                     return;
                 }
@@ -217,12 +218,13 @@ public class BattleManager {
             a.setAttacker(getCurrent().getName());
             a.setTaggedAttacker(getCurrent().getColorTaggedName());
             for (Creature c : targets) {
-//                messenger.sendMessageToAllInRoom(new GameMessage(c.applyAttack(a)), p.getId());
-                sendMessageToAllParticipants(new GameMessage(c.applyAttack(a))); //not spam the room
+                // messenger.sendMessageToAllInRoom(new GameMessage(c.applyAttack(a)),
+                // p.getId());
+                sendMessageToAllParticipants(new GameMessage(c.applyAttack(a))); // not spam the room
             }
         }
         clearDead();
-        if(isBattleOngoing()) {
+        if (isBattleOngoing()) {
             nextTurn();
         }
     }
@@ -249,13 +251,12 @@ public class BattleManager {
         sb.append("Battle Participants:\r\n");
         for (Creature c : participants) {
             if (c instanceof Player) {
-                Player p = (Player)c;
+                Player p = (Player) c;
                 sb.append(p.getStartTagName());
                 sb.append(p.getName());
                 sb.append(p.getEndTagName());
                 sb.append("\r\n");
-            }
-            else {
+            } else {
                 sb.append(c.getStartTagName());
                 sb.append(c.getName());
                 sb.append(c.getEndTagName());
@@ -266,13 +267,12 @@ public class BattleManager {
         sb.append("Up Next: ");
         Creature c = getCurrent();
         if (c instanceof Player) {
-            Player p = (Player)c;
+            Player p = (Player) c;
             sb.append(p.getStartTagName());
             sb.append(p.getName());
             sb.append(p.getEndTagName());
             sb.append("\r\n");
-        }
-        else {
+        } else {
             sb.append(c.getStartTagName());
             sb.append(c.getName());
             sb.append(c.getEndTagName());

@@ -1,8 +1,6 @@
 package com.lhf.game.item;
 
-import com.lhf.game.map.objects.sharedinterfaces.Examinable;
-
-public class Note extends Item implements Examinable {
+public class Note extends Item {
 
     private String noteContent;
 

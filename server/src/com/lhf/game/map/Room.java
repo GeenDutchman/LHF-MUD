@@ -1,6 +1,5 @@
 package com.lhf.game.map;
 
-import com.lhf.game.Game;
 import com.lhf.game.battle.AttackAction;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
@@ -18,9 +17,6 @@ import com.lhf.server.messages.out.GameMessage;
 
 import java.util.*;
 
-import static com.lhf.game.dice.Dice.getInstance;
-
-
 public class Room {
 
     private Set<Player> players;
@@ -32,7 +28,6 @@ public class Room {
     private Map<Creature, Integer> creatures; // how many of what type of monster
     private Messenger messenger;
     private Dungeon dungeon;
-
 
     Room(String description) {
         this.description = description;
@@ -101,12 +96,14 @@ public class Room {
 
         if (p.isInBattle()) {
             int dexCheck = Dice.getInstance().d20(1) + p.getModifiers().get(Attributes.DEX);
-            if (dexCheck > 8) {  //arbitrary boundary
+            if (dexCheck > 8) { // arbitrary boundary
                 messenger.sendMessageToUser(new GameMessage("You are fleeing the battle. Flee!  Flee!\r\n"), p.getId());
-                messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(p.getName() + " has fled the battle!\r\n"), p.getId());
+                messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(p.getName() + " has fled the battle!\r\n"),
+                        p.getId());
                 battleManager.removeCreatureFromBattle(p);
             } else {
-                messenger.sendMessageToUser(new GameMessage("You didn't dodge past the enemy successfully!"), p.getId());
+                messenger.sendMessageToUser(new GameMessage("You didn't dodge past the enemy successfully!"),
+                        p.getId());
                 return false;
             }
         }
@@ -118,8 +115,7 @@ public class Room {
     }
 
     boolean addExit(String direction, Room room) {
-        if (exits.containsKey(direction))
-        {
+        if (exits.containsKey(direction)) {
             return false;
         }
         exits.put(direction, room);
@@ -141,7 +137,6 @@ public class Room {
         objects.add(obj);
         return true;
     }
-
 
     public String getDescription() {
         return "<description>" + description + "</description>";
@@ -204,7 +199,8 @@ public class Room {
         if (maybeThing.isPresent()) {
             Takeable thing = maybeThing.get();
             if (thing instanceof Examinable) {
-                return "You see it in your inventory.  <description>" + ((Examinable) thing).getDescription() + "</description>";
+                return "You see it in your inventory.  <description>" + ((Examinable) thing).getDescription()
+                        + "</description>";
             }
             return "It seems to resist examination...weird.";
         }
@@ -226,11 +222,11 @@ public class Room {
         for (RoomObject ro : objects) {
             if (ro.checkName(name)) {
                 if (ro instanceof InteractObject) {
-                    InteractObject ex = (InteractObject)ro;
+                    InteractObject ex = (InteractObject) ro;
                     return "<interaction>" + ex.doUseAction(p) + "</interaction>";
-                }
-                else {
-                    return "You try to interact with " + ro.getStartTagName() + ro.getName() + ro.getEndTagName() + ", but nothing happens.";
+                } else {
+                    return "You try to interact with " + ro.getStartTagName() + ro.getName() + ro.getEndTagName()
+                            + ", but nothing happens.";
                 }
             }
         }
@@ -353,7 +349,6 @@ public class Room {
         return output;
     }
 
-
     String take(Player player, String name) {
         if (player.isInBattle()) {
             return "You are in a fight right now, you are too busy to take that!";
@@ -361,7 +356,8 @@ public class Room {
 
         Optional<Item> maybeItem = this.items.stream().filter(i -> i.getName().equalsIgnoreCase(name)).findAny();
         if (maybeItem.isEmpty()) {
-            Optional<RoomObject> maybeRo = this.objects.stream().filter(i -> i.getName().equalsIgnoreCase(name)).findAny();
+            Optional<RoomObject> maybeRo = this.objects.stream().filter(i -> i.getName().equalsIgnoreCase(name))
+                    .findAny();
             if (maybeRo.isEmpty()) {
                 return "Could not find that item in this room.";
             }
@@ -388,10 +384,11 @@ public class Room {
 
     public void attack(Player player, String weapon, String target) {
         System.out.println(player.toString() + " attempts attacking " + target + " with " + weapon);
-        //if the target does not exist, don't add the player to the combat
+        // if the target does not exist, don't add the player to the combat
         Creature targetCreature = this.getCreatureInRoom(target);
         if (targetCreature == null) {
-            messenger.sendMessageToUser(new GameMessage("You cannot attack " + target + " because it does not exist.\r\n"), player.getId());
+            messenger.sendMessageToUser(
+                    new GameMessage("You cannot attack " + target + " because it does not exist.\r\n"), player.getId());
             return;
         }
         String playerName = player.getId().getUsername();
@@ -402,7 +399,8 @@ public class Room {
         if (!player.isInBattle()) {
             this.battleManager.addCreatureToBattle(player);
             if (this.battleManager.isBattleOngoing()) {
-                messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(player.getStartTagName() + player.getName() + player.getEndTagName() + " has joined the ongoing battle!"), player.getId());
+                messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(player.getStartTagName() + player.getName()
+                        + player.getEndTagName() + " has joined the ongoing battle!"), player.getId());
             }
         }
 

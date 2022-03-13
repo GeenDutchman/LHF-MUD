@@ -4,13 +4,12 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.game.item.interfaces.Usable;
 
 import java.util.*;
 
-public class CarnivorousArmor extends Usable implements Equipable{
+public class CarnivorousArmor extends Usable implements Equipable {
     private int AC = 2;
     private int eatsHealthTo = 5;
     private int rewardAC = 3;
@@ -35,7 +34,8 @@ public class CarnivorousArmor extends Usable implements Equipable{
                 return "That is not a valid target at all!";
             } else if (object instanceof Creature) {
                 if (equippedAndUsed) {
-                    return "The " + getStartTagName() + "Carnivorous Armor" + getEndTagName() + " snuggles around you as you poke at it, but otherwise does nothing.";
+                    return "The " + getStartTagName() + "Carnivorous Armor" + getEndTagName()
+                            + " snuggles around you as you poke at it, but otherwise does nothing.";
                 }
                 Integer currHealth = ((Creature) object).getStats().get(Stats.CURRENTHP);
                 if (currHealth > eatsHealthTo) {
@@ -44,14 +44,15 @@ public class CarnivorousArmor extends Usable implements Equipable{
                     ((Creature) object).updateAc(rewardAC);
                     equippedAndUsed = true;
                     return "A thousand teeth sink into your body, and you feel life force ripped out of you.  " +
-                            "Once it is sated, you feel the " + getStartTagName() + "Carnivorous Armor" + getEndTagName() +
+                            "Once it is sated, you feel the " + getStartTagName() + "Carnivorous Armor"
+                            + getEndTagName() +
                             " tighten up around its most recent, precious meal.  It leaves the rest for later.";
                 } else {
                     return "You need more health to use this item.";
                 }
             }
             return "You cannot use this on that!  You can only use it on yourself.";
-        } );
+        });
     }
 
     @Override
@@ -99,7 +100,7 @@ public class CarnivorousArmor extends Usable implements Equipable{
         if (!equippedAndUsed) {
             result.put("AC", -1 * this.AC);
         } else {
-            result.put("AC", -1* (this.AC + this.rewardAC));
+            result.put("AC", -1 * (this.AC + this.rewardAC));
             result.put("CURRENTHP", -2);
         }
         equipped = false;

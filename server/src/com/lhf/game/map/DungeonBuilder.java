@@ -6,7 +6,6 @@ import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.HealType;
 import com.lhf.game.item.Note;
 import com.lhf.game.item.concrete.*;
-import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.map.objects.roomobject.Dispenser;
 import com.lhf.game.map.objects.roomobject.Switch;
 import com.lhf.game.map.objects.roomobject.actions.DispenserAction;

@@ -42,7 +42,9 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
         @Override
         public Attack rollAttack() {
-            return new Attack(this.rollToHit(), getColorTaggedName()).addFlavorAndDamage("Bludgeoning", this.rollDamage()).setTaggedAttacker(Creature.this.getColorTaggedName());
+            return new Attack(this.rollToHit(), getColorTaggedName())
+                    .addFlavorAndDamage("Bludgeoning", this.rollDamage())
+                    .setTaggedAttacker(Creature.this.getColorTaggedName());
         }
 
         @Override
@@ -87,43 +89,45 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
         @Override
         public String getDescription() {
-            //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
+            // sb.append("And best used if you have these proficiencies:
+            // ").append(printWhichTypes());
             return "This is a " + getName() + " attached to a " + Creature.this.getName() +
                     " This can be equipped to: " + printWhichSlots();
         }
     }
 
-    private String name; //Username for players, description name (e.g., goblin 1) for monsters/NPCs
-    private CreatureType creatureType; //See shared enum
-    //private MonsterType monsterType; // I dont know if we'll need this
+    private String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
+    private CreatureType creatureType; // See shared enum
+    // private MonsterType monsterType; // I dont know if we'll need this
 
     // attributes and modifiers must in the following order:
     // STR:0, DEX:1, CON:2 , INT:3, WIS:4, CHA:5
     private HashMap<Attributes, Integer> attributes;
     private HashMap<Attributes, Integer> modifiers;
 
-    private HashMap<Stats, Integer> stats; //contains CurrentHp, MaxHp, Xp, proficiencyBonus, AC
+    private HashMap<Stats, Integer> stats; // contains CurrentHp, MaxHp, Xp, proficiencyBonus, AC
 
     // contains subtypes and items
     // an example subtype would be MARTIAL_WEAPONS or HEAVY_ARMOR
     // and example item would be lightCrossbow
     private HashSet<EquipmentTypes> proficiencies;
 
-    /* TODO: or to add once things are done also needed in statblock
-     Abilities... initial thought was some kind of array
-    */
-    private Inventory inventory; //This creature's inventory
-    private HashMap<EquipmentSlots, Item> equipmentSlots; //See enum for slots
+    /*
+     * TODO: or to add once things are done also needed in statblock
+     * Abilities... initial thought was some kind of array
+     */
+    private Inventory inventory; // This creature's inventory
+    private HashMap<EquipmentSlots, Item> equipmentSlots; // See enum for slots
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
 
-    //Default constructor
+    // Default constructor
     public Creature() {
-        //Instantiate creature with no name and type Monster
+        // Instantiate creature with no name and type Monster
         this.name = "";
         this.creatureType = CreatureType.MONSTER;
 
-        //Set attributes to default values
+        // Set attributes to default values
         this.attributes = new HashMap<>();
         this.attributes.put(STR, 10);
         this.attributes.put(DEX, 10);
@@ -132,7 +136,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         this.attributes.put(WIS, 10);
         this.attributes.put(CHA, 10);
 
-        //Set modifiers to default values
+        // Set modifiers to default values
         this.modifiers = new HashMap<>();
         this.modifiers.put(STR, 0);
         this.modifiers.put(DEX, 0);
@@ -141,7 +145,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         this.modifiers.put(WIS, 0);
         this.modifiers.put(CHA, 0);
 
-        //Set default stats (10 HP, 2 proficiency bonus, etc.)
+        // Set default stats (10 HP, 2 proficiency bonus, etc.)
         this.stats = new HashMap<>();
         this.stats.put(Stats.MAXHP, 10);
         this.stats.put(Stats.CURRENTHP, 10);
@@ -150,20 +154,20 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         this.stats.put(Stats.XPEARNED, 0);
         this.stats.put(Stats.XPWORTH, 100);
 
-        //Set empty inventory
+        // Set empty inventory
         this.inventory = new Inventory();
 
-        //Set empty equip slots
+        // Set empty equip slots
         this.equipmentSlots = new HashMap<>();
 
-        //Set empty proficiencies
+        // Set empty proficiencies
         this.proficiencies = new HashSet<>();
 
-        //We don't start them in battle
+        // We don't start them in battle
         this.inBattle = false;
     }
 
-    //Statblock-based constructor
+    // Statblock-based constructor
     public Creature(String name, Statblock statblock) {
         this.name = name;
 
@@ -173,7 +177,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         this.stats = statblock.stats;
         this.proficiencies = statblock.proficiencies;
         // add abilities if we get to it
-        this.inventory = statblock.inventory; //uncomment when Inventory class is ready
+        this.inventory = statblock.inventory; // uncomment when Inventory class is ready
         this.equipmentSlots = statblock.equipmentSlots;
     }
 
@@ -202,7 +206,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         current += value;
         stats.replace(Stats.XPEARNED, current);
         if (this.canLevelUp(current, current - value)) {
-            //this.levelUp();
+            // this.levelUp();
         }
     }
 
@@ -218,9 +222,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         this.stats.put(stat, this.stats.get(stat) + value);
     }
 
-
-
-    /* start getters*/
+    /* start getters */
 
     public HashMap<Stats, Integer> getStats() {
         return stats;
@@ -272,7 +274,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     }
 
     public String applyAttack(Attack attack) {
-        //add stuff to calculate if the attack hits or not, and return false if so
+        // add stuff to calculate if the attack hits or not, and return false if so
         StringBuilder output = new StringBuilder();
         if (this.getStats().get(Stats.AC) > attack.getToHit()) {
             int which = Dice.getInstance().d2(1);
@@ -281,25 +283,28 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                     output.append(attack.getTaggedAttacker()).append(" misses ").append(getColorTaggedName());
                     break;
                 case 2:
-                    output.append(getColorTaggedName()).append(" dodged the attack from ").append(attack.getTaggedAttacker());
+                    output.append(getColorTaggedName()).append(" dodged the attack from ")
+                            .append(attack.getTaggedAttacker());
                     break;
                 case 3:
-                    output.append(attack.getTaggedAttacker()).append(" whiffed their attack on ").append(getColorTaggedName());
+                    output.append(attack.getTaggedAttacker()).append(" whiffed their attack on ")
+                            .append(getColorTaggedName());
                     break;
                 default:
-                    output.append("The attack by ").append(attack.getTaggedAttacker()).append(" on ").append(getColorTaggedName()).append(" does not land");
+                    output.append("The attack by ").append(attack.getTaggedAttacker()).append(" on ")
+                            .append(getColorTaggedName()).append(" does not land");
                     break;
 
             }
             output.append('\n');
             return output.toString();
         }
-        for (Object o : attack) {
-            Map.Entry entry = (Map.Entry) o;
+        for (Map.Entry<String, Integer> entry : attack) {
             String flavor = (String) entry.getKey();
             Integer damage = (Integer) entry.getValue();
             updateHitpoints(-damage);
-            output.append(attack.getTaggedAttacker()).append(" has dealt ").append(damage).append(" ").append(flavor).append(" damage to ").append(getColorTaggedName()).append(".\n");
+            output.append(attack.getTaggedAttacker()).append(" has dealt ").append(damage).append(" ").append(flavor)
+                    .append(" damage to ").append(getColorTaggedName()).append(".\n");
             if (!isAlive()) {
                 output.append(getColorTaggedName()).append(" has died.\r\n");
                 break;
@@ -316,17 +321,17 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         return getHealth() > 0;
     }
 
-    //public void ( Ability ability, String target);
+    // public void ( Ability ability, String target);
 
-    private int getAttribute(Attributes attribute) {
-        return this.attributes.getOrDefault(attribute, 10);
-    }
+    // private int getAttribute(Attributes attribute) {
+    // return this.attributes.getOrDefault(attribute, 10);
+    // }
 
     private Item getWhatInSlot(EquipmentSlots slot) {
         return this.equipmentSlots.get(slot);
     }
 
-    //Setters
+    // Setters
     public void setName(String name) {
         this.name = name;
     }
@@ -515,12 +520,15 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                     this.applyUse(equipThing.equip());
                     this.inventory.removeItem(equipThing);
                     this.equipmentSlots.putIfAbsent(slot, (Item) equipThing);
-                    return unequipMessage + ((Item) equipThing).getStartTagName() + equipThing.getName() + ((Item) equipThing).getEndTagName() + " successfully equipped!\r\n";
+                    return unequipMessage + ((Item) equipThing).getStartTagName() + equipThing.getName()
+                            + ((Item) equipThing).getEndTagName() + " successfully equipped!\r\n";
                 }
-                String notEquip = "You cannot equip the " + ((Item) equipThing).getStartTagName() + equipThing.getName() + ((Item) equipThing).getEndTagName() + " to " + slot.toString() + "\n";
+                String notEquip = "You cannot equip the " + ((Item) equipThing).getStartTagName() + equipThing.getName()
+                        + ((Item) equipThing).getEndTagName() + " to " + slot.toString() + "\n";
                 return notEquip + "You can equip it to: " + equipThing.printWhichSlots();
             }
-            return ((Item) fromInventory).getStartTagName() + fromInventory.getName() + ((Item) fromInventory).getEndTagName() + " is not equippable!\r\n";
+            return ((Item) fromInventory).getStartTagName() + fromInventory.getName()
+                    + ((Item) fromInventory).getEndTagName() + " is not equippable!\r\n";
         }
 
         return "'" + itemName + "' is not in your inventory, so you cannot equip it!\r\n";
@@ -529,7 +537,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     @Override
     public String unequipItem(EquipmentSlots slot, String weapon) {
         if (slot == null) {
-            //if they specified weapon and not slot // TODO: improve this code
+            // if they specified weapon and not slot // TODO: improve this code
             Optional<Item> maybeItem = fromAllInventory(weapon);
             if (maybeItem.isPresent() && equipmentSlots.containsValue(maybeItem.get())) {
                 Equipable thing = (Equipable) maybeItem.get();
@@ -538,7 +546,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                         this.equipmentSlots.remove(thingSlot);
                         this.applyUse(thing.unequip());
                         this.inventory.addItem(thing);
-                        return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\r\n";
+                        return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName()
+                                + ((Item) thing).getEndTagName() + "\r\n";
                     }
                 }
                 return "That is not currently equipped!";
@@ -550,7 +559,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         if (thing != null) {
             this.applyUse(thing.unequip());
             this.inventory.addItem(thing);
-            return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName() + ((Item) thing).getEndTagName() + "\r\n";
+            return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName()
+                    + ((Item) thing).getEndTagName() + "\r\n";
         }
         return "That slot is empty.\r\n";
     }
