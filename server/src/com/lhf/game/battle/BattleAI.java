@@ -5,5 +5,5 @@ import com.lhf.game.creature.Creature;
 import java.util.Collection;
 
 public interface BattleAI {
-    String performBattleTurn(Collection<Creature> participants);
+    Collection<Creature> selectAttackTargets(Collection<Creature> participants);
 }

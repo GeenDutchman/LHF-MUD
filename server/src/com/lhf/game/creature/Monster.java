@@ -5,9 +5,9 @@ import com.lhf.game.battle.BattleAI;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.enums.MonsterAI;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.interfaces.Equipable;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -107,24 +107,16 @@ public class Monster extends Creature implements BattleAI {
     }
 
     @Override
-    public String performBattleTurn(Collection<Creature> participants) {
-        StringBuilder output = new StringBuilder();
+    public Collection<Creature> selectAttackTargets(Collection<Creature> participants) {
+        HashSet<Creature> targets = new HashSet<>();
 
         Optional<Creature> maybeTarget = getAttackerCreature(participants);
-        Creature target;
         if (maybeTarget.isPresent()) {
-            target = maybeTarget.get();
+            targets.add(maybeTarget.get());
         } else { // as a backup
-            target = getRandomPlayer(participants);
+            targets.add(getRandomPlayer(participants));
         }
 
-        output.append(getColorTaggedName());
-        output.append(" is attacking ");
-        output.append(target.getColorTaggedName());
-        output.append('\n');
-        Equipable weapon = getWeapon();
-        Attack atk = attack(weapon.getName(), target.getName());
-        output.append(target.applyAttack(atk));
-        return output.toString();
+        return targets;
     }
 }

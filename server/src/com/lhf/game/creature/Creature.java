@@ -256,6 +256,10 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         return this.inBattle;
     }
 
+    public Attack attack(Weapon weapon) {
+        return weapon.rollAttack().setAttacker(this.getName()).setTaggedAttacker(this.getColorTaggedName());
+    }
+
     public Attack attack(String itemName, String target) {
         System.out.println(name + " is attempting to attack: " + target);
         Weapon toUse;
@@ -265,7 +269,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         } else {
             toUse = this.getWeapon();
         }
-        return toUse.rollAttack().setAttacker(this.getName()).setTaggedAttacker(this.getColorTaggedName());
+        return this.attack(toUse);
     }
 
     public Weapon getWeapon() {

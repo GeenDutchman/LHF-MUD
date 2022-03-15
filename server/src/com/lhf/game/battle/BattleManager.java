@@ -115,7 +115,9 @@ public class BattleManager {
             // prompt player to do something
             promptPlayerToAct((Player) current);
         } else if (current instanceof BattleAI) {
-            AITurn((BattleAI) current);
+            Collection<Creature> targets = ((BattleAI) current).selectAttackTargets(participants);
+            applyAttacks(current, current.getWeapon(), targets);
+            endTurn();
         } else {
             // Bad juju
             Logger logger = Logger.getLogger(BattleManager.class.getPackageName());
@@ -123,8 +125,7 @@ public class BattleManager {
         }
     }
 
-    private void AITurn(BattleAI ai) {
-        messenger.sendMessageToAllInRoom(new GameMessage(ai.performBattleTurn(participants)), room);
+    private void endTurn() {
         clearDead();
         if (isBattleOngoing()) {
             nextTurn();
@@ -201,25 +202,35 @@ public class BattleManager {
                     this.playerVSplayer = true;
                 }
             }
+            Weapon weapon;
             if (attackAction.hasWeapon()) {
-                if (p.fromAllInventory(attackAction.getWeapon()).isEmpty()) {
+                Optional<Item> inventoryItem = p.fromAllInventory(attackAction.getWeapon());
+                if (inventoryItem.isEmpty()) {
                     messenger.sendMessageToUser(new GameMessage("You do not have that weapon.\r\n"), p.getId());
                     return;
-                }else if (!(p.fromAllInventory(attackAction.getWeapon()).get() instanceof Weapon)) {
-                    messenger.sendMessageToUser(new GameMessage(attackAction.getWeapon() + " is not a Weapon!"), p.getId());
+                } else if (!(inventoryItem.get() instanceof Weapon)) {
+                    messenger.sendMessageToUser(new GameMessage(attackAction.getWeapon() + " is not a Weapon!"),
+                            p.getId());
                     return;
+                } else {
+                    weapon = (Weapon) inventoryItem.get();
                 }
+            } else {
+                weapon = p.getWeapon();
             }
-            for (Creature c : targets) {
-                Attack a = p.attack(attackAction.getWeapon(), c.getName())
-                // messenger.sendMessageToAllInRoom(new GameMessage(c.applyAttack(a)),
-                // p.getId());
-                sendMessageToAllParticipants(new GameMessage(c.applyAttack(a))); // not spam the room
-            }
+            applyAttacks(p, weapon, targets);
+        } else {
+            sendMessageToAllParticipants(new GameMessage(p.getColorTaggedName() + " wasted their turn!"));
         }
-        clearDead();
-        if (isBattleOngoing()) {
-            nextTurn();
+        endTurn();
+    }
+
+    private void applyAttacks(Creature attacker, Weapon weapon, Collection<Creature> targets) {
+        for (Creature target : targets) {
+            sendMessageToAllParticipants(
+                    new GameMessage(attacker.getColorTaggedName() + " attacks " + target.getColorTaggedName() + "!"));
+            Attack a = attacker.attack(weapon);
+            sendMessageToAllParticipants(new GameMessage(target.applyAttack(a)));
         }
     }
 
