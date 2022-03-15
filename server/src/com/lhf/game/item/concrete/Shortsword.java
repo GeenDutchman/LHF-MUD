@@ -77,10 +77,16 @@ public class Shortsword extends Weapon {
 
     @Override
     public String getDescription() {
-        //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
-        //TODO: should this describe that it does 1d6 damage?
+        // sb.append("And best used if you have these proficiencies:
+        // ").append(printWhichTypes());
+        // TODO: should this describe that it does 1d6 damage?
         return "This is a nice, short, shiny sword with a leather grip.  It's a bit simple though..." +
                 "This can be equipped to: " + printWhichSlots();
+    }
+
+    @Override
+    public String getMainFlavor() {
+        return "Slashing";
     }
 
 }

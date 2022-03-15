@@ -12,4 +12,6 @@ public abstract class Weapon extends Usable implements Equipable {
     public abstract int rollDamage();
 
     public abstract Attack rollAttack();
+
+    public abstract String getMainFlavor();
 }

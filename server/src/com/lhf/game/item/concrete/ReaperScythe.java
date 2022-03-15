@@ -32,7 +32,7 @@ public class ReaperScythe extends Weapon {
 
     @Override
     public Attack rollAttack() {
-        return new Attack(this.rollToHit(), "").addFlavorAndDamage("Necrotic", this.rollDamage());
+        return new Attack(this.rollToHit(), "").addFlavorAndDamage(this.getMainFlavor(), this.rollDamage());
     }
 
     @Override
@@ -80,9 +80,15 @@ public class ReaperScythe extends Weapon {
         StringBuilder sb = new StringBuilder();
         sb.append("This is a nice, long, shiny sword.  It's a bit simple though...");
         sb.append("This can be equipped to: ").append(printWhichSlots());
-        //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
-        //TODO: should this describe that it does 1d6 damage?
+        // sb.append("And best used if you have these proficiencies:
+        // ").append(printWhichTypes());
+        // TODO: should this describe that it does 1d6 damage?
         return sb.toString();
+    }
+
+    @Override
+    public String getMainFlavor() {
+        return "Necrotic";
     }
 
 }

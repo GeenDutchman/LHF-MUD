@@ -32,7 +32,7 @@ public class BossClub extends Weapon {
 
     @Override
     public Attack rollAttack() {
-        return new Attack(this.rollToHit(), "").addFlavorAndDamage("Bludgeoning", this.rollDamage());
+        return new Attack(this.rollToHit(), "").addFlavorAndDamage(this.getMainFlavor(), this.rollDamage());
     }
 
     @Override
@@ -77,11 +77,16 @@ public class BossClub extends Weapon {
 
     @Override
     public String getDescription() {
-        //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
-        //TODO: should this describe that it does 1d6 damage?
+        // sb.append("And best used if you have these proficiencies:
+        // ").append(printWhichTypes());
+        // TODO: should this describe that it does 1d6 damage?
         return "This is a large club, it seems a bit rusty... wait thats not rust..." +
                 "This can be equipped to: " + printWhichSlots();
     }
 
-}
+    @Override
+    public String getMainFlavor() {
+        return "Bludgeoning";
+    }
 
+}

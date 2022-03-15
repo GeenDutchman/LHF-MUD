@@ -43,7 +43,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         @Override
         public Attack rollAttack() {
             return new Attack(this.rollToHit(), getColorTaggedName())
-                    .addFlavorAndDamage("Bludgeoning", this.rollDamage())
+                    .addFlavorAndDamage(this.getMainFlavor(), this.rollDamage())
                     .setTaggedAttacker(Creature.this.getColorTaggedName());
         }
 
@@ -93,6 +93,11 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             // ").append(printWhichTypes());
             return "This is a " + getName() + " attached to a " + Creature.this.getName() +
                     " This can be equipped to: " + printWhichSlots();
+        }
+
+        @Override
+        public String getMainFlavor() {
+            return "Bludgeoning";
         }
     }
 

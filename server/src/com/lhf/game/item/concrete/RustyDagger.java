@@ -61,10 +61,12 @@ public class RustyDagger extends Weapon {
 
     @Override
     public String getDescription() {
-        //sb.append("\r\nAnd best used if you have these proficiencies: ").append(printWhichTypes());
+        // sb.append("\r\nAnd best used if you have these proficiencies:
+        // ").append(printWhichTypes());
         return "Rusty Dagger to stab monsters with. " + "This can be equipped to: " + printWhichSlots()
-                //sb.append("\r\nAnd best used if you have these proficiencies: ").append(printWhichTypes());
-                ;
+        // sb.append("\r\nAnd best used if you have these proficiencies:
+        // ").append(printWhichTypes());
+        ;
     }
 
     @Override
@@ -79,6 +81,11 @@ public class RustyDagger extends Weapon {
 
     @Override
     public Attack rollAttack() {
-        return new Attack(this.rollToHit(), "").addFlavorAndDamage("Piercing", this.rollDamage());
+        return new Attack(this.rollToHit(), "").addFlavorAndDamage(this.getMainFlavor(), this.rollDamage());
+    }
+
+    @Override
+    public String getMainFlavor() {
+        return "Piercing";
     }
 }

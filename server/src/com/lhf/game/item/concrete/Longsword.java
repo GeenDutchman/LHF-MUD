@@ -32,7 +32,7 @@ public class Longsword extends Weapon {
 
     @Override
     public Attack rollAttack() {
-        return new Attack(this.rollToHit(), "").addFlavorAndDamage("Slashing", this.rollDamage());
+        return new Attack(this.rollToHit(), "").addFlavorAndDamage(this.getMainFlavor(), this.rollDamage());
     }
 
     @Override
@@ -77,10 +77,16 @@ public class Longsword extends Weapon {
 
     @Override
     public String getDescription() {
-        //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
-        //TODO: should this describe that it does 1d6 damage?
+        // sb.append("And best used if you have these proficiencies:
+        // ").append(printWhichTypes());
+        // TODO: should this describe that it does 1d6 damage?
         return "This is a nice, long, shiny sword.  It's a bit simple though..." +
                 "This can be equipped to: " + printWhichSlots();
+    }
+
+    @Override
+    public String getMainFlavor() {
+        return "Slashing";
     }
 
 }
