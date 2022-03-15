@@ -1,12 +1,10 @@
 package com.lhf.game.battle;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class Attack implements Iterable {
+public class Attack implements Iterable<Map.Entry<String, Integer>> {
     private String attacker;
     private String taggedAttacker;
     private int toHit;
@@ -50,9 +48,8 @@ public class Attack implements Iterable {
         return this;
     }
 
-    @NotNull
     @Override
-    public Iterator iterator() {
+    public Iterator<Map.Entry<String, Integer>> iterator() {
         return this.flavorAndDamage.entrySet().iterator();
     }
 }

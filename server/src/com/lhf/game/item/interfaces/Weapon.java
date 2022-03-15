@@ -2,7 +2,7 @@ package com.lhf.game.item.interfaces;
 
 import com.lhf.game.battle.Attack;
 
-public abstract class Weapon extends Usable implements Equipable, Takeable {
+public abstract class Weapon extends Usable implements Equipable {
     public Weapon(String name, boolean isVisible) {
         super(name, isVisible, -1);
     }

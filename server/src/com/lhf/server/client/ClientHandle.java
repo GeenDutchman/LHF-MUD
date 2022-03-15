@@ -12,7 +12,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public class ClientHandle extends Thread {
@@ -26,7 +25,7 @@ public class ClientHandle extends Thread {
     private ConnectionListener connectionListener;
     private Logger logger;
 
-    public ClientHandle (Socket client, ClientID id, ConnectionListener connectionListener) throws IOException {
+    public ClientHandle(Socket client, ClientID id, ConnectionListener connectionListener) throws IOException {
         this.logger = Logger.getLogger(this.getClass().getName());
         this.logger.finest("Creating ClientHandle");
         this.client = client;
@@ -59,16 +58,16 @@ public class ClientHandle extends Thread {
 
                 });
                 if (opt_msg.isEmpty()) {
-                    //The message was not recognized
+                    // The message was not recognized
                     this.logger.fine("Message was bad");
                     sendMsg(new BadMessage());
                 }
             }
-            disconnect(); //clean up after itself
+            disconnect(); // clean up after itself
         } catch (IOException e) {
             e.printStackTrace();
         }
-        connectionListener.connectionTerminated(id); //let connectionListener know that it is over
+        connectionListener.connectionTerminated(id); // let connectionListener know that it is over
     }
 
     public synchronized void sendMsg(OutMessage msg) {

@@ -13,10 +13,12 @@ public class UserManager {
     private HashMap<UserID, User> userMap;
     private HashMap<UserID, ClientID> clientMap;
     private Game game;
+
     public UserManager() {
         userMap = new HashMap<>();
         clientMap = new HashMap<>();
     }
+
     public User getUser(UserID userId) {
         return userMap.get(userId);
     }
@@ -35,26 +37,27 @@ public class UserManager {
     }
 
     public void addUser(ClientID client, CreateInMessage msg) {
-        userMap.put(new UserID(msg), new User(msg, client));
+        userMap.put(new UserID(msg), new User(msg/* , client */));
     }
 
     public UserID addUser(CreateInMessage msg, ClientID clientId) {
         UserID userId = new UserID(msg);
         if (!userMap.containsKey(userId)) {
             game.addNewPlayerToGame(userId, msg.getUsername());
-            userMap.put(userId, new User(msg, clientId));
+            userMap.put(userId, new User(msg/* , clientId */));
             clientMap.put(userId, clientId);
             return userId;
         }
         return null;
     }
+
     public ClientID getClient(UserID id) {
         System.out.println(id);
         return clientMap.get(id);
     }
 
     public void removeUser(UserID id) {
-        //should remove from both
+        // should remove from both
         clientMap.remove(id);
         userMap.remove(id);
     }

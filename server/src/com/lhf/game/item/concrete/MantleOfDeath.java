@@ -1,16 +1,16 @@
 package com.lhf.game.item.concrete;
 
-import com.lhf.game.battle.Attack;
-import com.lhf.game.dice.Dice;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringJoiner;
+
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Equipable;
-import com.lhf.game.item.interfaces.Weapon;
-
-import java.util.*;
-
 
 public class MantleOfDeath extends Item implements Equipable {
     private int AC = 10;
@@ -60,8 +60,8 @@ public class MantleOfDeath extends Item implements Equipable {
     public Map<String, Integer> equip() {
         Map<String, Integer> result = new HashMap<>();
         result.put(Stats.AC.toString(), this.AC);
-        result.put(Stats.MAXHP.toString(),this.MAX_HEALTH);
-        result.put(Stats.CURRENTHP.toString(),this.MAX_HEALTH);
+        result.put(Stats.MAXHP.toString(), this.MAX_HEALTH);
+        result.put(Stats.CURRENTHP.toString(), this.MAX_HEALTH);
         return result;
     }
 
@@ -76,9 +76,11 @@ public class MantleOfDeath extends Item implements Equipable {
 
     @Override
     public String getDescription() {
-        StringBuilder sb = new StringBuilder("This fearsome hooded robe seems a little bit overpowered to be in your puny hands. ");
+        StringBuilder sb = new StringBuilder(
+                "This fearsome hooded robe seems a little bit overpowered to be in your puny hands. ");
         sb.append("This can be equipped to: ").append(printWhichSlots());
-        //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
+        // sb.append("And best used if you have these proficiencies:
+        // ").append(printWhichTypes());
         return sb.toString();
     }
 }

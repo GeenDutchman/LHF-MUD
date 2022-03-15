@@ -14,7 +14,7 @@ import com.lhf.server.messages.out.GameMessage;
 import com.lhf.server.messages.out.NewInMessage;
 import com.lhf.server.messages.out.UserLeftMessage;
 import com.lhf.server.messages.out.WelcomeMessage;
-import org.jetbrains.annotations.NotNull;
+import com.lhf.server.interfaces.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -60,29 +60,33 @@ public class Game implements UserListener {
         User user = userManager.getUser(id);
         if (msg instanceof ShoutMessage) {
             this.logger.finer("Shouting");
-            server.sendMessageToAll(new com.lhf.server.messages.out.ShoutMessage(((ShoutMessage) msg).getMessage(), user));
+            server.sendMessageToAll(
+                    new com.lhf.server.messages.out.ShoutMessage(((ShoutMessage) msg).getMessage(), user));
         }
         if (msg instanceof SayMessage) {
             this.logger.finer("Saying");
-            messenger.sendMessageToAllInRoom(new com.lhf.server.messages.out.SayMessage(((SayMessage) msg).getMessage(), user), id);
+            messenger.sendMessageToAllInRoom(
+                    new com.lhf.server.messages.out.SayMessage(((SayMessage) msg).getMessage(), user), id);
         }
         if (msg instanceof TellMessage) {
             this.logger.finer("Telling");
             TellMessage tellMsg = (TellMessage) msg;
             boolean success;
             if (!id.getUsername().equals(tellMsg.getTarget().getUsername())) {
-                success = server.sendMessageToUser(new com.lhf.server.messages.out.TellMessage(id, tellMsg.getMessage()), tellMsg.getTarget());
+                success = server.sendMessageToUser(
+                        new com.lhf.server.messages.out.TellMessage(id, tellMsg.getMessage()), tellMsg.getTarget());
                 if (success) {
                     server.sendMessageToUser(new com.lhf.server.messages.out.TellMessage(id, tellMsg.getMessage()), id);
-                }
-                else {
-                    server.sendMessageToUser(new com.lhf.server.messages.out.WrongUserMessage(tellMsg.getTarget().getUsername()), id);
+                } else {
+                    server.sendMessageToUser(
+                            new com.lhf.server.messages.out.WrongUserMessage(tellMsg.getTarget().getUsername()), id);
                 }
             }
         }
         if (msg instanceof ListPlayersMessage) {
             this.logger.finer("Listing Players");
-            server.sendMessageToUser(new com.lhf.server.messages.out.ListPlayersMessage(userManager.getAllUsernames()), id);
+            server.sendMessageToUser(new com.lhf.server.messages.out.ListPlayersMessage(userManager.getAllUsernames()),
+                    id);
         }
         if (msg instanceof ExitMessage) {
             this.logger.finer("Exiting");
@@ -94,89 +98,70 @@ public class Game implements UserListener {
 
             server.sendMessageToUser(
                     new GameMessage(
-                        dungeon.goCommand(id, ((GoMessage) msg).getDirection(), didMove)
-                    ),
-                    id
-            );
+                            dungeon.goCommand(id, ((GoMessage) msg).getDirection(), didMove)),
+                    id);
             if (didMove.get()) {
                 messenger.sendMessageToAllInRoomExceptPlayer(
                         new GameMessage(
-                                id.getUsername() + " has entered the room."
-                        ),
-                        id
-                );
+                                id.getUsername() + " has entered the room."),
+                        id);
             }
         }
 
         if (msg instanceof ExamineMessage) {
             server.sendMessageToUser(
                     new GameMessage(
-                            dungeon.examineCommand(id, ((ExamineMessage) msg).getThing())
-                    ),
-                    id
-            );
+                            dungeon.examineCommand(id, ((ExamineMessage) msg).getThing())),
+                    id);
         }
         if (msg instanceof LookMessage) {
             server.sendMessageToUser(
                     new GameMessage(
-                            dungeon.lookCommand(id)
-                    ),
-                    id
-            );
+                            dungeon.lookCommand(id)),
+                    id);
         }
         if (msg instanceof InteractMessage) {
             server.sendMessageToUser(
                     new GameMessage(
-                            dungeon.interactCommand(id, ((InteractMessage) msg).getObject())
-                    ),
-                    id
-            );
+                            dungeon.interactCommand(id, ((InteractMessage) msg).getObject())),
+                    id);
         }
 
         if (msg instanceof TakeMessage) {
             server.sendMessageToUser(
                     new GameMessage(
-                            dungeon.takeCommand(id, ((TakeMessage) msg).getTarget())
-                    ),
-                    id
-            );
+                            dungeon.takeCommand(id, ((TakeMessage) msg).getTarget())),
+                    id);
         }
 
         if (msg instanceof DropMessage) {
             server.sendMessageToUser(
                     new GameMessage(
-                            dungeon.dropCommand(id, ((DropMessage) msg).getTarget())
-                    ),
-                    id
-            );
+                            dungeon.dropCommand(id, ((DropMessage) msg).getTarget())),
+                    id);
             messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage("An item just dropped to the floor.\r\n"), id);
         }
 
         if (msg instanceof EquipMessage) {
             server.sendMessageToUser(
                     new GameMessage(
-                            dungeon.equip(id, ((EquipMessage) msg).getItemName(), ((EquipMessage) msg).getEquipSlot())
-                    ),
-                    id
-            );
+                            dungeon.equip(id, ((EquipMessage) msg).getItemName(), ((EquipMessage) msg).getEquipSlot())),
+                    id);
         }
 
         if (msg instanceof UnequipMessage) {
             server.sendMessageToUser(
                     new GameMessage(
-                            dungeon.unequip(id, ((UnequipMessage) msg).getEquipSlot(), ((UnequipMessage) msg).getPossibleWeapon())
-                    ),
-                    id
-            );
+                            dungeon.unequip(id, ((UnequipMessage) msg).getEquipSlot(),
+                                    ((UnequipMessage) msg).getPossibleWeapon())),
+                    id);
         }
 
         if (msg instanceof InventoryMessage) {
             server.sendMessageToUser(
                     new GameMessage(
-                            dungeon.inventory(id)
-                    ),
-                    id
-            );
+                            dungeon.inventory(id)),
+                    id);
         }
 
         if (msg instanceof AttackMessage) {
@@ -186,19 +171,15 @@ public class Game implements UserListener {
         if (msg instanceof UseMessage) {
             server.sendMessageToUser(
                     new GameMessage(
-                            dungeon.useCommand(id, ((UseMessage) msg).getUsefulItem(), ((UseMessage) msg).getTarget())
-                    ),
-                    id
-            );
+                            dungeon.useCommand(id, ((UseMessage) msg).getUsefulItem(), ((UseMessage) msg).getTarget())),
+                    id);
         }
 
         if (msg instanceof StatusMessage) {
             server.sendMessageToUser(
                     new GameMessage(
-                            dungeon.statusCommand(id)
-                    ),
-                    id
-            );
+                            dungeon.statusCommand(id)),
+                    id);
         }
     }
 

@@ -5,7 +5,7 @@ import com.lhf.game.map.Room;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.messages.out.OutMessage;
-import org.jetbrains.annotations.NotNull;
+import com.lhf.server.interfaces.NotNull;
 
 import java.util.Set;
 

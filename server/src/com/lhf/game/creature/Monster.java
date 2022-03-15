@@ -54,9 +54,12 @@ public class Monster extends Creature implements BattleAI {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        if (!super.equals(o))
+            return false;
         Monster monster = (Monster) o;
         return monsterNumber == monster.monsterNumber;
     }
@@ -68,7 +71,7 @@ public class Monster extends Creature implements BattleAI {
 
     private Player getRandomPlayer(Collection<Creature> participants) {
         Player[] players = participants.stream().filter(creature -> creature instanceof Player).toArray(Player[]::new);
-        int randomIndex = (int)(Math.random() * players.length);
+        int randomIndex = (int) (Math.random() * players.length);
         return players[randomIndex];
     }
 
@@ -82,7 +85,7 @@ public class Monster extends Creature implements BattleAI {
     @Override
     public String applyAttack(Attack attack) {
         int prevHealth = this.getStats().get(Stats.CURRENTHP);
-        String result = super.applyAttack(attack); //perhaps a better way to do this?
+        String result = super.applyAttack(attack); // perhaps a better way to do this?
         int damageDealt = prevHealth - this.getStats().get(Stats.CURRENTHP);
         switch (aiType) {
             case RETALIATORY:
@@ -96,6 +99,8 @@ public class Monster extends Creature implements BattleAI {
                     lastDamage = damageDealt;
                     lastAttacker = attack.getAttacker();
                 }
+                break;
+            case RANDOM:
                 break;
         }
         return result;

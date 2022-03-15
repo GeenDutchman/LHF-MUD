@@ -22,7 +22,7 @@ public class Main {
             logger.info("Creating Server on port 3001...");
             Server server = new Server(3001, userManager);
             logger.finer("Creating Game...");
-            Game game = new Game(server, userManager);
+            new Game(server, userManager);
         } catch (IOException e) {
             e.printStackTrace();
         }

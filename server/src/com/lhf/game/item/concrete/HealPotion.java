@@ -8,7 +8,6 @@ import com.lhf.game.item.interfaces.Consumable;
 import com.lhf.game.item.interfaces.Takeable;
 import com.lhf.game.item.interfaces.Usable;
 import com.lhf.game.item.interfaces.UseAction;
-import com.lhf.server.messages.out.HelpMessage;
 
 public class HealPotion extends Usable implements Consumable, Takeable {
 
@@ -26,13 +25,13 @@ public class HealPotion extends Usable implements Consumable, Takeable {
             } else if (object instanceof Creature) {
                 Integer healed = this.use();
                 ((Creature) object).updateHitpoints(healed);
-                return "You drank a " + this.getName() + ".  You now have " + ((Creature) object).getStats().get(Stats.CURRENTHP) + " health points.";
+                return "You drank a " + this.getName() + ".  You now have "
+                        + ((Creature) object).getStats().get(Stats.CURRENTHP) + " health points.";
             }
             return "You cannot use a " + this.getName() + " on that.";
         };
         this.setUseAction(Creature.class.getName(), useAction);
     }
-
 
     public HealPotion(boolean isVisible) {
         super(HealType.Regular.toString() + " Potion of Healing", isVisible);
@@ -56,11 +55,11 @@ public class HealPotion extends Usable implements Consumable, Takeable {
         Dice die = Dice.getInstance();
         switch (this.healtype) {
             case Regular:
-                return die.d4(1)+1;
+                return die.d4(1) + 1;
             case Greater:
-                return die.d6(1)+1;
+                return die.d6(1) + 1;
             case Critical:
-                return die.d8(1)+1;
+                return die.d8(1) + 1;
         }
         return 0;
     }
