@@ -201,23 +201,17 @@ public class BattleManager {
                     this.playerVSplayer = true;
                 }
             }
-            Weapon w;
             if (attackAction.hasWeapon()) {
-                if (p.fromAllInventory(attackAction.getWeapon()).isPresent() &&
-                        p.fromAllInventory(attackAction.getWeapon()).get() instanceof Weapon) {
-                    w = (Weapon) p.fromAllInventory(attackAction.getWeapon()).get();
-                } else {
-                    // player does not have weapon that he asked to use
+                if (p.fromAllInventory(attackAction.getWeapon()).isEmpty()) {
                     messenger.sendMessageToUser(new GameMessage("You do not have that weapon.\r\n"), p.getId());
                     return;
+                }else if (!(p.fromAllInventory(attackAction.getWeapon()).get() instanceof Weapon)) {
+                    messenger.sendMessageToUser(new GameMessage(attackAction.getWeapon() + " is not a Weapon!"), p.getId());
+                    return;
                 }
-            } else {
-                w = p.getWeapon();
             }
-            Attack a = w.rollAttack();
-            a.setAttacker(getCurrent().getName());
-            a.setTaggedAttacker(getCurrent().getColorTaggedName());
             for (Creature c : targets) {
+                Attack a = p.attack(attackAction.getWeapon(), c.getName())
                 // messenger.sendMessageToAllInRoom(new GameMessage(c.applyAttack(a)),
                 // p.getId());
                 sendMessageToAllParticipants(new GameMessage(c.applyAttack(a))); // not spam the room
