@@ -305,10 +305,9 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             updateHitpoints(-damage);
             output.append(attack.getTaggedAttacker()).append(" has dealt ").append(damage).append(" ").append(flavor)
                     .append(" damage to ").append(getColorTaggedName()).append(".\n");
-            if (!isAlive()) {
-                output.append(getColorTaggedName()).append(" has died.\r\n");
-                break;
-            }
+        }
+        if (!isAlive()) {
+            output.append(getColorTaggedName()).append(" has died.\r\n");
         }
         return output.toString();
     }
