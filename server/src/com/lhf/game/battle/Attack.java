@@ -26,6 +26,11 @@ public class Attack implements Iterable<Map.Entry<String, Integer>> {
         return this;
     }
 
+    public Attack addToHitBonus(int bonus) {
+        this.toHit += bonus;
+        return this;
+    }
+
     public int getToHit() {
         return toHit;
     }

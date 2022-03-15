@@ -257,7 +257,15 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     }
 
     public Attack attack(Weapon weapon) {
-        return weapon.rollAttack().setAttacker(this.getName()).setTaggedAttacker(this.getColorTaggedName());
+        Attack a = weapon.rollAttack().setAttacker(this.getName()).setTaggedAttacker(this.getColorTaggedName());
+        for (EquipmentTypes cet : this.getProficiencies()) {
+            for (EquipmentTypes wet : weapon.getTypes()) {
+                if (cet == wet) {
+                    a.addToHitBonus(1);
+                }
+            }
+        }
+        return a;
     }
 
     public Attack attack(String itemName, String target) {
