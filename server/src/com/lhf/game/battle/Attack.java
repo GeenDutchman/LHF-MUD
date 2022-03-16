@@ -4,11 +4,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class Attack implements Iterable<Map.Entry<String, Integer>> {
+import com.lhf.game.enums.DamageFlavor;
+
+public class Attack implements Iterable<Map.Entry<DamageFlavor, Integer>> {
     private String attacker;
     private String taggedAttacker;
     private int toHit;
-    private Map<String, Integer> flavorAndDamage;
+    private Map<DamageFlavor, Integer> flavorAndDamage;
 
     public Attack(int toHit, String attacker) {
         this.toHit = toHit;
@@ -17,7 +19,7 @@ public class Attack implements Iterable<Map.Entry<String, Integer>> {
         this.taggedAttacker = attacker;
     }
 
-    public Attack addFlavorAndDamage(String flavor, int attackDamage) {
+    public Attack addFlavorAndDamage(DamageFlavor flavor, int attackDamage) {
         if (this.flavorAndDamage.containsKey(flavor)) {
             this.flavorAndDamage.put(flavor, this.flavorAndDamage.get(flavor) + attackDamage);
         } else {
@@ -54,7 +56,7 @@ public class Attack implements Iterable<Map.Entry<String, Integer>> {
     }
 
     @Override
-    public Iterator<Map.Entry<String, Integer>> iterator() {
+    public Iterator<Map.Entry<DamageFlavor, Integer>> iterator() {
         return this.flavorAndDamage.entrySet().iterator();
     }
 }
