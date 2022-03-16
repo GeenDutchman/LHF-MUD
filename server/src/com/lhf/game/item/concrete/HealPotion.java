@@ -1,7 +1,7 @@
 package com.lhf.game.item.concrete;
 
 import com.lhf.game.creature.Creature;
-import com.lhf.game.dice.Dice;
+import com.lhf.game.dice.*;
 import com.lhf.game.enums.HealType;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.interfaces.Consumable;
@@ -52,7 +52,7 @@ public class HealPotion extends Usable implements Consumable, Takeable {
     }
 
     public Integer use() {
-        Dice die = Dice.getInstance();
+        DiceRoller die = DiceRoller.getInstance();
         switch (this.healtype) {
             case Regular:
                 return die.d4(1) + 1;
