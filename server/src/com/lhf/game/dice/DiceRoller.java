@@ -25,19 +25,15 @@ public class DiceRoller {
      * @param dieType what type of die
      * @return the result of the roll
      */
-    private int roll(int numDice, int dieType) {
-        if (dieType <= 0) {
+    public int roll(int numDice, DieType dieType) {
+        if (dieType.getType() <= 0) {
             return 0;
         }
         int result = 1 * numDice;
         for (int i = 0; i < numDice; i++) {
-            result += rand.nextInt(dieType);
+            result += rand.nextInt(dieType.getType());
         }
         return result;
-    }
-
-    private int roll(int numDice, DieType dieType) {
-        return this.roll(numDice, dieType.getType());
     }
 
     /**
