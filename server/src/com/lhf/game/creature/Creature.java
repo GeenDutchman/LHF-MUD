@@ -5,7 +5,11 @@ import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice;
+import com.lhf.game.dice.DiceD20;
+import com.lhf.game.dice.DiceRoller;
+import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.*;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.*;
@@ -22,29 +26,14 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
         private List<EquipmentSlots> slots;
         private List<EquipmentTypes> types;
+        private List<DamageDice> damages;
 
         Fist() {
             super("Fist", false);
 
             types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
             slots = Collections.singletonList(EquipmentSlots.WEAPON);
-        }
-
-        @Override
-        public int rollToHit() {
-            return Dice.getInstance().d20(1);
-        }
-
-        @Override
-        public int rollDamage() {
-            return Dice.getInstance().d2(1);
-        }
-
-        @Override
-        public Attack rollAttack() {
-            return new Attack(this.rollToHit(), getColorTaggedName())
-                    .addFlavorAndDamage(this.getMainFlavor(), this.rollDamage())
-                    .setTaggedAttacker(Creature.this.getColorTaggedName());
+            damages = Arrays.asList(new DamageDice(1, DieType.TWO, this.getMainFlavor()));
         }
 
         @Override
@@ -96,8 +85,13 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         }
 
         @Override
-        public String getMainFlavor() {
-            return "Bludgeoning";
+        public DamageFlavor getMainFlavor() {
+            return DamageFlavor.BLUDGEONING;
+        }
+
+        @Override
+        public List<DamageDice> getDamages() {
+            return this.damages;
         }
     }
 
@@ -262,7 +256,9 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     }
 
     public Attack attack(Weapon weapon) {
-        Attack a = weapon.rollAttack().setAttacker(this.getName()).setTaggedAttacker(this.getColorTaggedName());
+        int attackRoll = DiceRoller.getInstance().d20(1);
+        Attack a = new Attack(attackRoll, this.getName()).setTaggedAttacker(this.getColorTaggedName());
+        a = weapon.modifyAttack(a);
         for (EquipmentTypes cet : this.getProficiencies()) {
             for (EquipmentTypes wet : weapon.getTypes()) {
                 if (cet == wet) {
@@ -294,7 +290,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         // add stuff to calculate if the attack hits or not, and return false if so
         StringBuilder output = new StringBuilder();
         if (this.getStats().get(Stats.AC) > attack.getToHit()) {
-            int which = Dice.getInstance().d2(1);
+            int which = DiceRoller.getInstance().d2(1);
             switch (which) {
                 case 1:
                     output.append(attack.getTaggedAttacker()).append(" misses ").append(getColorTaggedName());

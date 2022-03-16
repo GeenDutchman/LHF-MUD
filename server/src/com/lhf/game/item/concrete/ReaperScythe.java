@@ -1,7 +1,8 @@
 package com.lhf.game.item.concrete;
 
 import com.lhf.game.battle.Attack;
-import com.lhf.game.dice.Dice;
+import com.lhf.game.dice.*;
+import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Weapon;
@@ -12,27 +13,14 @@ public class ReaperScythe extends Weapon {
 
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
+    private List<DamageDice> damages;
 
     public ReaperScythe(boolean isVisible) {
         super("Reaper Scythe", isVisible);
 
         slots = Arrays.asList(EquipmentSlots.WEAPON);
         types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
-    }
-
-    @Override
-    public int rollToHit() {
-        return Dice.getInstance().d20(1) + 10;
-    }
-
-    @Override
-    public int rollDamage() {
-        return Dice.getInstance().d8(1) + 100;
-    }
-
-    @Override
-    public Attack rollAttack() {
-        return new Attack(this.rollToHit(), "").addFlavorAndDamage(this.getMainFlavor(), this.rollDamage());
+        damages = Arrays.asList(new DamageDice(1, DieType.EIGHT, this.getMainFlavor()));
     }
 
     @Override
@@ -78,7 +66,7 @@ public class ReaperScythe extends Weapon {
     @Override
     public String getDescription() {
         StringBuilder sb = new StringBuilder();
-        sb.append("This is a nice, long, shiny sword.  It's a bit simple though...");
+        sb.append("This is a nice, long, shiny scythe.  It's super powerful...");
         sb.append("This can be equipped to: ").append(printWhichSlots());
         // sb.append("And best used if you have these proficiencies:
         // ").append(printWhichTypes());
@@ -87,8 +75,19 @@ public class ReaperScythe extends Weapon {
     }
 
     @Override
-    public String getMainFlavor() {
-        return "Necrotic";
+    public DamageFlavor getMainFlavor() {
+        return DamageFlavor.NECROTIC;
+    }
+
+    @Override
+    public List<DamageDice> getDamages() {
+        return this.damages;
+    }
+
+    @Override
+    public Attack modifyAttack(Attack attack) {
+        attack = super.modifyAttack(attack).addFlavorAndDamage(this.getMainFlavor(), 100).addToHitBonus(10);
+        return attack;
     }
 
 }

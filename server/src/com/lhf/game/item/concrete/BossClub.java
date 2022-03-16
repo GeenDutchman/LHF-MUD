@@ -1,7 +1,7 @@
 package com.lhf.game.item.concrete;
 
-import com.lhf.game.battle.Attack;
-import com.lhf.game.dice.Dice;
+import com.lhf.game.dice.*;
+import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Weapon;
@@ -12,27 +12,15 @@ public class BossClub extends Weapon {
 
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
+    private List<DamageDice> damages;
 
     public BossClub(boolean isVisible) {
         super("Boss Club", isVisible);
 
         slots = Collections.singletonList(EquipmentSlots.WEAPON);
         types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
-    }
+        damages = Arrays.asList(new DamageDice(2, DieType.EIGHT, this.getMainFlavor());
 
-    @Override
-    public int rollToHit() {
-        return Dice.getInstance().d20(1);
-    }
-
-    @Override
-    public int rollDamage() {
-        return Dice.getInstance().d8(2);
-    }
-
-    @Override
-    public Attack rollAttack() {
-        return new Attack(this.rollToHit(), "").addFlavorAndDamage(this.getMainFlavor(), this.rollDamage());
     }
 
     @Override
@@ -85,8 +73,13 @@ public class BossClub extends Weapon {
     }
 
     @Override
-    public String getMainFlavor() {
-        return "Bludgeoning";
+    public DamageFlavor getMainFlavor() {
+        return DamageFlavor.BLUDGEONING;
+    }
+
+    @Override
+    public List<DamageDice> getDamages() {
+        return this.damages;
     }
 
 }

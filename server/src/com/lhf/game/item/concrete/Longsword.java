@@ -1,7 +1,7 @@
 package com.lhf.game.item.concrete;
 
-import com.lhf.game.battle.Attack;
-import com.lhf.game.dice.Dice;
+import com.lhf.game.dice.*;
+import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Weapon;
@@ -12,27 +12,14 @@ public class Longsword extends Weapon {
 
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
+    private List<DamageDice> damages;
 
     public Longsword(boolean isVisible) {
         super("Longsword", isVisible);
 
         slots = Collections.singletonList(EquipmentSlots.WEAPON);
         types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
-    }
-
-    @Override
-    public int rollToHit() {
-        return Dice.getInstance().d20(1);
-    }
-
-    @Override
-    public int rollDamage() {
-        return Dice.getInstance().d8(1);
-    }
-
-    @Override
-    public Attack rollAttack() {
-        return new Attack(this.rollToHit(), "").addFlavorAndDamage(this.getMainFlavor(), this.rollDamage());
+        damages = Arrays.asList(new DamageDice(1, DieType.EIGHT, this.getMainFlavor()));
     }
 
     @Override
@@ -85,8 +72,13 @@ public class Longsword extends Weapon {
     }
 
     @Override
-    public String getMainFlavor() {
-        return "Slashing";
+    public DamageFlavor getMainFlavor() {
+        return DamageFlavor.SLASHING;
+    }
+
+    @Override
+    public List<DamageDice> getDamages() {
+        return this.damages;
     }
 
 }

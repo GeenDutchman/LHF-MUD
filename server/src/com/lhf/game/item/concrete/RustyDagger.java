@@ -1,7 +1,8 @@
 package com.lhf.game.item.concrete;
 
 import com.lhf.game.battle.Attack;
-import com.lhf.game.dice.Dice;
+import com.lhf.game.dice.*;
+import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Weapon;
@@ -11,12 +12,14 @@ import java.util.*;
 public class RustyDagger extends Weapon {
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
+    private List<DamageDice> damages;
 
     public RustyDagger(boolean isVisible) {
         super("Rusty Dagger", isVisible);
 
         slots = Collections.singletonList(EquipmentSlots.WEAPON);
         types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.DAGGER);
+        damages = Arrays.asList(new DamageDice(1, DieType.FOUR, this.getMainFlavor()));
     }
 
     @Override
@@ -70,22 +73,12 @@ public class RustyDagger extends Weapon {
     }
 
     @Override
-    public int rollToHit() {
-        return Dice.getInstance().d20(1);
+    public DamageFlavor getMainFlavor() {
+        return DamageFlavor.PIERCING;
     }
 
     @Override
-    public int rollDamage() {
-        return Dice.getInstance().d4(1);
-    }
-
-    @Override
-    public Attack rollAttack() {
-        return new Attack(this.rollToHit(), "").addFlavorAndDamage(this.getMainFlavor(), this.rollDamage());
-    }
-
-    @Override
-    public String getMainFlavor() {
-        return "Piercing";
+    public List<DamageDice> getDamages() {
+        return this.damages;
     }
 }

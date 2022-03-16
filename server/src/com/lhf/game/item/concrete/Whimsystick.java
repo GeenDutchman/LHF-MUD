@@ -1,7 +1,8 @@
 package com.lhf.game.item.concrete;
 
 import com.lhf.game.battle.Attack;
-import com.lhf.game.dice.Dice;
+import com.lhf.game.dice.*;
+import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Weapon;
@@ -11,6 +12,7 @@ import java.util.*;
 public class Whimsystick extends Weapon {
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
+    private List<DamageDice> damages;
     private int acBonus = 1;
 
     public Whimsystick(boolean isVisible) {
@@ -18,33 +20,7 @@ public class Whimsystick extends Weapon {
 
         slots = Collections.singletonList(EquipmentSlots.WEAPON);
         types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.QUARTERSTAFF, EquipmentTypes.CLUB);
-    }
-
-    @Override
-    public int rollToHit() {
-        return Dice.getInstance().d20(1);
-    }
-
-    @Override
-    public int rollDamage() {
-        int amount = Dice.getInstance().d6(1);
-        int switchIt = Dice.getInstance().d6(1);
-        if (switchIt <= 2) {
-            amount *= -1;
-        }
-        return amount;
-    }
-
-    @Override
-    public Attack rollAttack() {
-        Attack toReturn = new Attack(this.rollToHit(), "");
-        int damage = rollDamage();
-        if (damage < 0) {
-            toReturn.addFlavorAndDamage("Healing", damage);
-        } else {
-            toReturn.addFlavorAndDamage(this.getMainFlavor(), damage);
-        }
-        return toReturn;
+        damages = Arrays.asList(new DamageDice(1, DieType.SIX, this.getMainFlavor()));
     }
 
     @Override
@@ -100,7 +76,25 @@ public class Whimsystick extends Weapon {
     }
 
     @Override
-    public String getMainFlavor() {
-        return "Bludgeoning";
+    public DamageFlavor getMainFlavor() {
+        return DamageFlavor.MAGICAL_BLUDGEONING;
+    }
+
+    @Override
+    public List<DamageDice> getDamages() {
+        return damages;
+    }
+
+    @Override
+    public Attack modifyAttack(Attack attack) {
+        Dice chooser = new DiceD6(1);
+        if (chooser.roll() <= 2) {
+            attack = attack.addFlavorAndDamage(DamageFlavor.HEALING, -1 * chooser.roll());
+        } else {
+            for (DamageDice dd : this.getDamages()) {
+                attack = attack.addFlavorAndDamage(dd.getFlavor(), dd.roll());
+            }
+        }
+        return attack;
     }
 }
