@@ -48,7 +48,7 @@ public class DiceRoller {
      * @param dieTypes   the type of die to roll
      * @return the total of the roll
      */
-    public int roll(List<Integer> dieNumbers, List<Integer> dieTypes) {
+    public int roll(List<Integer> dieNumbers, List<DieType> dieTypes) {
         int result = 0;
 
         // get the shortest size and use that

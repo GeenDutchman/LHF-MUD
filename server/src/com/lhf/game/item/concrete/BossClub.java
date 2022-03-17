@@ -19,7 +19,7 @@ public class BossClub extends Weapon {
 
         slots = Collections.singletonList(EquipmentSlots.WEAPON);
         types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
-        damages = Arrays.asList(new DamageDice(2, DieType.EIGHT, this.getMainFlavor());
+        damages = Arrays.asList(new DamageDice(2, DieType.EIGHT, this.getMainFlavor()));
 
     }
 

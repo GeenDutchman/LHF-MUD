@@ -1,6 +1,5 @@
 package com.lhf.game.item.concrete;
 
-import com.lhf.game.battle.Attack;
 import com.lhf.game.dice.*;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;

@@ -6,8 +6,6 @@ import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.dice.DamageDice;
-import com.lhf.game.dice.Dice;
-import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.DiceRoller;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.*;
@@ -312,8 +310,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             output.append('\n');
             return output.toString();
         }
-        for (Map.Entry<String, Integer> entry : attack) {
-            String flavor = (String) entry.getKey();
+        for (Map.Entry<DamageFlavor, Integer> entry : attack) {
+            DamageFlavor flavor = (DamageFlavor) entry.getKey();
             Integer damage = (Integer) entry.getValue();
             updateHitpoints(-damage);
             output.append(attack.getTaggedAttacker()).append(" has dealt ").append(damage).append(" ").append(flavor)
