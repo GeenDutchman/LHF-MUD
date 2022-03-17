@@ -28,4 +28,9 @@ public abstract class Dice implements Taggable {
         return "</dice>";
     }
 
+    @Override
+    public String getColorTaggedName() {
+        return this.getStartTagName() + this.toString() + this.getEndTagName();
+    }
+
 }

@@ -5,9 +5,9 @@ import com.lhf.game.map.objects.sharedinterfaces.Taggable;
 
 public abstract class Item implements Examinable, Taggable {
 
-    //Name it will be known by
+    // Name it will be known by
     private String objectName;
-    //Will not output with look if false
+    // Will not output with look if false
     private boolean isVisible;
 
     public Item(String name, boolean isVisible) {
@@ -32,7 +32,7 @@ public abstract class Item implements Examinable, Taggable {
         if (!(obj instanceof Item)) {
             return false;
         }
-        Item ro = (Item)obj;
+        Item ro = (Item) obj;
         return objectName.equals(ro.objectName);
     }
 
@@ -45,4 +45,10 @@ public abstract class Item implements Examinable, Taggable {
     public String getEndTagName() {
         return "</item>";
     }
+
+    @Override
+    public String getColorTaggedName() {
+        return this.getStartTagName() + this.getName() + this.getEndTagName();
+    }
+
 }

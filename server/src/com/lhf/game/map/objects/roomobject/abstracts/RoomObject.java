@@ -31,7 +31,7 @@ public abstract class RoomObject implements Taggable, Examinable {
         if (!(obj instanceof RoomObject)) {
             return false;
         }
-        RoomObject ro = (RoomObject)obj;
+        RoomObject ro = (RoomObject) obj;
         return objectName.equals(ro.objectName);
     }
 
@@ -43,6 +43,11 @@ public abstract class RoomObject implements Taggable, Examinable {
     @Override
     public String getEndTagName() {
         return "</object>";
+    }
+
+    @Override
+    public String getColorTaggedName() {
+        return this.getStartTagName() + this.getName() + this.getEndTagName();
     }
 
     @Override
