@@ -590,6 +590,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         return "</creature>";
     }
 
+    @Override
     public String getColorTaggedName() {
         return getStartTagName() + getName() + getEndTagName();
     }

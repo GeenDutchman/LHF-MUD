@@ -21,4 +21,9 @@ public enum DamageFlavor implements Taggable {
         return this.name().toLowerCase().replace('_', ' ');
     }
 
+    @Override
+    public String getColorTaggedName() {
+        return this.getStartTagName() + this.toString() + this.getEndTagName();
+    }
+
 }
