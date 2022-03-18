@@ -90,10 +90,13 @@ public class Player extends Creature {
     }
 
     public String getStatus() {
-        return "You have " +
+        StringBuilder builder = new StringBuilder();
+        builder.append("You have " +
                 getStats().get(Stats.CURRENTHP) +
                 "/" +
                 getStats().get(Stats.MAXHP) +
-                " HP\r\n";
+                " HP\r\n");
+        builder.append("AC " + getStats().get(Stats.AC) + "\r\n");
+        return builder.toString();
     }
 }
