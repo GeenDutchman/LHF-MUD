@@ -91,6 +91,11 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         public List<DamageDice> getDamages() {
             return this.damages;
         }
+
+        @Override
+        public WeaponSubtype getSubType() {
+            return WeaponSubtype.CREATUREPART;
+        }
     }
 
     private String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
@@ -260,9 +265,37 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         for (EquipmentTypes cet : this.getProficiencies()) {
             for (EquipmentTypes wet : weapon.getTypes()) {
                 if (cet == wet) {
-                    a.addToHitBonus(1);
+                    a = a.addToHitBonus(1);
                 }
             }
+        }
+        HashMap<Attributes, Integer> retrieved = this.getAttributes();
+        Integer str = retrieved.get(STR);
+        Integer dex = retrieved.get(DEX);
+        switch (weapon.getSubType()) {
+            case CREATUREPART:
+                // fallthrough
+            case FINESSE:
+                if (dex > str) {
+                    a = a.addToHitBonus(dex);
+                    a = a.addFlavorAndDamage(weapon.getMainFlavor(), dex);
+                } else {
+                    a = a.addToHitBonus(str);
+                    a = a.addFlavorAndDamage(weapon.getMainFlavor(), str);
+                }
+                break;
+            case MARTIAL:
+                a = a.addToHitBonus(str);
+                a = a.addFlavorAndDamage(weapon.getMainFlavor(), str);
+                break;
+            case PRECISE:
+                a = a.addToHitBonus(dex);
+                a = a.addFlavorAndDamage(weapon.getMainFlavor(), dex);
+                break;
+            default:
+                a = a.addToHitBonus(str);
+                a = a.addFlavorAndDamage(weapon.getMainFlavor(), str);
+                break;
         }
         return a;
     }

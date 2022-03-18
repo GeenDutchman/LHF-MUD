@@ -21,4 +21,6 @@ public abstract class Weapon extends Usable implements Equipable {
     }
 
     public abstract DamageFlavor getMainFlavor();
+
+    public abstract WeaponSubtype getSubType();
 }

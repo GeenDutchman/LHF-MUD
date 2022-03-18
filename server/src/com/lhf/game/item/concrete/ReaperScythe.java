@@ -6,6 +6,7 @@ import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Weapon;
+import com.lhf.game.item.interfaces.WeaponSubtype;
 
 import java.util.*;
 
@@ -88,6 +89,11 @@ public class ReaperScythe extends Weapon {
     public Attack modifyAttack(Attack attack) {
         attack = super.modifyAttack(attack).addFlavorAndDamage(this.getMainFlavor(), 100).addToHitBonus(10);
         return attack;
+    }
+
+    @Override
+    public WeaponSubtype getSubType() {
+        return WeaponSubtype.FINESSE;
     }
 
 }

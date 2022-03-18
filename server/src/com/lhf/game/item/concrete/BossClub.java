@@ -5,6 +5,7 @@ import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Weapon;
+import com.lhf.game.item.interfaces.WeaponSubtype;
 
 import java.util.*;
 
@@ -80,6 +81,11 @@ public class BossClub extends Weapon {
     @Override
     public List<DamageDice> getDamages() {
         return this.damages;
+    }
+
+    @Override
+    public WeaponSubtype getSubType() {
+        return WeaponSubtype.MARTIAL;
     }
 
 }

@@ -6,6 +6,7 @@ import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Weapon;
+import com.lhf.game.item.interfaces.WeaponSubtype;
 
 import java.util.*;
 
@@ -96,5 +97,10 @@ public class Whimsystick extends Weapon {
             }
         }
         return attack;
+    }
+
+    @Override
+    public WeaponSubtype getSubType() {
+        return WeaponSubtype.MARTIAL;
     }
 }
