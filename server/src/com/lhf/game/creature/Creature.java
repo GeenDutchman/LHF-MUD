@@ -181,6 +181,10 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         // add abilities if we get to it
         this.inventory = statblock.inventory; // uncomment when Inventory class is ready
         this.equipmentSlots = statblock.equipmentSlots;
+        for (Item item : this.equipmentSlots.values()) {
+            Equipable equipped = (Equipable) item;
+            this.applyUse(equipped.equip());
+        }
     }
 
     public void updateHitpoints(int value) {
