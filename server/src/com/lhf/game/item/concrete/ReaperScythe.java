@@ -21,7 +21,7 @@ public class ReaperScythe extends Weapon {
 
         slots = Arrays.asList(EquipmentSlots.WEAPON);
         types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
-        damages = Arrays.asList(new DamageDice(1, DieType.EIGHT, this.getMainFlavor()));
+        damages = Arrays.asList(new DamageDice(1, DieType.EIGHT, this.getMainFlavor()).setStaticBonus(100));
     }
 
     @Override
@@ -87,7 +87,7 @@ public class ReaperScythe extends Weapon {
 
     @Override
     public Attack modifyAttack(Attack attack) {
-        attack = super.modifyAttack(attack).addFlavorAndDamage(this.getMainFlavor(), 100).addToHitBonus(10);
+        attack = super.modifyAttack(attack).addToHitBonus(10);
         return attack;
     }
 

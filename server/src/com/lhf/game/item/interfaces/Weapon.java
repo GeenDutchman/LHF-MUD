@@ -15,7 +15,7 @@ public abstract class Weapon extends Usable implements Equipable {
 
     public Attack modifyAttack(Attack attack) {
         for (DamageDice dd : this.getDamages()) {
-            attack = attack.addFlavorAndDamage(dd.getFlavor(), dd.roll());
+            attack = attack.addFlavorAndRoll(dd.getFlavor(), dd.rollDice());
         }
         return attack;
     }

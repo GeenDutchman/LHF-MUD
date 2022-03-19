@@ -89,11 +89,11 @@ public class Whimsystick extends Weapon {
     @Override
     public Attack modifyAttack(Attack attack) {
         Dice chooser = new DiceD6(1);
-        if (chooser.roll() <= 2) {
-            attack = attack.addFlavorAndDamage(DamageFlavor.HEALING, -1 * chooser.roll());
+        if (chooser.rollDice().getTotal() <= 2) {
+            attack = attack.addFlavorAndRoll(DamageFlavor.HEALING, chooser.rollDice());
         } else {
             for (DamageDice dd : this.getDamages()) {
-                attack = attack.addFlavorAndDamage(dd.getFlavor(), dd.roll());
+                attack = attack.addFlavorAndRoll(dd.getFlavor(), dd.rollDice());
             }
         }
         return attack;

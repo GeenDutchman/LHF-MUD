@@ -6,8 +6,11 @@ import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.dice.DamageDice;
+import com.lhf.game.dice.Dice;
+import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.DiceRoller;
 import com.lhf.game.dice.DieType;
+import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.*;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.*;
@@ -216,6 +219,11 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         }
     }
 
+    public RollResult check(Attributes attribute) {
+        Dice d20 = new DiceD20(1);
+        return d20.rollDice().addBonus(this.getAttributes().getOrDefault(attribute, 0));
+    }
+
     public void updateModifier(Attributes modifier, int value) {
         this.modifiers.put(modifier, this.modifiers.get(modifier) + value);
     }
@@ -263,16 +271,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     }
 
     public Attack attack(Weapon weapon) {
-        int attackRoll = DiceRoller.getInstance().d20(1);
-        Attack a = new Attack(attackRoll, this.getName()).setTaggedAttacker(this.getColorTaggedName());
-        a = weapon.modifyAttack(a);
-        for (EquipmentTypes cet : this.getProficiencies()) {
-            for (EquipmentTypes wet : weapon.getTypes()) {
-                if (cet == wet) {
-                    a = a.addToHitBonus(1);
-                }
-            }
-        }
+        RollResult toHit;
+        int attributeBonus = 0;
         HashMap<Attributes, Integer> retrieved = this.getAttributes();
         Integer str = retrieved.get(STR);
         Integer dex = retrieved.get(DEX);
@@ -281,26 +281,36 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                 // fallthrough
             case FINESSE:
                 if (dex > str) {
-                    a = a.addToHitBonus(dex);
-                    a = a.addFlavorAndDamage(weapon.getMainFlavor(), dex);
+                    attributeBonus = dex;
+                    toHit = this.check(DEX);
                 } else {
-                    a = a.addToHitBonus(str);
-                    a = a.addFlavorAndDamage(weapon.getMainFlavor(), str);
+                    attributeBonus = str;
+                    toHit = this.check(STR);
                 }
                 break;
-            case MARTIAL:
-                a = a.addToHitBonus(str);
-                a = a.addFlavorAndDamage(weapon.getMainFlavor(), str);
-                break;
             case PRECISE:
-                a = a.addToHitBonus(dex);
-                a = a.addFlavorAndDamage(weapon.getMainFlavor(), dex);
+                attributeBonus = dex;
+                toHit = this.check(DEX);
                 break;
+            case MARTIAL:
+                // fallthrough
             default:
-                a = a.addToHitBonus(str);
-                a = a.addFlavorAndDamage(weapon.getMainFlavor(), str);
+                attributeBonus = str;
+                toHit = this.check(STR);
                 break;
         }
+        Attack a = new Attack(toHit.addBonus(attributeBonus), this.getName())
+                .setTaggedAttacker(this.getColorTaggedName());
+        a = weapon.modifyAttack(a);
+        a = a.addDamageBonus(weapon.getMainFlavor(), attributeBonus);
+        for (EquipmentTypes cet : this.getProficiencies()) {
+            for (EquipmentTypes wet : weapon.getTypes()) {
+                if (cet == wet) {
+                    a = a.addToHitBonus(1);
+                }
+            }
+        }
+
         return a;
     }
 
@@ -324,7 +334,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     public String applyAttack(Attack attack) {
         // add stuff to calculate if the attack hits or not, and return false if so
         StringBuilder output = new StringBuilder();
-        if (this.getStats().get(Stats.AC) > attack.getToHit()) {
+        if (this.getStats().get(Stats.AC) > attack.getToHit().getTotal()) {
             int which = DiceRoller.getInstance().d2(1);
             switch (which) {
                 case 1:
@@ -347,11 +357,11 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             output.append('\n');
             return output.toString();
         }
-        for (Map.Entry<DamageFlavor, Integer> entry : attack) {
-            DamageFlavor flavor = (DamageFlavor) entry.getKey();
-            Integer damage = (Integer) entry.getValue();
-            updateHitpoints(-damage);
-            output.append(attack.getTaggedAttacker()).append(" has dealt ").append(damage).append(" ").append(flavor)
+        for (Map.Entry<DamageFlavor, RollResult> entry : attack) {
+            // DamageFlavor flavor = (DamageFlavor) entry.getKey();
+            RollResult damage = (RollResult) entry.getValue();
+            updateHitpoints(-damage.getTotal());
+            output.append(attack.getTaggedAttacker()).append(" has dealt ").append(damage.getColorTaggedName())
                     .append(" damage to ").append(getColorTaggedName()).append(".\n");
         }
         if (!isAlive()) {
