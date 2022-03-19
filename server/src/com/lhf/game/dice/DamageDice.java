@@ -11,7 +11,13 @@ public class DamageDice extends Dice {
     private DamageFlavor flavor;
 
     @Override
-    public int roll() {
+    public DamageDice setStaticBonus(int bonus) {
+        super.setStaticBonus(bonus);
+        return this;
+    }
+
+    @Override
+    protected int roll() {
         return DiceRoller.getInstance().roll(this.count, this.type);
     }
 

@@ -7,7 +7,7 @@ public class DiceD4 extends Dice {
     }
 
     @Override
-    public int roll() {
+    protected int roll() {
         return DiceRoller.getInstance().d4(this.count);
     }
 
