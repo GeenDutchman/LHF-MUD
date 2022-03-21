@@ -221,7 +221,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
     public RollResult check(Attributes attribute) {
         Dice d20 = new DiceD20(1);
-        return d20.rollDice().addBonus(this.getAttributes().getOrDefault(attribute, 0));
+        return d20.rollDice().addBonus(this.getModifiers().getOrDefault(attribute, 0));
     }
 
     public void updateModifier(Attributes modifier, int value) {
@@ -273,7 +273,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     public Attack attack(Weapon weapon) {
         RollResult toHit;
         int attributeBonus = 0;
-        HashMap<Attributes, Integer> retrieved = this.getAttributes();
+        HashMap<Attributes, Integer> retrieved = this.getModifiers();
         Integer str = retrieved.get(STR);
         Integer dex = retrieved.get(DEX);
         switch (weapon.getSubType()) {
@@ -303,13 +303,13 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                 .setTaggedAttacker(this.getColorTaggedName());
         a = weapon.modifyAttack(a);
         a = a.addDamageBonus(weapon.getMainFlavor(), attributeBonus);
-        for (EquipmentTypes cet : this.getProficiencies()) {
-            for (EquipmentTypes wet : weapon.getTypes()) {
-                if (cet == wet) {
-                    a = a.addToHitBonus(1);
-                }
-            }
-        }
+        // for (EquipmentTypes cet : this.getProficiencies()) {
+        // for (EquipmentTypes wet : weapon.getTypes()) {
+        // if (cet == wet) {
+        // a = a.addToHitBonus(1);
+        // }
+        // }
+        // }
 
         return a;
     }

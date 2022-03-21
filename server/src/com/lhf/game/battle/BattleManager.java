@@ -230,6 +230,9 @@ public class BattleManager {
             sendMessageToAllParticipants(
                     new GameMessage(attacker.getColorTaggedName() + " attacks " + target.getColorTaggedName() + "!"));
             Attack a = attacker.attack(weapon);
+            sendMessageToAllParticipants(
+                    new GameMessage(attacker.getColorTaggedName() + " attacks " + a.getToHit() + ' '
+                            + target.getColorTaggedName() + "!"));
             sendMessageToAllParticipants(new GameMessage(target.applyAttack(a)));
         }
     }
