@@ -57,26 +57,6 @@ public class RingOfSeeing extends Usable implements Equipable, Consumable {
     }
 
     @Override
-    public String printWhichTypes() {
-        StringJoiner sj = new StringJoiner(", ");
-        sj.setEmptyValue("none needed!");
-        for (EquipmentTypes type : types) {
-            sj.add(type.toString());
-        }
-        return sj.toString();
-    }
-
-    @Override
-    public String printWhichSlots() {
-        StringJoiner sj = new StringJoiner(", ");
-        sj.setEmptyValue("no slot!");
-        for (EquipmentSlots slot : slots) {
-            sj.add(slot.toString());
-        }
-        return sj.toString();
-    }
-
-    @Override
     public Map<String, Integer> equip() {
         return new HashMap<>(0); // changes nothing
     }
@@ -91,9 +71,9 @@ public class RingOfSeeing extends Usable implements Equipable, Consumable {
         String result = "This ring can help you see things that are not visible to the naked eye. ";
         result += "It can only be used so many times though, and then the ring itself disappears... ";
         result += "This can be equipped to: " + printWhichSlots();
-//        result += "\r\nAnd can best be used if you have these proficiencies: " + printWhichTypes();
+        // result += "\r\nAnd can best be used if you have these proficiencies: " +
+        // printWhichTypes();
         return result;
     }
-
 
 }

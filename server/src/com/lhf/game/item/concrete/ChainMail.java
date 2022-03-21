@@ -31,26 +31,6 @@ public class ChainMail extends Item implements Equipable {
     }
 
     @Override
-    public String printWhichTypes() {
-        StringJoiner sj = new StringJoiner(", ");
-        sj.setEmptyValue("none needed!");
-        for (EquipmentTypes type : types) {
-            sj.add(type.toString());
-        }
-        return sj.toString();
-    }
-
-    @Override
-    public String printWhichSlots() {
-        StringJoiner sj = new StringJoiner(", ");
-        sj.setEmptyValue("no slot!");
-        for (EquipmentSlots slot : slots) {
-            sj.add(slot.toString());
-        }
-        return sj.toString();
-    }
-
-    @Override
     public Map<String, Integer> equip() {
         Map<String, Integer> result = new HashMap<>();
         result.put("AC", this.AC);
@@ -66,7 +46,8 @@ public class ChainMail extends Item implements Equipable {
 
     @Override
     public String getDescription() {
-        //sb.append("And best used if you have these proficiencies: ").append(printWhichTypes());
+        // sb.append("And best used if you have these proficiencies:
+        // ").append(printWhichTypes());
         return "This is some heavy chainmail. " + "It looks protective... now if only it wasn't so heavy" +
                 "This can be equipped to: " + printWhichSlots();
     }

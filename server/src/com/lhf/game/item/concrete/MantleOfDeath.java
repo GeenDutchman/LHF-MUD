@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
@@ -34,26 +33,6 @@ public class MantleOfDeath extends Item implements Equipable {
     @Override
     public List<EquipmentSlots> getWhichSlots() {
         return slots;
-    }
-
-    @Override
-    public String printWhichTypes() {
-        StringJoiner sj = new StringJoiner(",");
-        sj.setEmptyValue("none needed!");
-        for (EquipmentTypes type : types) {
-            sj.add(type.toString());
-        }
-        return sj.toString();
-    }
-
-    @Override
-    public String printWhichSlots() {
-        StringJoiner sj = new StringJoiner(",");
-        sj.setEmptyValue("no slot!");
-        for (EquipmentSlots slot : slots) {
-            sj.add(slot.toString());
-        }
-        return sj.toString();
     }
 
     @Override

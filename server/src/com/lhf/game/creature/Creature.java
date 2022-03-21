@@ -8,7 +8,6 @@ import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD20;
-import com.lhf.game.dice.DiceRoller;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.*;
@@ -48,26 +47,6 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         }
 
         @Override
-        public String printWhichSlots() {
-            StringJoiner sj = new StringJoiner(", ");
-            sj.setEmptyValue("no slot!");
-            for (EquipmentSlots slot : slots) {
-                sj.add(slot.toString());
-            }
-            return sj.toString();
-        }
-
-        @Override
-        public String printWhichTypes() {
-            StringJoiner sj = new StringJoiner(", ");
-            sj.setEmptyValue("none needed!");
-            for (EquipmentTypes type : types) {
-                sj.add(type.toString());
-            }
-            return sj.toString();
-        }
-
-        @Override
         public Map<String, Integer> equip() {
             return new HashMap<>(0); // changes nothing
         }
@@ -81,8 +60,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         public String getDescription() {
             // sb.append("And best used if you have these proficiencies:
             // ").append(printWhichTypes());
-            return "This is a " + getName() + " attached to a " + Creature.this.getName() +
-                    " This can be equipped to: " + printWhichSlots();
+            return "This is a " + getName() + " attached to a " + Creature.this.getName() + "\n" +
+                    this.printStats();
         }
 
         @Override
@@ -99,6 +78,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         public WeaponSubtype getSubType() {
             return WeaponSubtype.CREATUREPART;
         }
+
     }
 
     private String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs

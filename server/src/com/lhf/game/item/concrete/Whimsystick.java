@@ -35,26 +35,6 @@ public class Whimsystick extends Weapon {
     }
 
     @Override
-    public String printWhichTypes() {
-        StringJoiner sj = new StringJoiner(", ");
-        sj.setEmptyValue("none needed!");
-        for (EquipmentTypes type : types) {
-            sj.add(type.toString());
-        }
-        return sj.toString();
-    }
-
-    @Override
-    public String printWhichSlots() {
-        StringJoiner sj = new StringJoiner(", ");
-        sj.setEmptyValue("no slot!");
-        for (EquipmentSlots slot : slots) {
-            sj.add(slot.toString());
-        }
-        return sj.toString();
-    }
-
-    @Override
     public Map<String, Integer> equip() {
         Map<String, Integer> result = new HashMap<>();
         result.put("AC", this.acBonus);
@@ -90,7 +70,7 @@ public class Whimsystick extends Weapon {
     public Attack modifyAttack(Attack attack) {
         Dice chooser = new DiceD6(1);
         if (chooser.rollDice().getTotal() <= 2) {
-            attack = attack.addFlavorAndRoll(DamageFlavor.HEALING, chooser.rollDice());
+            attack = attack.addFlavorAndRoll(DamageFlavor.HEALING, chooser.rollDice()); // TODO: makes sure this heals
         } else {
             for (DamageDice dd : this.getDamages()) {
                 attack = attack.addFlavorAndRoll(dd.getFlavor(), dd.rollDice());
