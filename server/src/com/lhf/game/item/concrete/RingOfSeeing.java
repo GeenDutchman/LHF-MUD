@@ -69,10 +69,8 @@ public class RingOfSeeing extends Usable implements Equipable, Consumable {
     @Override
     public String getDescription() {
         String result = "This ring can help you see things that are not visible to the naked eye. ";
-        result += "It can only be used so many times though, and then the ring itself disappears... ";
-        result += "This can be equipped to: " + printWhichSlots();
-        // result += "\r\nAnd can best be used if you have these proficiencies: " +
-        // printWhichTypes();
+        result += "It can only be used so many times though, and then the ring itself disappears... \n";
+        result += this.printStats();
         return result;
     }
 

@@ -44,14 +44,8 @@ public class Shield extends Item implements Equipable {
 
     @Override
     public String getDescription() {
-        // sb.append("And best used if you have these proficiencies:
-        // ").append(printWhichTypes());
-        // tell how much it boosts player?
-        return "This is a simple shield, it should protect you a little bit. " + "This can be equipped to: "
-                + printWhichSlots()
-        // sb.append("And best used if you have these proficiencies:
-        // ").append(printWhichTypes());
-        // tell how much it boosts player?
-        ;
+        // TODO: tell how much it boosts player?
+        return "This is a simple shield, it should protect you a little bit. \n"
+                + this.printStats();
     }
 }

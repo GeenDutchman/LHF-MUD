@@ -46,9 +46,7 @@ public class LeatherArmor extends Item implements Equipable {
 
     @Override
     public String getDescription() {
-        // sb.append("And best used if you have these proficiencies:
-        // ").append(printWhichTypes());
-        return "This is some simple leather armor. " + "There is only a little blood on it..." +
-                "This can be equipped to: " + printWhichSlots();
+        return "This is some simple leather armor. " + "There is only a little blood on it...\n" +
+                this.printStats();
     }
 }

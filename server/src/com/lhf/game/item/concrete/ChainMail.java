@@ -46,9 +46,7 @@ public class ChainMail extends Item implements Equipable {
 
     @Override
     public String getDescription() {
-        // sb.append("And best used if you have these proficiencies:
-        // ").append(printWhichTypes());
-        return "This is some heavy chainmail. " + "It looks protective... now if only it wasn't so heavy" +
-                "This can be equipped to: " + printWhichSlots();
+        return "This is some heavy chainmail. " + "It looks protective... now if only it wasn't so heavy\n" +
+                this.printStats();
     }
 }

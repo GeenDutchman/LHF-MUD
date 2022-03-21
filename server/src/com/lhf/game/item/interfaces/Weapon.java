@@ -18,7 +18,7 @@ public abstract class Weapon extends Usable implements Equipable {
         StringJoiner sj = new StringJoiner(", ");
         sj.setEmptyValue("no damage!");
         for (DamageDice dd : this.getDamages()) {
-            sj.add(dd.toString());
+            sj.add(dd.getColorTaggedName());
         }
         return sj.toString();
     }

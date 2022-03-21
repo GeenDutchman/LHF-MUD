@@ -44,12 +44,7 @@ public class RustyDagger extends Weapon {
 
     @Override
     public String getDescription() {
-        // sb.append("\r\nAnd best used if you have these proficiencies:
-        // ").append(printWhichTypes());
-        return "Rusty Dagger to stab monsters with. " + "This can be equipped to: " + printWhichSlots()
-        // sb.append("\r\nAnd best used if you have these proficiencies:
-        // ").append(printWhichTypes());
-        ;
+        return "Rusty Dagger to stab monsters with. \n" + this.printStats();
     }
 
     @Override

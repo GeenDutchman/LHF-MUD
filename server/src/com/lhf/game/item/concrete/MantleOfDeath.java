@@ -56,10 +56,8 @@ public class MantleOfDeath extends Item implements Equipable {
     @Override
     public String getDescription() {
         StringBuilder sb = new StringBuilder(
-                "This fearsome hooded robe seems a little bit overpowered to be in your puny hands. ");
-        sb.append("This can be equipped to: ").append(printWhichSlots());
-        // sb.append("And best used if you have these proficiencies:
-        // ").append(printWhichTypes());
+                "This fearsome hooded robe seems a little bit overpowered to be in your puny hands. \n");
+        sb.append(this.printStats());
         return sb.toString();
     }
 }

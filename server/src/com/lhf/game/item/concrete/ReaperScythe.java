@@ -47,11 +47,8 @@ public class ReaperScythe extends Weapon {
     @Override
     public String getDescription() {
         StringBuilder sb = new StringBuilder();
-        sb.append("This is a nice, long, shiny scythe.  It's super powerful...");
-        sb.append("This can be equipped to: ").append(printWhichSlots());
-        // sb.append("And best used if you have these proficiencies:
-        // ").append(printWhichTypes());
-        // TODO: should this describe that it does 1d6 damage?
+        sb.append("This is a nice, long, shiny scythe.  It's super powerful...\n");
+        sb.append(this.printStats());
         return sb.toString();
     }
 

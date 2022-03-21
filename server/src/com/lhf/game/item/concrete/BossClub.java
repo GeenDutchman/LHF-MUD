@@ -46,11 +46,8 @@ public class BossClub extends Weapon {
 
     @Override
     public String getDescription() {
-        // sb.append("And best used if you have these proficiencies:
-        // ").append(printWhichTypes());
-        // TODO: should this describe that it does 1d6 damage?
-        return "This is a large club, it seems a bit rusty... wait thats not rust..." +
-                "This can be equipped to: " + printWhichSlots();
+        return "This is a large club, it seems a bit rusty... wait thats not rust...\n" +
+                this.printStats();
     }
 
     @Override

@@ -90,7 +90,7 @@ public class CarnivorousArmor extends Usable implements Equipable {
 
     @Override
     public String getDescription() {
-        return "This is some simple leather armor. " + "There is plenty of blood on it..." +
-                "This can be equipped to: " + printWhichSlots();
+        return "This is some simple leather armor. " + "There is plenty of blood on it...\n" +
+                this.printStats();
     }
 }
