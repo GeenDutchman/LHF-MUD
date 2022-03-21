@@ -2,6 +2,9 @@ package com.lhf.game.battle;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
+import com.lhf.game.dice.Dice;
+import com.lhf.game.dice.DiceD4;
+import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Takeable;
 import com.lhf.game.item.interfaces.Weapon;
@@ -225,15 +228,47 @@ public class BattleManager {
         endTurn();
     }
 
+    private void announceMiss(Creature attacker, Creature target, Attack attack) {
+        StringBuilder output = new StringBuilder();
+        Dice chooser = new DiceD4(1);
+        int which = chooser.rollDice().getTotal();
+        switch (which) {
+            case 1:
+                output.append(attack.getTaggedAttacker()).append(' ').append(attack.getToHit()).append(" misses ")
+                        .append(target.getColorTaggedName());
+                break;
+            case 2:
+                output.append(target.getColorTaggedName()).append(" dodged the attack ").append(attack.getToHit())
+                        .append(" from ")
+                        .append(attack.getTaggedAttacker());
+                break;
+            case 3:
+                output.append(attack.getTaggedAttacker()).append(" whiffed ").append(attack.getToHit())
+                        .append(" their attack on ")
+                        .append(target.getColorTaggedName());
+                break;
+            default:
+                output.append("The attack ").append(attack.getToHit()).append(" by ").append(attack.getTaggedAttacker())
+                        .append(" on ")
+                        .append(target.getColorTaggedName()).append(" does not land");
+                break;
+
+        }
+        output.append('\n');
+        sendMessageToAllParticipants(new GameMessage(output.toString()));
+    }
+
     private void applyAttacks(Creature attacker, Weapon weapon, Collection<Creature> targets) {
         for (Creature target : targets) {
-            sendMessageToAllParticipants(
-                    new GameMessage(attacker.getColorTaggedName() + " attacks " + target.getColorTaggedName() + "!"));
             Attack a = attacker.attack(weapon);
             sendMessageToAllParticipants(
                     new GameMessage(attacker.getColorTaggedName() + " attacks " + a.getToHit() + ' '
                             + target.getColorTaggedName() + "!"));
-            sendMessageToAllParticipants(new GameMessage(target.applyAttack(a)));
+            if (target.getStats().get(Stats.AC) > a.getToHit().getTotal()) {
+                announceMiss(attacker, target, a);
+            } else {
+                sendMessageToAllParticipants(new GameMessage(target.applyAttack(a)));
+            }
         }
     }
 

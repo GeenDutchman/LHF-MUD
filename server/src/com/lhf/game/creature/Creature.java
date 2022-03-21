@@ -334,29 +334,6 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     public String applyAttack(Attack attack) {
         // add stuff to calculate if the attack hits or not, and return false if so
         StringBuilder output = new StringBuilder();
-        if (this.getStats().get(Stats.AC) > attack.getToHit().getTotal()) {
-            int which = DiceRoller.getInstance().d2(1);
-            switch (which) {
-                case 1:
-                    output.append(attack.getTaggedAttacker()).append(" misses ").append(getColorTaggedName());
-                    break;
-                case 2:
-                    output.append(getColorTaggedName()).append(" dodged the attack from ")
-                            .append(attack.getTaggedAttacker());
-                    break;
-                case 3:
-                    output.append(attack.getTaggedAttacker()).append(" whiffed their attack on ")
-                            .append(getColorTaggedName());
-                    break;
-                default:
-                    output.append("The attack by ").append(attack.getTaggedAttacker()).append(" on ")
-                            .append(getColorTaggedName()).append(" does not land");
-                    break;
-
-            }
-            output.append('\n');
-            return output.toString();
-        }
         for (Map.Entry<DamageFlavor, RollResult> entry : attack) {
             // DamageFlavor flavor = (DamageFlavor) entry.getKey();
             RollResult damage = (RollResult) entry.getValue();
