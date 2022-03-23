@@ -10,7 +10,7 @@ import com.lhf.game.item.concrete.Longsword;
 import com.lhf.game.item.concrete.Shield;
 import com.lhf.server.client.user.UserID;
 
-import static com.lhf.game.enums.Attributes.*;
+import com.lhf.game.creature.statblock.AttributeBlock;
 
 public class Player extends Creature {
     private UserID id;
@@ -21,20 +21,8 @@ public class Player extends Creature {
         this.setCreatureType(CreatureType.PLAYER); // It's a player
 
         // Set attributes to default values
-        this.getAttributes().put(STR, 16);
-        this.getAttributes().put(DEX, 12);
-        this.getAttributes().put(CON, 14);
-        this.getAttributes().put(INT, 10);
-        this.getAttributes().put(WIS, 12);
-        this.getAttributes().put(CHA, 8);
-
-        // Set modifiers to default values
-        this.getModifiers().put(STR, 3);
-        this.getModifiers().put(DEX, 1);
-        this.getModifiers().put(CON, 2);
-        this.getModifiers().put(INT, 0);
-        this.getModifiers().put(WIS, 1);
-        this.getModifiers().put(CHA, -1);
+        AttributeBlock attrBlock = new AttributeBlock(16, 12, 14, 10, 12, 8);
+        this.setAttributes(attrBlock);
 
         // Set default stats
         this.getStats().put(Stats.MAXHP, 12);

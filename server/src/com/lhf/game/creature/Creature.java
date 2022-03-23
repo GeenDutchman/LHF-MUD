@@ -4,6 +4,7 @@ import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.inventory.InventoryOwner;
+import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice;
@@ -86,8 +87,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     // private MonsterType monsterType; // I dont know if we'll need this
 
     // uses attributes STR, DEX, CON, INT, WIS, CHA
-    private HashMap<Attributes, Integer> attributes;
-    private HashMap<Attributes, Integer> modifiers;
+    private AttributeBlock attributeBlock;
 
     private HashMap<Stats, Integer> stats; // contains CurrentHp, MaxHp, Xp, proficiencyBonus, AC
 
@@ -112,22 +112,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         this.creatureType = CreatureType.MONSTER;
 
         // Set attributes to default values
-        this.attributes = new HashMap<>();
-        this.attributes.put(STR, 10);
-        this.attributes.put(DEX, 10);
-        this.attributes.put(CON, 10);
-        this.attributes.put(INT, 10);
-        this.attributes.put(WIS, 10);
-        this.attributes.put(CHA, 10);
-
-        // Set modifiers to default values
-        this.modifiers = new HashMap<>();
-        this.modifiers.put(STR, 0);
-        this.modifiers.put(DEX, 0);
-        this.modifiers.put(CON, 0);
-        this.modifiers.put(INT, 0);
-        this.modifiers.put(WIS, 0);
-        this.modifiers.put(CHA, 0);
+        this.attributeBlock = new AttributeBlock();
 
         // Set default stats (10 HP, 2 proficiency bonus, etc.)
         this.stats = new HashMap<>();
@@ -156,8 +141,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         this.name = name;
 
         this.creatureType = statblock.creatureType;
-        this.attributes = statblock.attributes;
-        this.modifiers = statblock.modifiers;
+        this.attributeBlock = statblock.attributes;
         this.stats = statblock.stats;
         this.proficiencies = statblock.proficiencies;
         // add abilities if we get to it
@@ -200,15 +184,15 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
     public RollResult check(Attributes attribute) {
         Dice d20 = new DiceD20(1);
-        return d20.rollDice().addBonus(this.getModifiers().getOrDefault(attribute, 0));
+        return d20.rollDice().addBonus(this.getAttributes().getMod(attribute));
     }
 
     public void updateModifier(Attributes modifier, int value) {
-        this.modifiers.put(modifier, this.modifiers.get(modifier) + value);
+        this.attributeBlock.setModBonus(modifier, this.attributeBlock.getModBonus(modifier) + value);
     }
 
     private void updateAttribute(Attributes attribute, int value) {
-        this.attributes.put(attribute, this.attributes.get(attribute) + value);
+        this.attributeBlock.setScoreBonus(attribute, this.attributeBlock.getScoreBonus(attribute) + value);
     }
 
     private void updateStat(Stats stat, int value) {
@@ -229,12 +213,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         return creatureType;
     }
 
-    public HashMap<Attributes, Integer> getAttributes() {
-        return attributes;
-    }
-
-    public HashMap<Attributes, Integer> getModifiers() {
-        return modifiers;
+    public AttributeBlock getAttributes() {
+        return this.attributeBlock;
     }
 
     public HashSet<EquipmentTypes> getProficiencies() {
@@ -252,9 +232,9 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     public Attack attack(Weapon weapon) {
         RollResult toHit;
         int attributeBonus = 0;
-        HashMap<Attributes, Integer> retrieved = this.getModifiers();
-        Integer str = retrieved.get(STR);
-        Integer dex = retrieved.get(DEX);
+        AttributeBlock retrieved = this.getAttributes();
+        Integer str = retrieved.getMod(STR);
+        Integer dex = retrieved.getMod(DEX);
         switch (weapon.getSubType()) {
             case CREATUREPART:
                 // fallthrough
@@ -353,12 +333,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         this.creatureType = creatureType;
     }
 
-    public void setAttributes(HashMap<Attributes, Integer> attributes) {
-        this.attributes = attributes;
-    }
-
-    public void setModifiers(HashMap<Attributes, Integer> modifiers) {
-        this.modifiers = modifiers;
+    public void setAttributes(AttributeBlock attributes) {
+        this.attributeBlock = attributes;
     }
 
     public void setStats(HashMap<Stats, Integer> stats) {

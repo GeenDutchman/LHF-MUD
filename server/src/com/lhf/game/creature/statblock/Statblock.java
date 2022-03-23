@@ -12,13 +12,12 @@ import java.util.HashSet;
 
 public class Statblock {
 
-    public Statblock(String name, CreatureType creatureType, HashMap<Attributes, Integer> attributes,
-            HashMap<Attributes, Integer> modifiers, HashMap<Stats, Integer> stats,
+    public Statblock(String name, CreatureType creatureType, AttributeBlock attributes,
+            HashMap<Stats, Integer> stats,
             HashSet<EquipmentTypes> proficiencies, Inventory inventory, HashMap<EquipmentSlots, Item> equipmentSlots) {
         this.name = name;
         this.creatureType = creatureType;
         this.attributes = attributes;
-        this.modifiers = modifiers;
         this.stats = stats;
         this.proficiencies = proficiencies;
         this.inventory = inventory;
@@ -29,7 +28,6 @@ public class Statblock {
         this.name = creature.getName();
         this.creatureType = creature.getCreatureType();
         this.attributes = creature.getAttributes();
-        this.modifiers = creature.getModifiers();
         this.stats = creature.getStats();
         this.proficiencies = creature.getProficiencies();
         this.inventory = creature.getInventory();
@@ -55,8 +53,7 @@ public class Statblock {
             this.creatureType = CreatureType.NPC;
         }
 
-        this.attributes = attributesFromString(block_lines[2]);
-        this.modifiers = attributesFromString(block_lines[3]);
+        this.attributes = attributesFromString(block_lines[2], block_lines[3]);
 
         this.stats = statsFromString(block_lines[4]);
         this.proficiencies = proficienciesFromString(block_lines[5]);
@@ -71,8 +68,7 @@ public class Statblock {
 
     // public MonsterType monsterType;// I dont know if we'll need this
 
-    public HashMap<Attributes, Integer> attributes;
-    public HashMap<Attributes, Integer> modifiers;
+    public AttributeBlock attributes;
     // contains CurrentHp, MaxHp, Xp, proficiencyBonus, AC
     public HashMap<Stats, Integer> stats;
     // contains subtypes and items
@@ -100,7 +96,6 @@ public class Statblock {
         return name + "\n" +
                 creatureType.toString() + "\n" +
                 attributes.toString() + "\n" +
-                modifiers.toString() + "\n" +
                 stats.toString() + "\n" +
                 proficiencies.toString() + "\n" +
                 inventory.toStoreString() + "\n" +
@@ -126,18 +121,31 @@ public class Statblock {
         return stringBuilder.toString();
     }
 
-    private HashMap<Attributes, Integer> attributesFromString(String line) {
-        line = line.substring(1, line.length() - 1);
-        line = line.replace("}", "");
-        String[] pairs = line.split(",");
-        HashMap<Attributes, Integer> attributes = new HashMap<>();
+    private AttributeBlock attributesFromString(String scoreline, String modline) {
+        scoreline = scoreline.substring(1, scoreline.length() - 1);
+        scoreline = scoreline.replace("}", "");
+        String[] scorepairs = scoreline.split(",");
+        AttributeBlock attrBlock = new AttributeBlock();
 
         for (int i = 0; i < Attributes.values().length; i++) {
-            String[] key_val = pairs[i].split("=");
-            attributes.put(Attributes.valueOf(key_val[0].replace(" ", "")), Integer.valueOf(key_val[1]));
+            String[] key_val = scorepairs[i].split("=");
+            attrBlock.setScore(Attributes.valueOf(key_val[0].trim()), Integer.valueOf(key_val[1].trim()));
         }
 
-        return attributes;
+        modline = modline.substring(1, modline.length() - 1);
+        modline = modline.replace("}", "");
+        String[] modpairs = modline.split(",");
+
+        for (int i = 0; i < Attributes.values().length; i++) {
+            String[] key_val = modpairs[i].split("=");
+            Attributes key = Attributes.valueOf(key_val[0].trim());
+            Integer value = Integer.valueOf(key_val[1].trim());
+            if (attrBlock.getMod(key) != value) {
+                Integer diff = value - attrBlock.getMod(key);
+                attrBlock.setModBonus(key, diff);
+            }
+        }
+        return attrBlock;
     }
 
     private HashMap<Stats, Integer> statsFromString(String line) {

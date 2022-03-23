@@ -1,6 +1,7 @@
 package com.lhf.game.creature;
 
 import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.*;
@@ -31,8 +32,7 @@ public class NpcCreator {
         Creature npc;
         String name;
         CreatureType creatureType = null;
-        HashMap<Attributes, Integer> attributes = new HashMap<>();
-        HashMap<Attributes, Integer> modifiers;
+        AttributeBlock attributes = new AttributeBlock();
         HashMap<Stats, Integer> stats = new HashMap<>();
         HashSet<EquipmentTypes> proficiencies = new HashSet<>();
         Inventory inventory = new Inventory();
@@ -80,11 +80,18 @@ public class NpcCreator {
             System.out.print(
                     "Enter " + name + "'s attributes with a space between each number (STR DEX CON INT WIS CHA): ");
             try {
-
-                for (int i = 0; i < 6; i++) {
-                    response_int = input.nextInt();
-                    attributes.put(Attributes.values()[i], response_int);
-                }
+                response_int = input.nextInt();
+                attributes.setScore(Attributes.STR, response_int);
+                response_int = input.nextInt();
+                attributes.setScore(Attributes.DEX, response_int);
+                response_int = input.nextInt();
+                attributes.setScore(Attributes.CON, response_int);
+                response_int = input.nextInt();
+                attributes.setScore(Attributes.INT, response_int);
+                response_int = input.nextInt();
+                attributes.setScore(Attributes.WIS, response_int);
+                response_int = input.nextInt();
+                attributes.setScore(Attributes.CHA, response_int);
 
             } catch (java.util.InputMismatchException e) {
                 System.err.println("Invalid input, expected 6 integers separated by spaces.");
@@ -99,9 +106,6 @@ public class NpcCreator {
             validation_response = input.nextLine();
             valid = validate(validation_response);
         } while (!valid);
-
-        // modifiers
-        modifiers = calculateModifiers(attributes);
 
         // stats
         do {
@@ -132,7 +136,7 @@ public class NpcCreator {
             stats.put(Stats.XPEARNED, 0);
             stats.put(Stats.PROFICIENCYBONUS, 0);
             // NOTE: 1 CR is roughly 4 level one players
-            stats.put(Stats.AC, 10 + modifiers.get(Attributes.DEX));
+            stats.put(Stats.AC, 10 + attributes.getMod(Attributes.DEX));
 
             System.out.print("Given max HP of " + max_hp + " and cr of " + cr +
                     " max/current hp is: " + stats.get(Stats.CURRENTHP) + "" +
@@ -192,7 +196,7 @@ public class NpcCreator {
 
         }
 
-        Statblock creation = new Statblock(name, creatureType, attributes, modifiers, stats, proficiencies, inventory,
+        Statblock creation = new Statblock(name, creatureType, attributes, stats, proficiencies, inventory,
                 equipmentSlots);
 
         npc = new Creature(name, creation);
@@ -221,6 +225,11 @@ public class NpcCreator {
         }
 
         System.out.print(creation);
+        // GsonBuilder gb = new GsonBuilder();
+        // String json = gb.setPrettyPrinting().create().toJson(creation);
+        // System.out.println(json);
+        // Statblock hi = gb.create().fromJson(json, Statblock.class);
+        // System.out.println(hi);
 
         Statblock test = new Statblock(creation.toString());
         System.out.println(test);
@@ -248,10 +257,10 @@ public class NpcCreator {
 
     }
 
-    private void printAttributes(HashMap<Attributes, Integer> attributes) {
+    private void printAttributes(AttributeBlock attributes) {
         for (int i = 0; i < 6; i++) {
             Attributes attribute_name = Attributes.values()[i];
-            int attribute = attributes.get(attribute_name);
+            int attribute = attributes.getScore(attribute_name);
 
             if (i == 5) {
                 System.out.print(attribute_name + " = " + attribute);
@@ -259,18 +268,6 @@ public class NpcCreator {
                 System.out.print(attribute_name + " = " + attribute + ", ");
             }
         }
-    }
-
-    private HashMap<Attributes, Integer> calculateModifiers(HashMap<Attributes, Integer> attributes) {
-        HashMap<Attributes, Integer> modifiers = new HashMap<>();
-        for (int i = 0; i < 6; i++) {
-            Attributes attribute_name = Attributes.values()[i];
-            int attribute = attributes.get(attribute_name);
-            int modifier = (attribute - 10) / 2;
-            modifiers.put(attribute_name, modifier);
-        }
-
-        return modifiers;
     }
 
     public static void main(String[] args) {
