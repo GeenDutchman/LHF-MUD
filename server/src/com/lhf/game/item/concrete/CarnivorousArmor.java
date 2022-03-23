@@ -21,7 +21,7 @@ public class CarnivorousArmor extends Usable implements Equipable {
 
     public CarnivorousArmor(boolean isVisible) {
         // deceptive name
-        super(" Leather Armor ", isVisible, -1);
+        super("Carnivorous Armor", isVisible, -1);
 
         slots = Collections.singletonList(EquipmentSlots.ARMOR);
         types = Arrays.asList(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
@@ -34,7 +34,7 @@ public class CarnivorousArmor extends Usable implements Equipable {
                 return "That is not a valid target at all!";
             } else if (object instanceof Creature) {
                 if (equippedAndUsed) {
-                    return "The " + getStartTagName() + "Carnivorous Armor" + getEndTagName()
+                    return "The " + this.getColorTaggedName()
                             + " snuggles around you as you poke at it, but otherwise does nothing.";
                 }
                 Integer currHealth = ((Creature) object).getStats().get(Stats.CURRENTHP);
@@ -44,8 +44,7 @@ public class CarnivorousArmor extends Usable implements Equipable {
                     ((Creature) object).updateAc(rewardAC);
                     equippedAndUsed = true;
                     return "A thousand teeth sink into your body, and you feel life force ripped out of you.  " +
-                            "Once it is sated, you feel the " + getStartTagName() + "Carnivorous Armor"
-                            + getEndTagName() +
+                            "Once it is sated, you feel the " + this.getColorTaggedName() +
                             " tighten up around its most recent, precious meal.  It leaves the rest for later.";
                 } else {
                     return "You need more health to use this item.";
@@ -53,6 +52,14 @@ public class CarnivorousArmor extends Usable implements Equipable {
             }
             return "You cannot use this on that!  You can only use it on yourself.";
         });
+    }
+
+    @Override
+    public String getName() {
+        if (this.equippedAndUsed) {
+            return "Carnivourous Armor";
+        }
+        return "Leather Armor";
     }
 
     @Override

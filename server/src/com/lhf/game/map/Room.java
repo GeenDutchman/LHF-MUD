@@ -146,7 +146,7 @@ public class Room {
         StringJoiner output = new StringJoiner(", ");
         for (Item o : items) {
             if (o.checkVisibility()) {
-                output.add(o.getStartTagName() + o.getName() + o.getEndTagName());
+                output.add(o.getColorTaggedName());
             }
         }
         return output.toString();
@@ -155,7 +155,7 @@ public class Room {
     public String getListOfAllItems() {
         StringJoiner output = new StringJoiner(", ");
         for (Item o : items) {
-            output.add(o.getStartTagName() + o.getName() + o.getEndTagName());
+            output.add(o.getColorTaggedName());
         }
         return output.toString();
     }
@@ -225,7 +225,7 @@ public class Room {
                     InteractObject ex = (InteractObject) ro;
                     return "<interaction>" + ex.doUseAction(p) + "</interaction>";
                 } else {
-                    return "You try to interact with " + ro.getStartTagName() + ro.getName() + ro.getEndTagName()
+                    return "You try to interact with " + ro.getColorTaggedName()
                             + ", but nothing happens.";
                 }
             }
@@ -399,8 +399,9 @@ public class Room {
         if (!player.isInBattle()) {
             this.battleManager.addCreatureToBattle(player);
             if (this.battleManager.isBattleOngoing()) {
-                messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(player.getStartTagName() + player.getName()
-                        + player.getEndTagName() + " has joined the ongoing battle!"), player.getId());
+                messenger.sendMessageToAllInRoomExceptPlayer(
+                        new GameMessage(player.getColorTaggedName() + " has joined the ongoing battle!"),
+                        player.getId());
             }
         }
 

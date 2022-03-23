@@ -455,8 +455,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             if (item == null) {
                 sb.append(slot.toString()).append(": ").append("empty. ");
             } else {
-                sb.append(slot.toString()).append(": ").append(item.getStartTagName()).append(item.getName())
-                        .append(item.getEndTagName()).append(". ");
+                sb.append(slot.toString()).append(": ").append(item.getColorTaggedName()).append(". ");
             }
         }
 
@@ -496,7 +495,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                 }
                 return result;
             }
-            return item.getStartTagName() + item.getName() + item.getEndTagName() + " is not usable!";
+            return item.getColorTaggedName() + " is not usable!";
         }
         return "You do not have that '" + itemName + "' to use!";
     }
@@ -534,15 +533,13 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                     this.applyUse(equipThing.equip());
                     this.inventory.removeItem(equipThing);
                     this.equipmentSlots.putIfAbsent(slot, (Item) equipThing);
-                    return unequipMessage + ((Item) equipThing).getStartTagName() + equipThing.getName()
-                            + ((Item) equipThing).getEndTagName() + " successfully equipped!\r\n";
+                    return unequipMessage + ((Item) equipThing).getColorTaggedName() + " successfully equipped!\r\n";
                 }
-                String notEquip = "You cannot equip the " + ((Item) equipThing).getStartTagName() + equipThing.getName()
-                        + ((Item) equipThing).getEndTagName() + " to " + slot.toString() + "\n";
+                String notEquip = "You cannot equip the " + ((Item) equipThing).getColorTaggedName() + " to "
+                        + slot.toString() + "\n";
                 return notEquip + "You can equip it to: " + equipThing.printWhichSlots();
             }
-            return ((Item) fromInventory).getStartTagName() + fromInventory.getName()
-                    + ((Item) fromInventory).getEndTagName() + " is not equippable!\r\n";
+            return ((Item) fromInventory).getColorTaggedName() + " is not equippable!\r\n";
         }
 
         return "'" + itemName + "' is not in your inventory, so you cannot equip it!\r\n";
@@ -560,8 +557,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                         this.equipmentSlots.remove(thingSlot);
                         this.applyUse(thing.unequip());
                         this.inventory.addItem(thing);
-                        return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName()
-                                + ((Item) thing).getEndTagName() + "\r\n";
+                        return "You have unequipped your " + ((Item) thing).getColorTaggedName() + "\r\n";
                     }
                 }
                 return "That is not currently equipped!";
@@ -573,8 +569,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         if (thing != null) {
             this.applyUse(thing.unequip());
             this.inventory.addItem(thing);
-            return "You have unequipped your " + ((Item) thing).getStartTagName() + thing.getName()
-                    + ((Item) thing).getEndTagName() + "\r\n";
+            return "You have unequipped your " + ((Item) thing).getColorTaggedName() + "\r\n";
         }
         return "That slot is empty.\r\n";
     }

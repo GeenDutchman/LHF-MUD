@@ -24,7 +24,8 @@ public abstract class Usable extends Item {
      *
      * @param name           The name to give the object
      * @param isVisible      Set if it is visible
-     * @param useSoManyTimes if > 0 then can use that many times, if < 0 then has infinite uses
+     * @param useSoManyTimes if > 0 then can use that many times, if < 0 then has
+     *                       infinite uses
      */
     public Usable(String name, boolean isVisible, int useSoManyTimes) {
         super(name, isVisible);
@@ -83,7 +84,7 @@ public abstract class Usable extends Item {
         }
 
         if (method == null) {
-            return "You cannot use " + getStartTagName() + getName() + getEndTagName() + " on that!";
+            return "You cannot use " + this.getColorTaggedName() + " on that!";
         }
 
         if (numCanUseTimes > 0) {

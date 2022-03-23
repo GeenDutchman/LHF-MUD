@@ -293,34 +293,12 @@ public class BattleManager {
 
         sb.append("Battle Participants:\r\n");
         for (Creature c : participants) {
-            if (c instanceof Player) {
-                Player p = (Player) c;
-                sb.append(p.getStartTagName());
-                sb.append(p.getName());
-                sb.append(p.getEndTagName());
-                sb.append("\r\n");
-            } else {
-                sb.append(c.getStartTagName());
-                sb.append(c.getName());
-                sb.append(c.getEndTagName());
-                sb.append("\r\n");
-            }
+            sb.append(c.getColorTaggedName()).append("\r\n");
         }
         sb.append("\r\n");
         sb.append("Up Next: ");
         Creature c = getCurrent();
-        if (c instanceof Player) {
-            Player p = (Player) c;
-            sb.append(p.getStartTagName());
-            sb.append(p.getName());
-            sb.append(p.getEndTagName());
-            sb.append("\r\n");
-        } else {
-            sb.append(c.getStartTagName());
-            sb.append(c.getName());
-            sb.append(c.getEndTagName());
-            sb.append("\r\n");
-        }
+        sb.append(c.getColorTaggedName()).append("\r\n");
         return sb.toString();
     }
 }
