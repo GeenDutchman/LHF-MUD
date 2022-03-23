@@ -4,7 +4,6 @@ import com.lhf.game.battle.AttackAction;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
-import com.lhf.game.dice.*;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Takeable;
@@ -95,7 +94,7 @@ public class Room {
         }
 
         if (p.isInBattle()) {
-            int dexCheck = DiceRoller.getInstance().d20(1) + p.getModifiers().get(Attributes.DEX);
+            int dexCheck = p.check(Attributes.DEX).getTotal(); // TODO: actually use the result here
             if (dexCheck > 8) { // arbitrary boundary
                 messenger.sendMessageToUser(new GameMessage("You are fleeing the battle. Flee!  Flee!\r\n"), p.getId());
                 messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(p.getName() + " has fled the battle!\r\n"),
