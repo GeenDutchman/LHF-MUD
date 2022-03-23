@@ -85,8 +85,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     private CreatureType creatureType; // See shared enum
     // private MonsterType monsterType; // I dont know if we'll need this
 
-    // attributes and modifiers must in the following order:
-    // STR:0, DEX:1, CON:2 , INT:3, WIS:4, CHA:5
+    // uses attributes STR, DEX, CON, INT, WIS, CHA
     private HashMap<Attributes, Integer> attributes;
     private HashMap<Attributes, Integer> modifiers;
 

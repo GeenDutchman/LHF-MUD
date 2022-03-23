@@ -71,8 +71,6 @@ public class Statblock {
 
     // public MonsterType monsterType;// I dont know if we'll need this
 
-    // attributes and modifiers must in the following order:
-    // STR:0, DEX:1, CON:2 , INT:3, WIS:4, CHA:5
     public HashMap<Attributes, Integer> attributes;
     public HashMap<Attributes, Integer> modifiers;
     // contains CurrentHp, MaxHp, Xp, proficiencyBonus, AC
