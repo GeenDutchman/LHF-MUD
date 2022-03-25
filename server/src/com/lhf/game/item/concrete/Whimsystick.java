@@ -70,7 +70,7 @@ public class Whimsystick extends Weapon {
     public Attack modifyAttack(Attack attack) {
         Dice chooser = new DiceD6(1);
         if (chooser.rollDice().getTotal() <= 2) {
-            attack = attack.addFlavorAndRoll(DamageFlavor.HEALING, chooser.rollDice()); // TODO: makes sure this heals
+            attack = attack.addFlavorAndRoll(DamageFlavor.HEALING, chooser.rollDice());
         } else {
             for (DamageDice dd : this.getDamages()) {
                 attack = attack.addFlavorAndRoll(dd.getFlavor(), dd.rollDice());

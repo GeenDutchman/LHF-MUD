@@ -290,13 +290,23 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         return Objects.requireNonNullElseGet(weapon, Fist::new);
     }
 
+    protected int adjustDamageByFlavor(DamageFlavor flavor, int value) {
+        switch (flavor) {
+            case HEALING:
+                return value;
+            default:
+                return -1 * value;
+        }
+    }
+
     public String applyAttack(Attack attack) {
         // add stuff to calculate if the attack hits or not, and return false if so
         StringBuilder output = new StringBuilder();
         for (Map.Entry<DamageFlavor, RollResult> entry : attack) {
-            // DamageFlavor flavor = (DamageFlavor) entry.getKey();
+            DamageFlavor flavor = (DamageFlavor) entry.getKey();
             RollResult damage = (RollResult) entry.getValue();
-            updateHitpoints(-damage.getTotal());
+            int adjustedDamage = adjustDamageByFlavor(flavor, damage.getTotal());
+            updateHitpoints(adjustedDamage);
             output.append(attack.getTaggedAttacker()).append(" has dealt ").append(damage.getColorTaggedName())
                     .append(" damage to ").append(getColorTaggedName()).append(".\n");
         }
