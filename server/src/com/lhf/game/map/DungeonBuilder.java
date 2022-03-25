@@ -17,9 +17,9 @@ public class DungeonBuilder {
         Dungeon dungeon = new Dungeon();
 
         StatblockManager loader = new StatblockManager();
-        Statblock goblin = new Statblock(loader.statblockFromfile("goblin"));
-        Statblock bugbear = new Statblock(loader.statblockFromfile("bugbear"));
-        Statblock hobgoblin = new Statblock(loader.statblockFromfile("hobgoblin"));
+        Statblock goblin = new Statblock(loader.statblockFromfile("goblin.old"));
+        Statblock bugbear = new Statblock(loader.statblockFromfile("bugbear.old"));
+        Statblock hobgoblin = new Statblock(loader.statblockFromfile("hobgoblin.old"));
 
         // Entry Room RM1
         Room entryRoom = new Room("This is the entry room.");
