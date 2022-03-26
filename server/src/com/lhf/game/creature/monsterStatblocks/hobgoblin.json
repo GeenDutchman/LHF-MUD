@@ -1,7 +1,7 @@
 {
   "creatureRace": "hobgoblin",
   "creatureType": "MONSTER",
-  "abilityScores": {
+  "attributes": {
     "strength": {
       "score": 13,
       "scoreBonus": 0,
@@ -33,13 +33,24 @@
       "modBonus": 0
     }
   },
-  "maxHealth": 11,
-  "baseArmorClass": 18,
-  "proficencyBonus": 0,
+  "stats": {
+    "XPWORTH": 100,
+    "MAXHP": 11,
+    "AC": 18,
+    "XPEARNED": 0,
+    "PROFICIENCYBONUS": 0,
+    "CURRENTHP": 11
+  },
+  "proficiencies": [
+    "MARTIALWEAPONS",
+    "SIMPLEMELEEWEAPONS",
+    "SHIELD",
+    "HEAVYARMOR"
+  ],
   "inventory": {
     "items": []
   },
-  "equippedItems": {
+  "equipmentSlots": {
     "SHIELD": {
       "AC": 2,
       "slots": [
@@ -87,11 +98,5 @@
       "objectName": "Longsword",
       "isVisible": true
     }
-  },
-  "proficiencies": [
-    "MARTIALWEAPONS",
-    "SHIELD",
-    "HEAVYARMOR",
-    "SIMPLEMELEEWEAPONS"
-  ]
+  }
 }
