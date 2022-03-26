@@ -10,56 +10,70 @@ public class InMessage {
         String[] words = payload.split(" ");
         Stream<String> stream = Arrays.stream(words);
         Optional<String> first = Optional.ofNullable(words[0]);
-        String arguments = stream.skip(1).collect(Collectors.joining(" "));
+        String arguments = stream.skip(1).collect(Collectors.joining(" ")).trim();
         return first.flatMap(val -> {
+            Optional<InMessage> toReturn = Optional.empty();
             try {
+                // allows empty
                 switch (val.toLowerCase()) {
                     case "say":
-                        return Optional.of(new SayMessage(arguments));
-                    case "tell":
-                        return Optional.of(new TellMessage(arguments));
+                        toReturn = Optional.of(new SayMessage(arguments));
+                        break;
                     case "exit":
-                        return Optional.of(new ExitMessage());
-                    case "create":
-                        CreateInMessage create_message = new CreateInMessage(arguments);
-                        if (!create_message.getUsername().equals("")) {
-                            return Optional.of(create_message);
-                        } else {
-                            return Optional.empty();
-                        }
-                    case "examine":
-                        return Optional.of(new ExamineMessage(arguments));
-                    case "go":
-                        return Optional.of(new GoMessage(arguments));
-                    case "interact":
-                        return Optional.of(new InteractMessage(arguments));
+                        toReturn = Optional.of(new ExitMessage());
+                        break;
                     case "look":
-                        return Optional.of(new LookMessage());
-                    case "take":
-                        return Optional.of(new TakeMessage(arguments));
-                    case "drop":
-                        return Optional.of(new DropMessage(arguments));
+                        toReturn = Optional.of(new LookMessage());
+                        break;
                     case "inventory":
-                        return Optional.of(new InventoryMessage());
-                    case "equip":
-                        return Optional.of(new EquipMessage(arguments));
-                    case "unequip":
-                        return Optional.of(new UnequipMessage(arguments));
-                    case "attack":
-                        return Optional.of(new AttackMessage(arguments));
-                    case "use":
-                        return Optional.of(new UseMessage(arguments));
+                        toReturn = Optional.of(new InventoryMessage());
+                        break;
                     case "status":
-                        return Optional.of(new StatusMessage());
+                        toReturn = Optional.of(new StatusMessage());
+                        break;
                     case "players":
-                        return Optional.of(new ListPlayersMessage());
-                    default:
-                        return Optional.empty();
+                        toReturn = Optional.of(new ListPlayersMessage());
+                        break;
+                }
+
+                if (toReturn.isEmpty() && arguments.length() > 0) {
+                    switch (val.toLowerCase()) {
+                        case "tell":
+                            return Optional.of(new TellMessage(arguments));
+                        case "create":
+                            CreateInMessage create_message = new CreateInMessage(arguments);
+                            if (!create_message.getUsername().equals("")) {
+                                return Optional.of(create_message);
+                            } else {
+                                return Optional.empty();
+                            }
+                        case "examine":
+                            return Optional.of(new ExamineMessage(arguments));
+                        case "go":
+                            return Optional.of(new GoMessage(arguments));
+                        case "interact":
+                            return Optional.of(new InteractMessage(arguments));
+                        case "take":
+                            return Optional.of(new TakeMessage(arguments));
+                        case "drop":
+                            return Optional.of(new DropMessage(arguments));
+                        case "equip":
+                            return Optional.of(new EquipMessage(arguments));
+                        case "unequip":
+                            return Optional.of(new UnequipMessage(arguments));
+                        case "attack":
+                            return Optional.of(new AttackMessage(arguments));
+                        case "use":
+                            return Optional.of(new UseMessage(arguments));
+                        default:
+                            return Optional.empty();
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 return Optional.empty();
             }
+            return toReturn;
         });
     }
 
@@ -130,4 +144,3 @@ public class InMessage {
 
     }
 }
-
