@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.lhf.game.battle.Attack;
-import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
@@ -20,6 +19,7 @@ public class ReaperScythe extends Weapon {
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
     private List<DamageDice> damages;
+    private Map<String, Integer> equippingChanges;
 
     public ReaperScythe(boolean isVisible) {
         super("Reaper Scythe", isVisible);
@@ -27,6 +27,7 @@ public class ReaperScythe extends Weapon {
         slots = Arrays.asList(EquipmentSlots.WEAPON);
         types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
         damages = Arrays.asList(new DamageDice(1, DieType.EIGHT, this.getMainFlavor()).setStaticBonus(100));
+        equippingChanges = new HashMap<>(0); // changes nothing
     }
 
     @Override
@@ -40,13 +41,8 @@ public class ReaperScythe extends Weapon {
     }
 
     @Override
-    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
-        return new HashMap<>(0); // changes nothing
-    }
-
-    @Override
-    public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
-        return new HashMap<>(0); // changes nothing
+    public Map<String, Integer> getEquippingChanges() {
+        return this.equippingChanges;
     }
 
     @Override

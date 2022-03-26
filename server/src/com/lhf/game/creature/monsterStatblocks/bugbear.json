@@ -61,7 +61,10 @@
       ],
       "className": "com.lhf.game.item.concrete.Shield",
       "objectName": "Shield",
-      "isVisible": true
+      "isVisible": true,
+      "equippingChanges": {
+        "AC": 2
+      }
     },
     "ARMOR": {
       "AC": 2,
@@ -74,7 +77,10 @@
       ],
       "className": "com.lhf.game.item.concrete.LeatherArmor",
       "objectName": "Leather Armor",
-      "isVisible": true
+      "isVisible": true,
+      "equippingChanges": {
+        "AC": 2
+      }
     },
     "WEAPON": {
       "slots": [
@@ -97,7 +103,8 @@
       "methods": {},
       "className": "com.lhf.game.item.concrete.BossClub",
       "objectName": "Boss Club",
-      "isVisible": true
+      "isVisible": true,
+      "equippingChanges": {}
     }
   }
 }

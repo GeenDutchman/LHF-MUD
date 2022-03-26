@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.lhf.game.creature.inventory.EquipmentOwner;
+import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Consumable;
@@ -16,6 +16,7 @@ import com.lhf.game.map.Room;
 public class RingOfSeeing extends Usable implements Equipable, Consumable {
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
+    private Map<String, Integer> equippingChanges;
 
     public RingOfSeeing(boolean isVisible) {
         super("Ring of Seeing", isVisible, 3);
@@ -43,6 +44,8 @@ public class RingOfSeeing extends Usable implements Equipable, Consumable {
         slots = new ArrayList<>();
         slots.add(EquipmentSlots.LEFTHAND);
         slots.add(EquipmentSlots.RIGHTHAND);
+        equippingChanges = new HashMap<>(0);
+        equippingChanges.put(Attributes.WIS.toString(), 2);
     }
 
     @Override
@@ -61,13 +64,8 @@ public class RingOfSeeing extends Usable implements Equipable, Consumable {
     }
 
     @Override
-    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
-        return new HashMap<>(0); // changes nothing
-    }
-
-    @Override
-    public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
-        return new HashMap<>(0); // changes nothing
+    public Map<String, Integer> getEquippingChanges() {
+        return this.equippingChanges;
     }
 
     @Override

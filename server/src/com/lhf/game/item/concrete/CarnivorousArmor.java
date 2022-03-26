@@ -23,13 +23,15 @@ public class CarnivorousArmor extends Usable implements Equipable {
 
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
+    private Map<String, Integer> equippingChanges;
 
     public CarnivorousArmor(boolean isVisible) {
         super("Carnivorous Armor", isVisible, -1);
 
         slots = Collections.singletonList(EquipmentSlots.ARMOR);
         types = Arrays.asList(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
-
+        equippingChanges = new HashMap<>();
+        equippingChanges.put(Stats.AC.toString(), this.AC);
     }
 
     @Override
@@ -53,8 +55,6 @@ public class CarnivorousArmor extends Usable implements Equipable {
 
     @Override
     public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
-        Map<String, Integer> result = new HashMap<>();
-        result.put("AC", this.AC);
         this.equipped = true;
         this.equippedAndUsed = false;
 
@@ -85,22 +85,24 @@ public class CarnivorousArmor extends Usable implements Equipable {
             return "You cannot use this on that!  You can only use it on yourself.";
         });
 
-        return result;
+        return Equipable.super.onEquippedBy(newOwner);
     }
 
     @Override
     public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
-        Map<String, Integer> result = new HashMap<>();
-        if (!equippedAndUsed) {
-            result.put("AC", -1 * this.AC);
-        } else {
-            result.put("AC", -1 * (this.AC + this.rewardAC));
-            result.put("CURRENTHP", -2);
+        Map<String, Integer> result = Equipable.super.onUnequippedBy(disowner);
+        if (equippedAndUsed) {
+            result.put(Stats.CURRENTHP.toString(), -2);
         }
         equipped = false;
         equippedAndUsed = false;
         removeUseAction(disowner.getName());
         return result;
+    }
+
+    @Override
+    public Map<String, Integer> getEquippingChanges() {
+        return this.equippingChanges;
     }
 
     @Override

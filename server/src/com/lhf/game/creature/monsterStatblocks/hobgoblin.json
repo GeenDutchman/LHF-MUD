@@ -61,7 +61,10 @@
       ],
       "className": "com.lhf.game.item.concrete.Shield",
       "objectName": "Shield",
-      "isVisible": true
+      "isVisible": true,
+      "equippingChanges": {
+        "AC": 2
+      }
     },
     "ARMOR": {
       "AC": 5,
@@ -73,7 +76,10 @@
       ],
       "className": "com.lhf.game.item.concrete.ChainMail",
       "objectName": "Chain Mail",
-      "isVisible": true
+      "isVisible": true,
+      "equippingChanges": {
+        "AC": 2
+      }
     },
     "WEAPON": {
       "slots": [
@@ -96,7 +102,8 @@
       "methods": {},
       "className": "com.lhf.game.item.concrete.Longsword",
       "objectName": "Longsword",
-      "isVisible": true
+      "isVisible": true,
+      "equippingChanges": {}
     }
   }
 }

@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.lhf.game.battle.Attack;
-import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD6;
@@ -15,6 +14,7 @@ import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.Stats;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 
@@ -22,6 +22,7 @@ public class Whimsystick extends Weapon {
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
     private List<DamageDice> damages;
+    private Map<String, Integer> equippingChanges;
     private int acBonus = 1;
 
     public Whimsystick(boolean isVisible) {
@@ -30,6 +31,8 @@ public class Whimsystick extends Weapon {
         slots = Collections.singletonList(EquipmentSlots.WEAPON);
         types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.QUARTERSTAFF, EquipmentTypes.CLUB);
         damages = Arrays.asList(new DamageDice(1, DieType.SIX, this.getMainFlavor()));
+        equippingChanges = new HashMap<>();
+        equippingChanges.put(Stats.AC.toString(), this.acBonus);
     }
 
     @Override
@@ -43,17 +46,8 @@ public class Whimsystick extends Weapon {
     }
 
     @Override
-    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
-        Map<String, Integer> result = new HashMap<>();
-        result.put("AC", this.acBonus);
-        return result;
-    }
-
-    @Override
-    public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
-        Map<String, Integer> result = new HashMap<>();
-        result.put("AC", -1 * this.acBonus);
-        return result;
+    public Map<String, Integer> getEquippingChanges() {
+        return this.equippingChanges;
     }
 
     @Override

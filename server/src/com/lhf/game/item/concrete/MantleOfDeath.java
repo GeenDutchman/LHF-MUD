@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -18,12 +17,17 @@ public class MantleOfDeath extends Item implements Equipable {
 
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
+    private Map<String, Integer> equippingChanges;
 
     public MantleOfDeath(boolean isVisible) {
         super("Mantle Of Death", isVisible);
 
         slots = Arrays.asList(EquipmentSlots.ARMOR);
         types = Arrays.asList(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
+        equippingChanges = new HashMap<>();
+        equippingChanges.put(Stats.AC.toString(), this.AC);
+        equippingChanges.put(Stats.MAXHP.toString(), this.MAX_HEALTH);
+        equippingChanges.put(Stats.CURRENTHP.toString(), this.MAX_HEALTH);
     }
 
     @Override
@@ -37,21 +41,8 @@ public class MantleOfDeath extends Item implements Equipable {
     }
 
     @Override
-    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
-        Map<String, Integer> result = new HashMap<>();
-        result.put(Stats.AC.toString(), this.AC);
-        result.put(Stats.MAXHP.toString(), this.MAX_HEALTH);
-        result.put(Stats.CURRENTHP.toString(), this.MAX_HEALTH);
-        return result;
-    }
-
-    @Override
-    public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
-        Map<String, Integer> result = new HashMap<>();
-        result.put("AC", -1 * this.AC);
-        result.put(Stats.MAXHP.toString(), -1 * this.MAX_HEALTH);
-        result.put(Stats.CURRENTHP.toString(), -1 * this.MAX_HEALTH);
-        return result;
+    public Map<String, Integer> getEquippingChanges() {
+        return this.equippingChanges;
     }
 
     @Override

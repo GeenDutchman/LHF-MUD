@@ -6,9 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Equipable;
 
@@ -17,12 +17,15 @@ public class LeatherArmor extends Item implements Equipable {
 
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
+    private Map<String, Integer> equippingChanges;
 
     public LeatherArmor(boolean isVisible) {
         super("Leather Armor", isVisible);
 
         slots = Collections.singletonList(EquipmentSlots.ARMOR);
         types = Arrays.asList(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
+        equippingChanges = new HashMap<>();
+        equippingChanges.put(Stats.AC.toString(), this.AC);
     }
 
     @Override
@@ -36,17 +39,8 @@ public class LeatherArmor extends Item implements Equipable {
     }
 
     @Override
-    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
-        Map<String, Integer> result = new HashMap<>();
-        result.put("AC", this.AC);
-        return result;
-    }
-
-    @Override
-    public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
-        Map<String, Integer> result = new HashMap<>();
-        result.put("AC", -1 * this.AC);
-        return result;
+    public Map<String, Integer> getEquippingChanges() {
+        return this.equippingChanges;
     }
 
     @Override

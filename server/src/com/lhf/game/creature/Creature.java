@@ -28,6 +28,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         private List<EquipmentSlots> slots;
         private List<EquipmentTypes> types;
         private List<DamageDice> damages;
+        private Map<String, Integer> equippingChanges;
 
         Fist() {
             super("Fist", false);
@@ -35,6 +36,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
             slots = Collections.singletonList(EquipmentSlots.WEAPON);
             damages = Arrays.asList(new DamageDice(1, DieType.TWO, this.getMainFlavor()));
+            equippingChanges = new HashMap<>(0); // changes nothing
         }
 
         @Override
@@ -48,13 +50,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         }
 
         @Override
-        public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
-            return new HashMap<>(0); // changes nothing
-        }
-
-        @Override
-        public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
-            return new HashMap<>(0); // changes nothing
+        public Map<String, Integer> getEquippingChanges() {
+            return this.equippingChanges;
         }
 
         @Override

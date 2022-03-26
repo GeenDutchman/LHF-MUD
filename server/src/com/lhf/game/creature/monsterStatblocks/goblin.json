@@ -60,7 +60,10 @@
             ],
             "className": "com.lhf.game.item.concrete.Shield",
             "objectName": "Shield",
-            "isVisible": true
+            "isVisible": true,
+            "equippingChanges": {
+                "AC": 2
+            }
         },
         "ARMOR": {
             "AC": 2,
@@ -73,7 +76,10 @@
             ],
             "className": "com.lhf.game.item.concrete.LeatherArmor",
             "objectName": "Leather Armor",
-            "isVisible": true
+            "isVisible": true,
+            "equippingChanges": {
+                "AC": 2
+            }
         },
         "WEAPON": {
             "slots": [
@@ -96,7 +102,10 @@
             "methods": {},
             "className": "com.lhf.game.item.concrete.Shortsword",
             "objectName": "Shortsword",
-            "isVisible": true
+            "isVisible": true,
+            "equippingChanges": {
+                "AC": 2
+            }
         }
     }
 }
