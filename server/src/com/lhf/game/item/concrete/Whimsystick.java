@@ -1,14 +1,22 @@
 package com.lhf.game.item.concrete;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.lhf.game.battle.Attack;
-import com.lhf.game.dice.*;
+import com.lhf.game.creature.inventory.EquipmentOwner;
+import com.lhf.game.dice.DamageDice;
+import com.lhf.game.dice.Dice;
+import com.lhf.game.dice.DiceD6;
+import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
-
-import java.util.*;
 
 public class Whimsystick extends Weapon {
     private List<EquipmentSlots> slots;
@@ -35,14 +43,14 @@ public class Whimsystick extends Weapon {
     }
 
     @Override
-    public Map<String, Integer> equip() {
+    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
         Map<String, Integer> result = new HashMap<>();
         result.put("AC", this.acBonus);
         return result;
     }
 
     @Override
-    public Map<String, Integer> unequip() {
+    public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
         Map<String, Integer> result = new HashMap<>();
         result.put("AC", -1 * this.acBonus);
         return result;

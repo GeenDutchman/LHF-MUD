@@ -1,13 +1,17 @@
 package com.lhf.game.item.concrete;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Consumable;
 import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.game.item.interfaces.Usable;
 import com.lhf.game.map.Room;
-
-import java.util.*;
 
 public class RingOfSeeing extends Usable implements Equipable, Consumable {
     private List<EquipmentSlots> slots;
@@ -57,12 +61,12 @@ public class RingOfSeeing extends Usable implements Equipable, Consumable {
     }
 
     @Override
-    public Map<String, Integer> equip() {
+    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
         return new HashMap<>(0); // changes nothing
     }
 
     @Override
-    public Map<String, Integer> unequip() {
+    public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
         return new HashMap<>(0); // changes nothing
     }
 

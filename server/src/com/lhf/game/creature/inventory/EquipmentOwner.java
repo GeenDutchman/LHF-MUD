@@ -8,5 +8,7 @@ public interface EquipmentOwner {
 
     String unequipItem(EquipmentSlots slot, String weapon);
 
-    Equipable getEqupped(EquipmentSlots slot);
+    Equipable getEquipped(EquipmentSlots slot);
+
+    String getName();
 }

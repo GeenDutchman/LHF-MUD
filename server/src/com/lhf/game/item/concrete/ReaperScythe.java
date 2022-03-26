@@ -1,14 +1,19 @@
 package com.lhf.game.item.concrete;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.lhf.game.battle.Attack;
-import com.lhf.game.dice.*;
+import com.lhf.game.creature.inventory.EquipmentOwner;
+import com.lhf.game.dice.DamageDice;
+import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
-
-import java.util.*;
 
 public class ReaperScythe extends Weapon {
 
@@ -35,12 +40,12 @@ public class ReaperScythe extends Weapon {
     }
 
     @Override
-    public Map<String, Integer> equip() {
+    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
         return new HashMap<>(0); // changes nothing
     }
 
     @Override
-    public Map<String, Integer> unequip() {
+    public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
         return new HashMap<>(0); // changes nothing
     }
 

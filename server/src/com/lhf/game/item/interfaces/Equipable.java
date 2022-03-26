@@ -1,5 +1,6 @@
 package com.lhf.game.item.interfaces;
 
+import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 
@@ -42,7 +43,7 @@ public interface Equipable extends Takeable {
         return sb.toString();
     }
 
-    Map<String, Integer> equip();
+    Map<String, Integer> onEquippedBy(EquipmentOwner newOwner);
 
-    Map<String, Integer> unequip();
+    Map<String, Integer> onUnequippedBy(EquipmentOwner disowner);
 }

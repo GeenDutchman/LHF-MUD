@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -36,7 +37,7 @@ public class MantleOfDeath extends Item implements Equipable {
     }
 
     @Override
-    public Map<String, Integer> equip() {
+    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
         Map<String, Integer> result = new HashMap<>();
         result.put(Stats.AC.toString(), this.AC);
         result.put(Stats.MAXHP.toString(), this.MAX_HEALTH);
@@ -45,7 +46,7 @@ public class MantleOfDeath extends Item implements Equipable {
     }
 
     @Override
-    public Map<String, Integer> unequip() {
+    public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
         Map<String, Integer> result = new HashMap<>();
         result.put("AC", -1 * this.AC);
         result.put(Stats.MAXHP.toString(), -1 * this.MAX_HEALTH);

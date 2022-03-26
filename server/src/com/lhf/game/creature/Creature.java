@@ -48,12 +48,12 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         }
 
         @Override
-        public Map<String, Integer> equip() {
+        public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
             return new HashMap<>(0); // changes nothing
         }
 
         @Override
-        public Map<String, Integer> unequip() {
+        public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
             return new HashMap<>(0); // changes nothing
         }
 
@@ -150,7 +150,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         this.equipmentSlots = statblock.equipmentSlots;
         for (Item item : this.equipmentSlots.values()) {
             Equipable equipped = (Equipable) item;
-            this.applyUse(equipped.equip());
+            this.applyUse(equipped.onEquippedBy(this));
         }
     }
 
@@ -524,7 +524,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                 }
                 if (equipThing.getWhichSlots().contains(slot)) {
                     String unequipMessage = this.unequipItem(slot, "");
-                    this.applyUse(equipThing.equip());
+                    this.applyUse(equipThing.onEquippedBy(this));
                     this.inventory.removeItem(equipThing);
                     this.equipmentSlots.putIfAbsent(slot, (Item) equipThing);
                     return unequipMessage + ((Item) equipThing).getColorTaggedName() + " successfully equipped!\r\n";
@@ -549,7 +549,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                 for (EquipmentSlots thingSlot : thing.getWhichSlots()) {
                     if (thing.equals(equipmentSlots.get(thingSlot))) {
                         this.equipmentSlots.remove(thingSlot);
-                        this.applyUse(thing.unequip());
+                        this.applyUse(thing.onUnequippedBy(this));
                         this.inventory.addItem(thing);
                         return "You have unequipped your " + ((Item) thing).getColorTaggedName() + "\r\n";
                     }
@@ -561,7 +561,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         }
         Equipable thing = (Equipable) getEquipmentSlots().remove(slot);
         if (thing != null) {
-            this.applyUse(thing.unequip());
+            this.applyUse(thing.onUnequippedBy(this));
             this.inventory.addItem(thing);
             return "You have unequipped your " + ((Item) thing).getColorTaggedName() + "\r\n";
         }
@@ -569,7 +569,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     }
 
     @Override
-    public Equipable getEqupped(EquipmentSlots slot) {
+    public Equipable getEquipped(EquipmentSlots slot) {
         return (Equipable) this.equipmentSlots.get(slot);
     }
 

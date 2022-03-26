@@ -1,5 +1,6 @@
 package com.lhf.game.item.concrete;
 
+import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.dice.*;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
@@ -35,12 +36,12 @@ public class BossClub extends Weapon {
     }
 
     @Override
-    public Map<String, Integer> equip() {
+    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
         return new HashMap<>(0); // changes nothing
     }
 
     @Override
-    public Map<String, Integer> unequip() {
+    public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
         return new HashMap<>(0); // changes nothing
     }
 

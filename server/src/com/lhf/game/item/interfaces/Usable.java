@@ -37,6 +37,10 @@ public abstract class Usable extends Item {
         methods.put(whenItIsThis, doThis);
     }
 
+    protected void removeUseAction(String targetName) {
+        methods.remove(targetName);
+    }
+
     public boolean hasUsesLeft() {
         return (numCanUseTimes < 0) || (hasBeenUsedTimes < numCanUseTimes);
     }

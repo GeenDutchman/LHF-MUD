@@ -1,13 +1,18 @@
 package com.lhf.game.item.concrete;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.game.item.interfaces.Usable;
-
-import java.util.*;
 
 public class CarnivorousArmor extends Usable implements Equipable {
     private int AC = 2;
@@ -73,7 +78,7 @@ public class CarnivorousArmor extends Usable implements Equipable {
     }
 
     @Override
-    public Map<String, Integer> equip() {
+    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
         Map<String, Integer> result = new HashMap<>();
         result.put("AC", this.AC);
         this.equipped = true;
@@ -82,7 +87,7 @@ public class CarnivorousArmor extends Usable implements Equipable {
     }
 
     @Override
-    public Map<String, Integer> unequip() {
+    public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
         Map<String, Integer> result = new HashMap<>();
         if (!equippedAndUsed) {
             result.put("AC", -1 * this.AC);
