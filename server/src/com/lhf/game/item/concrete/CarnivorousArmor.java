@@ -25,13 +25,40 @@ public class CarnivorousArmor extends Usable implements Equipable {
     private List<EquipmentTypes> types;
 
     public CarnivorousArmor(boolean isVisible) {
-        // deceptive name
         super("Carnivorous Armor", isVisible, -1);
 
         slots = Collections.singletonList(EquipmentSlots.ARMOR);
         types = Arrays.asList(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
 
-        setUseAction(Creature.class.getName(), (object) -> {
+    }
+
+    @Override
+    public String getName() {
+        if (this.equippedAndUsed) {
+            return "Carnivorous Armor";
+        }
+        // deceptive name
+        return "Leather Armor";
+    }
+
+    @Override
+    public List<EquipmentTypes> getTypes() {
+        return types;
+    }
+
+    @Override
+    public List<EquipmentSlots> getWhichSlots() {
+        return slots;
+    }
+
+    @Override
+    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
+        Map<String, Integer> result = new HashMap<>();
+        result.put("AC", this.AC);
+        this.equipped = true;
+        this.equippedAndUsed = false;
+
+        setUseAction(newOwner.getName(), (object) -> {
             if (!equipped) {
                 return "You need to equip this item in order to use it.";
             }
@@ -57,32 +84,7 @@ public class CarnivorousArmor extends Usable implements Equipable {
             }
             return "You cannot use this on that!  You can only use it on yourself.";
         });
-    }
 
-    @Override
-    public String getName() {
-        if (this.equippedAndUsed) {
-            return "Carnivourous Armor";
-        }
-        return "Leather Armor";
-    }
-
-    @Override
-    public List<EquipmentTypes> getTypes() {
-        return types;
-    }
-
-    @Override
-    public List<EquipmentSlots> getWhichSlots() {
-        return slots;
-    }
-
-    @Override
-    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
-        Map<String, Integer> result = new HashMap<>();
-        result.put("AC", this.AC);
-        this.equipped = true;
-        this.equippedAndUsed = false;
         return result;
     }
 
@@ -97,6 +99,7 @@ public class CarnivorousArmor extends Usable implements Equipable {
         }
         equipped = false;
         equippedAndUsed = false;
+        removeUseAction(disowner.getName());
         return result;
     }
 

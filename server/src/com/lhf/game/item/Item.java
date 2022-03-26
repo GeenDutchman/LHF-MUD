@@ -13,7 +13,7 @@ public abstract class Item implements Examinable, Taggable {
 
     public Item(String name, boolean isVisible) {
         this.className = this.getClass().getName();
-        this.objectName = name;
+        this.objectName = name.trim();
         this.isVisible = isVisible;
     }
 
@@ -30,7 +30,7 @@ public abstract class Item implements Examinable, Taggable {
     }
 
     public boolean checkName(String name) {
-        return objectName.equalsIgnoreCase(name);
+        return this.getName().equalsIgnoreCase(name.trim());
     }
 
     @Override
