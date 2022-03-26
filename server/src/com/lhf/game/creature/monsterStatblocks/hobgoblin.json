@@ -1,0 +1,97 @@
+{
+  "creatureRace": "hobgoblin",
+  "creatureType": "MONSTER",
+  "abilityScores": {
+    "strength": {
+      "score": 13,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "dexterity": {
+      "score": 12,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "constitution": {
+      "score": 12,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "intelligence": {
+      "score": 10,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "wisdom": {
+      "score": 10,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "charisma": {
+      "score": 9,
+      "scoreBonus": 0,
+      "modBonus": 0
+    }
+  },
+  "maxHealth": 11,
+  "baseArmorClass": 18,
+  "proficencyBonus": 0,
+  "inventory": {
+    "items": []
+  },
+  "equippedItems": {
+    "SHIELD": {
+      "AC": 2,
+      "slots": [
+        "SHIELD"
+      ],
+      "types": [
+        "SHIELD"
+      ],
+      "className": "com.lhf.game.item.concrete.Shield",
+      "objectName": "Shield",
+      "isVisible": true
+    },
+    "ARMOR": {
+      "AC": 5,
+      "slots": [
+        "ARMOR"
+      ],
+      "types": [
+        "HEAVYARMOR"
+      ],
+      "className": "com.lhf.game.item.concrete.ChainMail",
+      "objectName": "Chain Mail",
+      "isVisible": true
+    },
+    "WEAPON": {
+      "slots": [
+        "WEAPON"
+      ],
+      "types": [
+        "SIMPLEMELEEWEAPONS",
+        "LONGSWORD"
+      ],
+      "damages": [
+        {
+          "flavor": "SLASHING",
+          "count": 1,
+          "type": "EIGHT",
+          "staticBonus": 0
+        }
+      ],
+      "numCanUseTimes": -1,
+      "hasBeenUsedTimes": 0,
+      "methods": {},
+      "className": "com.lhf.game.item.concrete.Longsword",
+      "objectName": "Longsword",
+      "isVisible": true
+    }
+  },
+  "proficiencies": [
+    "MARTIALWEAPONS",
+    "SHIELD",
+    "HEAVYARMOR",
+    "SIMPLEMELEEWEAPONS"
+  ]
+}

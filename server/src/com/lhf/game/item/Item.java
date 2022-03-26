@@ -4,15 +4,21 @@ import com.lhf.game.map.objects.sharedinterfaces.Examinable;
 import com.lhf.game.map.objects.sharedinterfaces.Taggable;
 
 public abstract class Item implements Examinable, Taggable {
-
+    // Class name for discrimination
+    private final String className;
     // Name it will be known by
     private String objectName;
     // Will not output with look if false
     private boolean isVisible;
 
     public Item(String name, boolean isVisible) {
+        this.className = this.getClass().getName();
         this.objectName = name;
         this.isVisible = isVisible;
+    }
+
+    public String getClassName() {
+        return this.className;
     }
 
     public boolean checkVisibility() {

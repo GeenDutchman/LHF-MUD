@@ -1,0 +1,97 @@
+{
+  "creatureRace": "goblin",
+  "creatureType": "MONSTER",
+  "abilityScores": {
+    "strength": {
+      "score": 8,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "dexterity": {
+      "score": 14,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "constitution": {
+      "score": 10,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "intelligence": {
+      "score": 10,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "wisdom": {
+      "score": 8,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "charisma": {
+      "score": 8,
+      "scoreBonus": 0,
+      "modBonus": 0
+    }
+  },
+  "maxHealth": 7,
+  "baseArmorClass": 13,
+  "proficencyBonus": 0,
+  "inventory": {
+    "items": []
+  },
+  "equippedItems": {
+    "SHIELD": {
+      "AC": 2,
+      "slots": [
+        "SHIELD"
+      ],
+      "types": [
+        "SHIELD"
+      ],
+      "className": "com.lhf.game.item.concrete.Shield",
+      "objectName": "Shield",
+      "isVisible": true
+    },
+    "ARMOR": {
+      "AC": 2,
+      "slots": [
+        "ARMOR"
+      ],
+      "types": [
+        "LIGHTARMOR",
+        "LEATHER"
+      ],
+      "className": "com.lhf.game.item.concrete.LeatherArmor",
+      "objectName": "Leather Armor",
+      "isVisible": true
+    },
+    "WEAPON": {
+      "slots": [
+        "WEAPON"
+      ],
+      "types": [
+        "SIMPLEMELEEWEAPONS",
+        "LONGSWORD"
+      ],
+      "damages": [
+        {
+          "flavor": "SLASHING",
+          "count": 1,
+          "type": "SIX",
+          "staticBonus": 0
+        }
+      ],
+      "numCanUseTimes": -1,
+      "hasBeenUsedTimes": 0,
+      "methods": {},
+      "className": "com.lhf.game.item.concrete.Shortsword",
+      "objectName": "Shortsword",
+      "isVisible": true
+    }
+  },
+  "proficiencies": [
+    "SHIELD",
+    "SIMPLEMELEEWEAPONS",
+    "LIGHTARMOR"
+  ]
+}
