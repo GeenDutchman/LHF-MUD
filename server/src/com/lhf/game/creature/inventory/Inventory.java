@@ -23,11 +23,11 @@ public class Inventory {
     }
 
     public boolean hasItem(String itemName) {
-        return this.items.stream().anyMatch(i -> i.getName().equalsIgnoreCase(itemName));
+        return this.items.stream().anyMatch(i -> i.CheckNameRegex(itemName, 3));
     }
 
     public Optional<Takeable> getItem(String itemName) {
-        return this.items.stream().filter(i -> i.getName().equalsIgnoreCase(itemName)).findAny();
+        return this.items.stream().filter(i -> i.CheckNameRegex(itemName, 3)).findAny();
     }
 
     public boolean isEmpty() {
@@ -39,13 +39,13 @@ public class Inventory {
         return this.items.stream().map(item -> "<item>" + item.getName() + "</item>").collect(Collectors.joining(", "));
     }
 
-    public String toStoreString(){
+    public String toStoreString() {
         return this.items.stream().map(Takeable::getName).collect(Collectors.joining(", "));
     }
 
     public List<String> getItemList() {
         List<String> names = new ArrayList<>();
-        for(Takeable t : items) {
+        for (Takeable t : items) {
             names.add(t.getName());
         }
         return names;

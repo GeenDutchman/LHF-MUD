@@ -411,7 +411,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
         for (EquipmentSlots slot : this.equipmentSlots.keySet()) {
             Takeable thing = (Takeable) this.equipmentSlots.get(slot);
-            if (thing.getName().equalsIgnoreCase(itemName)) {
+            if (thing.CheckNameRegex(itemName, 3)) {
                 this.equipmentSlots.remove(slot);
                 return Optional.of(thing);
             }
@@ -460,7 +460,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         }
 
         for (Item equipped : this.equipmentSlots.values()) {
-            if (equipped.getName().equalsIgnoreCase(itemName)) {
+            if (equipped.CheckNameRegex(itemName, 3)) {
                 return Optional.of((equipped));
             }
         }

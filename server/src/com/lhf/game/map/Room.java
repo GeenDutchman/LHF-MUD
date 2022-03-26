@@ -184,14 +184,20 @@ public class Room {
         }
 
         for (Item ro : items) {
-            if (ro.checkName(name)) {
+            if (ro.CheckNameRegex(name, 3)) {
                 return "<description>" + ro.getDescription() + "</description>";
             }
         }
 
         for (RoomObject ro : objects) {
-            if (ro.checkName(name)) {
+            if (ro.CheckNameRegex(name, 3)) {
                 return "<description>" + ro.getDescription() + "</description>";
+            }
+        }
+
+        for (Item thing : p.getEquipmentSlots().values()) {
+            if (thing.CheckNameRegex(name, 3)) {
+                return "You have it equipped.  <description>" + thing.getDescription() + "</description>";
             }
         }
 
@@ -205,12 +211,6 @@ public class Room {
             return "It seems to resist examination...weird.";
         }
 
-        for (Item thing : p.getEquipmentSlots().values()) {
-            if (thing.checkName(name)) {
-                return "You have it equipped.  <description>" + thing.getDescription() + "</description>";
-            }
-        }
-
         return "You couldn't find " + name + " to examine.";
     }
 
@@ -220,7 +220,7 @@ public class Room {
         }
 
         for (RoomObject ro : objects) {
-            if (ro.checkName(name)) {
+            if (ro.CheckNameRegex(name, 3)) {
                 if (ro instanceof InteractObject) {
                     InteractObject ex = (InteractObject) ro;
                     return "<interaction>" + ex.doUseAction(p) + "</interaction>";
@@ -231,7 +231,7 @@ public class Room {
             }
         }
         for (Item item : items) {
-            if (item.checkName(name)) {
+            if (item.CheckNameRegex(name, 3)) {
                 return "You poke at it, but it does nothing.";
             }
         }
@@ -242,7 +242,7 @@ public class Room {
         Object indirectObject = null; // indirectObject is the receiver of the action
         if (onWhat != null && onWhat.length() > 0) {
             for (RoomObject ro : objects) {
-                if (ro.checkName(onWhat) && ro instanceof InteractObject) {
+                if (ro.CheckNameRegex(onWhat, 3) && ro instanceof InteractObject) {
                     indirectObject = ro;
                 }
             }
@@ -366,11 +366,10 @@ public class Room {
                 continue;
             }
             try {
-                Optional<Item> maybeItem = this.items.stream().filter(i -> i.getName().matches("(?i).*" + thing + ".*"))
-                        .findAny();
+                Optional<Item> maybeItem = this.items.stream().filter(i -> i.CheckNameRegex(thing, 3)).findAny();
                 if (maybeItem.isEmpty()) {
                     Optional<RoomObject> maybeRo = this.objects.stream()
-                            .filter(i -> i.getName().equalsIgnoreCase(thing))
+                            .filter(i -> i.CheckNameRegex(thing, 3))
                             .findAny();
 
                     if (maybeRo.isEmpty()) {
