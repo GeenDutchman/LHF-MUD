@@ -15,6 +15,7 @@ import com.lhf.server.messages.Messenger;
 import com.lhf.server.messages.out.GameMessage;
 
 import java.util.*;
+import java.util.regex.PatternSyntaxException;
 
 public class Room {
 
@@ -353,22 +354,53 @@ public class Room {
             return "You are in a fight right now, you are too busy to take that!";
         }
 
-        Optional<Item> maybeItem = this.items.stream().filter(i -> i.getName().equalsIgnoreCase(name)).findAny();
-        if (maybeItem.isEmpty()) {
-            Optional<RoomObject> maybeRo = this.objects.stream().filter(i -> i.getName().equalsIgnoreCase(name))
-                    .findAny();
-            if (maybeRo.isEmpty()) {
-                return "Could not find that item in this room.";
+        StringBuilder sb = new StringBuilder();
+        for (String splitThing : name.split(",")) {
+            String thing = splitThing.trim();
+            if (thing.length() < 3) {
+                sb.append("You'll need to be more specific than '").append(thing).append("'!\n");
+                continue;
             }
-            return "That's strange--it's stuck in it's place. You can't take it.";
+            if (thing.matches("[^ a-zA-Z_-]+") || thing.contains("*")) {
+                sb.append("I don't think '").append(thing).append("' is a valid name\n");
+                continue;
+            }
+            try {
+                Optional<Item> maybeItem = this.items.stream().filter(i -> i.getName().matches("(?i).*" + thing + ".*"))
+                        .findAny();
+                if (maybeItem.isEmpty()) {
+                    Optional<RoomObject> maybeRo = this.objects.stream()
+                            .filter(i -> i.getName().equalsIgnoreCase(thing))
+                            .findAny();
+
+                    if (maybeRo.isEmpty()) {
+                        if (thing.equalsIgnoreCase("all") || thing.equalsIgnoreCase("everything")) {
+                            sb.append("Aren't you being a bit greedy there by trying to grab '").append(thing)
+                                    .append("'?\n");
+                        } else {
+                            sb.append("Could not find that item '").append(thing).append("' in this room.\n");
+                        }
+                    } else {
+                        sb.append("That's strange--the ").append(maybeRo.get().getColorTaggedName())
+                                .append(" is stuck in its place. You can't take it.\n");
+                    }
+                    continue;
+                }
+                Item item = maybeItem.get();
+                if (item instanceof Takeable) {
+                    player.takeItem((Takeable) item);
+                    this.items.remove(item);
+                    sb.append(item.getColorTaggedName() + " successfully taken\n");
+                    continue;
+                }
+                sb.append("That's strange--it's stuck in its place. You can't take the " + item.getColorTaggedName())
+                        .append("\n");
+            } catch (PatternSyntaxException pse) {
+                pse.printStackTrace();
+                sb.append("Are you trying to be too clever with '").append(thing).append("'?\n");
+            }
         }
-        Item item = maybeItem.get();
-        if (item instanceof Takeable) {
-            player.takeItem((Takeable) item);
-            this.items.remove(item);
-            return "Successfully taken";
-        }
-        return "That's strange--it's stuck in it's place. You can't take it.";
+        return sb.toString();
     }
 
     String drop(Player player, String itemName) {
