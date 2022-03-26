@@ -84,6 +84,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
     private String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
     private CreatureType creatureType; // See shared enum
+    private String creatureRace;
     // private MonsterType monsterType; // I dont know if we'll need this
 
     // uses attributes STR, DEX, CON, INT, WIS, CHA
@@ -332,6 +333,14 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
     private Item getWhatInSlot(EquipmentSlots slot) {
         return this.equipmentSlots.get(slot);
+    }
+
+    public String getCreatureRace() {
+        return creatureRace;
+    }
+
+    public void setCreatureRace(String creatureRace) {
+        this.creatureRace = creatureRace;
     }
 
     // Setters

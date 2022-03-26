@@ -1,18 +1,23 @@
 package com.lhf.game.creature;
 
-import com.lhf.game.creature.inventory.Inventory;
-import com.lhf.game.creature.statblock.AttributeBlock;
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.StatblockManager;
-import com.lhf.game.enums.*;
-import com.lhf.game.item.Item;
-import com.lhf.game.item.interfaces.Takeable;
-
+import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
+
+import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.creature.statblock.AttributeBlock;
+import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.enums.Attributes;
+import com.lhf.game.enums.CreatureType;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.Stats;
+import com.lhf.game.item.Item;
+import com.lhf.game.item.interfaces.Takeable;
 
 public class NpcCreator {
 
@@ -236,7 +241,11 @@ public class NpcCreator {
 
         StatblockManager loader_unloader = new StatblockManager();
         loader_unloader.statblockToFile(test);
-        test = new Statblock(loader_unloader.statblockFromfile(name));
+        try {
+            test = loader_unloader.statblockFromfile(name);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         System.err.println(test);
         input.close();
         System.out.println("\nCreature Creation Complete!");

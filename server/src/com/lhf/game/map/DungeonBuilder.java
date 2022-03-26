@@ -1,11 +1,20 @@
 package com.lhf.game.map;
 
+import java.io.FileNotFoundException;
+
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.HealType;
 import com.lhf.game.item.Note;
-import com.lhf.game.item.concrete.*;
+import com.lhf.game.item.concrete.CarnivorousArmor;
+import com.lhf.game.item.concrete.ChainMail;
+import com.lhf.game.item.concrete.HealPotion;
+import com.lhf.game.item.concrete.MantleOfDeath;
+import com.lhf.game.item.concrete.ReaperScythe;
+import com.lhf.game.item.concrete.RustyDagger;
+import com.lhf.game.item.concrete.Shortsword;
+import com.lhf.game.item.concrete.Whimsystick;
 import com.lhf.game.map.objects.roomobject.Dispenser;
 import com.lhf.game.map.objects.roomobject.Switch;
 import com.lhf.game.map.objects.roomobject.actions.DispenserAction;
@@ -13,13 +22,13 @@ import com.lhf.game.map.objects.roomobject.interfaces.InteractAction;
 
 public class DungeonBuilder {
 
-    public static Dungeon buildStaticDungeon() {
+    public static Dungeon buildStaticDungeon() throws FileNotFoundException {
         Dungeon dungeon = new Dungeon();
 
         StatblockManager loader = new StatblockManager();
-        Statblock goblin = new Statblock(loader.statblockFromfile("goblin.old"));
-        Statblock bugbear = new Statblock(loader.statblockFromfile("bugbear.old"));
-        Statblock hobgoblin = new Statblock(loader.statblockFromfile("hobgoblin.old"));
+        Statblock goblin = loader.statblockFromfile("goblin");
+        Statblock bugbear = loader.statblockFromfile("bugbear");
+        Statblock hobgoblin = loader.statblockFromfile("hobgoblin");
 
         // Entry Room RM1
         Room entryRoom = new Room("This is the entry room.");

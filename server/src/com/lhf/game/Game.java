@@ -16,6 +16,7 @@ import com.lhf.server.messages.out.UserLeftMessage;
 import com.lhf.server.messages.out.WelcomeMessage;
 import com.lhf.server.interfaces.NotNull;
 
+import java.io.FileNotFoundException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
@@ -26,7 +27,7 @@ public class Game implements UserListener {
     private Logger logger;
     private Messenger messenger;
 
-    public Game(ServerInterface server, UserManager userManager) {
+    public Game(ServerInterface server, UserManager userManager) throws FileNotFoundException {
         this.logger = Logger.getLogger(this.getClass().getName());
         dungeon = DungeonBuilder.buildStaticDungeon();
         this.server = server;
