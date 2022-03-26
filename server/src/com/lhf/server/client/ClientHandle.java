@@ -1,11 +1,5 @@
 package com.lhf.server.client;
 
-import com.lhf.server.interfaces.ConnectionListener;
-import com.lhf.server.interfaces.MessageListener;
-import com.lhf.server.messages.in.InMessage;
-import com.lhf.server.messages.out.BadMessage;
-import com.lhf.server.messages.out.OutMessage;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,6 +7,13 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Optional;
 import java.util.logging.Logger;
+
+import com.lhf.server.interfaces.ConnectionListener;
+import com.lhf.server.interfaces.MessageListener;
+import com.lhf.server.messages.in.InMessage;
+import com.lhf.server.messages.out.BadMessage;
+import com.lhf.server.messages.out.FatalMessage;
+import com.lhf.server.messages.out.OutMessage;
 
 public class ClientHandle extends Thread {
     private Socket client;
@@ -65,9 +66,15 @@ public class ClientHandle extends Thread {
             }
             disconnect(); // clean up after itself
         } catch (IOException e) {
+            sendMsg(new FatalMessage());
             e.printStackTrace();
+        } catch (Exception e) {
+            sendMsg(new FatalMessage());
+            throw e;
+        } finally {
+            connectionListener.connectionTerminated(id); // let connectionListener know that it is over
+            this.kill();
         }
-        connectionListener.connectionTerminated(id); // let connectionListener know that it is over
     }
 
     public synchronized void sendMsg(OutMessage msg) {
@@ -83,6 +90,7 @@ public class ClientHandle extends Thread {
     void disconnect() throws IOException {
         this.logger.info("Disconnecting ClientHandler");
         if (connected && client.isConnected()) {
+            out.flush();
             out.close(); // closing these just in case
             in.close();
             client.close();
