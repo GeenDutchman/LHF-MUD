@@ -59,7 +59,7 @@
       "types": [
         "SHIELD"
       ],
-      "className": "com.lhf.game.item.concrete.Shield",
+      "className": "com.lhf.game.item.concrete.equipment.Shield",
       "objectName": "Shield",
       "isVisible": true,
       "equippingChanges": {
@@ -75,7 +75,7 @@
         "LIGHTARMOR",
         "LEATHER"
       ],
-      "className": "com.lhf.game.item.concrete.LeatherArmor",
+      "className": "com.lhf.game.item.concrete.equipment.LeatherArmor",
       "objectName": "Leather Armor",
       "isVisible": true,
       "equippingChanges": {
@@ -101,7 +101,7 @@
       "numCanUseTimes": -1,
       "hasBeenUsedTimes": 0,
       "methods": {},
-      "className": "com.lhf.game.item.concrete.BossClub",
+      "className": "com.lhf.game.item.concrete.equipment.BossClub",
       "objectName": "Boss Club",
       "isVisible": true,
       "equippingChanges": {}
