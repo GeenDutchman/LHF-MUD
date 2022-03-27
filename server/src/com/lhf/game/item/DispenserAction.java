@@ -1,10 +1,9 @@
-package com.lhf.game.map.objects.roomobject.actions;
+package com.lhf.game.item;
 
 import com.lhf.game.creature.Player;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.concrete.Dispenser;
+import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.Room;
-import com.lhf.game.map.objects.roomobject.Dispenser;
-import com.lhf.game.map.objects.roomobject.interfaces.InteractAction;
 
 import java.util.Map;
 

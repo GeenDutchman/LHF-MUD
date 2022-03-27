@@ -1,6 +1,6 @@
-package com.lhf.game.map.objects.roomobject;
+package com.lhf.game.item.concrete;
 
-import com.lhf.game.map.objects.roomobject.abstracts.InteractObject;
+import com.lhf.game.item.interfaces.InteractObject;
 
 public class Dispenser extends InteractObject {
     private int count;
