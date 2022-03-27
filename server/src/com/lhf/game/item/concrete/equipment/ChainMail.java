@@ -1,5 +1,6 @@
-package com.lhf.game.item.concrete;
+package com.lhf.game.item.concrete.equipment;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -10,16 +11,18 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.interfaces.Equipable;
 
-public class Shield extends Equipable {
-    private int AC = 2;
+public class ChainMail extends Equipable {
+    private int AC = 5;
+
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
     private Map<String, Integer> equippingChanges;
 
-    public Shield(boolean isVisible) {
-        super("Shield", isVisible);
-        types = Collections.singletonList(EquipmentTypes.SHIELD);
-        slots = Collections.singletonList(EquipmentSlots.SHIELD);
+    public ChainMail(boolean isVisible) {
+        super("Chain Mail", isVisible);
+
+        slots = Collections.singletonList(EquipmentSlots.ARMOR);
+        types = Arrays.asList(EquipmentTypes.HEAVYARMOR);
         equippingChanges = new HashMap<>();
         equippingChanges.put(Stats.AC.toString(), this.AC);
     }
@@ -41,7 +44,7 @@ public class Shield extends Equipable {
 
     @Override
     public String getDescription() {
-        return "This is a simple shield, it should protect you a little bit. \n"
-                + this.printStats();
+        return "This is some heavy chainmail. " + "It looks protective... now if only it wasn't so heavy\n" +
+                this.printStats();
     }
 }

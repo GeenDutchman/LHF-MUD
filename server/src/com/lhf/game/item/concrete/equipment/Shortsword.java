@@ -1,4 +1,4 @@
-package com.lhf.game.item.concrete;
+package com.lhf.game.item.concrete.equipment;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,19 +14,19 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 
-public class Longsword extends Weapon {
+public class Shortsword extends Weapon {
 
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
     private List<DamageDice> damages;
     private Map<String, Integer> equippingChanges;
 
-    public Longsword(boolean isVisible) {
-        super("Longsword", isVisible);
+    public Shortsword(boolean isVisible) {
+        super("Shortsword", isVisible);
 
         slots = Collections.singletonList(EquipmentSlots.WEAPON);
         types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
-        damages = Arrays.asList(new DamageDice(1, DieType.EIGHT, this.getMainFlavor()));
+        damages = Arrays.asList(new DamageDice(1, DieType.SIX, this.getMainFlavor()));
         equippingChanges = new HashMap<>(0); // changes nothing
     }
 
@@ -47,7 +47,7 @@ public class Longsword extends Weapon {
 
     @Override
     public String getDescription() {
-        return "This is a nice, long, shiny sword.  It's a bit simple though...\n" +
+        return "This is a nice, short, shiny sword with a leather grip.  It's a bit simple though...\n" +
                 this.printStats();
     }
 

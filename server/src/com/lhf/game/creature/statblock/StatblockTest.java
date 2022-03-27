@@ -14,8 +14,8 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.ItemDeserializer;
 import com.lhf.game.item.TakeableDeserializer;
-import com.lhf.game.item.concrete.Longsword;
-import com.lhf.game.item.concrete.RustyDagger;
+import com.lhf.game.item.concrete.equipment.Longsword;
+import com.lhf.game.item.concrete.equipment.RustyDagger;
 import com.lhf.game.item.interfaces.Takeable;
 
 import org.junit.jupiter.api.Test;

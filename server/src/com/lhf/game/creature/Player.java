@@ -5,9 +5,9 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.concrete.HealPotion;
-import com.lhf.game.item.concrete.LeatherArmor;
-import com.lhf.game.item.concrete.Longsword;
-import com.lhf.game.item.concrete.Shield;
+import com.lhf.game.item.concrete.equipment.LeatherArmor;
+import com.lhf.game.item.concrete.equipment.Longsword;
+import com.lhf.game.item.concrete.equipment.Shield;
 import com.lhf.server.client.user.UserID;
 
 import com.lhf.game.creature.statblock.AttributeBlock;

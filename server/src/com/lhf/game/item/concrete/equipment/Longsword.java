@@ -1,4 +1,4 @@
-package com.lhf.game.item.concrete;
+package com.lhf.game.item.concrete.equipment;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,18 +14,19 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 
-public class RustyDagger extends Weapon {
+public class Longsword extends Weapon {
+
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
     private List<DamageDice> damages;
     private Map<String, Integer> equippingChanges;
 
-    public RustyDagger(boolean isVisible) {
-        super("Rusty Dagger", isVisible);
+    public Longsword(boolean isVisible) {
+        super("Longsword", isVisible);
 
         slots = Collections.singletonList(EquipmentSlots.WEAPON);
-        types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.DAGGER);
-        damages = Arrays.asList(new DamageDice(1, DieType.FOUR, this.getMainFlavor()));
+        types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
+        damages = Arrays.asList(new DamageDice(1, DieType.EIGHT, this.getMainFlavor()));
         equippingChanges = new HashMap<>(0); // changes nothing
     }
 
@@ -46,12 +47,13 @@ public class RustyDagger extends Weapon {
 
     @Override
     public String getDescription() {
-        return "Rusty Dagger to stab monsters with. \n" + this.printStats();
+        return "This is a nice, long, shiny sword.  It's a bit simple though...\n" +
+                this.printStats();
     }
 
     @Override
     public DamageFlavor getMainFlavor() {
-        return DamageFlavor.PIERCING;
+        return DamageFlavor.SLASHING;
     }
 
     @Override
@@ -61,6 +63,7 @@ public class RustyDagger extends Weapon {
 
     @Override
     public WeaponSubtype getSubType() {
-        return WeaponSubtype.PRECISE;
+        return WeaponSubtype.MARTIAL;
     }
+
 }

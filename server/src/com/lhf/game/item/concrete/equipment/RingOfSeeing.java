@@ -1,4 +1,4 @@
-package com.lhf.game.item.concrete;
+package com.lhf.game.item.concrete.equipment;
 
 import java.util.ArrayList;
 import java.util.HashMap;

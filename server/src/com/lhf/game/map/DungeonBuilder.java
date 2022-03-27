@@ -8,16 +8,16 @@ import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.HealType;
 import com.lhf.game.item.DispenserAction;
 import com.lhf.game.item.Note;
-import com.lhf.game.item.concrete.CarnivorousArmor;
-import com.lhf.game.item.concrete.ChainMail;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.concrete.HealPotion;
-import com.lhf.game.item.concrete.MantleOfDeath;
-import com.lhf.game.item.concrete.ReaperScythe;
-import com.lhf.game.item.concrete.RustyDagger;
-import com.lhf.game.item.concrete.Shortsword;
 import com.lhf.game.item.concrete.Switch;
-import com.lhf.game.item.concrete.Whimsystick;
+import com.lhf.game.item.concrete.equipment.CarnivorousArmor;
+import com.lhf.game.item.concrete.equipment.ChainMail;
+import com.lhf.game.item.concrete.equipment.MantleOfDeath;
+import com.lhf.game.item.concrete.equipment.ReaperScythe;
+import com.lhf.game.item.concrete.equipment.RustyDagger;
+import com.lhf.game.item.concrete.equipment.Shortsword;
+import com.lhf.game.item.concrete.equipment.Whimsystick;
 import com.lhf.game.item.interfaces.InteractAction;
 
 public class DungeonBuilder {

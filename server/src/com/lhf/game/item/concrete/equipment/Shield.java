@@ -1,6 +1,5 @@
-package com.lhf.game.item.concrete;
+package com.lhf.game.item.concrete.equipment;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -11,18 +10,16 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.interfaces.Equipable;
 
-public class LeatherArmor extends Equipable {
+public class Shield extends Equipable {
     private int AC = 2;
-
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
     private Map<String, Integer> equippingChanges;
 
-    public LeatherArmor(boolean isVisible) {
-        super("Leather Armor", isVisible);
-
-        slots = Collections.singletonList(EquipmentSlots.ARMOR);
-        types = Arrays.asList(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
+    public Shield(boolean isVisible) {
+        super("Shield", isVisible);
+        types = Collections.singletonList(EquipmentTypes.SHIELD);
+        slots = Collections.singletonList(EquipmentSlots.SHIELD);
         equippingChanges = new HashMap<>();
         equippingChanges.put(Stats.AC.toString(), this.AC);
     }
@@ -44,7 +41,7 @@ public class LeatherArmor extends Equipable {
 
     @Override
     public String getDescription() {
-        return "This is some simple leather armor. " + "There is only a little blood on it...\n" +
-                this.printStats();
+        return "This is a simple shield, it should protect you a little bit. \n"
+                + this.printStats();
     }
 }

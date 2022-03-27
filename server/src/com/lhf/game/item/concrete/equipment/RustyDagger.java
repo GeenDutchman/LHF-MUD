@@ -1,29 +1,32 @@
-package com.lhf.game.item.concrete;
+package com.lhf.game.item.concrete.equipment;
 
-import com.lhf.game.dice.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.lhf.game.dice.DamageDice;
+import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 
-import java.util.*;
-
-public class BossClub extends Weapon {
-
+public class RustyDagger extends Weapon {
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
     private List<DamageDice> damages;
     private Map<String, Integer> equippingChanges;
 
-    public BossClub(boolean isVisible) {
-        super("Boss Club", isVisible);
+    public RustyDagger(boolean isVisible) {
+        super("Rusty Dagger", isVisible);
 
         slots = Collections.singletonList(EquipmentSlots.WEAPON);
-        types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
-        damages = Arrays.asList(new DamageDice(2, DieType.EIGHT, this.getMainFlavor()));
-        equippingChanges = new HashMap<>(0);
-
+        types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.DAGGER);
+        damages = Arrays.asList(new DamageDice(1, DieType.FOUR, this.getMainFlavor()));
+        equippingChanges = new HashMap<>(0); // changes nothing
     }
 
     @Override
@@ -43,13 +46,12 @@ public class BossClub extends Weapon {
 
     @Override
     public String getDescription() {
-        return "This is a large club, it seems a bit rusty... wait thats not rust...\n" +
-                this.printStats();
+        return "Rusty Dagger to stab monsters with. \n" + this.printStats();
     }
 
     @Override
     public DamageFlavor getMainFlavor() {
-        return DamageFlavor.BLUDGEONING;
+        return DamageFlavor.PIERCING;
     }
 
     @Override
@@ -59,7 +61,6 @@ public class BossClub extends Weapon {
 
     @Override
     public WeaponSubtype getSubType() {
-        return WeaponSubtype.MARTIAL;
+        return WeaponSubtype.PRECISE;
     }
-
 }
