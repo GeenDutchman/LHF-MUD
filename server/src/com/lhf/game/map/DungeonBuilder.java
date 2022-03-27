@@ -6,19 +6,19 @@ import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.HealType;
+import com.lhf.game.item.DispenserAction;
 import com.lhf.game.item.Note;
 import com.lhf.game.item.concrete.CarnivorousArmor;
 import com.lhf.game.item.concrete.ChainMail;
+import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.MantleOfDeath;
 import com.lhf.game.item.concrete.ReaperScythe;
 import com.lhf.game.item.concrete.RustyDagger;
 import com.lhf.game.item.concrete.Shortsword;
+import com.lhf.game.item.concrete.Switch;
 import com.lhf.game.item.concrete.Whimsystick;
-import com.lhf.game.map.objects.roomobject.Dispenser;
-import com.lhf.game.map.objects.roomobject.Switch;
-import com.lhf.game.map.objects.roomobject.actions.DispenserAction;
-import com.lhf.game.map.objects.roomobject.interfaces.InteractAction;
+import com.lhf.game.item.interfaces.InteractAction;
 
 public class DungeonBuilder {
 
@@ -59,7 +59,7 @@ public class DungeonBuilder {
         // Set Action
         testSwitch.setAction(testAction);
         // Switch test end
-        entryRoom.addObject(testSwitch);
+        entryRoom.addItem(testSwitch);
 
         // History Hall RM2
         Room historyHall = new Room("This is the history hall.");
@@ -81,7 +81,7 @@ public class DungeonBuilder {
         InteractAction testAction2 = new DispenserAction();
         dispenser.setAction(testAction2);
         // Test dispenser end
-        historyHall.addObject(dispenser);
+        historyHall.addItem(dispenser);
 
         // RM3
         Room offeringRoom = new Room("This is the offering room.");
@@ -130,7 +130,7 @@ public class DungeonBuilder {
             return "The statue glows and you black out for a second. You find yourself in another room.";
         };
         statue.setAction(statueAction);
-        statueRoom.addObject(statue);
+        statueRoom.addItem(statue);
 
         // RM6 The armory
         Room armory = new Room("An armory");

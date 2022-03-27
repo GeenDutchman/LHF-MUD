@@ -6,10 +6,10 @@ import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD4;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.Takeable;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.map.Room;
-import com.lhf.game.map.objects.roomobject.Corpse;
 import com.lhf.server.messages.Messenger;
 import com.lhf.server.messages.out.GameMessage;
 
@@ -145,7 +145,7 @@ public class BattleManager {
         for (Creature c : dead) {
             removeCreatureFromBattle(c);
             Corpse corpse = c.die();
-            room.addObject(corpse);
+            room.addItem(corpse);
 
             for (String i : c.getInventory().getItemList()) {
                 Takeable drop = c.dropItem(i).get();
