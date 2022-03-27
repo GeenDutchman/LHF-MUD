@@ -9,10 +9,9 @@ import java.util.Map;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Equipable;
 
-public class LeatherArmor extends Item implements Equipable {
+public class LeatherArmor extends Equipable {
     private int AC = 2;
 
     private List<EquipmentSlots> slots;

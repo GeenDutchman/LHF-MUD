@@ -8,10 +8,9 @@ import java.util.Map;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Equipable;
 
-public class MantleOfDeath extends Item implements Equipable {
+public class MantleOfDeath extends Equipable {
     private int AC = 10;
     private int MAX_HEALTH = 100;
 

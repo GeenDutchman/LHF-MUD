@@ -9,7 +9,6 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Equipable;
-import com.lhf.game.item.interfaces.Usable;
 import com.lhf.game.map.Room;
 
 public class RingOfSeeing extends Equipable {
@@ -28,9 +27,6 @@ public class RingOfSeeing extends Equipable {
                         "The possible directions are:\r\n";
                 output += ((Room) object).getDirections();
                 output += "\r\n";
-                output += "Objects you can see:\r\n";
-                output += ((Room) object).getListOfAllObjects();
-                output += "\r\n";
                 output += "Items you can see:\r\n";
                 output += ((Room) object).printListOfAllItems();
                 output += "\r\n";
@@ -45,11 +41,6 @@ public class RingOfSeeing extends Equipable {
         slots.add(EquipmentSlots.RIGHTHAND);
         equippingChanges = new HashMap<>(0);
         equippingChanges.put(Attributes.WIS.toString(), 2);
-    }
-
-    @Override
-    public boolean isUsedUp() {
-        return this.hasUsesLeft();
     }
 
     @Override

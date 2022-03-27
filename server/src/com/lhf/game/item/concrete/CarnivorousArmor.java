@@ -12,9 +12,8 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.interfaces.Equipable;
-import com.lhf.game.item.interfaces.Usable;
 
-public class CarnivorousArmor extends Usable implements Equipable {
+public class CarnivorousArmor extends Equipable {
     private int AC = 2;
     private int eatsHealthTo = 5;
     private int rewardAC = 3;
@@ -85,12 +84,12 @@ public class CarnivorousArmor extends Usable implements Equipable {
             return "You cannot use this on that!  You can only use it on yourself.";
         });
 
-        return Equipable.super.onEquippedBy(newOwner);
+        return super.onEquippedBy(newOwner);
     }
 
     @Override
     public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
-        Map<String, Integer> result = Equipable.super.onUnequippedBy(disowner);
+        Map<String, Integer> result = super.onUnequippedBy(disowner);
         if (equippedAndUsed) {
             result.put(Stats.CURRENTHP.toString(), -2);
         }

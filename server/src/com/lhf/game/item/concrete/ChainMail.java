@@ -9,10 +9,9 @@ import java.util.Map;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Equipable;
 
-public class ChainMail extends Item implements Equipable {
+public class ChainMail extends Equipable {
     private int AC = 5;
 
     private List<EquipmentSlots> slots;
