@@ -1,5 +1,7 @@
 package com.lhf.game.creature.inventory;
 
+import com.lhf.game.Container;
+import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Takeable;
 
 import java.util.ArrayList;
@@ -7,15 +9,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class Inventory {
+public class Inventory implements Container {
     private ArrayList<Takeable> items;
 
     public Inventory() {
         items = new ArrayList<>();
     }
 
-    public void addItem(Takeable i) {
-        this.items.add(i);
+    public boolean addItem(Item i) {
+        if (i instanceof Takeable) {
+            this.items.add((Takeable) i);
+            return true;
+        }
+        return false;
     }
 
     public boolean hasItem(Takeable i) {
@@ -26,14 +32,17 @@ public class Inventory {
         return this.items.stream().anyMatch(i -> i.CheckNameRegex(itemName, 3));
     }
 
-    public Optional<Takeable> getItem(String itemName) {
+    public Optional<Item> getItem(String itemName) {
         for (Takeable exact : this.items) {
             if (exact.checkName(itemName)) {
-                return Optional.of(exact);
+                return Optional.of((Item) exact);
             }
         }
         Optional<Takeable> matched = this.items.stream().filter(i -> i.CheckNameRegex(itemName, 3)).findAny();
-        return matched;
+        if (matched.isPresent()) {
+            return Optional.of((Item) matched.get());
+        }
+        return Optional.empty();
     }
 
     public boolean isEmpty() {
@@ -57,7 +66,16 @@ public class Inventory {
         return names;
     }
 
-    public void removeItem(Takeable item) {
-        this.items.remove(item);
+    public boolean removeItem(Takeable item) {
+        return this.items.remove(item);
+    }
+
+    public boolean removeItem(String name) {
+        for (Takeable exact : this.items) {
+            if (exact.checkName(name)) {
+                return this.items.remove(exact);
+            }
+        }
+        return false;
     }
 }

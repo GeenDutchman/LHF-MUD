@@ -144,13 +144,22 @@ public class Room implements Container {
         return false;
     }
 
-    public Item takeItem(String itemName) {
+    public Optional<Item> getItem(String itemName) {
         for (Item item : items) {
             if (item.checkName(itemName)) {
-                return item;
+                return Optional.of(item);
             }
         }
-        return null;
+        return Optional.empty();
+    }
+
+    public boolean removeItem(String name) {
+        for (Item item : items) {
+            if (item.checkName(name)) {
+                return items.remove(item);
+            }
+        }
+        return false;
     }
 
     public String getDescription() {
