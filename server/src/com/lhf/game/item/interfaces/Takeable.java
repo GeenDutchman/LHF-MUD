@@ -12,4 +12,14 @@ public abstract class Takeable extends Item {
         super(name, isVisible, description);
     }
 
+    @Override
+    public String getStartTagName() {
+        return "<takeable>";
+    }
+
+    @Override
+    public String getEndTagName() {
+        return "</takeable>";
+    }
+
 }
