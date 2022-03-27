@@ -1,6 +1,6 @@
 package com.lhf.game.dice;
 
-import com.lhf.game.map.objects.sharedinterfaces.Taggable;
+import com.lhf.game.Taggable;
 
 public abstract class Dice implements Taggable {
     protected int count;
