@@ -16,6 +16,7 @@ import com.lhf.game.battle.AttackAction;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
+import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.InteractObject;
@@ -100,14 +101,21 @@ public class Room implements Container {
         }
 
         if (p.isInBattle()) {
-            int dexCheck = p.check(Attributes.DEX).getTotal(); // TODO: actually use the result here
-            if (dexCheck > 8) { // arbitrary boundary
-                messenger.sendMessageToUser(new GameMessage("You are fleeing the battle. Flee!  Flee!\r\n"), p.getId());
-                messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(p.getName() + " has fled the battle!\r\n"),
+            RollResult dexCheck = p.check(Attributes.DEX);
+            if (dexCheck.getTotal() > 10) { // arbitrary boundary
+                messenger.sendMessageToUser(
+                        new GameMessage(
+                                "You are " + dexCheck.getColorTaggedName() + " fleeing the battle. Flee!  Flee!\r\n"),
+                        p.getId());
+                messenger.sendMessageToAllInRoomExceptPlayer(new GameMessage(p.getName() + " has "
+                        + dexCheck.getColorTaggedName()
+                        + " fled the battle!\r\n"),
                         p.getId());
                 battleManager.removeCreatureFromBattle(p);
             } else {
-                messenger.sendMessageToUser(new GameMessage("You didn't dodge past the enemy successfully!"),
+                messenger.sendMessageToUser(
+                        new GameMessage(
+                                "You didn't dodge past the enemy successfully" + dexCheck.getColorTaggedName() + "!"),
                         p.getId());
                 return false;
             }
