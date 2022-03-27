@@ -4,17 +4,10 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.dice.*;
 import com.lhf.game.enums.HealType;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.interfaces.Consumable;
-import com.lhf.game.item.interfaces.Takeable;
 import com.lhf.game.item.interfaces.Usable;
 import com.lhf.game.item.interfaces.UseAction;
 
-public class HealPotion extends Usable implements Consumable, Takeable {
-
-    @Override
-    public boolean isUsedUp() {
-        return true;
-    }
+public class HealPotion extends Usable {
 
     private HealType healtype;
 

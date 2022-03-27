@@ -8,12 +8,11 @@ import java.util.Map;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
-import com.lhf.game.item.interfaces.Consumable;
 import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.game.item.interfaces.Usable;
 import com.lhf.game.map.Room;
 
-public class RingOfSeeing extends Usable implements Equipable, Consumable {
+public class RingOfSeeing extends Equipable {
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
     private Map<String, Integer> equippingChanges;
@@ -33,7 +32,7 @@ public class RingOfSeeing extends Usable implements Equipable, Consumable {
                 output += ((Room) object).getListOfAllObjects();
                 output += "\r\n";
                 output += "Items you can see:\r\n";
-                output += ((Room) object).getListOfAllItems();
+                output += ((Room) object).printListOfAllItems();
                 output += "\r\n";
                 return output;
             }
