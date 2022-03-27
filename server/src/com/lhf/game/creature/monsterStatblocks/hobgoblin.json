@@ -59,7 +59,7 @@
       "types": [
         "SHIELD"
       ],
-      "className": "com.lhf.game.item.concrete.Shield",
+      "className": "com.lhf.game.item.concrete.equipment.Shield",
       "objectName": "Shield",
       "isVisible": true,
       "equippingChanges": {
@@ -74,7 +74,7 @@
       "types": [
         "HEAVYARMOR"
       ],
-      "className": "com.lhf.game.item.concrete.ChainMail",
+      "className": "com.lhf.game.item.concrete.equipment.ChainMail",
       "objectName": "Chain Mail",
       "isVisible": true,
       "equippingChanges": {
@@ -100,7 +100,7 @@
       "numCanUseTimes": -1,
       "hasBeenUsedTimes": 0,
       "methods": {},
-      "className": "com.lhf.game.item.concrete.Longsword",
+      "className": "com.lhf.game.item.concrete.equipment.Longsword",
       "objectName": "Longsword",
       "isVisible": true,
       "equippingChanges": {}
