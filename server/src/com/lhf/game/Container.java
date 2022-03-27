@@ -9,7 +9,7 @@ public interface Container {
 
     Optional<Item> getItem(String name);
 
-    boolean removeItem(String name);
+    Optional<Item> removeItem(String name);
 
     boolean hasItem(String name);
 }

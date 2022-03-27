@@ -153,13 +153,14 @@ public class Room implements Container {
         return Optional.empty();
     }
 
-    public boolean removeItem(String name) {
+    public Optional<Item> removeItem(String name) {
         for (Item item : items) {
             if (item.checkName(name)) {
-                return items.remove(item);
+                items.remove(item);
+                return Optional.of(item);
             }
         }
-        return false;
+        return Optional.empty();
     }
 
     public String getDescription() {
@@ -211,11 +212,11 @@ public class Room implements Container {
             }
         }
 
-        Optional<Takeable> maybeThing = p.getInventory().getItem(name);
+        Optional<Item> maybeThing = p.getInventory().getItem(name);
         if (maybeThing.isPresent()) {
-            Takeable thing = maybeThing.get();
+            Item thing = maybeThing.get();
             if (thing instanceof Examinable) {
-                return "You see it in your inventory.  <description>" + ((Examinable) thing).getDescription()
+                return "You see it in your inventory.  <description>" + thing.getDescription()
                         + "</description>";
             }
             return "It seems to resist examination...weird.";
@@ -450,13 +451,13 @@ public class Room implements Container {
     }
 
     String drop(Player player, String itemName) {
-        Optional<Takeable> maybeTakeable = player.dropItem(itemName);
+        Optional<Item> maybeTakeable = player.dropItem(itemName);
         if (maybeTakeable.isEmpty()) {
             return "You don't have a " + itemName + " to drop.";
         }
-        Takeable takeable = maybeTakeable.get();
-        this.items.add((Item) takeable);
-        return "You glance at your empty hand as the " + takeable.getName() + " drops to the floor.";
+        Item takeable = maybeTakeable.get();
+        this.items.add(takeable);
+        return "You glance at your empty hand as the " + takeable.getColorTaggedName() + " drops to the floor.";
     }
 
     public void attack(Player player, String weapon, String target) {

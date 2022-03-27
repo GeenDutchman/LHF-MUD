@@ -1,17 +1,11 @@
 package com.lhf.game.creature.inventory;
 
-import com.lhf.game.item.interfaces.Takeable;
+import com.lhf.game.Container;
 
-import java.util.Optional;
-
-public interface InventoryOwner {
-    void takeItem(Takeable item);
-
-    Optional<Takeable> dropItem(String itemName);
-
+public interface InventoryOwner extends Container {
     Inventory getInventory();
 
-    String listInventory();
+    String printInventory();
 
     String useItem(String itemName, Object onWhat);
 }

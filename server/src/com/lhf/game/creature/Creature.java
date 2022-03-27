@@ -307,7 +307,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     public Attack attack(String itemName, String target) {
         System.out.println(name + " is attempting to attack: " + target);
         Weapon toUse;
-        Optional<Item> item = this.fromAllInventory(itemName);
+        Optional<Item> item = this.getItem(itemName);
         if (item.isPresent() && item.get() instanceof Weapon) {
             toUse = (Weapon) item.get();
         } else {
@@ -435,8 +435,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     }
 
     @Override
-    public Optional<Takeable> dropItem(String itemName) {
-        Optional<Takeable> item = this.inventory.getItem(itemName);
+    public Optional<Item> removeItem(String itemName) {
+        Optional<Item> item = this.inventory.getItem(itemName);
         if (item.isPresent()) {
             this.inventory.removeItem(item.get());
             return item;
@@ -452,9 +452,12 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         return Optional.empty();
     }
 
-    @Override
-    public void takeItem(Takeable item) {
-        this.inventory.addItem(item);
+    public Optional<Item> dropItem(String itemName) {
+        return this.removeItem(itemName);
+    }
+
+    public boolean takeItem(Takeable item) {
+        return this.addItem(item);
     }
 
     @Override
@@ -463,7 +466,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     }
 
     @Override
-    public String listInventory() {
+    public String printInventory() {
         StringBuilder sb = new StringBuilder();
         sb.append("INVENTORY:\r\n");
         if (this.inventory.isEmpty()) {
@@ -486,19 +489,34 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
         return sb.toString();
     }
 
-    public Optional<Item> fromAllInventory(String itemName) {
-        Optional<Takeable> maybeTakeable = this.inventory.getItem(itemName);
+    public Optional<Item> getItem(String itemName) {
+        Optional<Item> maybeTakeable = this.inventory.getItem(itemName);
         if (maybeTakeable.isPresent()) {
-            return Optional.of((Item) maybeTakeable.get());
+            return maybeTakeable;
         }
 
         for (Item equipped : this.equipmentSlots.values()) {
             if (equipped.CheckNameRegex(itemName, 3)) {
-                return Optional.of((equipped));
+                return Optional.of(equipped);
             }
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public boolean addItem(Item item) {
+        return this.inventory.addItem(item);
+    }
+
+    @Override
+    public boolean hasItem(String name) {
+        for (Item equipped : this.equipmentSlots.values()) {
+            if (equipped.checkName(name)) {
+                return true;
+            }
+        }
+        return this.getInventory().hasItem(name);
     }
 
     @Override
@@ -509,7 +527,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             useOn = this;
         }
 
-        Optional<Item> maybeItem = this.fromAllInventory(itemName);
+        Optional<Item> maybeItem = this.getItem(itemName);
         if (maybeItem.isPresent()) {
             Item item = maybeItem.get();
             if (item instanceof Usable) {
@@ -544,9 +562,9 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
     @Override
     public String equipItem(String itemName, EquipmentSlots slot) {
-        Optional<Takeable> maybeItem = this.inventory.getItem(itemName);
+        Optional<Item> maybeItem = this.inventory.getItem(itemName);
         if (maybeItem.isPresent()) {
-            Takeable fromInventory = maybeItem.get();
+            Item fromInventory = maybeItem.get();
             if (fromInventory instanceof Equipable) {
                 Equipable equipThing = (Equipable) fromInventory;
                 if (slot == null) {
@@ -556,14 +574,14 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
                     String unequipMessage = this.unequipItem(slot, "");
                     this.applyUse(equipThing.onEquippedBy(this));
                     this.inventory.removeItem(equipThing);
-                    this.equipmentSlots.putIfAbsent(slot, (Item) equipThing);
+                    this.equipmentSlots.putIfAbsent(slot, equipThing);
                     return unequipMessage + ((Item) equipThing).getColorTaggedName() + " successfully equipped!\r\n";
                 }
-                String notEquip = "You cannot equip the " + ((Item) equipThing).getColorTaggedName() + " to "
+                String notEquip = "You cannot equip the " + equipThing.getColorTaggedName() + " to "
                         + slot.toString() + "\n";
                 return notEquip + "You can equip it to: " + equipThing.printWhichSlots();
             }
-            return ((Item) fromInventory).getColorTaggedName() + " is not equippable!\r\n";
+            return fromInventory.getColorTaggedName() + " is not equippable!\r\n";
         }
 
         return "'" + itemName + "' is not in your inventory, so you cannot equip it!\r\n";
@@ -573,7 +591,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     public String unequipItem(EquipmentSlots slot, String weapon) {
         if (slot == null) {
             // if they specified weapon and not slot // TODO: improve this code
-            Optional<Item> maybeItem = fromAllInventory(weapon);
+            Optional<Item> maybeItem = getItem(weapon);
             if (maybeItem.isPresent() && equipmentSlots.containsValue(maybeItem.get())) {
                 Equipable thing = (Equipable) maybeItem.get();
                 for (EquipmentSlots thingSlot : thing.getWhichSlots()) {
@@ -617,4 +635,5 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     public String getColorTaggedName() {
         return getStartTagName() + getName() + getEndTagName();
     }
+
 }

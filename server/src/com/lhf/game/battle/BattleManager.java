@@ -7,7 +7,6 @@ import com.lhf.game.dice.DiceD4;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
-import com.lhf.game.item.interfaces.Takeable;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.map.Room;
 import com.lhf.server.messages.Messenger;
@@ -148,10 +147,8 @@ public class BattleManager {
             room.addItem(corpse);
 
             for (String i : c.getInventory().getItemList()) {
-                Takeable drop = c.dropItem(i).get();
-                if (drop instanceof Item) {
-                    room.addItem((Item) drop);
-                }
+                Item drop = c.dropItem(i).get();
+                room.addItem(drop);
             }
 
             if (c instanceof Player) {
@@ -207,7 +204,7 @@ public class BattleManager {
             }
             Weapon weapon;
             if (attackAction.hasWeapon()) {
-                Optional<Item> inventoryItem = p.fromAllInventory(attackAction.getWeapon());
+                Optional<Item> inventoryItem = p.getItem(attackAction.getWeapon());
                 if (inventoryItem.isEmpty()) {
                     messenger.sendMessageToUser(new GameMessage("You do not have that weapon.\r\n"), p.getId());
                     return;

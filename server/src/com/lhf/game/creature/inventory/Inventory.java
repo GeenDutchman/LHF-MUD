@@ -33,14 +33,9 @@ public class Inventory implements Container {
     }
 
     public Optional<Item> getItem(String itemName) {
-        for (Takeable exact : this.items) {
-            if (exact.checkName(itemName)) {
-                return Optional.of((Item) exact);
-            }
-        }
-        Optional<Takeable> matched = this.items.stream().filter(i -> i.CheckNameRegex(itemName, 3)).findAny();
-        if (matched.isPresent()) {
-            return Optional.of((Item) matched.get());
+        Optional<Takeable> takeOpt = this.items.stream().filter(i -> i.CheckNameRegex(itemName, 3)).findAny();
+        if (takeOpt.isPresent()) {
+            return Optional.of((Item) takeOpt.get());
         }
         return Optional.empty();
     }
@@ -66,16 +61,17 @@ public class Inventory implements Container {
         return names;
     }
 
-    public boolean removeItem(Takeable item) {
+    public boolean removeItem(Item item) {
         return this.items.remove(item);
     }
 
-    public boolean removeItem(String name) {
-        for (Takeable exact : this.items) {
+    public Optional<Item> removeItem(String name) {
+        for (Item exact : this.items) {
             if (exact.checkName(name)) {
-                return this.items.remove(exact);
+                this.items.remove(exact);
+                return Optional.of(exact);
             }
         }
-        return false;
+        return Optional.empty();
     }
 }
