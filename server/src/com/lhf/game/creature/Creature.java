@@ -1,5 +1,6 @@
 package com.lhf.game.creature;
 
+import com.lhf.game.Taggable;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.Inventory;
@@ -13,9 +14,8 @@ import com.lhf.game.dice.DieType;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.*;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.*;
-import com.lhf.game.map.objects.roomobject.Corpse;
-import com.lhf.game.map.objects.sharedinterfaces.Taggable;
 
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
@@ -514,7 +514,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
             Item item = maybeItem.get();
             if (item instanceof Usable) {
                 String result = ((Usable) item).doUseAction(useOn);
-                if (item instanceof Consumable && !((Usable) item).hasUsesLeft()) {
+                if (!((Usable) item).hasUsesLeft()) {
                     inventory.removeItem((Takeable) item);
                 }
                 return result;
