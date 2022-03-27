@@ -79,12 +79,10 @@ public class Player extends Creature {
 
     public String getStatus() {
         StringBuilder builder = new StringBuilder();
-        builder.append("You have " +
-                getStats().get(Stats.CURRENTHP) +
-                "/" +
-                getStats().get(Stats.MAXHP) +
-                " HP\r\n");
-        builder.append("AC " + getStats().get(Stats.AC) + "\r\n");
+        builder.append("You have ").append(getStats().get(Stats.CURRENTHP)).append("/")
+                .append(getStats().get(Stats.MAXHP)).append(" HP\r\n");
+        builder.append(Stats.AC).append(" ").append(getStats().get(Stats.AC)).append("\r\n");
+        builder.append(this.getAttributes().toString()).append("\r\n");
         return builder.toString();
     }
 }
