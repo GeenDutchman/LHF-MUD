@@ -1,4 +1,6 @@
-package com.lhf.game.item;
+package com.lhf.game.item.concrete;
+
+import com.lhf.game.item.Item;
 
 public class Note extends Item {
 
