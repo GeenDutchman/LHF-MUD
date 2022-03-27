@@ -14,3 +14,48 @@ See our class wiki <https://github.com/cs428TAs/f2019/wiki/L.H.F.-M.U.D.>  page.
 * Kendall Despain (Lore/Dungeon Master) - World building, inputting creatures and objects in the database and general story line or lack there of :p
 
 **titles subject to change
+
+# Mermaids
+
+```mermaid
+classDiagram
+  class Container
+  class Item
+  class Takeable
+  class Usable
+  class Equipable
+  class Consumable
+  class Stackable
+  class Interactable
+  class Weapon
+
+  Item <..o Container
+
+  Takeable --> Item
+%%   Usable --> Item
+%%   Equipable --> Item
+%%   Consumable --> Item
+%%   Stackable --> Item
+  Interactable --> Item
+%%   Weapon --> Item
+
+  Usable --> Takeable
+
+  Equipable --> Takeable
+
+%%   Consumable --> Takeable
+%%   Consumable --> Usable
+  Consumable --> Usable
+
+%%   Stackable --> Takeable
+  Stackable --> Consumable
+
+%%   Weapon --> Takeable
+  Weapon --> Usable
+  Weapon --> Equipable
+
+  class Room
+  Room --> Container
+%%   Interactable --o Room
+
+```
