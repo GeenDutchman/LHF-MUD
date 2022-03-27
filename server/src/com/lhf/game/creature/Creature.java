@@ -590,16 +590,16 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     @Override
     public String unequipItem(EquipmentSlots slot, String weapon) {
         if (slot == null) {
-            // if they specified weapon and not slot // TODO: improve this code
-            Optional<Item> maybeItem = getItem(weapon);
-            if (maybeItem.isPresent() && equipmentSlots.containsValue(maybeItem.get())) {
-                Equipable thing = (Equipable) maybeItem.get();
-                for (EquipmentSlots thingSlot : thing.getWhichSlots()) {
-                    if (thing.equals(equipmentSlots.get(thingSlot))) {
+            // if they specified weapon and not slot
+            Optional<Item> optItem = getItem(weapon);
+            if (optItem.isPresent() && equipmentSlots.containsValue(optItem.get())) {
+                Equipable equippedThing = (Equipable) optItem.get();
+                for (EquipmentSlots thingSlot : equippedThing.getWhichSlots()) {
+                    if (equippedThing.equals(equipmentSlots.get(thingSlot))) {
                         this.equipmentSlots.remove(thingSlot);
-                        this.applyUse(thing.onUnequippedBy(this));
-                        this.inventory.addItem(thing);
-                        return "You have unequipped your " + ((Item) thing).getColorTaggedName() + "\r\n";
+                        this.applyUse(equippedThing.onUnequippedBy(this));
+                        this.inventory.addItem(equippedThing);
+                        return "You have unequipped your " + ((Item) equippedThing).getColorTaggedName() + "\r\n";
                     }
                 }
                 return "That is not currently equipped!";
