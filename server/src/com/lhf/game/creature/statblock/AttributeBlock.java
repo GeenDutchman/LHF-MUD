@@ -1,7 +1,5 @@
 package com.lhf.game.creature.statblock;
 
-import java.util.StringJoiner;
-
 import com.lhf.game.enums.Attributes;
 
 public class AttributeBlock {
@@ -227,18 +225,10 @@ public class AttributeBlock {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        StringJoiner sj = new StringJoiner(", ");
         for (Attributes attr : Attributes.values()) {
-            sj.add(attr.toString() + "=" + this.getScore(attr));
+            sb.append(attr).append(":").append(this.getScore(attr))
+                    .append(" (").append(this.getMod(attr)).append(")\n");
         }
-        sb.append(sj.toString()).append("}\n");
-        sb.append("{");
-        sj = new StringJoiner(", ");
-        for (Attributes attr : Attributes.values()) {
-            sj.add(attr.toString() + "=" + this.getMod(attr));
-        }
-        sb.append(sj.toString()).append("}");
         return sb.toString();
     }
 }
