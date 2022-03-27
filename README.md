@@ -19,43 +19,60 @@ See our class wiki <https://github.com/cs428TAs/f2019/wiki/L.H.F.-M.U.D.>  page.
 
 ```mermaid
 classDiagram
+  class Examinable
+  class Taggable
   class Container
   class Item
   class Takeable
   class Usable
   class Equipable
-  class Consumable
   class Stackable
   class Interactable
   class Weapon
 
-  Item <..o Container
+  Item ..o Container
+  Item --> Examinable
+  Item --> Taggable
 
   Takeable --> Item
 %%   Usable --> Item
 %%   Equipable --> Item
-%%   Consumable --> Item
 %%   Stackable --> Item
   Interactable --> Item
 %%   Weapon --> Item
 
   Usable --> Takeable
 
-  Equipable --> Takeable
-
-%%   Consumable --> Takeable
-%%   Consumable --> Usable
-  Consumable --> Usable
+%%   Equipable --> Takeable
+  Equipable --> Usable
 
 %%   Stackable --> Takeable
-  Stackable --> Consumable
+  Stackable --> Usable
 
 %%   Weapon --> Takeable
-  Weapon --> Usable
+%%   Weapon --> Usable
   Weapon --> Equipable
 
   class Room
   Room --> Container
 %%   Interactable --o Room
+
+Container --> Examinable
+Container --> Taggable
+
+class Creature
+class Player
+class Monster
+
+Creature --> Examinable
+Creature --> Taggable
+Creature --o Room
+
+Player --> Creature
+Monster --> Creature
+
+Inventory --> Container
+Creature --> Inventory
+
 
 ```
