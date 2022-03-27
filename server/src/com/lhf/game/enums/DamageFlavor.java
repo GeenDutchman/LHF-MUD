@@ -1,6 +1,6 @@
 package com.lhf.game.enums;
 
-import com.lhf.game.map.objects.sharedinterfaces.Taggable;
+import com.lhf.game.Taggable;
 
 public enum DamageFlavor implements Taggable {
     SLASHING, MAGICAL_SLASHING, BLUDGEONING, MAGICAL_BLUDGEONING, PIERCING, MAGICAL_PIERCING,
