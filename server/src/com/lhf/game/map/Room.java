@@ -10,26 +10,25 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.regex.PatternSyntaxException;
 
+import com.lhf.game.Container;
+import com.lhf.game.Examinable;
 import com.lhf.game.battle.AttackAction;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.interfaces.InteractObject;
 import com.lhf.game.item.interfaces.Takeable;
-import com.lhf.game.map.objects.roomobject.abstracts.InteractObject;
-import com.lhf.game.map.objects.roomobject.abstracts.RoomObject;
-import com.lhf.game.map.objects.sharedinterfaces.Examinable;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.messages.Messenger;
 import com.lhf.server.messages.out.GameMessage;
 
-public class Room {
+public class Room implements Container {
 
     private Set<Player> players;
     private Map<String, Room> exits;
     private List<Item> items;
-    private List<RoomObject> objects;
     private String description;
     private BattleManager battleManager;
     private Map<Creature, Integer> creatures; // how many of what type of monster
@@ -41,7 +40,6 @@ public class Room {
         players = new HashSet<>();
         exits = new HashMap<>();
         items = new ArrayList<>();
-        objects = new ArrayList<>();
         battleManager = new BattleManager(this);
         creatures = new HashMap<>();
     }
@@ -137,50 +135,52 @@ public class Room {
         return true;
     }
 
-    public boolean addObject(RoomObject obj) {
-        if (objects.contains(obj)) {
-            return false;
+    public boolean hasItem(String itemName) {
+        for (Item item : items) {
+            if (item.checkName(itemName)) {
+                return true;
+            }
         }
-        objects.add(obj);
-        return true;
+        return false;
+    }
+
+    public Item takeItem(String itemName) {
+        for (Item item : items) {
+            if (item.checkName(itemName)) {
+                return item;
+            }
+        }
+        return null;
     }
 
     public String getDescription() {
         return "<description>" + description + "</description>";
     }
 
-    private String getListOfAllVisibleItems() {
+    private String printListOfAllVisibleImovables() {
         StringJoiner output = new StringJoiner(", ");
-        for (Item o : items) {
-            if (o.checkVisibility()) {
-                output.add(o.getColorTaggedName());
+        for (Item item : items) {
+            if (item.checkVisibility() && !(item instanceof Takeable)) {
+                output.add(item.getColorTaggedName());
             }
         }
         return output.toString();
     }
 
-    public String getListOfAllItems() {
+    private String printListOfAllVisibleTakeables() {
+        StringJoiner output = new StringJoiner(", ");
+        for (Item item : items) {
+            if (item.checkVisibility() && item instanceof Takeable) {
+                output.add(item.getColorTaggedName());
+            }
+        }
+        return output.toString();
+    }
+
+    public String printListOfAllItems() {
         StringJoiner output = new StringJoiner(", ");
         for (Item o : items) {
             output.add(o.getColorTaggedName());
-        }
-        return output.toString();
-    }
-
-    private String getListOfAllVisibleObjects() {
-        StringJoiner output = new StringJoiner(", ");
-        for (RoomObject o : objects) {
-            if (o.checkVisibility()) {
-                output.add("<object>" + o.getName() + "</object>");
-            }
-        }
-        return output.toString();
-    }
-
-    public String getListOfAllObjects() {
-        StringJoiner output = new StringJoiner(", ");
-        for (RoomObject o : objects) {
-            output.add("<object>" + o.getName() + "</object>");
         }
         return output.toString();
     }
@@ -191,12 +191,6 @@ public class Room {
         }
 
         for (Item ro : items) {
-            if (ro.CheckNameRegex(name, 3)) {
-                return "<description>" + ro.getDescription() + "</description>";
-            }
-        }
-
-        for (RoomObject ro : objects) {
             if (ro.CheckNameRegex(name, 3)) {
                 return "<description>" + ro.getDescription() + "</description>";
             }
@@ -226,30 +220,41 @@ public class Room {
             return "You are in a fight right now, you are too busy to interact with that!";
         }
 
-        for (RoomObject ro : objects) {
+        ArrayList<Item> matches = new ArrayList<>();
+        for (Item ro : items) {
             if (ro.CheckNameRegex(name, 3)) {
-                if (ro instanceof InteractObject) {
-                    InteractObject ex = (InteractObject) ro;
-                    return "<interaction>" + ex.doUseAction(p) + "</interaction>";
-                } else {
-                    return "You try to interact with " + ro.getColorTaggedName()
-                            + ", but nothing happens.";
-                }
+                matches.add(ro);
             }
         }
-        for (Item item : items) {
-            if (item.CheckNameRegex(name, 3)) {
-                return "You poke at it, but it does nothing.";
+        if (matches.size() == 1) {
+            Item ro = matches.get(0);
+            if (ro instanceof InteractObject) {
+                InteractObject ex = (InteractObject) ro;
+                return "<interaction>" + ex.doUseAction(p) + "</interaction>";
+            } else {
+                return "You try to interact with " + ro.getColorTaggedName()
+                        + ", but nothing happens.";
             }
         }
-        return "You couldn't find " + name + " to interact with.";
+        StringBuilder sb = new StringBuilder();
+        sb.append("You couldn't find '").append(name).append("' to interact with.\n");
+        StringJoiner sj = new StringJoiner(", ");
+        for (Item ro : matches) {
+            if (ro.checkVisibility() && ro instanceof InteractObject) {
+                sj.add(ro.getColorTaggedName());
+            }
+        }
+        if (sj.toString().length() > 0) {
+            sb.append("Did you mean one of these: ").append(sj.toString()).append("?\n");
+        }
+        return sb.toString();
     }
 
     public String use(Player p, String usefulObject, String onWhat) {
         Object indirectObject = null; // indirectObject is the receiver of the action
         if (onWhat != null && onWhat.length() > 0) {
-            List<RoomObject> roomObjectThings = new ArrayList<>();
-            for (RoomObject ro : objects) {
+            List<Item> roomObjectThings = new ArrayList<>();
+            for (Item ro : items) {
                 if (ro.CheckNameRegex(onWhat, 3) && ro instanceof InteractObject) {
                     roomObjectThings.add(ro);
                 }
@@ -270,7 +275,7 @@ public class Room {
                 sb.append("You couldn't find '").append(onWhat).append("' to target.\n");
                 StringJoiner sj = new StringJoiner(", ");
                 if (roomObjectThings.size() > 0 || targets.size() > 0) {
-                    for (RoomObject ro : roomObjectThings) {
+                    for (Item ro : roomObjectThings) {
                         if (ro.checkVisibility()) {
                             sj.add(ro.getColorTaggedName());
                         }
@@ -280,7 +285,7 @@ public class Room {
                     }
                 }
                 if (sj.toString().length() > 0) {
-                    sb.append("Did you mean one of: ").append(sj.toString());
+                    sb.append("Did you mean one of: ").append(sj.toString()).append("\n");
                 }
                 return sb.toString();
             }
@@ -374,10 +379,10 @@ public class Room {
         output += getDirections();
         output += "\r\n\r\n";
         output += "Objects you can see:\r\n";
-        output += getListOfAllVisibleObjects();
+        output += printListOfAllVisibleImovables();
         output += "\r\n\r\n";
         output += "Items you can see:\r\n";
-        output += getListOfAllVisibleItems();
+        output += printListOfAllVisibleTakeables();
         output += "\r\n\r\n";
         output += "Players in room:\r\n";
         output += getListOfPlayers();
@@ -410,20 +415,11 @@ public class Room {
             try {
                 Optional<Item> maybeItem = this.items.stream().filter(i -> i.CheckNameRegex(thing, 3)).findAny();
                 if (maybeItem.isEmpty()) {
-                    Optional<RoomObject> maybeRo = this.objects.stream()
-                            .filter(i -> i.CheckNameRegex(thing, 3))
-                            .findAny();
-
-                    if (maybeRo.isEmpty()) {
-                        if (thing.equalsIgnoreCase("all") || thing.equalsIgnoreCase("everything")) {
-                            sb.append("Aren't you being a bit greedy there by trying to grab '").append(thing)
-                                    .append("'?\n");
-                        } else {
-                            sb.append("Could not find that item '").append(thing).append("' in this room.\n");
-                        }
+                    if (thing.equalsIgnoreCase("all") || thing.equalsIgnoreCase("everything")) {
+                        sb.append("Aren't you being a bit greedy there by trying to grab '").append(thing)
+                                .append("'?\n");
                     } else {
-                        sb.append("That's strange--the ").append(maybeRo.get().getColorTaggedName())
-                                .append(" is stuck in its place. You can't take it.\n");
+                        sb.append("Could not find that item '").append(thing).append("' in this room.\n");
                     }
                     continue;
                 }
@@ -468,7 +464,7 @@ public class Room {
             if (possTargets.size() == 0) {
                 sb.append("because it does not exist.");
             } else {
-                sb.append("because it could be any of these:\n")
+                sb.append("because it could be any of these:\n");
                 for (Creature c : possTargets) {
                     sb.append(c.getColorTaggedName()).append(" ");
                 }
