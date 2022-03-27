@@ -1,9 +1,15 @@
 package com.lhf.game.item.interfaces;
 
-public interface Takeable {
-    String getName();
+import com.lhf.game.item.Item;
 
-    boolean checkName(String name);
+public abstract class Takeable extends Item {
 
-    boolean CheckNameRegex(String possName, Integer minimumLength);
+    public Takeable(String name, boolean isVisible) {
+        super(name, isVisible);
+    }
+
+    public Takeable(String name, boolean isVisible, String description) {
+        super(name, isVisible, description);
+    }
+
 }

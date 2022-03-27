@@ -2,8 +2,8 @@ package com.lhf.game.item;
 
 import java.util.regex.PatternSyntaxException;
 
-import com.lhf.game.map.objects.sharedinterfaces.Examinable;
-import com.lhf.game.map.objects.sharedinterfaces.Taggable;
+import com.lhf.game.Examinable;
+import com.lhf.game.Taggable;
 
 public abstract class Item implements Examinable, Taggable {
     // Class name for discrimination
@@ -12,12 +12,23 @@ public abstract class Item implements Examinable, Taggable {
     private String objectName;
     // Will not output with look if false
     private boolean isVisible;
+    // Every item should describe itself
+    protected String descriptionString;
 
     public Item(String name, boolean isVisible) {
         this.className = this.getClass().getName();
         this.objectName = name.trim();
         assert this.objectName.length() >= 3;
         this.isVisible = isVisible;
+        this.descriptionString = this.getColorTaggedName();
+    }
+
+    public Item(String name, boolean isVisible, String description) {
+        this.className = this.getClass().getName();
+        this.objectName = name.trim();
+        assert this.objectName.length() >= 3;
+        this.isVisible = isVisible;
+        this.descriptionString = description;
     }
 
     public String getClassName() {
@@ -86,6 +97,11 @@ public abstract class Item implements Examinable, Taggable {
     @Override
     public String getColorTaggedName() {
         return this.getStartTagName() + this.getName() + this.getEndTagName();
+    }
+
+    @Override
+    public String getDescription() {
+        return this.descriptionString;
     }
 
 }

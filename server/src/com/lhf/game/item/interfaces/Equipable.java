@@ -9,15 +9,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
-public interface Equipable extends Takeable {
+public abstract class Equipable extends Usable {
 
-    List<EquipmentTypes> getTypes();
+    public Equipable(String name, boolean isVisible) {
+        super(name, isVisible, -1);
+    }
 
-    List<EquipmentSlots> getWhichSlots();
+    public Equipable(String name, boolean isVisible, int useSoManyTimes) {
+        super(name, isVisible, useSoManyTimes);
+    }
 
-    Map<String, Integer> getEquippingChanges();
+    public abstract List<EquipmentTypes> getTypes();
 
-    default String printWhichTypes() {
+    public abstract List<EquipmentSlots> getWhichSlots();
+
+    public abstract Map<String, Integer> getEquippingChanges();
+
+    public String printWhichTypes() {
         StringJoiner sj = new StringJoiner(", ");
         sj.setEmptyValue("no types!");
         for (EquipmentTypes type : this.getTypes()) {
@@ -26,7 +34,7 @@ public interface Equipable extends Takeable {
         return sj.toString();
     }
 
-    default String printWhichSlots() {
+    public String printWhichSlots() {
         StringJoiner sj = new StringJoiner(", ");
         sj.setEmptyValue("no slot!");
         for (EquipmentSlots slot : this.getWhichSlots()) {
@@ -35,7 +43,7 @@ public interface Equipable extends Takeable {
         return sj.toString();
     }
 
-    default String printEquippingChanges() {
+    public String printEquippingChanges() {
         StringJoiner sj = new StringJoiner(", ");
         for (String attr : this.getEquippingChanges().keySet()) {
             sj.add(attr + " would change by " + this.getEquippingChanges().get(attr));
@@ -43,7 +51,7 @@ public interface Equipable extends Takeable {
         return sj.toString();
     }
 
-    default String printStats() {
+    public String printStats() {
         StringBuilder sb = new StringBuilder();
         if (this.getEquippingChanges().size() > 0) {
             sb.append("When equipped: ").append(this.printEquippingChanges()).append("\n");
@@ -57,11 +65,11 @@ public interface Equipable extends Takeable {
         return sb.toString();
     }
 
-    default Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
+    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
         return this.getEquippingChanges();
     }
 
-    default Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
+    public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
         Map<String, Integer> undo = new HashMap<String, Integer>(this.getEquippingChanges());
         for (String key : undo.keySet()) {
             undo.put(key, undo.get(key) * -1);

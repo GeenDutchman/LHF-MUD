@@ -1,18 +1,19 @@
-package com.lhf.game.map.objects.roomobject.abstracts;
+package com.lhf.game.item.interfaces;
 
 import com.lhf.game.creature.Player;
-import com.lhf.game.map.objects.roomobject.interfaces.InteractAction;
+import com.lhf.game.item.Item;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class InteractObject extends RoomObject{
+public abstract class InteractObject extends Item {
     private Map<String, Object> interactItems;
     private InteractAction method = null;
-    //Indicates if the action can be used multiple times
+    // Indicates if the action can be used multiple times
     protected boolean isRepeatable;
-    //Indicates if an interaction has already happened
+    // Indicates if an interaction has already happened
     protected boolean hasBeenInteracted = false;
+
     public InteractObject(String name, boolean isVisible, boolean isRepeatable, String description) {
         super(name, isVisible, description);
         interactItems = new HashMap<>();
@@ -45,5 +46,15 @@ public abstract class InteractObject extends RoomObject{
             otherDescription += " It looks like it has been interacted with already, it might not work again.";
         }
         return otherDescription;
+    }
+
+    @Override
+    public String getStartTagName() {
+        return "<interactable>";
+    }
+
+    @Override
+    public String getEndTagName() {
+        return "</interactable>";
     }
 }

@@ -1,6 +1,8 @@
 package com.lhf.game.item;
 
-public abstract class StackableItem extends Item {
+import com.lhf.game.item.interfaces.Usable;
+
+public abstract class StackableItem extends Usable {
 
     public static class StackableItemException extends Exception {
         StackableItemException(String message) {
@@ -30,8 +32,7 @@ public abstract class StackableItem extends Item {
     }
 
     public StackableItem meld(StackableItem other) throws StackableItemException {
-        //TODO: check this logic
-        if (this.checkName(other.getName())) {
+        if (this.getName().equals(other.getName())) {
             int total = this.count + other.getCount();
             if (total > this.MAX) {
                 int surplus = total - this.MAX;
@@ -50,7 +51,8 @@ public abstract class StackableItem extends Item {
     public StackableItem add(int howMany) throws StackableItemException {
         int increasedCount = howMany + this.count;
         if (increasedCount > this.MAX) {
-            throw new StackableItemException("You cannot add that much to this stack! That is " + (increasedCount - this.MAX) + " too many!\r\n");
+            throw new StackableItemException("You cannot add that much to this stack! That is "
+                    + (increasedCount - this.MAX) + " too many!\r\n");
         }
         this.count = increasedCount;
         return this;
@@ -63,7 +65,8 @@ public abstract class StackableItem extends Item {
     private StackableItem take(int howMany) throws StackableItemException {
         int decreasedCount = this.count - howMany;
         if (decreasedCount < 0) {
-            throw new StackableItemException("You cannot take that much from this stack! That is " + decreasedCount * -1 + " too many!\r\n");
+            throw new StackableItemException(
+                    "You cannot take that much from this stack! That is " + decreasedCount * -1 + " too many!\r\n");
         }
         this.count = decreasedCount;
         return this;

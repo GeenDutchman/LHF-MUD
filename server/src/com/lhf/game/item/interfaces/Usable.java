@@ -3,12 +3,11 @@ package com.lhf.game.item.interfaces;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.item.Item;
 import com.lhf.game.map.Room;
-import com.lhf.game.map.objects.roomobject.abstracts.RoomObject;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class Usable extends Item {
+public abstract class Usable extends Takeable {
     private Integer numCanUseTimes;
     private Integer hasBeenUsedTimes = 0;
     private Map<String, UseAction> methods;
@@ -71,13 +70,6 @@ public abstract class Usable extends Item {
             if (method == null) {
                 // general to all Creatures
                 method = methods.get(Creature.class.getName());
-            }
-        } else if (usingOn instanceof RoomObject) {
-            // specific to that RoomObject
-            method = methods.get(((RoomObject) usingOn).getName());
-            if (method == null) {
-                // general to RoomObjects
-                method = methods.get(RoomObject.class.getName());
             }
         } else if (usingOn instanceof Room) {
             // specific to that Room

@@ -1,4 +1,4 @@
-package com.lhf.game.map.objects.roomobject.interfaces;
+package com.lhf.game.item.interfaces;
 
 import com.lhf.game.creature.Player;
 
