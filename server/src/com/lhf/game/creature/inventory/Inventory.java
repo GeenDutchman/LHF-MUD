@@ -27,7 +27,13 @@ public class Inventory {
     }
 
     public Optional<Takeable> getItem(String itemName) {
-        return this.items.stream().filter(i -> i.CheckNameRegex(itemName, 3)).findAny();
+        for (Takeable exact : this.items) {
+            if (exact.checkName(itemName)) {
+                return Optional.of(exact);
+            }
+        }
+        Optional<Takeable> matched = this.items.stream().filter(i -> i.CheckNameRegex(itemName, 3)).findAny();
+        return matched;
     }
 
     public boolean isEmpty() {

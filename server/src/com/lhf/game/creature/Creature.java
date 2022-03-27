@@ -18,6 +18,7 @@ import com.lhf.game.map.objects.roomobject.Corpse;
 import com.lhf.game.map.objects.sharedinterfaces.Taggable;
 
 import java.util.*;
+import java.util.regex.PatternSyntaxException;
 
 import static com.lhf.game.enums.Attributes.*;
 
@@ -106,7 +107,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     // Default constructor
     public Creature() {
         // Instantiate creature with no name and type Monster
-        this.name = "";
+        this.name = ""; // TODO: what if creature name.len < 3?
         this.creatureType = CreatureType.MONSTER;
 
         // Set attributes to default values
@@ -205,6 +206,38 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
 
     public String getName() {
         return name;
+    }
+
+    public boolean checkName(String name) {
+        return this.getName().equalsIgnoreCase(name.trim());
+    }
+
+    public boolean CheckNameRegex(String possName, Integer minimumLength) {
+        Integer min = minimumLength;
+        if (min < 0) {
+            min = 0;
+        }
+        if (this.getName().length() < min) {
+            min = this.getName().length();
+        }
+        if (min > this.getName().length()) {
+            min = this.getName().length();
+        }
+        if (possName.length() < min || possName.length() > this.getName().length()) {
+            return false;
+        }
+        if (this.checkName(possName)) {
+            return true;
+        }
+        if (possName.matches("[^ a-zA-Z_-]") || possName.contains("*")) {
+            return false;
+        }
+        try {
+            return this.getName().matches("(?i).*" + possName + ".*");
+        } catch (PatternSyntaxException pse) {
+            pse.printStackTrace();
+            return false;
+        }
     }
 
     public CreatureType getCreatureType() {

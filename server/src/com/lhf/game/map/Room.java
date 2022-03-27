@@ -1,5 +1,15 @@
 package com.lhf.game.map;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.regex.PatternSyntaxException;
+
 import com.lhf.game.battle.AttackAction;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
@@ -13,9 +23,6 @@ import com.lhf.game.map.objects.sharedinterfaces.Examinable;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.messages.Messenger;
 import com.lhf.server.messages.out.GameMessage;
-
-import java.util.*;
-import java.util.regex.PatternSyntaxException;
 
 public class Room {
 
@@ -241,16 +248,41 @@ public class Room {
     public String use(Player p, String usefulObject, String onWhat) {
         Object indirectObject = null; // indirectObject is the receiver of the action
         if (onWhat != null && onWhat.length() > 0) {
+            List<RoomObject> roomObjectThings = new ArrayList<>();
             for (RoomObject ro : objects) {
                 if (ro.CheckNameRegex(onWhat, 3) && ro instanceof InteractObject) {
-                    indirectObject = ro;
+                    roomObjectThings.add(ro);
+                }
+            }
+
+            if (roomObjectThings.size() == 1) {
+                indirectObject = roomObjectThings.get(0);
+            }
+            List<Creature> targets = new ArrayList<>();
+            if (indirectObject == null) {
+                targets = getCreaturesInRoom(onWhat);
+                if (targets.size() == 1) {
+                    indirectObject = targets.get(0);
                 }
             }
             if (indirectObject == null) {
-                indirectObject = getCreatureInRoom(onWhat);
-            }
-            if (indirectObject == null) {
-                return "You couldn't find " + onWhat + " to use.";// " + usefulObject + " on.";
+                StringBuilder sb = new StringBuilder();
+                sb.append("You couldn't find '").append(onWhat).append("' to target.\n");
+                StringJoiner sj = new StringJoiner(", ");
+                if (roomObjectThings.size() > 0 || targets.size() > 0) {
+                    for (RoomObject ro : roomObjectThings) {
+                        if (ro.checkVisibility()) {
+                            sj.add(ro.getColorTaggedName());
+                        }
+                    }
+                    for (Creature target : targets) {
+                        sj.add(target.getColorTaggedName());
+                    }
+                }
+                if (sj.toString().length() > 0) {
+                    sb.append("Did you mean one of: ").append(sj.toString());
+                }
+                return sb.toString();
             }
         }
         return p.useItem(usefulObject, indirectObject);
@@ -265,20 +297,30 @@ public class Room {
         return null;
     }
 
-    private Creature getCreatureInRoom(String creatureName) {
+    private ArrayList<Creature> getCreaturesInRoom(String creatureName) {
+        ArrayList<Creature> match = new ArrayList<>();
         for (Creature c : this.creatures.keySet()) {
-            if (c.getName().equalsIgnoreCase(creatureName)) {
-                return c;
+            if (c.CheckNameRegex(creatureName, 3)) {
+                match.add(c);
             }
         }
 
         // for PvP
         for (Player p : players) {
-            if (p.getName().equals(creatureName)) {
-                return p;
+            if (p.CheckNameRegex(creatureName, 3)) {
+                match.add(p);
             }
         }
-        return null;
+
+        ArrayList<Creature> closeMatch = new ArrayList<>();
+        for (Creature c : match) {
+            if (c.checkName(creatureName)) {
+                closeMatch.add(c);
+                return closeMatch;
+            }
+        }
+
+        return match;
     }
 
     Set<Player> getAllPlayersInRoom() {
@@ -415,10 +457,24 @@ public class Room {
     public void attack(Player player, String weapon, String target) {
         System.out.println(player.toString() + " attempts attacking " + target + " with " + weapon);
         // if the target does not exist, don't add the player to the combat
-        Creature targetCreature = this.getCreatureInRoom(target);
+        Creature targetCreature = null;
+        List<Creature> possTargets = this.getCreaturesInRoom(target);
+        if (possTargets.size() == 1) {
+            targetCreature = possTargets.get(0);
+        }
         if (targetCreature == null) {
-            messenger.sendMessageToUser(
-                    new GameMessage("You cannot attack " + target + " because it does not exist.\r\n"), player.getId());
+            StringBuilder sb = new StringBuilder();
+            sb.append("You cannot attack '").append(target).append("' ");
+            if (possTargets.size() == 0) {
+                sb.append("because it does not exist.");
+            } else {
+                sb.append("because it could be any of these:\n")
+                for (Creature c : possTargets) {
+                    sb.append(c.getColorTaggedName()).append(" ");
+                }
+            }
+            sb.append("\r\n");
+            messenger.sendMessageToUser(new GameMessage(sb.toString()), player.getId());
             return;
         }
         String playerName = player.getId().getUsername();
