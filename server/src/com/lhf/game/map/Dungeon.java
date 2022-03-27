@@ -40,7 +40,9 @@ public class Dungeon {
     void reincarnate(Player p) {
         Player p2 = new Player(p.getId(), p.getName());
         addNewPlayer(p2);
-        messenger.sendMessageToUser(new GameMessage("*******************************X_X*********************************************\nYou have died. Out of mercy you have been reborn back where you began."), p2.getId());
+        messenger.sendMessageToUser(new GameMessage(
+                "*******************************X_X*********************************************\nYou have died. Out of mercy you have been reborn back where you began."),
+                p2.getId());
         messenger.sendMessageToUser(new GameMessage(startingRoom.toString()), p2.getId());
     }
 
@@ -82,25 +84,20 @@ public class Dungeon {
 
         if (direction.equals("n")) {
             direction = "north";
-        }
-        else if (direction.equals("e")) {
+        } else if (direction.equals("e")) {
             direction = "east";
-        }
-        else if (direction.equals("s")) {
+        } else if (direction.equals("s")) {
             direction = "south";
-        }
-        else if (direction.equals("w")) {
+        } else if (direction.equals("w")) {
             direction = "west";
         }
 
-        if(room.exitRoom(getPlayerById(id), direction)) {
+        if (room.exitRoom(getPlayerById(id), direction)) {
             didMove.set(true);
             return "You went " + direction + ". \r\n" + Objects.requireNonNull(getPlayerRoom(id)).toString();
-        }
-        else if (isValidDirection(direction)) {
+        } else if (isValidDirection(direction)) {
             return "There's only a wall there.";
-        }
-        else {
+        } else {
             return "Couldn't understand that command.";
         }
     }
@@ -168,7 +165,7 @@ public class Dungeon {
     public void attackCommand(UserID id, String weapon, String target) {
         Room room = getPlayerRoom(id);
         if (room == null) {
-            messenger.sendMessageToUser(new GameMessage( "You are not in this dungeon"), id);
+            messenger.sendMessageToUser(new GameMessage("You are not in this dungeon"), id);
             return;
         }
         room.attack(Objects.requireNonNull(getPlayerById(id)), weapon, target);
@@ -177,16 +174,11 @@ public class Dungeon {
     public String inventory(UserID id) {
         Player player = getPlayerById(id);
         assert player != null;
-        return player.listInventory();
+        return player.printInventory();
     }
 
     public String equip(UserID id, String itemName, EquipmentSlots slot) {
         Player player = getPlayerById(id);
-//        if (player.equipItem(itemName, slot)) {
-//            return "Successfully equipped";
-//        } else {
-//            return "Could not equip that";
-//        }
         assert player != null;
         return player.equipItem(itemName, slot);
     }
