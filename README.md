@@ -30,49 +30,49 @@ classDiagram
   class Interactable
   class Weapon
 
-  Item ..o Container
-  Item --> Examinable
-  Item --> Taggable
+  Container o.. Item
+  Examinable <-- Item
+  Taggable <-- Item
 
-  Takeable --> Item
-%%   Usable --> Item
-%%   Equipable --> Item
-%%   Stackable --> Item
-  Interactable --> Item
-%%   Weapon --> Item
+  Item <-- Takeable
+%%   Item <-- Usable
+%%   Item <-- Equipable
+%%   Item <-- Stackable
+  Item <-- Interactable
+%%   Item <-- Weapon
 
-  Usable --> Takeable
+  Takeable <-- Usable
 
-%%   Equipable --> Takeable
-  Equipable --> Usable
+%%   Takeable <-- Equipable
+  Usable <-- Equipable
 
-%%   Stackable --> Takeable
-  Stackable --> Usable
+%%   Takeable <-- Stackable
+  Usable <-- Stackable
 
-%%   Weapon --> Takeable
-%%   Weapon --> Usable
-  Weapon --> Equipable
+%%   Takeable <-- Weapon
+%%   Usable <-- Weapon
+  Equipable <-- Weapon
 
   class Room
-  Room --> Container
-%%   Interactable --o Room
+  Container <-- Room
+%%   Room o-- Interactable
 
-Container --> Examinable
-Container --> Taggable
+Examinable <-- Container
+Taggable <-- Container
 
 class Creature
 class Player
 class Monster
 
-Creature --> Examinable
-Creature --> Taggable
-Creature --o Room
+Examinable <-- Creature
+Taggable <-- Creature
+Room o-- Creature
 
-Player --> Creature
-Monster --> Creature
+Creature <-- Player
+Creature <-- Monster
 
-Inventory --> Container
-Creature --> Inventory
+Container <-- Inventory
+Inventory <-- Creature
 
 
 ```
@@ -90,26 +90,26 @@ classDiagram
     class Summon
     class Banish
 
-    CreatureAffector --> Spell
-    RoomAffector --> Spell
-    DungeonAffector --> Spell
-    %% Buff --> Spell
-    %% Debuff --> Spell
-    %% Damage --> Spell
-    %% Healing --> Spell
-    %% Summon --> Spell
-    %% Banish --> Spell
+    Spell <-- CreatureAffector
+    Spell <-- RoomAffector
+    Spell <-- DungeonAffector
+    %% Spell <-- Buff
+    %% Spell <-- Debuff
+    %% Spell <-- Damage
+    %% Spell <-- Healing
+    %% Spell <-- Summon
+    %% Spell <-- Banish
 
-    Buff --> CreatureAffector
-    Debuff --> CreatureAffector
-    Damage --> CreatureAffector
-    Healing --> CreatureAffector
+    CreatureAffector <-- Buff
+    CreatureAffector <-- Debuff
+    CreatureAffector <-- Damage
+    CreatureAffector <-- Healing
 
-    Summon --> CreatureAffector
-    Banish --> CreatureAffector
-    Summon --> RoomAffector
-    Banish --> RoomAffector
-    Summon --> DungeonAffector
-    Banish --> DungeonAffector
+    CreatureAffector <-- Summon
+    CreatureAffector <-- Banish
+    RoomAffector <-- Summon
+    RoomAffector <-- Banish
+    DungeonAffector <-- Summon
+    DungeonAffector <-- Banish
 
 ```
