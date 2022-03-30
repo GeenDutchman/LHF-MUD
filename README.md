@@ -76,3 +76,40 @@ Creature --> Inventory
 
 
 ```
+
+```mermaid
+classDiagram
+    class Spell
+    class CreatureAffector
+    class RoomAffector
+    class DungeonAffector
+    class Buff
+    class Debuff
+    class Damage
+    class Healing
+    class Summon
+    class Banish
+
+    CreatureAffector --> Spell
+    RoomAffector --> Spell
+    DungeonAffector --> Spell
+    %% Buff --> Spell
+    %% Debuff --> Spell
+    %% Damage --> Spell
+    %% Healing --> Spell
+    %% Summon --> Spell
+    %% Banish --> Spell
+
+    Buff --> CreatureAffector
+    Debuff --> CreatureAffector
+    Damage --> CreatureAffector
+    Healing --> CreatureAffector
+
+    Summon --> CreatureAffector
+    Banish --> CreatureAffector
+    Summon --> RoomAffector
+    Banish --> RoomAffector
+    Summon --> DungeonAffector
+    Banish --> DungeonAffector
+
+```
