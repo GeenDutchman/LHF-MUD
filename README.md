@@ -81,7 +81,6 @@ Inventory <-- Creature
 classDiagram
     class Spell
     class CreatureAffector
-    class CrowdAffector
     class RoomAffector
     class DungeonAffector
     class Buff
@@ -92,7 +91,6 @@ classDiagram
     class Banish
 
     Spell <-- CreatureAffector
-    Spell <-- CrowdAffector
     Spell <-- RoomAffector
     Spell <-- DungeonAffector
     %% Spell <-- Buff
@@ -106,16 +104,8 @@ classDiagram
     CreatureAffector <-- Debuff
     CreatureAffector <-- Damage
     CreatureAffector <-- Healing
-
-    CrowdAffector <-- Buff
-    CrowdAffector <-- Debuff
-    CrowdAffector <-- Damage
-    CrowdAffector <-- Healing
-
     CreatureAffector <-- Summon
     CreatureAffector <-- Banish
-    CrowdAffector <-- Summon
-    CrowdAffector <-- Banish
     RoomAffector <-- Summon
     RoomAffector <-- Banish
     DungeonAffector <-- Summon
