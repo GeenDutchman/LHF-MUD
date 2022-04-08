@@ -2,7 +2,6 @@ package com.lhf.game.magic;
 
 import com.lhf.game.Examinable;
 import com.lhf.game.Taggable;
-import com.lhf.game.dice.Dice.RollResult;
 
 public abstract class ISpell implements Taggable, Examinable {
     private final String className;
@@ -48,10 +47,6 @@ public abstract class ISpell implements Taggable, Examinable {
     public Integer getLevel() {
         return this.level;
     }
-
-    public abstract RollResult getToHit();
-
-    public abstract Integer getDifficulty();
 
     public String getName() {
         return this.name;
