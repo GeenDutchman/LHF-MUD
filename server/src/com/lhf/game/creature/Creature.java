@@ -1,6 +1,5 @@
 package com.lhf.game.creature;
 
-import com.lhf.game.Taggable;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.Inventory;
@@ -16,13 +15,14 @@ import com.lhf.game.enums.*;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.*;
+import com.lhf.game.magic.CubeHolder;
 
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
 import static com.lhf.game.enums.Attributes.*;
 
-public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
+public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder {
 
     public class Fist extends Weapon {
 
@@ -634,6 +634,26 @@ public class Creature implements InventoryOwner, EquipmentOwner, Taggable {
     @Override
     public String getColorTaggedName() {
         return getStartTagName() + getName() + getEndTagName();
+    }
+
+    @Override
+    public String getCasterVocation() {
+        return "Caster";
+    }
+
+    @Override
+    public Integer getCasterLevels() {
+        return 1;
+    }
+
+    @Override
+    public Integer getCasterDifficulty() {
+        return 15;
+    }
+
+    @Override
+    public RollResult spellAttack() {
+        return this.check(Attributes.INT);
     }
 
 }
