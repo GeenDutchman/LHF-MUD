@@ -1,0 +1,109 @@
+{
+  "creatureRace": "hobgoblin",
+  "creatureType": "MONSTER",
+  "attributes": {
+    "strength": {
+      "score": 13,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "dexterity": {
+      "score": 12,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "constitution": {
+      "score": 12,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "intelligence": {
+      "score": 10,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "wisdom": {
+      "score": 10,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "charisma": {
+      "score": 9,
+      "scoreBonus": 0,
+      "modBonus": 0
+    }
+  },
+  "stats": {
+    "XPWORTH": 100,
+    "MAXHP": 11,
+    "AC": 18,
+    "XPEARNED": 0,
+    "PROFICIENCYBONUS": 0,
+    "CURRENTHP": 11
+  },
+  "proficiencies": [
+    "MARTIALWEAPONS",
+    "SIMPLEMELEEWEAPONS",
+    "SHIELD",
+    "HEAVYARMOR"
+  ],
+  "inventory": {
+    "items": []
+  },
+  "equipmentSlots": {
+    "SHIELD": {
+      "AC": 2,
+      "slots": [
+        "SHIELD"
+      ],
+      "types": [
+        "SHIELD"
+      ],
+      "className": "com.lhf.game.item.concrete.equipment.Shield",
+      "objectName": "Shield",
+      "isVisible": true,
+      "equippingChanges": {
+        "AC": 2
+      }
+    },
+    "ARMOR": {
+      "AC": 5,
+      "slots": [
+        "ARMOR"
+      ],
+      "types": [
+        "HEAVYARMOR"
+      ],
+      "className": "com.lhf.game.item.concrete.equipment.ChainMail",
+      "objectName": "Chain Mail",
+      "isVisible": true,
+      "equippingChanges": {
+        "AC": 2
+      }
+    },
+    "WEAPON": {
+      "slots": [
+        "WEAPON"
+      ],
+      "types": [
+        "SIMPLEMELEEWEAPONS",
+        "LONGSWORD"
+      ],
+      "damages": [
+        {
+          "flavor": "SLASHING",
+          "count": 1,
+          "type": "EIGHT",
+          "staticBonus": 0
+        }
+      ],
+      "numCanUseTimes": -1,
+      "hasBeenUsedTimes": 0,
+      "methods": {},
+      "className": "com.lhf.game.item.concrete.equipment.Longsword",
+      "objectName": "Longsword",
+      "isVisible": true,
+      "equippingChanges": {}
+    }
+  }
+}
