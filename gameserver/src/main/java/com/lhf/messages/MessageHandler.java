@@ -12,6 +12,10 @@ public abstract class MessageHandler {
         this._successor = successor;
     }
 
+    protected MessageHandler getSuccessor() {
+        return this._successor;
+    }
+
     public void intercept(MessageHandler interceptor) {
         interceptor.setSuccessor(this._successor);
         this.setSuccessor(interceptor);
