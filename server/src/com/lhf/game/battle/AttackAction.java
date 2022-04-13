@@ -16,6 +16,7 @@ public class AttackAction implements BattleAction {
     public AttackAction(Creature target, String withWeapon) {
         this.weapon = withWeapon;
         this.targets = new HashSet<>();
+        this.addTarget(target);
     }
 
     public String getWeapon() {
