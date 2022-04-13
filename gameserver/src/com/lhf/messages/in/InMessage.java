@@ -5,7 +5,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class InMessage {
+import com.lhf.messages.CommandMessage;
+
+public abstract class InMessage {
+    // public abstract CommandMessage getType();
+
     public static Optional<InMessage> fromString(String payload) {
         String[] words = payload.split(" ");
         Stream<String> stream = Arrays.stream(words);
