@@ -16,6 +16,8 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.*;
 import com.lhf.game.magic.CubeHolder;
+import com.lhf.game.magic.interfaces.CreatureAffector;
+import com.lhf.game.magic.interfaces.DamageSpell;
 
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
@@ -347,6 +349,27 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder {
         return output.toString();
     }
 
+    public String applySpell(CreatureAffector spell) {
+        StringBuilder output = new StringBuilder();
+        if (spell instanceof DamageSpell) {
+            DamageSpell dSpell = (DamageSpell) spell;
+            for (DamageDice dd : dSpell.getDamages()) {
+                RollResult damage = dd.rollDice();
+                int adjustedDamage = adjustDamageByFlavor(dd.getFlavor(), damage.getTotal());
+                updateHitpoints(adjustedDamage);
+                output.append(spell.getCaster().getColorTaggedName()).append(" has dealt ")
+                        .append(dd.getFlavor().getColorTaggedName()).append(" damage to ")
+                        .append(this.getColorTaggedName()).append(".\n");
+            }
+            if (!isAlive()) {
+                output.append(this.getColorTaggedName()).append(" has died.\r\n");
+            }
+            return output.toString();
+        }
+        output.append("Weird, that spell should have done something.");
+        return output.toString();
+    }
+
     private int getHealth() {
         return stats.get(Stats.CURRENTHP);
     }
@@ -542,7 +565,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder {
         return "You do not have that '" + itemName + "' to use!";
     }
 
-    private boolean applyUse(Map<String, Integer> applications) {
+    public boolean applyUse(Map<String, Integer> applications) {
         for (Map.Entry<String, Integer> p : applications.entrySet()) {
             try {
                 Attributes attribute = Attributes.valueOf(p.getKey());

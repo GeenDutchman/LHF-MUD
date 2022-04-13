@@ -4,10 +4,14 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD4;
+import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.Weapon;
+import com.lhf.game.magic.interfaces.CreatureAffector;
+import com.lhf.game.magic.interfaces.DamageSpell;
+import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 import com.lhf.game.map.Room;
 import com.lhf.server.messages.Messenger;
 import com.lhf.server.messages.out.GameMessage;
@@ -219,6 +223,24 @@ public class BattleManager {
                 weapon = p.getWeapon();
             }
             applyAttacks(p, weapon, targets);
+        } else if (action instanceof CreatureAffector) {
+            CreatureAffector spell = (CreatureAffector) action;
+            if (!spell.hasTargets()) {
+                messenger.sendMessageToUser(new GameMessage("You did not choose any targets.\r\n"), p.getId());
+                return;
+            }
+            List<Creature> targets = spell.getTargets();
+            for (Creature c : targets) {
+                if (!isCreatureInBattle(c)) {
+                    // invalid target in list
+                    messenger.sendMessageToUser(new GameMessage("One of your targets did not exist.\r\n"), p.getId());
+                    return;
+                }
+                if (c instanceof Player && !playerVSplayer && spell instanceof DamageSpell) {
+                    this.playerVSplayer = true;
+                }
+            }
+            applySpell((Creature) spell.getCaster(), (CreatureAffector) spell, targets);
         } else {
             sendMessageToAllParticipants(new GameMessage(p.getColorTaggedName() + " wasted their turn!"));
         }
@@ -253,6 +275,27 @@ public class BattleManager {
         }
         output.append('\n');
         sendMessageToAllParticipants(new GameMessage(output.toString()));
+    }
+
+    private void applySpell(Creature attacker, CreatureAffector spell, Collection<Creature> targets) {
+        sendMessageToAllParticipants(new GameMessage(spell.Cast()));
+        Optional<CasterVsCreatureStrategy> strategy = spell.getStrategy();
+        for (Creature target : targets) {
+            if (strategy.isPresent()) {
+                CasterVsCreatureStrategy strat = strategy.get();
+                RollResult casterResult = strat.getCasterEffort();
+                RollResult targetResult = strat.getTargetEffort(target);
+                if (casterResult.getTotal() <= targetResult.getTotal()) {
+                    sendMessageToAllParticipants(new GameMessage(
+                            attacker.getColorTaggedName() + " missed (" + casterResult.getColorTaggedName() + ") "
+                                    + target.getColorTaggedName() + " (" + targetResult.getColorTaggedName() + ")."));
+                    continue;
+                }
+            }
+            // hack it
+
+            sendMessageToAllParticipants(new GameMessage(target.applySpell(spell)));
+        }
     }
 
     private void applyAttacks(Creature attacker, Weapon weapon, Collection<Creature> targets) {
