@@ -4,7 +4,7 @@ import com.lhf.Taggable;
 
 public enum CommandMessage implements Taggable {
     HELP, SAY, TELL, LOOK, EXAMINE, GO, ATTACK, CAST, DROP, EQUIP, UNEQUIP, INTERACT, INVENTORY, TAKE, USE, STATUS,
-    PLAYERS, EXIT;
+    PLAYERS, EXIT, CREATE, SHOUT;
 
     @Override
     public String getStartTagName() {

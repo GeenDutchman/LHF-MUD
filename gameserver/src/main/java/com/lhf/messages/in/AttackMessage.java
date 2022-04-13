@@ -1,5 +1,7 @@
 package com.lhf.messages.in;
 
+import com.lhf.messages.CommandMessage;
+
 public class AttackMessage extends InMessage {
     private String weaponName = "";
     private String targetName = "";
@@ -32,5 +34,10 @@ public class AttackMessage extends InMessage {
     @Override
     public String toString() {
         return "Attacking " + this.targetName + " with " + this.weaponName;
+    }
+
+    @Override
+    public CommandMessage getType() {
+        return CommandMessage.ATTACK;
     }
 }

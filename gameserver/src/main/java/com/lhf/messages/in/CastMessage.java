@@ -1,5 +1,7 @@
 package com.lhf.messages.in;
 
+import com.lhf.messages.CommandMessage;
+
 public class CastMessage extends InMessage {
     private String invocation = "";
     private String target = "";
@@ -38,6 +40,11 @@ public class CastMessage extends InMessage {
     public String toString() {
         return "Casting a spell with invocation " + this.invocation + " at " + this.target
                 + (this.level >= 0 ? " using level " + this.level.toString() : "");
+    }
+
+    @Override
+    public CommandMessage getType() {
+        return CommandMessage.CAST;
     }
 
 }

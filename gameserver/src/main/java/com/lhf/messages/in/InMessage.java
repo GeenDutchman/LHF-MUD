@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 import com.lhf.messages.CommandMessage;
 
 public abstract class InMessage {
-    // public abstract CommandMessage getType();
+    public abstract CommandMessage getType();
 
     public static Optional<InMessage> fromString(String payload) {
         String[] words = payload.split(" ");

@@ -1,5 +1,7 @@
 package com.lhf.messages.in;
 
+import com.lhf.messages.CommandMessage;
+
 public class InteractMessage extends InMessage {
     private String object;
 
@@ -9,5 +11,10 @@ public class InteractMessage extends InMessage {
 
     public String getObject() {
         return object;
+    }
+
+    @Override
+    public CommandMessage getType() {
+        return CommandMessage.INTERACT;
     }
 }

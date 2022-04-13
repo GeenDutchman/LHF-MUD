@@ -1,5 +1,7 @@
 package com.lhf.messages.in;
 
+import com.lhf.messages.CommandMessage;
+
 public class CreateInMessage extends InMessage {
     private String username;
     private String password;
@@ -26,5 +28,10 @@ public class CreateInMessage extends InMessage {
 
     public String getPassword() {
         return password;
+    }
+
+    @Override
+    public CommandMessage getType() {
+        return CommandMessage.CREATE;
     }
 }

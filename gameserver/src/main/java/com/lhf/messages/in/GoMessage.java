@@ -1,5 +1,7 @@
 package com.lhf.messages.in;
 
+import com.lhf.messages.CommandMessage;
+
 public class GoMessage extends InMessage {
 
     private String direction;
@@ -10,5 +12,10 @@ public class GoMessage extends InMessage {
 
     public String getDirection() {
         return direction;
+    }
+
+    @Override
+    public CommandMessage getType() {
+        return CommandMessage.GO;
     }
 }

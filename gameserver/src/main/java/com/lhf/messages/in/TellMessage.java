@@ -1,5 +1,6 @@
 package com.lhf.messages.in;
 
+import com.lhf.messages.CommandMessage;
 import com.lhf.server.client.user.UserID;
 
 import java.util.Arrays;
@@ -25,5 +26,10 @@ public class TellMessage extends InMessage {
 
     public String getMessage() {
         return message;
+    }
+
+    @Override
+    public CommandMessage getType() {
+        return CommandMessage.TELL;
     }
 }

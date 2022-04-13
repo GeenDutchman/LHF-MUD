@@ -1,5 +1,7 @@
 package com.lhf.messages.in;
 
+import com.lhf.messages.CommandMessage;
+
 public class UseMessage extends InMessage {
     private String usefulItem = "";
     private String targetName = "";
@@ -30,5 +32,10 @@ public class UseMessage extends InMessage {
     @Override
     public String toString() {
         return "Using " + this.usefulItem + " on " + this.targetName;
+    }
+
+    @Override
+    public CommandMessage getType() {
+        return CommandMessage.USE;
     }
 }

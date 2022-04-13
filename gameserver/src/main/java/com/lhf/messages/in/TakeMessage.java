@@ -1,5 +1,7 @@
 package com.lhf.messages.in;
 
+import com.lhf.messages.CommandMessage;
+
 public class TakeMessage extends InMessage {
     private String target;
 
@@ -9,5 +11,10 @@ public class TakeMessage extends InMessage {
 
     public String getTarget() {
         return target;
+    }
+
+    @Override
+    public CommandMessage getType() {
+        return CommandMessage.TAKE;
     }
 }

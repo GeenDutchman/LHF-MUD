@@ -1,6 +1,7 @@
 package com.lhf.messages.in;
 
 import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.messages.CommandMessage;
 
 import static com.lhf.game.enums.EquipmentSlots.*;
 
@@ -53,5 +54,10 @@ public class UnequipMessage extends InMessage {
 
     public String getPossibleWeapon() {
         return possibleWeapon;
+    }
+
+    @Override
+    public CommandMessage getType() {
+        return CommandMessage.UNEQUIP;
     }
 }
