@@ -65,6 +65,8 @@ public class InMessage {
                             return Optional.of(new AttackMessage(arguments));
                         case "use":
                             return Optional.of(new UseMessage(arguments));
+                        case "cast":
+                            return Optional.of(new CastMessage(arguments));
                         default:
                             return Optional.empty();
                     }
@@ -119,7 +121,7 @@ public class InMessage {
 
             // while arg is not preposition
             result[fillIndex] = "";
-            while (!preposition.equals(arguments[argIndex])) {
+            while (argIndex < arguments.length && !preposition.equals(arguments[argIndex])) {
                 String arg = arguments[argIndex];
                 if (arg != null && arg.length() > 0) {
                     // add it to that part of result

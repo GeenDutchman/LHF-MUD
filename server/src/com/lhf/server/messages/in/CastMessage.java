@@ -17,7 +17,9 @@ public class CastMessage extends InMessage {
             if (words[2].length() > 0) {
                 this.level = Integer.valueOf(words[2]);
             }
+            return;
         }
+        this.invocation = payload;
     }
 
     public String getInvocation() {

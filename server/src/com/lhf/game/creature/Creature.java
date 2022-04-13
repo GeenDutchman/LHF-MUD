@@ -358,7 +358,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder {
                 int adjustedDamage = adjustDamageByFlavor(dd.getFlavor(), damage.getTotal());
                 updateHitpoints(adjustedDamage);
                 output.append(spell.getCaster().getColorTaggedName()).append(" has dealt ")
-                        .append(dd.getFlavor().getColorTaggedName()).append(" damage to ")
+                        .append(damage.getColorTaggedName()).append(" damage to ")
                         .append(this.getColorTaggedName()).append(".\n");
             }
             if (!isAlive()) {

@@ -21,6 +21,10 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.InteractObject;
 import com.lhf.game.item.interfaces.Takeable;
+import com.lhf.game.magic.ISpell;
+import com.lhf.game.magic.interfaces.CreatureAffector;
+import com.lhf.game.magic.interfaces.DamageSpell;
+import com.lhf.game.magic.interfaces.RoomAffector;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.messages.Messenger;
 import com.lhf.server.messages.out.GameMessage;
@@ -311,7 +315,7 @@ public class Room implements Container {
         return p.useItem(usefulObject, indirectObject);
     }
 
-    Player getPlayerInRoom(UserID id) {
+    public Player getPlayerInRoom(UserID id) {
         for (Player p : players) {
             if (p.getId().equals(id)) {
                 return p;
@@ -320,7 +324,7 @@ public class Room implements Container {
         return null;
     }
 
-    private ArrayList<Creature> getCreaturesInRoom(String creatureName) {
+    public ArrayList<Creature> getCreaturesInRoom(String creatureName) {
         ArrayList<Creature> match = new ArrayList<>();
         for (Creature c : this.creatures.keySet()) {
             if (c.CheckNameRegex(creatureName, 3)) {
@@ -515,6 +519,44 @@ public class Room implements Container {
         AttackAction attackAction = new AttackAction(targetCreature, weapon);
         this.battleManager.playerAction(player, attackAction);
 
+    }
+
+    public String cast(Player player, ISpell spell) {
+        if (spell instanceof RoomAffector) {
+            this.messenger.sendMessageToAllInRoom(new GameMessage(spell.Cast()), this);
+            return spell.Cast();
+        }
+        if (spell instanceof CreatureAffector) {
+            CreatureAffector creatureSpell = (CreatureAffector) spell;
+            if (creatureSpell instanceof DamageSpell) {
+                if (!player.isInBattle()) {
+                    this.battleManager.addCreatureToBattle(player);
+                    if (this.battleManager.isBattleOngoing()) {
+                        messenger.sendMessageToAllInRoomExceptPlayer(
+                                new GameMessage(player.getColorTaggedName() + " has joined the ongoing battle!"),
+                                player.getId());
+                    }
+                }
+                for (Creature target : creatureSpell.getTargets()) {
+                    if (!target.isInBattle()) {
+                        this.battleManager.addCreatureToBattle(target);
+                    }
+                }
+                if (!this.battleManager.isBattleOngoing()) {
+                    this.battleManager.startBattle(player);
+                }
+                this.battleManager.playerAction(player, creatureSpell);
+                return "You attempted an attack spell";
+            }
+            this.messenger.sendMessageToAllInRoom(new GameMessage(spell.Cast()), this);
+            StringBuilder sb = new StringBuilder();
+            for (Creature target : creatureSpell.getTargets()) {
+                sb.append(target.applySpell(creatureSpell)).append("\n");
+            }
+            this.messenger.sendMessageToAllInRoom(new GameMessage(sb.toString()), this);
+            return sb.toString();
+        }
+        return "You attempted a spell!";
     }
 
     void setMessenger(Messenger messenger) {

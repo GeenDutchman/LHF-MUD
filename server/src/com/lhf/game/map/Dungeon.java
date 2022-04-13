@@ -56,7 +56,7 @@ public class Dungeon {
         return rooms.add(r);
     }
 
-    private Room getPlayerRoom(UserID id) {
+    public Room getPlayerRoom(UserID id) {
         for (Room r : rooms) {
             Player p = r.getPlayerInRoom(id);
             if (p != null) {
