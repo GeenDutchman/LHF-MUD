@@ -1,7 +1,6 @@
 package com.lhf.server.client.user;
 
-// import com.lhf.server.client.ClientID;
-import com.lhf.server.messages.in.CreateInMessage;
+import com.lhf.messages.in.CreateInMessage;
 
 public class User {
     private String username;

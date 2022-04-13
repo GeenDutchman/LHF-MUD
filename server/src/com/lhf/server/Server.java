@@ -1,5 +1,9 @@
 package com.lhf.server;
 
+import com.lhf.messages.in.CreateInMessage;
+import com.lhf.messages.in.ExitMessage;
+import com.lhf.messages.in.InMessage;
+import com.lhf.messages.out.*;
 import com.lhf.server.client.ClientHandle;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.ClientManager;
@@ -10,10 +14,6 @@ import com.lhf.server.interfaces.MessageListener;
 import com.lhf.server.interfaces.NotNull;
 import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
-import com.lhf.server.messages.in.CreateInMessage;
-import com.lhf.server.messages.in.ExitMessage;
-import com.lhf.server.messages.in.InMessage;
-import com.lhf.server.messages.out.*;
 
 import java.io.IOException;
 import java.net.ServerSocket;

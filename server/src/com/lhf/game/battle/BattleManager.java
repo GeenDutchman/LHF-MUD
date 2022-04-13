@@ -13,8 +13,8 @@ import com.lhf.game.magic.interfaces.CreatureAffector;
 import com.lhf.game.magic.interfaces.DamageSpell;
 import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 import com.lhf.game.map.Room;
-import com.lhf.server.messages.Messenger;
-import com.lhf.server.messages.out.GameMessage;
+import com.lhf.messages.Messenger;
+import com.lhf.messages.out.GameMessage;
 
 import java.util.*;
 import java.util.logging.Logger;

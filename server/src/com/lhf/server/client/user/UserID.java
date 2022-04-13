@@ -1,9 +1,10 @@
 package com.lhf.server.client.user;
 
-import com.lhf.server.messages.in.CreateInMessage;
+import com.lhf.messages.in.CreateInMessage;
 
 public class UserID {
     private String username;
+
     public UserID(CreateInMessage create_user) {
         username = create_user.getUsername();
     }
@@ -15,6 +16,7 @@ public class UserID {
     public String getUsername() {
         return username;
     }
+
     @Override
     public int hashCode() {
         return username.hashCode();

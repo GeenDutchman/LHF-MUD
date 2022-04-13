@@ -1,8 +1,8 @@
 package com.lhf.server.client.user;
 
 import com.lhf.game.Game;
+import com.lhf.messages.in.CreateInMessage;
 import com.lhf.server.client.ClientID;
-import com.lhf.server.messages.in.CreateInMessage;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -4,17 +4,17 @@ import com.lhf.game.creature.Player;
 import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
+import com.lhf.messages.Messenger;
+import com.lhf.messages.in.*;
+import com.lhf.messages.out.GameMessage;
+import com.lhf.messages.out.NewInMessage;
+import com.lhf.messages.out.UserLeftMessage;
+import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
 import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
-import com.lhf.server.messages.Messenger;
-import com.lhf.server.messages.in.*;
-import com.lhf.server.messages.out.GameMessage;
-import com.lhf.server.messages.out.NewInMessage;
-import com.lhf.server.messages.out.UserLeftMessage;
-import com.lhf.server.messages.out.WelcomeMessage;
 import com.lhf.server.interfaces.NotNull;
 
 import java.io.FileNotFoundException;
@@ -65,13 +65,13 @@ public class Game implements UserListener {
 		if (msg instanceof ShoutMessage) {
 			this.logger.finer("Shouting");
 			server.sendMessageToAll(
-					new com.lhf.server.messages.out.ShoutMessage(((ShoutMessage) msg).getMessage(),
+					new com.lhf.messages.out.ShoutMessage(((ShoutMessage) msg).getMessage(),
 							user));
 		}
 		if (msg instanceof SayMessage) {
 			this.logger.finer("Saying");
 			messenger.sendMessageToAllInRoom(
-					new com.lhf.server.messages.out.SayMessage(((SayMessage) msg).getMessage(),
+					new com.lhf.messages.out.SayMessage(((SayMessage) msg).getMessage(),
 							user),
 					id);
 		}
@@ -88,14 +88,14 @@ public class Game implements UserListener {
 			boolean success;
 			if (!id.getUsername().equals(tellMsg.getTarget().getUsername())) {
 				success = server.sendMessageToUser(
-						new com.lhf.server.messages.out.TellMessage(id, tellMsg.getMessage()),
+						new com.lhf.messages.out.TellMessage(id, tellMsg.getMessage()),
 						tellMsg.getTarget());
 				if (success) {
-					server.sendMessageToUser(new com.lhf.server.messages.out.TellMessage(id,
+					server.sendMessageToUser(new com.lhf.messages.out.TellMessage(id,
 							tellMsg.getMessage()), id);
 				} else {
 					server.sendMessageToUser(
-							new com.lhf.server.messages.out.WrongUserMessage(
+							new com.lhf.messages.out.WrongUserMessage(
 									tellMsg.getTarget().getUsername()),
 							id);
 				}
@@ -104,7 +104,7 @@ public class Game implements UserListener {
 		if (msg instanceof ListPlayersMessage) {
 			this.logger.finer("Listing Players");
 			server.sendMessageToUser(
-					new com.lhf.server.messages.out.ListPlayersMessage(
+					new com.lhf.messages.out.ListPlayersMessage(
 							userManager.getAllUsernames()),
 					id);
 		}

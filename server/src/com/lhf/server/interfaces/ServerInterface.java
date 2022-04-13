@@ -1,7 +1,7 @@
 package com.lhf.server.interfaces;
 
+import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.user.UserID;
-import com.lhf.server.messages.out.OutMessage;
 
 public interface ServerInterface {
     void registerCallback(UserListener listener);

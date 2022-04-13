@@ -25,9 +25,9 @@ import com.lhf.game.magic.ISpell;
 import com.lhf.game.magic.interfaces.CreatureAffector;
 import com.lhf.game.magic.interfaces.DamageSpell;
 import com.lhf.game.magic.interfaces.RoomAffector;
+import com.lhf.messages.Messenger;
+import com.lhf.messages.out.GameMessage;
 import com.lhf.server.client.user.UserID;
-import com.lhf.server.messages.Messenger;
-import com.lhf.server.messages.out.GameMessage;
 
 public class Room implements Container {
 

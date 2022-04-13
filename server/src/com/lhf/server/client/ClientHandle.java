@@ -8,12 +8,12 @@ import java.net.Socket;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import com.lhf.messages.in.InMessage;
+import com.lhf.messages.out.BadMessage;
+import com.lhf.messages.out.FatalMessage;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.server.interfaces.ConnectionListener;
 import com.lhf.server.interfaces.MessageListener;
-import com.lhf.server.messages.in.InMessage;
-import com.lhf.server.messages.out.BadMessage;
-import com.lhf.server.messages.out.FatalMessage;
-import com.lhf.server.messages.out.OutMessage;
 
 public class ClientHandle extends Thread {
     private Socket client;
