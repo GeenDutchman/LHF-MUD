@@ -1,7 +1,7 @@
 package com.lhf.game.magic;
 
-import com.lhf.game.Examinable;
-import com.lhf.game.Taggable;
+import com.lhf.Examinable;
+import com.lhf.Taggable;
 
 public abstract class ISpell implements Taggable, Examinable {
     private final String className;

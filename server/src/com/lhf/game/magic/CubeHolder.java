@@ -1,6 +1,6 @@
 package com.lhf.game.magic;
 
-import com.lhf.game.Taggable;
+import com.lhf.Taggable;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.Attributes;
 

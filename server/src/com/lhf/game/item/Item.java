@@ -2,8 +2,8 @@ package com.lhf.game.item;
 
 import java.util.regex.PatternSyntaxException;
 
-import com.lhf.game.Examinable;
-import com.lhf.game.Taggable;
+import com.lhf.Examinable;
+import com.lhf.Taggable;
 
 public abstract class Item implements Examinable, Taggable {
     // Class name for discrimination

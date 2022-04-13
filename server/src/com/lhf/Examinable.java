@@ -1,4 +1,4 @@
-package com.lhf.game;
+package com.lhf;
 
 public interface Examinable {
 
