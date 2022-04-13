@@ -4,7 +4,7 @@ import com.lhf.game.magic.interfaces.RoomAffector;
 
 public class Thaumaturgy extends RoomAffector {
 
-    protected Thaumaturgy() {
+    public Thaumaturgy() {
         super(0, "Thaumaturgy", "A way to magical announce your presence");
         this.setInvocation("zarmamoo");
     }

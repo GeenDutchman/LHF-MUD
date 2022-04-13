@@ -13,7 +13,7 @@ import com.lhf.game.magic.interfaces.DamageSpell;
 public class ShockBolt extends CreatureAffector implements DamageSpell {
     private List<DamageDice> damages;
 
-    protected ShockBolt() {
+    public ShockBolt() {
         super(0, "Shock Bolt", "A small spark of electricity shocks a creature you choose as a target", true);
         this.setInvocation("Astra Horeb");
         this.damages = Arrays.asList(new DamageDice(1, DieType.FOUR, this.getMainFlavor()));
