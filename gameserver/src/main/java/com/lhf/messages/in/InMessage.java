@@ -42,8 +42,6 @@ public abstract class InMessage {
 
                 if (toReturn.isEmpty() && arguments.length() > 0) {
                     switch (val.toLowerCase()) {
-                        case "tell":
-                            return Optional.of(new TellMessage(arguments));
                         case "create":
                             CreateInMessage create_message = new CreateInMessage(arguments);
                             if (!create_message.getUsername().equals("")) {
