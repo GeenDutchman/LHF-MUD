@@ -70,7 +70,7 @@ class Phrase implements GrammarStateMachine {
 
     @Override
     public Boolean isValid() {
-        return this.stack.size() == 0;
+        return this.stack.size() == 0 && this.phrase.length() > 0;
     }
 
     @Override
