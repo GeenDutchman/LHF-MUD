@@ -1,4 +1,4 @@
-package com.lhf.messages;
+package com.lhf.messages.grammar;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,39 +8,39 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 
+import com.lhf.messages.GrammarStateMachine;
+
 public class PhraseList implements GrammarStateMachine {
     protected List<Phrase> phrases;
     protected Set<String> enders;
-    protected Map<String, String> listSeparator;
+    protected Set<String> listSeparator;
 
     public PhraseList(Set<String> listEnders) {
         this.phrases = new ArrayList<>();
-        this.listSeparator = new HashMap<>();
-        this.listSeparator.put(",", ",");
-        this.listSeparator.put("and", "and");
+        this.listSeparator = new HashSet<>();
+        this.listSeparator.add(",");
+        this.listSeparator.add("and");
         this.enders = new HashSet<>(listEnders);
-        this.enders.addAll(this.listSeparator.keySet());
+        this.enders.addAll(this.listSeparator);
     }
 
     public PhraseList(Set<String> listEnders, Set<String> separator) {
         this.phrases = new ArrayList<>();
-        this.listSeparator = new HashMap<>();
+        this.listSeparator = new HashSet<>();
 
         if (separator != null && separator.size() > 0 && !separator.contains(" ")) {
-            for (String s : separator) {
-                this.listSeparator.put(s, s);
-            }
+            this.listSeparator = separator;
         } else {
-            this.listSeparator = new HashMap<>();
-            this.listSeparator.put(",", ",");
-            this.listSeparator.put("and", "and");
+            this.listSeparator = new HashSet<>();
+            this.listSeparator.add(",");
+            this.listSeparator.add("and");
         }
         this.enders = new HashSet<>(listEnders);
-        this.enders.addAll(this.listSeparator.keySet());
+        this.enders.addAll(this.listSeparator);
     }
 
     public Boolean startNextEntry() {
-        return this.parse(this.listSeparator.);
+        return this.parse((String) this.listSeparator.toArray()[0]);
     }
 
     public Integer getPhraseCount() {
@@ -55,7 +55,7 @@ public class PhraseList implements GrammarStateMachine {
         if (this.phrases.size() == 0) {
             this.phrases.add(new Phrase(this.enders));
         }
-        if (this.listSeparator.containsKey(token.toLowerCase())) {
+        if (this.listSeparator.contains(token.toLowerCase())) {
             this.phrases.add(new Phrase(this.enders));
             return true;
         }

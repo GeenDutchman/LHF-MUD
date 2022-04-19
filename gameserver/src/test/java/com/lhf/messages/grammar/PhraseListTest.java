@@ -1,13 +1,15 @@
-package com.lhf.messages;
+package com.lhf.messages.grammar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import com.lhf.messages.grammar.PhraseList;
+
 import org.junit.jupiter.api.Test;
 
-public class PhraseTest {
+public class PhraseListTest {
     private class testcase {
         public ArrayList<String> testphrase;
         public ArrayList<Boolean> accepted;
@@ -31,7 +33,7 @@ public class PhraseTest {
     @Test
     void testParse() {
         ArrayList<testcase> testcases = new ArrayList<>();
-        // testcases.add(new testcase("oneword", true).addWord("oneword", true));
+        testcases.add(new testcase("oneword", true).addWord("oneword", true));
         testcases.add(new testcase("oneword twoword", true).addWord("oneword", true).addWord("twoword", true));
         testcases.add(new testcase("oneword 'midone midtwo' twoword", true).addWord("oneword", true).addWord("'", true)
                 .addWord("midone", true).addWord("midtwo", true).addWord("'", true).addWord("twoword", true));
@@ -41,23 +43,30 @@ public class PhraseTest {
                 .addWord("go", true).addWord("to", false).addWord("there", false));
         testcases.add(new testcase("oneword (midone midtwo) twoword", true).addWord("oneword", true).addWord("(", true)
                 .addWord("midone", true).addWord("midtwo", true).addWord(")", true).addWord("twoword", true));
+        testcases.add(
+                new testcase("hello, there", true).addWord("hello", true).addWord(",", true).addWord("there", true));
+        testcases.add(new testcase("", false).addWord(",", true));
+        testcases.add(new testcase("", false).addWord(",", true).addWord(",", true).addWord(",", true));
+        testcases.add(new testcase("I, 'have no', bananas for you", true).addWord("I", true).addWord(",", true)
+                .addWord("'", true)
+                .addWord("have", true).addWord("no", true).addWord("'", true).addWord(",", true)
+                .addWord("bananas", true).addWord("for", true).addWord("you", true));
 
         HashSet<String> preps = new HashSet<>();
         preps.add("to");
         preps.add("at");
-        preps.add(",");
 
         for (testcase tcase : testcases) {
-            Phrase p = new Phrase(preps);
+            PhraseList phList = new PhraseList(preps);
 
             Boolean accepted = true;
             for (int i = 0; i < tcase.testphrase.size() && accepted; i++) {
-                accepted = p.parse(tcase.testphrase.get(i));
+                accepted = phList.parse(tcase.testphrase.get(i));
                 assertEquals(tcase.accepted.get(i), accepted);
             }
-            assertEquals(tcase.expectedvalid, p.isValid());
-            if (p.isValid()) {
-                assertEquals(tcase.expectedphrase, p.getResult());
+            assertEquals(tcase.expectedvalid, phList.isValid());
+            if (phList.isValid()) {
+                assertEquals(tcase.expectedphrase, phList.getResult());
             }
         }
     }

@@ -1,10 +1,12 @@
-package com.lhf.messages;
+package com.lhf.messages.grammar;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import com.lhf.messages.GrammarStateMachine;
 
 class Phrase implements GrammarStateMachine {
     class QuotedPhrase {

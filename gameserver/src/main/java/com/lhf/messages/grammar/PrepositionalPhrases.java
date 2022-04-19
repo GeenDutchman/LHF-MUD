@@ -1,8 +1,10 @@
-package com.lhf.messages;
+package com.lhf.messages.grammar;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import com.lhf.messages.GrammarStateMachine;
 
 public class PrepositionalPhrases implements GrammarStateMachine {
     protected Set<String> prepositions;
