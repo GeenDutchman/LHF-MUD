@@ -1,26 +1,18 @@
 package com.lhf.messages.in;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
 
-public class AttackMessage extends InMessage {
+public class AttackMessage extends Command {
     private String weaponName = "";
     private String targetName = "";
 
-    static final private String[] prepositionFlags = { "with" };
-
     AttackMessage(String payload) {
-        String[] words = payload.split(" ");
-        boolean usedFlags = areFlags(words, prepositionFlags);
-        if (usedFlags) { // attack target with weapon
-            words = prepositionSeparator(words, prepositionFlags, 2);
-            this.targetName += words[0];
-            this.weaponName += words[1];
-        } else { // attack target
-            this.targetName += payload;
-        }
-        // String[] words = prepositionSeparator(payload.split(" "), prepositionFlags,
-        // 2);//payload.split(" ");
-
+        super(CommandMessage.ATTACK, payload, true);
+        this.addPreposition("with");
     }
 
     public String getWeapon() {
@@ -34,10 +26,5 @@ public class AttackMessage extends InMessage {
     @Override
     public String toString() {
         return "Attacking " + this.targetName + " with " + this.weaponName;
-    }
-
-    @Override
-    public CommandMessage getType() {
-        return CommandMessage.ATTACK;
     }
 }

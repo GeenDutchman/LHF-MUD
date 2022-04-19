@@ -1,12 +1,14 @@
 package com.lhf.messages.in;
 
+import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
 
-public class ExamineMessage extends InMessage {
+public class ExamineMessage extends Command {
 
     private String thing;
 
     ExamineMessage(String payload) {
+        super(CommandMessage.EXAMINE, payload, true);
         thing = payload;
     }
 
@@ -14,8 +16,4 @@ public class ExamineMessage extends InMessage {
         return thing;
     }
 
-    @Override
-    public CommandMessage getType() {
-        return CommandMessage.EXAMINE;
-    }
 }

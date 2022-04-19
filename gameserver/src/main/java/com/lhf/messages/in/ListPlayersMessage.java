@@ -1,11 +1,12 @@
 package com.lhf.messages.in;
 
+import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
 
-public class ListPlayersMessage extends InMessage {
+public class ListPlayersMessage extends Command {
 
-    @Override
-    public CommandMessage getType() {
-        return CommandMessage.PLAYERS;
+    protected ListPlayersMessage(String payload) {
+        super(CommandMessage.PLAYERS, payload, true);
     }
+
 }

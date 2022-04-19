@@ -1,11 +1,12 @@
 package com.lhf.messages.in;
 
+import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
 
-public class InventoryMessage extends InMessage {
+public class InventoryMessage extends Command {
 
-    @Override
-    public CommandMessage getType() {
-        return CommandMessage.INVENTORY;
+    protected InventoryMessage(String payload) {
+        super(CommandMessage.INVENTORY, payload, true);
     }
+
 }

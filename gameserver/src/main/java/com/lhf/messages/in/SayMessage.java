@@ -1,11 +1,15 @@
 package com.lhf.messages.in;
 
+import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
 
-public class SayMessage extends InMessage {
+public class SayMessage extends Command {
     private String message;
+    private String target;
 
     SayMessage(String payload) {
+        super(CommandMessage.SAY, payload, true);
+        this.addPreposition("to");
         message = payload;
     }
 
@@ -13,8 +17,8 @@ public class SayMessage extends InMessage {
         return message;
     }
 
-    @Override
-    public CommandMessage getType() {
-        return CommandMessage.SAY;
+    public String getTarget() {
+        return target;
     }
+
 }

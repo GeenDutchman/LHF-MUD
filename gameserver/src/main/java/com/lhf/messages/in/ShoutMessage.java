@@ -1,11 +1,13 @@
 package com.lhf.messages.in;
 
+import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
 
-public class ShoutMessage extends InMessage {
+public class ShoutMessage extends Command {
     private String message;
 
     public ShoutMessage(String payload) {
+        super(CommandMessage.SHOUT, payload, true);
         message = payload;
     }
 
@@ -13,8 +15,4 @@ public class ShoutMessage extends InMessage {
         return message;
     }
 
-    @Override
-    public CommandMessage getType() {
-        return CommandMessage.SHOUT;
-    }
 }
