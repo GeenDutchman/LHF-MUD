@@ -31,7 +31,7 @@ public class PhraseListTest {
     @Test
     void testParse() {
         ArrayList<testcase> testcases = new ArrayList<>();
-        // testcases.add(new testcase("oneword", true).addWord("oneword", true));
+        testcases.add(new testcase("oneword", true).addWord("oneword", true));
         testcases.add(new testcase("oneword twoword", true).addWord("oneword", true).addWord("twoword", true));
         testcases.add(new testcase("oneword 'midone midtwo' twoword", true).addWord("oneword", true).addWord("'", true)
                 .addWord("midone", true).addWord("midtwo", true).addWord("'", true).addWord("twoword", true));

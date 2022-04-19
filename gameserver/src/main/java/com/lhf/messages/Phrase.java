@@ -45,6 +45,9 @@ class Phrase implements GrammarStateMachine {
     }
 
     public Boolean parse(String token) {
+        if (token == null) {
+            return false;
+        }
         if (this.stack.size() > 0) {
             String endQuote = this.openClosers.get(this.stack.peek().opensWith);
             if (token.equals(endQuote)) {

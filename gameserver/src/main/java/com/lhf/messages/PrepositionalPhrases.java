@@ -22,6 +22,14 @@ public class PrepositionalPhrases implements GrammarStateMachine {
         this.allowList = allowList;
     }
 
+    public Set<String> getUsedPrepositions() {
+        return this.phraseMap.keySet();
+    }
+
+    public PhraseList getPhraseListByPreposition(String preposition) {
+        return this.phraseMap.get(preposition);
+    }
+
     @Override
     public String getResult() {
         StringBuilder sb = new StringBuilder();
