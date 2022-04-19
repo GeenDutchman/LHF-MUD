@@ -5,7 +5,7 @@ import com.lhf.messages.CommandMessage;
 
 public class InventoryMessage extends Command {
 
-    protected InventoryMessage(String payload) {
+    InventoryMessage(String payload) {
         super(CommandMessage.INVENTORY, payload, true);
     }
 

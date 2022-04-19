@@ -1,7 +1,5 @@
 package com.lhf.messages.in;
 
-import java.util.HashMap;
-
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
 

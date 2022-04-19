@@ -4,8 +4,6 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
 
-import static com.lhf.game.enums.EquipmentSlots.*;
-
 public class EquipMessage extends Command {
     private String itemName = "";
 

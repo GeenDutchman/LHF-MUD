@@ -5,7 +5,7 @@ import com.lhf.messages.CommandMessage;
 
 public class StatusMessage extends Command {
 
-    protected StatusMessage(String payload) {
+    StatusMessage(String payload) {
         super(CommandMessage.STATUS, payload, true);
     }
 

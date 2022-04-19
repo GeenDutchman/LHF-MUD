@@ -5,7 +5,7 @@ import com.lhf.messages.CommandMessage;
 
 public class ListPlayersMessage extends Command {
 
-    protected ListPlayersMessage(String payload) {
+    ListPlayersMessage(String payload) {
         super(CommandMessage.PLAYERS, payload, true);
     }
 

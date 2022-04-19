@@ -4,7 +4,7 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
 
 public class ExitMessage extends Command {
-    protected ExitMessage(String payload) {
+    ExitMessage(String payload) {
         super(CommandMessage.EXIT, payload, true);
     }
 

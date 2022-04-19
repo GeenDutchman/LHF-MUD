@@ -6,7 +6,7 @@ import com.lhf.messages.CommandMessage;
 public class ShoutMessage extends Command {
     private String message;
 
-    public ShoutMessage(String payload) {
+    ShoutMessage(String payload) {
         super(CommandMessage.SHOUT, payload, true);
         message = payload;
     }
