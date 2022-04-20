@@ -12,32 +12,21 @@ import com.lhf.messages.grammar.PrepositionalPhrases;
 import org.junit.jupiter.api.Test;
 
 public class PrepositionalPhrasesTest {
-    private class testcase {
-        public ArrayList<String> tokens;
-        public ArrayList<Boolean> accepted;
-        public String result;
-        public Boolean valid;
+    private class testcase extends GrammarTestCase {
         public Boolean allowList;
 
         public testcase(String result, Boolean valid) {
-            this.result = result;
-            this.valid = valid;
-            this.tokens = new ArrayList<>();
-            this.accepted = new ArrayList<>();
+            super(result, valid);
             this.allowList = false;
         }
 
         public testcase(String result, Boolean valid, Boolean allowList) {
-            this.result = result;
-            this.valid = valid;
-            this.tokens = new ArrayList<>();
-            this.accepted = new ArrayList<>();
+            super(result, valid);
             this.allowList = allowList;
         }
 
-        public testcase addWord(String word, Boolean acc) {
-            this.tokens.add(word);
-            this.accepted.add(acc);
+        public testcase addToken(String token, Boolean acc) {
+            super.addToken(token, acc);
             return this;
         }
     }
@@ -49,26 +38,26 @@ public class PrepositionalPhrasesTest {
         preps.add("at");
 
         ArrayList<testcase> testcases = new ArrayList<>();
-        testcases.add(new testcase("", false).addWord("", false));
-        testcases.add(new testcase("blargh", false).addWord("blargh", false));
-        testcases.add(new testcase("to", false).addWord("to", true));
-        testcases.add(new testcase("to john", true).addWord("to",
-                true).addWord("john", true));
-        testcases.add(new testcase("to john at third", true).addWord("to",
-                true).addWord("john", true)
-                .addWord("at", true).addWord("third", true));
-        testcases.add(new testcase("to john to mary", false).addWord("to",
-                true).addWord("john", true)
-                .addWord("to", false).addWord("mary", false));
-        testcases.add(new testcase("to john to mary", true, true).addWord("to",
-                true).addWord("john", true)
-                .addWord("to", true).addWord("mary", true));
-        testcases.add(new testcase("to john, mary", true, true).addWord("to", true).addWord("john", true)
-                .addWord(",", true).addWord("mary", true));
-        testcases.add(new testcase("to john, mary", false, false).addWord("to", true).addWord("john", true)
-                .addWord(",", true).addWord("mary", true));
-        testcases.add(new testcase("to john 'to mary'", true).addWord("to", true).addWord("john", true)
-                .addWord("'", true).addWord("to", true).addWord("mary", true).addWord("'", true));
+        testcases.add(new testcase("", false).addToken("", false));
+        testcases.add(new testcase("blargh", false).addToken("blargh", false));
+        testcases.add(new testcase("to", false).addToken("to", true));
+        testcases.add(new testcase("to john", true).addToken("to",
+                true).addToken("john", true));
+        testcases.add(new testcase("to john at third", true).addToken("to",
+                true).addToken("john", true)
+                .addToken("at", true).addToken("third", true));
+        testcases.add(new testcase("to john to mary", false).addToken("to",
+                true).addToken("john", true)
+                .addToken("to", false).addToken("mary", false));
+        testcases.add(new testcase("to john to mary", true, true).addToken("to",
+                true).addToken("john", true)
+                .addToken("to", true).addToken("mary", true));
+        testcases.add(new testcase("to john, mary", true, true).addToken("to", true).addToken("john", true)
+                .addToken(",", true).addToken("mary", true));
+        testcases.add(new testcase("to john, mary", false, false).addToken("to", true).addToken("john", true)
+                .addToken(",", true).addToken("mary", true));
+        testcases.add(new testcase("to john 'to mary'", true).addToken("to", true).addToken("john", true)
+                .addToken("'", true).addToken("to", true).addToken("mary", true).addToken("'", true));
 
         for (testcase tcase : testcases) {
             PrepositionalPhrases phrases = new PrepositionalPhrases(preps, tcase.allowList);

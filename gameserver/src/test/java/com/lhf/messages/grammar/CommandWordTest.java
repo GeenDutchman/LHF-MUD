@@ -9,22 +9,19 @@ import com.lhf.messages.CommandMessage;
 import org.junit.jupiter.api.Test;
 
 public class CommandWordTest {
-    private class testcase {
-        public ArrayList<String> tokens;
-        public ArrayList<Boolean> accepted;
-        public Boolean valid;
+    private class testcase extends GrammarTestCase {
         public CommandMessage expected;
 
         public testcase(CommandMessage exp, Boolean valid) {
-            this.valid = valid;
+            super("null", valid); // just in case
+            if (exp != null) {
+                this.result = exp.toString();
+            }
             this.expected = exp;
-            this.tokens = new ArrayList<>();
-            this.accepted = new ArrayList<>();
         }
 
         public testcase addToken(String token, Boolean acc) {
-            this.tokens.add(token);
-            this.accepted.add(acc);
+            super.addToken(token, acc);
             return this;
         }
     }
