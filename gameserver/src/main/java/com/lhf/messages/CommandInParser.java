@@ -2,8 +2,11 @@ package com.lhf.messages;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import com.lhf.messages.grammar.GrammaredCommandPhrase;
+import com.lhf.messages.grammar.Phrase;
+import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.in.InMessage;
 
 public class CommandInParser {
@@ -20,8 +23,23 @@ public class CommandInParser {
             }
             Command parsed = InMessage.fromCommand(parser.getCommandWord().getCommand(), toParse);
             parsed.setValid(accepted && parser.isValid());
+            if (parser.getWhat().isPresent()) {
+                for (Phrase direct : parser.getWhat().get()) {
+                    parsed.addDirect(direct.getResult());
+                }
+            }
+            if (parser.getPreps().isPresent()) {
+                PrepositionalPhrases pp = parser.getPreps().get();
+                for (String preposition : pp) {
+                    parsed.addIndirect(preposition, pp.getPhraseListByPreposition(preposition).getResult()); // TODO:
+                                                                                                             // use the
+                                                                                                             // list
+                }
+            }
             return parsed;
-        } catch (Exception e) {
+        } catch (PatternSyntaxException e) {
+            return InMessage.fromCommand(CommandMessage.HELP, toParse).setValid(false);
+        } catch (IllegalArgumentException iae) {
             return InMessage.fromCommand(CommandMessage.HELP, toParse).setValid(false);
         }
     }

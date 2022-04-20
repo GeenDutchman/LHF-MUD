@@ -8,7 +8,7 @@ import java.util.Set;
 
 import com.lhf.messages.GrammarStateMachine;
 
-class Phrase implements GrammarStateMachine {
+public class Phrase implements GrammarStateMachine {
     class QuotedPhrase {
         public String opensWith;
         public StringBuilder qPhrase;

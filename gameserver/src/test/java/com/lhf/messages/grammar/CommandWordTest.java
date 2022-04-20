@@ -1,6 +1,7 @@
 package com.lhf.messages.grammar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.ArrayList;
 
@@ -37,16 +38,19 @@ public class CommandWordTest {
         testcases.add(new testcase(CommandMessage.SAY, false).addToken("SAY", true).addToken("SHOUT", false));
         testcases.add(new testcase(CommandMessage.SAY, false).addToken("SAY", true).addToken(this.getClass().getName(),
                 false));
-        testcases.add(new testcase(CommandMessage.DROP, true).addToken(this.getClass().toString(), false)
-                .addToken(CommandMessage.DROP.toString(), true));
 
         for (testcase tcase : testcases) {
             CommandWord cw = new CommandWord();
             System.out.println("Now testing '" + tcase.result + "'");
             Boolean accepted = true;
-            for (int i = 0; i < tcase.tokens.size() && accepted; i++) {
-                accepted = cw.parse(tcase.tokens.get(i));
-                assertEquals(tcase.accepted.get(i), accepted);
+            try {
+                for (int i = 0; i < tcase.tokens.size() && accepted; i++) {
+                    accepted = cw.parse(tcase.tokens.get(i));
+                    assertEquals(tcase.accepted.get(i), accepted);
+                }
+            } catch (IllegalArgumentException iae) {
+                System.err.println(iae);
+                assertFalse(tcase.valid);
             }
             Boolean valid = cw.isValid();
             assertEquals(tcase.valid, valid);

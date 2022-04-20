@@ -14,11 +14,13 @@ public class CommandInParserTest {
         public String testName;
         public String input;
         public Command command;
+        public Boolean isValid;
 
         public ParseTestCase(String testName, String input, Boolean isValid,
                 CommandMessage type) {
             this.testName = testName;
             this.input = input;
+            this.isValid = isValid;
             this.command = InMessage.fromCommand(type, input);
             if (this.command != null) {
                 this.command = this.command.setValid(isValid);
@@ -44,26 +46,29 @@ public class CommandInParserTest {
                 CommandMessage.SAY));
         testCases.add(new ParseTestCase("Command only, lower", "equip", true,
                 CommandMessage.EQUIP));
-        testCases.add(
-                new ParseTestCase("Command only, enum", CommandMessage.ATTACK.toString(),
-                        true, CommandMessage.ATTACK));
+        testCases.add(new ParseTestCase("Command only, enum", CommandMessage.ATTACK.toString(),
+                true, CommandMessage.ATTACK));
         testCases.add(new ParseTestCase("Not command", "Zirtech", false, null));
         testCases.add(new ParseTestCase("Single direct object", "Say hello", true,
-                CommandMessage.SAY));
+                CommandMessage.SAY).addDirect("hello"));
         testCases.add(new ParseTestCase("Quoted direct object", "Say \"hello\"",
                 true, CommandMessage.SAY)
-                .addDirect("hello"));
+                .addDirect("\"hello\""));
         testCases.add(new ParseTestCase("Quoted direct object with preposition", "Say\"hello to my little friend\"",
-                true, CommandMessage.SAY).addDirect("hello to my little friend"));
+                true, CommandMessage.SAY).addDirect("\"hello to my little friend\""));
         testCases.add(new ParseTestCase("Quoted direct object with preposition",
                 "Say \"hello to my little friend\" to arnold",
-                true, CommandMessage.SAY).addDirect("hello to my little friend").addPrepPhrase("to", "arnold"));
+                true, CommandMessage.SAY).addDirect("\"hello to my little friend\"").addPrepPhrase("to", "arnold"));
 
         for (ParseTestCase tc : testCases) {
             System.out.println("Testing: " + tc.testName);
             Command cmd = CommandInParser.parse(tc.input);
             assertNotNull(cmd);
-            assertEquals(tc.command.isValid, cmd.isValid);
+            if (tc.command != null) {
+                assertEquals(tc.command.isValid, cmd.isValid);
+            } else {
+                assertEquals(tc.isValid, cmd.isValid);
+            }
             if (cmd.isValid) {
                 assertEquals(tc.command, cmd);
             }

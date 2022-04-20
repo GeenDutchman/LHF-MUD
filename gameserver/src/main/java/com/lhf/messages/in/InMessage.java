@@ -80,7 +80,7 @@ public class InMessage {
 
         String[] words = payload.split(" ");
         Stream<String> stream = Arrays.stream(words);
-        CommandMessage matched = CommandMessage.valueOf(words[0]);
+        CommandMessage matched = CommandMessage.getCommandMessage(words[0]);
         String arguments = stream.skip(1).collect(Collectors.joining(" ")).trim();
 
         return Optional.of(InMessage.fromCommand(matched, arguments));

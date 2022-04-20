@@ -17,7 +17,7 @@ public class CommandWord implements GrammarStateMachine {
             this.dupedEntry = true;
             return false;
         }
-        this.theCommand = CommandMessage.valueOf(token);
+        this.theCommand = CommandMessage.getCommandMessage(token);
         return this.theCommand != null;
     }
 

@@ -2,13 +2,14 @@ package com.lhf.messages.grammar;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
 
 import com.lhf.messages.GrammarStateMachine;
 
-public class PhraseList implements GrammarStateMachine {
+public class PhraseList implements GrammarStateMachine, Iterable<Phrase> {
     protected List<Phrase> phrases;
     protected Set<String> enders;
     protected Set<String> listSeparator;
@@ -84,6 +85,11 @@ public class PhraseList implements GrammarStateMachine {
             }
         }
         return sj.toString().trim();
+    }
+
+    @Override
+    public Iterator<Phrase> iterator() {
+        return this.phrases.iterator();
     }
 
 }

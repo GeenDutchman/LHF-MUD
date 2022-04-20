@@ -1,12 +1,13 @@
 package com.lhf.messages.grammar;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import com.lhf.messages.GrammarStateMachine;
 
-public class PrepositionalPhrases implements GrammarStateMachine {
+public class PrepositionalPhrases implements GrammarStateMachine, Iterable<String> {
     protected Set<String> prepositions;
     protected Map<String, PhraseList> phraseMap;
     protected String currentPreposition;
@@ -86,6 +87,11 @@ public class PrepositionalPhrases implements GrammarStateMachine {
             return this.addPrepPhrase(token);
         }
         return accepted;
+    }
+
+    @Override
+    public Iterator<String> iterator() {
+        return this.phraseMap.keySet().iterator();
     }
 
 }

@@ -41,7 +41,7 @@ public class PhraseTest {
             }
             assertEquals(tcase.valid, p.isValid());
             if (p.isValid()) {
-                assertEquals(tcase.valid, p.getResult());
+                assertEquals(tcase.result, p.getResult());
             }
         }
     }
