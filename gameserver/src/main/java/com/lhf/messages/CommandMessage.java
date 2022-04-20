@@ -3,7 +3,7 @@ package com.lhf.messages;
 import com.lhf.Taggable;
 
 public enum CommandMessage implements Taggable {
-    HELP, SAY, LOOK, EXAMINE, GO, ATTACK, CAST, DROP, EQUIP, UNEQUIP, INTERACT, INVENTORY, TAKE, USE, STATUS,
+    HELP, SAY, SEE, GO, ATTACK, CAST, DROP, EQUIP, UNEQUIP, INTERACT, INVENTORY, TAKE, USE, STATUS,
     PLAYERS, EXIT, CREATE, SHOUT;
 
     @Override
