@@ -3,8 +3,6 @@ package com.lhf.messages;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.lhf.messages.in.InMessage;
-
 public abstract class MessageHandler {
     private MessageHandler _successor = null;
 
@@ -36,7 +34,7 @@ public abstract class MessageHandler {
         return received;
     }
 
-    public Boolean handleMessage(InMessage msg) {
+    public Boolean handleMessage(Command msg) {
         if (this._successor != null) {
             return this._successor.handleMessage(msg);
         }

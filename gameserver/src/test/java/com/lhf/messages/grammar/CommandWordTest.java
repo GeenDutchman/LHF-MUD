@@ -42,6 +42,7 @@ public class CommandWordTest {
 
         for (testcase tcase : testcases) {
             CommandWord cw = new CommandWord();
+            System.out.println("Now testing '" + tcase.result + "'");
             Boolean accepted = true;
             for (int i = 0; i < tcase.tokens.size() && accepted; i++) {
                 accepted = cw.parse(tcase.tokens.get(i));

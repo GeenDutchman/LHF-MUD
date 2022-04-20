@@ -6,9 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-import com.lhf.messages.grammar.PhraseList;
-import com.lhf.messages.grammar.PrepositionalPhrases;
-
 import org.junit.jupiter.api.Test;
 
 public class PrepositionalPhrasesTest {

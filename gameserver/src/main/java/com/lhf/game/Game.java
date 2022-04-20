@@ -4,6 +4,7 @@ import com.lhf.game.creature.Player;
 import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
+import com.lhf.messages.Command;
 import com.lhf.messages.Messenger;
 import com.lhf.messages.in.*;
 import com.lhf.messages.out.GameMessage;
@@ -58,7 +59,7 @@ public class Game implements UserListener {
 	}
 
 	@Override
-	public void messageReceived(UserID id, @NotNull InMessage msg) {
+	public void messageReceived(UserID id, @NotNull Command msg) {
 		this.logger.entering(this.getClass().toString(), "messageReceived()");
 		this.logger.fine("Message:" + msg + " for:" + id);
 		User user = userManager.getUser(id);
@@ -110,13 +111,13 @@ public class Game implements UserListener {
 			}
 		}
 
-		if (msg instanceof ExamineMessage) {
+		if (msg instanceof SeeMessage) {
 			server.sendMessageToUser(
 					new GameMessage(
-							dungeon.examineCommand(id, ((ExamineMessage) msg).getThing())),
+							dungeon.examineCommand(id, ((SeeMessage) msg).getThing())),
 					id);
 		}
-		if (msg instanceof LookMessage) {
+		if (msg instanceof SeeMessage) {
 			server.sendMessageToUser(
 					new GameMessage(
 							dungeon.lookCommand(id)),
