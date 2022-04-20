@@ -48,6 +48,18 @@ public class GrammaredCommandPhrase implements GrammarStateMachine {
         return preps;
     }
 
+    public CommandWord getCommandWord() {
+        return this.commandWord;
+    }
+
+    public Optional<PhraseList> getWhat() {
+        return this.optWhat;
+    }
+
+    public Optional<PrepositionalPhrases> getPreps() {
+        return this.optPreps;
+    }
+
     @Override
     public Boolean parse(String token) {
         Boolean accepted = false;
