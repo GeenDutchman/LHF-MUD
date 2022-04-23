@@ -15,6 +15,15 @@ public enum CommandMessage implements Taggable {
         throw new IllegalArgumentException("Bad value '" + value + "' for " + CommandMessage.class.toString());
     }
 
+    public static Boolean isCommandMessage(String value) {
+        for (CommandMessage v : values()) {
+            if (v.toString().equalsIgnoreCase(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public String getStartTagName() {
         return "<command>";
