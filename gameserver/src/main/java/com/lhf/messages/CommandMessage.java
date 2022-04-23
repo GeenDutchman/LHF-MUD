@@ -6,13 +6,13 @@ public enum CommandMessage implements Taggable {
     HELP, SAY, SEE, GO, ATTACK, CAST, DROP, EQUIP, UNEQUIP, INTERACT, INVENTORY, TAKE, USE, STATUS,
     PLAYERS, EXIT, CREATE, SHOUT;
 
-    public static CommandMessage getCommandMessage(String value) throws IllegalArgumentException {
+    public static CommandMessage getCommandMessage(String value) {
         for (CommandMessage v : values()) {
             if (v.toString().equalsIgnoreCase(value)) {
                 return v;
             }
         }
-        throw new IllegalArgumentException("Bad value '" + value + "' for " + CommandMessage.class.toString());
+        return null;
     }
 
     public static Boolean isCommandMessage(String value) {

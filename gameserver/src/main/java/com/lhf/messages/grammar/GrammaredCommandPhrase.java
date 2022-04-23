@@ -45,6 +45,8 @@ public class GrammaredCommandPhrase implements GrammarStateMachine {
         preps.add("to");
         preps.add("with");
         preps.add("in");
+        preps.add("use");
+        preps.add("from");
         return preps;
     }
 

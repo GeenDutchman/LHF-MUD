@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 
 public abstract class Command {
     protected String whole;
@@ -135,6 +136,14 @@ public abstract class Command {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        StringJoiner sj = new StringJoiner(" ");
+        sj.add("Message:").add(this.getType().toString());
+        sj.add("Valid:").add(this.isValid().toString());
+        return sj.toString();
     }
 
 }
