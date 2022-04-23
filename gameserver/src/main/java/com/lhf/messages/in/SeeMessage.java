@@ -20,7 +20,7 @@ public class SeeMessage extends Command {
 
     @Override
     public Boolean isValid() {
-        return super.isValid() && this.directs.size() >= 1 && this.indirects.size() == 0;
+        return super.isValid() && this.directs.size() >= 0 && this.indirects.size() == 0;
     }
 
     @Override

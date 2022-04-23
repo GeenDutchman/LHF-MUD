@@ -101,7 +101,7 @@ public class Game implements UserListener {
 
 			server.sendMessageToUser(
 					new GameMessage(
-							dungeon.goCommand(id, ((GoMessage) msg).getDirection().toString(),
+							dungeon.goCommand(id, ((GoMessage) msg).getDirection().toString().toLowerCase(),
 									didMove)),
 					id);
 			if (didMove.get()) {
@@ -113,16 +113,18 @@ public class Game implements UserListener {
 		}
 
 		if (msg instanceof SeeMessage) {
-			server.sendMessageToUser(
-					new GameMessage(
-							dungeon.examineCommand(id, ((SeeMessage) msg).getThing())),
-					id);
-		}
-		if (msg instanceof SeeMessage) {
-			server.sendMessageToUser(
-					new GameMessage(
-							dungeon.lookCommand(id)),
-					id);
+			String thing = ((SeeMessage) msg).getThing();
+			if (thing != null) {
+				server.sendMessageToUser(
+						new GameMessage(
+								dungeon.examineCommand(id, ((SeeMessage) msg).getThing())),
+						id);
+			} else {
+				server.sendMessageToUser(
+						new GameMessage(
+								dungeon.lookCommand(id)),
+						id);
+			}
 		}
 		if (msg instanceof InteractMessage) {
 			server.sendMessageToUser(

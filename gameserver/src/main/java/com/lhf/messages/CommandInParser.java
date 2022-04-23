@@ -41,6 +41,8 @@ public class CommandInParser {
             return InMessage.fromCommand(CommandMessage.HELP, toParse).setValid(false);
         } catch (IllegalArgumentException iae) {
             return InMessage.fromCommand(CommandMessage.HELP, toParse).setValid(false);
+        } catch (NullPointerException npe) {
+            return InMessage.fromCommand(CommandMessage.HELP, toParse).setValid(false);
         }
     }
 

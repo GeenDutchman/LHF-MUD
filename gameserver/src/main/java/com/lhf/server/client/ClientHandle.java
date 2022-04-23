@@ -68,6 +68,7 @@ public class ClientHandle extends Thread {
             e.printStackTrace();
         } catch (Exception e) {
             sendMsg(new FatalMessage());
+            e.printStackTrace();
             throw e;
         } finally {
             connectionListener.connectionTerminated(id); // let connectionListener know that it is over
