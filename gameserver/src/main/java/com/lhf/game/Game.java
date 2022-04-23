@@ -1,6 +1,7 @@
 package com.lhf.game;
 
 import com.lhf.game.creature.Player;
+import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
@@ -100,7 +101,7 @@ public class Game implements UserListener {
 
 			server.sendMessageToUser(
 					new GameMessage(
-							dungeon.goCommand(id, ((GoMessage) msg).getDirection(),
+							dungeon.goCommand(id, ((GoMessage) msg).getDirection().toString(),
 									didMove)),
 					id);
 			if (didMove.get()) {
@@ -158,8 +159,9 @@ public class Game implements UserListener {
 		if (msg instanceof UnequipMessage) {
 			server.sendMessageToUser(
 					new GameMessage(
-							dungeon.unequip(id, ((UnequipMessage) msg).getEquipSlot(),
-									((UnequipMessage) msg).getPossibleWeapon())),
+							dungeon.unequip(id,
+									EquipmentSlots.getEquipmentSlot(((UnequipMessage) msg).getUnequipWhat()),
+									((UnequipMessage) msg).getUnequipWhat())),
 					id);
 		}
 
