@@ -18,8 +18,8 @@ import com.lhf.game.item.TakeableDeserializer;
 import com.lhf.game.item.interfaces.Takeable;
 
 public class StatblockManager {
-    private String[] path_to_monsterStatblocks = { ".", "server", "src", "com", "lhf", "game", "creature",
-            "monsterStatblocks" };
+    private String[] path_to_monsterStatblocks = { ".", "gameserver", "src", "main", "java", "com",
+            "lhf", "game", "creature", "monsterStatblocks" };
     private StringBuilder path = new StringBuilder();
 
     public StatblockManager() {

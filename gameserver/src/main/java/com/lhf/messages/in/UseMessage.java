@@ -1,34 +1,53 @@
 package com.lhf.messages.in;
 
-public class UseMessage extends InMessage {
-    private String usefulItem = "";
-    private String targetName = "";
+import java.util.StringJoiner;
 
-    static final private String[] prepositionFlags = { "on" };
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandMessage;
+
+public class UseMessage extends Command {
 
     UseMessage(String payload) {
-        String[] words = payload.split(" ");
-        boolean usedFlags = areFlags(words, prepositionFlags);
-        if (usedFlags) { // use item on target
-            words = prepositionSeparator(words, prepositionFlags, 2);
-            usefulItem += words[0];
-            targetName += words[1];
-        } else { // use item
-            usefulItem += payload;
-        }
-
+        super(CommandMessage.USE, payload, true);
+        this.addPreposition("on");
     }
 
     public String getUsefulItem() {
-        return usefulItem;
+        if (this.directs.size() < 1) {
+            return null;
+        }
+        return this.directs.get(0);
     }
 
     public String getTarget() {
-        return targetName;
+        return this.indirects.getOrDefault("on", null);
+    }
+
+    @Override
+    public Boolean isValid() {
+        Boolean validated = true;
+        if (this.indirects.size() > 0) {
+            validated = this.indirects.containsKey("on") && this.indirects.size() == 1;
+        }
+        return super.isValid() && this.directs.size() == 1 && validated;
     }
 
     @Override
     public String toString() {
-        return "Using " + this.usefulItem + " on " + this.targetName;
+        StringJoiner sj = new StringJoiner(" ");
+        sj.add(super.toString());
+        String item = this.getUsefulItem();
+        sj.add("Item:");
+        if (item != null) {
+            sj.add(item);
+        } else {
+            sj.add("Not using anything!");
+        }
+        String target = this.getTarget();
+        if (target != null) {
+            sj.add("Targeting:").add(target);
+        }
+        return sj.toString();
     }
+
 }

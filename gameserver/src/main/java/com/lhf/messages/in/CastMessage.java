@@ -1,43 +1,74 @@
 package com.lhf.messages.in;
 
-public class CastMessage extends InMessage {
-    private String invocation = "";
-    private String target = "";
-    private Integer level = -1;
+import java.util.StringJoiner;
 
-    static final private String[] prepositionFlags = { "at", "use" };
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandMessage;
+
+public class CastMessage extends Command {
 
     CastMessage(String payload) {
-        String[] words = payload.split(" ");
-        boolean usedFlags = areFlags(words, prepositionFlags);
-        if (usedFlags) { // cast invocation at target use level
-            words = prepositionSeparator(words, prepositionFlags, 3);
-            this.invocation += words[0];
-            this.target += words[1];
-            if (words[2].length() > 0) {
-                this.level = Integer.valueOf(words[2]);
-            }
-            return;
+        super(CommandMessage.CAST, payload, true);
+        this.addPreposition("at");
+        this.addPreposition("use");
+    }
+
+    @Override
+    public Boolean isValid() {
+        Boolean indirectsvalid = true;
+        if (this.indirects.size() == 1) {
+            indirectsvalid = this.indirects.containsKey("at") || this.indirects.containsKey("use");
+        } else if (this.indirects.size() == 2) {
+            indirectsvalid = this.indirects.containsKey("at") && this.indirects.containsKey("use");
+        } else if (this.indirects.size() > 2) {
+            indirectsvalid = false;
         }
-        this.invocation = payload;
+        return super.isValid() && this.directs.size() == 1 && indirectsvalid;
     }
 
     public String getInvocation() {
-        return invocation;
+        if (this.directs.size() < 1) {
+            return null;
+        }
+        return this.directs.get(0);
     }
 
     public String getTarget() {
-        return target;
+        return this.indirects.getOrDefault("at", null); // TODO: allow for target selection
     }
 
     public Integer getLevel() {
-        return level;
+        String value = this.indirects.getOrDefault("use", null);
+        if (value == null) {
+            return null;
+        }
+        return Integer.valueOf(value);
     }
 
     @Override
     public String toString() {
-        return "Casting a spell with invocation " + this.invocation + " at " + this.target
-                + (this.level >= 0 ? " using level " + this.level.toString() : "");
+        StringJoiner sj = new StringJoiner(" ");
+        sj.add("Message:").add(this.getType().toString());
+        sj.add("Valid:").add(this.isValid().toString());
+        sj.add("Invocation:");
+        if (this.getInvocation() != null) {
+            sj.add(this.getInvocation());
+        } else {
+            sj.add("No invocation!");
+        }
+        sj.add("Target:");
+        if (this.getTarget() != null) {
+            sj.add(this.getTarget());
+        } else {
+            sj.add("no target");
+        }
+        sj.add("Level:");
+        if (this.getLevel() != null && this.getLevel() >= 0) {
+            sj.add(this.getLevel().toString());
+        } else {
+            sj.add("default level");
+        }
+        return sj.toString();
     }
 
 }

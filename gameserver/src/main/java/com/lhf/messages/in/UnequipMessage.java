@@ -1,57 +1,42 @@
 package com.lhf.messages.in;
 
+import java.util.StringJoiner;
+
 import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandMessage;
 
-import static com.lhf.game.enums.EquipmentSlots.*;
-
-public class UnequipMessage extends InMessage {
-    private EquipmentSlots equipSlot;
-    private String possibleWeapon;
+public class UnequipMessage extends Command {
 
     UnequipMessage(String args) {
-        String cmd = args.trim();
-        switch (cmd.toLowerCase()) {
-            case "hat":
-                equipSlot = HAT;
-                break;
-            case "necklace":
-                equipSlot = NECKLACE;
-                break;
-            case "armor":
-                equipSlot = ARMOR;
-                break;
-            case "shield":
-                equipSlot = SHIELD;
-                break;
-            case "arm":
-                equipSlot = ARM;
-                break;
-            case "lefthand":
-                equipSlot = LEFTHAND;
-                break;
-            case "righthand":
-                equipSlot = RIGHTHAND;
-                break;
-            case "belt":
-                equipSlot = BELT;
-                break;
-            case "boots":
-                equipSlot = BOOTS;
-                break;
-            case "weapon":
-                equipSlot = WEAPON;
-                break;
-            default:
-                equipSlot = null;
-                possibleWeapon = args;
+        super(CommandMessage.UNEQUIP, args, true);
+    }
+
+    public String getUnequipWhat() {
+        if (this.directs.size() < 1) {
+            return null;
         }
+        return this.directs.get(0); // TODO: allow unequipping more than one thing/slot?
     }
 
-    public EquipmentSlots getEquipSlot() {
-        return equipSlot;
+    @Override
+    public Boolean isValid() {
+        return super.isValid() && this.directs.size() >= 1 && this.indirects.size() == 0;
     }
 
-    public String getPossibleWeapon() {
-        return possibleWeapon;
+    @Override
+    public String toString() {
+        StringJoiner sj = new StringJoiner(" ");
+        sj.add(super.toString());
+        sj.add("UnequipWhat:");
+        String unequip = this.getUnequipWhat();
+        if (unequip != null) {
+            sj.add(unequip);
+        } else {
+            sj.add("Nothing to unequip!");
+        }
+        sj.add("IsSlot:").add(EquipmentSlots.isEquipmentSlot(unequip).toString());
+        return sj.toString();
     }
+
 }

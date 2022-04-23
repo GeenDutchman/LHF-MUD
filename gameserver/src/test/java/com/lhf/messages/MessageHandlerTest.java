@@ -3,7 +3,6 @@ package com.lhf.messages;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.when;
 
@@ -57,7 +56,7 @@ public class MessageHandlerTest {
 
         Map<CommandMessage, String> branchNodeHelps = new HashMap<>();
         branchNodeHelps.put(CommandMessage.HELP, "When you get higher help");
-        branchNodeHelps.put(CommandMessage.LOOK, "I added something!");
+        branchNodeHelps.put(CommandMessage.SEE, "I added something!");
         when(this.branchNode.getCommands()).thenReturn(branchNodeHelps);
         when(this.branchNode.gatherHelp()).thenAnswer(Mockito.CALLS_REAL_METHODS);
 
@@ -75,14 +74,14 @@ public class MessageHandlerTest {
         assertTrue(receivedNodeOne.containsKey(CommandMessage.INVENTORY));
         assertTrue(receivedNodeOne.containsKey(CommandMessage.HELP));
         assertFalse(receivedNodeOne.containsKey(CommandMessage.CAST));
-        assertTrue(receivedNodeOne.containsKey(CommandMessage.LOOK));
+        assertTrue(receivedNodeOne.containsKey(CommandMessage.SEE));
         assertFalse(receivedNodeOne.get(CommandMessage.HELP).contains("higher"));
 
         Map<CommandMessage, String> rec = this.leafNodeTwo.gatherHelp();
         assertFalse(rec.containsKey(CommandMessage.INVENTORY));
         assertTrue(rec.containsKey(CommandMessage.HELP));
         assertTrue(rec.containsKey(CommandMessage.CAST));
-        assertTrue(receivedNodeOne.containsKey(CommandMessage.LOOK));
+        assertTrue(receivedNodeOne.containsKey(CommandMessage.SEE));
         assertTrue(rec.get(CommandMessage.HELP).contains("higher"));
     }
 

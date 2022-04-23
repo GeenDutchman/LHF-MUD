@@ -1,8 +1,8 @@
 package com.lhf.server;
 
+import com.lhf.messages.Command;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.in.ExitMessage;
-import com.lhf.messages.in.InMessage;
 import com.lhf.messages.out.*;
 import com.lhf.server.client.ClientHandle;
 import com.lhf.server.client.ClientID;
@@ -121,7 +121,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
     }
 
     @Override
-    public void messageReceived(ClientID id, InMessage msg) {
+    public void messageReceived(ClientID id, Command msg) {
         logger.entering(this.getClass().toString(), "messageReceived()");
         Optional<UserID> user = clientManager.getUserForClient(id);
         if (msg instanceof ExitMessage) {

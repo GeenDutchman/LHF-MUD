@@ -4,9 +4,9 @@ public class HelpMessage extends OutMessage {
     public String toString() {
 
         return "<description>Some commands that you can use (case insensitive):</description>\r\n"
-                + "<command>SAY [message]</command>\r\nTells everyone in your current room the message\r\n" +
-                "<command>TELL [username] [message]</command>\r\nTells the specified user your message\r\n" +
-                "<command>LOOK</command>\r\nGives you some information about your surroundings\r\n" +
+                + "<command>SAY [message] to [username] </command>\r\nTells everyone (by default) in your current room the message\r\n"
+                +
+                "<command>SEE</command>\r\nGives you some information about your surroundings\r\n" +
                 "<command>EXAMINE [object]</command>\r\nTells you about some things about interactable objects\r\n" +
                 "<command>GO [direction]</command>\r\nMove in the desired direction, if that direction exists\r\n" +
                 "<command>ATTACK [creature] with [weapon] </command>\r\nAttack a creature with a weapon that you have\r\n"

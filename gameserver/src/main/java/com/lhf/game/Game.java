@@ -1,9 +1,11 @@
 package com.lhf.game;
 
 import com.lhf.game.creature.Player;
+import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
+import com.lhf.messages.Command;
 import com.lhf.messages.Messenger;
 import com.lhf.messages.in.*;
 import com.lhf.messages.out.GameMessage;
@@ -58,7 +60,7 @@ public class Game implements UserListener {
 	}
 
 	@Override
-	public void messageReceived(UserID id, @NotNull InMessage msg) {
+	public void messageReceived(UserID id, @NotNull Command msg) {
 		this.logger.entering(this.getClass().toString(), "messageReceived()");
 		this.logger.fine("Message:" + msg + " for:" + id);
 		User user = userManager.getUser(id);
@@ -82,25 +84,6 @@ public class Game implements UserListener {
 					new GameMessage(this.thirdPower.onCastCommand(id, cMessage.getInvocation(), cMessage.getTarget())),
 					id);
 		}
-		if (msg instanceof TellMessage) {
-			this.logger.finer("Telling");
-			TellMessage tellMsg = (TellMessage) msg;
-			boolean success;
-			if (!id.getUsername().equals(tellMsg.getTarget().getUsername())) {
-				success = server.sendMessageToUser(
-						new com.lhf.messages.out.TellMessage(id, tellMsg.getMessage()),
-						tellMsg.getTarget());
-				if (success) {
-					server.sendMessageToUser(new com.lhf.messages.out.TellMessage(id,
-							tellMsg.getMessage()), id);
-				} else {
-					server.sendMessageToUser(
-							new com.lhf.messages.out.WrongUserMessage(
-									tellMsg.getTarget().getUsername()),
-							id);
-				}
-			}
-		}
 		if (msg instanceof ListPlayersMessage) {
 			this.logger.finer("Listing Players");
 			server.sendMessageToUser(
@@ -118,7 +101,7 @@ public class Game implements UserListener {
 
 			server.sendMessageToUser(
 					new GameMessage(
-							dungeon.goCommand(id, ((GoMessage) msg).getDirection(),
+							dungeon.goCommand(id, ((GoMessage) msg).getDirection().toString().toLowerCase(),
 									didMove)),
 					id);
 			if (didMove.get()) {
@@ -129,17 +112,19 @@ public class Game implements UserListener {
 			}
 		}
 
-		if (msg instanceof ExamineMessage) {
-			server.sendMessageToUser(
-					new GameMessage(
-							dungeon.examineCommand(id, ((ExamineMessage) msg).getThing())),
-					id);
-		}
-		if (msg instanceof LookMessage) {
-			server.sendMessageToUser(
-					new GameMessage(
-							dungeon.lookCommand(id)),
-					id);
+		if (msg instanceof SeeMessage) {
+			String thing = ((SeeMessage) msg).getThing();
+			if (thing != null) {
+				server.sendMessageToUser(
+						new GameMessage(
+								dungeon.examineCommand(id, ((SeeMessage) msg).getThing())),
+						id);
+			} else {
+				server.sendMessageToUser(
+						new GameMessage(
+								dungeon.lookCommand(id)),
+						id);
+			}
 		}
 		if (msg instanceof InteractMessage) {
 			server.sendMessageToUser(
@@ -176,8 +161,9 @@ public class Game implements UserListener {
 		if (msg instanceof UnequipMessage) {
 			server.sendMessageToUser(
 					new GameMessage(
-							dungeon.unequip(id, ((UnequipMessage) msg).getEquipSlot(),
-									((UnequipMessage) msg).getPossibleWeapon())),
+							dungeon.unequip(id,
+									EquipmentSlots.getEquipmentSlot(((UnequipMessage) msg).getUnequipWhat()),
+									((UnequipMessage) msg).getUnequipWhat())),
 					id);
 		}
 

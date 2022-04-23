@@ -1,6 +1,6 @@
 package com.lhf.server.interfaces;
 
-import com.lhf.messages.in.InMessage;
+import com.lhf.messages.Command;
 import com.lhf.server.client.user.UserID;
 
 public interface UserListener {
@@ -8,5 +8,5 @@ public interface UserListener {
 
     void userLeft(UserID id);
 
-    void messageReceived(UserID id, InMessage msg);
+    void messageReceived(UserID id, Command msg);
 }

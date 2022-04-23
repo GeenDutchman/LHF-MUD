@@ -5,10 +5,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Optional;
 import java.util.logging.Logger;
 
-import com.lhf.messages.in.InMessage;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandInParser;
 import com.lhf.messages.out.BadMessage;
 import com.lhf.messages.out.FatalMessage;
 import com.lhf.messages.out.OutMessage;
@@ -51,14 +51,12 @@ public class ClientHandle extends Thread {
         try {
             while (!killIt && ((value = in.readLine()) != null)) {
                 this.logger.fine("message received: " + value);
-                Optional<InMessage> opt_msg = InMessage.fromString(value);
-                opt_msg.ifPresent(msg -> {
-                    this.logger.finest("the message received was deemed" + msg.getClass().toString());
-                    this.logger.finer("Post Processing:" + msg);
-                    listener.messageReceived(id, msg);
-
-                });
-                if (opt_msg.isEmpty()) {
+                Command cmd = CommandInParser.parse(value);
+                if (cmd.isValid()) {
+                    this.logger.finest("the message received was deemed" + cmd.getClass().toString());
+                    this.logger.finer("Post Processing:" + cmd);
+                    listener.messageReceived(id, cmd);
+                } else {
                     // The message was not recognized
                     this.logger.fine("Message was bad");
                     sendMsg(new BadMessage());
@@ -70,6 +68,7 @@ public class ClientHandle extends Thread {
             e.printStackTrace();
         } catch (Exception e) {
             sendMsg(new FatalMessage());
+            e.printStackTrace();
             throw e;
         } finally {
             connectionListener.connectionTerminated(id); // let connectionListener know that it is over

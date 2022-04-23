@@ -5,13 +5,13 @@ import java.util.StringJoiner;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
 
-public class TakeMessage extends Command {
+public class SeeMessage extends Command {
 
-    TakeMessage(String arguments) {
-        super(CommandMessage.TAKE, arguments, true);
+    SeeMessage(String payload) {
+        super(CommandMessage.SEE, payload, true);
     }
 
-    public String getTarget() {
+    public String getThing() {
         if (this.directs.size() < 1) {
             return null;
         }
@@ -20,20 +20,21 @@ public class TakeMessage extends Command {
 
     @Override
     public Boolean isValid() {
-        return super.isValid() && this.directs.size() >= 1 && this.indirects.size() == 0;
+        return super.isValid() && this.directs.size() >= 0 && this.indirects.size() == 0;
     }
 
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
         sj.add(super.toString());
-        sj.add("Object:");
-        String thing = this.getTarget();
+        sj.add("Looking at:");
+        String thing = this.getThing();
         if (thing != null) {
             sj.add(thing);
         } else {
-            sj.add("Nothing!");
+            sj.add("things in general");
         }
         return sj.toString();
     }
+
 }
