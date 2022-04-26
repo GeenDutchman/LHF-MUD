@@ -3,30 +3,25 @@ package com.lhf.messages;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class MessageHandler {
-    private MessageHandler _successor = null;
+public interface MessageHandler {
 
-    public void setSuccessor(MessageHandler successor) {
-        this._successor = successor;
-    }
+    public void setSuccessor(MessageHandler successor);
 
-    protected MessageHandler getSuccessor() {
-        return this._successor;
-    }
+    public MessageHandler getSuccessor();
 
-    public void intercept(MessageHandler interceptor) {
-        interceptor.setSuccessor(this._successor);
+    public default void intercept(MessageHandler interceptor) {
+        interceptor.setSuccessor(this.getSuccessor());
         this.setSuccessor(interceptor);
     }
 
     public abstract Map<CommandMessage, String> getCommands();
 
-    public Map<CommandMessage, String> gatherHelp() {
+    public default Map<CommandMessage, String> gatherHelp() {
         Map<CommandMessage, String> myCommands = this.getCommands();
-        if (this._successor == null) {
+        if (this.getSuccessor() == null) {
             return myCommands;
         }
-        Map<CommandMessage, String> received = this._successor.gatherHelp();
+        Map<CommandMessage, String> received = this.getSuccessor().gatherHelp();
         if (received == null) {
             received = new HashMap<>();
         }
@@ -34,9 +29,9 @@ public abstract class MessageHandler {
         return received;
     }
 
-    public Boolean handleMessage(Command msg) {
-        if (this._successor != null) {
-            return this._successor.handleMessage(msg);
+    public default Boolean handleMessage(Command msg) {
+        if (this.getSuccessor() != null) {
+            return this.getSuccessor().handleMessage(msg);
         }
         return false;
     }

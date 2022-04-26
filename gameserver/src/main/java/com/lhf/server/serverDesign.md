@@ -1,7 +1,7 @@
 ```mermaid
 classDiagram
     class MessageHandler
-    <<abstract>> MessageHandler
+    <<interface>> MessageHandler
     MessageHandler: +handleMessage(context, Command)
     class Main
     class Server
