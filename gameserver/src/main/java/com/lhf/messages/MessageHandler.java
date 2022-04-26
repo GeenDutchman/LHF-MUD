@@ -29,9 +29,9 @@ public interface MessageHandler {
         return received;
     }
 
-    public default Boolean handleMessage(Command msg) {
+    public default Boolean handleMessage(CommandContext ctx, Command msg) {
         if (this.getSuccessor() != null) {
-            return this.getSuccessor().handleMessage(msg);
+            return this.getSuccessor().handleMessage(ctx, msg);
         }
         return false;
     }
