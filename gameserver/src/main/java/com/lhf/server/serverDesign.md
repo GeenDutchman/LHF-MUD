@@ -1,4 +1,48 @@
 ```mermaid
+classDiagram
+    class MessageHandler
+    <<abstract>> MessageHandler
+    MessageHandler: +handleMessage(context, Command)
+    class Main
+    class Server
+    class UserManager
+    class User
+    class ClientManager
+    class Client
+    class Game
+    class Dungeon
+    class Room
+    class Player
+
+    MessageHandler <|-- Player
+    MessageHandler <|-- Room
+    MessageHandler <|-- Dungeon
+    MessageHandler <|-- Game
+    MessageHandler <|-- Server
+    
+    
+
+    Main *-- Server
+
+    Server *-- UserManager
+    Server *-- ClientManager
+    Server *-- Game
+
+    ClientManager o-- Client
+
+    Client *-- MessageHandler
+
+    UserManager o-- User
+
+    Game *-- Dungeon
+
+    Dungeon o-- Room
+
+    Room o-- Player
+```
+
+
+```mermaid
 sequenceDiagram
     Main ->> Server: Start
     Main ->> Game: Start
