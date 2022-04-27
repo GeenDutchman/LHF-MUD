@@ -13,8 +13,8 @@ classDiagram
     class ThirdPower
     class Dungeon
     class Room
-    class Player   
-    
+    class Player
+    class BattleManager    
 
     Main *-- Server
 
@@ -35,12 +35,17 @@ classDiagram
     Room o-- Player
 
     Player <-- Client
-    Room <-- Player
+    Room <.. Player
+    Room <-- BattleManager
+    BattleManager <.. Player
     Dungeon <-- Room
     ThirdPower <-- Dungeon
     Game <-- ThirdPower
-    Server <-- Game
+    Server <-- Game    
 
+    Room o-- BattleManager
+    
+    MessageHandler <|-- BattleManager
     MessageHandler <|-- Player
     MessageHandler <|-- Room
     MessageHandler <|-- Dungeon
