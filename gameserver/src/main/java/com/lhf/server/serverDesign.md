@@ -39,6 +39,7 @@ classDiagram
     Dungeon <-- Room
     ThirdPower <-- Dungeon
     Game <-- ThirdPower
+    Server <-- Game
 
     MessageHandler <|-- Player
     MessageHandler <|-- Room
