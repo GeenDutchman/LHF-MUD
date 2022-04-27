@@ -10,16 +10,10 @@ classDiagram
     class ClientManager
     class Client
     class Game
+    class ThirdPower
     class Dungeon
     class Room
-    class Player
-
-    MessageHandler <|-- Player
-    MessageHandler <|-- Room
-    MessageHandler <|-- Dungeon
-    MessageHandler <|-- Game
-    MessageHandler <|-- Server
-    
+    class Player   
     
 
     Main *-- Server
@@ -30,15 +24,30 @@ classDiagram
 
     ClientManager o-- Client
 
-    Client *-- MessageHandler
-
     UserManager o-- User
+
+    Game *-- ThirdPower
 
     Game *-- Dungeon
 
     Dungeon o-- Room
 
     Room o-- Player
+
+    Player <-- Client
+    Room <-- Player
+    Dungeon <-- Room
+    ThirdPower <-- Dungeon
+    Game <-- ThirdPower
+
+    MessageHandler <|-- Player
+    MessageHandler <|-- Room
+    MessageHandler <|-- Dungeon
+    MessageHandler <|-- ThirdPower
+    MessageHandler <|-- Game
+    MessageHandler <|-- Server
+    MessageHandler <|-- Client
+
 ```
 
 
