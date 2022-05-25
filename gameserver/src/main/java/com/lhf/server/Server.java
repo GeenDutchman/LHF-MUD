@@ -58,7 +58,8 @@ public class Server extends Thread implements ServerInterface, ConnectionListene
                 ClientHandle handle = this.clientManager.newClient(connection, this);
                 handle.setSuccessor(this);
                 this.logger.fine("Starting handle");
-                handle.start();
+                Thread clientThread = new Thread(handle);
+                clientThread.start();
                 handle.sendMsg(new WelcomeMessage());
             } catch (IOException e) {
                 logger.info(e.getMessage());
