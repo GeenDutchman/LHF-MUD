@@ -77,12 +77,4 @@ public class Player extends Creature {
         return "</player>";
     }
 
-    public String getStatus() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("You have ").append(getStats().get(Stats.CURRENTHP)).append("/")
-                .append(getStats().get(Stats.MAXHP)).append(" HP\r\n");
-        builder.append(Stats.AC).append(" ").append(getStats().get(Stats.AC)).append("\r\n");
-        builder.append(this.getAttributes().toString()).append("\r\n");
-        return builder.toString();
-    }
 }

@@ -1,27 +1,45 @@
 package com.lhf.game.map;
 
 import com.lhf.game.creature.Player;
-import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.messages.Messenger;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
+import com.lhf.messages.in.ShoutMessage;
 import com.lhf.messages.out.GameMessage;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpawnMessage;
 import com.lhf.server.client.user.UserID;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Dungeon {
+public class Dungeon implements MessageHandler {
     private Room startingRoom = null;
     private Set<Room> rooms;
-    private Messenger messenger;
+    private MessageHandler successor;
+    private Map<CommandMessage, String> commands;
 
-    Dungeon() {
+    Dungeon(MessageHandler successor) {
         rooms = new HashSet<>();
+        this.successor = successor;
+        this.commands = this.buildCommands();
+    }
+
+    private Map<CommandMessage, String> buildCommands() {
+        StringBuilder sb = new StringBuilder();
+        Map<CommandMessage, String> cmds = new HashMap<>();
+        sb.append("\"shout [message]\" ").append("Tells everyone in the dungeon your message!");
+        cmds.put(CommandMessage.SHOUT, sb.toString());
+        return cmds;
     }
 
     public boolean addNewPlayer(Player p) {
+        this.sendMessageToAllExcept(new SpawnMessage(p.getColorTaggedName()), p.getName());
         return startingRoom.addPlayer(p);
     }
 
@@ -39,11 +57,11 @@ public class Dungeon {
 
     void reincarnate(Player p) {
         Player p2 = new Player(p.getId(), p.getName());
+        p2.setController(p.getController());
         addNewPlayer(p2);
-        messenger.sendMessageToUser(new GameMessage(
-                "*******************************X_X*********************************************\nYou have died. Out of mercy you have been reborn back where you began."),
-                p2.getId());
-        messenger.sendMessageToUser(new GameMessage(startingRoom.toString()), p2.getId());
+        p.sendMsg(new GameMessage(
+                "*******************************X_X*********************************************\nYou have died. Out of mercy you have been reborn back where you began."));
+        p2.sendMsg(new GameMessage(startingRoom.toString()));
     }
 
     void setStartingRoom(Room r) {
@@ -51,8 +69,8 @@ public class Dungeon {
     }
 
     boolean addRoom(Room r) {
-        r.setMessenger(messenger);
         r.setDungeon(this);
+        r.setSuccessor(this);
         return rooms.add(r);
     }
 
@@ -76,67 +94,6 @@ public class Dungeon {
         return null;
     }
 
-    public String goCommand(UserID id, String direction, AtomicBoolean didMove) {
-        Room room = getPlayerRoom(id);
-        if (room == null) {
-            return "You are not in this dungeon.";
-        }
-
-        if (direction.equals("n")) {
-            direction = "north";
-        } else if (direction.equals("e")) {
-            direction = "east";
-        } else if (direction.equals("s")) {
-            direction = "south";
-        } else if (direction.equals("w")) {
-            direction = "west";
-        }
-
-        if (room.exitRoom(getPlayerById(id), direction)) {
-            didMove.set(true);
-            return "You went " + direction + ". \r\n" + Objects.requireNonNull(getPlayerRoom(id)).toString();
-        } else if (isValidDirection(direction)) {
-            return "There's only a wall there.";
-        } else {
-            return "Couldn't understand that command.";
-        }
-    }
-
-    private boolean isValidDirection(String direction) {
-        if (!direction.equalsIgnoreCase(Directions.NORTH.toString())) {
-            if (!direction.equalsIgnoreCase(Directions.SOUTH.toString())) {
-                if (!direction.equalsIgnoreCase(Directions.WEST.toString())) {
-                    return direction.equalsIgnoreCase(Directions.EAST.toString());
-                }
-            }
-        }
-        return true;
-    }
-
-    public String examineCommand(UserID id, String name) {
-        Room room = getPlayerRoom(id);
-        if (room == null) {
-            return "You are not in this dungeon.";
-        }
-        return room.examine(getPlayerById(id), name);
-    }
-
-    public String interactCommand(UserID id, String name) {
-        Room room = getPlayerRoom(id);
-        if (room == null) {
-            return "You are not in this dungeon.";
-        }
-        return room.interact(getPlayerById(id), name);
-    }
-
-    public String lookCommand(UserID id) {
-        Room room = getPlayerRoom(id);
-        if (room == null) {
-            return "You are not in this dungeon.";
-        }
-        return room.toString();
-    }
-
     public Set<UserID> getPlayersInRoom(UserID id) {
         Set<Player> players = Objects.requireNonNull(getPlayerRoom(id)).getAllPlayersInRoom();
         Set<UserID> ids = new HashSet<>();
@@ -146,74 +103,84 @@ public class Dungeon {
         return ids;
     }
 
-    public String takeCommand(UserID id, String name) {
-        Room room = getPlayerRoom(id);
+    public void sendMessageToAllInRoom(Room room, OutMessage msg) {
         if (room == null) {
-            return "You are not in this dungeon";
-        }
-        return room.take(getPlayerById(id), name);
-    }
-
-    public String dropCommand(UserID id, String name) {
-        Room room = getPlayerRoom(id);
-        if (room == null) {
-            return "You are not in this dungeon";
-        }
-        return room.drop(Objects.requireNonNull(getPlayerById(id)), name);
-    }
-
-    public void attackCommand(UserID id, String weapon, String target) {
-        Room room = getPlayerRoom(id);
-        if (room == null) {
-            messenger.sendMessageToUser(new GameMessage("You are not in this dungeon"), id);
+            this.startingRoom.sendMessageToAll(msg);
             return;
         }
-        room.attack(Objects.requireNonNull(getPlayerById(id)), weapon, target);
+        room.sendMessageToAll(msg);
     }
 
-    public String inventory(UserID id) {
-        Player player = getPlayerById(id);
-        assert player != null;
-        return player.printInventory();
-    }
-
-    public String equip(UserID id, String itemName, EquipmentSlots slot) {
-        Player player = getPlayerById(id);
-        assert player != null;
-        return player.equipItem(itemName, slot);
-    }
-
-    public String unequip(UserID id, EquipmentSlots slot, String weapon) {
-        Player player = getPlayerById(id);
-        assert player != null;
-        return player.unequipItem(slot, weapon);
-    }
-
-    public void setMessenger(Messenger messenger) {
-        this.messenger = messenger;
-        for (Room r : rooms) {
-            r.setMessenger(messenger);
-        }
-    }
-
-    public String useCommand(UserID id, String usefulItem, String target) {
-        Room room = getPlayerRoom(id);
+    public void sendMessageToAllInRoomExcept(Room room, OutMessage msg, String... exactNames) {
         if (room == null) {
-            return "You are not in this dungeon";
+            this.startingRoom.sendMessageToAllExcept(msg, exactNames);
+            return;
         }
-        return room.use(getPlayerById(id), usefulItem, target);
+        room.sendMessageToAllExcept(msg, exactNames);
     }
 
-    public String statusCommand(UserID id) {
-        String ret = Objects.requireNonNull(getPlayerById(id)).getStatus();
-        Player p = getPlayerById(id);
-        if (p != null && p.isInBattle()) {
-            ret += Objects.requireNonNull(getPlayerRoom(id)).getBattleInfo();
+    public void sendMessageToAll(OutMessage msg) {
+        if (!this.rooms.contains(this.startingRoom)) {
+            this.sendMessageToAllInRoom(this.startingRoom, msg);
         }
-        return ret;
+        for (Room room : this.rooms) {
+            this.sendMessageToAllInRoom(room, msg);
+        }
     }
 
-    public void notifyAllInRoomOfNewPlayer(UserID id, String name) {
-        messenger.sendMessageToAllInRoomExceptPlayer(new SpawnMessage(name), id);
+    public void sendMessageToAllExcept(OutMessage msg, String... exactNames) {
+        if (!this.rooms.contains(this.startingRoom)) {
+            this.sendMessageToAllInRoomExcept(this.startingRoom, msg, exactNames);
+        }
+        for (Room room : this.rooms) {
+            this.sendMessageToAllInRoomExcept(room, msg, exactNames);
+        }
     }
+
+    private Boolean handleShout(CommandContext ctx, Command cmd) {
+        if (cmd.getType() == CommandMessage.SHOUT) {
+            ShoutMessage shoutMessage = (ShoutMessage) cmd;
+            for (Room room : this.rooms) {
+                for (Player p : room.getAllPlayersInRoom()) {
+                    p.sendMsg(new GameMessage(
+                            ctx.getCreature().getColorTaggedName() + " SHOUTS: " + shoutMessage.getMessage()));
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void setSuccessor(MessageHandler successor) {
+        if (this.successor == null) {
+            this.successor = successor;
+        } else if (successor != null && successor != this.successor) {
+            successor.setSuccessor(this.successor); // maintain the link!
+            this.successor = successor;
+        }
+    }
+
+    @Override
+    public MessageHandler getSuccessor() {
+        return this.successor;
+    }
+
+    @Override
+    public Map<CommandMessage, String> getCommands() {
+        return this.commands;
+    }
+
+    @Override
+    public Boolean handleMessage(CommandContext ctx, Command msg) {
+        Boolean performed = false;
+        if (msg.getType() == CommandMessage.SHOUT) {
+            performed = this.handleShout(ctx, msg);
+            if (performed) {
+                return performed;
+            }
+        }
+        return MessageHandler.super.handleMessage(ctx, msg);
+    }
+
 }

@@ -19,11 +19,12 @@ import com.lhf.game.item.concrete.equipment.RustyDagger;
 import com.lhf.game.item.concrete.equipment.Shortsword;
 import com.lhf.game.item.concrete.equipment.Whimsystick;
 import com.lhf.game.item.interfaces.InteractAction;
+import com.lhf.messages.MessageHandler;
 
 public class DungeonBuilder {
 
-    public static Dungeon buildStaticDungeon() throws FileNotFoundException {
-        Dungeon dungeon = new Dungeon();
+    public static Dungeon buildStaticDungeon(MessageHandler successor) throws FileNotFoundException {
+        Dungeon dungeon = new Dungeon(successor);
 
         StatblockManager loader = new StatblockManager();
         Statblock goblin = loader.statblockFromfile("goblin");

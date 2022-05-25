@@ -18,13 +18,23 @@ import com.lhf.game.item.interfaces.*;
 import com.lhf.game.magic.CubeHolder;
 import com.lhf.game.magic.interfaces.CreatureAffector;
 import com.lhf.game.magic.interfaces.DamageSpell;
+import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
+import com.lhf.messages.in.EquipMessage;
+import com.lhf.messages.in.UnequipMessage;
+import com.lhf.messages.out.GameMessage;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.server.client.ClientID;
 
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
 import static com.lhf.game.enums.Attributes.*;
 
-public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder {
+public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, ClientMessenger, MessageHandler {
 
     public class Fist extends Weapon {
 
@@ -105,9 +115,13 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder {
     private HashMap<EquipmentSlots, Item> equipmentSlots; // See enum for slots
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
+    private ClientMessenger controller;
+    private MessageHandler successor;
+    private Map<CommandMessage, String> cmds;
 
     // Default constructor
     public Creature() {
+        this.cmds = this.buildCommands();
         // Instantiate creature with no name and type Monster
         this.name = ""; // TODO: what if creature name.len < 3?
         this.creatureType = CreatureType.MONSTER;
@@ -139,6 +153,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder {
 
     // Statblock-based constructor
     public Creature(String name, Statblock statblock) {
+        this.cmds = this.buildCommands();
         this.name = name;
 
         this.creatureType = statblock.creatureType;
@@ -152,6 +167,28 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder {
             Equipable equipped = (Equipable) item;
             this.applyUse(equipped.onEquippedBy(this));
         }
+    }
+
+    private Map<CommandMessage, String> buildCommands() {
+        StringJoiner sj = new StringJoiner(" ");
+        Map<CommandMessage, String> cmds = new HashMap<>();
+        sj.add("\"equip [item]\"").add("Equips the item from your inventory to its default slot").add("\r\n");
+        sj.add("\"equip [item] to [slot]\"")
+                .add("Equips the item from your inventory to the specified slot, if such exists.");
+        sj.add("In the unlikely event that either the item or the slot's name contains 'to', enclose the name in quotation marks.");
+        cmds.put(CommandMessage.EQUIP, sj.toString());
+        sj = new StringJoiner(" ");
+        sj.add("\"unequip [item]\"").add("Unequips the item (if equipped) and places it in your inventory").add("\r\n");
+        sj.add("\"unequip [slot]\"")
+                .add("Unequips the item that is in the specified slot (if equipped) and places it in your inventory");
+        cmds.put(CommandMessage.UNEQUIP, sj.toString());
+        sj = new StringJoiner(" ");
+        sj.add("\"inventory\"").add("List what you have in your inventory and what you have equipped");
+        cmds.put(CommandMessage.INVENTORY, sj.toString());
+        sj = new StringJoiner(" ");
+        sj.add("\"status\"").add("Show you how much HP you currently have, among other things.");
+        cmds.put(CommandMessage.STATUS, sj.toString());
+        return cmds;
     }
 
     public void updateHitpoints(int value) {
@@ -181,6 +218,15 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder {
         if (this.canLevelUp(current, current - value)) {
             // this.levelUp();
         }
+    }
+
+    public String getStatus() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("You have ").append(getStats().get(Stats.CURRENTHP)).append("/")
+                .append(getStats().get(Stats.MAXHP)).append(" HP\r\n");
+        builder.append(Stats.AC).append(" ").append(getStats().get(Stats.AC)).append("\r\n");
+        builder.append(this.getAttributes().toString()).append("\r\n");
+        return builder.toString();
     }
 
     public RollResult check(Attributes attribute) {
@@ -677,6 +723,77 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder {
     @Override
     public RollResult spellAttack() {
         return this.check(Attributes.INT);
+    }
+
+    public ClientMessenger getController() {
+        return this.controller;
+    }
+
+    public void setController(ClientMessenger cont) {
+        this.controller = cont;
+        if (this.controller instanceof MessageHandler) {
+            ((MessageHandler) this.controller).setSuccessor(this); // TODO: this is hackery
+        }
+    }
+
+    @Override
+    public void sendMsg(OutMessage msg) {
+        if (this.controller != null) {
+            this.controller.sendMsg(msg);
+            return;
+        }
+        // Does nothing silently
+    }
+
+    @Override
+    public ClientID getClientID() {
+        if (this.controller != null) {
+            return this.controller.getClientID();
+        }
+        return null;
+    }
+
+    @Override
+    public void setSuccessor(MessageHandler successor) {
+        this.successor = successor;
+    }
+
+    @Override
+    public MessageHandler getSuccessor() {
+        return this.successor;
+    }
+
+    @Override
+    public Map<CommandMessage, String> getCommands() {
+        return this.cmds;
+    }
+
+    @Override
+    public Boolean handleMessage(CommandContext ctx, Command msg) {
+        boolean handled = false;
+        if (msg.getType() == CommandMessage.EQUIP) {
+            EquipMessage eqmsg = (EquipMessage) msg;
+            String message = this.equipItem(eqmsg.getItemName(), eqmsg.getEquipSlot());
+            ctx.sendMsg(new GameMessage(message));
+            handled = true;
+        } else if (msg.getType() == CommandMessage.UNEQUIP) {
+            UnequipMessage uneqmsg = (UnequipMessage) msg;
+            String message = this.unequipItem(EquipmentSlots.getEquipmentSlot(uneqmsg.getUnequipWhat()),
+                    uneqmsg.getUnequipWhat());
+            ctx.sendMsg(new GameMessage(message));
+            handled = true;
+        } else if (msg.getType() == CommandMessage.STATUS) {
+            ctx.sendMsg(new GameMessage(this.getStatus()));
+            handled = true;
+        } else if (msg.getType() == CommandMessage.INVENTORY) {
+            ctx.sendMsg(new GameMessage(this.printInventory()));
+            handled = true;
+        }
+
+        if (handled) {
+            return handled;
+        }
+        return MessageHandler.super.handleMessage(ctx, msg);
     }
 
 }

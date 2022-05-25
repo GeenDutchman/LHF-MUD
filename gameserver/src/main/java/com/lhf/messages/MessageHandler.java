@@ -18,6 +18,9 @@ public interface MessageHandler {
 
     public default Map<CommandMessage, String> gatherHelp() {
         Map<CommandMessage, String> myCommands = this.getCommands();
+        if (myCommands == null) {
+            myCommands = new HashMap<>();
+        }
         if (this.getSuccessor() == null) {
             return myCommands;
         }

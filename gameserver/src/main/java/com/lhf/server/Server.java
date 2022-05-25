@@ -1,6 +1,10 @@
 package com.lhf.server;
 
+import com.lhf.game.Game;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.in.ExitMessage;
 import com.lhf.messages.out.*;
@@ -10,7 +14,6 @@ import com.lhf.server.client.ClientManager;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
 import com.lhf.server.interfaces.ConnectionListener;
-import com.lhf.server.interfaces.MessageListener;
 import com.lhf.server.interfaces.NotNull;
 import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
@@ -19,24 +22,30 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Optional;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
-public class Server extends Thread implements ServerInterface, MessageListener, ConnectionListener {
+public class Server extends Thread implements ServerInterface, ConnectionListener {
     private int port;
     private ServerSocket socket;
+    private Game game;
     private UserManager userManager;
     private ClientManager clientManager;
     private Logger logger;
     private ArrayList<UserListener> userListeners;
+    private Map<CommandMessage, String> acceptedCommands;
 
-    public Server(int port, UserManager userManager) throws IOException {
+    public Server(int port) throws IOException {
         this.logger = Logger.getLogger(this.getClass().getName());
         this.port = port;
-        socket = new ServerSocket(this.port);
-        this.userManager = userManager;
-        userListeners = new ArrayList<>();
-        clientManager = new ClientManager();
+        this.socket = new ServerSocket(this.port);
+        this.userManager = new UserManager();
+        this.userListeners = new ArrayList<>();
+        this.clientManager = new ClientManager();
+        this.acceptedCommands = new TreeMap<>();
+        this.acceptedCommands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
+        this.game = new Game(this, this.userManager);
         this.logger.exiting(this.getClass().toString(), "Constructor");
     }
 
@@ -44,15 +53,12 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
         this.logger.info("Server start!");
         while (true) {
             try {
-                Socket connection = socket.accept();
+                Socket connection = this.socket.accept();
                 this.logger.finer("Connection made");
-                ClientID id = new ClientID();
-                ClientHandle handle = new ClientHandle(connection, id, this);
-                clientManager.addClient(id, handle);
-                handle.registerCallback(this);
+                ClientHandle handle = this.clientManager.newClient(connection, this);
+                handle.setSuccessor(this);
                 this.logger.fine("Starting handle");
                 handle.start();
-                notifyConnectionListeners(id);
                 handle.sendMsg(new WelcomeMessage());
             } catch (IOException e) {
                 logger.info(e.getMessage());
@@ -63,52 +69,7 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
 
     @Override
     public void registerCallback(UserListener listener) {
-        userListeners.add(listener);
-    }
-
-    @Override
-    public boolean sendMessageToUser(OutMessage msg, @NotNull UserID id) {
-        logger.fine("Sending message\"" + msg + "\" to User " + id);
-        ClientID cid = userManager.getClient(id);
-        if (cid != null) {
-            sendMessageToClient(msg, cid);
-            return true;
-        }
-        return false;
-    }
-
-    private void sendMessageToClient(OutMessage msg, @NotNull ClientID id) {
-        logger.finest("Sending message \"" + msg + "\" to Client " + id);
-        ClientHandle handle = clientManager.getConnection(id);
-        if (handle != null) {
-            handle.sendMsg(msg);
-        }
-    }
-
-    @Override
-    public void sendMessageToAll(OutMessage msg) {
-        logger.entering(this.getClass().toString(), "sendMessageToAll()", msg);
-        for (ClientHandle client : clientManager.getHandles()) {
-            client.sendMsg(msg);
-        }
-    }
-
-    @Override
-    public void sendMessageToAllExcept(OutMessage msg, UserID id) {
-        logger.entering(this.getClass().toString(), "sendMessageToAllExcept()");
-        logger.fine("Message:\"" + msg + "\" Except:" + id);
-        for (UserID userId : userManager.getAllUserIds()) {
-            if (userId != id) {
-                clientManager.getConnection(userManager.getClient(userId));
-            }
-        }
-    }
-
-    @Override
-    public void removeUser(UserID id) {
-        logger.entering(this.getClass().toString(), "removeUser()", id);
-        userManager.removeUser(id);
-        removeClient(userManager.getClient(id));
+        this.userListeners.add(listener);
     }
 
     private void removeClient(ClientID id) {
@@ -121,58 +82,19 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
     }
 
     @Override
-    public void messageReceived(ClientID id, Command msg) {
-        logger.entering(this.getClass().toString(), "messageReceived()");
-        Optional<UserID> user = clientManager.getUserForClient(id);
-        if (msg instanceof ExitMessage) {
-            logger.info("That was an exit message");
-            sendMessageToClient(new GameMessage("Goodbye, we hope you come again."), id);
-            clientManager.killClient(id);
-        } else {
-            // if there is a User associated with the sending Client, tell UserListener
-            // (e.g. Game) about it
-            user.ifPresent(userID -> {
-                for (UserListener listener : userListeners) {
-                    listener.messageReceived(userID, msg);
-                }
-            });
-            // if there is no associated User...
-            if (user.isEmpty()) {
-                if (msg instanceof CreateInMessage) {
-                    logger.fine("Creating new user");
-                    UserID new_user = userManager.addUser((CreateInMessage) msg, id);
-                    if (new_user != null) {
-                        clientManager.addUserForClient(id, new_user);
-                        sendMessageToUser(new HelpMessage(), new_user);
-                        sendMessageToAllExcept(new SpawnMessage(new_user.getUsername()), new_user);
-                    } else {
-                        logger.fine("Duplicate user not allowed");
-                        sendMessageToClient(new DuplicateUserMessage(), id);
-                    }
-                } else {
-                    // but it was a recognized command
-                    logger.fine("Sending NoUserMessage to client");
-                    sendMessageToClient(new NoUserMessage(), id);
-                }
-            }
-        }
-    }
-
-    private void notifyConnectionListeners(ClientID id) {
-        logger.entering(this.getClass().toString(), "notifyConnectionListeners()", id);
-        // This will only take action if they have created a user
-        clientManager.getUserForClient(id).ifPresent(userID -> {
-            logger.info("Notifying that a user has connected! " + userID);
-            for (UserListener listener : userListeners) {
-                logger.finest("Notifying userListener " + listener);
-                listener.userConnected(userID);
-            }
-        });
+    public void removeUser(UserID id) {
+        logger.finer("Removing User " + id);
+        userManager.removeUser(id);
     }
 
     @Override
     public void userConnected(ClientID id) {
         logger.info("User connected");
+        clientManager.getUserForClient(id).ifPresent(userID -> {
+            for (UserListener listener : userListeners) {
+                listener.userConnected(userID);
+            }
+        });
     }
 
     /**
@@ -197,4 +119,47 @@ public class Server extends Thread implements ServerInterface, MessageListener, 
         userLeft(id);
         removeClient(id);
     }
+
+    @Override
+    public void setSuccessor(MessageHandler successor) {
+        // Server is IT, the buck stops here
+        logger.warning("Attempted to put a successor on the Server");
+    }
+
+    @Override
+    public MessageHandler getSuccessor() {
+        // Server is IT, the buck stops here
+        return null;
+    }
+
+    @Override
+    public Map<CommandMessage, String> getCommands() {
+        return this.acceptedCommands;
+    }
+
+    @Override
+    public Map<CommandMessage, String> gatherHelp() {
+        return ServerInterface.super.gatherHelp();
+    }
+
+    @Override
+    public Boolean handleMessage(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.EXIT) {
+            this.logger.info("client " + ctx.getClientID().toString() + " is exiting");
+            this.userManager.removeUser(ctx.getUserID());
+            this.game.userLeft(ctx.getUserID());
+            ClientHandle ch = this.clientManager.getConnection(ctx.getClientID());
+            if (ch != null) {
+                ch.sendMsg(new GameMessage("Goodbye, we hope to see you again soon!"));
+            }
+            try {
+                this.clientManager.removeClient(ctx.getClientID()); // ch is killed in here
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+        return ServerInterface.super.handleMessage(ctx, msg);
+    }
+
 }

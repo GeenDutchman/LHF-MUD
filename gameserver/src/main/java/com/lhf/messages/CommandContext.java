@@ -1,18 +1,37 @@
 package com.lhf.messages;
 
+import com.lhf.game.creature.Creature;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.UserID;
 
-public class CommandContext {
-    protected ClientID clientID;
+public class CommandContext implements ClientMessenger {
+    protected ClientMessenger client;
     protected UserID userID;
+    protected Creature creature;
 
+    @Override
     public ClientID getClientID() {
-        return clientID;
+        return this.client.getClientID();
     }
 
-    public void setClientID(ClientID clientID) {
-        this.clientID = clientID;
+    public Creature getCreature() {
+        return creature;
+    }
+
+    public void setCreature(Creature creature) {
+        this.creature = creature;
+    }
+
+    @Override
+    public void sendMsg(OutMessage msg) {
+        if (this.client != null) {
+            this.client.sendMsg(msg);
+        }
+    }
+
+    public void setClient(ClientMessenger client) {
+        this.client = client;
     }
 
     public UserID getUserID() {
@@ -22,5 +41,4 @@ public class CommandContext {
     public void setUserID(UserID userID) {
         this.userID = userID;
     }
-
 }
