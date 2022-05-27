@@ -1,45 +1,38 @@
 package com.lhf.server;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.logging.Logger;
+
 import com.lhf.game.Game;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
-import com.lhf.messages.in.CreateInMessage;
-import com.lhf.messages.in.ExitMessage;
-import com.lhf.messages.out.*;
+import com.lhf.messages.out.GameMessage;
+import com.lhf.messages.out.WelcomeMessage;
+import com.lhf.server.client.Client;
 import com.lhf.server.client.ClientHandle;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.ClientManager;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
 import com.lhf.server.interfaces.ConnectionListener;
-import com.lhf.server.interfaces.NotNull;
 import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.logging.Logger;
+public class Server implements ServerInterface, ConnectionListener {
+    protected Game game;
+    protected UserManager userManager;
+    protected ClientManager clientManager;
+    protected Logger logger;
+    protected ArrayList<UserListener> userListeners;
+    protected Map<CommandMessage, String> acceptedCommands;
 
-public class Server extends Thread implements ServerInterface, ConnectionListener {
-    private int port;
-    private ServerSocket socket;
-    private Game game;
-    private UserManager userManager;
-    private ClientManager clientManager;
-    private Logger logger;
-    private ArrayList<UserListener> userListeners;
-    private Map<CommandMessage, String> acceptedCommands;
-
-    public Server(int port) throws IOException {
+    public Server() throws IOException {
         this.logger = Logger.getLogger(this.getClass().getName());
-        this.port = port;
-        this.socket = new ServerSocket(this.port);
         this.userManager = new UserManager();
         this.userListeners = new ArrayList<>();
         this.clientManager = new ClientManager();
@@ -49,23 +42,14 @@ public class Server extends Thread implements ServerInterface, ConnectionListene
         this.logger.exiting(this.getClass().toString(), "Constructor");
     }
 
-    public void run() {
-        this.logger.info("Server start!");
-        while (true) {
-            try {
-                Socket connection = this.socket.accept();
-                this.logger.finer("Connection made");
-                ClientHandle handle = this.clientManager.newClient(connection, this);
-                handle.setSuccessor(this);
-                this.logger.fine("Starting handle");
-                Thread clientThread = new Thread(handle);
-                clientThread.start();
-                handle.sendMsg(new WelcomeMessage());
-            } catch (IOException e) {
-                logger.info(e.getMessage());
-                e.printStackTrace();
-            }
-        }
+    public Client startClient(Client client) {
+        this.logger.finer("Sending welcome");
+        client.setSuccessor(this);
+        client.sendMsg(new WelcomeMessage());
+        return client;
+    }
+
+    public void start() {
     }
 
     @Override
