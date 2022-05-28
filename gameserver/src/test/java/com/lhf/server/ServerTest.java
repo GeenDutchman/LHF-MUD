@@ -3,6 +3,7 @@ package com.lhf.server;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -13,6 +14,7 @@ import com.lhf.server.client.StringBufferSendStrategy;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 
 public class ServerTest {
 
@@ -28,19 +30,36 @@ public class ServerTest {
             server.startClient(this.client);
         }
 
+        public String create(String name, Boolean expectUnique) {
+            String result = this.handleCommand("create " + name + " with " + name);
+            Boolean alreadyExists = result.toLowerCase().contains("already exists");
+            if (expectUnique) {
+                assertFalse(alreadyExists);
+                this.name = name;
+            } else {
+                assertTrue(alreadyExists);
+            }
+            return result;
+        }
+
         public String create(String name) {
-            this.name = name;
-            return this.handleCommand("create " + name + " with " + name);
+            return this.create(name, true);
         }
 
         public String handleCommand(String command, Boolean expectRecognized, Boolean expectHandled) {
             this.client.ProcessString(command);
             String response = this.read();
+            Boolean notRecognized = response.toLowerCase().contains("was not recognized");
             if (expectRecognized) {
-                assertFalse(response.toLowerCase().contains("was not recognized"));
+                assertFalse(notRecognized);
+            } else {
+                assertTrue(notRecognized);
             }
+            Boolean notHandled = response.toLowerCase().contains("was not handled");
             if (expectHandled) {
-                assertFalse(response.toLowerCase().contains("was not handled"));
+                assertFalse(notHandled);
+            } else {
+                assertTrue(notHandled);
             }
             return response;
         }
@@ -51,9 +70,9 @@ public class ServerTest {
 
         public String read() {
             String buffer = this.sssb.read();
-            String tempname = "No name";
+            String tempname = String.valueOf(this.hashCode());
             if (this.name != null) {
-                tempname = this.name;
+                tempname += ' ' + this.name;
             }
             System.out.println("***********************" + tempname + "**********************");
             System.out.println(buffer);
@@ -187,6 +206,27 @@ public class ServerTest {
         heard2 = listener2.read();
         assertTrue(heard2.contains(this.comm.name));
         assertTrue(heard2.contains("I like yelling"));
+
+    }
+
+    @Test
+    void testNameCollision() throws IOException {
+        this.comm.create("Tester");
+        ComBundle twin1 = new ComBundle(this.server);
+        twin1.create(this.comm.name, false); // would have failed making twin
+        assertNotEquals(this.comm.name, twin1.name);
+
+        // extract creature name from next room
+        String creatureName = this.comm.handleCommand("go east");
+        int creature_index = creatureName.indexOf("<creature>");
+        int endcreature_index = creatureName.indexOf("</creature>");
+        creatureName = creatureName.substring(creature_index + "<creature>".length(), endcreature_index);
+        System.out.println(creatureName);
+
+        twin1.create(creatureName);
+        String room2 = twin1.handleCommand("go east");
+        assertTrue(room2.contains(this.comm.name));
+        assertEquals(room2.indexOf(twin1.name), room2.lastIndexOf(twin1.name));
 
     }
 
