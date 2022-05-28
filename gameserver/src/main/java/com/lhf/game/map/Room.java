@@ -42,12 +42,11 @@ import com.lhf.server.client.user.UserID;
 
 public class Room implements Container, MessageHandler {
 
-    private Set<Player> players;
     private Map<String, Room> exits;
     private List<Item> items;
     private String description;
     private BattleManager battleManager;
-    private Map<Creature, Integer> creatures; // TODO: they are all creatures
+    private Set<Creature> allCreatures;
     private Dungeon dungeon;
 
     private Map<CommandMessage, String> commands;
@@ -55,11 +54,10 @@ public class Room implements Container, MessageHandler {
 
     Room(String description) {
         this.description = description;
-        players = new HashSet<>();
         exits = new HashMap<>();
         items = new ArrayList<>();
         battleManager = new BattleManager(this);
-        creatures = new HashMap<>();
+        allCreatures = new HashSet<>();
         this.commands = this.buildCommands();
     }
 
@@ -87,23 +85,18 @@ public class Room implements Container, MessageHandler {
     }
 
     boolean addPlayer(Player p) {
-        p.setSuccessor(this);
-        boolean added = players.add(p);
-        if (added) {
-            p.sendMsg(new GameMessage(this.toString()));
-        }
-        return added;
+        return this.addCreature(p);
     }
 
-    int addCreature(Creature c) {
-        if (this.creatures.containsKey(c)) {
-            int previous = this.creatures.get(c);
-            this.creatures.put(c, previous + 1);
-            return previous + 1;
-        } else {
-            this.creatures.put(c, 1);
-            return 1;
+    boolean addCreature(Creature c) {
+        c.setSuccessor(this);
+        boolean added = this.allCreatures.add(c);
+        if (added) {
+            c.sendMsg(new GameMessage(this.toString()));
+            this.sendMessageToAllExcept(new GameMessage(c.getColorTaggedName() + " has entered the room."),
+                    c.getName());
         }
+        return added;
     }
 
     public boolean removePlayer(UserID id) {
@@ -116,25 +109,19 @@ public class Room implements Container, MessageHandler {
             this.battleManager.removeCreatureFromBattle(p);
             p.setInBattle(false);
         }
-        return players.remove(p);
+        return this.allCreatures.remove(p);
     }
 
     public Creature removeCreature(Creature c) {
-        if (this.creatures.containsKey(c)) {
-            int nextNumber = this.creatures.get(c) - 1;
-            if (nextNumber > 0) {
-                this.creatures.put(c, nextNumber);
-                return c;
-            } else {
-                this.creatures.remove(c);
-                return c;
-            }
+        if (this.allCreatures.contains(c)) {
+            this.allCreatures.remove(c);
+            return c;
         }
         return null;
     }
 
     public void killPlayer(Player p) {
-        players.remove(p);
+        this.allCreatures.remove(p);
         dungeon.reincarnate(p);
     }
 
@@ -282,9 +269,12 @@ public class Room implements Container, MessageHandler {
     }
 
     public Player getPlayerInRoom(UserID id) {
-        for (Player p : players) {
-            if (p.getId().equals(id)) {
-                return p;
+        for (Creature creature : this.allCreatures) {
+            if (creature instanceof Player) {
+                Player p = (Player) creature;
+                if (p.getId().equals(id)) {
+                    return p;
+                }
             }
         }
         return null;
@@ -292,16 +282,9 @@ public class Room implements Container, MessageHandler {
 
     public ArrayList<Creature> getCreaturesInRoom(String creatureName) {
         ArrayList<Creature> match = new ArrayList<>();
-        for (Creature c : this.creatures.keySet()) {
+        for (Creature c : this.allCreatures) {
             if (c.CheckNameRegex(creatureName, 3)) {
                 match.add(c);
-            }
-        }
-
-        // for PvP
-        for (Player p : players) {
-            if (p.CheckNameRegex(creatureName, 3)) {
-                match.add(p);
             }
         }
 
@@ -317,15 +300,13 @@ public class Room implements Container, MessageHandler {
     }
 
     Set<Player> getAllPlayersInRoom() {
-        return players;
-    }
-
-    public Set<UserID> getAllPlayerIDsInRoom() {
-        Set<UserID> ids = new HashSet<>();
-        for (Player player : players) {
-            ids.add(player.getId());
+        Set<Player> players = new HashSet<>();
+        for (Creature c : this.allCreatures) {
+            if (c instanceof Player) {
+                players.add((Player) c);
+            }
         }
-        return ids;
+        return players;
     }
 
     public String getDirections() {
@@ -338,20 +319,17 @@ public class Room implements Container, MessageHandler {
 
     private String getListOfPlayers() {
         StringJoiner output = new StringJoiner(", ");
-        for (Player p : players) {
+        for (Player p : this.getAllPlayersInRoom()) {
             output.add(p.getColorTaggedName());
         }
         return output.toString();
     }
 
-    private String getListOfCreatures() {
+    private String getListOfCreaturesNotPlayers() {
         StringJoiner output = new StringJoiner(", ");
         output.setEmptyValue("None.");
-        for (Creature c : creatures.keySet()) {
-            Integer numOf = this.creatures.get(c);
-            if (numOf > 1) {
-                output.add(numOf.toString() + ' ' + c.getName() + 's');
-            } else {
+        for (Creature c : this.allCreatures) {
+            if (!(c instanceof Player)) {
                 output.add(c.getColorTaggedName());
             }
         }
@@ -376,7 +354,7 @@ public class Room implements Container, MessageHandler {
         output += getListOfPlayers();
         output += "\r\n\r\n";
         output += "Creatures you can see:\r\n";
-        output += getListOfCreatures();
+        output += getListOfCreaturesNotPlayers();
         output += "\r\n\r\n";
         if (this.battleManager.isBattleOngoing()) {
             output += "There is a battle going on!\r\n";
@@ -472,23 +450,14 @@ public class Room implements Container, MessageHandler {
     }
 
     public void sendMessageToAll(OutMessage message) {
-        for (Player p : this.players) {
-            p.sendMsg(message);
-        }
-        for (Creature c : this.creatures.keySet()) {
+        for (Creature c : this.allCreatures) {
             c.sendMsg(message);
         }
     }
 
     public void sendMessageToAllExcept(OutMessage message, String... exactNames) {
         Set<String> preciseNames = new HashSet<>(Arrays.asList(exactNames));
-        for (Player p : this.players) {
-            if (preciseNames.contains(p.getName())) {
-                continue;
-            }
-            p.sendMsg(message);
-        }
-        for (Creature c : this.creatures.keySet()) {
+        for (Creature c : this.allCreatures) {
             if (preciseNames.contains(c.getName())) {
                 continue;
             }
@@ -541,6 +510,7 @@ public class Room implements Container, MessageHandler {
         if (handled) {
             return handled;
         }
+        ctx.setRoom(this);
         return MessageHandler.super.handleMessage(ctx, msg);
     }
 
@@ -660,11 +630,6 @@ public class Room implements Container, MessageHandler {
                 ctx.getCreature().setSuccessor(otherRoom);
                 this.removePlayer((Player) ctx.getCreature());
                 otherRoom.addPlayer((Player) ctx.getCreature());
-                for (Player otherPlayer : this.players) {
-                    otherPlayer
-                            .sendMsg(
-                                    new GameMessage(ctx.getCreature().getColorTaggedName() + " has entered the room."));
-                }
             } else {
                 ctx.sendMsg(new GameMessage(goMessage.getDirection().toString()
                         + " is not a valid choice here, try one of " + this.getDirections()));
@@ -691,7 +656,7 @@ public class Room implements Container, MessageHandler {
         if (msg.getType() == CommandMessage.SAY) {
             SayMessage sMessage = (SayMessage) msg;
             if (sMessage.getTarget() != null) {
-                for (Player p : this.players) {
+                for (Creature p : this.allCreatures) {
                     if (p.checkName(sMessage.getTarget())) {
                         p.sendMsg(
                                 new GameMessage(ctx.getCreature().getColorTaggedName() + " to " + p.getColorTaggedName()
