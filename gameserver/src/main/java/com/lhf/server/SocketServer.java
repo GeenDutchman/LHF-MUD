@@ -31,7 +31,7 @@ public class SocketServer extends Server implements Runnable {
             try {
                 Socket connection = this.socket.accept();
                 this.logger.finer("Connection made");
-                ClientHandle handle = this.clientManager.newClient(connection, this);
+                ClientHandle handle = this.clientManager.newClientHandle(connection, this);
                 this.startClient(handle);
                 this.logger.fine("Starting handle");
                 Thread clientThread = new Thread(handle);

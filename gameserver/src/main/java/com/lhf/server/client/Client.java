@@ -1,7 +1,6 @@
 package com.lhf.server.client;
 
-import java.io.BufferedReader;
-import java.io.PrintWriter;
+import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
@@ -21,15 +20,15 @@ public class Client implements MessageHandler, ClientMessenger {
     protected Logger logger;
     protected MessageHandler _successor;
 
-    public Client(ClientID id) {
+    public Client() {
+        this.id = new ClientID();
         this.logger = Logger.getLogger(this.getClass().getName());
         this.logger.finest("Creating Client");
-        this.id = id;
         this._successor = null;
         this.out = null;
     }
 
-    protected void SetOut(SendStrategy out) {
+    public void SetOut(SendStrategy out) {
         this.out = out;
     }
 
@@ -71,6 +70,9 @@ public class Client implements MessageHandler, ClientMessenger {
             this.SetOut(new PrintWriterSendStrategy(System.out));
         }
         this.out.send(msg.toString());
+    }
+
+    void disconnect() throws IOException {
     }
 
     @Override

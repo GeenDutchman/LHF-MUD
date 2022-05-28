@@ -1,23 +1,19 @@
 package com.lhf.server.client;
 
-import com.lhf.messages.Command;
-import com.lhf.messages.CommandContext;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.logging.Logger;
+
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.ConnectionListener;
 import com.lhf.server.interfaces.NotNull;
 
-import java.io.IOException;
-import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.logging.Logger;
-
 public class ClientManager {
-    private HashMap<ClientID, ClientHandle> clientMap;
+    private HashMap<ClientID, Client> clientMap;
     private HashMap<ClientID, UserID> userMap;
     private Logger logger;
     private HashMap<CommandMessage, String> helps;
@@ -30,25 +26,24 @@ public class ClientManager {
         helps.put(CommandMessage.EXIT, "This will have you disconnect and leave Ibaif!");
     }
 
-    public ClientHandle newClient(Socket socket, ConnectionListener cl) throws IOException {
-        ClientID id = new ClientID();
-        ClientHandle ch = new ClientHandle(socket, id, cl);
-        this.addClient(id, ch);
+    public ClientHandle newClientHandle(Socket socket, ConnectionListener cl) throws IOException {
+        ClientHandle ch = new ClientHandle(socket, cl);
+        this.addClient(ch);
         return ch;
     }
 
-    public ClientHandle getConnection(ClientID id) {
+    public Client newClient(ConnectionListener cl) throws IOException {
+        Client ch = new Client();
+        this.addClient(ch);
+        return ch;
+    }
+
+    public Client getConnection(ClientID id) {
         return clientMap.get(id);
     }
 
-    private void addClient(@NotNull ClientID clientID, ClientHandle connection) {
-        clientMap.put(clientID, connection);
-    }
-
-    public void killClient(ClientID id) {
-        if (clientMap.containsKey(id)) {
-            clientMap.get(id).kill();
-        }
+    private void addClient(Client connection) {
+        clientMap.put(connection.getClientID(), connection);
     }
 
     public void removeClient(ClientID id) throws IOException {
@@ -74,7 +69,7 @@ public class ClientManager {
 
     public void sendMessageToAll(OutMessage msg) {
         logger.entering(this.getClass().toString(), "sendMessageToAll()", msg);
-        for (ClientHandle client : this.clientMap.values()) {
+        for (Client client : this.clientMap.values()) {
             client.sendMsg(msg);
         }
     }
