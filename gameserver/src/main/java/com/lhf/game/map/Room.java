@@ -559,7 +559,8 @@ public class Room implements Container, MessageHandler {
                     continue;
                 }
                 try {
-                    Optional<Item> maybeItem = this.items.stream().filter(i -> i.CheckNameRegex(thing, 3)).findAny();
+                    Optional<Item> maybeItem = this.items.stream().filter(item -> item.CheckNameRegex(thing, 3))
+                            .findAny();
                     if (maybeItem.isEmpty()) {
                         if (thing.equalsIgnoreCase("all") || thing.equalsIgnoreCase("everything")) {
                             sb.append("Aren't you being a bit greedy there by trying to grab '").append(thing)

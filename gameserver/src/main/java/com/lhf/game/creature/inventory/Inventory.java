@@ -29,11 +29,11 @@ public class Inventory implements Container {
     }
 
     public boolean hasItem(String itemName) {
-        return this.items.stream().anyMatch(i -> i.CheckNameRegex(itemName, 3));
+        return this.items.stream().anyMatch(item -> item.CheckNameRegex(itemName, 3));
     }
 
     public Optional<Item> getItem(String itemName) {
-        Optional<Takeable> takeOpt = this.items.stream().filter(i -> i.CheckNameRegex(itemName, 3)).findAny();
+        Optional<Takeable> takeOpt = this.items.stream().filter(item -> item.CheckNameRegex(itemName, 3)).findAny();
         if (takeOpt.isPresent()) {
             return Optional.of((Item) takeOpt.get());
         }
