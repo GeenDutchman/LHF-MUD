@@ -15,6 +15,10 @@ public class CommandContext implements ClientMessenger {
         return this.client.getClientID();
     }
 
+    public ClientMessenger getClientMessenger() {
+        return this.client;
+    }
+
     public Creature getCreature() {
         return creature;
     }

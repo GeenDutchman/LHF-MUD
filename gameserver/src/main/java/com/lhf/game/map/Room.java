@@ -87,7 +87,12 @@ public class Room implements Container, MessageHandler {
     }
 
     boolean addPlayer(Player p) {
-        return players.add(p);
+        p.setSuccessor(this);
+        boolean added = players.add(p);
+        if (added) {
+            p.sendMsg(new GameMessage(this.toString()));
+        }
+        return added;
     }
 
     int addCreature(Creature c) {
@@ -501,12 +506,7 @@ public class Room implements Container, MessageHandler {
 
     @Override
     public void setSuccessor(MessageHandler successor) {
-        if (this.successor == null) {
-            this.successor = successor;
-        } else if (successor != null && successor != this.successor) {
-            successor.setSuccessor(this.successor); // maintain the link!
-            this.successor = successor;
-        }
+        this.successor = successor;
     }
 
     @Override
@@ -654,8 +654,8 @@ public class Room implements Container, MessageHandler {
     private Boolean handleGo(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.GO) {
             GoMessage goMessage = (GoMessage) msg;
-            if (exits.containsKey(goMessage.getDirection().toString())) {
-                Room otherRoom = exits.get(goMessage.getDirection().toString());
+            if (exits.containsKey(goMessage.getDirection().toString().toLowerCase())) {
+                Room otherRoom = exits.get(goMessage.getDirection().toString().toLowerCase());
                 ctx.getCreature().setSuccessor(otherRoom);
                 this.removePlayer((Player) ctx.getCreature());
                 otherRoom.addPlayer((Player) ctx.getCreature());

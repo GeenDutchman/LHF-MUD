@@ -1,16 +1,37 @@
 package com.lhf.server.client.user;
 
-import com.lhf.messages.in.CreateInMessage;
+import java.util.Map;
+import java.util.TreeMap;
 
-public class User {
+import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
+import com.lhf.messages.in.CreateInMessage;
+import com.lhf.server.client.Client;
+
+public class User implements MessageHandler {
+    private UserID id;
     private String username;
+    private MessageHandler successor;
 
     // private String password;
-    // private ClientID client;
-    public User(CreateInMessage msg /* , ClientID client */) {
+    private ClientMessenger client;
+
+    public User(CreateInMessage msg, ClientMessenger client) {
+        id = new UserID(msg);
         username = msg.getUsername();
         // password = msg.getPassword();
-        // this.client = client;
+        this.client = client;
+    }
+
+    public UserID getUserID() {
+        return this.id;
+    }
+
+    public ClientMessenger getClient() {
+        return this.client;
     }
 
     public String getUsername() {
@@ -19,5 +40,26 @@ public class User {
 
     public String getColorTaggedUsername() {
         return "<player>" + getUsername() + "</player>";
+    }
+
+    @Override
+    public void setSuccessor(MessageHandler successor) {
+        this.successor = successor;
+    }
+
+    @Override
+    public MessageHandler getSuccessor() {
+        return this.successor;
+    }
+
+    @Override
+    public Map<CommandMessage, String> getCommands() {
+        return new TreeMap<>();
+    }
+
+    @Override
+    public Boolean handleMessage(CommandContext ctx, Command msg) {
+        ctx.setUserID(id);
+        return MessageHandler.super.handleMessage(ctx, msg);
     }
 }

@@ -45,7 +45,6 @@ public class Game implements UserListener, MessageHandler {
 		this.server = server;
 		this.server.registerCallback(this);
 		this.userManager = userManager;
-		this.userManager.setGame(this);
 		this.logger.info("Created Game");
 	}
 
@@ -62,8 +61,8 @@ public class Game implements UserListener, MessageHandler {
 		this.dungeon.sendMessageToAll(new UserLeftMessage(userManager.getUser(id)));
 	}
 
-	public void addNewPlayerToGame(UserID id, String name) {
-		Player newPlayer = new Player(id, name);
+	public void addNewPlayerToGame(User user) {
+		Player newPlayer = new Player(user);
 		dungeon.addNewPlayer(newPlayer);
 		dungeon.sendMessageToAllInRoomExcept(null, new SpawnMessage(newPlayer.getName()), newPlayer.getName());
 	}
@@ -75,12 +74,7 @@ public class Game implements UserListener, MessageHandler {
 
 	@Override
 	public void setSuccessor(MessageHandler successor) {
-		if (this.successor == null) {
-			this.successor = successor;
-		} else if (successor != null && successor != this.successor) {
-			successor.setSuccessor(this.successor); // maintain the link!
-			this.successor = successor;
-		}
+		this.successor = successor;
 	}
 
 	@Override

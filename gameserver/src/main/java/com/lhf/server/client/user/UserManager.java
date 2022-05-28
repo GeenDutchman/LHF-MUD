@@ -1,7 +1,9 @@
 package com.lhf.server.client.user;
 
 import com.lhf.game.Game;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.in.CreateInMessage;
+import com.lhf.server.client.Client;
 import com.lhf.server.client.ClientID;
 
 import java.util.ArrayList;
@@ -12,7 +14,6 @@ import java.util.List;
 public class UserManager {
     private HashMap<UserID, User> userMap;
     private HashMap<UserID, ClientID> clientMap;
-    private Game game;
 
     public UserManager() {
         userMap = new HashMap<>();
@@ -36,17 +37,12 @@ public class UserManager {
         return userMap.keySet();
     }
 
-    public void addUser(ClientID client, CreateInMessage msg) {
-        userMap.put(new UserID(msg), new User(msg/* , client */));
-    }
-
-    public UserID addUser(CreateInMessage msg, ClientID clientId) {
-        UserID userId = new UserID(msg);
-        if (!userMap.containsKey(userId)) {
-            game.addNewPlayerToGame(userId, msg.getUsername());
-            userMap.put(userId, new User(msg/* , clientId */));
-            clientMap.put(userId, clientId);
-            return userId;
+    public User addUser(CreateInMessage msg, ClientMessenger client) {
+        User user = new User(msg, client);
+        if (!userMap.containsKey(user.getUserID())) {
+            userMap.put(user.getUserID(), user);
+            clientMap.put(user.getUserID(), client.getClientID());
+            return user;
         }
         return null;
     }
@@ -62,7 +58,4 @@ public class UserManager {
         userMap.remove(id);
     }
 
-    public void setGame(Game g) {
-        game = g;
-    }
 }

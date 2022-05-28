@@ -17,14 +17,13 @@ classDiagram
     class BattleManager    
 
     Main *-- Server
-
-    Server *-- UserManager
     Server *-- ClientManager
+    Server *-- UserManager
     Server *-- Game
 
+    UserManager o-- User
     ClientManager o-- Client
 
-    UserManager o-- User
 
     Game *-- ThirdPower
 
@@ -34,7 +33,8 @@ classDiagram
 
     Room o-- Player
 
-    Player <-- Client
+    User <-- Client
+    Player <-- User
     Room <.. Player
     Room <-- BattleManager
     BattleManager <.. Player
@@ -52,6 +52,7 @@ classDiagram
     MessageHandler <|-- ThirdPower
     MessageHandler <|-- Game
     MessageHandler <|-- Server
+    MessageHandler <|-- User
     MessageHandler <|-- Client
 
 ```

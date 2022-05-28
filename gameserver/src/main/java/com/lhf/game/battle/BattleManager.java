@@ -372,12 +372,7 @@ public class BattleManager implements MessageHandler {
 
     @Override
     public void setSuccessor(MessageHandler successor) {
-        if (this.successor == null) {
-            this.successor = successor;
-        } else if (successor != null && successor != this.successor) {
-            successor.setSuccessor(this.successor); // maintain the link!
-            this.successor = successor;
-        }
+        this.successor = successor;
     }
 
     @Override

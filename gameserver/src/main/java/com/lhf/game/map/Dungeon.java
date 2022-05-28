@@ -40,6 +40,7 @@ public class Dungeon implements MessageHandler {
 
     public boolean addNewPlayer(Player p) {
         this.sendMessageToAllExcept(new SpawnMessage(p.getColorTaggedName()), p.getName());
+        p.setSuccessor(this);
         return startingRoom.addPlayer(p);
     }
 
@@ -56,7 +57,7 @@ public class Dungeon implements MessageHandler {
     }
 
     void reincarnate(Player p) {
-        Player p2 = new Player(p.getId(), p.getName());
+        Player p2 = new Player(p.getUser());
         p2.setController(p.getController());
         addNewPlayer(p2);
         p.sendMsg(new GameMessage(
@@ -153,12 +154,7 @@ public class Dungeon implements MessageHandler {
 
     @Override
     public void setSuccessor(MessageHandler successor) {
-        if (this.successor == null) {
-            this.successor = successor;
-        } else if (successor != null && successor != this.successor) {
-            successor.setSuccessor(this.successor); // maintain the link!
-            this.successor = successor;
-        }
+        this.successor = successor;
     }
 
     @Override

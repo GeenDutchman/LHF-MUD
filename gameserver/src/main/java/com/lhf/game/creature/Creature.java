@@ -793,6 +793,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
         if (handled) {
             return handled;
         }
+        ctx.setCreature(this);
         return MessageHandler.super.handleMessage(ctx, msg);
     }
 

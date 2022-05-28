@@ -12,6 +12,10 @@ public class StringBufferSendStrategy implements SendStrategy {
         this.sBuffer.append(toSend);
     }
 
+    public void clear() {
+        this.sBuffer.setLength(0);
+    }
+
     public String read() {
         String toReturn = this.sBuffer.toString();
         this.sBuffer.setLength(0);

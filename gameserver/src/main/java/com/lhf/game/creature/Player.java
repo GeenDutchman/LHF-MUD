@@ -8,16 +8,19 @@ import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.equipment.LeatherArmor;
 import com.lhf.game.item.concrete.equipment.Longsword;
 import com.lhf.game.item.concrete.equipment.Shield;
+import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 
 import com.lhf.game.creature.statblock.AttributeBlock;
 
 public class Player extends Creature {
-    private UserID id;
+    private User user;
 
-    public Player(UserID id, String name) {
-        this.id = id;
-        this.setName(name); // Sets the player name
+    public Player(User user) {
+        this.user = user;
+        this.user.setSuccessor(this);
+        this.setController(this.user.getClient());
+        this.setName(user.getUsername()); // Sets the player name
         this.setCreatureType(CreatureType.PLAYER); // It's a player
 
         // Set attributes to default values
@@ -64,7 +67,11 @@ public class Player extends Creature {
     }
 
     public UserID getId() {
-        return id;
+        return this.user.getUserID();
+    }
+
+    public User getUser() {
+        return this.user;
     }
 
     @Override

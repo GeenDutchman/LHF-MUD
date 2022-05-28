@@ -11,12 +11,14 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
+import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.ClientHandle;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.ClientManager;
+import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
 import com.lhf.server.interfaces.ConnectionListener;
@@ -127,13 +129,29 @@ public class Server implements ServerInterface, ConnectionListener {
         return ServerInterface.super.gatherHelp();
     }
 
+    private boolean handleCreateMessage(CommandContext ctx, CreateInMessage msg) {
+        if (this.userManager.getAllUsernames().contains(msg.getUsername())) {
+            ctx.sendMsg(new GameMessage("That user already exists, pick a different username."));
+            return true;
+        }
+        User user = this.userManager.addUser(msg, ctx.getClientMessenger());
+        if (user == null) {
+            ctx.sendMsg(new GameMessage("That user already exists, pick a different username."));
+            return true;
+        }
+        Client client = this.clientManager.getConnection(ctx.getClientID());
+        client.setSuccessor(user);
+        this.game.addNewPlayerToGame(user);
+        return true;
+    }
+
     @Override
     public Boolean handleMessage(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.EXIT) {
             this.logger.info("client " + ctx.getClientID().toString() + " is exiting");
             this.userManager.removeUser(ctx.getUserID());
             this.game.userLeft(ctx.getUserID());
-            ClientHandle ch = this.clientManager.getConnection(ctx.getClientID());
+            Client ch = this.clientManager.getConnection(ctx.getClientID());
             if (ch != null) {
                 ch.sendMsg(new GameMessage("Goodbye, we hope to see you again soon!"));
             }
@@ -143,6 +161,10 @@ public class Server implements ServerInterface, ConnectionListener {
                 e.printStackTrace();
             }
             return true;
+        }
+        if (ctx.getUserID() == null && msg.getType() == CommandMessage.CREATE) {
+            CreateInMessage createMessage = (CreateInMessage) msg;
+            return this.handleCreateMessage(ctx, createMessage);
         }
         return ServerInterface.super.handleMessage(ctx, msg);
     }

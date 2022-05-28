@@ -32,7 +32,7 @@ public class Client implements MessageHandler, ClientMessenger {
         this.out = out;
     }
 
-    protected void ProcessString(String value) {
+    public void ProcessString(String value) {
         this.logger.fine("message received: " + value);
         Command cmd = CommandInParser.parse(value);
         Boolean accepted = false;
