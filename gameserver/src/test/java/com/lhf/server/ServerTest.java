@@ -33,12 +33,20 @@ public class ServerTest {
             return this.handleCommand("create " + name + " with " + name);
         }
 
-        public String handleCommand(String command) {
+        public String handleCommand(String command, Boolean expectRecognized, Boolean expectHandled) {
             this.client.ProcessString(command);
             String response = this.read();
-            assertFalse(response.toLowerCase().contains("was not handled"));
-            assertFalse(response.toLowerCase().contains("was not recognized"));
+            if (expectRecognized) {
+                assertFalse(response.toLowerCase().contains("was not recognized"));
+            }
+            if (expectHandled) {
+                assertFalse(response.toLowerCase().contains("was not handled"));
+            }
             return response;
+        }
+
+        public String handleCommand(String command) {
+            return this.handleCommand(command, true, true);
         }
 
         public String read() {
@@ -107,6 +115,15 @@ public class ServerTest {
         assertNotEquals(room2, origRoom);
         assertEquals(room1, origRoom);
 
+    }
+
+    @Test
+    void testDropTake() {
+        this.comm.create("Tester");
+        this.comm.handleCommand("take longsword", true, false);
+        this.comm.handleCommand("drop longsword");
+        this.comm.handleCommand("drop longsword");
+        this.comm.handleCommand("take longsword");
     }
 
     @Test

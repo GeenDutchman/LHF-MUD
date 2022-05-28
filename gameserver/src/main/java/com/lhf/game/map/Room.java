@@ -639,9 +639,10 @@ public class Room implements Container, MessageHandler {
                 Optional<Item> maybeTakeable = ctx.getCreature().dropItem(itemName);
                 if (maybeTakeable.isEmpty()) {
                     sj.add("You don't have a " + itemName + " to drop.");
+                    continue;
                 }
                 Item takeable = maybeTakeable.get();
-                this.items.add(takeable);
+                this.addItem(takeable);
                 sj.add("You glance at your empty hand as the " + takeable.getColorTaggedName()
                         + " drops to the floor.");
             }
