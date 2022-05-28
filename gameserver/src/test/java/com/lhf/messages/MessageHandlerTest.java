@@ -34,14 +34,10 @@ public class MessageHandlerTest {
     }
 
     public void buildTree() {
-        doCallRealMethod().when(this.leafNodeOne).setSuccessor(any(MessageHandler.class));
-        doCallRealMethod().when(this.leafNodeTwo).setSuccessor(any(MessageHandler.class));
-        doCallRealMethod().when(this.branchNode).setSuccessor(any(MessageHandler.class));
-        // doCallRealMethod().when(this.rootNode).setSuccessor(any(MessageHandler.class));
-
-        this.leafNodeOne.setSuccessor(branchNode);
-        this.leafNodeTwo.setSuccessor(branchNode);
-        this.branchNode.setSuccessor(rootNode);
+        when(this.rootNode.getSuccessor()).thenReturn(null);
+        when(this.branchNode.getSuccessor()).thenReturn(this.rootNode);
+        when(this.leafNodeOne.getSuccessor()).thenReturn(this.branchNode);
+        when(this.leafNodeTwo.getSuccessor()).thenReturn(this.branchNode);
 
         Map<CommandMessage, String> leafNodeOneHelps = new HashMap<>();
         leafNodeOneHelps.put(CommandMessage.HELP, "When you need help");
