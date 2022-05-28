@@ -25,7 +25,7 @@ public class ClientHandle extends Client implements Runnable {
         this.logger = Logger.getLogger(this.getClass().getName());
         this.logger.finest("Creating ClientHandle");
         this.socket = socket;
-        this.out = new PrintWriter(socket.getOutputStream(), true);
+        this.out = new PrintWriterSendStrategy(socket.getOutputStream());
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         connected = true;
         killIt = false;
@@ -55,13 +55,6 @@ public class ClientHandle extends Client implements Runnable {
         }
     }
 
-    @Override
-    public synchronized void sendMsg(OutMessage msg) {
-        this.logger.entering(this.getClass().toString(), "sendMsg()", msg);
-        out.println(msg.toString());
-        out.flush();
-    }
-
     public void kill() {
         this.killIt = true;
     }
@@ -69,9 +62,6 @@ public class ClientHandle extends Client implements Runnable {
     void disconnect() throws IOException {
         this.logger.info("Disconnecting ClientHandler");
         if (connected && socket.isConnected()) {
-            out.flush();
-            out.close(); // closing these just in case
-            in.close();
             socket.close();
             connected = false;
         }

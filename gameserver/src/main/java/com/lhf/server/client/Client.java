@@ -16,7 +16,7 @@ import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.OutMessage;
 
 public class Client implements MessageHandler, ClientMessenger {
-    protected PrintWriter out;
+    protected SendStrategy out;
     protected ClientID id;
     protected Logger logger;
     protected MessageHandler _successor;
@@ -29,7 +29,7 @@ public class Client implements MessageHandler, ClientMessenger {
         this.out = null;
     }
 
-    protected void SetOut(PrintWriter out) {
+    protected void SetOut(SendStrategy out) {
         this.out = out;
     }
 
@@ -68,10 +68,9 @@ public class Client implements MessageHandler, ClientMessenger {
     public synchronized void sendMsg(OutMessage msg) {
         this.logger.entering(this.getClass().toString(), "sendMsg()", msg);
         if (this.out == null) {
-            this.SetOut(new PrintWriter(System.out));
+            this.SetOut(new PrintWriterSendStrategy(System.out));
         }
-        this.out.println(msg.toString());
-        this.out.flush();
+        this.out.send(msg.toString());
     }
 
     @Override
