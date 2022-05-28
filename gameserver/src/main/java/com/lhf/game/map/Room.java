@@ -30,6 +30,7 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
+import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.DropMessage;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.InteractMessage;
@@ -95,6 +96,13 @@ public class Room implements Container, MessageHandler {
             c.sendMsg(new GameMessage(this.toString()));
             this.sendMessageToAllExcept(new GameMessage(c.getColorTaggedName() + " has entered the room."),
                     c.getName());
+            if (this.allCreatures.size() > 1 && !this.commands.containsKey(CommandMessage.ATTACK)) {
+                StringJoiner sj = new StringJoiner(" ");
+                sj.add("\"attack [name]\"").add("Attacks a creature").add("\r\n");
+                sj.add("\"attack [name] with [weapon]\"").add("Attack the named creature with a weapon that you have.");
+                sj.add("In the unlikely event that either the creature or the weapon's name contains 'with', enclose the name in quotation marks.");
+                this.commands.putIfAbsent(CommandMessage.ATTACK, sj.toString());
+            }
         }
         return added;
     }
@@ -105,16 +113,20 @@ public class Room implements Container, MessageHandler {
     }
 
     public boolean removePlayer(Player p) {
-        if (this.battleManager.isPlayerInBattle(p)) {
-            this.battleManager.removeCreatureFromBattle(p);
-            p.setInBattle(false);
-        }
-        return this.allCreatures.remove(p);
+        Creature c = this.removeCreature(p);
+        return c != null;
     }
 
     public Creature removeCreature(Creature c) {
+        if (this.battleManager.isCreatureInBattle(c)) {
+            this.battleManager.removeCreatureFromBattle(c);
+            c.setInBattle(false);
+        }
         if (this.allCreatures.contains(c)) {
             this.allCreatures.remove(c);
+            if (this.allCreatures.size() < 2) {
+                this.commands.remove(CommandMessage.ATTACK);
+            }
             return c;
         }
         return null;
@@ -493,7 +505,9 @@ public class Room implements Container, MessageHandler {
         Boolean handled = false;
         CommandMessage type = msg.getType();
         if (type != null && this.commands.containsKey(type)) {
-            if (type == CommandMessage.SAY) {
+            if (type == CommandMessage.ATTACK) {
+                handled = this.handleAttack(ctx, msg);
+            } else if (type == CommandMessage.SAY) {
                 handled = this.handleSay(ctx, msg);
             } else if (type == CommandMessage.SEE) {
                 handled = this.handleSee(ctx, msg);
@@ -512,6 +526,13 @@ public class Room implements Container, MessageHandler {
         }
         ctx.setRoom(this);
         return MessageHandler.super.handleMessage(ctx, msg);
+    }
+
+    private Boolean handleAttack(CommandContext ctx, Command msg) {
+        if (msg.getType() != CommandMessage.ATTACK) {
+            return false;
+        }
+        return this.battleManager.handleMessage(ctx, msg);
     }
 
     private Boolean handleTake(CommandContext ctx, Command msg) {

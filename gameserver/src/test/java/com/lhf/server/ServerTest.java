@@ -216,17 +216,18 @@ public class ServerTest {
         twin1.create(this.comm.name, false); // would have failed making twin
         assertNotEquals(this.comm.name, twin1.name);
 
-        // extract creature name from next room
-        String creatureName = this.comm.handleCommand("go east");
-        int creature_index = creatureName.indexOf("<creature>");
-        int endcreature_index = creatureName.indexOf("</creature>");
-        creatureName = creatureName.substring(creature_index + "<creature>".length(), endcreature_index);
-        System.out.println(creatureName);
+        // // extract creature name from next room
+        // String creatureName = this.comm.handleCommand("go east");
+        // int creature_index = creatureName.indexOf("<creature>");
+        // int endcreature_index = creatureName.indexOf("</creature>");
+        // creatureName = creatureName.substring(creature_index + "<creature>".length(),
+        // endcreature_index);
+        // System.out.println(creatureName);
 
-        twin1.create(creatureName);
-        String room2 = twin1.handleCommand("go east");
-        assertTrue(room2.contains(this.comm.name));
-        assertEquals(room2.indexOf(twin1.name), room2.lastIndexOf(twin1.name));
+        // twin1.create(creatureName);
+        // String room2 = twin1.handleCommand("go east");
+        // assertTrue(room2.contains(this.comm.name));
+        // assertEquals(room2.indexOf(twin1.name), room2.lastIndexOf(twin1.name));
 
     }
 
@@ -240,13 +241,13 @@ public class ServerTest {
         System.out.println(extract);
         String room = this.comm.handleCommand("see");
         int i = 0;
-        while (room.contains(extract) && i < 15) {
+        while (room.contains("<creature>" + extract + "</creature>") && i < 15) {
             this.comm.handleCommand("attack " + extract);
 
             room = this.comm.handleCommand("see");
             i += 1;
         }
         assertTrue(i < 15);
-        assertFalse(room.contains(extract));
+        assertFalse(room.contains("<creature>" + extract + "</creature>"));
     }
 }

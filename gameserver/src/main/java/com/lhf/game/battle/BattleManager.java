@@ -78,11 +78,13 @@ public class BattleManager implements MessageHandler {
     public void addCreatureToBattle(Creature c) {
         participants.addLast(c);
         c.setInBattle(true);
+        c.setSuccessor(this);
     }
 
     public void removeCreatureFromBattle(Creature c) {
         participants.remove(c);
         c.setInBattle(false);
+        c.setSuccessor(this.successor);
         if (!playerVSplayer && !hasNonPlayerInBattle()) { // not pvp and no monsters
             endBattle();
         } else if (!hasPlayerInBattle() || participants.size() <= 1) { // pvp and only one survivor who did not flee OR
@@ -113,7 +115,7 @@ public class BattleManager implements MessageHandler {
         return participants.contains(p);
     }
 
-    private boolean isCreatureInBattle(Creature c) {
+    public boolean isCreatureInBattle(Creature c) {
         return participants.contains(c);
     }
 
@@ -475,6 +477,11 @@ public class BattleManager implements MessageHandler {
 
         if (!targetCreature.isInBattle()) {
             this.addCreatureToBattle(targetCreature);
+            if (this.isBattleOngoing()) {
+                this.room.sendMessageToAllExcept(
+                        new GameMessage(targetCreature.getColorTaggedName() + " has joined the ongoing battle!"),
+                        targetCreature.getName());
+            }
         }
 
         if (!this.isBattleOngoing()) {
