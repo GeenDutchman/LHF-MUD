@@ -731,9 +731,6 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
 
     public void setController(ClientMessenger cont) {
         this.controller = cont;
-        if (this.controller instanceof MessageHandler) {
-            ((MessageHandler) this.controller).setSuccessor(this); // TODO: this is hackery
-        }
     }
 
     @Override

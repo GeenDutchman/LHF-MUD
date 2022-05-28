@@ -139,6 +139,7 @@ public class Server implements ServerInterface, ConnectionListener {
             ctx.sendMsg(new GameMessage("That user already exists, pick a different username."));
             return true;
         }
+        user.setSuccessor(this);
         Client client = this.clientManager.getConnection(ctx.getClientID());
         client.setSuccessor(user);
         this.game.addNewPlayerToGame(user);

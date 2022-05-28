@@ -212,6 +212,7 @@ public class ServerTest {
     @Test
     void testNameCollision() throws IOException {
         this.comm.create("Tester");
+        this.comm.handleCommand("create Tester with password", true, false);
         ComBundle twin1 = new ComBundle(this.server);
         twin1.create(this.comm.name, false); // would have failed making twin
         assertNotEquals(this.comm.name, twin1.name);

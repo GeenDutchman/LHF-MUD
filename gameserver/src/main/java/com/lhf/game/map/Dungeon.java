@@ -58,7 +58,6 @@ public class Dungeon implements MessageHandler {
 
     void reincarnate(Player p) {
         Player p2 = new Player(p.getUser());
-        p2.setController(p.getController());
         addNewPlayer(p2);
         p.sendMsg(new GameMessage(
                 "*******************************X_X*********************************************\nYou have died. Out of mercy you have been reborn back where you began."));
