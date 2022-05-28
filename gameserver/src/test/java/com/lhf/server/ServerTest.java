@@ -1,5 +1,6 @@
 package com.lhf.server;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -100,9 +101,11 @@ public class ServerTest {
         String room1 = this.comm.create("Tester");
         assertTrue(room1.contains("east"));
         String room2 = this.comm.handleCommand("go east");
-        System.out.println(room2);
         assertTrue(room2.contains("room"));
         assertNotEquals(room1, room2);
+        String origRoom = this.comm.handleCommand("go west");
+        assertNotEquals(room2, origRoom);
+        assertEquals(room1, origRoom);
 
     }
 
