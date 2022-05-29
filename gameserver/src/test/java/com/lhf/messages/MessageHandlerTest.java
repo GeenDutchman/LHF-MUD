@@ -81,8 +81,8 @@ public class MessageHandlerTest {
         assertTrue(rec.get(CommandMessage.HELP).contains("higher"));
     }
 
-    @Test
-    void testHandleMessage() {
+    // @Test
+    // void testHandleMessage() {
 
-    }
+    // }
 }

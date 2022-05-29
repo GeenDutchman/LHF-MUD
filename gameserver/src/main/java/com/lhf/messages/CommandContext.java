@@ -1,5 +1,6 @@
 package com.lhf.messages;
 
+import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.map.Room;
 import com.lhf.messages.out.OutMessage;
@@ -11,6 +12,7 @@ public class CommandContext implements ClientMessenger {
     protected UserID userID;
     protected Creature creature;
     protected Room room;
+    protected BattleManager bManager;
 
     @Override
     public ClientID getClientID() {
@@ -54,5 +56,13 @@ public class CommandContext implements ClientMessenger {
 
     public Room getRoom() {
         return this.room;
+    }
+
+    public BattleManager getBattleManager() {
+        return this.bManager;
+    }
+
+    public void setBattleManager(BattleManager battleManager) {
+        this.bManager = battleManager;
     }
 }

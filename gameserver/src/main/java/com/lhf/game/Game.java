@@ -39,8 +39,8 @@ public class Game implements UserListener, MessageHandler {
 
 	public Game(ServerInterface server, UserManager userManager) throws FileNotFoundException {
 		this.logger = Logger.getLogger(this.getClass().getName());
-		dungeon = DungeonBuilder.buildStaticDungeon(this);
-		this.thirdPower = new ThirdPower(dungeon);
+		this.thirdPower = new ThirdPower(this);
+		this.dungeon = DungeonBuilder.buildStaticDungeon(this.thirdPower);
 		this.successor = server;
 		this.server = server;
 		this.server.registerCallback(this);

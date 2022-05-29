@@ -342,4 +342,19 @@ public class ServerTest {
         assertEquals(inventory, this.comm.handleCommand("inventory"));
         assertEquals(status, this.comm.handleCommand("status"));
     }
+
+    @Test
+    void testCasting() throws IOException {
+        this.comm.create("Tester");
+        ComBundle victim = new ComBundle(this.server);
+        victim.create("victim");
+        victim.read();
+        String spellResult = this.comm.handleCommand("cast zarmamoo"); // Thaumaturgy
+        // because we know it's thaumaturgy
+        assertTrue(spellResult.contains(this.comm.name));
+        assertTrue(victim.read().contains(this.comm.name));
+
+        spellResult = this.comm.handleCommand("cast Astra Horeb at " + victim.name); // attack spell
+        assertTrue(spellResult.toLowerCase().contains("fight"));
+    }
 }

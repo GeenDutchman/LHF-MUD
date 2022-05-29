@@ -417,6 +417,7 @@ public class BattleManager implements MessageHandler {
                 return handled;
             }
         }
+        ctx.setBattleManager(this);
         return MessageHandler.super.handleMessage(ctx, msg);
     }
 
