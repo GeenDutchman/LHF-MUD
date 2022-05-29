@@ -251,4 +251,35 @@ public class ServerTest {
         assertTrue(i < 15);
         assertFalse(room.contains("<creature>" + extract + "</creature>"));
     }
+
+    @Test
+    void testReincarnation() throws IOException {
+        this.comm.create("Tester");
+        String status = this.comm.handleCommand("status");
+        String inventory = this.comm.handleCommand("inventory");
+        this.comm.handleCommand("unequip armor");
+        this.comm.handleCommand("unequip shield");
+        this.comm.handleCommand("unequip weapon");
+
+        ComBundle attacker = new ComBundle(this.server);
+        attacker.create("Attacker");
+
+        String message = new String();
+        int i = 0;
+        while (!message.contains("reborn") && i < 30) { // until Tester dies
+            i++;
+            attacker.handleCommand("attack Tester");
+            message = this.comm.read();
+            if (message.contains("reborn")) {
+                break;
+            }
+            message = this.comm.handleCommand("attack Attacker");
+            if (message.contains("reborn")) {
+                break;
+            }
+        }
+        assertNotEquals(30, i);
+        assertEquals(inventory, this.comm.handleCommand("inventory"));
+        assertEquals(status, this.comm.handleCommand("status"));
+    }
 }
