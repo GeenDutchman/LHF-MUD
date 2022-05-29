@@ -20,8 +20,6 @@ public class EquipMessage extends Command {
         } else {
             if (this.indirects.containsKey("to")) {
                 validated = this.directs.size() == 1 && EquipmentSlots.isEquipmentSlot(this.getByPreposition("to"));
-            } else {
-                validated = false;
             }
         }
         return super.isValid() && this.directs.size() >= 1 && validated;

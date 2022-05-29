@@ -3,7 +3,6 @@ package com.lhf.server;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -12,9 +11,9 @@ import java.io.IOException;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.StringBufferSendStrategy;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.opentest4j.AssertionFailedError;
 
 public class ServerTest {
 
@@ -101,8 +100,26 @@ public class ServerTest {
     @Test
     void testServerInitialMessage() {
         String message = this.comm.read();
-        System.out.println(message);
         assertTrue(message.contains("Welcome"));
+    }
+
+    @Test
+    void testFreshExit() {
+        this.comm.read();
+        String message = this.comm.handleCommand("exit");
+        assertTrue(message.toLowerCase().contains("goodbye"));
+    }
+
+    @Test
+    void testExitFinality() {
+
+        this.comm.read();
+        String message = this.comm.handleCommand("exit");
+        assertTrue(message.toLowerCase().contains("goodbye"));
+        this.comm.handleCommand("see", true, false);
+        Assertions.assertThrows(NullPointerException.class, () -> {
+            this.comm.handleCommand("create Tester with Tester");
+        });
     }
 
     @Test
@@ -113,6 +130,13 @@ public class ServerTest {
         assertTrue(message.toLowerCase().contains("room"));
         assertTrue(message.contains(this.comm.name));
 
+    }
+
+    @Test
+    void testCreatedExit() {
+        this.comm.create("Tester");
+        String message = this.comm.handleCommand("exit");
+        assertTrue(message.toLowerCase().contains("goodbye"));
     }
 
     @Test
@@ -143,6 +167,25 @@ public class ServerTest {
         this.comm.handleCommand("drop longsword");
         this.comm.handleCommand("drop longsword");
         this.comm.handleCommand("take longsword");
+    }
+
+    @Test
+    void testPlayers() throws IOException {
+        this.comm.create("Tester");
+        ComBundle dude1 = new ComBundle(this.server);
+        dude1.create("dude1");
+        ComBundle dude2 = new ComBundle(this.server);
+        dude2.create("dude2");
+        this.comm.read();
+        String findEm = this.comm.handleCommand("players");
+        assertTrue(findEm.contains(this.comm.name));
+        assertTrue(findEm.contains(dude1.name));
+        assertTrue(findEm.contains(dude2.name));
+        dude2.handleCommand("go east");
+        findEm = this.comm.handleCommand("players");
+        assertTrue(findEm.contains(this.comm.name));
+        assertTrue(findEm.contains(dude1.name));
+        assertTrue(findEm.contains(dude2.name));
     }
 
     @Test
@@ -250,6 +293,23 @@ public class ServerTest {
         }
         assertTrue(i < 15);
         assertFalse(room.contains("<creature>" + extract + "</creature>"));
+    }
+
+    @Test
+    void testEquipment() {
+        this.comm.create("Tester");
+        String status1 = this.comm.handleCommand("status");
+        String inventory1 = this.comm.handleCommand("inventory");
+        int slotindex = inventory1.indexOf("SHIELD");
+        int shieldIndex = inventory1.indexOf("Shield", slotindex);
+        assertTrue(slotindex < shieldIndex);
+        this.comm.handleCommand("unequip shield");
+        assertNotEquals(inventory1, this.comm.handleCommand("inventory"));
+        assertNotEquals(status1, this.comm.handleCommand("status"));
+        this.comm.handleCommand("equip shield");
+        assertEquals(inventory1, this.comm.handleCommand("inventory"));
+        assertEquals(status1, this.comm.handleCommand("status"));
+
     }
 
     @Test
