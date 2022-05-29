@@ -1,7 +1,11 @@
 package com.lhf.game;
 
+import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
+
 import com.lhf.game.creature.Player;
-import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
@@ -9,25 +13,14 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
-import com.lhf.messages.in.*;
-import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.ListPlayersMessage;
-import com.lhf.messages.out.NewInMessage;
 import com.lhf.messages.out.SpawnMessage;
 import com.lhf.messages.out.UserLeftMessage;
-import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
 import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
-import com.lhf.server.interfaces.NotNull;
-
-import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Logger;
 
 public class Game implements UserListener, MessageHandler {
 	private MessageHandler successor;

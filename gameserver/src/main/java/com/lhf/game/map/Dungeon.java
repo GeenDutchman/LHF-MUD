@@ -1,5 +1,11 @@
 package com.lhf.game.map;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
 import com.lhf.game.creature.Player;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -10,13 +16,6 @@ import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpawnMessage;
 import com.lhf.server.client.user.UserID;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Dungeon implements MessageHandler {
     private Room startingRoom = null;

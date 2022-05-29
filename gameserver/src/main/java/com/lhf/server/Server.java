@@ -15,7 +15,6 @@ import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.Client;
-import com.lhf.server.client.ClientHandle;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.ClientManager;
 import com.lhf.server.client.user.User;

@@ -3,12 +3,10 @@ package com.lhf.server.client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.logging.Logger;
 
 import com.lhf.messages.out.FatalMessage;
-import com.lhf.messages.out.OutMessage;
 import com.lhf.server.interfaces.ConnectionListener;
 
 public class ClientHandle extends Client implements Runnable {

@@ -9,7 +9,6 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.CreateInMessage;
-import com.lhf.server.client.Client;
 
 public class User implements MessageHandler {
     private UserID id;
