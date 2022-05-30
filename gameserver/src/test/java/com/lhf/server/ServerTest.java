@@ -262,9 +262,9 @@ public class ServerTest {
 
         // // extract creature name from next room
         // String creatureName = this.comm.handleCommand("go east");
-        // int creature_index = creatureName.indexOf("<creature>");
-        // int endcreature_index = creatureName.indexOf("</creature>");
-        // creatureName = creatureName.substring(creature_index + "<creature>".length(),
+        // int creature_index = creatureName.indexOf("<monster>");
+        // int endcreature_index = creatureName.indexOf("</monster>");
+        // creatureName = creatureName.substring(creature_index + "<monster>".length(),
         // endcreature_index);
         // System.out.println(creatureName);
 
@@ -279,20 +279,20 @@ public class ServerTest {
     void testAttack() {
         this.comm.create("Tester");
         String extract = this.comm.handleCommand("go east");
-        int creature_index = extract.indexOf("<creature>");
-        int endcreature_index = extract.indexOf("</creature>");
-        extract = extract.substring(creature_index + "<creature>".length(), endcreature_index);
+        int creature_index = extract.indexOf("<monster>");
+        int endcreature_index = extract.indexOf("</monster>");
+        extract = extract.substring(creature_index + "<monster>".length(), endcreature_index);
         System.out.println(extract);
         String room = this.comm.handleCommand("see");
         int i = 0;
-        while (room.contains("<creature>" + extract + "</creature>") && i < 15) {
+        while (room.contains("<monster>" + extract + "</monster>") && i < 15) {
             this.comm.handleCommand("attack " + extract);
 
             room = this.comm.handleCommand("see");
             i += 1;
         }
         assertTrue(i < 15);
-        assertFalse(room.contains("<creature>" + extract + "</creature>"));
+        assertFalse(room.contains("<monster>" + extract + "</monster>"));
     }
 
     @Test

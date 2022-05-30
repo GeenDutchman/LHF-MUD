@@ -74,14 +74,4 @@ public class Player extends Creature {
         return this.user;
     }
 
-    @Override
-    public String getStartTagName() {
-        return "<player>";
-    }
-
-    @Override
-    public String getEndTagName() {
-        return "</player>";
-    }
-
 }
