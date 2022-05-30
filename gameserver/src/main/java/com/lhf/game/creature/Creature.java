@@ -694,8 +694,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
     public String getStartTagName() {
         String tag = "<" + this.getClass().getSimpleName().toLowerCase() + ">";
         CreatureFaction foundFaction = this.getFaction();
-        if (foundFaction != null && foundFaction.equals(CreatureFaction.RENEGADE)) {
-            tag = "<" + CreatureFaction.RENEGADE.name().toLowerCase() + ">";
+        if (foundFaction != null) {
+            tag = "<" + foundFaction.name().toLowerCase() + ">";
         }
         return tag;
     }
@@ -704,8 +704,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
     public String getEndTagName() {
         String tag = "</" + this.getClass().getSimpleName().toLowerCase() + ">";
         CreatureFaction foundFaction = this.getFaction();
-        if (foundFaction != null && this.getFaction().equals(CreatureFaction.RENEGADE)) {
-            tag = "</" + CreatureFaction.RENEGADE.name().toLowerCase() + ">";
+        if (foundFaction != null) {
+            tag = "</" + foundFaction.name().toLowerCase() + ">";
         }
         return tag;
     }
