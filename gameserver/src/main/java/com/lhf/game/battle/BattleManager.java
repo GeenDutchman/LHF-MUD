@@ -17,6 +17,7 @@ import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.dice.DiceD4;
 import com.lhf.game.enums.Attributes;
+import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
@@ -37,7 +38,6 @@ public class BattleManager implements MessageHandler {
     private Deque<Creature> participants;
     private Room room;
     private boolean isHappening;
-    private boolean playerVSplayer;
     private MessageHandler successor;
     private Map<CommandMessage, String> interceptorCmds;
     private Map<CommandMessage, String> cmds;
@@ -46,7 +46,6 @@ public class BattleManager implements MessageHandler {
         participants = new ArrayDeque<>();
         this.room = room;
         isHappening = false;
-        playerVSplayer = false;
         this.successor = this.room;
         this.interceptorCmds = this.buildInterceptorCommands();
         this.cmds = this.buildCommands();
@@ -92,34 +91,34 @@ public class BattleManager implements MessageHandler {
         participants.remove(c);
         c.setInBattle(false);
         c.setSuccessor(this.successor);
-        if (!playerVSplayer && !hasNonPlayerInBattle()) { // not pvp and no monsters
-            endBattle();
-        } else if (!hasPlayerInBattle() || participants.size() <= 1) { // pvp and only one survivor who did not flee OR
-                                                                       // just monsters
+        if (!this.checkCompetingFactionsPresent()) {
             endBattle();
         }
     }
 
-    public boolean hasPlayerInBattle() {
+    private boolean checkCompetingFactionsPresent() {
+        if (this.participants.size() <= 1) {
+            return false;
+        }
+        HashMap<CreatureFaction, Integer> factionCounts = new HashMap<>();
         for (Creature creature : participants) {
-            if (creature instanceof Player) {
-                return true;
+            CreatureFaction thatone = creature.getFaction();
+            if (factionCounts.containsKey(thatone)) {
+                factionCounts.put(thatone, factionCounts.get(thatone) + 1);
+            } else {
+                factionCounts.put(thatone, 1);
             }
         }
-        return false;
-    }
-
-    public boolean hasNonPlayerInBattle() {
-        for (Creature creature : participants) {
-            if (!(creature instanceof Player)) {
-                return true;
-            }
+        if (factionCounts.containsKey(CreatureFaction.RENEGADE)) {
+            return true;
+        }
+        if (factionCounts.keySet().size() == 1) {
+            return false;
+        }
+        if (factionCounts.containsKey(CreatureFaction.PLAYER)) {
+            return true;
         }
         return false;
-    }
-
-    public boolean isPlayerInBattle(Player p) {
-        return participants.contains(p);
     }
 
     public boolean isCreatureInBattle(Creature c) {
@@ -213,6 +212,25 @@ public class BattleManager implements MessageHandler {
         current.sendMsg(new GameMessage("It is your turn to fight!\r\n"));
     }
 
+    private void handleTurnRenegade(Creature turned) {
+        turned.setFaction(CreatureFaction.RENEGADE);
+        StringBuilder sb = new StringBuilder();
+        sb.append("You have attacked someone in your faction, and have become a RENEGADE.").append("\n");
+        sb.append(
+                "You may lose bonuses that you previously had, and consequences for attacking you are removed.")
+                .append("\n");
+        sb.append(
+                "If you want to rejoin a faction, some casters have spells that can join you to a faction.");
+        turned.sendMsg(new GameMessage(sb.toString()));
+        sb.setLength(0);
+        sb.append(turned.getColorTaggedName())
+                .append(" has attacked a member of their faction and thus became a RENEGADE. ")
+                .append("Until ").append(turned.getColorTaggedName())
+                .append(" rejoins a faction (certain spells can do this) consequences for attacking ")
+                .append(turned.getColorTaggedName()).append(" are removed.");
+        room.sendMessageToAllExcept(new GameMessage(sb.toString()), turned.getName());
+    }
+
     public void playerAction(Player p, BattleAction action) {
         if (!participants.contains(p)) {
             // give message that the player is not currently engaged in a fight
@@ -246,8 +264,8 @@ public class BattleManager implements MessageHandler {
                     p.sendMsg(new GameMessage("One of your targets did not exist.\r\n"));
                     return;
                 }
-                if (c instanceof Player && !playerVSplayer) {
-                    this.playerVSplayer = true;
+                if (c.getFaction() != CreatureFaction.RENEGADE && p.getFaction().equals(c.getFaction())) {
+                    this.handleTurnRenegade(p);
                 }
             }
             Weapon weapon;
@@ -279,8 +297,9 @@ public class BattleManager implements MessageHandler {
                     p.sendMsg(new GameMessage("One of your targets did not exist.\r\n"));
                     return;
                 }
-                if (c instanceof Player && !playerVSplayer && spell instanceof DamageSpell) {
-                    this.playerVSplayer = true;
+                if (spell instanceof DamageSpell && c.getFaction() != CreatureFaction.RENEGADE
+                        && p.getFaction().equals(c.getFaction())) {
+                    this.handleTurnRenegade(p);
                 }
             }
             applySpell((Creature) spell.getCaster(), (CreatureAffector) spell, targets);

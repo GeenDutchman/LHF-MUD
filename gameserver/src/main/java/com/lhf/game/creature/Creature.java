@@ -292,6 +292,10 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
         return faction;
     }
 
+    public void setFaction(CreatureFaction faction) {
+        this.faction = faction;
+    }
+
     public AttributeBlock getAttributes() {
         return this.attributeBlock;
     }
@@ -445,10 +449,6 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
     // Setters
     public void setName(String name) {
         this.name = name;
-    }
-
-    void setFaction(CreatureFaction faction) {
-        this.faction = faction;
     }
 
     public void setAttributes(AttributeBlock attributes) {
