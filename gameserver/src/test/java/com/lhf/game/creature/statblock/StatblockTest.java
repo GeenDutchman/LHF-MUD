@@ -8,7 +8,7 @@ import java.util.HashMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.lhf.game.creature.inventory.Inventory;
-import com.lhf.game.enums.CreatureType;
+import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
@@ -27,7 +27,7 @@ public class StatblockTest {
 
         Statblock s = new Statblock("goober");
         s.setCreatureRace("goober");
-        s.setCreatureType(CreatureType.MONSTER);
+        s.setFaction(CreatureFaction.MONSTER);
         s.setAttributes(new AttributeBlock());
         HashMap<Stats, Integer> stats = new HashMap<>();
         stats.put(Stats.MAXHP, 10);

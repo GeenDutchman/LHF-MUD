@@ -1,6 +1,6 @@
 package com.lhf.game.creature;
 
-import com.lhf.game.enums.CreatureType;
+import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -21,7 +21,7 @@ public class Player extends Creature {
         this.user.setSuccessor(this);
         this.setController(this.user.getClient());
         this.setName(user.getUsername()); // Sets the player name
-        this.setCreatureType(CreatureType.PLAYER); // It's a player
+        this.setFaction(CreatureFaction.PLAYER); // It's a player
 
         // Set attributes to default values
         AttributeBlock attrBlock = new AttributeBlock(16, 12, 14, 10, 12, 8);

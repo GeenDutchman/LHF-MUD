@@ -12,7 +12,7 @@ import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.Attributes;
-import com.lhf.game.enums.CreatureType;
+import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -36,7 +36,7 @@ public class NpcCreator {
 
         Creature npc;
         String name;
-        CreatureType creatureType = null;
+        CreatureFaction faction = null;
         AttributeBlock attributes = new AttributeBlock();
         HashMap<Stats, Integer> stats = new HashMap<>();
         HashSet<EquipmentTypes> proficiencies = new HashSet<>();
@@ -59,19 +59,19 @@ public class NpcCreator {
         // creature type
 
         do {
-            System.out.print("Please indicate the creature's type (NPC/MONSTER): ");
+            System.out.print("Please indicate the creature's faction (NPC/MONSTER): ");
             response_string = input.nextLine();
-            System.out.print("The creature type is: " + response_string + " is this correct?(yes/no) ");
+            System.out.print("The creature faction is: " + response_string + " is this correct?(yes/no) ");
             validation_response = input.nextLine();
 
             valid = validate(validation_response);
             if (valid) {
-                if (response_string.equalsIgnoreCase(String.valueOf(CreatureType.MONSTER)) ||
-                        response_string.equalsIgnoreCase(String.valueOf(CreatureType.NPC))) {
-                    if (response_string.equalsIgnoreCase(String.valueOf(CreatureType.MONSTER))) {
-                        creatureType = CreatureType.MONSTER;
+                if (response_string.equalsIgnoreCase(String.valueOf(CreatureFaction.MONSTER)) ||
+                        response_string.equalsIgnoreCase(String.valueOf(CreatureFaction.NPC))) {
+                    if (response_string.equalsIgnoreCase(String.valueOf(CreatureFaction.MONSTER))) {
+                        faction = CreatureFaction.MONSTER;
                     } else {
-                        creatureType = CreatureType.NPC;
+                        faction = CreatureFaction.NPC;
                     }
                 } else {
                     valid = Boolean.FALSE;
@@ -201,7 +201,7 @@ public class NpcCreator {
 
         }
 
-        Statblock creation = new Statblock(name, creatureType, attributes, stats, proficiencies, inventory,
+        Statblock creation = new Statblock(name, faction, attributes, stats, proficiencies, inventory,
                 equipmentSlots);
 
         npc = new Creature(name, creation);

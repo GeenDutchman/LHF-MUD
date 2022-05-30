@@ -14,11 +14,11 @@ public class Statblock {
         this.creatureRace = creatureRace;
     }
 
-    public Statblock(String creatureRace, CreatureType creatureType, AttributeBlock attributes,
+    public Statblock(String creatureRace, CreatureFaction faction, AttributeBlock attributes,
             HashMap<Stats, Integer> stats,
             HashSet<EquipmentTypes> proficiencies, Inventory inventory, HashMap<EquipmentSlots, Item> equipmentSlots) {
         this.creatureRace = creatureRace;
-        this.creatureType = creatureType;
+        this.faction = faction;
         this.attributes = attributes;
         this.stats = stats;
         this.proficiencies = proficiencies;
@@ -28,7 +28,7 @@ public class Statblock {
 
     public Statblock(Creature creature) {
         this.creatureRace = creature.getCreatureRace();
-        this.creatureType = creature.getCreatureType();
+        this.faction = creature.getFaction();
         this.attributes = creature.getAttributes();
         this.stats = creature.getStats();
         this.proficiencies = creature.getProficiencies();
@@ -39,9 +39,7 @@ public class Statblock {
 
     public String creatureRace;
     // see the enums file
-    public CreatureType creatureType;
-
-    // public MonsterType monsterType;// I dont know if we'll need this
+    public CreatureFaction faction;
 
     public AttributeBlock attributes;
     // contains CurrentHp, MaxHp, Xp, proficiencyBonus, AC
@@ -66,7 +64,7 @@ public class Statblock {
     @Override
     public String toString() {
         return creatureRace + "\n" +
-                creatureType.toString() + "\n" +
+                faction.toString() + "\n" +
                 attributes.toString() + "\n" +
                 stats.toString() + "\n" +
                 proficiencies.toString() + "\n" +
@@ -79,12 +77,12 @@ public class Statblock {
         this.creatureRace = creatureRace;
     }
 
-    public CreatureType getCreatureType() {
-        return creatureType;
+    public CreatureFaction getFaction() {
+        return faction;
     }
 
-    public void setCreatureType(CreatureType creatureType) {
-        this.creatureType = creatureType;
+    public void setFaction(CreatureFaction faction) {
+        this.faction = faction;
     }
 
     public AttributeBlock getAttributes() {

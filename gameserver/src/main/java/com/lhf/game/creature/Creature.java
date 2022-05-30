@@ -93,7 +93,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
     }
 
     private String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
-    private CreatureType creatureType; // See shared enum
+    private CreatureFaction faction; // See shared enum
     private String creatureRace;
     // private MonsterType monsterType; // I dont know if we'll need this
 
@@ -124,7 +124,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
         this.cmds = this.buildCommands();
         // Instantiate creature with no name and type Monster
         this.name = ""; // TODO: what if creature name.len < 3?
-        this.creatureType = CreatureType.MONSTER;
+        this.faction = CreatureFaction.NPC;
 
         // Set attributes to default values
         this.attributeBlock = new AttributeBlock();
@@ -156,7 +156,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
         this.cmds = this.buildCommands();
         this.name = name;
 
-        this.creatureType = statblock.creatureType;
+        this.faction = statblock.faction;
         this.attributeBlock = statblock.attributes;
         this.stats = statblock.stats;
         this.proficiencies = statblock.proficiencies;
@@ -288,8 +288,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
         }
     }
 
-    public CreatureType getCreatureType() {
-        return creatureType;
+    public CreatureFaction getFaction() {
+        return faction;
     }
 
     public AttributeBlock getAttributes() {
@@ -447,8 +447,8 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
         this.name = name;
     }
 
-    void setCreatureType(CreatureType creatureType) {
-        this.creatureType = creatureType;
+    void setFaction(CreatureFaction faction) {
+        this.faction = faction;
     }
 
     public void setAttributes(AttributeBlock attributes) {

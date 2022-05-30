@@ -65,7 +65,7 @@ public abstract class Usable extends Takeable {
             method = methods.get(((Creature) usingOn).getName());
             if (method == null) {
                 // specific to CreatureType
-                method = methods.get(((Creature) usingOn).getCreatureType().toString());
+                method = methods.get(((Creature) usingOn).getFaction().toString());
             }
             if (method == null) {
                 // general to all Creatures

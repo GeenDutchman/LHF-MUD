@@ -3,6 +3,7 @@ package com.lhf.game.creature;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.battle.BattleAI;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.MonsterAI;
 import com.lhf.game.enums.Stats;
 
@@ -26,6 +27,7 @@ public class Monster extends Creature implements BattleAI {
         this.setName(NameGenerator.Generate("Monster"));
         this.setSerialNumber();
         this.aiType = MonsterAI.RANDOM;
+        this.setFaction(CreatureFaction.MONSTER);
     }
 
     public Monster(String name, Statblock statblock) {
