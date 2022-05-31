@@ -231,22 +231,22 @@ public class BattleManager implements MessageHandler {
         room.sendMessageToAllExcept(new GameMessage(sb.toString()), turned.getName());
     }
 
-    public void playerAction(Player p, BattleAction action) {
-        if (!participants.contains(p)) {
+    public void takeAction(Creature attacker, BattleAction action) {
+        if (!participants.contains(attacker)) {
             // give message that the player is not currently engaged in a fight
-            p.sendMsg(new GameMessage("You are not currently in a fight.\r\n"));
+            attacker.sendMsg(new GameMessage("You are not currently in a fight.\r\n"));
             return;
         }
 
         if (!isHappening) {
             // give message saying there is no battle ongoing
-            p.sendMsg(new GameMessage("There is no battle happening.\r\n"));
+            attacker.sendMsg(new GameMessage("There is no battle happening.\r\n"));
             return;
         }
 
-        if (p != getCurrent()) {
+        if (attacker != getCurrent()) {
             // give out of turn message
-            p.sendMsg(new GameMessage("This is not your turn.\r\n"));
+            attacker.sendMsg(new GameMessage("This is not your turn.\r\n"));
             return;
         }
 
@@ -254,57 +254,57 @@ public class BattleManager implements MessageHandler {
             AttackAction attackAction = (AttackAction) action;
 
             if (!attackAction.hasTargets()) {
-                p.sendMsg(new GameMessage("You did not choose any targets.\r\n"));
+                attacker.sendMsg(new GameMessage("You did not choose any targets.\r\n"));
                 return;
             }
             List<Creature> targets = attackAction.getTargets();
             for (Creature c : targets) {
                 if (!isCreatureInBattle(c)) {
                     // invalid target in list
-                    p.sendMsg(new GameMessage("One of your targets did not exist.\r\n"));
+                    attacker.sendMsg(new GameMessage("One of your targets did not exist.\r\n"));
                     return;
                 }
-                if (c.getFaction() != CreatureFaction.RENEGADE && p.getFaction().equals(c.getFaction())) {
-                    this.handleTurnRenegade(p);
+                if (c.getFaction() != CreatureFaction.RENEGADE && attacker.getFaction().equals(c.getFaction())) {
+                    this.handleTurnRenegade(attacker);
                 }
             }
             Weapon weapon;
             if (attackAction.hasWeapon()) {
-                Optional<Item> inventoryItem = p.getItem(attackAction.getWeapon());
+                Optional<Item> inventoryItem = attacker.getItem(attackAction.getWeapon());
                 if (inventoryItem.isEmpty()) {
-                    p.sendMsg(new GameMessage("You do not have that weapon.\r\n"));
+                    attacker.sendMsg(new GameMessage("You do not have that weapon.\r\n"));
                     return;
                 } else if (!(inventoryItem.get() instanceof Weapon)) {
-                    p.sendMsg(new GameMessage(attackAction.getWeapon() + " is not a Weapon!"));
+                    attacker.sendMsg(new GameMessage(attackAction.getWeapon() + " is not a Weapon!"));
                     return;
                 } else {
                     weapon = (Weapon) inventoryItem.get();
                 }
             } else {
-                weapon = p.getWeapon();
+                weapon = attacker.getWeapon();
             }
-            applyAttacks(p, weapon, targets);
+            applyAttacks(attacker, weapon, targets);
         } else if (action instanceof CreatureAffector) {
             CreatureAffector spell = (CreatureAffector) action;
             if (!spell.hasTargets()) {
-                p.sendMsg(new GameMessage("You did not choose any targets.\r\n"));
+                attacker.sendMsg(new GameMessage("You did not choose any targets.\r\n"));
                 return;
             }
             List<Creature> targets = spell.getTargets();
             for (Creature c : targets) {
                 if (!isCreatureInBattle(c)) {
                     // invalid target in list
-                    p.sendMsg(new GameMessage("One of your targets did not exist.\r\n"));
+                    attacker.sendMsg(new GameMessage("One of your targets did not exist.\r\n"));
                     return;
                 }
                 if (spell instanceof DamageSpell && c.getFaction() != CreatureFaction.RENEGADE
-                        && p.getFaction().equals(c.getFaction())) {
-                    this.handleTurnRenegade(p);
+                        && attacker.getFaction().equals(c.getFaction())) {
+                    this.handleTurnRenegade(attacker);
                 }
             }
             applySpell((Creature) spell.getCaster(), (CreatureAffector) spell, targets);
         } else {
-            sendMessageToAllParticipants(new GameMessage(p.getColorTaggedName() + " wasted their turn!"));
+            sendMessageToAllParticipants(new GameMessage(attacker.getColorTaggedName() + " wasted their turn!"));
         }
         endTurn();
     }
@@ -516,7 +516,7 @@ public class BattleManager implements MessageHandler {
             this.startBattle(ctx.getCreature());
         }
         AttackAction attackAction = new AttackAction(targetCreature, aMessage.getWeapon());
-        this.playerAction((Player) ctx.getCreature(), attackAction);
+        this.takeAction((Player) ctx.getCreature(), attackAction);
         return true;
     }
 

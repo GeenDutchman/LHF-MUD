@@ -379,55 +379,6 @@ public class Room implements Container, MessageHandler {
         return output;
     }
 
-    public void attack(Player player, String weapon, String target) {
-        System.out.println(player.toString() + " attempts attacking " + target + " with " + weapon);
-        // if the target does not exist, don't add the player to the combat
-        Creature targetCreature = null;
-        List<Creature> possTargets = this.getCreaturesInRoom(target);
-        if (possTargets.size() == 1) {
-            targetCreature = possTargets.get(0);
-        }
-        if (targetCreature == null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("You cannot attack '").append(target).append("' ");
-            if (possTargets.size() == 0) {
-                sb.append("because it does not exist.");
-            } else {
-                sb.append("because it could be any of these:\n");
-                for (Creature c : possTargets) {
-                    sb.append(c.getColorTaggedName()).append(" ");
-                }
-            }
-            sb.append("\r\n");
-            player.sendMsg(new GameMessage(sb.toString()));
-            return;
-        }
-        String playerName = player.getId().getUsername();
-        if (targetCreature instanceof Player && targetCreature.getName().equals(playerName)) {
-            player.sendMsg(new GameMessage("You can't attack yourself!\r\n"));
-            return;
-        }
-        if (!player.isInBattle()) {
-            this.battleManager.addCreatureToBattle(player);
-            if (this.battleManager.isBattleOngoing()) {
-                this.sendMessageToAllExcept(
-                        new GameMessage(player.getColorTaggedName() + " has joined the ongoing battle!"),
-                        player.getName());
-            }
-        }
-
-        if (!targetCreature.isInBattle()) {
-            this.battleManager.addCreatureToBattle(targetCreature);
-        }
-
-        if (!this.battleManager.isBattleOngoing()) {
-            this.battleManager.startBattle(player);
-        }
-        AttackAction attackAction = new AttackAction(targetCreature, weapon);
-        this.battleManager.playerAction(player, attackAction);
-
-    }
-
     public String cast(Player player, ISpell spell) {
         if (spell instanceof RoomAffector) {
             this.sendMessageToAll(new GameMessage(spell.Cast()));
@@ -452,7 +403,7 @@ public class Room implements Container, MessageHandler {
                 if (!this.battleManager.isBattleOngoing()) {
                     this.battleManager.startBattle(player);
                 }
-                this.battleManager.playerAction(player, creatureSpell);
+                this.battleManager.takeAction(player, creatureSpell);
                 return "You attempted an attack spell";
             }
             this.sendMessageToAll(new GameMessage(spell.Cast()));
