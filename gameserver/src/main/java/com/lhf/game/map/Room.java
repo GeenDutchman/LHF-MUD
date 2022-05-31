@@ -289,6 +289,14 @@ public class Room implements Container, MessageHandler {
         return null;
     }
 
+    public ArrayList<Creature> getCreaturesInRoom() {
+        ArrayList<Creature> creatures = new ArrayList<>();
+        for (Creature c : this.allCreatures) {
+            creatures.add(c);
+        }
+        return creatures;
+    }
+
     public ArrayList<Creature> getCreaturesInRoom(String creatureName) {
         ArrayList<Creature> match = new ArrayList<>();
         for (Creature c : this.allCreatures) {
