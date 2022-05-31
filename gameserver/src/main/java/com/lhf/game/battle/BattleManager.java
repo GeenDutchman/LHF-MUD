@@ -512,11 +512,38 @@ public class BattleManager implements MessageHandler {
         }
 
         if (!this.isBattleOngoing()) {
+            this.callReinforcements(ctx.getCreature(), targetCreature);
             this.startBattle(ctx.getCreature());
         }
         AttackAction attackAction = new AttackAction(targetCreature, aMessage.getWeapon());
         this.playerAction((Player) ctx.getCreature(), attackAction);
         return true;
+    }
+
+    private void callReinforcements(Creature attackingCreature, Creature targetCreature) {
+        if (targetCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(targetCreature.getFaction())) {
+            targetCreature.sendMsg(new GameMessage(
+                    "You are a RENEGADE or not a member of a faction.  No one is obligated to help you."));
+            return;
+        }
+        int count = this.participants.size();
+        this.room.sendMessageToAll(new GameMessage(targetCreature.getColorTaggedName() + " calls for reinforcements!"));
+        for (Creature c : this.room.getCreaturesInRoom()) {
+            if (targetCreature.getFaction().equals(c.getFaction()) && !this.isCreatureInBattle(c)) {
+                this.addCreatureToBattle(c);
+            }
+        }
+        if (this.participants.size() > count && attackingCreature.getFaction() != null &&
+                !CreatureFaction.RENEGADE.equals(attackingCreature.getFaction())
+                && !CreatureFaction.NPC.equals(targetCreature.getFaction())) {
+            this.room.sendMessageToAll(
+                    new GameMessage(attackingCreature.getColorTaggedName() + " also calls for reinforcements!"));
+            for (Creature c : this.room.getCreaturesInRoom()) {
+                if (attackingCreature.getFaction().equals(c.getFaction()) && !this.isCreatureInBattle(c)) {
+                    this.addCreatureToBattle(c);
+                }
+            }
+        }
     }
 
 }
