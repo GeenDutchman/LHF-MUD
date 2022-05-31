@@ -9,7 +9,7 @@ public class StringBufferSendStrategy implements SendStrategy {
 
     @Override
     public void send(String toSend) {
-        this.sBuffer.append(toSend);
+        this.sBuffer.append(toSend).append("\n");
     }
 
     public void clear() {
