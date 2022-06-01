@@ -82,9 +82,17 @@ public class BattleManager implements MessageHandler {
     }
 
     public void addCreatureToBattle(Creature c) {
-        participants.addLast(c);
-        c.setInBattle(true);
-        c.setSuccessor(this);
+        if (!c.isInBattle() && !this.isCreatureInBattle(c)) {
+            participants.addLast(c);
+            c.setInBattle(true);
+            c.setSuccessor(this);
+            if (this.isBattleOngoing()) {
+                this.room.sendMessageToAllExcept(
+                        new GameMessage(c.getColorTaggedName() + " has joined the ongoing battle!"),
+                        c.getName());
+            }
+            c.sendMsg(new GameMessage("You have been included in the battle!"));
+        }
     }
 
     public void removeCreatureFromBattle(Creature c) {
@@ -213,22 +221,24 @@ public class BattleManager implements MessageHandler {
     }
 
     private void handleTurnRenegade(Creature turned) {
-        turned.setFaction(CreatureFaction.RENEGADE);
-        StringBuilder sb = new StringBuilder();
-        sb.append("You have attacked someone in your faction, and have become a RENEGADE.").append("\n");
-        sb.append(
-                "You may lose bonuses that you previously had, and consequences for attacking you are removed.")
-                .append("\n");
-        sb.append(
-                "If you want to rejoin a faction, some casters have spells that can join you to a faction.");
-        turned.sendMsg(new GameMessage(sb.toString()));
-        sb.setLength(0);
-        sb.append(turned.getColorTaggedName())
-                .append(" has attacked a member of their faction and thus became a RENEGADE. ")
-                .append("Until ").append(turned.getColorTaggedName())
-                .append(" rejoins a faction (certain spells can do this) consequences for attacking ")
-                .append(turned.getColorTaggedName()).append(" are removed.");
-        room.sendMessageToAllExcept(new GameMessage(sb.toString()), turned.getName());
+        if (!CreatureFaction.RENEGADE.equals(turned.getFaction())) {
+            turned.setFaction(CreatureFaction.RENEGADE);
+            StringBuilder sb = new StringBuilder();
+            sb.append("You have attacked someone in your faction, and have become a RENEGADE.").append("\n");
+            sb.append(
+                    "You may lose bonuses that you previously had, and consequences for attacking you are removed.")
+                    .append("\n");
+            sb.append(
+                    "If you want to rejoin a faction, some casters have spells that can join you to a faction.");
+            turned.sendMsg(new GameMessage(sb.toString()));
+            sb.setLength(0);
+            sb.append(turned.getColorTaggedName())
+                    .append(" has attacked a member of their faction and thus became a RENEGADE. ")
+                    .append("Until ").append(turned.getColorTaggedName())
+                    .append(" rejoins a faction (certain spells can do this) consequences for attacking ")
+                    .append(turned.getColorTaggedName()).append(" are removed.");
+            room.sendMessageToAllExcept(new GameMessage(sb.toString()), turned.getName());
+        }
     }
 
     public void takeAction(Creature attacker, BattleAction action) {
@@ -258,32 +268,27 @@ public class BattleManager implements MessageHandler {
                 return;
             }
             List<Creature> targets = attackAction.getTargets();
-            for (Creature c : targets) {
-                if (!isCreatureInBattle(c)) {
-                    // invalid target in list
-                    attacker.sendMsg(new GameMessage("One of your targets did not exist.\r\n"));
-                    return;
-                }
-                if (c.getFaction() != CreatureFaction.RENEGADE && attacker.getFaction().equals(c.getFaction())) {
+            if (targets.contains(attacker)) {
+                attacker.sendMsg(new GameMessage("You can't attack yourself!\r\n"));
+                return;
+            }
+            this.addCreatureToBattle(attacker);
+            for (Creature targeted : targets) {
+                if (!CreatureFaction.RENEGADE.equals(targeted.getFaction())
+                        && !CreatureFaction.RENEGADE.equals(attacker.getFaction())
+                        && attacker.getFaction().equals(targeted.getFaction())) {
                     this.handleTurnRenegade(attacker);
                 }
-            }
-            Weapon weapon;
-            if (attackAction.hasWeapon()) {
-                Optional<Item> inventoryItem = attacker.getItem(attackAction.getWeapon());
-                if (inventoryItem.isEmpty()) {
-                    attacker.sendMsg(new GameMessage("You do not have that weapon.\r\n"));
-                    return;
-                } else if (!(inventoryItem.get() instanceof Weapon)) {
-                    attacker.sendMsg(new GameMessage(attackAction.getWeapon() + " is not a Weapon!"));
-                    return;
-                } else {
-                    weapon = (Weapon) inventoryItem.get();
+                if (!this.isCreatureInBattle(targeted)) {
+                    this.addCreatureToBattle(targeted);
+                    this.callReinforcements(attacker, targeted);
                 }
-            } else {
-                weapon = attacker.getWeapon();
             }
-            applyAttacks(attacker, weapon, targets);
+            if (!this.isBattleOngoing()) {
+                this.startBattle(attacker);
+            }
+            applyAttacks(attacker, attackAction.getWeapon(), targets);
+
         } else if (action instanceof CreatureAffector) {
             CreatureAffector spell = (CreatureAffector) action;
             if (!spell.hasTargets()) {
@@ -468,6 +473,26 @@ public class BattleManager implements MessageHandler {
 
     private Boolean handleAttack(CommandContext ctx, AttackMessage aMessage) {
         System.out.println(ctx.getCreature().toString() + " attempts attacking " + aMessage.getTarget());
+
+        Creature attacker = ctx.getCreature();
+
+        String weaponName = aMessage.getWeapon();
+        Weapon weapon;
+        if (weaponName != null && weaponName.length() > 0) {
+            Optional<Item> inventoryItem = ctx.getCreature().getItem(weaponName);
+            if (inventoryItem.isEmpty()) {
+                attacker.sendMsg(new GameMessage("You do not have that weapon \"" + weaponName + "\".\r\n"));
+                return true;
+            } else if (!(inventoryItem.get() instanceof Weapon)) {
+                attacker.sendMsg(new GameMessage(inventoryItem.get().getColorTaggedName() + " is not a Weapon!"));
+                return true;
+            } else {
+                weapon = (Weapon) inventoryItem.get();
+            }
+        } else {
+            weapon = attacker.getWeapon();
+        }
+
         Creature targetCreature = null;
         List<Creature> possTargets = this.room.getCreaturesInRoom(aMessage.getTarget());
         if (possTargets.size() == 1) {
@@ -488,35 +513,9 @@ public class BattleManager implements MessageHandler {
             ctx.sendMsg((new GameMessage(sb.toString())));
             return true;
         }
-        String playerName = ctx.getCreature().getName();
-        if (targetCreature instanceof Player && targetCreature.getName().equals(playerName)) {
-            ctx.sendMsg(new GameMessage("You can't attack yourself!\r\n"));
-            return true;
-        }
-        if (!ctx.getCreature().isInBattle()) {
-            this.addCreatureToBattle(ctx.getCreature());
-            if (this.isBattleOngoing()) {
-                this.room.sendMessageToAllExcept(
-                        new GameMessage(ctx.getCreature().getColorTaggedName() + " has joined the ongoing battle!"),
-                        ctx.getCreature().getName());
-            }
-        }
 
-        if (!targetCreature.isInBattle()) {
-            this.addCreatureToBattle(targetCreature);
-            if (this.isBattleOngoing()) {
-                this.room.sendMessageToAllExcept(
-                        new GameMessage(targetCreature.getColorTaggedName() + " has joined the ongoing battle!"),
-                        targetCreature.getName());
-            }
-        }
-
-        if (!this.isBattleOngoing()) {
-            this.callReinforcements(ctx.getCreature(), targetCreature);
-            this.startBattle(ctx.getCreature());
-        }
-        AttackAction attackAction = new AttackAction(targetCreature, aMessage.getWeapon());
-        this.takeAction((Player) ctx.getCreature(), attackAction);
+        AttackAction attackAction = new AttackAction(targetCreature, weapon);
+        this.takeAction(ctx.getCreature(), attackAction);
         return true;
     }
 
