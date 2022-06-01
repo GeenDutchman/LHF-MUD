@@ -242,22 +242,15 @@ public class BattleManager implements MessageHandler {
     }
 
     public void takeAction(Creature attacker, BattleAction action) {
-        if (!participants.contains(attacker)) {
-            // give message that the player is not currently engaged in a fight
-            attacker.sendMsg(new GameMessage("You are not currently in a fight.\r\n"));
-            return;
-        }
 
-        if (!isHappening) {
-            // give message saying there is no battle ongoing
-            attacker.sendMsg(new GameMessage("There is no battle happening.\r\n"));
-            return;
-        }
-
-        if (attacker != getCurrent()) {
+        if (this.getCurrent() != null && attacker != this.getCurrent()) {
             // give out of turn message
             attacker.sendMsg(new GameMessage("This is not your turn.\r\n"));
             return;
+        }
+
+        if (!this.isBattleOngoing()) {
+            this.startBattle(attacker);
         }
 
         if (action instanceof AttackAction) {
@@ -284,9 +277,7 @@ public class BattleManager implements MessageHandler {
                     this.callReinforcements(attacker, targeted);
                 }
             }
-            if (!this.isBattleOngoing()) {
-                this.startBattle(attacker);
-            }
+
             applyAttacks(attacker, attackAction.getWeapon(), targets);
 
         } else if (action instanceof CreatureAffector) {
@@ -380,7 +371,7 @@ public class BattleManager implements MessageHandler {
     }
 
     private Creature getCurrent() {
-        return participants.getFirst();
+        return this.participants.peekFirst();
     }
 
     public void sendMessageToAllParticipants(GameMessage message) {

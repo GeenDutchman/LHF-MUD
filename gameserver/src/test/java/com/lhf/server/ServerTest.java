@@ -344,6 +344,21 @@ public class ServerTest {
     }
 
     @Test
+    void testReinforcements() throws IOException {
+        this.comm.create("Tester");
+        ComBundle second = new ComBundle(this.server);
+        second.create("second");
+        ComBundle bystander = new ComBundle(this.server);
+        bystander.create("bystander");
+
+        String attack = this.comm.handleCommand("attack " + second.name);
+        assertTrue(attack.contains("RENEGADE"));
+        String seen = bystander.read();
+        assertTrue(seen.contains("RENEGADE"));
+        assertTrue(seen.contains("You have been included in the battle!"));
+    }
+
+    @Test
     void testCasting() throws IOException {
         this.comm.create("Tester");
         ComBundle victim = new ComBundle(this.server);
