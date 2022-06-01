@@ -13,10 +13,10 @@ import java.util.regex.PatternSyntaxException;
 
 import com.lhf.Examinable;
 import com.lhf.game.Container;
-import com.lhf.game.battle.AttackAction;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
+import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.InteractObject;
 import com.lhf.game.item.interfaces.Takeable;
@@ -101,7 +101,14 @@ public class Room implements Container, MessageHandler {
                 this.commands.putIfAbsent(CommandMessage.ATTACK, sj.toString());
             }
         }
+        if (this.battleManager.isBattleOngoing() && !CreatureFaction.NPC.equals(c.getFaction())) {
+            this.battleManager.addCreatureToBattle(c);
+        }
         return added;
+    }
+
+    public boolean containsCreature(Creature c) {
+        return this.allCreatures.contains(c);
     }
 
     public boolean removePlayer(UserID id) {
