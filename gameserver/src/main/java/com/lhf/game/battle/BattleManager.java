@@ -532,9 +532,12 @@ public class BattleManager implements MessageHandler {
                 this.addCreatureToBattle(c);
             }
         }
-        if (this.participants.size() > count && attackingCreature.getFaction() != null &&
-                !CreatureFaction.RENEGADE.equals(attackingCreature.getFaction())
-                && !CreatureFaction.NPC.equals(targetCreature.getFaction())) {
+        if (attackingCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(attackingCreature.getFaction())) {
+            attackingCreature.sendMsg(new GameMessage(
+                    "You are a RENEGADE or not a member of a faction.  No one is obligated to help you."));
+            return;
+        }
+        if (this.participants.size() > count && !CreatureFaction.NPC.equals(targetCreature.getFaction())) {
             this.room.sendMessageToAll(
                     new GameMessage(attackingCreature.getColorTaggedName() + " also calls for reinforcements!"));
             for (Creature c : this.room.getCreaturesInRoom()) {
