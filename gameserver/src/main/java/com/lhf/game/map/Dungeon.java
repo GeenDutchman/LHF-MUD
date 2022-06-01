@@ -38,7 +38,7 @@ public class Dungeon implements MessageHandler {
     }
 
     public boolean addNewPlayer(Player p) {
-        this.sendMessageToAllExcept(new SpawnMessage(p.getColorTaggedName()), p.getName());
+        this.startingRoom.sendMessageToAll(new SpawnMessage(p.getColorTaggedName()));
         p.setSuccessor(this);
         return startingRoom.addPlayer(p);
     }

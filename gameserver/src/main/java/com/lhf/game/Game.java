@@ -57,7 +57,6 @@ public class Game implements UserListener, MessageHandler {
 	public void addNewPlayerToGame(User user) {
 		Player newPlayer = new Player(user);
 		dungeon.addNewPlayer(newPlayer);
-		dungeon.sendMessageToAllInRoomExcept(null, new SpawnMessage(newPlayer.getName()), newPlayer.getName());
 	}
 
 	private Boolean handleListPlayersMessage(CommandContext ctx, Command cmd) {
