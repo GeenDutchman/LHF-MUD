@@ -8,7 +8,7 @@ import com.lhf.messages.CommandMessage;
 public class SayMessage extends Command {
     SayMessage(String payload) {
         super(CommandMessage.SAY, payload, true);
-        this.addPreposition("to"); // TODO: to isn't working!!
+        this.addPreposition("to");
     }
 
     public String getMessage() {
