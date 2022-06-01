@@ -6,12 +6,13 @@ import com.lhf.Taggable;
 import com.lhf.game.enums.EquipmentTypes;
 
 public abstract class Vocation implements Taggable {
-    private int level;
-    private String name;
-    private HashSet<EquipmentTypes> proficiencies;
+    protected int level;
+    protected String name;
+    protected HashSet<EquipmentTypes> proficiencies;
 
     public Vocation(String name) {
         this.name = name;
+        this.proficiencies = new HashSet<>();
         this.level = 1;
     }
 
