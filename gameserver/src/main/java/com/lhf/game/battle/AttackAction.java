@@ -7,24 +7,25 @@ import java.util.List;
 import java.util.Set;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.game.item.interfaces.Weapon;
 
 public class AttackAction implements BattleAction {
 
-    protected String weapon; // this might be better as a `Weapon`??
+    protected Weapon weapon;
     protected Set<Creature> targets;
 
-    public AttackAction(Creature target, String withWeapon) {
+    public AttackAction(Creature target, Weapon withWeapon) {
         this.weapon = withWeapon;
         this.targets = new HashSet<>();
         this.addTarget(target);
     }
 
-    public String getWeapon() {
+    public Weapon getWeapon() {
         return weapon;
     }
 
     public boolean hasWeapon() {
-        return (weapon != null) && (weapon.length() > 0);
+        return this.weapon != null;
     }
 
     @Override
@@ -63,7 +64,7 @@ public class AttackAction implements BattleAction {
             sb.append(c.getColorTaggedName()).append(' ');
         }
         if (this.hasWeapon()) {
-            sb.append("with ").append(this.weapon);
+            sb.append("with ").append(this.weapon.getName());
         }
         return sb.toString();
     }
