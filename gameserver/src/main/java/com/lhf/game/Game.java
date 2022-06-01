@@ -14,7 +14,6 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.out.ListPlayersMessage;
-import com.lhf.messages.out.SpawnMessage;
 import com.lhf.messages.out.UserLeftMessage;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
