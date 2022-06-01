@@ -77,7 +77,7 @@ public class Game implements UserListener, MessageHandler {
 	public Map<CommandMessage, String> getCommands() {
 		HashMap<CommandMessage, String> helps = new HashMap<>();
 		helps.put(CommandMessage.PLAYERS, "List the players currently in the game.");
-		return helps; // TODO: maybe handle exit a bit, but pass it on?
+		return helps;
 	}
 
 	@Override
