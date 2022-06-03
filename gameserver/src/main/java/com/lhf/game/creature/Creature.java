@@ -6,6 +6,7 @@ import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD20;
@@ -95,6 +96,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
     private String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
     private CreatureFaction faction; // See shared enum
     private String creatureRace;
+    private HashSet<Vocation> vocations;
     // private MonsterType monsterType; // I dont know if we'll need this
 
     // uses attributes STR, DEX, CON, INT, WIS, CHA
@@ -125,6 +127,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
         // Instantiate creature with no name and type Monster
         this.name = ""; // TODO: what if creature name.len < 3?
         this.faction = CreatureFaction.NPC;
+        this.vocations = new HashSet<>();
 
         // Set attributes to default values
         this.attributeBlock = new AttributeBlock();
@@ -155,6 +158,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
     public Creature(String name, Statblock statblock) {
         this.cmds = this.buildCommands();
         this.name = name;
+        this.vocations = new HashSet<>();
 
         this.faction = statblock.faction;
         this.attributeBlock = statblock.attributes;
