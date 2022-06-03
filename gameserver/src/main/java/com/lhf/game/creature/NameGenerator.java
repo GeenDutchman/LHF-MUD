@@ -7,10 +7,20 @@ import com.lhf.game.dice.DiceRoller;
 import com.lhf.game.dice.DieType;
 
 public class NameGenerator {
+    private static List<String> givensnames = Arrays.asList("Serlio", "Mangaka", "Toohru", "Zappy", "Pleenpleen",
+            "Jacuz", "Narly", "Biggy", "Naaaman", "Rekt", "Poofy", "Hurg", "Nurg", "Lekker",
+            "Trumble", "Arianna", "Taylor", "Daddy", "Shaman", "Sarre", "Ninina", "Jalpina", "Lost", "Zoomy");
     private static List<String> suffixes = Arrays.asList("the Kinder", "the Snatcher", "Hardnibbler", "Bonecruncher",
             "FuZ", "the Third", "the Seventh", "Ohm", ", Mr.", "Manhunter", "Melonz", "Workit", "Shakeit");
 
-    public static String Generate(String currName) {
+    public static String GenerateGiven() {
+        DiceRoller dRoller = DiceRoller.getInstance();
+        Integer result = dRoller.roll(1, DieType.HUNDRED);
+        String givenname = NameGenerator.givensnames.get(result % NameGenerator.givensnames.size());
+        return givenname;
+    }
+
+    public static String GenerateSuffix(String currName) {
         DiceRoller dRoller = DiceRoller.getInstance();
         Integer result = dRoller.roll(1, DieType.HUNDRED);
         String suffix = NameGenerator.suffixes.get(result % NameGenerator.suffixes.size());
