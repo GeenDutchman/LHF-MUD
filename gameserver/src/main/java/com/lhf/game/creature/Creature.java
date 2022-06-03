@@ -450,9 +450,25 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
         this.creatureRace = creatureRace;
     }
 
+    public Optional<Vocation> getVocation() {
+        return this.vocation;
+    }
+
     // Setters
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setVocation(Vocation job) {
+        if (this.vocation.isPresent()) {
+            this.proficiencies.removeAll(this.vocation.get().getProficiencies());
+        }
+        if (job == null) {
+            this.vocation = Optional.empty();
+        } else {
+            this.vocation = Optional.of(job);
+            this.proficiencies.addAll(job.getProficiencies());
+        }
     }
 
     public void setAttributes(AttributeBlock attributes) {

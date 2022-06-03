@@ -12,6 +12,7 @@ import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 
 import com.lhf.game.creature.statblock.AttributeBlock;
+import com.lhf.game.creature.vocation.Fighter;
 
 public class Player extends Creature {
     private User user;
@@ -22,6 +23,7 @@ public class Player extends Creature {
         this.setController(this.user.getClient());
         this.setName(user.getUsername()); // Sets the player name
         this.setFaction(CreatureFaction.PLAYER); // It's a player
+        this.setVocation(new Fighter());
 
         // Set attributes to default values
         AttributeBlock attrBlock = new AttributeBlock(16, 12, 14, 10, 12, 8);
@@ -32,16 +34,6 @@ public class Player extends Creature {
         this.getStats().put(Stats.CURRENTHP, 12);
         this.getStats().put(Stats.AC, 11);
         this.getStats().put(Stats.XPWORTH, 500);
-
-        // Set default proficiencies
-        this.getProficiencies().add(EquipmentTypes.LIGHTARMOR);
-        this.getProficiencies().add(EquipmentTypes.MEDIUMARMOR);
-        this.getProficiencies().add(EquipmentTypes.HEAVYARMOR);
-        this.getProficiencies().add(EquipmentTypes.SHIELD);
-        this.getProficiencies().add(EquipmentTypes.SIMPLEMELEEWEAPONS);
-        this.getProficiencies().add(EquipmentTypes.SIMPLERANGEDWEAPONS);
-        this.getProficiencies().add(EquipmentTypes.MARTIALWEAPONS);
-        this.getProficiencies().add(EquipmentTypes.RANGEDWEAPONS);
 
         Longsword longsword = new Longsword(true);
         LeatherArmor leatherArmor = new LeatherArmor(true);
