@@ -1,4 +1,4 @@
-package com.lhf.game.creature;
+package com.lhf.game.creature.builder;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
 
+import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
