@@ -28,64 +28,52 @@ public class NpcCreator {
     // private int XP_FROM_CR = 200;
     // private int BONUS_XP_MOD = 50;
 
-    private void makeCreature() {
-        Scanner input = new Scanner(System.in);
-        String validation_response;
+    public String buildName(Scanner input) {
         Boolean valid;
-        String response_string;
-        int response_int;
-
-        Creature npc;
         String name;
-        CreatureFaction faction = null;
-        AttributeBlock attributes = new AttributeBlock();
-        HashMap<Stats, Integer> stats = new HashMap<>();
-        HashSet<EquipmentTypes> proficiencies = new HashSet<>();
-        Inventory inventory = new Inventory();
-        HashMap<EquipmentSlots, Item> equipmentSlots = new HashMap<>();
-
-        // name
         do {
             System.out.print("Welcome to creature creator, please type the creature's name: ");
             name = input.nextLine();
 
-            System.out.print("The name is: " + name + " is this correct? (yes/no)");
+            System.out.print("The name is: " + name + " is this correct?");
 
-            validation_response = input.nextLine().toLowerCase();
-
-            valid = validate(validation_response);
+            valid = validate(input);
 
         } while (!valid);
+        return name;
+    }
 
-        // creature type
-
+    public CreatureFaction buildFaction(Scanner input) {
+        Boolean valid;
+        String factionName;
+        CreatureFaction faction;
         do {
             System.out.print("Please indicate the creature's faction (NPC/MONSTER): ");
-            response_string = input.nextLine();
-            System.out.print("The creature faction is: " + response_string + " is this correct?(yes/no) ");
-            validation_response = input.nextLine();
+            factionName = input.nextLine();
+            faction = CreatureFaction.getFaction(factionName);
 
-            valid = validate(validation_response);
-            if (valid) {
-                if (response_string.equalsIgnoreCase(String.valueOf(CreatureFaction.MONSTER)) ||
-                        response_string.equalsIgnoreCase(String.valueOf(CreatureFaction.NPC))) {
-                    if (response_string.equalsIgnoreCase(String.valueOf(CreatureFaction.MONSTER))) {
-                        faction = CreatureFaction.MONSTER;
-                    } else {
-                        faction = CreatureFaction.NPC;
-                    }
-                } else {
-                    valid = Boolean.FALSE;
-                    System.err.println("Invalid Creature type, restarting from last prompt.");
-                }
+            if (faction != null) {
+                System.out.print("The creature faction is: " + faction.toString() + " is this correct?");
+                valid = validate(input);
+            } else {
+                System.err.println("Invalid Creature faction, restarting from last prompt.");
+                valid = Boolean.FALSE;
             }
+
         } while (!valid);
 
+        return faction;
+    }
+
+    public AttributeBlock buildAttributeBlock(Scanner input) {
         // attributes
+        AttributeBlock attributes = new AttributeBlock();
+        Boolean valid;
         do {
             System.out.print(
-                    "Enter " + name + "'s attributes with a space between each number (STR DEX CON INT WIS CHA): ");
+                    "Enter the attributes with a space between each number (STR DEX CON INT WIS CHA): ");
             try {
+                Integer response_int;
                 response_int = input.nextInt();
                 attributes.setScore(Attributes.STR, response_int);
                 response_int = input.nextInt();
@@ -106,20 +94,24 @@ public class NpcCreator {
                 continue;
             }
 
-            printAttributes(attributes);
-            System.out.print(" is this correct?(yes/no): ");
+            System.out.println(attributes.toString());
+            System.out.print(" is this correct? ");
             input.nextLine(); // clear buffer
-            validation_response = input.nextLine();
-            valid = validate(validation_response);
+            valid = validate(input);
         } while (!valid);
 
-        // stats
+        return attributes;
+    }
+
+    public HashMap<Stats, Integer> buildStats(Scanner input, AttributeBlock attributes) {
+        Boolean valid;
+        HashMap<Stats, Integer> stats = new HashMap<>();
         do {
             int max_hp;
             int xp_worth;
             float cr;
-            System.out.print("What is the max HP (integer) xp worth(integer) and approximate CR (float) of " +
-                    name + ":(each value should be separated by a space) ");
+            System.out.print(
+                    "What is the max HP (integer) xp worth(integer) and approximate CR (float) (each value should be separated by a space): ");
             try {
                 max_hp = input.nextInt();
                 xp_worth = input.nextInt();
@@ -147,17 +139,18 @@ public class NpcCreator {
             System.out.print("Given max HP of " + max_hp + " and cr of " + cr +
                     " max/current hp is: " + stats.get(Stats.CURRENTHP) + "" +
                     " xp worth is: " + stats.get(Stats.XPWORTH) + " Is this correct?(yes,no) ");
-            validation_response = input.nextLine();
-            valid = validate(validation_response);
+            valid = validate(input);
 
         } while (!valid);
 
-        // Adds proficiencies
+    }
+
+    public HashSet<EquipmentTypes> buildProficiencies(Scanner input) {
         String proficiency_string;
         EquipmentTypes proficiency;
-
+        HashSet<EquipmentTypes> proficiencies = new HashSet<>();
         while (true) {
-            System.out.print("Enter one of " + name + "'s proficiencies or done if there are no more to add: ");
+            System.out.print("Enter one of the proficiencies or 'done' if there are no more to add: ");
             proficiency_string = input.nextLine();
             if (proficiency_string.equalsIgnoreCase("done")) {
                 break;
@@ -171,13 +164,17 @@ public class NpcCreator {
             }
         }
 
-        // Adds items
+        return proficiencies;
+    }
+
+    public Inventory buildInventory(Scanner input) {
+        Inventory inventory = new Inventory();
         String item;
         // May need to replace this to be more adaptive?
-        String path_to_items = "com.lhf.game.item.concrete.";
+        String path_to_items = "com.lhf.game.item.concrete.equipment.";
         while (true) {
-            System.out.print("Enter one of " + name
-                    + "'s inventory items(including weapons and armor) (FilenameOfItem or done): ");
+            System.out.print(
+                    "Enter one of their inventory items (including weapons and armor) (FilenameOfItem or done): ");
             item = input.nextLine();
             item = item.strip();
 
@@ -202,14 +199,13 @@ public class NpcCreator {
 
         }
 
-        Statblock creation = new Statblock(name, faction, attributes, stats, proficiencies, inventory,
-                equipmentSlots);
+        return inventory;
+    }
 
-        npc = new Creature(name, creation);
-
+    public void setEquipment(Creature creature, Scanner input) {
         String item_slot_string;
         while (true) {
-            System.out.print("Given: " + inventory.toStoreString()
+            System.out.print("Given: " + creature.getInventory().toStoreString()
                     + " \nIs there anything you would like to equip?(Item Name,slot or done) ");
             item_slot_string = input.nextLine().strip();
             if (item_slot_string.equalsIgnoreCase("done")) {
@@ -229,13 +225,40 @@ public class NpcCreator {
             }
 
         }
+    }
+
+    private void makeCreature() {
+        Scanner input = new Scanner(System.in);
+
+        // name
+        String name = this.buildName(input);
+
+        // creature faction
+
+        CreatureFaction faction = this.buildFaction(input);
+
+        // attributes
+        AttributeBlock attributes = this.buildAttributeBlock(input);
+
+        // stats
+        HashMap<Stats, Integer> stats = this.buildStats(input, attributes);
+
+        // Adds proficiencies
+        HashSet<EquipmentTypes> proficiencies = this.buildProficiencies(input);
+
+        // Adds items
+        Inventory inventory = this.buildInventory(input);
+
+        HashMap<EquipmentSlots, Item> equipmentSlots = new HashMap<>();
+
+        Statblock creation = new Statblock(name, faction, attributes, stats, proficiencies, inventory,
+                equipmentSlots);
+
+        Creature npc = new Creature(name, creation);
+
+        this.setEquipment(npc, input);
 
         System.out.print(creation);
-        // GsonBuilder gb = new GsonBuilder();
-        // String json = gb.setPrettyPrinting().create().toJson(creation);
-        // System.out.println(json);
-        // Statblock hi = gb.create().fromJson(json, Statblock.class);
-        // System.out.println(hi);
 
         Statblock test = new Statblock(creation.toString());
         System.out.println(test);
@@ -252,7 +275,9 @@ public class NpcCreator {
         System.out.println("\nCreature Creation Complete!");
     }
 
-    private Boolean validate(String validation_response) {
+    private Boolean validate(Scanner input) {
+        System.out.println("yes or no?");
+        String validation_response = input.nextLine().toLowerCase();
         if (validation_response.equals("yes") || validation_response.equals("no")) {
             if (validation_response.equals("yes")) {
                 return Boolean.TRUE;
@@ -265,19 +290,6 @@ public class NpcCreator {
             return Boolean.FALSE;
         }
 
-    }
-
-    private void printAttributes(AttributeBlock attributes) {
-        for (int i = 0; i < 6; i++) {
-            Attributes attribute_name = Attributes.values()[i];
-            int attribute = attributes.getScore(attribute_name);
-
-            if (i == 5) {
-                System.out.print(attribute_name + " = " + attribute);
-            } else {
-                System.out.print(attribute_name + " = " + attribute + ", ");
-            }
-        }
     }
 
     public static void main(String[] args) {
