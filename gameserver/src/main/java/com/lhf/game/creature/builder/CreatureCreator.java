@@ -20,9 +20,9 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Takeable;
 
-public class NpcCreator {
+public class CreatureCreator {
 
-    private NpcCreator() {
+    private CreatureCreator() {
     }
 
     // private int XP_FROM_CR = 200;
@@ -293,7 +293,7 @@ public class NpcCreator {
     }
 
     public static void main(String[] args) {
-        NpcCreator creator = new NpcCreator();
+        CreatureCreator creator = new CreatureCreator();
         creator.makeCreature();
     }
 }
