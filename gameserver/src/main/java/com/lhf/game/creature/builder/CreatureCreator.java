@@ -2,27 +2,22 @@ package com.lhf.game.creature.builder;
 
 import java.io.Closeable;
 import java.io.FileNotFoundException;
-import java.lang.reflect.Constructor;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Scanner;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
-import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
-import com.lhf.game.item.interfaces.Takeable;
 
 public class CreatureCreator {
-    public interface CreatorProvider extends Closeable {
+    public interface CreatorAdaptor extends Closeable {
         public void setCreator(CreatureCreator creator);
 
         public CreatureCreator getCreator();
@@ -44,7 +39,7 @@ public class CreatureCreator {
         public void close();
     };
 
-    private CreatorProvider provider;
+    private CreatorAdaptor adapter;
 
     private String name;
     private CreatureFaction faction;
@@ -56,12 +51,12 @@ public class CreatureCreator {
 
     private Statblock statblock;
 
-    private CreatureCreator(CreatorProvider provider) {
-        this.provider = provider;
+    private CreatureCreator(CreatorAdaptor adapter) {
+        this.adapter = adapter;
     }
 
-    public void setProvider(CreatorProvider provider) {
-        this.provider = provider;
+    public void setProvider(CreatorAdaptor adapter) {
+        this.adapter = adapter;
     }
 
     public String getName() {
@@ -108,23 +103,24 @@ public class CreatureCreator {
     }
 
     private Creature makeCreature() {
+        this.adapter.setCreator(this);
         // name
-        this.name = this.provider.buildName();
+        this.name = this.adapter.buildName();
 
         // creature faction
-        this.faction = this.provider.buildFaction();
+        this.faction = this.adapter.buildFaction();
 
         // attributes
-        this.attributes = this.provider.buildAttributeBlock();
+        this.attributes = this.adapter.buildAttributeBlock();
 
         // stats
-        this.stats = this.provider.buildStats();
+        this.stats = this.adapter.buildStats();
 
         // Adds proficiencies
-        this.proficiencies = this.provider.buildProficiencies();
+        this.proficiencies = this.adapter.buildProficiencies();
 
         // Adds items
-        this.inventory = this.provider.buildInventory();
+        this.inventory = this.adapter.buildInventory();
 
         HashMap<EquipmentSlots, Item> equipmentSlots = new HashMap<>();
 
@@ -133,7 +129,7 @@ public class CreatureCreator {
 
         Creature npc = new Creature(name, creation);
 
-        this.provider.equipFromInventory(npc);
+        this.adapter.equipFromInventory(npc);
 
         // System.out.print(creation);
 
@@ -142,14 +138,14 @@ public class CreatureCreator {
 
         test = this.writeStatblock(test);
         // System.err.println(test);
-        this.provider.close();
+        this.adapter.close();
         // System.out.println("\nCreature Creation Complete!");
         return npc;
     }
 
     public static void main(String[] args) {
-        CLIProvider cliProvider = new CLIProvider();
-        CreatureCreator creator = new CreatureCreator(cliProvider);
+        CLIAdaptor cliAdaptor = new CLIAdaptor();
+        CreatureCreator creator = new CreatureCreator(cliAdaptor);
         creator.makeCreature();
     }
 }

@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Scanner;
 
 import com.lhf.game.creature.Creature;
-import com.lhf.game.creature.builder.CreatureCreator.CreatorProvider;
+import com.lhf.game.creature.builder.CreatureCreator.CreatorAdaptor;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.enums.Attributes;
@@ -17,12 +17,12 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.interfaces.Takeable;
 
-public class CLIProvider implements CreatorProvider {
+public class CLIAdaptor implements CreatorAdaptor {
 
     private CreatureCreator creator;
     private Scanner input;
 
-    public CLIProvider() {
+    public CLIAdaptor() {
         this.input = new Scanner(System.in);
     }
 
