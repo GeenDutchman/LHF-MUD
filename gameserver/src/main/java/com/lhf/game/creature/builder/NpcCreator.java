@@ -142,7 +142,7 @@ public class NpcCreator {
             valid = validate(input);
 
         } while (!valid);
-
+        return stats;
     }
 
     public HashSet<EquipmentTypes> buildProficiencies(Scanner input) {
@@ -215,7 +215,7 @@ public class NpcCreator {
             try {
 
                 EquipmentSlots slot = EquipmentSlots.valueOf(pair[1].strip().toUpperCase());
-                npc.equipItem(pair[0], slot);
+                creature.equipItem(pair[0], slot);
 
             } catch (java.lang.IllegalArgumentException e) {
                 System.err.println(e.getMessage());

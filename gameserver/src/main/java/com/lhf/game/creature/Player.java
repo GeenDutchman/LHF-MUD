@@ -2,7 +2,6 @@ package com.lhf.game.creature;
 
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.equipment.LeatherArmor;
