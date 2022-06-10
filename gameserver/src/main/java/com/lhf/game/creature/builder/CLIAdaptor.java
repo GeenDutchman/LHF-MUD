@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Scanner;
 
 import com.lhf.game.creature.Creature;
@@ -15,6 +16,7 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Takeable;
 
 public class CLIAdaptor implements CreatorAdaptor {
@@ -37,16 +39,32 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public String buildName() {
+    public String buildCreatureName() {
         Boolean valid;
         String name;
         do {
-            System.out.print("Welcome to creature creator, please type the creature's name: ");
+            System.out.print("Please type the creature's name: ");
             name = this.input.nextLine();
 
             System.out.print("The name is: " + name + " is this correct?");
 
-            valid = this.validate();
+            valid = this.yesOrNo();
+
+        } while (!valid);
+        return name;
+    }
+
+    @Override
+    public String buildStatblockName() {
+        Boolean valid;
+        String name;
+        do {
+            System.out.print("Please type the statblock name: ");
+            name = this.input.nextLine();
+
+            System.out.print("The name is: " + name + " is this correct?");
+
+            valid = this.yesOrNo();
 
         } while (!valid);
         return name;
@@ -64,7 +82,7 @@ public class CLIAdaptor implements CreatorAdaptor {
 
             if (faction != null) {
                 System.out.print("The creature faction is: " + faction.toString() + " is this correct?");
-                valid = this.validate();
+                valid = this.yesOrNo();
             } else {
                 System.err.println("Invalid Creature faction, restarting from last prompt.");
                 valid = Boolean.FALSE;
@@ -108,7 +126,7 @@ public class CLIAdaptor implements CreatorAdaptor {
             System.out.println(attributes.toString());
             System.out.print(" is this correct? ");
             this.input.nextLine(); // clear buffer
-            valid = this.validate();
+            valid = this.yesOrNo();
         } while (!valid);
 
         return attributes;
@@ -151,7 +169,7 @@ public class CLIAdaptor implements CreatorAdaptor {
             System.out.print("Given max HP of " + max_hp + " and cr of " + cr +
                     " max/current hp is: " + stats.get(Stats.CURRENTHP) + "" +
                     " xp worth is: " + stats.get(Stats.XPWORTH) + " Is this correct?(yes,no) ");
-            valid = this.validate();
+            valid = this.yesOrNo();
 
         } while (!valid);
         return stats;
@@ -217,10 +235,11 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public void equipFromInventory(Creature creature) {
+    public HashMap<EquipmentSlots, Item> equipFromInventory(Inventory inventory) {
         String item_slot_string;
+        HashMap<EquipmentSlots, Item> equipmentSlots = new HashMap<>();
         while (true) {
-            System.out.print("Given: " + creature.getInventory().toStoreString()
+            System.out.print("Given: " + inventory.toStoreString()
                     + " \nIs there anything you would like to equip?(Item Name,slot or done) ");
             item_slot_string = input.nextLine().strip();
             if (item_slot_string.equalsIgnoreCase("done")) {
@@ -230,7 +249,12 @@ public class CLIAdaptor implements CreatorAdaptor {
             try {
 
                 EquipmentSlots slot = EquipmentSlots.valueOf(pair[1].strip().toUpperCase());
-                creature.equipItem(pair[0], slot);
+                Optional<Item> optItem = inventory.removeItem(pair[0].strip());
+                if (optItem.isPresent()) {
+                    equipmentSlots.put(slot, optItem.get());
+                } else {
+                    System.out.println(pair[0] + " is not a valid choice.  Match the name exactly, ignoring case.");
+                }
 
             } catch (java.lang.IllegalArgumentException e) {
                 System.err.println(e.getMessage());
@@ -240,9 +264,11 @@ public class CLIAdaptor implements CreatorAdaptor {
             }
 
         }
+        return equipmentSlots;
     }
 
-    private Boolean validate() {
+    @Override
+    public Boolean yesOrNo() {
         System.out.println("yes or no?");
         String validation_response = this.input.nextLine().toLowerCase();
         if (validation_response.equals("yes") || validation_response.equals("no")) {

@@ -22,7 +22,9 @@ public class CreatureCreator {
 
         public CreatureCreator getCreator();
 
-        public String buildName();
+        public String buildCreatureName();
+
+        public String buildStatblockName();
 
         public CreatureFaction buildFaction();
 
@@ -34,14 +36,17 @@ public class CreatureCreator {
 
         public Inventory buildInventory();
 
-        public void equipFromInventory(Creature creature);
+        public HashMap<EquipmentSlots, Item> equipFromInventory(Inventory inventory);
+
+        public Boolean yesOrNo();
 
         public void close();
     };
 
     private CreatorAdaptor adapter;
 
-    private String name;
+    private String statblockname;
+    private String creaturename;
     private CreatureFaction faction;
     private AttributeBlock attributes;
     private HashMap<Stats, Integer> stats;
@@ -59,8 +64,12 @@ public class CreatureCreator {
         this.adapter = adapter;
     }
 
-    public String getName() {
-        return name;
+    public String getStatblockName() {
+        return statblockname;
+    }
+
+    public String getCreatureName() {
+        return creaturename;
     }
 
     public CreatureFaction getFaction() {
@@ -95,17 +104,17 @@ public class CreatureCreator {
         StatblockManager loader_unloader = new StatblockManager();
         loader_unloader.statblockToFile(towrite);
         try {
-            return loader_unloader.statblockFromfile(name);
+            return loader_unloader.statblockFromfile(statblockname);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private Creature makeCreature() {
+    private Statblock makeStatblock() {
         this.adapter.setCreator(this);
         // name
-        this.name = this.adapter.buildName();
+        this.statblockname = this.adapter.buildStatblockName();
 
         // creature faction
         this.faction = this.adapter.buildFaction();
@@ -122,14 +131,10 @@ public class CreatureCreator {
         // Adds items
         this.inventory = this.adapter.buildInventory();
 
-        HashMap<EquipmentSlots, Item> equipmentSlots = new HashMap<>();
+        HashMap<EquipmentSlots, Item> equipmentSlots = this.adapter.equipFromInventory(inventory);
 
-        Statblock creation = new Statblock(name, faction, attributes, stats, proficiencies, inventory,
+        Statblock creation = new Statblock(statblockname, faction, attributes, stats, proficiencies, inventory,
                 equipmentSlots);
-
-        Creature npc = new Creature(name, creation);
-
-        this.adapter.equipFromInventory(npc);
 
         // System.out.print(creation);
 
@@ -140,12 +145,12 @@ public class CreatureCreator {
         // System.err.println(test);
         this.adapter.close();
         // System.out.println("\nCreature Creation Complete!");
-        return npc;
+        return creation;
     }
 
     public static void main(String[] args) {
         CLIAdaptor cliAdaptor = new CLIAdaptor();
         CreatureCreator creator = new CreatureCreator(cliAdaptor);
-        creator.makeCreature();
+        creator.makeStatblock();
     }
 }
