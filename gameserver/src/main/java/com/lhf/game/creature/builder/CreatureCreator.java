@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
@@ -111,6 +112,11 @@ public class CreatureCreator {
         return null;
     }
 
+    public Statblock readStatblock(String statblockname) throws FileNotFoundException {
+        StatblockManager loader_unloader = new StatblockManager();
+        return loader_unloader.statblockFromfile(statblockname);
+    }
+
     private Statblock makeStatblock() {
         this.adapter.setCreator(this);
         // name
@@ -146,6 +152,23 @@ public class CreatureCreator {
         this.adapter.close();
         // System.out.println("\nCreature Creation Complete!");
         return creation;
+    }
+
+    public Monster makeMonsterFromStatblock() throws FileNotFoundException {
+        this.adapter.setCreator(this);
+
+        this.statblockname = this.adapter.buildStatblockName();
+
+        Statblock monStatblock = this.readStatblock(this.statblockname);
+
+        if (monStatblock == null) {
+            return null;
+        }
+
+        this.creaturename = this.adapter.buildCreatureName();
+
+        return new Monster(this.creaturename, monStatblock);
+
     }
 
     public static void main(String[] args) {
