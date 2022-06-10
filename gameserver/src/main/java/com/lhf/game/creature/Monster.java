@@ -24,7 +24,6 @@ public class Monster extends Creature implements BattleAI {
     public Monster() {
         super();
         this.activelyHostile = false;
-        this.setName(NameGenerator.GenerateSuffix("Monster"));
         this.setSerialNumber();
         this.aiType = MonsterAI.RANDOM;
         this.setFaction(CreatureFaction.MONSTER);
@@ -35,6 +34,7 @@ public class Monster extends Creature implements BattleAI {
         this.activelyHostile = true;
         this.setSerialNumber();
         this.aiType = MonsterAI.RETALIATORY;
+        this.setFaction(CreatureFaction.MONSTER);
     }
 
     public void setAiType(MonsterAI newType) {

@@ -35,7 +35,7 @@ import java.util.regex.PatternSyntaxException;
 
 import static com.lhf.game.enums.Attributes.*;
 
-public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, ClientMessenger, MessageHandler {
+public abstract class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, ClientMessenger, MessageHandler {
 
     public class Fist extends Weapon {
 
@@ -125,7 +125,7 @@ public class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, Cli
     public Creature() {
         this.cmds = this.buildCommands();
         // Instantiate creature with no name and type Monster
-        this.name = ""; // TODO: what if creature name.len < 3?
+        this.name = NameGenerator.GenerateSuffix(NameGenerator.GenerateGiven());
         this.faction = CreatureFaction.NPC;
         this.vocation = Optional.empty();
 
