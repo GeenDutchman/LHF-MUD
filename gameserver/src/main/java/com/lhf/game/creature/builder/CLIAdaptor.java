@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Scanner;
 
-import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.builder.CreatureCreator.CreatorAdaptor;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;

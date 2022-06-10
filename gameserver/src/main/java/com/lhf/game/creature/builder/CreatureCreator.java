@@ -44,8 +44,6 @@ public class CreatureCreator {
         public void close();
     };
 
-    private CreatorAdaptor adapter;
-
     private String statblockname;
     private String creaturename;
     private CreatureFaction faction;
@@ -57,12 +55,7 @@ public class CreatureCreator {
 
     private Statblock statblock;
 
-    private CreatureCreator(CreatorAdaptor adapter) {
-        this.adapter = adapter;
-    }
-
-    public void setProvider(CreatorAdaptor adapter) {
-        this.adapter = adapter;
+    private CreatureCreator() {
     }
 
     public String getStatblockName() {
@@ -117,27 +110,27 @@ public class CreatureCreator {
         return loader_unloader.statblockFromfile(statblockname);
     }
 
-    private Statblock makeStatblock() {
-        this.adapter.setCreator(this);
+    private Statblock makeStatblock(CreatorAdaptor adapter) {
+        adapter.setCreator(this);
         // name
-        this.statblockname = this.adapter.buildStatblockName();
+        this.statblockname = adapter.buildStatblockName();
 
         // creature faction
-        this.faction = this.adapter.buildFaction();
+        this.faction = adapter.buildFaction();
 
         // attributes
-        this.attributes = this.adapter.buildAttributeBlock();
+        this.attributes = adapter.buildAttributeBlock();
 
         // stats
-        this.stats = this.adapter.buildStats();
+        this.stats = adapter.buildStats();
 
         // Adds proficiencies
-        this.proficiencies = this.adapter.buildProficiencies();
+        this.proficiencies = adapter.buildProficiencies();
 
         // Adds items
-        this.inventory = this.adapter.buildInventory();
+        this.inventory = adapter.buildInventory();
 
-        HashMap<EquipmentSlots, Item> equipmentSlots = this.adapter.equipFromInventory(inventory);
+        HashMap<EquipmentSlots, Item> equipmentSlots = adapter.equipFromInventory(inventory);
 
         Statblock creation = new Statblock(statblockname, faction, attributes, stats, proficiencies, inventory,
                 equipmentSlots);
@@ -149,15 +142,15 @@ public class CreatureCreator {
 
         test = this.writeStatblock(test);
         // System.err.println(test);
-        this.adapter.close();
+        adapter.close();
         // System.out.println("\nCreature Creation Complete!");
         return creation;
     }
 
-    public Monster makeMonsterFromStatblock() throws FileNotFoundException {
-        this.adapter.setCreator(this);
+    public Monster makeMonsterFromStatblock(CreatorAdaptor adapter) throws FileNotFoundException {
+        adapter.setCreator(this);
 
-        this.statblockname = this.adapter.buildStatblockName();
+        this.statblockname = adapter.buildStatblockName();
 
         Statblock monStatblock = this.readStatblock(this.statblockname);
 
@@ -165,7 +158,7 @@ public class CreatureCreator {
             return null;
         }
 
-        this.creaturename = this.adapter.buildCreatureName();
+        this.creaturename = adapter.buildCreatureName();
 
         return new Monster(this.creaturename, monStatblock);
 
@@ -173,7 +166,7 @@ public class CreatureCreator {
 
     public static void main(String[] args) {
         CLIAdaptor cliAdaptor = new CLIAdaptor();
-        CreatureCreator creator = new CreatureCreator(cliAdaptor);
-        creator.makeStatblock();
+        CreatureCreator creator = new CreatureCreator();
+        creator.makeStatblock(cliAdaptor);
     }
 }
