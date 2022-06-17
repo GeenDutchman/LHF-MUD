@@ -38,6 +38,14 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
+    public String stepSucceeded(boolean succeeded) {
+        if (succeeded) {
+            return "Ok, that worked.";
+        }
+        return "That didn't work, you may have to try again.";
+    }
+
+    @Override
     public String buildCreatureName() {
         Boolean valid;
         String name;
