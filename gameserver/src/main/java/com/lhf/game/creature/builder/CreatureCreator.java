@@ -194,9 +194,7 @@ public class CreatureCreator {
 
         Vocation vocation = adapter.buildVocation();
 
-        Player p = new Player(adapter.buildUser());
-
-        p.setVocation(vocation);
+        Player p = new Player(adapter.buildUser(), playerStatblock, vocation);
 
         return p;
 

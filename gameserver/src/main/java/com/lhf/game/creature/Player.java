@@ -11,7 +11,9 @@ import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 
 import com.lhf.game.creature.statblock.AttributeBlock;
+import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.Fighter;
+import com.lhf.game.creature.vocation.Vocation;
 
 public class Player extends Creature {
     private User user;
@@ -46,6 +48,17 @@ public class Player extends Creature {
         this.equipItem("Leather Armor", EquipmentSlots.ARMOR);
         this.equipItem("Longsword", EquipmentSlots.WEAPON);
         this.equipItem("Shield", EquipmentSlots.SHIELD);
+    }
+
+    public Player(User user, Statblock statblock, Vocation vocation) {
+        super(user.getUsername(), statblock);
+        this.user = user;
+        this.user = user;
+        this.user.setSuccessor(this);
+        this.setController(this.user.getClient());
+        this.setVocation(vocation);
+        this.setFaction(CreatureFaction.PLAYER);
+
     }
 
     @Override
