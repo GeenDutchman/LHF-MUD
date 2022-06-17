@@ -24,7 +24,7 @@ public class CreatureCreator {
 
         public CreatureCreator getCreator();
 
-        public String stepSucceeded(boolean succeeded);
+        public void stepSucceeded(boolean succeeded);
 
         public String buildCreatureName();
 

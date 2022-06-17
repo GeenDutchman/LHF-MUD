@@ -38,11 +38,11 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public String stepSucceeded(boolean succeeded) {
+    public void stepSucceeded(boolean succeeded) {
         if (succeeded) {
-            return "Ok, that worked.";
+            System.out.println("Ok, that worked.");
         }
-        return "That didn't work, you may have to try again.";
+        System.out.println("That didn't work, you may have to try again.");
     }
 
     @Override
