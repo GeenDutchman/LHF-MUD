@@ -16,6 +16,7 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
+import com.lhf.server.client.user.User;
 
 public class CreatureCreator {
     public interface CreatorAdaptor extends Closeable {
@@ -43,6 +44,10 @@ public class CreatureCreator {
 
         public void close();
     };
+
+    public interface PlayerCreatorAdaptor extends CreatorAdaptor {
+        public User buildUser();
+    }
 
     private String statblockname;
     private String creaturename;
