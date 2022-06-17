@@ -7,10 +7,12 @@ import java.util.HashSet;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Monster;
+import com.lhf.game.creature.Player;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
@@ -49,6 +51,8 @@ public class CreatureCreator {
 
     public interface PlayerCreatorAdaptor extends CreatorAdaptor {
         public User buildUser();
+
+        public Vocation buildVocation();
     }
 
     private String statblockname;
@@ -168,6 +172,33 @@ public class CreatureCreator {
         this.creaturename = adapter.buildCreatureName();
 
         return new Monster(this.creaturename, monStatblock);
+
+    }
+
+    public Player makePlayer(PlayerCreatorAdaptor adapter) {
+        adapter.setCreator(this);
+
+        this.creaturename = adapter.buildCreatureName();
+
+        Statblock playerStatblock = null;
+
+        while (playerStatblock == null) {
+            this.statblockname = adapter.buildStatblockName();
+            try {
+                playerStatblock = this.readStatblock(this.statblockname);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                adapter.stepSucceeded(false);
+            }
+        }
+
+        Vocation vocation = adapter.buildVocation();
+
+        Player p = new Player(adapter.buildUser());
+
+        p.setVocation(vocation);
+
+        return p;
 
     }
 
