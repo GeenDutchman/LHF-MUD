@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 
-public class Monster extends Creature implements BattleAI {
+public class Monster extends NonPlayerCharacter implements BattleAI {
     private boolean activelyHostile;
     private static long serialNumber = 0;
     private long monsterNumber;
