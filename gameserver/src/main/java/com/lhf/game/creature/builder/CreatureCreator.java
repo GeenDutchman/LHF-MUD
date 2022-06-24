@@ -55,137 +55,79 @@ public class CreatureCreator {
         public Vocation buildVocation();
     }
 
-    private String statblockname;
-    private String creaturename;
-    private CreatureFaction faction;
-    private AttributeBlock attributes;
-    private HashMap<Stats, Integer> stats;
-    private HashSet<EquipmentTypes> proficiencies;
-    private Inventory inventory;
-    private HashMap<EquipmentSlots, Item> equipSlots;
-
-    private Statblock statblock;
-
-    private CreatureCreator() {
-    }
-
-    public String getStatblockName() {
-        return statblockname;
-    }
-
-    public String getCreatureName() {
-        return creaturename;
-    }
-
-    public CreatureFaction getFaction() {
-        return faction;
-    }
-
-    public AttributeBlock getAttributes() {
-        return attributes;
-    }
-
-    public HashMap<Stats, Integer> getStats() {
-        return stats;
-    }
-
-    public HashSet<EquipmentTypes> getProficiencies() {
-        return proficiencies;
-    }
-
-    public Inventory getInventory() {
-        return inventory;
-    }
-
-    public HashMap<EquipmentSlots, Item> getEquipSlots() {
-        return equipSlots;
-    }
-
-    public Statblock getStatblock() {
-        return statblock;
-    }
-
-    public Statblock writeStatblock(Statblock towrite) {
+    public static Statblock writeStatblock(Statblock towrite) {
         StatblockManager loader_unloader = new StatblockManager();
         loader_unloader.statblockToFile(towrite);
         try {
-            return loader_unloader.statblockFromfile(statblockname);
+            return loader_unloader.statblockFromfile(towrite.getCreatureRace());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public Statblock readStatblock(String statblockname) throws FileNotFoundException {
+    public static Statblock readStatblock(String statblockname) throws FileNotFoundException {
         StatblockManager loader_unloader = new StatblockManager();
         return loader_unloader.statblockFromfile(statblockname);
     }
 
-    private Statblock makeStatblock(CreatorAdaptor adapter) {
-        adapter.setCreator(this);
+    private static Statblock makeStatblock(CreatorAdaptor adapter) {
+        Statblock built = new Statblock();
+
         // name
-        this.statblockname = adapter.buildStatblockName();
+        built.setCreatureRace(adapter.buildStatblockName());
 
         // creature faction
-        this.faction = adapter.buildFaction();
+        built.setFaction(adapter.buildFaction());
 
         // attributes
-        this.attributes = adapter.buildAttributeBlock();
+        built.setAttributes(adapter.buildAttributeBlock());
 
         // stats
-        this.stats = adapter.buildStats();
+        built.setStats(adapter.buildStats());
 
         // Adds proficiencies
-        this.proficiencies = adapter.buildProficiencies();
+        built.setProficiencies(adapter.buildProficiencies());
 
         // Adds items
-        this.inventory = adapter.buildInventory();
+        built.setInventory(adapter.buildInventory());
 
-        HashMap<EquipmentSlots, Item> equipmentSlots = adapter.equipFromInventory(inventory);
+        built.setEquipmentSlots(adapter.equipFromInventory(built.getInventory()));
 
-        Statblock creation = new Statblock(statblockname, faction, attributes, stats, proficiencies, inventory,
-                equipmentSlots);
-
-        // System.out.print(creation);
-
-        Statblock test = new Statblock(creation.toString());
+        Statblock test = new Statblock(built.toString());
         // System.out.println(test);
 
-        test = this.writeStatblock(test);
+        test = CreatureCreator.writeStatblock(test);
         // System.err.println(test);
         adapter.close();
         // System.out.println("\nCreature Creation Complete!");
-        return creation;
+        return built;
     }
 
-    public Monster makeMonsterFromStatblock(CreatorAdaptor adapter) throws FileNotFoundException {
-        adapter.setCreator(this);
+    public static Monster makeMonsterFromStatblock(CreatorAdaptor adapter) throws FileNotFoundException {
 
-        this.statblockname = adapter.buildStatblockName();
+        String statblockname = adapter.buildStatblockName();
 
-        Statblock monStatblock = this.readStatblock(this.statblockname);
+        Statblock monStatblock = CreatureCreator.readStatblock(statblockname);
 
         if (monStatblock == null) {
             return null;
         }
 
-        this.creaturename = adapter.buildCreatureName();
+        String creaturename = adapter.buildCreatureName();
 
-        return new Monster(this.creaturename, monStatblock);
+        return new Monster(creaturename, monStatblock);
 
     }
 
-    public Player makePlayer(PlayerCreatorAdaptor adapter) {
-        adapter.setCreator(this);
-
-        this.creaturename = adapter.buildCreatureName();
+    public static Player makePlayer(PlayerCreatorAdaptor adapter) {
 
         Statblock playerStatblock = null;
 
         while (playerStatblock == null) {
-            this.statblockname = adapter.buildStatblockName();
+            String statblockname = adapter.buildStatblockName();
             try {
-                playerStatblock = this.readStatblock(this.statblockname);
+                playerStatblock = CreatureCreator.readStatblock(statblockname);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
                 adapter.stepSucceeded(false);
@@ -202,7 +144,6 @@ public class CreatureCreator {
 
     public static void main(String[] args) {
         CLIAdaptor cliAdaptor = new CLIAdaptor();
-        CreatureCreator creator = new CreatureCreator();
-        creator.makeStatblock(cliAdaptor);
+        CreatureCreator.makeStatblock(cliAdaptor);
     }
 }
