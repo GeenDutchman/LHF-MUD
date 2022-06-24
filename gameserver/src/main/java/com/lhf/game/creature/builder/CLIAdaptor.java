@@ -28,16 +28,6 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public void setCreator(CreatureCreator creator) {
-        this.creator = creator;
-    }
-
-    @Override
-    public CreatureCreator getCreator() {
-        return this.creator;
-    }
-
-    @Override
     public void stepSucceeded(boolean succeeded) {
         if (succeeded) {
             System.out.println("Ok, that worked.");
@@ -140,7 +130,7 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public HashMap<Stats, Integer> buildStats() {
+    public HashMap<Stats, Integer> buildStats(AttributeBlock attrs) {
         Boolean valid;
         HashMap<Stats, Integer> stats = new HashMap<>();
         do {
@@ -148,7 +138,7 @@ public class CLIAdaptor implements CreatorAdaptor {
             int xp_worth;
             float cr;
             System.out.print(
-                    "What is the max HP (integer) xp worth(integer) and approximate CR (float) (each value should be separated by a space): ");
+                    "What is the HP (integer) xp worth(integer) and approximate CR (float) (each value should be separated by a space): ");
             try {
                 max_hp = input.nextInt();
                 xp_worth = input.nextInt();
@@ -164,14 +154,14 @@ public class CLIAdaptor implements CreatorAdaptor {
 
             this.input.nextLine(); // clears buffer
 
-            stats.put(Stats.MAXHP, max_hp);
-            stats.put(Stats.CURRENTHP, max_hp);
+            stats.put(Stats.MAXHP, max_hp + attrs.getMod(Attributes.CON));
+            stats.put(Stats.CURRENTHP, max_hp + attrs.getMod(Attributes.CON));
 
-            stats.put(Stats.XPWORTH, xp_worth);
+            stats.put(Stats.XPWORTH, xp_worth + Math.abs(attrs.getMod(Attributes.INT)));
             stats.put(Stats.XPEARNED, 0);
             stats.put(Stats.PROFICIENCYBONUS, 0);
             // NOTE: 1 CR is roughly 4 level one players
-            stats.put(Stats.AC, 10 + this.getCreator().getAttributes().getMod(Attributes.DEX));
+            stats.put(Stats.AC, 10 + attrs.getMod(Attributes.DEX));
 
             System.out.print("Given max HP of " + max_hp + " and cr of " + cr +
                     " max/current hp is: " + stats.get(Stats.CURRENTHP) + "" +

@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.inventory.Inventory;
@@ -22,9 +21,6 @@ import com.lhf.server.client.user.User;
 
 public class CreatureCreator {
     public interface CreatorAdaptor extends Closeable {
-        public void setCreator(CreatureCreator creator);
-
-        public CreatureCreator getCreator();
 
         public void stepSucceeded(boolean succeeded);
 
@@ -36,7 +32,7 @@ public class CreatureCreator {
 
         public AttributeBlock buildAttributeBlock();
 
-        public HashMap<Stats, Integer> buildStats();
+        public HashMap<Stats, Integer> buildStats(AttributeBlock attrs);
 
         public HashSet<EquipmentTypes> buildProficiencies();
 
