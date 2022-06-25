@@ -2,17 +2,17 @@ package com.lhf.messages.out;
 
 import com.lhf.messages.ClientMessenger;
 
-public class SayMessage extends OutMessage {
+public class SayOutMessage extends OutMessage {
     private String message;
     private ClientMessenger sayer;
     private ClientMessenger hearer;
 
-    public SayMessage(ClientMessenger sayer, String message) {
+    public SayOutMessage(ClientMessenger sayer, String message) {
         this.sayer = sayer;
         this.message = message;
     }
 
-    public SayMessage(ClientMessenger sayer, String message, ClientMessenger hearer) {
+    public SayOutMessage(ClientMessenger sayer, String message, ClientMessenger hearer) {
         this.sayer = sayer;
         this.message = message;
         this.hearer = hearer;

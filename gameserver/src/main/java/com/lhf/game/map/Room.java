@@ -36,6 +36,7 @@ import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.TakeMessage;
 import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.SayOutMessage;
 import com.lhf.server.client.user.UserID;
 
 public class Room implements Container, MessageHandler {
@@ -642,15 +643,12 @@ public class Room implements Container, MessageHandler {
             if (sMessage.getTarget() != null) {
                 for (Creature p : this.allCreatures) {
                     if (p.checkName(sMessage.getTarget())) {
-                        p.sendMsg(
-                                new GameMessage(ctx.getCreature().getColorTaggedName() + " to " + p.getColorTaggedName()
-                                        + ":" + sMessage.getMessage()));
+                        p.sendMsg(new SayOutMessage(ctx.getCreature(), sMessage.getMessage(), p));
                         break;
                     }
                 }
             } else {
-                this.sendMessageToAll(
-                        new GameMessage(ctx.getCreature().getColorTaggedName() + ":" + sMessage.getMessage()));
+                this.sendMessageToAll(new SayOutMessage(ctx.getCreature(), sMessage.getMessage()));
             }
             return true;
         }
