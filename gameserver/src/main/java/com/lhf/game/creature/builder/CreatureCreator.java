@@ -80,7 +80,7 @@ public class CreatureCreator {
         built.setAttributes(adapter.buildAttributeBlock());
 
         // stats
-        built.setStats(adapter.buildStats());
+        built.setStats(adapter.buildStats(built.getAttributes()));
 
         // Adds proficiencies
         built.setProficiencies(adapter.buildProficiencies());
