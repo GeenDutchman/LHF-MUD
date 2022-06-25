@@ -20,7 +20,6 @@ import com.lhf.game.item.interfaces.Takeable;
 
 public class CLIAdaptor implements CreatorAdaptor {
 
-    private CreatureCreator creator;
     private Scanner input;
 
     public CLIAdaptor() {
