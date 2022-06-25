@@ -9,8 +9,11 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.CreateInMessage;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.server.client.ClientID;
 
-public class User implements MessageHandler {
+public class User implements MessageHandler, ClientMessenger { // TODO: what is the difference between MessageHandler
+                                                               // and ClientMessenger
     private UserID id;
     private String username;
     private MessageHandler successor;
@@ -60,5 +63,15 @@ public class User implements MessageHandler {
     public Boolean handleMessage(CommandContext ctx, Command msg) {
         ctx.setUserID(id);
         return MessageHandler.super.handleMessage(ctx, msg);
+    }
+
+    @Override
+    public void sendMsg(OutMessage msg) {
+        this.client.sendMsg(msg);
+    }
+
+    @Override
+    public ClientID getClientID() {
+        return this.client.getClientID();
     }
 }
