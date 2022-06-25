@@ -17,7 +17,7 @@ public class DMRoom extends Room {
     public boolean addUser(User user) {
         user.setSuccessor(user);
         this.sendMessageToAll(
-                new GameMessage("The spirit known as " + user.getColorTaggedUsername() + " has entered the room"));
+                new GameMessage("The spirit known as " + user.getColorTaggedName() + " has entered the room"));
         return this.users.add(user);
     }
 

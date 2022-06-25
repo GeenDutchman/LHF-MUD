@@ -3,6 +3,7 @@ package com.lhf.server.client.user;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.lhf.Taggable;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -12,8 +13,7 @@ import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
-public class User implements MessageHandler, ClientMessenger { // TODO: what is the difference between MessageHandler
-                                                               // and ClientMessenger
+public class User implements MessageHandler, ClientMessenger, Taggable {
     private UserID id;
     private String username;
     private MessageHandler successor;
@@ -40,8 +40,19 @@ public class User implements MessageHandler, ClientMessenger { // TODO: what is 
         return username;
     }
 
-    public String getColorTaggedUsername() {
-        return "<player>" + getUsername() + "</player>";
+    @Override
+    public String getStartTag() {
+        return "<user>";
+    }
+
+    @Override
+    public String getEndTag() {
+        return "</user>";
+    }
+
+    @Override
+    public String getColorTaggedName() {
+        return this.getStartTag() + getUsername() + this.getEndTag();
     }
 
     @Override
@@ -74,4 +85,5 @@ public class User implements MessageHandler, ClientMessenger { // TODO: what is 
     public ClientID getClientID() {
         return this.client.getClientID();
     }
+
 }
