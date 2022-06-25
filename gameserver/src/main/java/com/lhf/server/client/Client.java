@@ -128,4 +128,19 @@ public class Client implements MessageHandler, ClientMessenger {
         return MessageHandler.super.handleMessage(ctx, msg);
     }
 
+    @Override
+    public String getStartTag() {
+        return "<client>";
+    }
+
+    @Override
+    public String getEndTag() {
+        return "</client>";
+    }
+
+    @Override
+    public String getColorTaggedName() {
+        return this.getStartTag() + this.id.toString() + this.getEndTag();
+    }
+
 }

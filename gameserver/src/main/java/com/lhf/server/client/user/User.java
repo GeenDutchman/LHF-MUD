@@ -3,7 +3,6 @@ package com.lhf.server.client.user;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.lhf.Taggable;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -13,7 +12,7 @@ import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
-public class User implements MessageHandler, ClientMessenger, Taggable {
+public class User implements MessageHandler, ClientMessenger {
     private UserID id;
     private String username;
     private MessageHandler successor;

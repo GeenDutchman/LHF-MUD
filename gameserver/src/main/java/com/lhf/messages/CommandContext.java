@@ -65,4 +65,19 @@ public class CommandContext implements ClientMessenger {
     public void setBattleManager(BattleManager battleManager) {
         this.bManager = battleManager;
     }
+
+    @Override
+    public String getStartTag() {
+        return "<command_context>";
+    }
+
+    @Override
+    public String getEndTag() {
+        return "</command_context>";
+    }
+
+    @Override
+    public String getColorTaggedName() {
+        return this.getStartTag() + "context" + this.getEndTag();
+    }
 }
