@@ -7,12 +7,12 @@ public enum DamageFlavor implements Taggable {
     VOID, FORCE, FIRE, COLD, HEALING, NECROTIC, POISON, ACID, LIGHTNING, THUNDER, PSYCHIC;
 
     @Override
-    public String getStartTagName() {
+    public String getStartTag() {
         return "<dmgFlavor>";
     }
 
     @Override
-    public String getEndTagName() {
+    public String getEndTag() {
         return "</dmgFlavor>";
     }
 
@@ -23,7 +23,7 @@ public enum DamageFlavor implements Taggable {
 
     @Override
     public String getColorTaggedName() {
-        return this.getStartTagName() + this.toString() + this.getEndTagName();
+        return this.getStartTag() + this.toString() + this.getEndTag();
     }
 
 }

@@ -85,18 +85,18 @@ public abstract class Item implements Examinable, Taggable {
     }
 
     @Override
-    public String getStartTagName() {
+    public String getStartTag() {
         return "<item>";
     }
 
     @Override
-    public String getEndTagName() {
+    public String getEndTag() {
         return "</item>";
     }
 
     @Override
     public String getColorTaggedName() {
-        return this.getStartTagName() + this.getName() + this.getEndTagName();
+        return this.getStartTag() + this.getName() + this.getEndTag();
     }
 
     @Override

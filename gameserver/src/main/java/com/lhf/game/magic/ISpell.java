@@ -65,18 +65,18 @@ public abstract class ISpell implements Taggable, Examinable {
     }
 
     @Override
-    public String getStartTagName() {
+    public String getStartTag() {
         return "<spell>";
     }
 
     @Override
-    public String getEndTagName() {
+    public String getEndTag() {
         return "</spell>";
     }
 
     @Override
     public String getColorTaggedName() {
-        return this.getStartTagName() + this.getName() + this.getEndTagName();
+        return this.getStartTag() + this.getName() + this.getEndTag();
     }
 
     @Override
@@ -86,7 +86,7 @@ public abstract class ISpell implements Taggable, Examinable {
         sb.append(this.getColorTaggedName()).append("\n");
         if (!this.getName().equals(this.getInvocation())) {
             sb.append("Invocation: ");
-            sb.append(this.getStartTagName()).append(this.getInvocation()).append(this.getEndTagName()).append("\n");
+            sb.append(this.getStartTag()).append(this.getInvocation()).append(this.getEndTag()).append("\n");
         }
         sb.append(this.getSbEntry()).append("\n");
         return sb.toString();

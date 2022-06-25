@@ -20,15 +20,15 @@ public class Thaumaturgy extends RoomAffector {
                 longest = split.length();
             }
         }
-        sb.append(this.getCaster().getStartTagName()).append("\\").append("|".repeat(longest)).append("/")
-                .append(this.getCaster().getEndTagName()).append("\n");
+        sb.append(this.getCaster().getStartTag()).append("\\").append("|".repeat(longest)).append("/")
+                .append(this.getCaster().getEndTag()).append("\n");
         for (String split : splitname) {
-            sb.append(this.getCaster().getStartTagName()).append("-").append(split)
-                    .append(" ".repeat(longest - split.length())).append("-").append(this.getCaster().getEndTagName())
+            sb.append(this.getCaster().getStartTag()).append("-").append(split)
+                    .append(" ".repeat(longest - split.length())).append("-").append(this.getCaster().getEndTag())
                     .append("\n");
         }
-        sb.append(this.getCaster().getStartTagName()).append("/").append("|".repeat(longest)).append("\\")
-                .append(this.getCaster().getEndTagName()).append("\n");
+        sb.append(this.getCaster().getStartTag()).append("/").append("|".repeat(longest)).append("\\")
+                .append(this.getCaster().getEndTag()).append("\n");
         return sb.toString();
     }
 

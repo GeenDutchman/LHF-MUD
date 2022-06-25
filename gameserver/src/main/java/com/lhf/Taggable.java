@@ -1,9 +1,9 @@
 package com.lhf;
 
 public interface Taggable {
-    String getStartTagName();
+    String getStartTag();
 
-    String getEndTagName();
+    String getEndTag();
 
     String getColorTaggedName();
 }

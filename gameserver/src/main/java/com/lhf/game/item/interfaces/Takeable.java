@@ -13,12 +13,12 @@ public abstract class Takeable extends Item {
     }
 
     @Override
-    public String getStartTagName() {
+    public String getStartTag() {
         return "<takeable>";
     }
 
     @Override
-    public String getEndTagName() {
+    public String getEndTag() {
         return "</takeable>";
     }
 

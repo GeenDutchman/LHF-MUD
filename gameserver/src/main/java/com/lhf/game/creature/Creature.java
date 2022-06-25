@@ -711,7 +711,7 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, CubeHo
     }
 
     @Override
-    public String getStartTagName() {
+    public String getStartTag() {
         String tag = "<" + this.getClass().getSimpleName().toLowerCase() + ">";
         CreatureFaction foundFaction = this.getFaction();
         if (foundFaction != null) {
@@ -721,7 +721,7 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, CubeHo
     }
 
     @Override
-    public String getEndTagName() {
+    public String getEndTag() {
         String tag = "</" + this.getClass().getSimpleName().toLowerCase() + ">";
         CreatureFaction foundFaction = this.getFaction();
         if (foundFaction != null) {
@@ -732,7 +732,7 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, CubeHo
 
     @Override
     public String getColorTaggedName() {
-        return getStartTagName() + getName() + getEndTagName();
+        return getStartTag() + getName() + getEndTag();
     }
 
     @Override

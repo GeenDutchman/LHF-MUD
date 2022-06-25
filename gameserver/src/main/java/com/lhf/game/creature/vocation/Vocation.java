@@ -37,16 +37,16 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
     @Override
     public String getColorTaggedName() {
-        return this.getStartTagName() + this.getName() + this.getEndTagName();
+        return this.getStartTag() + this.getName() + this.getEndTag();
     }
 
     @Override
-    public String getEndTagName() {
+    public String getEndTag() {
         return "</vocation>";
     }
 
     @Override
-    public String getStartTagName() {
+    public String getStartTag() {
         return "<vocation>";
     }
 

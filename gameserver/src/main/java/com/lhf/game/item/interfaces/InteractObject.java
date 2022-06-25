@@ -49,12 +49,12 @@ public abstract class InteractObject extends Item {
     }
 
     @Override
-    public String getStartTagName() {
+    public String getStartTag() {
         return "<interactable>";
     }
 
     @Override
-    public String getEndTagName() {
+    public String getEndTag() {
         return "</interactable>";
     }
 }

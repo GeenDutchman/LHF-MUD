@@ -49,18 +49,18 @@ public abstract class Dice implements Taggable {
         }
 
         @Override
-        public String getStartTagName() {
-            return Dice.this.getStartTagName();
+        public String getStartTag() {
+            return Dice.this.getStartTag();
         }
 
         @Override
-        public String getEndTagName() {
-            return Dice.this.getEndTagName();
+        public String getEndTag() {
+            return Dice.this.getEndTag();
         }
 
         @Override
         public String getColorTaggedName() {
-            return this.getStartTagName() + this.toString() + this.getEndTagName();
+            return this.getStartTag() + this.toString() + this.getEndTag();
         }
     }
 
@@ -101,18 +101,18 @@ public abstract class Dice implements Taggable {
     }
 
     @Override
-    public String getStartTagName() {
+    public String getStartTag() {
         return "<dice>";
     }
 
     @Override
-    public String getEndTagName() {
+    public String getEndTag() {
         return "</dice>";
     }
 
     @Override
     public String getColorTaggedName() {
-        return this.getStartTagName() + this.toString() + this.getEndTagName();
+        return this.getStartTag() + this.toString() + this.getEndTag();
     }
 
 }

@@ -25,18 +25,18 @@ public enum CommandMessage implements Taggable {
     }
 
     @Override
-    public String getStartTagName() {
+    public String getStartTag() {
         return "<command>";
     }
 
     @Override
-    public String getEndTagName() {
+    public String getEndTag() {
         return "</command>";
     }
 
     @Override
     public String getColorTaggedName() {
-        return this.getStartTagName() + this.toString() + this.getEndTagName();
+        return this.getStartTag() + this.toString() + this.getEndTag();
     }
 
 }
