@@ -43,7 +43,7 @@ public class ChainMail extends Equipable {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         return "This is some heavy chainmail. " + "It looks protective... now if only it wasn't so heavy\n" +
                 this.printStats();
     }

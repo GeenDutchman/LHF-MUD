@@ -46,7 +46,7 @@ public class Shortsword extends Weapon {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         return "This is a nice, short, shiny sword with a leather grip.  It's a bit simple though...\n" +
                 this.printStats();
     }

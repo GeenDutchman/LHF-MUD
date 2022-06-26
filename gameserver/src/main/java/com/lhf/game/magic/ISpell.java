@@ -80,7 +80,7 @@ public abstract class ISpell implements Taggable, Examinable {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         StringBuilder sb = new StringBuilder();
         sb.append("Level ").append(this.getLevel()).append(" ");
         sb.append(this.getColorTaggedName()).append("\n");

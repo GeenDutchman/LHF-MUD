@@ -46,7 +46,7 @@ public class ReaperScythe extends Weapon {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         StringBuilder sb = new StringBuilder();
         sb.append("This is a nice, long, shiny scythe.  It's super powerful...\n");
         sb.append(this.printStats());

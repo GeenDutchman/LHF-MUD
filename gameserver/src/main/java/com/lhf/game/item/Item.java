@@ -100,7 +100,7 @@ public abstract class Item implements Examinable, Taggable {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         return this.descriptionString;
     }
 

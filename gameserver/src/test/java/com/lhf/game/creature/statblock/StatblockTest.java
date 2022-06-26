@@ -63,8 +63,8 @@ public class StatblockTest {
         for (String itemName : inv.getItemList()) {
             assertTrue(num2.getInventory().hasItem(itemName));
         }
-        assertEquals(s.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).getDescription(),
-                num2.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).getDescription());
+        assertEquals(s.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).printDescription(),
+                num2.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).printDescription());
 
     }
 }

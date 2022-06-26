@@ -40,7 +40,7 @@ public class Shield extends Equipable {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         return "This is a simple shield, it should protect you a little bit. \n"
                 + this.printStats();
     }

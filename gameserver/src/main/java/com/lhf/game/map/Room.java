@@ -662,13 +662,13 @@ public class Room implements Container, MessageHandler {
 
         for (Item ro : items) {
             if (ro.CheckNameRegex(name, 3)) {
-                return "<description>" + ro.getDescription() + "</description>";
+                return "<description>" + ro.printDescription() + "</description>";
             }
         }
 
         for (Item thing : creature.getEquipmentSlots().values()) {
             if (thing.CheckNameRegex(name, 3)) {
-                return "You have it equipped.  <description>" + thing.getDescription() + "</description>";
+                return "You have it equipped.  <description>" + thing.printDescription() + "</description>";
             }
         }
 
@@ -676,7 +676,7 @@ public class Room implements Container, MessageHandler {
         if (maybeThing.isPresent()) {
             Item thing = maybeThing.get();
             if (thing instanceof Examinable) {
-                return "You see it in your inventory.  <description>" + thing.getDescription()
+                return "You see it in your inventory.  <description>" + thing.printDescription()
                         + "</description>";
             }
             return "It seems to resist examination...weird.";

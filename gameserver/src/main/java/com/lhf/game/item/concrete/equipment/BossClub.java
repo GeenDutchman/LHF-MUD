@@ -42,7 +42,7 @@ public class BossClub extends Weapon {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         return "This is a large club, it seems a bit rusty... wait thats not rust...\n" +
                 this.printStats();
     }

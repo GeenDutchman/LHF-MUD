@@ -12,7 +12,7 @@ public class Note extends Item {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         return noteContent;
     }
 

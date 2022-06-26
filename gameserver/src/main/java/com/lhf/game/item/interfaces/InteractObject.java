@@ -40,8 +40,8 @@ public abstract class InteractObject extends Item {
     }
 
     @Override
-    public String getDescription() {
-        String otherDescription = super.getDescription();
+    public String printDescription() {
+        String otherDescription = super.printDescription();
         if (hasBeenInteracted) {
             otherDescription += " It looks like it has been interacted with already, it might not work again.";
         }

@@ -18,7 +18,7 @@ public class Corpse extends Item implements Container {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         return "This is " + this.getColorTaggedName()
                 + ".  They are quite clearly dead.  You can't quite tell the cause...";
     }

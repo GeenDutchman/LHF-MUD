@@ -58,7 +58,7 @@ public class HealPotion extends Usable {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         return "This is a bottle of " + this.getName();
     }
 }

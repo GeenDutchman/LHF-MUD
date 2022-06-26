@@ -45,7 +45,7 @@ public class RustyDagger extends Weapon {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         return "Rusty Dagger to stab monsters with. \n" + this.printStats();
     }
 

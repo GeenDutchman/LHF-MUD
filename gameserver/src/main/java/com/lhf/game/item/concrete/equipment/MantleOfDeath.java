@@ -45,7 +45,7 @@ public class MantleOfDeath extends Equipable {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         StringBuilder sb = new StringBuilder(
                 "This fearsome hooded robe seems a little bit overpowered to be in your puny hands. \n");
         sb.append(this.printStats());

@@ -43,7 +43,7 @@ public class LeatherArmor extends Equipable {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         return "This is some simple leather armor. " + "There is only a little blood on it...\n" +
                 this.printStats();
     }

@@ -19,8 +19,8 @@ public class Dispenser extends InteractObject {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         // perhaps other things
-        return super.getDescription();
+        return super.printDescription();
     }
 }

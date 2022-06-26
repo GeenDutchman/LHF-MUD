@@ -22,7 +22,7 @@ public class RingOfSeeing extends Equipable {
             if (object == null) {
                 return "That is not a valid target at all!";
             } else if (object instanceof Room) {
-                String output = getDescription() +
+                String output = printDescription() +
                         "\r\n" +
                         "The possible directions are:\r\n";
                 output += ((Room) object).getDirections();
@@ -59,7 +59,7 @@ public class RingOfSeeing extends Equipable {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         String result = "This ring can help you see things that are not visible to the naked eye. ";
         result += "It can only be used so many times though, and then the ring itself disappears... \n";
         result += this.printStats();

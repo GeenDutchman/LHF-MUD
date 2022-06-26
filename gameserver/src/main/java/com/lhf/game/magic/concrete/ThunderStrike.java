@@ -32,9 +32,9 @@ public class ThunderStrike extends CreatureAffector implements DamageSpell {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         StringBuilder sb = new StringBuilder();
-        sb.append(super.getDescription()).append(this.printStats());
+        sb.append(super.printDescription()).append(this.printStats());
         return sb.toString();
     }
 

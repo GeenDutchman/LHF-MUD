@@ -46,7 +46,7 @@ public class Longsword extends Weapon {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         return "This is a nice, long, shiny sword.  It's a bit simple though...\n" +
                 this.printStats();
     }

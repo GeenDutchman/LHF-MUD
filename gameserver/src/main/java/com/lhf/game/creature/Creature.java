@@ -69,7 +69,7 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, CubeHo
         }
 
         @Override
-        public String getDescription() {
+        public String printDescription() {
             // sb.append("And best used if you have these proficiencies:
             // ").append(printWhichTypes());
             return "This is a " + getName() + " attached to a " + Creature.this.getName() + "\n" +

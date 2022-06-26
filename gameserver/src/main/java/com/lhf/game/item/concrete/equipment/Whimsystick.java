@@ -51,7 +51,7 @@ public class Whimsystick extends Weapon {
     }
 
     @Override
-    public String getDescription() {
+    public String printDescription() {
         return "This isn't quite a quarterstaff, but also not a club...it is hard to tell. " +
                 "But what you can tell is it seems to have a laughing aura around it, like it doesn't " +
                 "care about what it does to other people...it's a whimsystick. \n" +
