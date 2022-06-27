@@ -37,6 +37,7 @@ import com.lhf.messages.in.TakeMessage;
 import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SayOutMessage;
+import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.server.client.user.UserID;
 
 public class Room implements Container, MessageHandler {
@@ -387,6 +388,11 @@ public class Room implements Container, MessageHandler {
         return output;
     }
 
+    @Override
+    public String printDescription() {
+        return this.toString();
+    }
+
     public String cast(Player player, ISpell spell) {
         if (spell instanceof RoomAffector) {
             this.sendMessageToAll(new GameMessage(spell.Cast()));
@@ -628,9 +634,9 @@ public class Room implements Container, MessageHandler {
         if (msg.getType() == CommandMessage.SEE) {
             SeeMessage sMessage = (SeeMessage) msg;
             if (sMessage.getThing() != null) {
-                ctx.sendMsg(new GameMessage(this.examine(ctx.getCreature(), sMessage.getThing())));
+                ctx.sendMsg(this.examine(ctx.getCreature(), sMessage.getThing()));
             } else {
-                ctx.sendMsg(new GameMessage(this.toString()));
+                ctx.sendMsg(new SeeOutMessage(this));
             }
             return true;
         }
@@ -655,33 +661,31 @@ public class Room implements Container, MessageHandler {
         return false;
     }
 
-    private String examine(Creature creature, String name) {
+    private SeeOutMessage examine(Creature creature, String name) {
         if (creature.isInBattle()) {
-            return "You are in a fight right now, you are too busy to examine that!";
+            return new SeeOutMessage("You are in a fight right now, you are too busy to examine that!");
         }
 
         for (Item ro : items) {
             if (ro.CheckNameRegex(name, 3)) {
-                return "<description>" + ro.printDescription() + "</description>";
+                return new SeeOutMessage(ro);
             }
         }
 
         for (Item thing : creature.getEquipmentSlots().values()) {
             if (thing.CheckNameRegex(name, 3)) {
-                return "You have it equipped.  <description>" + thing.printDescription() + "</description>";
+                return new SeeOutMessage(thing, "You have it equipped. ");
             }
         }
 
         Optional<Item> maybeThing = creature.getInventory().getItem(name);
         if (maybeThing.isPresent()) {
             Item thing = maybeThing.get();
-            if (thing instanceof Examinable) {
-                return "You see it in your inventory.  <description>" + thing.printDescription()
-                        + "</description>";
-            }
-            return "It seems to resist examination...weird.";
+            return new SeeOutMessage(thing, "You see it in your inventory.");
         }
 
-        return "You couldn't find " + name + " to examine.";
+        // TODO: make creatures examinable
+
+        return new SeeOutMessage("You couldn't find " + name + " to examine.");
     }
 }
