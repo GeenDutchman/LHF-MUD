@@ -32,6 +32,7 @@ import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.out.GameMessage;
+import com.lhf.messages.out.RenegadeAnnouncement;
 
 public class BattleManager implements MessageHandler {
 
@@ -223,21 +224,8 @@ public class BattleManager implements MessageHandler {
     private void handleTurnRenegade(Creature turned) {
         if (!CreatureFaction.RENEGADE.equals(turned.getFaction())) {
             turned.setFaction(CreatureFaction.RENEGADE);
-            StringBuilder sb = new StringBuilder();
-            sb.append("You have attacked someone in your faction, and have become a RENEGADE.").append("\n");
-            sb.append(
-                    "You may lose bonuses that you previously had, and consequences for attacking you are removed.")
-                    .append("\n");
-            sb.append(
-                    "If you want to rejoin a faction, some casters have spells that can join you to a faction.");
-            turned.sendMsg(new GameMessage(sb.toString()));
-            sb.setLength(0);
-            sb.append(turned.getColorTaggedName())
-                    .append(" has attacked a member of their faction and thus became a RENEGADE. ")
-                    .append("Until ").append(turned.getColorTaggedName())
-                    .append(" rejoins a faction (certain spells can do this) consequences for attacking ")
-                    .append(turned.getColorTaggedName()).append(" are removed.");
-            room.sendMessageToAllExcept(new GameMessage(sb.toString()), turned.getName());
+            turned.sendMsg(new RenegadeAnnouncement());
+            room.sendMessageToAllExcept(new RenegadeAnnouncement(turned), turned.getName());
         }
     }
 
