@@ -92,7 +92,7 @@ public class Room implements Container, MessageHandler {
         c.setSuccessor(this);
         boolean added = this.allCreatures.add(c);
         if (added) {
-            c.sendMsg(new GameMessage(this.toString()));
+            c.sendMsg(new SeeOutMessage(this));
             this.sendMessageToAllExcept(new GameMessage(c.getColorTaggedName() + " has entered the room."),
                     c.getName());
             if (this.allCreatures.size() > 1 && !this.commands.containsKey(CommandMessage.ATTACK)) {
