@@ -36,6 +36,7 @@ import com.lhf.messages.out.FleeMessage;
 import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.MissMessage;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.ReinforcementsCall;
 import com.lhf.messages.out.RenegadeAnnouncement;
 import com.lhf.messages.out.SeeOutMessage;
 
@@ -477,25 +478,22 @@ public class BattleManager implements MessageHandler, Examinable {
 
     private void callReinforcements(Creature attackingCreature, Creature targetCreature) {
         if (targetCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(targetCreature.getFaction())) {
-            targetCreature.sendMsg(new GameMessage(
-                    "You are a RENEGADE or not a member of a faction.  No one is obligated to help you."));
+            targetCreature.sendMsg(new ReinforcementsCall(targetCreature, true));
             return;
         }
         int count = this.participants.size();
-        this.room.sendMessageToAll(new GameMessage(targetCreature.getColorTaggedName() + " calls for reinforcements!"));
+        this.room.sendMessageToAll(new ReinforcementsCall(targetCreature, false));
         for (Creature c : this.room.getCreaturesInRoom()) {
             if (targetCreature.getFaction().equals(c.getFaction()) && !this.isCreatureInBattle(c)) {
                 this.addCreatureToBattle(c);
             }
         }
         if (attackingCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(attackingCreature.getFaction())) {
-            attackingCreature.sendMsg(new GameMessage(
-                    "You are a RENEGADE or not a member of a faction.  No one is obligated to help you."));
+            attackingCreature.sendMsg(new ReinforcementsCall(attackingCreature, true));
             return;
         }
         if (this.participants.size() > count && !CreatureFaction.NPC.equals(targetCreature.getFaction())) {
-            this.room.sendMessageToAll(
-                    new GameMessage(attackingCreature.getColorTaggedName() + " also calls for reinforcements!"));
+            this.room.sendMessageToAll(new ReinforcementsCall(attackingCreature, false));
             for (Creature c : this.room.getCreaturesInRoom()) {
                 if (attackingCreature.getFaction().equals(c.getFaction()) && !this.isCreatureInBattle(c)) {
                     this.addCreatureToBattle(c);
