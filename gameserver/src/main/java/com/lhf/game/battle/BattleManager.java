@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.logging.Logger;
 
+import com.lhf.Examinable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.dice.Dice;
@@ -31,12 +32,14 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.AttackMessage;
+import com.lhf.messages.out.FleeMessage;
 import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.MissMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.RenegadeAnnouncement;
+import com.lhf.messages.out.SeeOutMessage;
 
-public class BattleManager implements MessageHandler {
+public class BattleManager implements MessageHandler, Examinable {
 
     private Deque<Creature> participants;
     private Room room;
@@ -355,6 +358,11 @@ public class BattleManager implements MessageHandler {
     }
 
     @Override
+    public String printDescription() {
+        return this.toString();
+    }
+
+    @Override
     public void setSuccessor(MessageHandler successor) {
         this.successor = successor;
     }
@@ -383,7 +391,7 @@ public class BattleManager implements MessageHandler {
                 handled = handleAttack(ctx, aMessage);
             } else if (this.isHappening && ctx.getCreature().isInBattle() && this.interceptorCmds.containsKey(type)) {
                 if (type == CommandMessage.SEE) {
-                    ctx.sendMsg(new GameMessage(this.toString()));
+                    ctx.sendMsg(new SeeOutMessage(this));
                     handled = true;
                 } else if (type == CommandMessage.GO) {
                     handled = this.handleGo(ctx, msg);
@@ -408,15 +416,12 @@ public class BattleManager implements MessageHandler {
             Integer check = 10 + this.participants.size();
             RollResult result = ctx.getCreature().check(Attributes.DEX);
             if (result.getTotal() < check) {
-                this.room.sendMessageToAllExcept(new GameMessage(
-                        ctx.getCreature().getColorTaggedName() + " attempted " + result.getColorTaggedName()
-                                + " to flee!"),
+                ctx.sendMsg(new FleeMessage(ctx.getCreature(), true, result, false));
+                this.room.sendMessageToAllExcept(new FleeMessage(ctx.getCreature(), false, result, false),
                         ctx.getCreature().getName());
-                ctx.sendMsg(new GameMessage("You were not " + result.getColorTaggedName() + " able to flee"));
                 return true;
             }
-            this.room.sendMessageToAllExcept(new GameMessage(
-                    ctx.getCreature().getColorTaggedName() + " flees " + result.getColorTaggedName() + " the battle!"),
+            this.room.sendMessageToAllExcept(new FleeMessage(ctx.getCreature(), false, result, true),
                     ctx.getCreature().getName());
         }
         return MessageHandler.super.handleMessage(ctx, msg);
