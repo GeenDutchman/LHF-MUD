@@ -39,6 +39,7 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.ReinforcementsCall;
 import com.lhf.messages.out.RenegadeAnnouncement;
 import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SingleHelpMessage;
 
 public class BattleManager implements MessageHandler, Examinable {
 
@@ -397,10 +398,10 @@ public class BattleManager implements MessageHandler, Examinable {
                 } else if (type == CommandMessage.GO) {
                     handled = this.handleGo(ctx, msg);
                 } else if (type == CommandMessage.INTERACT) {
-                    ctx.sendMsg(new GameMessage(this.interceptorCmds.get(type)));
+                    ctx.sendMsg(new SingleHelpMessage(this.interceptorCmds, type));
                     handled = true;
                 } else if (type == CommandMessage.TAKE) {
-                    ctx.sendMsg(new GameMessage(this.interceptorCmds.get(type)));
+                    ctx.sendMsg(new SingleHelpMessage(this.interceptorCmds, type));
                     handled = true;
                 }
             }
