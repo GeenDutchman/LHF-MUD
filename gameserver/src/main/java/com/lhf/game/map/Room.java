@@ -36,6 +36,7 @@ import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.TakeMessage;
 import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.RoomEnteredOutMessage;
 import com.lhf.messages.out.SayOutMessage;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.server.client.user.UserID;
@@ -93,8 +94,7 @@ public class Room implements Container, MessageHandler {
         boolean added = this.allCreatures.add(c);
         if (added) {
             c.sendMsg(new SeeOutMessage(this));
-            this.sendMessageToAllExcept(new GameMessage(c.getColorTaggedName() + " has entered the room."),
-                    c.getName());
+            this.sendMessageToAllExcept(new RoomEnteredOutMessage(c), c.getName());
             if (this.allCreatures.size() > 1 && !this.commands.containsKey(CommandMessage.ATTACK)) {
                 StringJoiner sj = new StringJoiner(" ");
                 sj.add("\"attack [name]\"").add("Attacks a creature").add("\r\n");

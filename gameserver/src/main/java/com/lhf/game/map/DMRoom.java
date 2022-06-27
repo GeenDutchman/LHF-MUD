@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.lhf.messages.out.GameMessage;
+import com.lhf.messages.out.RoomEnteredOutMessage;
 import com.lhf.server.client.user.User;
 
 public class DMRoom extends Room {
@@ -16,8 +17,7 @@ public class DMRoom extends Room {
 
     public boolean addUser(User user) {
         user.setSuccessor(user);
-        this.sendMessageToAll(
-                new GameMessage("The spirit known as " + user.getColorTaggedName() + " has entered the room"));
+        this.sendMessageToAll(new RoomEnteredOutMessage(user));
         return this.users.add(user);
     }
 
