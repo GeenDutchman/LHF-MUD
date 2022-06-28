@@ -30,6 +30,22 @@ public abstract class Dice implements Taggable {
             return this;
         }
 
+        public RollResult twice() {
+            this.total *= 2;
+            if (this.result.length() > 0) {
+                this.result = "(" + this.result + ") x 2";
+            }
+            return this;
+        }
+
+        public RollResult half() {
+            this.total /= 2;
+            if (this.result.length() > 0) {
+                this.result = "(" + this.result + ") / 2";
+            }
+            return this;
+        }
+
         public RollResult combine(RollResult other) {
             this.total += other.total;
             if (this.result.length() > 0 && other.result.length() > 0) {
