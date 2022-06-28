@@ -429,10 +429,11 @@ public class BattleManager implements MessageHandler, Examinable {
         if (weaponName != null && weaponName.length() > 0) {
             Optional<Item> inventoryItem = ctx.getCreature().getItem(weaponName);
             if (inventoryItem.isEmpty()) {
-                attacker.sendMsg(new GameMessage("You do not have that weapon \"" + weaponName + "\".\r\n"));
+                attacker.sendMsg(new NotPossessedMessage(Weapon.class.getSimpleName(), weaponName));
                 return true;
             } else if (!(inventoryItem.get() instanceof Weapon)) {
-                attacker.sendMsg(new GameMessage(inventoryItem.get().getColorTaggedName() + " is not a Weapon!"));
+                attacker.sendMsg(
+                        new NotPossessedMessage(Weapon.class.getSimpleName(), weaponName, inventoryItem.get()));
                 return true;
             } else {
                 weapon = (Weapon) inventoryItem.get();
