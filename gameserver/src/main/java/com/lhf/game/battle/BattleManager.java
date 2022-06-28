@@ -149,11 +149,11 @@ public class BattleManager implements MessageHandler, Examinable {
 
     public void endBattle() {
         for (Creature creature : participants) {
-            creature.sendMsg(new GameMessage("Take a deep breath.  You have survived this battle!\r\n"));
+            creature.sendMsg(new FightOverMessage(true));
             creature.setInBattle(false);
         }
         participants.clear();
-        this.room.sendMessageToAll(new GameMessage("The fight is over!\r\n"));
+        this.room.sendMessageToAll(new FightOverMessage(false));
         isHappening = false;
     }
 
