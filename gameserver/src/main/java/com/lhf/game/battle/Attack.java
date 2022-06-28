@@ -4,20 +4,19 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.lhf.game.creature.Creature;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.DamageFlavor;
 
 public class Attack implements Iterable<Map.Entry<DamageFlavor, RollResult>> {
-    private String attacker;
-    private String taggedAttacker;
+    private Creature attacker;
     private RollResult toHit;
     private Map<DamageFlavor, RollResult> flavorAndDamage;
 
-    public Attack(RollResult toHit, String attacker) {
+    public Attack(Creature attacker, RollResult toHit) {
         this.toHit = toHit;
         this.flavorAndDamage = new TreeMap<>();
         this.attacker = attacker;
-        this.taggedAttacker = attacker;
     }
 
     public Attack addFlavorAndRoll(DamageFlavor flavor, RollResult attackDamage) {
@@ -52,21 +51,12 @@ public class Attack implements Iterable<Map.Entry<DamageFlavor, RollResult>> {
         return toHit;
     }
 
-    public String getAttacker() {
+    public Creature getAttacker() {
         return attacker;
     }
 
-    public String getTaggedAttacker() {
-        return taggedAttacker;
-    }
-
-    public Attack setAttacker(String attacker) {
+    public Attack setAttacker(Creature attacker) {
         this.attacker = attacker;
-        return this;
-    }
-
-    public Attack setTaggedAttacker(String taggedAttacker) {
-        this.taggedAttacker = taggedAttacker;
         return this;
     }
 

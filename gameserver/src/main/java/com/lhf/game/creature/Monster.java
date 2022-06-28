@@ -6,6 +6,7 @@ import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.MonsterAI;
 import com.lhf.game.enums.Stats;
+import com.lhf.messages.out.AttackDamageMessage;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -18,7 +19,7 @@ public class Monster extends NonPlayerCharacter implements BattleAI {
     private long monsterNumber;
 
     private MonsterAI aiType;
-    private String lastAttacker;
+    private Creature lastAttacker;
     private int lastDamage = 0;
 
     public Monster() {
@@ -78,16 +79,16 @@ public class Monster extends NonPlayerCharacter implements BattleAI {
     }
 
     private Optional<Creature> getAttackerCreature(Collection<Creature> participants) {
-        if (lastAttacker == null || lastAttacker.isEmpty()) {
+        if (lastAttacker == null) {
             return Optional.empty();
         }
-        return participants.stream().filter(creature -> lastAttacker.equals(creature.getName())).findFirst();
+        return participants.stream().filter(creature -> lastAttacker.getName().equals(creature.getName())).findFirst();
     }
 
     @Override
-    public String applyAttack(Attack attack) {
+    public AttackDamageMessage applyAttack(Attack attack) {
         int prevHealth = this.getStats().get(Stats.CURRENTHP);
-        String result = super.applyAttack(attack); // perhaps a better way to do this?
+        AttackDamageMessage result = super.applyAttack(attack); // perhaps a better way to do this?
         int damageDealt = prevHealth - this.getStats().get(Stats.CURRENTHP);
         switch (aiType) {
             case RETALIATORY:

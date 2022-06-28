@@ -26,6 +26,7 @@ import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.UnequipMessage;
+import com.lhf.messages.out.AttackDamageMessage;
 import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
@@ -345,8 +346,7 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, CubeHo
                 toHit = this.check(STR);
                 break;
         }
-        Attack a = new Attack(toHit.addBonus(attributeBonus), this.getName())
-                .setTaggedAttacker(this.getColorTaggedName());
+        Attack a = new Attack(this, toHit.addBonus(attributeBonus));
         a = weapon.modifyAttack(a);
         a = a.addDamageBonus(weapon.getMainFlavor(), attributeBonus);
         // for (EquipmentTypes cet : this.getProficiencies()) {
@@ -377,30 +377,28 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, CubeHo
         return Objects.requireNonNullElseGet(weapon, Fist::new);
     }
 
-    protected int adjustDamageByFlavor(DamageFlavor flavor, int value) {
+    protected RollResult adjustDamageByFlavor(DamageFlavor flavor, RollResult roll) {
         switch (flavor) {
             case HEALING:
-                return value;
+                return roll;
             default:
-                return -1 * value;
+                return roll.flipSign();
         }
     }
 
-    public String applyAttack(Attack attack) {
-        // add stuff to calculate if the attack hits or not, and return false if so
-        StringBuilder output = new StringBuilder();
+    public AttackDamageMessage applyAttack(Attack attack) {
+        AttackDamageMessage dmOut = new AttackDamageMessage(attack.getAttacker(), this);
         for (Map.Entry<DamageFlavor, RollResult> entry : attack) {
             DamageFlavor flavor = (DamageFlavor) entry.getKey();
             RollResult damage = (RollResult) entry.getValue();
-            int adjustedDamage = adjustDamageByFlavor(flavor, damage.getTotal());
-            updateHitpoints(adjustedDamage);
-            output.append(attack.getTaggedAttacker()).append(" has dealt ").append(damage.getColorTaggedName())
-                    .append(" damage to ").append(getColorTaggedName()).append(".\n");
+            damage = adjustDamageByFlavor(flavor, damage);
+            updateHitpoints(damage.getTotal());
+            dmOut.addDamage(damage);
         }
         if (!isAlive()) {
-            output.append(getColorTaggedName()).append(" has died.\r\n");
+            dmOut.announceDeath();
         }
-        return output.toString();
+        return dmOut;
     }
 
     public String applySpell(CreatureAffector spell) {
