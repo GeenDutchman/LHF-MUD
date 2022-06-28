@@ -32,15 +32,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.AttackMessage;
-import com.lhf.messages.out.FleeMessage;
-import com.lhf.messages.out.GameMessage;
-import com.lhf.messages.out.JoinBattleMessage;
-import com.lhf.messages.out.MissMessage;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.ReinforcementsCall;
-import com.lhf.messages.out.RenegadeAnnouncement;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SingleHelpMessage;
+import com.lhf.messages.out.*;
 
 public class BattleManager implements MessageHandler, Examinable {
 
@@ -144,9 +136,9 @@ public class BattleManager implements MessageHandler, Examinable {
 
     public void startBattle(Creature instigator) {
         isHappening = true;
-        this.room.sendMessageToAll(new GameMessage(instigator.getColorTaggedName() + " started a fight!\r\n"));
+        this.room.sendMessageToAll(new StartFightMessage(instigator, false));
         for (Creature creature : participants) {
-            creature.sendMsg(new GameMessage("You are in the fight!\r\n"));
+            creature.sendMsg(new StartFightMessage(instigator, true));
         }
         // If the player started the fight, then it already has an action
         // about to happen. No need to prompt them for it.
