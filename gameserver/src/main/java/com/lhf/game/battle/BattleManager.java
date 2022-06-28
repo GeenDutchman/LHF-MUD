@@ -33,6 +33,7 @@ import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.out.*;
+import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 
 public class BattleManager implements MessageHandler, Examinable {
 
@@ -241,12 +242,12 @@ public class BattleManager implements MessageHandler, Examinable {
             AttackAction attackAction = (AttackAction) action;
 
             if (!attackAction.hasTargets()) {
-                attacker.sendMsg(new GameMessage("You did not choose any targets.\r\n"));
+                attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET));
                 return;
             }
             List<Creature> targets = attackAction.getTargets();
             if (targets.contains(attacker)) {
-                attacker.sendMsg(new GameMessage("You can't attack yourself!\r\n"));
+                attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.SELF));
                 return;
             }
             this.addCreatureToBattle(attacker);
@@ -267,14 +268,14 @@ public class BattleManager implements MessageHandler, Examinable {
         } else if (action instanceof CreatureAffector) {
             CreatureAffector spell = (CreatureAffector) action;
             if (!spell.hasTargets()) {
-                attacker.sendMsg(new GameMessage("You did not choose any targets.\r\n"));
+                attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET));
                 return;
             }
             List<Creature> targets = spell.getTargets();
             for (Creature c : targets) {
                 if (!isCreatureInBattle(c)) {
                     // invalid target in list
-                    attacker.sendMsg(new GameMessage("One of your targets did not exist.\r\n"));
+                    attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE));
                     return;
                 }
                 if (spell instanceof DamageSpell && c.getFaction() != CreatureFaction.RENEGADE
