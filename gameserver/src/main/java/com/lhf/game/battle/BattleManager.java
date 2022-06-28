@@ -447,18 +447,11 @@ public class BattleManager implements MessageHandler, Examinable {
             targetCreature = possTargets.get(0);
         }
         if (targetCreature == null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("You cannot attack '").append(aMessage.getTarget()).append("' ");
             if (possTargets.size() == 0) {
-                sb.append("because it does not exist.");
+                ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, aMessage.getTarget(), possTargets));
             } else {
-                sb.append("because it could be any of these:\n");
-                for (Creature c : possTargets) {
-                    sb.append(c.getColorTaggedName()).append(" ");
-                }
+                ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, aMessage.getTarget(), possTargets));
             }
-            sb.append("\r\n");
-            ctx.sendMsg((new GameMessage(sb.toString())));
             return true;
         }
 

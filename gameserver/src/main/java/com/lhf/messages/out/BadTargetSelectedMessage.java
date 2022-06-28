@@ -1,31 +1,74 @@
 package com.lhf.messages.out;
 
+import java.util.List;
+import java.util.StringJoiner;
+
+import com.lhf.Taggable;
+
 public class BadTargetSelectedMessage extends OutMessage {
     public enum BadTargetOption {
-        SELF, NOTARGET, DNE;
+        SELF, NOTARGET, DNE, UNCLEAR;
     }
 
     private BadTargetOption bde;
+    private String badTarget;
+    private List<? extends Taggable> possibleTargets;
 
-    public BadTargetSelectedMessage(BadTargetOption bde) {
+    public BadTargetSelectedMessage(BadTargetOption bde, String badTarget) {
         this.bde = bde;
+        this.badTarget = badTarget;
+    }
+
+    public BadTargetSelectedMessage(BadTargetOption bde, String badTarget, List<? extends Taggable> possibleTargets) {
+        this.bde = bde;
+        this.badTarget = badTarget;
+        this.possibleTargets = possibleTargets;
     }
 
     @Override
     public String toString() {
+        StringJoiner sj = new StringJoiner(" ");
+        sj.setEmptyValue("");
         switch (this.bde) {
             case SELF:
-                return "You cannot target yourself!";
+                sj.add("You cannot target yourself!");
+                break;
             case NOTARGET:
-                return "You did not choose any targets.";
+                sj.add("You did not choose any targets.");
+                break;
             case DNE:
-                return "One of your targets did not exist.";
+                if (this.badTarget != null && this.badTarget.length() > 0) {
+                    sj.add(this.badTarget).add("does not exist as a target or is not targetable.");
+                } else {
+                    sj.add("One of your targets did not exist.");
+                }
+                break;
+            case UNCLEAR:
+                if (this.badTarget != null && this.badTarget.length() > 0) {
+                    sj.add("You cannot target '").add(this.badTarget).add("' because it is unclear.");
+                } else {
+                    sj.add("It is unclear what you are targeting.");
+                }
+                break;
             default:
-                return "You have selected a bad or invalid target.";
+                sj.add("You have selected a bad or invalid target.");
         }
+
+        if (this.possibleTargets != null && this.possibleTargets.size() > 0) {
+            sj.add("Possible targets include:\n");
+            for (Taggable tagger : this.possibleTargets) {
+                sj.add(tagger.getColorTaggedName());
+            }
+        }
+
+        return sj.toString();
     }
 
     public BadTargetOption getBde() {
         return bde;
+    }
+
+    public List<Taggable> getPossibleTargets() {
+        return possibleTargets;
     }
 }
