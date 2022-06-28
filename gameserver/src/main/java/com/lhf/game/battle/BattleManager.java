@@ -34,6 +34,7 @@ import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.out.FleeMessage;
 import com.lhf.messages.out.GameMessage;
+import com.lhf.messages.out.JoinBattleMessage;
 import com.lhf.messages.out.MissMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.ReinforcementsCall;
@@ -94,12 +95,8 @@ public class BattleManager implements MessageHandler, Examinable {
             participants.addLast(c);
             c.setInBattle(true);
             c.setSuccessor(this);
-            if (this.isBattleOngoing()) {
-                this.room.sendMessageToAllExcept(
-                        new GameMessage(c.getColorTaggedName() + " has joined the ongoing battle!"),
-                        c.getName());
-            }
-            c.sendMsg(new GameMessage("You have been included in the battle!"));
+            this.room.sendMessageToAllExcept(new JoinBattleMessage(c, this.isBattleOngoing(), false), c.getName());
+            c.sendMsg(new JoinBattleMessage(c, this.isBattleOngoing(), true));
         }
     }
 
