@@ -38,6 +38,11 @@ public abstract class Dice implements Taggable {
             return this;
         }
 
+        public RollResult flipSign() {
+            this.total *= -1;
+            return this;
+        }
+
         public RollResult half() {
             this.total /= 2;
             if (this.result.length() > 0) {
