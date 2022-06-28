@@ -167,7 +167,7 @@ public class BattleManager implements MessageHandler, Examinable {
         Creature current = getCurrent();
         if (current instanceof Player) {
             // prompt player to do something
-            promptPlayerToAct((Player) current);
+            promptCreatureToAct((Player) current);
         } else if (current instanceof BattleAI) {
             Collection<Creature> targets = ((BattleAI) current).selectAttackTargets(participants);
             applyAttacks(current, current.getWeapon(), targets);
@@ -212,9 +212,9 @@ public class BattleManager implements MessageHandler, Examinable {
         }
     }
 
-    private void promptPlayerToAct(Player current) {
+    private void promptCreatureToAct(Player current) {
         // send message to player that it is their turn
-        current.sendMsg(new GameMessage("It is your turn to fight!\r\n"));
+        current.sendMsg(new BattleTurnMessage(true));
     }
 
     private void handleTurnRenegade(Creature turned) {
@@ -229,7 +229,7 @@ public class BattleManager implements MessageHandler, Examinable {
 
         if (this.getCurrent() != null && attacker != this.getCurrent()) {
             // give out of turn message
-            attacker.sendMsg(new GameMessage("This is not your turn.\r\n"));
+            attacker.sendMsg(new BattleTurnMessage(false));
             return;
         }
 
