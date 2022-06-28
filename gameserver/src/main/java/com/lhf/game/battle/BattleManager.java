@@ -268,14 +268,14 @@ public class BattleManager implements MessageHandler, Examinable {
         } else if (action instanceof CreatureAffector) {
             CreatureAffector spell = (CreatureAffector) action;
             if (!spell.hasTargets()) {
-                attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET));
+                attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, null));
                 return;
             }
             List<Creature> targets = spell.getTargets();
             for (Creature c : targets) {
                 if (!isCreatureInBattle(c)) {
                     // invalid target in list
-                    attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE));
+                    attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, c.getName()));
                     return;
                 }
                 if (spell instanceof DamageSpell && c.getFaction() != CreatureFaction.RENEGADE
