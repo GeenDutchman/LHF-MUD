@@ -242,12 +242,12 @@ public class BattleManager implements MessageHandler, Examinable {
             AttackAction attackAction = (AttackAction) action;
 
             if (!attackAction.hasTargets()) {
-                attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET));
+                attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, null));
                 return;
             }
             List<Creature> targets = attackAction.getTargets();
             if (targets.contains(attacker)) {
-                attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.SELF));
+                attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.SELF, null));
                 return;
             }
             this.addCreatureToBattle(attacker);
