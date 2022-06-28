@@ -68,7 +68,11 @@ public class BadTargetSelectedMessage extends OutMessage {
         return bde;
     }
 
-    public List<Taggable> getPossibleTargets() {
+    public String getBadTarget() {
+        return badTarget;
+    }
+
+    public List<? extends Taggable> getPossibleTargets() {
         return possibleTargets;
     }
 }
