@@ -213,9 +213,9 @@ public class BattleManager implements MessageHandler, Examinable {
         }
     }
 
-    private void promptCreatureToAct(Player current) {
-        // send message to player that it is their turn
-        current.sendMsg(new BattleTurnMessage(true));
+    private void promptCreatureToAct(Creature current) {
+        // send message to creature that it is their turn
+        current.sendMsg(new BattleTurnMessage(current, true, false));
     }
 
     private void handleTurnRenegade(Creature turned) {
@@ -230,7 +230,7 @@ public class BattleManager implements MessageHandler, Examinable {
 
         if (this.getCurrent() != null && attacker != this.getCurrent()) {
             // give out of turn message
-            attacker.sendMsg(new BattleTurnMessage(false));
+            attacker.sendMsg(new BattleTurnMessage(attacker, false, true));
             return;
         }
 
@@ -285,7 +285,7 @@ public class BattleManager implements MessageHandler, Examinable {
             }
             applySpell((Creature) spell.getCaster(), (CreatureAffector) spell, targets);
         } else {
-            sendMessageToAllParticipants(new GameMessage(attacker.getColorTaggedName() + " wasted their turn!"));
+            sendMessageToAllParticipants(new BattleTurnMessage(attacker, true));
         }
         endTurn();
     }
