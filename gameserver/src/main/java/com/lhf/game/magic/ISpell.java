@@ -2,6 +2,7 @@ package com.lhf.game.magic;
 
 import com.lhf.Examinable;
 import com.lhf.Taggable;
+import com.lhf.messages.out.CastingMessage;
 
 public abstract class ISpell implements Taggable, Examinable {
     private final String className;
@@ -38,7 +39,7 @@ public abstract class ISpell implements Taggable, Examinable {
         return this.getInvocation().equals(trimmedInvoke);
     }
 
-    abstract public String Cast();
+    abstract public CastingMessage Cast();
 
     public String getClassName() {
         return this.className;

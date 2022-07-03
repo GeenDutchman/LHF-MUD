@@ -1,6 +1,7 @@
 package com.lhf.game.magic.concrete;
 
 import com.lhf.game.magic.interfaces.RoomAffector;
+import com.lhf.messages.out.CastingMessage;
 
 public class Thaumaturgy extends RoomAffector {
 
@@ -10,7 +11,7 @@ public class Thaumaturgy extends RoomAffector {
     }
 
     @Override
-    public String Cast() {
+    public CastingMessage Cast() {
         StringBuilder sb = new StringBuilder();
         String casterName = this.getCaster().getName();
         String[] splitname = casterName.split("( |_)");
@@ -29,7 +30,7 @@ public class Thaumaturgy extends RoomAffector {
         }
         sb.append(this.getCaster().getStartTag()).append("/").append("|".repeat(longest)).append("\\")
                 .append(this.getCaster().getEndTag()).append("\n");
-        return sb.toString();
+        return new CastingMessage(this.getName(), sb.toString());
     }
 
 }

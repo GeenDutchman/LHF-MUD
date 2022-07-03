@@ -291,7 +291,7 @@ public class BattleManager implements MessageHandler, Examinable {
     }
 
     private void applySpell(Creature attacker, CreatureAffector spell, Collection<Creature> targets) {
-        sendMessageToAllParticipants(new GameMessage(spell.Cast()));
+        sendMessageToAllParticipants(spell.Cast());
         Optional<CasterVsCreatureStrategy> strategy = spell.getStrategy();
         for (Creature target : targets) {
             if (strategy.isPresent()) {
@@ -299,15 +299,13 @@ public class BattleManager implements MessageHandler, Examinable {
                 RollResult casterResult = strat.getCasterEffort();
                 RollResult targetResult = strat.getTargetEffort(target);
                 if (casterResult.getTotal() <= targetResult.getTotal()) {
-                    sendMessageToAllParticipants(new GameMessage(
-                            attacker.getColorTaggedName() + " missed (" + casterResult.getColorTaggedName() + ") "
-                                    + target.getColorTaggedName() + " (" + targetResult.getColorTaggedName() + ")."));
+                    sendMessageToAllParticipants(new MissMessage(attacker, target, attack));
                     continue;
                 }
             }
             // hack it
 
-            sendMessageToAllParticipants(new GameMessage(target.applySpell(spell)));
+            sendMessageToAllParticipants(target.applySpell(spell));
         }
     }
 
@@ -318,7 +316,7 @@ public class BattleManager implements MessageHandler, Examinable {
             if (target.getStats().get(Stats.AC) > a.getToHit().getTotal()) { // misses
                 sendMessageToAllParticipants(new MissMessage(attacker, target, a));
             } else {
-                sendMessageToAllParticipants(new target.applyAttack(a));
+                sendMessageToAllParticipants(target.applyAttack(a));
             }
         }
     }

@@ -9,6 +9,7 @@ import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.magic.interfaces.CreatureAffector;
 import com.lhf.game.magic.interfaces.DamageSpell;
+import com.lhf.messages.out.CastingMessage;
 
 public class ThunderStrike extends CreatureAffector implements DamageSpell {
     private List<DamageDice> damages;
@@ -22,13 +23,13 @@ public class ThunderStrike extends CreatureAffector implements DamageSpell {
     }
 
     @Override
-    public String Cast() {
+    public CastingMessage Cast() {
         StringBuilder sb = new StringBuilder();
         for (Creature target : this.getTargets()) {
             sb.append("A large bolt zaps from ").append(this.getCaster().getColorTaggedName())
                     .append("'s hand and thunders toward ").append(target.getColorTaggedName()).append("!");
         }
-        return sb.toString();
+        return new CastingMessage(this.getName(), sb.toString());
     }
 
     @Override

@@ -29,6 +29,7 @@ import com.lhf.messages.in.UnequipMessage;
 import com.lhf.messages.out.AttackDamageMessage;
 import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.SpellFizzleMessage;
 import com.lhf.server.client.ClientID;
 
 import java.util.*;
@@ -401,25 +402,24 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, CubeHo
         return dmOut;
     }
 
-    public String applySpell(CreatureAffector spell) {
-        StringBuilder output = new StringBuilder();
+    public OutMessage applySpell(CreatureAffector spell) {
         if (spell instanceof DamageSpell) {
             DamageSpell dSpell = (DamageSpell) spell;
+            AttackDamageMessage dmOut = new AttackDamageMessage((Creature) spell.getCaster(), this); // TODO: this is a
+                                                                                                     // horrible hack
             for (DamageDice dd : dSpell.getDamages()) {
                 RollResult damage = dd.rollDice();
-                int adjustedDamage = adjustDamageByFlavor(dd.getFlavor(), damage.getTotal());
-                updateHitpoints(adjustedDamage);
-                output.append(spell.getCaster().getColorTaggedName()).append(" has dealt ")
-                        .append(damage.getColorTaggedName()).append(" damage to ")
-                        .append(this.getColorTaggedName()).append(".\n");
+                damage = adjustDamageByFlavor(dd.getFlavor(), damage);
+                updateHitpoints(damage.getTotal());
+                dmOut.addDamage(damage);
             }
             if (!isAlive()) {
-                output.append(this.getColorTaggedName()).append(" has died.\r\n");
+                dmOut.announceDeath();
             }
-            return output.toString();
+            return dmOut;
         }
-        output.append("Weird, that spell should have done something.");
-        return output.toString();
+
+        return new SpellFizzleMessage();
     }
 
     private int getHealth() {
