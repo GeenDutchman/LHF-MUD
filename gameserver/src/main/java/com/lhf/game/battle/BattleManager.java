@@ -299,7 +299,7 @@ public class BattleManager implements MessageHandler, Examinable {
                 RollResult casterResult = strat.getCasterEffort();
                 RollResult targetResult = strat.getTargetEffort(target);
                 if (casterResult.getTotal() <= targetResult.getTotal()) {
-                    sendMessageToAllParticipants(new MissMessage(attacker, target, attack));
+                    sendMessageToAllParticipants(new MissMessage(attacker, target, casterResult, targetResult));
                     continue;
                 }
             }
@@ -314,7 +314,7 @@ public class BattleManager implements MessageHandler, Examinable {
             Attack a = attacker.attack(weapon);
             sendMessageToAllParticipants(new AttackDamageMessage(attacker, target));
             if (target.getStats().get(Stats.AC) > a.getToHit().getTotal()) { // misses
-                sendMessageToAllParticipants(new MissMessage(attacker, target, a));
+                sendMessageToAllParticipants(new MissMessage(attacker, target, a.getToHit(), null));
             } else {
                 sendMessageToAllParticipants(target.applyAttack(a));
             }
