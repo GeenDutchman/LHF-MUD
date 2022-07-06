@@ -1,37 +1,46 @@
 package com.lhf.game.item;
 
-import com.lhf.game.creature.Player;
+import java.util.Map;
+import java.util.logging.Logger;
+
+import com.lhf.game.creature.Creature;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.interfaces.InteractAction;
+import com.lhf.game.item.interfaces.InteractObject;
 import com.lhf.game.map.Room;
-
-import java.util.Map;
+import com.lhf.messages.out.InteractOutMessage;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 
 public class DispenserAction implements InteractAction {
     @Override
-    public String doAction(Player player, Map<String, Object> args) {
+    public OutMessage doAction(Creature creature, InteractObject triggerObject, Map<String, Object> args) {
         Object o1 = args.get("room");
         if (!(o1 instanceof Room)) {
-            return "Switch error 1.";
+            Logger.getLogger(triggerObject.getClassName()).warning("Room not found");
+            return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
         }
         Room r = (Room) o1;
         Object o2 = args.get("disp");
         if (!(o2 instanceof Dispenser)) {
-            return "Switch error 2.";
+            Logger.getLogger(triggerObject.getClassName()).warning("Dispenser not found");
+            return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
         }
         Dispenser d = (Dispenser) o2;
         Object o3 = args.get("item");
         if (!(o3 instanceof Item)) {
-            return "Switch error 2.";
+            Logger.getLogger(triggerObject.getClassName()).warning("Dispensed item not found");
+            return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
         }
         Item i = (Item) o3;
         Object o4 = args.get("message");
         if (!(o4 instanceof String)) {
-            return "Switch error 2.";
+            Logger.getLogger(triggerObject.getClassName()).warning("No message to print");
+            return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
         }
         String s = (String) o4;
         r.addItem(i);
         d.incrementCount();
-        return s;
+        return new InteractOutMessage(triggerObject, s);
     }
 }

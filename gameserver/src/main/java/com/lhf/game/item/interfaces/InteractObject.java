@@ -1,7 +1,10 @@
 package com.lhf.game.item.interfaces;
 
-import com.lhf.game.creature.Player;
+import com.lhf.game.creature.Creature;
 import com.lhf.game.item.Item;
+import com.lhf.messages.out.InteractOutMessage;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,15 +31,15 @@ public abstract class InteractObject extends Item {
         interactItems.put(key, obj);
     }
 
-    public String doUseAction(Player p) {
+    public OutMessage doUseAction(Creature creature) {
         if (method == null) {
-            return "Weird, this does nothing at all!  It won't move!";
+            return new InteractOutMessage(this, InteractOutMessageType.NO_METHOD);
         }
         if (!isRepeatable && hasBeenInteracted) {
-            return "Nothing happened. It appears to already have been interacted with.";
+            return new InteractOutMessage(this, InteractOutMessageType.USED_UP);
         }
         hasBeenInteracted = true;
-        return method.doAction(p, interactItems);
+        return method.doAction(creature, this, interactItems);
     }
 
     @Override

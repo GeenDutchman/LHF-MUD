@@ -1,9 +1,12 @@
 package com.lhf.game.item.interfaces;
 
-import com.lhf.game.creature.Player;
+import com.lhf.game.creature.Creature;
+import com.lhf.messages.out.OutMessage;
 
 import java.util.Map;
 
 public interface InteractAction {
-    String doAction(Player player, Map<String, Object> args);
+    OutMessage doAction(Creature creature, InteractObject triggerObject, Map<String, Object> args); // TODO: this
+                                                                                                    // shouldn't be
+                                                                                                    // Object perhaps?
 }

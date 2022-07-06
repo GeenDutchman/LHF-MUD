@@ -1,6 +1,7 @@
 package com.lhf.game.map;
 
 import java.io.FileNotFoundException;
+import java.util.logging.Logger;
 
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.statblock.Statblock;
@@ -20,6 +21,8 @@ import com.lhf.game.item.concrete.equipment.Shortsword;
 import com.lhf.game.item.concrete.equipment.Whimsystick;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.messages.MessageHandler;
+import com.lhf.messages.out.InteractOutMessage;
+import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 
 public class DungeonBuilder {
 
@@ -41,21 +44,23 @@ public class DungeonBuilder {
         testSwitch.setItem("note", addNote);
         testSwitch.setItem("room", entryRoom);
         // Create action as anonymous function
-        InteractAction testAction = (player, args) -> {
+        InteractAction testAction = (creature, triggerObject, args) -> {
             // You can do anything you imagine inside, just with casting overhead (for now)
             // This can be used for the secret room trigger, since a switch can be hidden
             Object o1 = args.get("note");
             if (!(o1 instanceof Note)) {
-                return "Switch error.";
+                Logger.getLogger(triggerObject.getClassName()).warning("Note not found");
+                return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
             }
             Note n = (Note) o1;
             Object o2 = args.get("room");
             if (!(o2 instanceof Room)) {
-                return "Switch error.";
+                Logger.getLogger(triggerObject.getClassName()).warning("Room not found");
+                return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
             }
             Room r = (Room) o2;
             r.addItem(n);
-            return "Switch activated. A note dropped from the ceiling.";
+            return new InteractOutMessage(triggerObject, "Switch activated. A note dropped from the ceiling.");
         };
         // Set Action
         testSwitch.setAction(testAction);
@@ -112,23 +117,25 @@ public class DungeonBuilder {
                 "The statue has a start to a riddle, but it looks like it hasn't been finished yet.");
         statue.setItem("room1", statueRoom);
         statue.setItem("room2", secretRoom);
-        InteractAction statueAction = (player, args) -> {
+        InteractAction statueAction = (player, triggerObject, args) -> {
             Object o1 = args.get("room1");
             if (!(o1 instanceof Room)) {
-                return "Switch error 1.";
+                Logger.getLogger(triggerObject.getClassName()).warning("Origin Room not found");
+                return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
             }
             Room r1 = (Room) o1;
 
             Object o2 = args.get("room2");
             if (!(o2 instanceof Room)) {
-                return "Switch error 1.";
+                Logger.getLogger(triggerObject.getClassName()).warning("Destination Room not found");
+                return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
             }
             Room r2 = (Room) o2;
 
-            r1.removePlayer(player);
-            r2.addPlayer(player);
-
-            return "The statue glows and you black out for a second. You find yourself in another room.";
+            r1.removeCreature(player);
+            r2.addCreature(player);
+            return new InteractOutMessage(triggerObject,
+                    "The statue glows and you black out for a second. You find yourself in another room.");
         };
         statue.setAction(statueAction);
         statueRoom.addItem(statue);
