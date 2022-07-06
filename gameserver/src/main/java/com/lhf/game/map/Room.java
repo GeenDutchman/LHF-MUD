@@ -39,6 +39,8 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.RoomEnteredOutMessage;
 import com.lhf.messages.out.SayOutMessage;
 import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SpellFizzleMessage;
+import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 import com.lhf.server.client.user.UserID;
 
 public class Room implements Container, MessageHandler {
@@ -393,21 +395,16 @@ public class Room implements Container, MessageHandler {
         return this.toString();
     }
 
-    public String cast(Player player, ISpell spell) {
+    public void cast(Creature caster, ISpell spell) {
         if (spell instanceof RoomAffector) {
-            this.sendMessageToAll(new GameMessage(spell.Cast()));
-            return spell.Cast();
+            this.sendMessageToAll(spell.Cast());
+            return;
         }
         if (spell instanceof CreatureAffector) {
             CreatureAffector creatureSpell = (CreatureAffector) spell;
             if (creatureSpell instanceof DamageSpell) {
-                if (!player.isInBattle()) {
-                    this.battleManager.addCreatureToBattle(player);
-                    if (this.battleManager.isBattleOngoing()) {
-                        this.sendMessageToAllExcept(
-                                new GameMessage(player.getColorTaggedName() + " has joined the ongoing battle!"),
-                                player.getName());
-                    }
+                if (!caster.isInBattle()) {
+                    this.battleManager.addCreatureToBattle(caster);
                 }
                 for (Creature target : creatureSpell.getTargets()) {
                     if (!target.isInBattle()) {
@@ -415,20 +412,19 @@ public class Room implements Container, MessageHandler {
                     }
                 }
                 if (!this.battleManager.isBattleOngoing()) {
-                    this.battleManager.startBattle(player);
+                    this.battleManager.startBattle(caster);
                 }
-                this.battleManager.takeAction(player, creatureSpell);
-                return "You attempted an attack spell";
+                this.battleManager.takeAction(caster, creatureSpell);
+                return;
             }
-            this.sendMessageToAll(new GameMessage(spell.Cast()));
-            StringBuilder sb = new StringBuilder();
+            this.sendMessageToAll(spell.Cast());
             for (Creature target : creatureSpell.getTargets()) {
-                sb.append(target.applySpell(creatureSpell)).append("\n");
+                this.sendMessageToAll(target.applySpell(creatureSpell));
             }
-            this.sendMessageToAll(new GameMessage(sb.toString()));
-            return sb.toString();
+            return;
         }
-        return "You attempted a spell!";
+        caster.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
+        return;
     }
 
     public void sendMessageToAll(OutMessage message) {

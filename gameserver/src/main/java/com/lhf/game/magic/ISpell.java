@@ -2,6 +2,7 @@ package com.lhf.game.magic;
 
 import com.lhf.Examinable;
 import com.lhf.Taggable;
+import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.CastingMessage;
 
 public abstract class ISpell implements Taggable, Examinable {
@@ -10,7 +11,7 @@ public abstract class ISpell implements Taggable, Examinable {
     protected String name;
     protected String invocation;
     protected String sbEntry;
-    protected CubeHolder caster;
+    protected Creature caster;
 
     protected ISpell(Integer level, String name, String description) {
         this.className = this.getClass().getName();
@@ -25,7 +26,7 @@ public abstract class ISpell implements Taggable, Examinable {
         return this;
     }
 
-    public ISpell setCaster(CubeHolder caster) {
+    public ISpell setCaster(Creature caster) {
         this.caster = caster;
         return this;
     }
@@ -53,7 +54,7 @@ public abstract class ISpell implements Taggable, Examinable {
         return this.name;
     }
 
-    public CubeHolder getCaster() {
+    public Creature getCaster() {
         return this.caster;
     }
 

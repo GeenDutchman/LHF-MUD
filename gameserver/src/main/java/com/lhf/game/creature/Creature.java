@@ -30,6 +30,7 @@ import com.lhf.messages.out.AttackDamageMessage;
 import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
+import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 import com.lhf.server.client.ClientID;
 
 import java.util.*;
@@ -419,7 +420,7 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, Client
             return dmOut;
         }
 
-        return new SpellFizzleMessage();
+        return new SpellFizzleMessage(SpellFizzleType.OTHER, spell.getCaster(), false);
     }
 
     private int getHealth() {

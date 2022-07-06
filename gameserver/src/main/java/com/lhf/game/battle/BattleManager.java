@@ -281,7 +281,7 @@ public class BattleManager implements MessageHandler, Examinable {
                     this.handleTurnRenegade(attacker);
                 }
             }
-            applySpell((Creature) spell.getCaster(), (CreatureAffector) spell, targets);
+            applySpell(spell.getCaster(), spell, targets);
         } else {
             sendMessageToAllParticipants(new BattleTurnMessage(attacker, true));
         }

@@ -16,7 +16,10 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.CastMessage;
-import com.lhf.messages.out.GameMessage;
+import com.lhf.messages.out.BadTargetSelectedMessage;
+import com.lhf.messages.out.SpellFizzleMessage;
+import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 
 public class ThirdPower implements MessageHandler {
     // buff debuff
@@ -56,7 +59,7 @@ public class ThirdPower implements MessageHandler {
         return toGenerate;
     }
 
-    public ISpell onCast(CubeHolder cubeHolder, String invocation) {
+    public ISpell onCast(Creature cubeHolder, String invocation) {
         if (invocation.equals(shockBolt.getInvocation())) {
             return this.shockBolt.setCaster(cubeHolder);
         } else if (invocation.equals(thaumaturgy.getInvocation())) {
@@ -67,42 +70,34 @@ public class ThirdPower implements MessageHandler {
 
     private boolean handleCast(CommandContext ctx, Command msg) {
         CastMessage casting = (CastMessage) msg;
-        Player caster = (Player) ctx.getCreature(); // TODO: every caster can cast
+        Creature caster = ctx.getCreature();
         ISpell spell = this.onCast(caster, casting.getInvocation());
         if (spell instanceof RoomAffector) {
             RoomAffector roomSpell = (RoomAffector) spell;
-            String castResult = ctx.getRoom().cast(caster, roomSpell.setRoom(ctx.getRoom()));
-            ctx.sendMsg(new GameMessage(castResult));
+            ctx.getRoom().cast(caster, roomSpell.setRoom(ctx.getRoom()));
             return true;
         }
         if (spell instanceof CreatureAffector && casting.getTarget().length() > 0) {
-            Creature targeCreature = null;
+            Creature targetCreature = null;
             List<Creature> possTargets = ctx.getRoom().getCreaturesInRoom(casting.getTarget());
             if (possTargets.size() == 1) {
-                targeCreature = possTargets.get(0);
+                targetCreature = possTargets.get(0);
             }
-            if (targeCreature == null) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("You cannot attack '").append(casting.getTarget()).append("' ");
+            if (targetCreature == null) {
                 if (possTargets.size() == 0) {
-                    sb.append("because it does not exist.");
+                    ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, casting.getTarget(), possTargets));
                 } else {
-                    sb.append("because it could be any of these:\n");
-                    for (Creature c : possTargets) {
-                        sb.append(c.getColorTaggedName()).append(" ");
-                    }
+                    ctx.sendMsg(
+                            new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, casting.getTarget(), possTargets));
                 }
-                sb.append("\r\n");
-                ctx.sendMsg(new GameMessage(sb.toString()));
                 return true;
             }
             CreatureAffector cSpell = (CreatureAffector) spell;
-            cSpell.addTarget(targeCreature);
-            String castResult = ctx.getRoom().cast(caster, cSpell);
-            ctx.sendMsg(new GameMessage(castResult));
+            cSpell.addTarget(targetCreature);
+            ctx.getRoom().cast(caster, cSpell);
             return true;
         }
-        ctx.sendMsg(new GameMessage("Bad cast?"));
+        ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, null));
         return true;
     }
 
@@ -120,11 +115,11 @@ public class ThirdPower implements MessageHandler {
     public Boolean handleMessage(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.CAST) {
             Creature attempter = ctx.getCreature();
-            if (!(attempter instanceof CubeHolder)) {
-                ctx.sendMsg(new GameMessage("You are not a caster type, so you cannot cast spells."));
+            if (attempter.getVocation().isEmpty() || !(attempter.getVocation().get() instanceof CubeHolder)) {
+                ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.NOT_CASTER, attempter, true));
                 if (ctx.getRoom() != null) {
-                    ctx.getRoom().sendMessageToAllExcept(new GameMessage(
-                            attempter.getColorTaggedName() + " mumbles to try and cast a spell...nothing happens."),
+                    ctx.getRoom().sendMessageToAllExcept(
+                            new SpellFizzleMessage(SpellFizzleType.NOT_CASTER, attempter, false),
                             attempter.getName());
                 }
             } else {
