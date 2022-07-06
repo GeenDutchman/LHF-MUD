@@ -40,7 +40,9 @@ import com.lhf.messages.out.RoomEnteredOutMessage;
 import com.lhf.messages.out.SayOutMessage;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
+import com.lhf.messages.out.TakeOutMessage;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
+import com.lhf.messages.out.TakeOutMessage.TakeOutType;
 import com.lhf.server.client.user.UserID;
 
 public class Room implements Container, MessageHandler {
@@ -508,11 +510,11 @@ public class Room implements Container, MessageHandler {
 
             for (String thing : tMessage.getDirects()) {
                 if (thing.length() < 3) {
-                    sb.append("You'll need to be more specific than '").append(thing).append("'!\n");
+                    ctx.sendMsg(new TakeOutMessage(thing, TakeOutType.SHORT));
                     continue;
                 }
                 if (thing.matches("[^ a-zA-Z_-]+") || thing.contains("*")) {
-                    sb.append("I don't think '").append(thing).append("' is a valid name\n");
+                    ctx.sendMsg(new TakeOutMessage(thing, TakeOutType.INVALID));
                     continue;
                 }
                 try {
@@ -520,10 +522,9 @@ public class Room implements Container, MessageHandler {
                             .findAny();
                     if (maybeItem.isEmpty()) {
                         if (thing.equalsIgnoreCase("all") || thing.equalsIgnoreCase("everything")) {
-                            sb.append("Aren't you being a bit greedy there by trying to grab '").append(thing)
-                                    .append("'?\n");
+                            ctx.sendMsg(new TakeOutMessage(thing, TakeOutType.GREEDY));
                         } else {
-                            sb.append("Could not find that item '").append(thing).append("' in this room.\n");
+                            ctx.sendMsg(new TakeOutMessage(thing, TakeOutType.NOT_FOUND));
                         }
                         continue;
                     }
@@ -531,18 +532,15 @@ public class Room implements Container, MessageHandler {
                     if (item instanceof Takeable) {
                         ctx.getCreature().takeItem((Takeable) item);
                         this.items.remove(item);
-                        sb.append(item.getColorTaggedName() + " successfully taken\n");
+                        ctx.sendMsg(new TakeOutMessage(thing, item, TakeOutType.FOUND_TAKEN));
                         continue;
                     }
-                    sb.append(
-                            "That's strange--it's stuck in its place. You can't take the " + item.getColorTaggedName())
-                            .append("\n");
+                    ctx.sendMsg(new TakeOutMessage(thing, item, TakeOutType.NOT_TAKEABLE));
                 } catch (PatternSyntaxException pse) {
                     pse.printStackTrace();
-                    sb.append("Are you trying to be too clever with '").append(thing).append("'?\n");
+                    ctx.sendMsg(new TakeOutMessage(thing, TakeOutType.UNCLEVER));
                 }
             }
-            ctx.sendMsg(new GameMessage(sb.toString()));
             return true;
         }
         return false;
