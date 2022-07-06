@@ -37,7 +37,7 @@ import java.util.regex.PatternSyntaxException;
 
 import static com.lhf.game.enums.Attributes.*;
 
-public abstract class Creature implements InventoryOwner, EquipmentOwner, CubeHolder, ClientMessenger, MessageHandler {
+public abstract class Creature implements InventoryOwner, EquipmentOwner, ClientMessenger, MessageHandler {
 
     public class Fist extends Weapon {
 
@@ -731,26 +731,6 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, CubeHo
     @Override
     public String getColorTaggedName() {
         return getStartTag() + getName() + getEndTag();
-    }
-
-    @Override
-    public String getCasterVocation() {
-        return "Caster";
-    }
-
-    @Override
-    public Integer getCasterLevels() {
-        return 1;
-    }
-
-    @Override
-    public Integer getCasterDifficulty() {
-        return 15;
-    }
-
-    @Override
-    public RollResult spellAttack() {
-        return this.check(Attributes.INT);
     }
 
     public ClientMessenger getController() {
