@@ -34,13 +34,17 @@ import com.lhf.messages.in.InteractMessage;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.TakeMessage;
+import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.GameMessage;
+import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.RoomEnteredOutMessage;
 import com.lhf.messages.out.SayOutMessage;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
 import com.lhf.messages.out.TakeOutMessage;
+import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 import com.lhf.messages.out.TakeOutMessage.TakeOutType;
 import com.lhf.server.client.user.UserID;
@@ -559,26 +563,19 @@ public class Room implements Container, MessageHandler {
                 Item ro = matches.get(0);
                 if (ro instanceof InteractObject) {
                     InteractObject ex = (InteractObject) ro;
-                    ctx.sendMsg(new GameMessage(
-                            "<interaction>" + ex.doUseAction((Player) ctx.getCreature()) + "</interaction>"));
+                    ctx.sendMsg(ex.doUseAction(ctx.getCreature()));
                 } else {
-                    ctx.sendMsg(new GameMessage("You try to interact with " + ro.getColorTaggedName()
-                            + ", but nothing happens."));
+                    ctx.sendMsg(new InteractOutMessage(ro, InteractOutMessageType.CANNOT));
                 }
                 return true;
             }
-            StringBuilder sb = new StringBuilder();
-            sb.append("You couldn't find '").append(name).append("' to interact with.\n");
-            StringJoiner sj = new StringJoiner(", ");
+            List<InteractObject> interactables = new ArrayList<>();
             for (Item ro : matches) {
                 if (ro.checkVisibility() && ro instanceof InteractObject) {
-                    sj.add(ro.getColorTaggedName());
+                    interactables.add((InteractObject) ro);
                 }
             }
-            if (sj.toString().length() > 0) {
-                sb.append("Did you mean one of these: ").append(sj.toString()).append("?\n");
-            }
-            ctx.sendMsg(new GameMessage(sb.toString()));
+            ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, name, interactables));
             return true;
         }
         return false;
