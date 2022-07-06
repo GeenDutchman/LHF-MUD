@@ -27,22 +27,23 @@ public class MissMessage extends OutMessage {
             int which = chooser.rollDice().getTotal();
             switch (which) {
                 case 1:
-                    output.append(attack.getTaggedAttacker()).append(' ').append(attack.getToHit()).append(" misses ")
+                    output.append(attacker.getColorTaggedName()).append(' ').append(attack.getToHit())
+                            .append(" misses ")
                             .append(target.getColorTaggedName());
                     break;
                 case 2:
                     output.append(target.getColorTaggedName()).append(" dodged the attack ").append(attack.getToHit())
                             .append(" from ")
-                            .append(attack.getTaggedAttacker());
+                            .append(attacker.getColorTaggedName());
                     break;
                 case 3:
-                    output.append(attack.getTaggedAttacker()).append(" whiffed ").append(attack.getToHit())
+                    output.append(attacker.getColorTaggedName()).append(" whiffed ").append(attack.getToHit())
                             .append(" their attack on ")
                             .append(target.getColorTaggedName());
                     break;
                 default:
                     output.append("The attack ").append(attack.getToHit()).append(" by ")
-                            .append(attack.getTaggedAttacker())
+                            .append(attacker.getColorTaggedName())
                             .append(" on ")
                             .append(target.getColorTaggedName()).append(" does not land");
                     break;
