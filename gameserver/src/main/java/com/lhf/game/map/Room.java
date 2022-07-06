@@ -506,7 +506,6 @@ public class Room implements Container, MessageHandler {
     private Boolean handleTake(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.TAKE) {
             TakeMessage tMessage = (TakeMessage) msg;
-            StringBuilder sb = new StringBuilder();
 
             for (String thing : tMessage.getDirects()) {
                 if (thing.length() < 3) {
