@@ -34,15 +34,7 @@ import com.lhf.messages.in.InteractMessage;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.TakeMessage;
-import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.GameMessage;
-import com.lhf.messages.out.InteractOutMessage;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.RoomEnteredOutMessage;
-import com.lhf.messages.out.SayOutMessage;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SpellFizzleMessage;
-import com.lhf.messages.out.TakeOutMessage;
+import com.lhf.messages.out.*;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
@@ -584,20 +576,19 @@ public class Room implements Container, MessageHandler {
     private Boolean handleDrop(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.DROP) {
             DropMessage dMessage = (DropMessage) msg;
-            StringJoiner sj = new StringJoiner(" ");
-            sj.setEmptyValue("You didn't select anything to drop!");
+            if (dMessage.getDirects().size() == 0) {
+                ctx.sendMsg(new BadTargetSelectedMessage(BadTargetSelectedMessage.BadTargetOption.NOTARGET, null));
+            }
             for (String itemName : dMessage.getDirects()) {
                 Optional<Item> maybeTakeable = ctx.getCreature().dropItem(itemName);
                 if (maybeTakeable.isEmpty()) {
-                    sj.add("You don't have a " + itemName + " to drop.");
+                    ctx.sendMsg(new NotPossessedMessage(Item.class.getSimpleName(), itemName));
                     continue;
                 }
                 Item takeable = maybeTakeable.get();
                 this.addItem(takeable);
-                sj.add("You glance at your empty hand as the " + takeable.getColorTaggedName()
-                        + " drops to the floor.");
+                ctx.sendMsg(new DropOutMessage(takeable));
             }
-            ctx.sendMsg(new GameMessage(sj.toString()));
             return true;
         }
         return false;
