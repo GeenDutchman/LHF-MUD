@@ -4,6 +4,7 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.enums.*;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.interfaces.Equipable;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,7 +17,8 @@ public class Statblock {
 
     public Statblock(String creatureRace, CreatureFaction faction, AttributeBlock attributes,
             HashMap<Stats, Integer> stats,
-            HashSet<EquipmentTypes> proficiencies, Inventory inventory, HashMap<EquipmentSlots, Item> equipmentSlots) {
+            HashSet<EquipmentTypes> proficiencies, Inventory inventory,
+            HashMap<EquipmentSlots, Equipable> equipmentSlots) {
         this.creatureRace = creatureRace;
         this.faction = faction;
         this.attributes = attributes;
@@ -56,7 +58,7 @@ public class Statblock {
     // Inventory
     public Inventory inventory;
     // Equipment slots
-    public HashMap<EquipmentSlots, Item> equipmentSlots;
+    public HashMap<EquipmentSlots, Equipable> equipmentSlots;
 
     public Statblock() {
     }
@@ -117,11 +119,11 @@ public class Statblock {
         this.inventory = inventory;
     }
 
-    public HashMap<EquipmentSlots, Item> getEquipmentSlots() {
+    public HashMap<EquipmentSlots, Equipable> getEquipmentSlots() {
         return equipmentSlots;
     }
 
-    public void setEquipmentSlots(HashMap<EquipmentSlots, Item> equipmentSlots) {
+    public void setEquipmentSlots(HashMap<EquipmentSlots, Equipable> equipmentSlots) {
         this.equipmentSlots = equipmentSlots;
     }
 

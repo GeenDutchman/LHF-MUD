@@ -33,6 +33,7 @@ import com.lhf.messages.out.InventoryOutMessage;
 import com.lhf.messages.out.NotPossessedMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
+import com.lhf.messages.out.StatusOutMessage;
 import com.lhf.messages.out.UnequipOutMessage;
 import com.lhf.messages.out.EquipOutMessage.EquipResultType;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
@@ -230,15 +231,6 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, Client
         if (this.canLevelUp(current, current - value)) {
             // this.levelUp();
         }
-    }
-
-    public String getStatus() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("You have ").append(getStats().get(Stats.CURRENTHP)).append("/")
-                .append(getStats().get(Stats.MAXHP)).append(" HP\r\n");
-        builder.append(Stats.AC).append(" ").append(getStats().get(Stats.AC)).append("\r\n");
-        builder.append(this.getAttributes().toString()).append("\r\n");
-        return builder.toString();
     }
 
     public RollResult check(Attributes attribute) {
@@ -491,7 +483,7 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, Client
         this.inventory = inventory;
     }
 
-    public void setEquipmentSlots(HashMap<EquipmentSlots, Item> equipmentSlots) {
+    public void setEquipmentSlots(HashMap<EquipmentSlots, Equipable> equipmentSlots) {
         this.equipmentSlots = equipmentSlots;
     }
 
@@ -772,7 +764,7 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, Client
                     uneqmsg.getUnequipWhat()));
             handled = true;
         } else if (msg.getType() == CommandMessage.STATUS) {
-            ctx.sendMsg(new GameMessage(this.getStatus()));
+            ctx.sendMsg(new StatusOutMessage(this, true));
             handled = true;
         } else if (msg.getType() == CommandMessage.INVENTORY) {
             ctx.sendMsg(this.inventory.getInventoryOutMessage().AddEquipment(this.equipmentSlots));
