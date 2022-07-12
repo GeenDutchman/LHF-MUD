@@ -43,7 +43,7 @@ import com.lhf.server.client.user.UserID;
 
 public class Room implements Container, MessageHandler {
 
-    private Map<String, Room> exits;
+    private Map<String, Room> exits; // TODO: make Doors that connect rooms, some need Keys
     private List<Item> items;
     private String description;
     private BattleManager battleManager;
@@ -115,12 +115,7 @@ public class Room implements Container, MessageHandler {
 
     public boolean removePlayer(UserID id) {
         Player toRemove = getPlayerInRoom(id);
-        return this.removePlayer(toRemove);
-    }
-
-    public boolean removePlayer(Player p) {
-        Creature c = this.removeCreature(p);
-        return c != null;
+        return this.removeCreature(toRemove) != null;
     }
 
     public Creature removeCreature(Creature c) {
@@ -600,11 +595,10 @@ public class Room implements Container, MessageHandler {
             if (exits.containsKey(goMessage.getDirection().toString().toLowerCase())) {
                 Room otherRoom = exits.get(goMessage.getDirection().toString().toLowerCase());
                 ctx.getCreature().setSuccessor(otherRoom);
-                this.removePlayer((Player) ctx.getCreature());
-                otherRoom.addPlayer((Player) ctx.getCreature());
+                this.removeCreature(ctx.getCreature());
+                otherRoom.addCreature(ctx.getCreature());
             } else {
-                ctx.sendMsg(new GameMessage(goMessage.getDirection().toString()
-                        + " is not a valid choice here, try one of " + this.getDirections()));
+                ctx.sendMsg(new BadGoMessage(goMessage.getDirection(), this.exits.keySet()));
             }
             return true;
         }

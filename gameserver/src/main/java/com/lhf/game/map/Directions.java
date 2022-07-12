@@ -1,6 +1,8 @@
 package com.lhf.game.map;
 
-public enum Directions {
+import com.lhf.Taggable;
+
+public enum Directions implements Taggable {
     NORTH, SOUTH, EAST, WEST, UP, DOWN;
 
     public static Boolean isDirections(String value) {
@@ -21,5 +23,25 @@ public enum Directions {
             }
         }
         return null;
+    }
+
+    @Override
+    public String getStartTag() {
+        return "<exit>";
+    }
+
+    @Override
+    public String getEndTag() {
+        return "</exit>";
+    }
+
+    @Override
+    public String toString() {
+        return this.name().toLowerCase().replace('_', ' ');
+    }
+
+    @Override
+    public String getColorTaggedName() {
+        return this.getStartTag() + this.toString() + this.getEndTag();
     }
 }
