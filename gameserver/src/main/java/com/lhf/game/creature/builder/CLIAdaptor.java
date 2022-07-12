@@ -16,6 +16,7 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.game.item.interfaces.Takeable;
 
 public class CLIAdaptor implements CreatorAdaptor {
@@ -231,9 +232,9 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public HashMap<EquipmentSlots, Item> equipFromInventory(Inventory inventory) {
+    public HashMap<EquipmentSlots, Equipable> equipFromInventory(Inventory inventory) {
         String item_slot_string;
-        HashMap<EquipmentSlots, Item> equipmentSlots = new HashMap<>();
+        HashMap<EquipmentSlots, Equipable> equipmentSlots = new HashMap<>();
         while (true) {
             System.out.print("Given: " + inventory.toStoreString()
                     + " \nIs there anything you would like to equip?(Item Name,slot or done) ");
@@ -246,8 +247,8 @@ public class CLIAdaptor implements CreatorAdaptor {
 
                 EquipmentSlots slot = EquipmentSlots.valueOf(pair[1].strip().toUpperCase());
                 Optional<Item> optItem = inventory.removeItem(pair[0].strip());
-                if (optItem.isPresent()) {
-                    equipmentSlots.put(slot, optItem.get());
+                if (optItem.isPresent() && optItem.get() instanceof Equipable) {
+                    equipmentSlots.put(slot, (Equipable) optItem.get());
                 } else {
                     System.out.println(pair[0] + " is not a valid choice.  Match the name exactly, ignoring case.");
                 }

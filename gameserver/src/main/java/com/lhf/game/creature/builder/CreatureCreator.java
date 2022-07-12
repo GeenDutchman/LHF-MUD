@@ -17,6 +17,7 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.server.client.user.User;
 
 public class CreatureCreator {
@@ -38,7 +39,7 @@ public class CreatureCreator {
 
         public Inventory buildInventory();
 
-        public HashMap<EquipmentSlots, Item> equipFromInventory(Inventory inventory);
+        public HashMap<EquipmentSlots, Equipable> equipFromInventory(Inventory inventory);
 
         public Boolean yesOrNo();
 
