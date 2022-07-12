@@ -27,10 +27,14 @@ import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.UnequipMessage;
 import com.lhf.messages.out.AttackDamageMessage;
+import com.lhf.messages.out.EquipOutMessage;
 import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.InventoryOutMessage;
+import com.lhf.messages.out.NotPossessedMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
+import com.lhf.messages.out.UnequipOutMessage;
+import com.lhf.messages.out.EquipOutMessage.EquipResultType;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 import com.lhf.server.client.ClientID;
 
@@ -118,7 +122,7 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, Client
      * Abilities... initial thought was some kind of array
      */
     private Inventory inventory; // This creature's inventory
-    private HashMap<EquipmentSlots, Item> equipmentSlots; // See enum for slots
+    private HashMap<EquipmentSlots, Equipable> equipmentSlots; // See enum for slots
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
     private ClientMessenger controller;
@@ -312,7 +316,7 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, Client
         return proficiencies;
     }
 
-    public HashMap<EquipmentSlots, Item> getEquipmentSlots() {
+    public HashMap<EquipmentSlots, Equipable> getEquipmentSlots() {
         return equipmentSlots;
     }
 
@@ -631,7 +635,7 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, Client
     }
 
     @Override
-    public String equipItem(String itemName, EquipmentSlots slot) {
+    public OutMessage equipItem(String itemName, EquipmentSlots slot) {
         Optional<Item> maybeItem = this.inventory.getItem(itemName);
         if (maybeItem.isPresent()) {
             Item fromInventory = maybeItem.get();
@@ -641,49 +645,48 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, Client
                     slot = equipThing.getWhichSlots().get(0);
                 }
                 if (equipThing.getWhichSlots().contains(slot)) {
-                    String unequipMessage = this.unequipItem(slot, "");
+                    OutMessage unequipMessage = this.unequipItem(slot, "");
                     this.applyUse(equipThing.onEquippedBy(this));
                     this.inventory.removeItem(equipThing);
                     this.equipmentSlots.putIfAbsent(slot, equipThing);
-                    return unequipMessage + ((Item) equipThing).getColorTaggedName() + " successfully equipped!\r\n";
+                    return new EquipOutMessage(unequipMessage, equipThing);
                 }
-                String notEquip = "You cannot equip the " + equipThing.getColorTaggedName() + " to "
-                        + slot.toString() + "\n";
-                return notEquip + "You can equip it to: " + equipThing.printWhichSlots();
+                return new EquipOutMessage(EquipResultType.BADSLOT, equipThing, itemName, slot);
             }
-            return fromInventory.getColorTaggedName() + " is not equippable!\r\n";
+            return new EquipOutMessage(EquipResultType.NOTEQUIPBLE, fromInventory, itemName, slot);
         }
-
-        return "'" + itemName + "' is not in your inventory, so you cannot equip it!\r\n";
+        return new NotPossessedMessage(Item.class.getSimpleName(), itemName);
     }
 
     @Override
-    public String unequipItem(EquipmentSlots slot, String weapon) {
+    public OutMessage unequipItem(EquipmentSlots slot, String weapon) {
         if (slot == null) {
             // if they specified weapon and not slot
             Optional<Item> optItem = getItem(weapon);
-            if (optItem.isPresent() && equipmentSlots.containsValue(optItem.get())) {
-                Equipable equippedThing = (Equipable) optItem.get();
-                for (EquipmentSlots thingSlot : equippedThing.getWhichSlots()) {
-                    if (equippedThing.equals(equipmentSlots.get(thingSlot))) {
-                        this.equipmentSlots.remove(thingSlot);
-                        this.applyUse(equippedThing.onUnequippedBy(this));
-                        this.inventory.addItem(equippedThing);
-                        return "You have unequipped your " + ((Item) equippedThing).getColorTaggedName() + "\r\n";
+            if (optItem.isPresent()) {
+                if (equipmentSlots.containsValue(optItem.get())) {
+                    Equipable equippedThing = (Equipable) optItem.get();
+                    for (EquipmentSlots thingSlot : equippedThing.getWhichSlots()) {
+                        if (equippedThing.equals(equipmentSlots.get(thingSlot))) {
+                            this.equipmentSlots.remove(thingSlot);
+                            this.applyUse(equippedThing.onUnequippedBy(this));
+                            this.inventory.addItem(equippedThing);
+                            return new UnequipOutMessage(thingSlot, equippedThing);
+                        }
                     }
                 }
-                return "That is not currently equipped!";
+                return new UnequipOutMessage(null, optItem.get());
             }
 
-            return "That is not a slot.  These are your options: " + Arrays.toString(EquipmentSlots.values()) + "\r\n";
+            return new NotPossessedMessage(Item.class.getSimpleName(), weapon);
         }
-        Equipable thing = (Equipable) getEquipmentSlots().remove(slot);
+        Equipable thing = getEquipmentSlots().remove(slot);
         if (thing != null) {
             this.applyUse(thing.onUnequippedBy(this));
             this.inventory.addItem(thing);
-            return "You have unequipped your " + ((Item) thing).getColorTaggedName() + "\r\n";
+            return new UnequipOutMessage(slot, thing);
         }
-        return "That slot is empty.\r\n";
+        return new UnequipOutMessage(slot, thing); // thing is null
     }
 
     @Override
@@ -761,14 +764,12 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, Client
         boolean handled = false;
         if (msg.getType() == CommandMessage.EQUIP) {
             EquipMessage eqmsg = (EquipMessage) msg;
-            String message = this.equipItem(eqmsg.getItemName(), eqmsg.getEquipSlot());
-            ctx.sendMsg(new GameMessage(message));
+            ctx.sendMsg(this.equipItem(eqmsg.getItemName(), eqmsg.getEquipSlot()));
             handled = true;
         } else if (msg.getType() == CommandMessage.UNEQUIP) {
             UnequipMessage uneqmsg = (UnequipMessage) msg;
-            String message = this.unequipItem(EquipmentSlots.getEquipmentSlot(uneqmsg.getUnequipWhat()),
-                    uneqmsg.getUnequipWhat());
-            ctx.sendMsg(new GameMessage(message));
+            ctx.sendMsg(this.unequipItem(EquipmentSlots.getEquipmentSlot(uneqmsg.getUnequipWhat()),
+                    uneqmsg.getUnequipWhat()));
             handled = true;
         } else if (msg.getType() == CommandMessage.STATUS) {
             ctx.sendMsg(new GameMessage(this.getStatus()));
