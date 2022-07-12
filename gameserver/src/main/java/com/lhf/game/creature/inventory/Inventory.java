@@ -3,6 +3,7 @@ package com.lhf.game.creature.inventory;
 import com.lhf.game.Container;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Takeable;
+import com.lhf.messages.out.InventoryOutMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Inventory implements Container {
-    private ArrayList<Takeable> items;
+    private List<Takeable> items;
 
     public Inventory() {
         items = new ArrayList<>();
@@ -46,7 +47,11 @@ public class Inventory implements Container {
 
     @Override
     public String toString() {
-        return this.items.stream().map(item -> "<item>" + item.getName() + "</item>").collect(Collectors.joining(", "));
+        return this.items.stream().map(item -> item.getColorTaggedName()).collect(Collectors.joining(", "));
+    }
+
+    public InventoryOutMessage getInventoryOutMessage() {
+        return new InventoryOutMessage(this.items);
     }
 
     public String toStoreString() {
@@ -73,5 +78,10 @@ public class Inventory implements Container {
             }
         }
         return Optional.empty();
+    }
+
+    @Override
+    public String printDescription() {
+        return "This is your inventory.";
     }
 }

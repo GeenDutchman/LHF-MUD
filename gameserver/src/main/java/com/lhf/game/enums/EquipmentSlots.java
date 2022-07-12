@@ -1,6 +1,8 @@
 package com.lhf.game.enums;
 
-public enum EquipmentSlots {
+import com.lhf.Taggable;
+
+public enum EquipmentSlots implements Taggable {
     HAT, NECKLACE, ARMOR, SHIELD, ARM, LEFTHAND, RIGHTHAND, BELT, BOOTS, WEAPON;
 
     public static EquipmentSlots getEquipmentSlot(String value) {
@@ -20,5 +22,25 @@ public enum EquipmentSlots {
             }
         }
         return false;
+    }
+
+    @Override
+    public String getStartTag() {
+        return "<equipSlot>";
+    }
+
+    @Override
+    public String getEndTag() {
+        return "</equipSlot>";
+    }
+
+    @Override
+    public String toString() {
+        return this.name().toLowerCase().replace('_', ' ');
+    }
+
+    @Override
+    public String getColorTaggedName() {
+        return this.getStartTag() + this.toString() + this.getEndTag();
     }
 }

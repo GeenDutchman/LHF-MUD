@@ -28,6 +28,7 @@ import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.UnequipMessage;
 import com.lhf.messages.out.AttackDamageMessage;
 import com.lhf.messages.out.GameMessage;
+import com.lhf.messages.out.InventoryOutMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
@@ -555,26 +556,7 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, Client
 
     @Override
     public String printInventory() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("INVENTORY:\r\n");
-        if (this.inventory.isEmpty()) {
-            sb.append("Your inventory is empty.");
-        } else {
-            sb.append(this.inventory.toString());
-        }
-        sb.append("\r\n");
-
-        for (EquipmentSlots slot : EquipmentSlots.values()) {
-            Item item = this.equipmentSlots.get(slot);
-
-            if (item == null) {
-                sb.append(slot.toString()).append(": ").append("empty. ");
-            } else {
-                sb.append(slot.toString()).append(": ").append(item.getColorTaggedName()).append(". ");
-            }
-        }
-
-        return sb.toString();
+        return this.inventory.getInventoryOutMessage().AddEquipment(this.equipmentSlots).toString();
     }
 
     public Optional<Item> getItem(String itemName) {
@@ -792,7 +774,7 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, Client
             ctx.sendMsg(new GameMessage(this.getStatus()));
             handled = true;
         } else if (msg.getType() == CommandMessage.INVENTORY) {
-            ctx.sendMsg(new GameMessage(this.printInventory()));
+            ctx.sendMsg(this.inventory.getInventoryOutMessage().AddEquipment(this.equipmentSlots));
             handled = true;
         }
 
