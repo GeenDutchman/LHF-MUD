@@ -6,17 +6,18 @@ import java.util.StringJoiner;
 
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.game.item.interfaces.Takeable;
 
 public class InventoryOutMessage extends OutMessage {
     private Collection<Takeable> items;
-    private Map<EquipmentSlots, Item> equipment;
+    private Map<EquipmentSlots, Equipable> equipment;
 
     public InventoryOutMessage(Collection<Takeable> items) {
         this.items = items;
     }
 
-    public InventoryOutMessage AddEquipment(Map<EquipmentSlots, Item> equipment) {
+    public InventoryOutMessage AddEquipment(Map<EquipmentSlots, Equipable> equipment) {
         this.equipment = equipment;
         return this;
     }
@@ -53,7 +54,7 @@ public class InventoryOutMessage extends OutMessage {
         return items;
     }
 
-    public Map<EquipmentSlots, Item> getEquipment() {
+    public Map<EquipmentSlots, Equipable> getEquipment() {
         return equipment;
     }
 
