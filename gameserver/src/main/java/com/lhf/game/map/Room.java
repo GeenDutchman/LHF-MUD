@@ -624,12 +624,12 @@ public class Room implements Container, MessageHandler {
             if (sMessage.getTarget() != null) {
                 for (Creature p : this.allCreatures) {
                     if (p.checkName(sMessage.getTarget())) {
-                        p.sendMsg(new SayOutMessage(ctx.getCreature(), sMessage.getMessage(), p));
+                        p.sendMsg(new SpeakingMessage(ctx.getCreature(), sMessage.getMessage(), p));
                         break;
                     }
                 }
             } else {
-                this.sendMessageToAll(new SayOutMessage(ctx.getCreature(), sMessage.getMessage()));
+                this.sendMessageToAll(new SpeakingMessage(ctx.getCreature(), sMessage.getMessage()));
             }
             return true;
         }

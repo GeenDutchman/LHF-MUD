@@ -2,17 +2,24 @@ package com.lhf.messages.out;
 
 import com.lhf.messages.ClientMessenger;
 
-public class SayOutMessage extends OutMessage {
+public class SpeakingMessage extends OutMessage {
     private String message;
     private ClientMessenger sayer;
     private ClientMessenger hearer;
+    private Boolean shouting;
 
-    public SayOutMessage(ClientMessenger sayer, String message) {
+    public SpeakingMessage(ClientMessenger sayer, String message) {
         this.sayer = sayer;
         this.message = message;
     }
 
-    public SayOutMessage(ClientMessenger sayer, String message, ClientMessenger hearer) {
+    public SpeakingMessage(ClientMessenger sayer, boolean shouting, String message) {
+        this.sayer = sayer;
+        this.message = message;
+        this.shouting = shouting;
+    }
+
+    public SpeakingMessage(ClientMessenger sayer, String message, ClientMessenger hearer) {
         this.sayer = sayer;
         this.message = message;
         this.hearer = hearer;
@@ -22,6 +29,9 @@ public class SayOutMessage extends OutMessage {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(this.sayer.getColorTaggedName());
+        if (this.shouting != null && this.shouting.booleanValue()) {
+            sb.append(" SHOUTS ");
+        }
         if (this.hearer != null) {
             sb.append(" to ").append(this.hearer.getColorTaggedName());
         }
@@ -39,5 +49,9 @@ public class SayOutMessage extends OutMessage {
 
     public ClientMessenger getHearer() {
         return hearer;
+    }
+
+    public Boolean getShouting() {
+        return shouting;
     }
 }

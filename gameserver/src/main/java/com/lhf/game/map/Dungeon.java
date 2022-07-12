@@ -12,9 +12,11 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.ShoutMessage;
-import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.ReincarnateMessage;
+import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SpawnMessage;
+import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.user.UserID;
 
 public class Dungeon implements MessageHandler {
@@ -58,9 +60,8 @@ public class Dungeon implements MessageHandler {
     void reincarnate(Player p) {
         Player p2 = new Player(p.getUser());
         addNewPlayer(p2);
-        p.sendMsg(new GameMessage(
-                "*******************************X_X*********************************************\nYou have died. Out of mercy you have been reborn back where you began."));
-        p2.sendMsg(new GameMessage(startingRoom.toString()));
+        p.sendMsg(new ReincarnateMessage(p.getColorTaggedName()));
+        p2.sendMsg(new SeeOutMessage(startingRoom));
     }
 
     void setStartingRoom(Room r) {
@@ -141,8 +142,7 @@ public class Dungeon implements MessageHandler {
             ShoutMessage shoutMessage = (ShoutMessage) cmd;
             for (Room room : this.rooms) {
                 for (Player p : room.getAllPlayersInRoom()) {
-                    p.sendMsg(new GameMessage(
-                            ctx.getCreature().getColorTaggedName() + " SHOUTS: " + shoutMessage.getMessage()));
+                    p.sendMsg(new SpeakingMessage(ctx.getCreature(), true, shoutMessage.getMessage()));
                 }
             }
             return true;
