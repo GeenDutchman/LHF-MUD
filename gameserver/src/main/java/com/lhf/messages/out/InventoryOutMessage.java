@@ -25,7 +25,7 @@ public class InventoryOutMessage extends OutMessage {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("INVENTORY: ").append("\n")
+        sb.append("INVENTORY: ").append("\n");
         StringJoiner sj = new StringJoiner(", ");
         sj.setEmptyValue("You have nothing in your inventory");
         for (Takeable item : this.items) {

@@ -3,7 +3,6 @@ package com.lhf.game.map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.RoomEnteredOutMessage;
 import com.lhf.server.client.user.User;
 

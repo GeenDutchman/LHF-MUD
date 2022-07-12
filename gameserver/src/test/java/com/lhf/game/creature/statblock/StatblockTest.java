@@ -16,6 +16,7 @@ import com.lhf.game.item.ItemDeserializer;
 import com.lhf.game.item.TakeableDeserializer;
 import com.lhf.game.item.concrete.equipment.Longsword;
 import com.lhf.game.item.concrete.equipment.RustyDagger;
+import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.game.item.interfaces.Takeable;
 
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ public class StatblockTest {
         Longsword longsword = new Longsword(true);
         inv.addItem(longsword);
         s.setInventory(inv);
-        HashMap<EquipmentSlots, Item> equipped = new HashMap<>();
+        HashMap<EquipmentSlots, Equipable> equipped = new HashMap<>();
         RustyDagger dagger = new RustyDagger(true);
         equipped.put(EquipmentSlots.WEAPON, dagger);
         s.setEquipmentSlots(equipped);

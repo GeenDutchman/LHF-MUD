@@ -28,7 +28,6 @@ import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.UnequipMessage;
 import com.lhf.messages.out.AttackDamageMessage;
 import com.lhf.messages.out.EquipOutMessage;
-import com.lhf.messages.out.GameMessage;
 import com.lhf.messages.out.InventoryOutMessage;
 import com.lhf.messages.out.NotPossessedMessage;
 import com.lhf.messages.out.OutMessage;

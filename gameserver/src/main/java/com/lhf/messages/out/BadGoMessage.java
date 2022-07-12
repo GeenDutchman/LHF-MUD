@@ -1,7 +1,6 @@
 package com.lhf.messages.out;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.game.map.Directions;
@@ -47,7 +46,7 @@ public class BadGoMessage extends OutMessage {
         return attempted;
     }
 
-    public List<String> getAvailable() {
+    public Collection<String> getAvailable() {
         return available;
     }
 
