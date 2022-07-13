@@ -11,8 +11,10 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandInParser;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
-import com.lhf.messages.out.GameMessage;
+import com.lhf.messages.out.BadMessage;
+import com.lhf.messages.out.HelpMessage;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.BadMessage.BadMessageType;
 
 public class Client implements MessageHandler, ClientMessenger {
     protected SendStrategy out;
@@ -42,24 +44,16 @@ public class Client implements MessageHandler, ClientMessenger {
             accepted = this.handleMessage(null, cmd);
             if (!accepted) {
                 this.logger.warning("Command not accepted:" + cmd.getWhole());
-                StringBuilder sb = new StringBuilder();
-                sb.append("That command \"").append(cmd.getWhole()).append("\" was not handled.\n")
-                        .append("Here are the available commands:\r\n");
-                this.sendMsg(new GameMessage(sb.toString()));
-                accepted = this.handleHelpMessage(cmd);
+                accepted = this.handleHelpMessage(cmd, BadMessageType.UNHANDLED);
             }
         } else {
             // The message was not recognized
-            StringBuilder sb = new StringBuilder();
-            sb.append("That command \"").append(cmd.getWhole()).append("\" was not recognized.\n")
-                    .append("Here are the available commands:\r\n");
             this.logger.fine("Message was bad");
-            this.sendMsg(new GameMessage(sb.toString()));
-            accepted = this.handleHelpMessage(cmd);
+            accepted = this.handleHelpMessage(cmd, BadMessageType.UNRECOGNIZED);
         }
         if (!accepted) {
             this.logger.warning("Command really not accepted/recognized:" + cmd.getWhole());
-            this.sendMsg(new GameMessage("You just have no luck, huh?"));
+            this.handleHelpMessage(cmd, BadMessageType.OTHER);
         }
     }
 
@@ -80,21 +74,14 @@ public class Client implements MessageHandler, ClientMessenger {
         return this.id;
     }
 
-    private Boolean handleHelpMessage(Command msg) {
-        StringBuilder sb = new StringBuilder();
+    private Boolean handleHelpMessage(Command msg, BadMessageType badMessageType) {
         TreeMap<CommandMessage, String> helps = new TreeMap<>(this.gatherHelp());
-        CommandMessage cmd = msg.getType();
-        if (cmd != null && helps.containsKey(cmd)) {
-            sb.append(cmd.getColorTaggedName()).append(":").append("\r\n").append("<description>")
-                    .append(helps.get(cmd)).append("</description>").append("\r\n");
-        } else {
-            for (CommandMessage cmdMsg : helps.keySet()) {
-                sb.append(cmdMsg.getColorTaggedName()).append(":").append("\r\n").append("<description>")
-                        .append(helps.get(cmdMsg)).append("</description>").append("\r\n");
-            }
-        }
 
-        this.sendMsg(new GameMessage(sb.toString()));
+        if (badMessageType != null) {
+            this.sendMsg(new BadMessage(badMessageType, helps, msg));
+        } else {
+            this.sendMsg(new HelpMessage(helps, msg.getType()));
+        }
         return true;
     }
 
@@ -122,7 +109,7 @@ public class Client implements MessageHandler, ClientMessenger {
         }
         ctx.setClient(this);
         if (msg.getType() == CommandMessage.HELP) {
-            return this.handleHelpMessage(msg);
+            return this.handleHelpMessage(null, null);
         }
 
         return MessageHandler.super.handleMessage(ctx, msg);
