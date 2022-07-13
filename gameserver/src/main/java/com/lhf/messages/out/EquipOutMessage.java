@@ -39,7 +39,9 @@ public class EquipOutMessage extends OutMessage {
                     sb.append(this.unequipMessage.toString()).append(" ");
                 }
                 sb.append("You successfully equipped your ").append(this.item.getColorTaggedName());
-                sb.append(" to your ").append(this.attemptedSlot.getColorTaggedName()).append(" equiment slot.");
+                if (this.attemptedSlot != null) {
+                    sb.append(" to your ").append(this.attemptedSlot.getColorTaggedName()).append(" equiment slot.");
+                }
                 break;
             case BADSLOT:
                 sb.append(this.attemptedSlot.getColorTaggedName()).append(" is not an appropriate slot for equipping ");

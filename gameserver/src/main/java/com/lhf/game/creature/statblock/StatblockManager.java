@@ -13,9 +13,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import com.lhf.game.item.EquipableDeserializer;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.ItemDeserializer;
 import com.lhf.game.item.TakeableDeserializer;
+import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.game.item.interfaces.Takeable;
 
 public class StatblockManager {
@@ -49,6 +51,7 @@ public class StatblockManager {
 
     public Statblock statblockFromfile(String name) throws FileNotFoundException {
         GsonBuilder gBuilder = new GsonBuilder().setPrettyPrinting();
+        gBuilder.registerTypeAdapter(Equipable.class, new EquipableDeserializer<Equipable>());
         gBuilder.registerTypeAdapter(Takeable.class, new TakeableDeserializer<>());
         gBuilder.registerTypeAdapter(Item.class, new ItemDeserializer<>());
         Gson gson = gBuilder.create();

@@ -355,7 +355,7 @@ public class ServerTest {
         assertTrue(attack.contains("RENEGADE"));
         String seen = bystander.read();
         assertTrue(seen.contains("RENEGADE"));
-        assertTrue(seen.contains("You have been included in the battle!"));
+        assertTrue(seen.contains("joined") && seen.contains("battle!"));
     }
 
     @Test
@@ -366,10 +366,14 @@ public class ServerTest {
         victim.read();
         String spellResult = this.comm.handleCommand("cast zarmamoo"); // Thaumaturgy
         // because we know it's thaumaturgy
-        assertTrue(spellResult.contains(this.comm.name));
-        assertTrue(victim.read().contains(this.comm.name));
+        // TODO: make a test with a caster type
+        // assertTrue(spellResult.contains(this.comm.name));
+        assertTrue(spellResult.toLowerCase().contains("not a caster"));
+        // assertTrue(victim.read().contains(this.comm.name));
+        assertTrue(victim.read().toLowerCase().contains("nothing spectacular happens"));
 
         spellResult = this.comm.handleCommand("cast Astra Horeb at " + victim.name); // attack spell
-        assertTrue(spellResult.toLowerCase().contains("fight"));
+        // assertTrue(spellResult.toLowerCase().contains("fight"));
+        assertTrue(spellResult.toLowerCase().contains("not a caster"));
     }
 }
