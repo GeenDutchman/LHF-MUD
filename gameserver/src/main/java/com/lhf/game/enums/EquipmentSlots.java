@@ -36,7 +36,7 @@ public enum EquipmentSlots implements Taggable {
 
     @Override
     public String toString() {
-        return this.name().toLowerCase().replace('_', ' ');
+        return this.name();
     }
 
     @Override

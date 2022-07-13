@@ -11,6 +11,7 @@ import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.item.EquipableDeserializer;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.ItemDeserializer;
 import com.lhf.game.item.TakeableDeserializer;
@@ -55,6 +56,7 @@ public class StatblockTest {
             assertTrue(json.contains(item.getName()));
         }
 
+        gb.registerTypeAdapter(Equipable.class, new EquipableDeserializer<Equipable>());
         gb.registerTypeAdapter(Takeable.class, new TakeableDeserializer<Takeable>());
         gb.registerTypeAdapter(Item.class, new ItemDeserializer<Item>());
         gson = gb.create();
