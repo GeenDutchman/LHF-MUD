@@ -10,6 +10,7 @@ public class StatusOutMessage extends OutMessage {
     private final boolean full;
     private final String name;
     private final String colorTaggedName;
+    private final String race;
     private final CreatureFaction faction;
     private final HealthBuckets healthBucket;
     private final Integer currentHealth;
@@ -21,6 +22,7 @@ public class StatusOutMessage extends OutMessage {
         this.full = full;
         this.name = creature.getName();
         this.colorTaggedName = creature.getColorTaggedName();
+        this.race = creature.getCreatureRace();
         this.faction = creature.getFaction();
         this.healthBucket = HealthBuckets.calcualte(creature.getStats().get(Stats.CURRENTHP),
                 creature.getStats().get(Stats.MAXHP));
@@ -41,6 +43,7 @@ public class StatusOutMessage extends OutMessage {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Name:").append(this.colorTaggedName).append("\r\n");
+        sb.append("Race:").append(this.race).append("\r\n");
         sb.append("Faction:").append(this.faction.toString()).append("\r\n");
         sb.append("Health: ").append(this.healthBucket.getColorTaggedName());
         if (this.full && this.currentHealth != null && this.maxHealth != null) {
@@ -66,6 +69,10 @@ public class StatusOutMessage extends OutMessage {
 
     public String getColorTaggedName() {
         return colorTaggedName;
+    }
+
+    public String getRace() {
+        return race;
     }
 
     public CreatureFaction getFaction() {
