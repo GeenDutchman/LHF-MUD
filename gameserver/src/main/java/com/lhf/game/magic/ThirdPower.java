@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 import com.lhf.game.creature.Creature;
-import com.lhf.game.creature.Player;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
 import com.lhf.game.magic.interfaces.CreatureAffector;

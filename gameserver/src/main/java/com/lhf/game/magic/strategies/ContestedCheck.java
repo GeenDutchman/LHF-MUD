@@ -22,7 +22,7 @@ public class ContestedCheck extends CasterVsCreatureStrategy {
     }
 
     @Override
-    public void setCasterEffort(CubeHolder caster) {
+    public void setCasterEffort(Creature caster) {
         this.setCasterEffort(caster.check(this.getAttrToUse()));
     }
 

@@ -17,8 +17,9 @@ public class CasterCheckVsTargetArmorClass extends CasterVsCreatureStrategy {
     }
 
     @Override
-    public void setCasterEffort(CubeHolder caster) {
-        this.setCasterEffort(caster.spellAttack());
+    public void setCasterEffort(Creature caster) {
+        CubeHolder ch = (CubeHolder) caster.getVocation().get();
+        this.setCasterEffort(ch.spellAttack());
     }
 
 }
