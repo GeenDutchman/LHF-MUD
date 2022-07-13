@@ -622,11 +622,16 @@ public class Room implements Container, MessageHandler {
         if (msg.getType() == CommandMessage.SAY) {
             SayMessage sMessage = (SayMessage) msg;
             if (sMessage.getTarget() != null) {
+                boolean sent = false;
                 for (Creature p : this.allCreatures) {
                     if (p.checkName(sMessage.getTarget())) {
                         p.sendMsg(new SpeakingMessage(ctx.getCreature(), sMessage.getMessage(), p));
+                        sent = true;
                         break;
                     }
+                }
+                if (!sent) {
+                    ctx.sendMsg(new CannotSpeakToMessage(sMessage.getTarget(), null));
                 }
             } else {
                 this.sendMessageToAll(new SpeakingMessage(ctx.getCreature(), sMessage.getMessage()));
