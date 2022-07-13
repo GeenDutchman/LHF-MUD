@@ -28,7 +28,6 @@ import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.UnequipMessage;
 import com.lhf.messages.out.AttackDamageMessage;
 import com.lhf.messages.out.EquipOutMessage;
-import com.lhf.messages.out.InventoryOutMessage;
 import com.lhf.messages.out.NotPossessedMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
@@ -552,6 +551,24 @@ public abstract class Creature implements InventoryOwner, EquipmentOwner, Client
     @Override
     public String printInventory() {
         return this.inventory.getInventoryOutMessage().AddEquipment(this.equipmentSlots).toString();
+    }
+
+    @Override
+    public String printDescription() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(new StatusOutMessage(this, false).toString()).append("\r\n");
+        if (this.equipmentSlots.get(EquipmentSlots.HAT) != null) {
+            sb.append("On their head is:").append(this.equipmentSlots.get(EquipmentSlots.HAT).getColorTaggedName());
+        }
+        if (this.equipmentSlots.get(EquipmentSlots.ARMOR) != null) {
+            sb.append("They are wearing:").append(this.equipmentSlots.get(EquipmentSlots.ARMOR).getColorTaggedName());
+        } else {
+            if (this.equipmentSlots.get(EquipmentSlots.NECKLACE) != null) {
+                sb.append("Around their neck is:")
+                        .append(this.equipmentSlots.get(EquipmentSlots.NECKLACE).getColorTaggedName());
+            }
+        }
+        return sb.toString();
     }
 
     public Optional<Item> getItem(String itemName) {
