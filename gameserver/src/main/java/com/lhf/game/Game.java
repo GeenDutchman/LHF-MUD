@@ -50,7 +50,7 @@ public class Game implements UserListener, MessageHandler {
 	public void userLeft(UserID id) {
 		this.logger.entering(this.getClass().toString(), "userLeft()", id);
 		this.dungeon.removePlayer(id);
-		this.dungeon.sendMessageToAll(new UserLeftMessage(userManager.getUser(id)));
+		this.dungeon.sendMessageToAll(new UserLeftMessage(userManager.getUser(id), false));
 	}
 
 	public void addNewPlayerToGame(User user) {
