@@ -12,7 +12,8 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.CreateInMessage;
-import com.lhf.messages.out.GameMessage;
+import com.lhf.messages.out.DuplicateUserMessage;
+import com.lhf.messages.out.UserLeftMessage;
 import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.ClientID;
@@ -130,12 +131,12 @@ public class Server implements ServerInterface, ConnectionListener {
 
     private boolean handleCreateMessage(CommandContext ctx, CreateInMessage msg) {
         if (this.userManager.getAllUsernames().contains(msg.getUsername())) {
-            ctx.sendMsg(new GameMessage("That user already exists, pick a different username."));
+            ctx.sendMsg(new DuplicateUserMessage());
             return true;
         }
         User user = this.userManager.addUser(msg, ctx.getClientMessenger());
         if (user == null) {
-            ctx.sendMsg(new GameMessage("That user already exists, pick a different username."));
+            ctx.sendMsg(new DuplicateUserMessage());
             return true;
         }
         user.setSuccessor(this);
@@ -149,11 +150,12 @@ public class Server implements ServerInterface, ConnectionListener {
     public Boolean handleMessage(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.EXIT) {
             this.logger.info("client " + ctx.getClientID().toString() + " is exiting");
+            User leaving = this.userManager.getUser(ctx.getUserID());
             this.userManager.removeUser(ctx.getUserID());
             this.game.userLeft(ctx.getUserID());
             Client ch = this.clientManager.getConnection(ctx.getClientID());
             if (ch != null) {
-                ch.sendMsg(new GameMessage("Goodbye, we hope to see you again soon!"));
+                ch.sendMsg(new UserLeftMessage(leaving, true));
             }
             try {
                 this.clientManager.removeClient(ctx.getClientID()); // ch is killed in here
