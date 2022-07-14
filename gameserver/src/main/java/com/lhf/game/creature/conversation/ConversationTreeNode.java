@@ -3,19 +3,29 @@ package com.lhf.game.creature.conversation;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.TreeMap;
-
-import com.lhf.server.interfaces.NotNull;
+import java.util.UUID;
 
 public class ConversationTreeNode {
-    private ConversationTreeNodeID nodeID;
+    private final UUID nodeID;
     private StringJoiner body;
-    private Map<String, ConversationTreeNodeID> forwardMap;
+    private Map<String, UUID> forwardMap;
     // TODO: tag keywords optionally
 
-    public ConversationTreeNode(@NotNull ConversationTreeNodeID nodeID) {
-        this.nodeID = nodeID;
+    public ConversationTreeNode() {
+        this.nodeID = UUID.randomUUID();
         this.body = new StringJoiner(" ");
         this.body.setEmptyValue("I have nothing to say to you right now!");
+        this.forwardMap = new TreeMap<>();
+    }
+
+    public ConversationTreeNode(String emptyStatement) {
+        this.nodeID = UUID.randomUUID();
+        this.body = new StringJoiner(" ");
+        if (emptyStatement == null) {
+            this.body.setEmptyValue("");
+        } else {
+            this.body.setEmptyValue(emptyStatement);
+        }
         this.forwardMap = new TreeMap<>();
     }
 
@@ -23,16 +33,16 @@ public class ConversationTreeNode {
         this.body.add(bodyText);
     }
 
-    public void addBodyWithForwardRef(String bodyText, String keyword, ConversationTreeNodeID nodeID) {
+    public void addBodyWithForwardRef(String bodyText, String keyword, UUID nodeID) {
         this.addBody(bodyText);
         this.addForwardRef(keyword, nodeID);
     }
 
-    public void addForwardRef(String keyword, ConversationTreeNodeID nodeID) {
+    public void addForwardRef(String keyword, UUID nodeID) {
         this.forwardMap.put(keyword.toLowerCase(), nodeID);
     }
 
-    public ConversationTreeNodeID getNodeID() {
+    public UUID getNodeID() {
         return this.nodeID;
     }
 
@@ -40,11 +50,11 @@ public class ConversationTreeNode {
         return this.body.toString();
     }
 
-    public Map<String, ConversationTreeNodeID> getForwardMap() {
+    public Map<String, UUID> getForwardMap() {
         return this.forwardMap;
     }
 
-    public ConversationTreeNodeID getNextNodeID(String message) {
+    public UUID getNextNodeID(String message) {
         String lowerMessage = message.toLowerCase();
         for (String keyword : this.forwardMap.keySet()) {
             if (lowerMessage.matches(".*\\b" + keyword + "\\b.*")) {

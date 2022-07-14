@@ -4,13 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 
 public class ConversationTreeNodeTest {
 
     @Test
     void testEmptyNode() {
-        ConversationTreeNode node = new ConversationTreeNode(new ConversationTreeNodeID("test"));
+        ConversationTreeNode node = new ConversationTreeNode();
         assertTrue(node.getBody().contains("nothing"));
         assertEquals(0, node.getForwardMap().size());
         assertNull(node.getNextNodeID("Hello There"));
@@ -18,8 +20,8 @@ public class ConversationTreeNodeTest {
 
     @Test
     void testSingleForwardRef() {
-        ConversationTreeNode node = new ConversationTreeNode(new ConversationTreeNodeID("test"));
-        ConversationTreeNodeID test2 = new ConversationTreeNodeID("test2");
+        ConversationTreeNode node = new ConversationTreeNode();
+        UUID test2 = UUID.randomUUID();
         String body = "I have something for you";
         String keyword = "something";
         node.addBodyWithForwardRef(body, keyword, test2);
@@ -32,14 +34,14 @@ public class ConversationTreeNodeTest {
 
     @Test
     void testBranchingNode() {
-        ConversationTreeNode node = new ConversationTreeNode(new ConversationTreeNodeID("test"));
+        ConversationTreeNode node = new ConversationTreeNode();
 
-        ConversationTreeNodeID test1 = new ConversationTreeNodeID("test1");
+        UUID test1 = UUID.randomUUID();
         String body1 = "I have something for you";
         String keyword1 = "something";
         node.addBodyWithForwardRef(body1, keyword1, test1);
 
-        ConversationTreeNodeID test2 = new ConversationTreeNodeID("test2");
+        UUID test2 = UUID.randomUUID();
         String body2 = "and it should be useful";
         String keyword2 = "useful";
         node.addBodyWithForwardRef(body2, keyword2, test2);
@@ -54,10 +56,4 @@ public class ConversationTreeNodeTest {
         assertEquals(test2, node.getNextNodeID(keyword2));
     }
 
-    @Test
-    void testGetNodeID() {
-        ConversationTreeNodeID id = new ConversationTreeNodeID("test");
-        ConversationTreeNode node = new ConversationTreeNode(id);
-        assertEquals(id, node.getNodeID());
-    }
 }

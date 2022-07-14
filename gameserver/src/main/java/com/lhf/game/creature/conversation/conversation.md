@@ -22,24 +22,20 @@ Optionally, the `NPC` could "forget" about where a `creature` is in the conversa
 ```mermaid
 classDiagram
     direction TD
-    class NodeID {
-        -String id
-        +String getNodeID()
-    }
 
     class Node {
-        -NodeID nodeID
+        -UUID nodeID
         -String body
         -Map[String, String] forwardMap
-        +NodeID getNodeID()
+        +UUID getNodeID()
         +String getBody()
-        +Map[String, NodeID] getForwardMap()
-        +NodeID getNextNodeID(String keyword)
+        +Map[String, UUID] getForwardMap()
+        +UUID getNextNodeID(String keyword)
     }
 
     class Tree {
-        -Map[NodeID, Node] tree
-        -Map[Creature, NodeID] bookmarks
+        -Map[UUID, Node] tree
+        -Map[Creature, UUID] bookmarks
         -String repeatWord
         -String greeting
         -String repeat(Creature c)

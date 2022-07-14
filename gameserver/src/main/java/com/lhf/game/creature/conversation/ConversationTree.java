@@ -4,13 +4,14 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.UUID;
 
 import com.lhf.game.creature.Creature;
 
 public class ConversationTree {
     private ConversationTreeNode start;
-    private Map<ConversationTreeNodeID, ConversationTreeNode> tree;
-    private Map<Creature, ConversationTreeNodeID> bookmarks;
+    private Map<UUID, ConversationTreeNode> tree;
+    private Map<Creature, UUID> bookmarks;
     private SortedSet<String> repeatWords;
     private SortedSet<String> greetings;
 
@@ -42,17 +43,17 @@ public class ConversationTree {
         String lowerMessage = message.toLowerCase();
         if (!this.bookmarks.containsKey(c)) {
             for (String greet : this.greetings) {
-                if (lowerMessage.matches(".*\\b" + greet + "\\b.*")) {
-                    this.bookmarks.put(c, this.start.getNodeID()); // TODO: what to do if start is null
+                if (lowerMessage.matches(".*\\b" + greet + "\\b.*") && this.start != null) {
+                    this.bookmarks.put(c, this.start.getNodeID());
                     return this.start.getBody();
                 }
             }
             return null;
         }
-        ConversationTreeNodeID id = this.bookmarks.get(c);
+        UUID id = this.bookmarks.get(c);
         ConversationTreeNode node = this.tree.get(id);
         if (node != null) {
-            ConversationTreeNodeID newId = node.getNextNodeID(message);
+            UUID newId = node.getNextNodeID(message);
             node = this.tree.get(newId);
             if (node != null) {
                 this.bookmarks.put(c, newId);
