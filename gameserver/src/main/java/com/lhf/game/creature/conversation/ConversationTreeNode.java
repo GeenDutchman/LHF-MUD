@@ -1,21 +1,20 @@
 package com.lhf.game.creature.conversation;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.UUID;
 
-public class ConversationTreeNode {
+public class ConversationTreeNode implements Comparable<ConversationTreeNode> {
     private final UUID nodeID;
     private StringJoiner body;
-    private Map<String, UUID> forwardMap;
     // TODO: tag keywords optionally
 
     public ConversationTreeNode() {
         this.nodeID = UUID.randomUUID();
         this.body = new StringJoiner(" ");
         this.body.setEmptyValue("I have nothing to say to you right now!");
-        this.forwardMap = new TreeMap<>();
     }
 
     public ConversationTreeNode(String emptyStatement) {
@@ -26,20 +25,10 @@ public class ConversationTreeNode {
         } else {
             this.body.setEmptyValue(emptyStatement);
         }
-        this.forwardMap = new TreeMap<>();
     }
 
     public void addBody(String bodyText) {
         this.body.add(bodyText);
-    }
-
-    public void addBodyWithForwardRef(String bodyText, String keyword, UUID nodeID) {
-        this.addBody(bodyText);
-        this.addForwardRef(keyword, nodeID);
-    }
-
-    public void addForwardRef(String keyword, UUID nodeID) {
-        this.forwardMap.put(keyword.toLowerCase(), nodeID);
     }
 
     public UUID getNodeID() {
@@ -50,17 +39,36 @@ public class ConversationTreeNode {
         return this.body.toString();
     }
 
-    public Map<String, UUID> getForwardMap() {
-        return this.forwardMap;
+    @Override
+    public int compareTo(ConversationTreeNode o) {
+        if (o == null) {
+            throw new NullPointerException("Cannot compare to a null Conversation Node");
+        }
+        return this.nodeID.compareTo(o.getNodeID());
     }
 
-    public UUID getNextNodeID(String message) {
-        String lowerMessage = message.toLowerCase();
-        for (String keyword : this.forwardMap.keySet()) {
-            if (lowerMessage.matches(".*\\b" + keyword + "\\b.*")) {
-                return this.forwardMap.get(keyword);
-            }
-        }
-        return null;
+    @Override
+    public int hashCode() {
+        return Objects.hash(nodeID);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof ConversationTreeNode)) {
+            return false;
+        }
+        ConversationTreeNode other = (ConversationTreeNode) obj;
+        return Objects.equals(nodeID, other.nodeID);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("ConversationTreeNode [body=").append(body).append(", nodeID=").append(nodeID).append("]");
+        return builder.toString();
+    }
+
 }

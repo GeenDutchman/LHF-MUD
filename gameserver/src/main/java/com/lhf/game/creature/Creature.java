@@ -797,24 +797,7 @@ public abstract class Creature
 
     @Override
     public int compareTo(Creature other) {
-        int comparison = this.getName().compareTo(other.getName());
-        if (comparison != 0) {
-            return comparison;
-        }
-        comparison = this.getCreatureRace().compareTo(other.getCreatureRace());
-        if (comparison != 0) {
-            return comparison;
-        }
-        if (this.getVocation().isEmpty() && other.getVocation().isPresent()) {
-            return -1;
-        }
-        if (this.getVocation().isPresent()) {
-            comparison = this.getVocation().get().compareTo(other.getVocation().orElse(null));
-            if (comparison != 0) {
-                return comparison;
-            }
-        }
-        return 0;
+        return this.getName().compareTo(other.getName());
     }
 
 }
