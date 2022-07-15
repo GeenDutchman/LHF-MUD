@@ -26,26 +26,33 @@ classDiagram
     class Node {
         -UUID nodeID
         -String body
-        -Map[String, String] forwardMap
         +UUID getNodeID()
         +String getBody()
-        +Map[String, UUID] getForwardMap()
-        +UUID getNextNodeID(String keyword)
+    }
+
+    class Branch {
+        -Pattern regex
+        -UUID nodeID
+        +Pattern getRegex()
+        +UUID getNodeID()
     }
 
     class Tree {
-        -Map[UUID, Node] tree
+        -Node start
+        -Map[UUID, Node] nodes
+        -Map[UUID, Branch] branches
         -Map[Creature, UUID] bookmarks
-        -String repeatWord
-        -String greeting
+        -Set[Branch] greetings
+        -Set[String] repeatWords 
         -String repeat(Creature c)
         -String greet(Creature c)
         +String listen(Creature c, String message)
         +void forget(Creature c)
-        +Node addNode(Node n)
-        -Node getNode(String id)
+        +Node addNode(UUID nodeID, Pattern regex, Node nextNode)
         +String broadcast()
     }
 
     Node --o Tree
+    Branch --o Tree
+    Branch --> Node
 ```

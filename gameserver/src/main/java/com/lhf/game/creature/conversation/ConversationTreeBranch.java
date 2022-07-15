@@ -6,21 +6,21 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 public class ConversationTreeBranch implements Serializable, Comparable<ConversationTreeBranch> {
-    private final Pattern keyword;
+    private final Pattern regex;
     private final UUID nodeID;
 
-    public ConversationTreeBranch(Pattern keyword, UUID nodeID) {
-        this.keyword = keyword;
+    public ConversationTreeBranch(Pattern regex, UUID nodeID) {
+        this.regex = regex;
         this.nodeID = nodeID;
     }
 
     public ConversationTreeBranch(String regex, UUID nodeID) {
-        this.keyword = Pattern.compile(regex);
+        this.regex = Pattern.compile(regex);
         this.nodeID = nodeID;
     }
 
-    public Pattern getKeyword() {
-        return keyword;
+    public Pattern getRegex() {
+        return regex;
     }
 
     public UUID getNodeID() {
@@ -29,7 +29,7 @@ public class ConversationTreeBranch implements Serializable, Comparable<Conversa
 
     @Override
     public int hashCode() {
-        return Objects.hash(keyword, nodeID);
+        return Objects.hash(regex, nodeID);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class ConversationTreeBranch implements Serializable, Comparable<Conversa
             return false;
         }
         ConversationTreeBranch other = (ConversationTreeBranch) obj;
-        return Objects.equals(keyword, other.keyword) && Objects.equals(nodeID, other.nodeID);
+        return Objects.equals(regex, other.regex) && Objects.equals(nodeID, other.nodeID);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class ConversationTreeBranch implements Serializable, Comparable<Conversa
         if (o == null) {
             throw new NullPointerException("ConversationTreeBranch is not comparable to null!");
         }
-        return this.keyword.toString().compareTo(o.getKeyword().toString());
+        return this.regex.toString().compareTo(o.getRegex().toString());
     }
 
 }

@@ -1,30 +1,25 @@
 package com.lhf.game.creature.conversation;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.TreeMap;
 import java.util.UUID;
 
 public class ConversationTreeNode implements Comparable<ConversationTreeNode> {
     private final UUID nodeID;
     private StringJoiner body;
-    // TODO: tag keywords optionally
+    private String emptyStatement;
 
     public ConversationTreeNode() {
         this.nodeID = UUID.randomUUID();
         this.body = new StringJoiner(" ");
-        this.body.setEmptyValue("I have nothing to say to you right now!");
+        this.emptyStatement = "I have nothing to say to you right now!";
+        this.body.setEmptyValue(this.emptyStatement);
     }
 
     public ConversationTreeNode(String emptyStatement) {
         this.nodeID = UUID.randomUUID();
         this.body = new StringJoiner(" ");
-        if (emptyStatement == null) {
-            this.body.setEmptyValue("");
-        } else {
-            this.body.setEmptyValue(emptyStatement);
-        }
+        this.setEmptyStatement(emptyStatement);
     }
 
     public void addBody(String bodyText) {
@@ -37,6 +32,18 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode> {
 
     public String getBody() {
         return this.body.toString();
+    }
+
+    public String getEmptyStatement() {
+        return emptyStatement;
+    }
+
+    public void setEmptyStatement(String emptyStatement) {
+        this.emptyStatement = emptyStatement;
+        if (emptyStatement == null) {
+            this.emptyStatement = "";
+        }
+        this.body.setEmptyValue(emptyStatement);
     }
 
     @Override

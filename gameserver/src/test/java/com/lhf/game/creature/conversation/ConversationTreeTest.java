@@ -39,7 +39,7 @@ public class ConversationTreeTest {
                 new ConversationTreeNode(secondBody));
 
         String response = tree.listen(talker, "hello there!");
-        assertEquals("I have nothing to say to you right now!", response);
+        assertEquals(start.getEmptyStatement(), response);
         response = tree.listen(talker, "Are you sure?");
         assertEquals(secondBody, response);
     }
@@ -57,7 +57,7 @@ public class ConversationTreeTest {
                 new ConversationTreeNode(thirdBody));
 
         String response = tree.listen(talker, "hello there!");
-        assertEquals("I have nothing to say to you right now!", response);
+        assertEquals(start.getEmptyStatement(), response);
         response = tree.listen(talker, "Are you sure?");
         assertEquals(secondBody, response);
 
@@ -79,7 +79,7 @@ public class ConversationTreeTest {
                 new ConversationTreeNode(thirdBody));
 
         String response = tree.listen(talker, "hello there!");
-        assertEquals("I have nothing to say to you right now!", response);
+        assertEquals(start.getEmptyStatement(), response);
         response = tree.listen(talker, "Are you sure?");
         assertEquals(secondBody, response);
 
@@ -88,7 +88,7 @@ public class ConversationTreeTest {
         assertEquals(tree.getEndOfConvo(), response);
 
         response = tree.listen(talker, "hello there!");
-        assertEquals("I have nothing to say to you right now!", response);
+        assertEquals(start.getEmptyStatement(), response);
 
         response = tree.listen(talker, "fine!");
         assertEquals(thirdBody, response);

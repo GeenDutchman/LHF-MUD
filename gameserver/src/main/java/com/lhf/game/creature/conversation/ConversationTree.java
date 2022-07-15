@@ -17,10 +17,11 @@ public class ConversationTree {
     private ConversationTreeNode start;
     private Map<UUID, ConversationTreeNode> nodes;
     private Map<UUID, List<ConversationTreeBranch>> branches;
-    private Map<Creature, UUID> bookmarks;
+    private transient Map<Creature, UUID> bookmarks;
     private SortedSet<ConversationTreeBranch> greetings;
     private SortedSet<String> repeatWords;
     private String endOfConvo;
+    // TODO: tag keywords optionally
 
     public ConversationTree(@NotNull ConversationTreeNode startNode) {
         this.nodes = new TreeMap<>();
@@ -56,7 +57,7 @@ public class ConversationTree {
     public String listen(Creature c, String message) {
         if (!this.bookmarks.containsKey(c)) {
             for (ConversationTreeBranch greet : this.greetings) {
-                Matcher matcher = greet.getKeyword().matcher(message);
+                Matcher matcher = greet.getRegex().matcher(message);
                 if (matcher.find()) {
                     this.bookmarks.put(c, this.start.getNodeID());
                     return this.start.getBody();
@@ -67,7 +68,7 @@ public class ConversationTree {
         UUID id = this.bookmarks.get(c);
         if (this.branches.containsKey(id)) {
             for (ConversationTreeBranch branch : this.branches.get(id)) {
-                Matcher matcher = branch.getKeyword().matcher(message);
+                Matcher matcher = branch.getRegex().matcher(message);
                 if (matcher.find()) {
                     UUID nextID = branch.getNodeID();
                     ConversationTreeNode node = this.nodes.get(nextID);
