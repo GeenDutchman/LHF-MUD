@@ -98,4 +98,25 @@ public class ConversationTreeTest {
         assertNotEquals(secondBody, response);
         assertEquals(tree.getEndOfConvo(), response);
     }
+
+    @Test
+    void testRepeatNode() {
+        Creature talker = new NonPlayerCharacter();
+        ConversationTreeNode start = new ConversationTreeNode();
+        ConversationTree tree = new ConversationTree(start);
+        String secondBody = "Yes I am!";
+        tree.addNode(start.getNodeID(), Pattern.compile("\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
+                new ConversationTreeNode(secondBody));
+        String thirdBody = "Fine!";
+        tree.addNode(start.getNodeID(), Pattern.compile("^fine\\b!$", Pattern.CASE_INSENSITIVE),
+                new ConversationTreeNode(thirdBody));
+
+        String response = tree.listen(talker, "hello there!");
+        assertEquals(start.getEmptyStatement(), response);
+        response = tree.listen(talker, "Are you sure?");
+        assertEquals(secondBody, response);
+
+        response = tree.listen(talker, "what was that again?");
+        assertEquals(secondBody, response);
+    }
 }

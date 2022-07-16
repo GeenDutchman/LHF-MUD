@@ -1,8 +1,11 @@
 package com.lhf.game.creature.conversation;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -19,9 +22,24 @@ public class ConversationTree {
     private Map<UUID, List<ConversationTreeBranch>> branches;
     private transient Map<Creature, UUID> bookmarks;
     private SortedSet<ConversationTreeBranch> greetings;
-    private SortedSet<String> repeatWords;
+    private SortedSet<Pattern> repeatWords;
     private String endOfConvo;
     // TODO: tag keywords optionally
+
+    private class SortPatternByLength implements Comparator<Pattern>, Serializable {
+
+        @Override
+        public int compare(Pattern arg0, Pattern arg1) {
+            if (arg0 == null || arg1 == null) {
+                throw new NullPointerException("Cannot compare null Patterns");
+            }
+            if (arg0.equals(arg1)) {
+                return 0;
+            }
+            return arg0.toString().compareTo(arg1.toString());
+        }
+
+    }
 
     public ConversationTree(@NotNull ConversationTreeNode startNode) {
         this.nodes = new TreeMap<>();
@@ -29,10 +47,10 @@ public class ConversationTree {
         this.start = startNode;
         this.nodes.put(startNode.getNodeID(), startNode);
         this.bookmarks = new TreeMap<>();
-        this.repeatWords = new TreeSet<>();
+        this.repeatWords = new TreeSet<>(new SortPatternByLength());
         this.greetings = new TreeSet<>();
-        this.repeatWords.add("again");
-        this.repeatWords.add("repeat");
+        this.repeatWords.add(Pattern.compile("\\bagain\\b", Pattern.CASE_INSENSITIVE));
+        this.repeatWords.add(Pattern.compile("\\brepeat\\b", Pattern.CASE_INSENSITIVE));
         this.addGreeting(Pattern.compile("^hello\\b", Pattern.CASE_INSENSITIVE));
         this.addGreeting(Pattern.compile("^hi\\b", Pattern.CASE_INSENSITIVE));
         this.endOfConvo = "Goodbye";
@@ -79,6 +97,12 @@ public class ConversationTree {
                 }
             }
         }
+        for (Pattern repeater : this.repeatWords) {
+            Matcher matcher = repeater.matcher(message);
+            if (matcher.find() && this.nodes.get(id) != null) {
+                return this.nodes.get(id).getBody();
+            }
+        }
         this.forget(c);
         return this.endOfConvo;
     }
@@ -93,6 +117,15 @@ public class ConversationTree {
 
     public void setEndOfConvo(String endOfConvo) {
         this.endOfConvo = endOfConvo;
+    }
+
+    public void setGreetings(Set<ConversationTreeBranch> greetings) {
+        this.greetings = new TreeSet<>(greetings);
+    }
+
+    public void setRepeats(Set<Pattern> repeats) {
+        this.repeatWords = new TreeSet<>(new SortPatternByLength());
+        this.repeatWords.addAll(repeats);
     }
 
 }
