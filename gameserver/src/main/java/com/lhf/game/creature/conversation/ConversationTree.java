@@ -24,6 +24,7 @@ public class ConversationTree {
     private SortedSet<ConversationTreeBranch> greetings;
     private SortedSet<Pattern> repeatWords;
     private String endOfConvo;
+    private boolean tagkeywords;
     // TODO: tag keywords optionally
 
     private class SortPatternByLength implements Comparator<Pattern>, Serializable {
@@ -36,7 +37,7 @@ public class ConversationTree {
             if (arg0.equals(arg1)) {
                 return 0;
             }
-            return arg0.toString().compareTo(arg1.toString());
+            return arg0.toString().compareTo(arg1.toString()) * -1;
         }
 
     }
@@ -54,6 +55,7 @@ public class ConversationTree {
         this.addGreeting(Pattern.compile("^hello\\b", Pattern.CASE_INSENSITIVE));
         this.addGreeting(Pattern.compile("^hi\\b", Pattern.CASE_INSENSITIVE));
         this.endOfConvo = "Goodbye";
+        this.tagkeywords = true;
     }
 
     public void addGreeting(Pattern regex) {
@@ -72,13 +74,27 @@ public class ConversationTree {
         return this.nodes.put(nextNode.getNodeID(), nextNode);
     }
 
+    private String tagIt(ConversationTreeNode node) {
+        if (node == null) {
+            return null;
+        }
+        String output = node.getBody();
+        if (this.branches.containsKey(node.getNodeID()) && this.tagkeywords) {
+            for (ConversationTreeBranch branch : this.branches.get(node.getNodeID())) {
+                Matcher matcher = branch.getRegex().matcher(output);
+                output = matcher.replaceFirst("<convo>$0</convo>");
+            }
+        }
+        return output;
+    }
+
     public String listen(Creature c, String message) {
         if (!this.bookmarks.containsKey(c)) {
             for (ConversationTreeBranch greet : this.greetings) {
                 Matcher matcher = greet.getRegex().matcher(message);
                 if (matcher.find()) {
                     this.bookmarks.put(c, this.start.getNodeID());
-                    return this.start.getBody();
+                    return this.tagIt(this.start);
                 }
             }
             return null;
@@ -92,7 +108,7 @@ public class ConversationTree {
                     ConversationTreeNode node = this.nodes.get(nextID);
                     if (node != null) {
                         this.bookmarks.put(c, nextID);
-                        return node.getBody();
+                        return this.tagIt(node);
                     }
                 }
             }
@@ -100,7 +116,7 @@ public class ConversationTree {
         for (Pattern repeater : this.repeatWords) {
             Matcher matcher = repeater.matcher(message);
             if (matcher.find() && this.nodes.get(id) != null) {
-                return this.nodes.get(id).getBody();
+                return this.tagIt(this.nodes.get(id));
             }
         }
         this.forget(c);

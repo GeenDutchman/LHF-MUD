@@ -49,7 +49,7 @@ public class ConversationTreeBranch implements Serializable, Comparable<Conversa
         if (o == null) {
             throw new NullPointerException("ConversationTreeBranch is not comparable to null!");
         }
-        return this.regex.toString().compareTo(o.getRegex().toString());
+        return this.regex.toString().compareTo(o.getRegex().toString()) * -1;
     }
 
 }

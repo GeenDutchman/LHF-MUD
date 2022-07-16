@@ -1,9 +1,11 @@
 package com.lhf.game.creature.conversation;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.regex.Pattern;
 
@@ -118,5 +120,19 @@ public class ConversationTreeTest {
 
         response = tree.listen(talker, "what was that again?");
         assertEquals(secondBody, response);
+    }
+
+    @Test
+    void testHightlightNext() {
+        Creature talker = new NonPlayerCharacter();
+        String body1 = "Hello there new young traveller!";
+        ConversationTreeNode start = new ConversationTreeNode(body1);
+        ConversationTree tree = new ConversationTree(start);
+        String body2 = "Why yes, you are a traveller, are you not?";
+        ConversationTreeNode second = new ConversationTreeNode(body2);
+
+        tree.addNode(start.getNodeID(), Pattern.compile("\\btraveller\\b", Pattern.CASE_INSENSITIVE), second);
+        String response = tree.listen(talker, "hello there!");
+        assertThat(response).contains("<convo>traveller</convo>");
     }
 }
