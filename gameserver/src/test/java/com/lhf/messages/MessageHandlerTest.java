@@ -1,7 +1,5 @@
 package com.lhf.messages;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
@@ -14,6 +12,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.google.common.truth.Truth;
 
 @ExtendWith(MockitoExtension.class)
 public class MessageHandlerTest {
@@ -65,18 +65,20 @@ public class MessageHandlerTest {
         buildTree();
         Map<CommandMessage, String> receivedNodeOne = this.leafNodeOne.gatherHelp();
         System.out.println(receivedNodeOne);
-        assertTrue(receivedNodeOne.containsKey(CommandMessage.INVENTORY));
-        assertTrue(receivedNodeOne.containsKey(CommandMessage.HELP));
-        assertFalse(receivedNodeOne.containsKey(CommandMessage.CAST));
-        assertTrue(receivedNodeOne.containsKey(CommandMessage.SEE));
-        assertFalse(receivedNodeOne.get(CommandMessage.HELP).contains("higher"));
+        Truth.assertThat(receivedNodeOne).containsKey(CommandMessage.INVENTORY);
+        Truth.assertThat(receivedNodeOne).containsKey(CommandMessage.HELP);
+        Truth.assertThat(receivedNodeOne).doesNotContainKey(CommandMessage.CAST);
+        Truth.assertThat(receivedNodeOne).containsKey(CommandMessage.SEE);
+        Truth.assertThat(receivedNodeOne).containsKey(CommandMessage.HELP);
+        Truth.assertThat(receivedNodeOne.get(CommandMessage.HELP)).doesNotContain("higher");
 
         Map<CommandMessage, String> rec = this.leafNodeTwo.gatherHelp();
-        assertFalse(rec.containsKey(CommandMessage.INVENTORY));
-        assertTrue(rec.containsKey(CommandMessage.HELP));
-        assertTrue(rec.containsKey(CommandMessage.CAST));
-        assertTrue(receivedNodeOne.containsKey(CommandMessage.SEE));
-        assertTrue(rec.get(CommandMessage.HELP).contains("higher"));
+        Truth.assertThat(rec).doesNotContainKey(CommandMessage.INVENTORY);
+        Truth.assertThat(rec).containsKey(CommandMessage.HELP);
+        Truth.assertThat(rec).containsKey(CommandMessage.CAST);
+        Truth.assertThat(rec).containsKey(CommandMessage.SEE);
+        Truth.assertThat(rec).containsKey(CommandMessage.HELP);
+        Truth.assertThat(rec.get(CommandMessage.HELP)).contains("higher");
     }
 
     // @Test

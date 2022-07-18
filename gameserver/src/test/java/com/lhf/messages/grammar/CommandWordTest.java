@@ -1,13 +1,11 @@
 package com.lhf.messages.grammar;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-
 import java.util.ArrayList;
 
-import com.lhf.messages.CommandMessage;
-
 import org.junit.jupiter.api.Test;
+
+import com.google.common.truth.Truth;
+import com.lhf.messages.CommandMessage;
 
 public class CommandWordTest {
     private class testcase extends GrammarTestCase {
@@ -46,16 +44,16 @@ public class CommandWordTest {
             try {
                 for (int i = 0; i < tcase.tokens.size() && accepted; i++) {
                     accepted = cw.parse(tcase.tokens.get(i));
-                    assertEquals(tcase.accepted.get(i), accepted);
+                    Truth.assertThat(accepted).isEqualTo(tcase.accepted.get(i));
                 }
             } catch (IllegalArgumentException iae) {
                 System.err.println(iae);
-                assertFalse(tcase.valid);
+                Truth.assertThat(tcase.valid).isFalse();
             }
             Boolean valid = cw.isValid();
-            assertEquals(tcase.valid, valid);
+            Truth.assertThat(valid).isEqualTo(tcase.valid);
             if (valid) {
-                assertEquals(tcase.expected, cw.getCommand());
+                Truth.assertThat(cw.getCommand()).isEqualTo(tcase.expected);
             }
         }
 

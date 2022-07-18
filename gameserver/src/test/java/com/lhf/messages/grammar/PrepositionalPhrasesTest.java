@@ -1,12 +1,11 @@
 package com.lhf.messages.grammar;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 
 import org.junit.jupiter.api.Test;
+
+import com.google.common.truth.Truth;
 
 public class PrepositionalPhrasesTest {
     private class testcase extends GrammarTestCase {
@@ -63,16 +62,16 @@ public class PrepositionalPhrasesTest {
 
             for (int i = 0; i < tcase.tokens.size() && accepted; i++) {
                 accepted = phrases.parse(tcase.tokens.get(i));
-                assertEquals(tcase.accepted.get(i), accepted);
+                Truth.assertThat(accepted).isEqualTo(tcase.accepted.get(i));
             }
-            assertEquals(tcase.valid, phrases.isValid());
+            Truth.assertThat(phrases.isValid()).isEqualTo(tcase.valid);
             if (phrases.isValid()) {
                 String resultString = phrases.getResult();
                 System.out.println("'" + resultString + "'");
                 for (PhraseList p : phrases.phraseMap.values()) {
                     String innerResult = p.getResult();
                     System.out.println("\t-" + innerResult);
-                    assertTrue(resultString.contains(innerResult));
+                    Truth.assertThat(resultString).contains(innerResult);
                 }
             } else {
                 System.out.print(" INVALID ");

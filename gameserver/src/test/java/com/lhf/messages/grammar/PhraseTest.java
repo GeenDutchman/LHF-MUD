@@ -1,11 +1,11 @@
 package com.lhf.messages.grammar;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 
 import org.junit.jupiter.api.Test;
+
+import com.google.common.truth.Truth;
 
 public class PhraseTest {
 
@@ -37,11 +37,11 @@ public class PhraseTest {
             Boolean accepted = true;
             for (int i = 0; i < tcase.tokens.size() && accepted; i++) {
                 accepted = p.parse(tcase.tokens.get(i));
-                assertEquals(tcase.accepted.get(i), accepted);
+                Truth.assertThat(accepted).isEqualTo(tcase.accepted.get(i));
             }
-            assertEquals(tcase.valid, p.isValid());
+            Truth.assertThat(p.isValid()).isEqualTo(tcase.valid);
             if (p.isValid()) {
-                assertEquals(tcase.result, p.getResult());
+                Truth.assertThat(p.getResult()).isEqualTo(tcase.result);
             }
         }
     }

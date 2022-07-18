@@ -1,13 +1,11 @@
 package com.lhf.messages;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import java.util.ArrayList;
 
-import com.lhf.messages.in.InMessage;
-
 import org.junit.jupiter.api.Test;
+
+import com.google.common.truth.Truth;
+import com.lhf.messages.in.InMessage;
 
 public class CommandInParserTest {
     class ParseTestCase {
@@ -63,14 +61,14 @@ public class CommandInParserTest {
         for (ParseTestCase tc : testCases) {
             System.out.println("Testing: " + tc.testName);
             Command cmd = CommandInParser.parse(tc.input);
-            assertNotNull(cmd);
+            Truth.assertThat(cmd).isNotNull();
             if (tc.command != null) {
-                assertEquals(tc.command.isValid, cmd.isValid);
+                Truth.assertThat(cmd.isValid()).isEqualTo(tc.command.isValid);
             } else {
-                assertEquals(tc.isValid, cmd.isValid);
+                Truth.assertThat(cmd.isValid).isEqualTo(tc.isValid);
             }
             if (cmd.isValid) {
-                assertEquals(tc.command, cmd);
+                Truth.assertThat(cmd).isEqualTo(tc.command);
             }
         }
 

@@ -1,15 +1,15 @@
 package com.lhf.game.creature.conversation;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.junit.jupiter.api.Test;
+
+import com.google.common.truth.Truth;
 
 public class ConversationTreeNodeTest {
 
     @Test
     void testEmptyNode() {
         ConversationTreeNode node = new ConversationTreeNode();
-        assertTrue(node.getBody().contains("nothing"));
+        Truth.assertThat(node.getBody()).contains("nothing");
     }
 
     @Test
@@ -17,7 +17,7 @@ public class ConversationTreeNodeTest {
         ConversationTreeNode node = new ConversationTreeNode();
         String body = "I have something for you";
         node.addBody(body);
-        assertTrue(node.getBody().contains(body));
+        Truth.assertThat(node.getBody()).contains(body);
     }
 
     @Test
@@ -30,8 +30,8 @@ public class ConversationTreeNodeTest {
         String body2 = "and it should be useful";
         node.addBody(body2);
 
-        assertTrue(node.getBody().contains(body1));
-        assertTrue(node.getBody().contains(body2));
+        Truth.assertThat(node.getBody()).contains(body1);
+        Truth.assertThat(node.getBody()).contains(body2);
     }
 
 }

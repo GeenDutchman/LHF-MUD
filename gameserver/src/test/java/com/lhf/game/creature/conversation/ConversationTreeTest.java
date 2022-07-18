@@ -1,16 +1,12 @@
 package com.lhf.game.creature.conversation;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Test;
 
+import com.google.common.truth.Truth;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.NonPlayerCharacter;
 
@@ -28,7 +24,7 @@ public class ConversationTreeTest {
         ConversationTree tree = new ConversationTree(node);
         Creature talker = new NonPlayerCharacter();
         String response = tree.listen(talker, "unrecongized words like zaosdff");
-        assertNull(response);
+        Truth.assertThat(response).isNull();
     }
 
     @Test
@@ -41,9 +37,9 @@ public class ConversationTreeTest {
                 new ConversationTreeNode(secondBody));
 
         String response = tree.listen(talker, "hello there!");
-        assertEquals(start.getEmptyStatement(), response);
+        Truth.assertThat(response).isEqualTo(start.getEmptyStatement());
         response = tree.listen(talker, "Are you sure?");
-        assertEquals(secondBody, response);
+        Truth.assertThat(response).isEqualTo(secondBody);
     }
 
     @Test
@@ -59,13 +55,13 @@ public class ConversationTreeTest {
                 new ConversationTreeNode(thirdBody));
 
         String response = tree.listen(talker, "hello there!");
-        assertEquals(start.getEmptyStatement(), response);
+        Truth.assertThat(response).isEqualTo(start.getEmptyStatement());
         response = tree.listen(talker, "Are you sure?");
-        assertEquals(secondBody, response);
+        Truth.assertThat(response).isEqualTo(secondBody);
 
         response = tree.listen(talker, "fine!");
-        assertNotEquals(thirdBody, response);
-        assertEquals(tree.getEndOfConvo(), response);
+        Truth.assertThat(response).isNotEqualTo(thirdBody);
+        Truth.assertThat(response).isEqualTo(tree.getEndOfConvo());
     }
 
     @Test
@@ -81,24 +77,24 @@ public class ConversationTreeTest {
                 new ConversationTreeNode(thirdBody));
 
         String response = tree.listen(talker, "hello there!");
-        assertEquals(start.getEmptyStatement(), response);
+        Truth.assertThat(response).isEqualTo(start.getEmptyStatement());
         response = tree.listen(talker, "Are you sure?");
-        assertEquals(secondBody, response);
+        Truth.assertThat(response).isEqualTo(secondBody);
 
         response = tree.listen(talker, "fine!");
-        assertNotEquals(thirdBody, response);
-        assertEquals(tree.getEndOfConvo(), response);
+        Truth.assertThat(response).isNotEqualTo(thirdBody);
+        Truth.assertThat(response).isEqualTo(tree.getEndOfConvo());
 
         response = tree.listen(talker, "hello there!");
-        assertEquals(start.getEmptyStatement(), response);
+        Truth.assertThat(response).isEqualTo(start.getEmptyStatement());
 
         response = tree.listen(talker, "fine!");
-        assertEquals(thirdBody, response);
-        assertNotEquals(tree.getEndOfConvo(), response);
+        Truth.assertThat(response).isEqualTo(thirdBody);
+        Truth.assertThat(response).isNotEqualTo(tree.getEndOfConvo());
 
         response = tree.listen(talker, "Are you sure?");
-        assertNotEquals(secondBody, response);
-        assertEquals(tree.getEndOfConvo(), response);
+        Truth.assertThat(response).isNotEqualTo(secondBody);
+        Truth.assertThat(response).isEqualTo(tree.getEndOfConvo());
     }
 
     @Test
@@ -114,12 +110,12 @@ public class ConversationTreeTest {
                 new ConversationTreeNode(thirdBody));
 
         String response = tree.listen(talker, "hello there!");
-        assertEquals(start.getEmptyStatement(), response);
+        Truth.assertThat(response).isEqualTo(start.getEmptyStatement());
         response = tree.listen(talker, "Are you sure?");
-        assertEquals(secondBody, response);
+        Truth.assertThat(response).isEqualTo(secondBody);
 
         response = tree.listen(talker, "what was that again?");
-        assertEquals(secondBody, response);
+        Truth.assertThat(response).isEqualTo(secondBody);
     }
 
     @Test
@@ -133,6 +129,6 @@ public class ConversationTreeTest {
 
         tree.addNode(start.getNodeID(), Pattern.compile("\\btraveller\\b", Pattern.CASE_INSENSITIVE), second);
         String response = tree.listen(talker, "hello there!");
-        assertThat(response).contains("<convo>traveller</convo>");
+        Truth.assertThat(response).contains("<convo>traveller</convo>");
     }
 }

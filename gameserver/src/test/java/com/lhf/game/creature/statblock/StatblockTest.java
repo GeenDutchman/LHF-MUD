@@ -1,10 +1,10 @@
 package com.lhf.game.creature.statblock;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.HashMap;
 
+import org.junit.jupiter.api.Test;
+
+import com.google.common.truth.Truth;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.lhf.game.creature.inventory.Inventory;
@@ -19,8 +19,6 @@ import com.lhf.game.item.concrete.equipment.Longsword;
 import com.lhf.game.item.concrete.equipment.RustyDagger;
 import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.game.item.interfaces.Takeable;
-
-import org.junit.jupiter.api.Test;
 
 public class StatblockTest {
 
@@ -48,12 +46,12 @@ public class StatblockTest {
         Gson gson = gb.create();
         String json = gson.toJson(s);
         System.out.println(json);
-        assertTrue(json.contains(s.getCreatureRace()));
+        Truth.assertThat(json).contains(s.getCreatureRace());
         for (String itemName : inv.getItemList()) {
-            assertTrue(json.contains(itemName));
+            Truth.assertThat(json).contains(itemName);
         }
         for (Item item : equipped.values()) {
-            assertTrue(json.contains(item.getName()));
+            Truth.assertThat(json).contains(item.getName());
         }
 
         gb.registerTypeAdapter(Equipable.class, new EquipableDeserializer<Equipable>());
@@ -61,13 +59,14 @@ public class StatblockTest {
         gb.registerTypeAdapter(Item.class, new ItemDeserializer<Item>());
         gson = gb.create();
         Statblock num2 = gson.fromJson(json, Statblock.class);
-        assertEquals(s.getCreatureRace(), num2.getCreatureRace());
-        assertEquals(s.getStats().get(Stats.MAXHP), num2.getStats().get(Stats.MAXHP));
+        Truth.assertThat(num2.getCreatureRace()).isEqualTo(s.getCreatureRace());
+        Truth.assertThat(num2.getStats().get(Stats.MAXHP)).isEqualTo(s.getStats().get(Stats.MAXHP));
         for (String itemName : inv.getItemList()) {
-            assertTrue(num2.getInventory().hasItem(itemName));
+            Truth.assertThat(num2.getInventory().hasItem(itemName)).isTrue();
+            ;
         }
-        assertEquals(s.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).printDescription(),
-                num2.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).printDescription());
+        Truth.assertThat(num2.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).printDescription())
+                .isEqualTo(s.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).printDescription());
 
     }
 }
