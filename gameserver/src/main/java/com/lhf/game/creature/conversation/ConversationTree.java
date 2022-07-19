@@ -14,16 +14,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
 import com.lhf.server.interfaces.NotNull;
 
 public class ConversationTree {
     private ConversationTreeNode start;
     private Map<UUID, ConversationTreeNode> nodes;
     private Map<UUID, List<ConversationTreeBranch>> branches;
-    private transient Map<Creature, UUID> bookmarks;
+    private transient Map<Creature, ConversationContext> bookmarks;
     private SortedSet<ConversationTreeBranch> greetings;
     private SortedSet<Pattern> repeatWords;
     private String endOfConvo;
+    private String notRecognized;
     private boolean tagkeywords;
     // TODO: tag keywords optionally
 
@@ -55,6 +57,7 @@ public class ConversationTree {
         this.addGreeting(Pattern.compile("^hello\\b", Pattern.CASE_INSENSITIVE));
         this.addGreeting(Pattern.compile("^hi\\b", Pattern.CASE_INSENSITIVE));
         this.endOfConvo = "Goodbye";
+        this.notRecognized = "What did you say? ...";
         this.tagkeywords = true;
     }
 
@@ -95,21 +98,27 @@ public class ConversationTree {
             for (ConversationTreeBranch greet : this.greetings) {
                 Matcher matcher = greet.getRegex().matcher(message);
                 if (matcher.find()) {
-                    this.bookmarks.put(c, this.start.getNodeID());
+                    ConversationContext ctx = new ConversationContext();
+                    ctx.put(ConversationContextKey.TALKER_NAME, c.getName());
+                    ctx.put(ConversationContextKey.LISTENER_TAGGED_NAME, c.getColorTaggedName());
+                    ctx.addTrail(this.start.getNodeID());
+                    this.bookmarks.put(c, ctx);
                     return this.tagIt(this.start);
                 }
             }
             return null;
         }
-        UUID id = this.bookmarks.get(c);
-        if (this.branches.containsKey(id)) {
+        ConversationContext ctx = this.bookmarks.get(c);
+        UUID id = ctx.getTrailEnd();
+        boolean hasBranches = this.branches.containsKey(id) && this.branches.get(id).size() > 0;
+        if (hasBranches) {
             for (ConversationTreeBranch branch : this.branches.get(id)) {
                 Matcher matcher = branch.getRegex().matcher(message);
                 if (matcher.find()) {
                     UUID nextID = branch.getNodeID();
                     ConversationTreeNode node = this.nodes.get(nextID);
                     if (node != null) {
-                        this.bookmarks.put(c, nextID);
+                        this.bookmarks.get(c).addTrail(nextID);
                         return this.tagIt(node);
                     }
                 }
@@ -121,8 +130,12 @@ public class ConversationTree {
                 return this.tagIt(this.nodes.get(id));
             }
         }
-        this.forget(c);
-        return new ConversationTreeNodeResult(this.endOfConvo);
+
+        if (!hasBranches) {
+            this.bookmarks.get(c).addTrail(this.start.getNodeID());
+            return new ConversationTreeNodeResult(this.endOfConvo);
+        }
+        return new ConversationTreeNodeResult(this.notRecognized);
     }
 
     public void forget(Creature c) {
@@ -135,6 +148,14 @@ public class ConversationTree {
 
     public void setEndOfConvo(String endOfConvo) {
         this.endOfConvo = endOfConvo;
+    }
+
+    public String getNotRecognized() {
+        return notRecognized;
+    }
+
+    public void setNotRecognized(String notRecognized) {
+        this.notRecognized = notRecognized;
     }
 
     public void setGreetings(Set<ConversationTreeBranch> greetings) {

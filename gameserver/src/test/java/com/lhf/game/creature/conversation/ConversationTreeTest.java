@@ -19,7 +19,7 @@ public class ConversationTreeTest {
     }
 
     @Test
-    void testIgnoreTalker() {
+    void testIgnoreUngreeted() {
         ConversationTreeNode node = new ConversationTreeNode();
         ConversationTree tree = new ConversationTree(node);
         Creature talker = new NonPlayerCharacter();
@@ -85,9 +85,6 @@ public class ConversationTreeTest {
         Truth.assertThat(response.getBody()).isNotEqualTo(thirdBody);
         Truth.assertThat(response.getBody()).isEqualTo(tree.getEndOfConvo());
 
-        response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.getBody()).isEqualTo(start.getEmptyStatement());
-
         response = tree.listen(talker, "fine!");
         Truth.assertThat(response.getBody()).isEqualTo(thirdBody);
         Truth.assertThat(response.getBody()).isNotEqualTo(tree.getEndOfConvo());
@@ -95,6 +92,35 @@ public class ConversationTreeTest {
         response = tree.listen(talker, "Are you sure?");
         Truth.assertThat(response.getBody()).isNotEqualTo(secondBody);
         Truth.assertThat(response.getBody()).isEqualTo(tree.getEndOfConvo());
+    }
+
+    @Test
+    void testRememberSpot() {
+        Creature talker = new NonPlayerCharacter();
+        ConversationTreeNode start = new ConversationTreeNode();
+        ConversationTree tree = new ConversationTree(start);
+        String secondBody = "Yes I am!";
+        ConversationTreeNode secondNode = new ConversationTreeNode(secondBody);
+        tree.addNode(start.getNodeID(), Pattern.compile("\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
+                secondNode);
+        String thirdBody = "Fine!";
+        tree.addNode(secondNode.getNodeID(), Pattern.compile("^fine\\b!$", Pattern.CASE_INSENSITIVE),
+                new ConversationTreeNode(thirdBody));
+
+        ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
+        Truth.assertThat(response.getBody()).isEqualTo(start.getEmptyStatement());
+        response = tree.listen(talker, "zippity doo dah");
+        Truth.assertThat(response.getBody()).doesNotContain(tree.getEndOfConvo());
+        Truth.assertThat(response.getBody()).isEqualTo(tree.getNotRecognized());
+        response = tree.listen(talker, "what was that again?");
+        Truth.assertThat(response.getBody()).isEqualTo(start.getEmptyStatement());
+        response = tree.listen(talker, "Are you sure?");
+        Truth.assertThat(response.getBody()).isEqualTo(secondNode.getBody());
+        response = tree.listen(talker, "zippity eh");
+        Truth.assertThat(response.getBody()).isEqualTo(tree.getNotRecognized());
+        response = tree.listen(talker, "what was that again?");
+        Truth.assertThat(response.getBody()).isEqualTo(secondNode.getBody());
+
     }
 
     @Test
