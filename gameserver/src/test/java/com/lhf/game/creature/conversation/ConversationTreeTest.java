@@ -169,4 +169,90 @@ public class ConversationTreeTest {
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
         Truth.assertThat(response.getBody()).contains(talker.getName());
     }
+
+    @Test
+    void testForbidBranch() {
+        Creature welcome = new NonPlayerCharacter();
+        Creature unwelcome = new NonPlayerCharacter();
+        while (welcome.getName().equals(unwelcome.getName())) {
+            unwelcome.setName(unwelcome.getName() + "x");
+        }
+        Truth.assertThat(unwelcome.getName()).isNotEqualTo(welcome.getName());
+
+        ConversationTreeNode start = new ConversationTreeNode(
+                "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
+        start.addBody("I will test the welcome and the unwelcome both");
+        ConversationTree tree = new ConversationTree(start);
+        ConversationTreeNode oneWay = new ConversationTreeNode("I am friendly");
+        ConversationTreeNode otherWay = new ConversationTreeNode("I am not friendly");
+
+        ConversationTreeBranch oneBranch = tree.addNode(start.getNodeID(),
+                Pattern.compile("\\bwelcome\\b", Pattern.CASE_INSENSITIVE), oneWay);
+        tree.addNode(start.getNodeID(),
+                Pattern.compile("\\bunwelcome\\b", Pattern.CASE_INSENSITIVE), otherWay);
+
+        // unwelcome is not welcome to the oneWay
+        oneBranch.addRule(ConversationContextKey.TALKER_NAME, Pattern.compile("\\b" + unwelcome.getName() + "\\b"));
+
+        // welcome
+        ConversationTreeNodeResult response = tree.listen(welcome, "hello there!");
+        Truth.assertThat(response.getBody()).ignoringCase().contains("<convo>welcome</convo>");
+        Truth.assertThat(response.getBody()).ignoringCase().contains("<convo>unwelcome</convo>");
+
+        response = tree.listen(welcome, "I think I'm welcome");
+        Truth.assertThat(response.getBody()).isEqualTo(oneWay.getBody());
+        response = tree.listen(welcome, "But I'll start over");
+        Truth.assertThat(response.getBody()).contains(tree.getEndOfConvo());
+        response = tree.listen(welcome, "Am I unwelcome?");
+        Truth.assertThat(response.getBody()).isEqualTo(otherWay.getBody());
+
+        // unwelcome
+        response = tree.listen(unwelcome, "hello there!");
+        Truth.assertThat(response.getBody()).ignoringCase().doesNotContain("<convo>welcome</convo>");
+        Truth.assertThat(response.getBody()).ignoringCase().contains("<convo>unwelcome</convo>");
+
+        response = tree.listen(unwelcome, "Am I welcome?");
+        Truth.assertThat(response.getBody()).ignoringCase().isEqualTo(tree.getNotRecognized());
+        response = tree.listen(unwelcome, "Am I unwelcome?");
+        Truth.assertThat(response.getBody()).isEqualTo(otherWay.getBody());
+
+    }
+
+    @Test
+    void testDualTriggerForbiddance() {
+        Creature welcome = new NonPlayerCharacter();
+        Creature unwelcome = new NonPlayerCharacter();
+        while (welcome.getName().equals(unwelcome.getName())) {
+            unwelcome.setName(unwelcome.getName() + "x");
+        }
+        Truth.assertThat(unwelcome.getName()).isNotEqualTo(welcome.getName());
+
+        ConversationTreeNode start = new ConversationTreeNode(
+                "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
+        start.addBody("I will test the welcome and the unwelcome both");
+        ConversationTree tree = new ConversationTree(start);
+        ConversationTreeNode oneWay = new ConversationTreeNode("I am friendly");
+        ConversationTreeNode otherWay = new ConversationTreeNode("I am not friendly");
+
+        // order matters!
+        ConversationTreeBranch oneBranch = tree.addNode(start.getNodeID(),
+                Pattern.compile("\\bboth\\b", Pattern.CASE_INSENSITIVE), oneWay);
+        tree.addNode(start.getNodeID(),
+                Pattern.compile("\\bboth\\b", Pattern.CASE_INSENSITIVE), otherWay);
+
+        // unwelcome is not welcome to the oneWay
+        oneBranch.addRule(ConversationContextKey.TALKER_NAME, Pattern.compile("\\b" + unwelcome.getName() + "\\b"));
+
+        // welcome
+        ConversationTreeNodeResult response = tree.listen(welcome, "hello there!");
+        Truth.assertThat(response.getBody()).ignoringCase().contains("<convo>both</convo>");
+        response = tree.listen(welcome, "You test both?");
+        Truth.assertThat(response.getBody()).isEqualTo(oneWay.getBody());
+
+        // unwelcome
+        response = tree.listen(unwelcome, "hello there!");
+        Truth.assertThat(response.getBody()).ignoringCase().contains("<convo>both</convo>");
+        response = tree.listen(unwelcome, "You test both?");
+        Truth.assertThat(response.getBody()).isEqualTo(otherWay.getBody());
+    }
 }
