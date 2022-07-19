@@ -77,7 +77,7 @@ public class ConversationTree {
         return this.nodes.put(nextNode.getNodeID(), nextNode);
     }
 
-    private ConversationTreeNodeResult tagIt(ConversationTreeNode node) {
+    private ConversationTreeNodeResult tagIt(ConversationContext ctx, ConversationTreeNode node) {
         if (node == null) {
             return null;
         }
@@ -89,6 +89,13 @@ public class ConversationTree {
                 output = matcher.replaceFirst("<convo>$0</convo>");
             }
         }
+
+        for (String contextual : ctx.keySet()) {
+            Pattern pattern = Pattern.compile("\\b" + contextual + "\\b");
+            Matcher matcher = pattern.matcher(output);
+            output = matcher.replaceAll(ctx.getOrDefault(contextual, ""));
+        }
+
         result.setBody(output);
         return result;
     }
@@ -100,10 +107,10 @@ public class ConversationTree {
                 if (matcher.find()) {
                     ConversationContext ctx = new ConversationContext();
                     ctx.put(ConversationContextKey.TALKER_NAME, c.getName());
-                    ctx.put(ConversationContextKey.LISTENER_TAGGED_NAME, c.getColorTaggedName());
+                    ctx.put(ConversationContextKey.TALKER_TAGGED_NAME, c.getColorTaggedName());
                     ctx.addTrail(this.start.getNodeID());
                     this.bookmarks.put(c, ctx);
-                    return this.tagIt(this.start);
+                    return this.tagIt(ctx, this.start);
                 }
             }
             return null;
@@ -119,7 +126,7 @@ public class ConversationTree {
                     ConversationTreeNode node = this.nodes.get(nextID);
                     if (node != null) {
                         this.bookmarks.get(c).addTrail(nextID);
-                        return this.tagIt(node);
+                        return this.tagIt(ctx, node);
                     }
                 }
             }
@@ -127,7 +134,7 @@ public class ConversationTree {
         for (Pattern repeater : this.repeatWords) {
             Matcher matcher = repeater.matcher(message);
             if (matcher.find() && this.nodes.get(id) != null) {
-                return this.tagIt(this.nodes.get(id));
+                return this.tagIt(ctx, this.nodes.get(id));
             }
         }
 

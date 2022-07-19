@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
 
 public class ConversationTreeTest {
     @Test
@@ -156,5 +157,16 @@ public class ConversationTreeTest {
         tree.addNode(start.getNodeID(), Pattern.compile("\\btraveller\\b", Pattern.CASE_INSENSITIVE), second);
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
         Truth.assertThat(response.getBody()).contains("<convo>traveller</convo>");
+    }
+
+    @Test
+    void testGreetBack() {
+        Creature talker = new NonPlayerCharacter();
+        ConversationTreeNode start = new ConversationTreeNode(
+                "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
+        ConversationTree tree = new ConversationTree(start);
+
+        ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
+        Truth.assertThat(response.getBody()).contains(talker.getName());
     }
 }
