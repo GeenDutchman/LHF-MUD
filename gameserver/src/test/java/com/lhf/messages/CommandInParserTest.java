@@ -63,7 +63,7 @@ public class CommandInParserTest {
             Command cmd = CommandInParser.parse(tc.input);
             Truth.assertThat(cmd).isNotNull();
             if (tc.command != null) {
-                Truth.assertThat(cmd.isValid()).isEqualTo(tc.command.isValid);
+                Truth.assertThat(cmd.isValid).isEqualTo(tc.command.isValid);
             } else {
                 Truth.assertThat(cmd.isValid).isEqualTo(tc.isValid);
             }
