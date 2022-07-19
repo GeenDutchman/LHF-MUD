@@ -17,7 +17,7 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
 import com.lhf.server.interfaces.NotNull;
 
-public class ConversationTree {
+public class ConversationTree implements Serializable {
     private ConversationTreeNode start;
     private Map<UUID, ConversationTreeNode> nodes;
     private Map<UUID, List<ConversationTreeBranch>> branches;
