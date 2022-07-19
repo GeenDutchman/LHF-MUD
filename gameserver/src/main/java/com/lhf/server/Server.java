@@ -150,9 +150,9 @@ public class Server implements ServerInterface, ConnectionListener {
     public Boolean handleMessage(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.EXIT) {
             this.logger.info("client " + ctx.getClientID().toString() + " is exiting");
+            this.game.userLeft(ctx.getUserID());
             User leaving = this.userManager.getUser(ctx.getUserID());
             this.userManager.removeUser(ctx.getUserID());
-            this.game.userLeft(ctx.getUserID());
             Client ch = this.clientManager.getConnection(ctx.getClientID());
             if (ch != null) {
                 ch.sendMsg(new UserLeftMessage(leaving, true));

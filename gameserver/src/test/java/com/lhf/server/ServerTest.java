@@ -54,7 +54,6 @@ public class ServerTest {
             Boolean notHandled = response.toLowerCase().contains("was not handled");
             if (expectHandled) {
                 Truth.assertThat(notHandled).isFalse();
-                ;
             } else {
                 Truth.assertThat(notHandled).isTrue();
             }
@@ -183,6 +182,7 @@ public class ServerTest {
         Truth.assertThat(findEm).contains(dude1.name);
         Truth.assertThat(findEm).contains(dude2.name);
         dude2.handleCommand("exit");
+        Truth.assertThat(this.comm.read()).ignoringCase().contains("left the server");
         findEm = this.comm.handleCommand("players");
         Truth.assertThat(findEm).contains(this.comm.name);
         Truth.assertThat(findEm).contains(dude1.name);
