@@ -1,12 +1,13 @@
 package com.lhf.game.creature.conversation;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.UUID;
 
-public class ConversationTreeNode implements Comparable<ConversationTreeNode> {
+public class ConversationTreeNode implements Comparable<ConversationTreeNode>, Serializable {
     private final UUID nodeID;
     private StringJoiner body;
     private String emptyStatement;
