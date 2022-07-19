@@ -23,7 +23,7 @@ public class ConversationTreeTest {
         ConversationTreeNode node = new ConversationTreeNode();
         ConversationTree tree = new ConversationTree(node);
         Creature talker = new NonPlayerCharacter();
-        String response = tree.listen(talker, "unrecongized words like zaosdff");
+        ConversationTreeNodeResult response = tree.listen(talker, "unrecongized words like zaosdff");
         Truth.assertThat(response).isNull();
     }
 
@@ -36,10 +36,10 @@ public class ConversationTreeTest {
         tree.addNode(start.getNodeID(), Pattern.compile("\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
                 new ConversationTreeNode(secondBody));
 
-        String response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response).isEqualTo(start.getEmptyStatement());
+        ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
+        Truth.assertThat(response.getBody()).isEqualTo(start.getEmptyStatement());
         response = tree.listen(talker, "Are you sure?");
-        Truth.assertThat(response).isEqualTo(secondBody);
+        Truth.assertThat(response.getBody()).isEqualTo(secondBody);
     }
 
     @Test
@@ -54,14 +54,14 @@ public class ConversationTreeTest {
         tree.addNode(start.getNodeID(), Pattern.compile("^fine\\b!$", Pattern.CASE_INSENSITIVE),
                 new ConversationTreeNode(thirdBody));
 
-        String response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response).isEqualTo(start.getEmptyStatement());
+        ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
+        Truth.assertThat(response.getBody()).isEqualTo(start.getEmptyStatement());
         response = tree.listen(talker, "Are you sure?");
-        Truth.assertThat(response).isEqualTo(secondBody);
+        Truth.assertThat(response.getBody()).isEqualTo(secondBody);
 
         response = tree.listen(talker, "fine!");
-        Truth.assertThat(response).isNotEqualTo(thirdBody);
-        Truth.assertThat(response).isEqualTo(tree.getEndOfConvo());
+        Truth.assertThat(response.getBody()).isNotEqualTo(thirdBody);
+        Truth.assertThat(response.getBody()).isEqualTo(tree.getEndOfConvo());
     }
 
     @Test
@@ -76,25 +76,25 @@ public class ConversationTreeTest {
         tree.addNode(start.getNodeID(), Pattern.compile("^fine\\b!$", Pattern.CASE_INSENSITIVE),
                 new ConversationTreeNode(thirdBody));
 
-        String response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response).isEqualTo(start.getEmptyStatement());
+        ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
+        Truth.assertThat(response.getBody()).isEqualTo(start.getEmptyStatement());
         response = tree.listen(talker, "Are you sure?");
-        Truth.assertThat(response).isEqualTo(secondBody);
+        Truth.assertThat(response.getBody()).isEqualTo(secondBody);
 
         response = tree.listen(talker, "fine!");
-        Truth.assertThat(response).isNotEqualTo(thirdBody);
-        Truth.assertThat(response).isEqualTo(tree.getEndOfConvo());
+        Truth.assertThat(response.getBody()).isNotEqualTo(thirdBody);
+        Truth.assertThat(response.getBody()).isEqualTo(tree.getEndOfConvo());
 
         response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response).isEqualTo(start.getEmptyStatement());
+        Truth.assertThat(response.getBody()).isEqualTo(start.getEmptyStatement());
 
         response = tree.listen(talker, "fine!");
-        Truth.assertThat(response).isEqualTo(thirdBody);
-        Truth.assertThat(response).isNotEqualTo(tree.getEndOfConvo());
+        Truth.assertThat(response.getBody()).isEqualTo(thirdBody);
+        Truth.assertThat(response.getBody()).isNotEqualTo(tree.getEndOfConvo());
 
         response = tree.listen(talker, "Are you sure?");
-        Truth.assertThat(response).isNotEqualTo(secondBody);
-        Truth.assertThat(response).isEqualTo(tree.getEndOfConvo());
+        Truth.assertThat(response.getBody()).isNotEqualTo(secondBody);
+        Truth.assertThat(response.getBody()).isEqualTo(tree.getEndOfConvo());
     }
 
     @Test
@@ -109,13 +109,13 @@ public class ConversationTreeTest {
         tree.addNode(start.getNodeID(), Pattern.compile("^fine\\b!$", Pattern.CASE_INSENSITIVE),
                 new ConversationTreeNode(thirdBody));
 
-        String response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response).isEqualTo(start.getEmptyStatement());
+        ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
+        Truth.assertThat(response.getBody()).isEqualTo(start.getEmptyStatement());
         response = tree.listen(talker, "Are you sure?");
-        Truth.assertThat(response).isEqualTo(secondBody);
+        Truth.assertThat(response.getBody()).isEqualTo(secondBody);
 
         response = tree.listen(talker, "what was that again?");
-        Truth.assertThat(response).isEqualTo(secondBody);
+        Truth.assertThat(response.getBody()).isEqualTo(secondBody);
     }
 
     @Test
@@ -128,7 +128,7 @@ public class ConversationTreeTest {
         ConversationTreeNode second = new ConversationTreeNode(body2);
 
         tree.addNode(start.getNodeID(), Pattern.compile("\\btraveller\\b", Pattern.CASE_INSENSITIVE), second);
-        String response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response).contains("<convo>traveller</convo>");
+        ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
+        Truth.assertThat(response.getBody()).contains("<convo>traveller</convo>");
     }
 }

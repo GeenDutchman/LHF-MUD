@@ -34,4 +34,14 @@ public class ConversationTreeNodeTest {
         Truth.assertThat(node.getBody()).contains(body2);
     }
 
+    @Test
+    void testGetResult() {
+        ConversationTreeNode node = new ConversationTreeNode();
+        node.addPrompt("PROMPT GUID-HERE say cheese to anna");
+
+        ConversationTreeNodeResult result = node.getResult();
+        Truth.assertThat(result.getBody()).isEqualTo(node.getBody());
+        Truth.assertThat(result.getPrompts()).containsAtLeastElementsIn(node.getPrompts());
+    }
+
 }

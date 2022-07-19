@@ -1,5 +1,7 @@
 package com.lhf.game.creature.conversation;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.UUID;
@@ -8,22 +10,29 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode> {
     private final UUID nodeID;
     private StringJoiner body;
     private String emptyStatement;
+    private List<String> prompts;
 
     public ConversationTreeNode() {
         this.nodeID = UUID.randomUUID();
         this.body = new StringJoiner(" ");
         this.emptyStatement = "I have nothing to say to you right now!";
         this.body.setEmptyValue(this.emptyStatement);
+        this.prompts = new ArrayList<>();
     }
 
     public ConversationTreeNode(String emptyStatement) {
         this.nodeID = UUID.randomUUID();
         this.body = new StringJoiner(" ");
         this.setEmptyStatement(emptyStatement);
+        this.prompts = new ArrayList<>();
     }
 
     public void addBody(String bodyText) {
         this.body.add(bodyText);
+    }
+
+    public boolean addPrompt(String prompt) {
+        return this.prompts.add(prompt);
     }
 
     public UUID getNodeID() {
@@ -32,6 +41,18 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode> {
 
     public String getBody() {
         return this.body.toString();
+    }
+
+    public List<String> getPrompts() {
+        return this.prompts;
+    }
+
+    public ConversationTreeNodeResult getResult() {
+        ConversationTreeNodeResult result = new ConversationTreeNodeResult(this.getBody());
+        for (String prompt : this.getPrompts()) {
+            result.addPrompt(prompt);
+        }
+        return result;
     }
 
     public String getEmptyStatement() {

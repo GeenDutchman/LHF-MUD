@@ -74,10 +74,11 @@ public class ConversationTree {
         return this.nodes.put(nextNode.getNodeID(), nextNode);
     }
 
-    private String tagIt(ConversationTreeNode node) {
+    private ConversationTreeNodeResult tagIt(ConversationTreeNode node) {
         if (node == null) {
             return null;
         }
+        ConversationTreeNodeResult result = node.getResult();
         String output = node.getBody();
         if (this.branches.containsKey(node.getNodeID()) && this.tagkeywords) {
             for (ConversationTreeBranch branch : this.branches.get(node.getNodeID())) {
@@ -85,10 +86,11 @@ public class ConversationTree {
                 output = matcher.replaceFirst("<convo>$0</convo>");
             }
         }
-        return output;
+        result.setBody(output);
+        return result;
     }
 
-    public String listen(Creature c, String message) {
+    public ConversationTreeNodeResult listen(Creature c, String message) {
         if (!this.bookmarks.containsKey(c)) {
             for (ConversationTreeBranch greet : this.greetings) {
                 Matcher matcher = greet.getRegex().matcher(message);
@@ -120,7 +122,7 @@ public class ConversationTree {
             }
         }
         this.forget(c);
-        return this.endOfConvo;
+        return new ConversationTreeNodeResult(this.endOfConvo);
     }
 
     public void forget(Creature c) {
