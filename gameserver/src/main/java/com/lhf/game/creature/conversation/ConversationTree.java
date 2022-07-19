@@ -18,6 +18,7 @@ import com.lhf.game.creature.conversation.ConversationContext.ConversationContex
 import com.lhf.server.interfaces.NotNull;
 
 public class ConversationTree implements Serializable {
+    private String treeName;
     private ConversationTreeNode start;
     private Map<UUID, ConversationTreeNode> nodes;
     private Map<UUID, List<ConversationTreeBranch>> branches;
@@ -45,6 +46,7 @@ public class ConversationTree implements Serializable {
     }
 
     public ConversationTree(@NotNull ConversationTreeNode startNode) {
+        this.treeName = UUID.randomUUID().toString();
         this.nodes = new TreeMap<>();
         this.branches = new TreeMap<>();
         this.start = startNode;
@@ -59,6 +61,14 @@ public class ConversationTree implements Serializable {
         this.endOfConvo = "Goodbye";
         this.notRecognized = "What did you say? ...";
         this.tagkeywords = true;
+    }
+
+    public String getTreeName() {
+        return treeName;
+    }
+
+    public void setTreeName(String treeName) {
+        this.treeName = treeName;
     }
 
     public void addGreeting(Pattern regex) {
