@@ -22,6 +22,9 @@ public class ConversationContext implements Map<String, String> {
     }
 
     public boolean addTrail(UUID nodeID) {
+        if (nodeID.equals(this.getTrailEnd())) {
+            return false;
+        }
         return this.trail.add(nodeID);
     }
 

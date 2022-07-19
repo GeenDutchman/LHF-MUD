@@ -85,8 +85,10 @@ public class ConversationTree {
         String output = node.getBody();
         if (this.branches.containsKey(node.getNodeID()) && this.tagkeywords) {
             for (ConversationTreeBranch branch : this.branches.get(node.getNodeID())) {
-                Matcher matcher = branch.getRegex().matcher(output);
-                output = matcher.replaceFirst("<convo>$0</convo>");
+                if (branch.canAccess(ctx)) {
+                    Matcher matcher = branch.getRegex().matcher(output);
+                    output = matcher.replaceFirst("<convo>$0</convo>");
+                }
             }
         }
 
@@ -117,17 +119,21 @@ public class ConversationTree {
         }
         ConversationContext ctx = this.bookmarks.get(c);
         UUID id = ctx.getTrailEnd();
-        boolean hasBranches = this.branches.containsKey(id) && this.branches.get(id).size() > 0;
-        if (hasBranches) {
+        int hasBranches = this.branches.containsKey(id) ? this.branches.get(id).size() : 0;
+        if (hasBranches > 0) {
             for (ConversationTreeBranch branch : this.branches.get(id)) {
-                Matcher matcher = branch.getRegex().matcher(message);
-                if (matcher.find()) {
-                    UUID nextID = branch.getNodeID();
-                    ConversationTreeNode node = this.nodes.get(nextID);
-                    if (node != null) {
-                        this.bookmarks.get(c).addTrail(nextID);
-                        return this.tagIt(ctx, node);
+                if (branch.canAccess(ctx)) {
+                    Matcher matcher = branch.getRegex().matcher(message);
+                    if (matcher.find()) {
+                        UUID nextID = branch.getNodeID();
+                        ConversationTreeNode node = this.nodes.get(nextID);
+                        if (node != null) {
+                            this.bookmarks.get(c).addTrail(nextID);
+                            return this.tagIt(ctx, node);
+                        }
                     }
+                } else {
+                    hasBranches--;
                 }
             }
         }
@@ -138,7 +144,7 @@ public class ConversationTree {
             }
         }
 
-        if (!hasBranches) {
+        if (hasBranches <= 0) {
             this.bookmarks.get(c).addTrail(this.start.getNodeID());
             return new ConversationTreeNodeResult(this.endOfConvo);
         }
