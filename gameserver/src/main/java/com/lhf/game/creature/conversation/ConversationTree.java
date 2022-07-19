@@ -65,16 +65,17 @@ public class ConversationTree {
         this.greetings.add(new ConversationTreeBranch(regex, this.start.getNodeID()));
     }
 
-    public ConversationTreeNode addNode(UUID nodeID, Pattern regex, ConversationTreeNode nextNode) {
+    public ConversationTreeBranch addNode(UUID nodeID, Pattern regex, ConversationTreeNode nextNode) {
         if (nodeID == null) {
             nodeID = this.start.getNodeID();
         }
         if (!this.branches.containsKey(nodeID)) {
             this.branches.put(nodeID, new ArrayList<>());
         }
-        this.branches.get(nodeID).add(new ConversationTreeBranch(regex, nextNode.getNodeID()));
-
-        return this.nodes.put(nextNode.getNodeID(), nextNode);
+        ConversationTreeBranch branch = new ConversationTreeBranch(regex, nextNode.getNodeID());
+        this.branches.get(nodeID).add(branch);
+        this.nodes.put(nextNode.getNodeID(), nextNode);
+        return branch;
     }
 
     private ConversationTreeNodeResult tagIt(ConversationContext ctx, ConversationTreeNode node) {
