@@ -35,6 +35,13 @@ public class ConversationContext implements Map<String, String> {
         return this.trail.get(this.trail.size() - 1);
     }
 
+    public UUID backtrack() {
+        if (this.trail.size() <= 0) {
+            return null;
+        }
+        return this.trail.remove(this.trail.size() - 1);
+    }
+
     @Override
     public void clear() {
         this.contextBag.clear();

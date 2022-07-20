@@ -90,6 +90,13 @@ public class ConversationTree implements Serializable {
         return result;
     }
 
+    ConversationTreeNodeResult backtrack(Creature c) {
+        ConversationContext ctx = this.bookmarks.get(c);
+        ctx.backtrack();
+        UUID backNode = ctx.getTrailEnd();
+        return this.tagIt(ctx, this.nodes.get(backNode));
+    }
+
     public ConversationTreeNodeResult listen(Creature c, String message) {
         if (!this.bookmarks.containsKey(c)) {
             for (ConversationTreeBranch greet : this.greetings) {
@@ -192,7 +199,8 @@ public class ConversationTree implements Serializable {
 
         for (ConversationTreeBranch greetBranch : this.greetings) {
             sb.append("    [*] --> ").append(greetBranch.getNodeID().toString().replace("-", ""));
-            sb.append(" : ").append(greetBranch.getRegex().toString());
+            sb.append(" : ").append(greetBranch.getRegex().getExample()).append(" ")
+                    .append(greetBranch.getRegex().getRegex().toString());
 
             for (String restriction : greetBranch.getBlacklist().keySet()) {
                 sb.append(" ").append(restriction).append(" ")
