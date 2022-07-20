@@ -4,32 +4,26 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.StringJoiner;
 import java.util.UUID;
 
 public class ConversationTreeNode implements Comparable<ConversationTreeNode>, Serializable {
+    public static final String EMPTY = "...";
     private final UUID nodeID;
-    private StringJoiner body;
-    private String emptyStatement;
+    private String body;
     private List<String> prompts;
 
-    public ConversationTreeNode() {
+    public ConversationTreeNode(String someBody) {
         this.nodeID = UUID.randomUUID();
-        this.body = new StringJoiner(" ");
-        this.emptyStatement = "I have nothing to say to you right now!";
-        this.body.setEmptyValue(this.emptyStatement);
-        this.prompts = new ArrayList<>();
-    }
-
-    public ConversationTreeNode(String emptyStatement) {
-        this.nodeID = UUID.randomUUID();
-        this.body = new StringJoiner(" ");
-        this.setEmptyStatement(emptyStatement);
+        this.addBody(someBody);
         this.prompts = new ArrayList<>();
     }
 
     public void addBody(String bodyText) {
-        this.body.add(bodyText);
+        if (this.body != null) {
+            this.body += ' ' + new String(bodyText);
+            return;
+        }
+        this.body = new String(bodyText);
     }
 
     public boolean addPrompt(String prompt) {
@@ -41,7 +35,10 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
     }
 
     public String getBody() {
-        return this.body.toString();
+        if (this.body == null) {
+            return this.getEmptyStatement();
+        }
+        return this.body;
     }
 
     public List<String> getPrompts() {
@@ -57,15 +54,7 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
     }
 
     public String getEmptyStatement() {
-        return emptyStatement;
-    }
-
-    public void setEmptyStatement(String emptyStatement) {
-        this.emptyStatement = emptyStatement;
-        if (emptyStatement == null) {
-            this.emptyStatement = "";
-        }
-        this.body.setEmptyValue(emptyStatement);
+        return ConversationTreeNode.EMPTY;
     }
 
     @Override

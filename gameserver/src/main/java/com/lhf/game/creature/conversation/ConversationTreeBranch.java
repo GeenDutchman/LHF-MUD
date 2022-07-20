@@ -11,23 +11,23 @@ import java.util.regex.Pattern;
 import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
 
 public class ConversationTreeBranch implements Serializable, Comparable<ConversationTreeBranch> {
-    private final Pattern regex;
+    private final ConversationPattern regex;
     private final UUID nodeID;
-    private Map<String, Pattern> blacklist;
+    private Map<String, ConversationPattern> blacklist;
 
-    public ConversationTreeBranch(Pattern regex, UUID nodeID) {
+    public ConversationTreeBranch(ConversationPattern regex, UUID nodeID) {
         this.regex = regex;
         this.nodeID = nodeID;
         this.blacklist = new TreeMap<>();
     }
 
-    public ConversationTreeBranch(String regex, UUID nodeID) {
-        this.regex = Pattern.compile(regex);
+    public ConversationTreeBranch(String regex, String example, UUID nodeID) {
+        this.regex = new ConversationPattern(example, regex);
         this.nodeID = nodeID;
         this.blacklist = new TreeMap<>();
     }
 
-    public Pattern getRegex() {
+    public ConversationPattern getRegex() {
         return regex;
     }
 
@@ -35,23 +35,23 @@ public class ConversationTreeBranch implements Serializable, Comparable<Conversa
         return nodeID;
     }
 
-    public Map<String, Pattern> getBlacklist() {
+    public Map<String, ConversationPattern> getBlacklist() {
         return this.blacklist;
     }
 
-    public Pattern addRule(ConversationContextKey key, Pattern pattern) {
+    public ConversationPattern addRule(ConversationContextKey key, ConversationPattern pattern) {
         return this.addRule(key.name(), pattern);
     }
 
-    public Pattern addRule(String key, Pattern pattern) {
+    public ConversationPattern addRule(String key, ConversationPattern pattern) {
         return this.blacklist.put(key, pattern);
     }
 
-    public Pattern removeRule(ConversationContextKey key) {
+    public ConversationPattern removeRule(ConversationContextKey key) {
         return this.removeRule(key.name());
     }
 
-    public Pattern removeRule(String key) {
+    public ConversationPattern removeRule(String key) {
         return this.blacklist.remove(key);
     }
 
@@ -81,7 +81,13 @@ public class ConversationTreeBranch implements Serializable, Comparable<Conversa
             return false;
         }
         ConversationTreeBranch other = (ConversationTreeBranch) obj;
-        return Objects.equals(regex, other.regex) && Objects.equals(nodeID, other.nodeID);
+        if (!nodeID.equals(other.nodeID)) {
+            return false;
+        }
+        if (this.regex.flags() != other.regex.flags()) {
+            return false;
+        }
+        return this.regex.equals(other.regex);
     }
 
     @Override

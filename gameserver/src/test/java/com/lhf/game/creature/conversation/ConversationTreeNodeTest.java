@@ -6,15 +6,17 @@ import com.google.common.truth.Truth;
 
 public class ConversationTreeNodeTest {
 
+    private String basicEmpty = "I have nothing to say to you right now.";
+
     @Test
     void testEmptyNode() {
-        ConversationTreeNode node = new ConversationTreeNode();
+        ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
         Truth.assertThat(node.getBody()).contains("nothing");
     }
 
     @Test
     void testPopulatedBody() {
-        ConversationTreeNode node = new ConversationTreeNode();
+        ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
         String body = "I have something for you";
         node.addBody(body);
         Truth.assertThat(node.getBody()).contains(body);
@@ -22,7 +24,7 @@ public class ConversationTreeNodeTest {
 
     @Test
     void testDoublePopulatedBody() {
-        ConversationTreeNode node = new ConversationTreeNode();
+        ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
 
         String body1 = "I have something for you";
         node.addBody(body1);
@@ -36,7 +38,7 @@ public class ConversationTreeNodeTest {
 
     @Test
     void testGetResult() {
-        ConversationTreeNode node = new ConversationTreeNode();
+        ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
         node.addPrompt("PROMPT GUID-HERE say cheese to anna");
 
         ConversationTreeNodeResult result = node.getResult();
