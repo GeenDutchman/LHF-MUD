@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
 
@@ -95,7 +94,11 @@ public class ConversationTreeBranch implements Serializable, Comparable<Conversa
         if (o == null) {
             throw new NullPointerException("ConversationTreeBranch is not comparable to null!");
         }
-        return this.regex.toString().compareTo(o.getRegex().toString()) * -1;
+        int uuidCompare = this.nodeID.compareTo(o.nodeID);
+        if (uuidCompare != 0) {
+            return uuidCompare;
+        }
+        return this.regex.compareTo(o.getRegex());
     }
 
 }
