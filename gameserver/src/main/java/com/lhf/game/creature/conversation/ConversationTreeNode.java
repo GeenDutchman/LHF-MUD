@@ -85,7 +85,8 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("ConversationTreeNode [body=").append(body).append(", nodeID=").append(nodeID).append("]");
+        builder.append("ConversationTreeNode [body=").append(body).append(", nodeID=").append(nodeID)
+                .append(", prompts=").append(prompts).append("]");
         return builder.toString();
     }
 

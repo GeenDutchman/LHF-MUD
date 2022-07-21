@@ -12,8 +12,8 @@ import com.lhf.server.interfaces.NotNull;
 public class ConversationTree implements Serializable {
     private String treeName;
     private ConversationTreeNode start;
-    private Map<UUID, ConversationTreeNode> nodes;
-    private Map<UUID, List<ConversationTreeBranch>> branches;
+    private SortedMap<UUID, ConversationTreeNode> nodes;
+    private SortedMap<UUID, List<ConversationTreeBranch>> branches;
     private transient Map<Creature, ConversationContext> bookmarks;
     private SortedSet<ConversationTreeBranch> greetings;
     private SortedSet<ConversationPattern> repeatWords;
@@ -90,11 +90,29 @@ public class ConversationTree implements Serializable {
         return result;
     }
 
-    ConversationTreeNodeResult backtrack(Creature c) {
+    protected ConversationTreeNodeResult backtrack(Creature c) {
         ConversationContext ctx = this.bookmarks.get(c);
         ctx.backtrack();
         UUID backNode = ctx.getTrailEnd();
         return this.tagIt(ctx, this.nodes.get(backNode));
+    }
+
+    protected ConversationTreeNode getNode(UUID nodeID) {
+        return this.nodes.get(nodeID);
+    }
+
+    protected SortedMap<UUID, ConversationTreeNode> getNodes() {
+        return this.nodes;
+    }
+
+    protected ConversationTreeNode getCurrentNode(Creature c) {
+        ConversationContext ctx = this.bookmarks.get(c);
+        UUID nodeID = ctx.getTrailEnd();
+        return this.getNode(nodeID);
+    }
+
+    protected List<ConversationTreeBranch> getBranches(UUID nodeID) {
+        return this.branches.get(nodeID);
     }
 
     public ConversationTreeNodeResult listen(Creature c, String message) {
