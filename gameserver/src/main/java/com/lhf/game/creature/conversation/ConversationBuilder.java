@@ -1,10 +1,9 @@
 package com.lhf.game.creature.conversation;
 
+import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.UUID;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ConversationBuilder {
@@ -166,6 +165,52 @@ public class ConversationBuilder {
         }
     }
 
+    private ConversationTree nameTree() {
+        System.out.println("Name the tree");
+        if (this.tree == null) {
+            this.buildTree();
+        }
+        System.out.print("The tree's current name is: ");
+        System.out.println(this.tree.getTreeName());
+        System.out.println("Do you want to change it?");
+        if (this.yesOrNo()) {
+            System.out.println("What name do you want to use?");
+            String name = this.input.nextLine();
+            this.tree.setTreeName(name);
+        } else {
+            System.out.println("Keeping the name as-is");
+        }
+        return this.tree;
+    }
+
+    private ConversationTree writeTree() {
+        System.out.println("Write the tree");
+        if (this.tree != null) {
+            ConversationManager manager = new ConversationManager();
+            this.nameTree();
+            if (!manager.convoTreeToFile(this.tree)) {
+                System.err.println("An error writing the file occured");
+            }
+        } else {
+            System.err.println("No tree to write!");
+        }
+        return this.tree;
+    }
+
+    private ConversationTree loadTree() {
+        System.out.println("Load the tree");
+        ConversationManager manager = new ConversationManager();
+        System.out.println("What is the name of the tree?");
+        String name = this.input.nextLine();
+        try {
+            this.tree = manager.convoTreeFromFile(name);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            this.tree = null;
+        }
+        return this.tree;
+    }
+
     public void menu() {
         int response = -1;
         while (response != 0) {
@@ -175,6 +220,9 @@ public class ConversationBuilder {
                 System.out.println("2: Build tree");
                 System.out.println("3: Build new node");
                 System.out.println("4: Modify existing node");
+                System.out.println("5: Add greeting");
+                System.out.println("6: Write the tree");
+                System.out.println("7: Load a tree");
                 response = this.input.nextInt();
                 this.input.nextLine();
                 switch (response) {
@@ -205,6 +253,22 @@ public class ConversationBuilder {
                         System.out.println("Modify existing node...");
                         if (this.buildNode(this.selectValidNode()) == null) {
                             System.err.println("Error modifying existing node!");
+                        }
+                        break;
+                    case 5:
+                        System.out.println("Add greeting");
+                        this.buildGreetings();
+                        break;
+                    case 6:
+                        System.out.println("Writing the tree");
+                        if (this.writeTree() == null) {
+                            System.err.println("Error writing tree");
+                        }
+                        break;
+                    case 7:
+                        System.out.println("Load from a named file");
+                        if (this.loadTree() == null) {
+                            System.err.println("Error loading tree");
                         }
                         break;
                     default:
