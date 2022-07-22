@@ -134,12 +134,10 @@ public class ConversationBuilder {
         }
         System.out.println(node.toString());
         System.out.println("Are you done with this node?");
-        boolean done = this.yesOrNo();
-        while (!done) {
+        while (!this.yesOrNo()) {
             node = this.buildNodeBody(node);
             node = this.buildNodePrompts(node);
             System.out.println("Are you done with this node?");
-            done = this.yesOrNo();
         }
         this.addNodeToTree(node);
         return node;
