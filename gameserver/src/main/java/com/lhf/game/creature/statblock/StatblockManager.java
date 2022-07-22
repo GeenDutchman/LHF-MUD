@@ -21,7 +21,7 @@ import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.game.item.interfaces.Takeable;
 
 public class StatblockManager {
-    private String[] path_to_monsterStatblocks = { "..", "monsterStatblocks" };
+    private String[] path_to_monsterStatblocks = { ".", "monsterStatblocks" };
     private String path;
 
     public StatblockManager() {
@@ -39,7 +39,7 @@ public class StatblockManager {
     public Boolean statblockToFile(Statblock statblock) {
         GsonBuilder gBuilder = new GsonBuilder().setPrettyPrinting();
         Gson gson = gBuilder.create();
-        try (JsonWriter jWriter = new JsonWriter(
+        try (JsonWriter jWriter = gson.newJsonWriter(
                 new FileWriter(this.path.toString() + statblock.creatureRace + ".json"))) {
             gson.toJson(statblock, Statblock.class, jWriter);
         } catch (JsonIOException | IOException e) {

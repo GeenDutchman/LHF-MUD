@@ -1,0 +1,109 @@
+{
+    "treeName": "non_verbal_default",
+    "start": {
+        "nodeID": "f651b058-5c8e-4855-a11a-3bd1d0866782",
+        "body": "Grr",
+        "prompts": []
+    },
+    "nodes": {
+        "824582d8-cb2d-418b-8c8c-e028bd7f7dd4": {
+            "nodeID": "824582d8-cb2d-418b-8c8c-e028bd7f7dd4",
+            "body": "Hsss",
+            "prompts": []
+        },
+        "ba8f12f0-d72b-4eb4-ab12-cfabf9696ca4": {
+            "nodeID": "ba8f12f0-d72b-4eb4-ab12-cfabf9696ca4",
+            "body": "Growl",
+            "prompts": []
+        },
+        "c631b2dc-e5d9-4bf3-9f30-8cbc67cfb34f": {
+            "nodeID": "c631b2dc-e5d9-4bf3-9f30-8cbc67cfb34f",
+            "body": "Snarl",
+            "prompts": []
+        },
+        "f651b058-5c8e-4855-a11a-3bd1d0866782": {
+            "nodeID": "f651b058-5c8e-4855-a11a-3bd1d0866782",
+            "body": "Grr",
+            "prompts": []
+        }
+    },
+    "branches": {
+        "ba8f12f0-d72b-4eb4-ab12-cfabf9696ca4": [
+            {
+                "regex": {
+                    "regex": ".*",
+                    "flags": 2,
+                    "example": "Snarl"
+                },
+                "nodeID": "c631b2dc-e5d9-4bf3-9f30-8cbc67cfb34f",
+                "blacklist": {}
+            }
+        ],
+        "c631b2dc-e5d9-4bf3-9f30-8cbc67cfb34f": [
+            {
+                "regex": {
+                    "regex": ".*",
+                    "flags": 2,
+                    "example": "Hsss"
+                },
+                "nodeID": "824582d8-cb2d-418b-8c8c-e028bd7f7dd4",
+                "blacklist": {}
+            }
+        ],
+        "f651b058-5c8e-4855-a11a-3bd1d0866782": [
+            {
+                "regex": {
+                    "regex": ".*",
+                    "flags": 2,
+                    "example": "Growl"
+                },
+                "nodeID": "ba8f12f0-d72b-4eb4-ab12-cfabf9696ca4",
+                "blacklist": {}
+            }
+        ]
+    },
+    "greetings": [
+        {
+            "regex": {
+                "regex": "^hello\\b",
+                "flags": 2,
+                "example": "hello"
+            },
+            "nodeID": "f651b058-5c8e-4855-a11a-3bd1d0866782",
+            "blacklist": {}
+        },
+        {
+            "regex": {
+                "regex": "^hi\\b",
+                "flags": 2,
+                "example": "hi"
+            },
+            "nodeID": "f651b058-5c8e-4855-a11a-3bd1d0866782",
+            "blacklist": {}
+        },
+        {
+            "regex": {
+                "regex": ".*",
+                "flags": 2,
+                "example": "Grr"
+            },
+            "nodeID": "f651b058-5c8e-4855-a11a-3bd1d0866782",
+            "blacklist": {}
+        }
+    ],
+    "repeatWords": [
+        {
+            "regex": "\\brepeat\\b",
+            "flags": 2,
+            "example": "repeat"
+        },
+        {
+            "regex": "\\bagain\\b",
+            "flags": 2,
+            "example": "again"
+        }
+    ],
+    "endOfConvo": "Yowl",
+    "notRecognized": "Grr",
+    "tagkeywords": true
+}
