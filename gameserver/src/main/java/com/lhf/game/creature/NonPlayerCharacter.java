@@ -1,11 +1,18 @@
 package com.lhf.game.creature;
 
+import java.io.FileNotFoundException;
+
+import com.lhf.game.creature.conversation.ConversationManager;
+import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.enums.CreatureFaction;
 
 //  TODO:  https://gamedev.stackexchange.com/questions/12458/how-to-manage-all-the-npc-ai-objects-on-the-server/12512#12512
 
 public class NonPlayerCharacter extends Creature {
+    private ConversationTree convoTree = null;
+    public static final String defaultConvoTreeName = "verbal_default";
+
     public NonPlayerCharacter() {
         super();
     }
@@ -13,5 +20,22 @@ public class NonPlayerCharacter extends Creature {
     public NonPlayerCharacter(String name, Statblock statblock) {
         super(name, statblock);
         this.setFaction(CreatureFaction.NPC);
+    }
+
+    public void setConvoTree(ConversationManager manager, String name) {
+        if (name != null && manager != null) {
+            try {
+                this.convoTree = manager.convoTreeFromFile(name);
+            } catch (FileNotFoundException e) {
+                System.err.println("Cannot load that convo file");
+                e.printStackTrace();
+            }
+        } else {
+            this.convoTree = null;
+        }
+    }
+
+    public ConversationTree getConvoTree() {
+        return this.convoTree;
     }
 }
