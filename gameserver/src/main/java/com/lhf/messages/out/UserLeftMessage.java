@@ -13,7 +13,10 @@ public class UserLeftMessage extends OutMessage {
 
     public String toString() {
         if (!this.addressUser) {
-            return user.getUsername() + " has left the server\r\n";
+            if (this.user != null) {
+                return user.getUsername() + " has left the server\r\n";
+            }
+            return "Goodbye, whoever it was that just left!";
         }
         return "Goodbye, we hope to see you again soon!";
     }

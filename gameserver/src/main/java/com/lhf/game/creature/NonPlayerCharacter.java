@@ -4,8 +4,10 @@ import java.io.FileNotFoundException;
 
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
+import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.messages.out.OutMessage;
 
 //  TODO:  https://gamedev.stackexchange.com/questions/12458/how-to-manage-all-the-npc-ai-objects-on-the-server/12512#12512
 
@@ -20,6 +22,10 @@ public class NonPlayerCharacter extends Creature {
     public NonPlayerCharacter(String name, Statblock statblock) {
         super(name, statblock);
         this.setFaction(CreatureFaction.NPC);
+    }
+
+    public void setConvoTree(ConversationTree tree) {
+        this.convoTree = tree;
     }
 
     public void setConvoTree(ConversationManager manager, String name) {
@@ -37,5 +43,14 @@ public class NonPlayerCharacter extends Creature {
 
     public ConversationTree getConvoTree() {
         return this.convoTree;
+    }
+
+    @Override
+    public void sendMsg(OutMessage msg) {
+        if (this.getController() == null) {
+            BasicAI lizardbrain = new BasicAI(this);
+            this.setController(lizardbrain);
+        }
+        super.sendMsg(msg);
     }
 }

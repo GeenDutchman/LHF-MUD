@@ -6,7 +6,7 @@ public class SpeakingMessage extends OutMessage {
     private String message;
     private ClientMessenger sayer;
     private ClientMessenger hearer;
-    private Boolean shouting;
+    private boolean shouting = false;
 
     public SpeakingMessage(ClientMessenger sayer, String message) {
         this.sayer = sayer;
@@ -29,7 +29,7 @@ public class SpeakingMessage extends OutMessage {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(this.sayer.getColorTaggedName());
-        if (this.shouting != null && this.shouting.booleanValue()) {
+        if (this.shouting) {
             sb.append(" SHOUTS ");
         }
         if (this.hearer != null) {

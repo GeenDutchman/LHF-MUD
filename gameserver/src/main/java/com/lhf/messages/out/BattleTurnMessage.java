@@ -38,4 +38,20 @@ public class BattleTurnMessage extends OutMessage {
         }
     }
 
+    public Creature getMyTurn() {
+        return myTurn;
+    }
+
+    public boolean isYesTurn() {
+        return yesTurn;
+    }
+
+    public boolean isAddressTurner() {
+        return addressTurner;
+    }
+
+    public boolean isWasted() {
+        return wasted;
+    }
+
 }
