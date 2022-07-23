@@ -40,23 +40,30 @@ public class CommandInParserTest {
     @Test
     void testParse() {
         ArrayList<ParseTestCase> testCases = new ArrayList<>();
-        testCases.add(new ParseTestCase("Command only, CAPS", "SAY", true,
-                CommandMessage.SAY));
-        testCases.add(new ParseTestCase("Command only, lower", "equip", true,
-                CommandMessage.EQUIP));
-        testCases.add(new ParseTestCase("Command only, enum", CommandMessage.ATTACK.toString(),
-                true, CommandMessage.ATTACK));
+        testCases.add(new ParseTestCase("Command only, CAPS", "SAY", true, CommandMessage.SAY));
+        testCases.add(new ParseTestCase("Command only, lower", "equip", true, CommandMessage.EQUIP));
+        testCases.add(
+                new ParseTestCase("Command only, enum", CommandMessage.ATTACK.toString(), true, CommandMessage.ATTACK));
         testCases.add(new ParseTestCase("Not command", "Zirtech", false, null));
-        testCases.add(new ParseTestCase("Single direct object", "Say hello", true,
-                CommandMessage.SAY).addDirect("hello"));
-        testCases.add(new ParseTestCase("Quoted direct object", "Say \"hello\"",
-                true, CommandMessage.SAY)
+        testCases.add(
+                new ParseTestCase("Single direct object", "Say hello", true, CommandMessage.SAY).addDirect("hello"));
+        testCases.add(new ParseTestCase("Quoted direct object", "Say \"hello\"", true, CommandMessage.SAY)
                 .addDirect("\"hello\""));
         testCases.add(new ParseTestCase("Quoted direct object with preposition", "Say\"hello to my little friend\"",
                 true, CommandMessage.SAY).addDirect("\"hello to my little friend\""));
         testCases.add(new ParseTestCase("Quoted direct object with preposition",
-                "Say \"hello to my little friend\" to arnold",
-                true, CommandMessage.SAY).addDirect("\"hello to my little friend\"").addPrepPhrase("to", "arnold"));
+                "Say \"hello to my little friend\" to arnold", true, CommandMessage.SAY)
+                .addDirect("\"hello to my little friend\"").addPrepPhrase("to", "arnold"));
+        // TODO: we should take better care of punctuation
+        // testCases.add(new ParseTestCase("Quoted direct object with preposition and
+        // punctuation",
+        // "Say \"hello there!\" to arnold", true,
+        // CommandMessage.SAY).addDirect("\"hello there!\"")
+        // .addPrepPhrase("to", "arnold"));
+        // testCases.add(
+        // new ParseTestCase("Quoted comma list", "Say \"one, two, three\" to arnold",
+        // true, CommandMessage.SAY)
+        // .addDirect("\"one, two, three\"").addPrepPhrase("to", "arnold"));
 
         for (ParseTestCase tc : testCases) {
             System.out.println("Testing: " + tc.testName);
