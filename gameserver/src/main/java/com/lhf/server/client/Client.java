@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandInParser;
+import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.out.BadMessage;
@@ -36,7 +36,7 @@ public class Client implements MessageHandler, ClientMessenger {
 
     public void ProcessString(String value) {
         this.logger.fine("message received: " + value);
-        Command cmd = CommandInParser.parse(value);
+        Command cmd = CommandBuilder.parse(value);
         Boolean accepted = false;
         if (cmd.isValid()) {
             this.logger.finest("the message received was deemed" + cmd.getClass().toString());

@@ -67,7 +67,7 @@ public class CommandInParserTest {
 
         for (ParseTestCase tc : testCases) {
             System.out.println("Testing: " + tc.testName);
-            Command cmd = CommandInParser.parse(tc.input);
+            Command cmd = CommandBuilder.parse(tc.input);
             Truth.assertThat(cmd).isNotNull();
             if (tc.command != null) {
                 Truth.assertThat(cmd.isValid).isEqualTo(tc.command.isValid);

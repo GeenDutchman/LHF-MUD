@@ -9,7 +9,7 @@ import com.lhf.messages.grammar.Phrase;
 import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.in.InMessage;
 
-public class CommandInParser {
+public class CommandBuilder {
     public static Command parse(String messageIn) {
         String toParse = messageIn.trim();
         GrammaredCommandPhrase parser = new GrammaredCommandPhrase();
@@ -44,6 +44,16 @@ public class CommandInParser {
         } catch (NullPointerException npe) {
             return InMessage.fromCommand(CommandMessage.HELP, toParse).setValid(false);
         }
+    }
+
+    public static Command addDirect(Command toEdit, String direct) {
+        toEdit.addDirect(direct);
+        return toEdit;
+    }
+
+    public static Command addIndirect(Command toEdit, String preposition, String phrase) {
+        toEdit.addIndirect(preposition, phrase);
+        return toEdit;
     }
 
 }
