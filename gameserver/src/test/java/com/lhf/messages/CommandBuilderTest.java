@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import com.google.common.truth.Truth;
 import com.lhf.messages.in.InMessage;
 
-public class CommandInParserTest {
+public class CommandBuilderTest {
     class ParseTestCase {
         public String testName;
         public String input;
