@@ -54,6 +54,7 @@ public class ConversationManager {
         System.out.println("Opening file: " + convoFile);
         JsonReader jReader = new JsonReader(new FileReader(convoFile));
         ConversationTree tree = gson.fromJson(jReader, ConversationTree.class);
+        tree.initBookmarks();
         return tree;
     }
 }

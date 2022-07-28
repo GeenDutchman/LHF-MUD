@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.Monster;
+import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.HealType;
@@ -29,6 +30,7 @@ public class DungeonBuilder {
     public static Dungeon buildStaticDungeon(MessageHandler successor) throws FileNotFoundException {
         Dungeon dungeon = new Dungeon(successor);
 
+        ConversationManager convoLoader = new ConversationManager();
         StatblockManager loader = new StatblockManager();
         Statblock goblin = loader.statblockFromfile("goblin");
         Statblock bugbear = loader.statblockFromfile("bugbear");
@@ -167,6 +169,7 @@ public class DungeonBuilder {
 
         // Monsters
         Monster g1 = new Monster("goblin", goblin);
+        g1.setConvoTree(convoLoader, "non_verbal_default");
         historyHall.addCreature(g1);
 
         Monster boss = new Monster("Boss Bear", bugbear);

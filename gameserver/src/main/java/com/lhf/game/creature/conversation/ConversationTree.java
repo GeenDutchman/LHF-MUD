@@ -28,16 +28,41 @@ public class ConversationTree implements Serializable {
         this.branches = new TreeMap<>();
         this.start = startNode;
         this.nodes.put(startNode.getNodeID(), startNode);
-        this.bookmarks = new TreeMap<>();
-        this.repeatWords = new TreeSet<>();
-        this.greetings = new TreeSet<>();
-        this.repeatWords.add(new ConversationPattern("again", "\\bagain\\b", Pattern.CASE_INSENSITIVE));
-        this.repeatWords.add(new ConversationPattern("repeat", "\\brepeat\\b", Pattern.CASE_INSENSITIVE));
-        this.addGreeting(new ConversationPattern("hello", "^hello\\b", Pattern.CASE_INSENSITIVE));
-        this.addGreeting(new ConversationPattern("hi", "^hi\\b", Pattern.CASE_INSENSITIVE));
+        this.init();
         this.endOfConvo = "Goodbye";
         this.notRecognized = "What did you say? ...";
         this.tagkeywords = true;
+    }
+
+    protected ConversationTree init() {
+        this.initBookmarks();
+        this.addDefaultGreetings();
+        this.addDefaultRepeatWords();
+        return this;
+    }
+
+    protected ConversationTree initBookmarks() {
+        if (this.bookmarks == null) {
+            this.bookmarks = new TreeMap<>();
+        }
+        return this;
+    }
+
+    protected ConversationTree addDefaultGreetings() {
+        if (this.greetings == null) {
+            this.greetings = new TreeSet<>();
+        }
+        this.addGreeting(new ConversationPattern("hello", "^hello\\b", Pattern.CASE_INSENSITIVE));
+        this.addGreeting(new ConversationPattern("hi", "^hi\\b", Pattern.CASE_INSENSITIVE));
+        return this;
+    }
+
+    protected void addDefaultRepeatWords() {
+        if (this.repeatWords == null) {
+            this.repeatWords = new TreeSet<>();
+        }
+        this.repeatWords.add(new ConversationPattern("again", "\\bagain\\b", Pattern.CASE_INSENSITIVE));
+        this.repeatWords.add(new ConversationPattern("repeat", "\\brepeat\\b", Pattern.CASE_INSENSITIVE));
     }
 
     public String getTreeName() {
@@ -49,6 +74,9 @@ public class ConversationTree implements Serializable {
     }
 
     public void addGreeting(ConversationPattern regex) {
+        if (this.greetings == null) {
+            this.greetings = new TreeSet<>();
+        }
         this.greetings.add(new ConversationTreeBranch(regex, this.start.getNodeID()));
     }
 
@@ -164,7 +192,7 @@ public class ConversationTree implements Serializable {
         return new ConversationTreeNodeResult(this.notRecognized);
     }
 
-    public void forget(Creature c) {
+    public void forgetBookmark(Creature c) {
         this.bookmarks.remove(c);
     }
 
