@@ -7,6 +7,11 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.messages.CommandBuilder;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.in.AttackMessage;
+import com.lhf.messages.in.CastMessage;
+import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.out.AttackDamageMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BattleTurnMessage;
@@ -24,6 +29,19 @@ public class BasicAI extends Client {
         this.npc = npc;
         this.setSuccessor(npc);
         this.SetOut(new DoNothingSendStrategy());
+    }
+
+    private void useTurn(boolean spell) {
+        if (spell || this.lastAttacker == null) {
+            CastMessage cMessage = (CastMessage) CommandBuilder.fromCommand(CommandMessage.CAST, "turnwaster!!");
+            CommandBuilder.addDirect(cMessage, "turnwaster!!");
+            super.handleMessage(null, cMessage);
+        } else {
+            AttackMessage aMessage = (AttackMessage) CommandBuilder.fromCommand(CommandMessage.ATTACK,
+                    this.lastAttacker.getName());
+            CommandBuilder.addDirect(aMessage, this.lastAttacker.getName());
+            super.handleMessage(null, aMessage);
+        }
     }
 
     private void dumb(OutMessage msg) {
@@ -60,21 +78,13 @@ public class BasicAI extends Client {
                     }
                 }
             }
-            if (this.lastAttacker == null) {
-                super.ProcessString("cast turnwaster!!");
-            } else {
-                super.ProcessString("attack " + this.lastAttacker.getName());
-            }
+            this.useTurn(false);
             return;
         }
         if (msg instanceof BattleTurnMessage) {
             BattleTurnMessage btm = (BattleTurnMessage) msg;
             if (!btm.isWasted() && btm.isAddressTurner() && btm.isYesTurn()) {
-                if (this.lastAttacker == null) {
-                    super.ProcessString("cast turnwaster!!");
-                } else {
-                    super.ProcessString("attack " + this.lastAttacker.getName());
-                }
+                this.useTurn(false);
             }
             return;
         }
@@ -85,7 +95,11 @@ public class BasicAI extends Client {
                     Creature sayer = (Creature) sm.getSayer();
                     ConversationTreeNodeResult result = this.npc.getConvoTree().listen(sayer, sm.getMessage());
                     if (result != null && result.getBody() != null) {
-                        super.ProcessString("say \"" + result.getBody() + "\" to " + sayer.getName());
+                        SayMessage say = (SayMessage) CommandBuilder.fromCommand(CommandMessage.SAY,
+                                "say \"" + result.getBody() + "\" to " + sayer.getName());
+                        CommandBuilder.addDirect(say, result.getBody());
+                        CommandBuilder.addIndirect(say, "to", sayer.getName());
+                        super.handleMessage(null, say);
                     }
                 }
             }
