@@ -1,6 +1,7 @@
 package com.lhf.messages.out;
 
 import com.lhf.Taggable;
+import com.lhf.messages.OutMessageType;
 
 public class NotPossessedMessage extends OutMessage {
     private String type;
@@ -8,11 +9,13 @@ public class NotPossessedMessage extends OutMessage {
     private Taggable found;
 
     public NotPossessedMessage(String type, String itemName) {
+        super(OutMessageType.NOT_POSSESSED);
         this.type = type;
         this.itemName = itemName;
     }
 
     public NotPossessedMessage(String type, String itemName, Taggable found) {
+        super(OutMessageType.NOT_POSSESSED);
         this.type = type;
         this.itemName = itemName;
         this.found = found;

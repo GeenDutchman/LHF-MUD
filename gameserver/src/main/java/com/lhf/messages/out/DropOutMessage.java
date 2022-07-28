@@ -1,11 +1,13 @@
 package com.lhf.messages.out;
 
 import com.lhf.Taggable;
+import com.lhf.messages.OutMessageType;
 
 public class DropOutMessage extends OutMessage {
     private Taggable item;
 
     public DropOutMessage(Taggable item) {
+        super(OutMessageType.DROP_OUT);
         this.item = item;
     }
 

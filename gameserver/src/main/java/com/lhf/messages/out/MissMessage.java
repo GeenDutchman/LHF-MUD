@@ -2,11 +2,11 @@ package com.lhf.messages.out;
 
 import java.util.StringJoiner;
 
-import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD4;
 import com.lhf.game.dice.Dice.RollResult;
+import com.lhf.messages.OutMessageType;
 
 public class MissMessage extends OutMessage {
     private Creature attacker;
@@ -17,6 +17,7 @@ public class MissMessage extends OutMessage {
     private String staticOutput;
 
     public MissMessage(Creature attacker, Creature target, RollResult offense, RollResult defense) {
+        super(OutMessageType.MISS);
         this.attacker = attacker;
         this.target = target;
         this.offense = offense;

@@ -1,9 +1,12 @@
 package com.lhf.messages.out;
 
+import com.lhf.messages.OutMessageType;
+
 public class ReincarnateMessage extends OutMessage {
     private final String taggedName;
 
     public ReincarnateMessage(String taggedName) {
+        super(OutMessageType.REINCARNATION);
         this.taggedName = taggedName;
     }
 

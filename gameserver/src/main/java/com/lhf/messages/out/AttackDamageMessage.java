@@ -3,8 +3,8 @@ package com.lhf.messages.out;
 import java.util.StringJoiner;
 
 import com.lhf.game.creature.Creature;
-import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.Dice.RollResult;
+import com.lhf.messages.OutMessageType;
 
 public class AttackDamageMessage extends OutMessage {
     private Creature attacker;
@@ -14,6 +14,7 @@ public class AttackDamageMessage extends OutMessage {
     private RollResult total;
 
     public AttackDamageMessage(Creature attacker, Creature victim) {
+        super(OutMessageType.ATTACK_DAMAGE);
         this.attacker = attacker;
         this.victim = victim;
         this.builtDamages = new StringJoiner(" ");

@@ -2,6 +2,7 @@ package com.lhf.messages.out;
 
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Item;
+import com.lhf.messages.OutMessageType;
 
 public class UnequipOutMessage extends OutMessage {
     private Item item;
@@ -9,11 +10,13 @@ public class UnequipOutMessage extends OutMessage {
     private String attemptedName;
 
     public UnequipOutMessage(EquipmentSlots slot, Item item) {
+        super(OutMessageType.UNEQUIP);
         this.item = item;
         this.slot = slot;
     }
 
     public UnequipOutMessage(EquipmentSlots slot, String attemptedName) {
+        super(OutMessageType.UNEQUIP);
         this.slot = slot;
         this.attemptedName = attemptedName;
     }

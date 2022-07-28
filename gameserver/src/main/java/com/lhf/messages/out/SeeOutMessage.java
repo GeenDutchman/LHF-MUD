@@ -3,6 +3,7 @@ package com.lhf.messages.out;
 import java.util.StringJoiner;
 
 import com.lhf.Examinable;
+import com.lhf.messages.OutMessageType;
 
 public class SeeOutMessage extends OutMessage {
     private Examinable examinable;
@@ -10,18 +11,21 @@ public class SeeOutMessage extends OutMessage {
     private String deniedReason;
 
     public SeeOutMessage(Examinable examinable) {
+        super(OutMessageType.SEE);
         this.examinable = examinable;
         this.extraInfo = null;
         this.deniedReason = null;
     }
 
     public SeeOutMessage(Examinable examinable, String extraInfo) {
+        super(OutMessageType.SEE);
         this.examinable = examinable;
         this.extraInfo = extraInfo.trim();
         this.deniedReason = null;
     }
 
     public SeeOutMessage(String deniedReason) {
+        super(OutMessageType.SEE);
         this.deniedReason = deniedReason.trim();
         this.examinable = null;
         this.extraInfo = null;

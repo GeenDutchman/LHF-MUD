@@ -3,12 +3,14 @@ package com.lhf.messages.out;
 import java.util.Map;
 
 import com.lhf.messages.CommandMessage;
+import com.lhf.messages.OutMessageType;
 
 public class HelpMessage extends OutMessage {
     private Map<CommandMessage, String> helps;
     private CommandMessage singleHelp;
 
     public HelpMessage(Map<CommandMessage, String> helps, CommandMessage singleHelp) {
+        super(OutMessageType.HELP);
         this.helps = helps;
         this.singleHelp = singleHelp;
     }

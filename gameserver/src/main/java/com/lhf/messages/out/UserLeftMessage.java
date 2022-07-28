@@ -1,5 +1,6 @@
 package com.lhf.messages.out;
 
+import com.lhf.messages.OutMessageType;
 import com.lhf.server.client.user.User;
 
 public class UserLeftMessage extends OutMessage {
@@ -7,6 +8,7 @@ public class UserLeftMessage extends OutMessage {
     private boolean addressUser;
 
     public UserLeftMessage(User user, boolean addressUser) {
+        super(OutMessageType.USER_LEFT);
         this.user = user;
         this.addressUser = addressUser;
     }

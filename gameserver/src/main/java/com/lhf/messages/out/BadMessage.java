@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
+import com.lhf.messages.OutMessageType;
 
 public class BadMessage extends HelpMessage {
     public enum BadMessageType {
@@ -15,6 +16,7 @@ public class BadMessage extends HelpMessage {
 
     public BadMessage(BadMessageType type, Map<CommandMessage, String> helps, Command cmd) {
         super(helps, cmd.getType());
+        this.retype(OutMessageType.BAD_MESSAGE);
         this.type = type;
         this.cmd = cmd;
     }

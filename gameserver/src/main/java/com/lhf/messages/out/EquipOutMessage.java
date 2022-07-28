@@ -1,10 +1,9 @@
 package com.lhf.messages.out;
 
-import java.util.List;
-
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Equipable;
+import com.lhf.messages.OutMessageType;
 
 public class EquipOutMessage extends OutMessage {
     public enum EquipResultType {
@@ -18,12 +17,14 @@ public class EquipOutMessage extends OutMessage {
     private EquipmentSlots attemptedSlot;
 
     public EquipOutMessage(OutMessage unequipMessage, Item equipped) {
+        super(OutMessageType.EQUIP);
         this.type = EquipResultType.SUCCESS;
         this.unequipMessage = unequipMessage;
         this.item = equipped;
     }
 
     public EquipOutMessage(EquipResultType type, Item item, String attemptedName, EquipmentSlots attemptedSlot) {
+        super(OutMessageType.EQUIP);
         this.type = type;
         this.item = item;
         this.attemptedItemName = attemptedName;

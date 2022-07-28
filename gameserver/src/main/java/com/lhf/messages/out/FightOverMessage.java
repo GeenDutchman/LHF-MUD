@@ -1,9 +1,12 @@
 package com.lhf.messages.out;
 
+import com.lhf.messages.OutMessageType;
+
 public class FightOverMessage extends OutMessage {
     private boolean addressSingle;
 
     public FightOverMessage(boolean addressSingle) {
+        super(OutMessageType.FIGHT_OVER);
         this.addressSingle = addressSingle;
     }
 

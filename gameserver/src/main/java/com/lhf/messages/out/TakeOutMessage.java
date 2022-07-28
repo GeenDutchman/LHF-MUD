@@ -3,6 +3,7 @@ package com.lhf.messages.out;
 import java.util.StringJoiner;
 
 import com.lhf.game.item.Item;
+import com.lhf.messages.OutMessageType;
 
 public class TakeOutMessage extends OutMessage {
     public enum TakeOutType {
@@ -14,18 +15,21 @@ public class TakeOutMessage extends OutMessage {
     private TakeOutType type;
 
     public TakeOutMessage(String attemptedName, TakeOutType type) {
+        super(OutMessageType.TAKE);
         this.item = null;
         this.attemptedName = attemptedName;
         this.type = type;
     }
 
     public TakeOutMessage(String attemptedName, Item item) {
+        super(OutMessageType.TAKE);
         this.type = TakeOutType.FOUND_TAKEN;
         this.attemptedName = attemptedName;
         this.item = item;
     }
 
     public TakeOutMessage(String attemptedName, Item item, TakeOutType type) {
+        super(OutMessageType.TAKE);
         this.attemptedName = attemptedName;
         this.item = item;
         this.type = type;

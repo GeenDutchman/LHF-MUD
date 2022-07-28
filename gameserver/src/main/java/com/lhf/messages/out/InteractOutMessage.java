@@ -3,6 +3,7 @@ package com.lhf.messages.out;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
+import com.lhf.messages.OutMessageType;
 
 public class InteractOutMessage extends OutMessage {
     public enum InteractOutMessageType {
@@ -14,12 +15,14 @@ public class InteractOutMessage extends OutMessage {
     private String description;
 
     public InteractOutMessage(Taggable taggable, InteractOutMessageType type) {
+        super(OutMessageType.INTERACT);
         this.taggable = taggable;
         this.type = type;
         this.description = null;
     }
 
     public InteractOutMessage(Taggable taggable, String description) {
+        super(OutMessageType.INTERACT);
         this.taggable = taggable;
         this.description = description;
         this.type = InteractOutMessageType.PERFORMED;

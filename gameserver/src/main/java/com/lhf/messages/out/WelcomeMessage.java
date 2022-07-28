@@ -2,7 +2,13 @@ package com.lhf.messages.out;
 
 import java.util.StringJoiner;
 
+import com.lhf.messages.OutMessageType;
+
 public class WelcomeMessage extends OutMessage {
+    public WelcomeMessage() {
+        super(OutMessageType.WELCOME);
+    }
+
     public String toString() {
         StringJoiner sj = new StringJoiner("\r\n");
         sj.add("Welcome to <title>LHF MUD</title>!");

@@ -5,6 +5,7 @@ import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
+import com.lhf.messages.OutMessageType;
 
 public class StatusOutMessage extends OutMessage {
     private final boolean full;
@@ -19,6 +20,7 @@ public class StatusOutMessage extends OutMessage {
     private final AttributeBlock attributes;
 
     public StatusOutMessage(Creature creature, boolean full) {
+        super(OutMessageType.STATUS);
         this.full = full;
         this.name = creature.getName();
         this.colorTaggedName = creature.getColorTaggedName();

@@ -1,6 +1,7 @@
 package com.lhf.messages.out;
 
 import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.OutMessageType;
 
 public class SpeakingMessage extends OutMessage {
     private String message;
@@ -9,17 +10,20 @@ public class SpeakingMessage extends OutMessage {
     private boolean shouting = false;
 
     public SpeakingMessage(ClientMessenger sayer, String message) {
+        super(OutMessageType.SPEAKING);
         this.sayer = sayer;
         this.message = message;
     }
 
     public SpeakingMessage(ClientMessenger sayer, boolean shouting, String message) {
+        super(OutMessageType.SPEAKING);
         this.sayer = sayer;
         this.message = message;
         this.shouting = shouting;
     }
 
     public SpeakingMessage(ClientMessenger sayer, String message, ClientMessenger hearer) {
+        super(OutMessageType.SPEAKING);
         this.sayer = sayer;
         this.message = message;
         this.hearer = hearer;

@@ -3,6 +3,7 @@ package com.lhf.messages.out;
 import java.util.StringJoiner;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.messages.OutMessageType;
 
 public class SpellFizzleMessage extends OutMessage {
     public enum SpellFizzleType {
@@ -14,6 +15,7 @@ public class SpellFizzleMessage extends OutMessage {
     private boolean addressAttempter;
 
     public SpellFizzleMessage(SpellFizzleType type, Creature attempter, boolean addressAttempter) {
+        super(OutMessageType.FIZZLE);
         this.type = type;
         this.attempter = attempter;
         this.addressAttempter = addressAttempter;

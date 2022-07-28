@@ -1,11 +1,14 @@
 package com.lhf.messages.out;
 
+import com.lhf.messages.OutMessageType;
+
 public class CannotSpeakToMessage extends OutMessage {
     private String creatureName;
     private String taggedCreatureName;
     private String msg;
 
     public CannotSpeakToMessage(String creatureName, String taggedCreatureName) {
+        super(OutMessageType.CANNOT_SPEAK_TO);
         this.creatureName = creatureName;
         this.taggedCreatureName = taggedCreatureName;
         String temp = "This room does not contain anyone named ";

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
+import com.lhf.messages.OutMessageType;
 
 public class BadTargetSelectedMessage extends OutMessage {
     public enum BadTargetOption {
@@ -15,11 +16,13 @@ public class BadTargetSelectedMessage extends OutMessage {
     private List<? extends Taggable> possibleTargets;
 
     public BadTargetSelectedMessage(BadTargetOption bde, String badTarget) {
+        super(OutMessageType.BAD_TARGET_SELECTED);
         this.bde = bde;
         this.badTarget = badTarget;
     }
 
     public BadTargetSelectedMessage(BadTargetOption bde, String badTarget, List<? extends Taggable> possibleTargets) {
+        super(OutMessageType.BAD_TARGET_SELECTED);
         this.bde = bde;
         this.badTarget = badTarget;
         this.possibleTargets = possibleTargets;

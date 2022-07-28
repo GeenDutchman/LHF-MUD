@@ -1,15 +1,18 @@
 package com.lhf.messages.out;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.messages.OutMessageType;
 
 public class RenegadeAnnouncement extends OutMessage {
     private Creature turned;
 
     public RenegadeAnnouncement() {
+        super(OutMessageType.RENEGADE_ANNOUNCEMENT);
         this.turned = null;
     }
 
     public RenegadeAnnouncement(Creature turned) {
+        super(OutMessageType.RENEGADE_ANNOUNCEMENT);
         this.turned = turned;
     }
 

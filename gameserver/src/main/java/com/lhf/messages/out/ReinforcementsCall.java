@@ -2,12 +2,14 @@ package com.lhf.messages.out;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.messages.OutMessageType;
 
 public class ReinforcementsCall extends OutMessage {
     private Creature caller;
     private boolean callerAddressed;
 
     public ReinforcementsCall(Creature caller, boolean callerAddressed) {
+        super(OutMessageType.REINFORCEMENTS_CALL);
         this.caller = caller;
         this.callerAddressed = callerAddressed;
     }

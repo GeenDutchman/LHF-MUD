@@ -382,10 +382,10 @@ public class BattleManager implements MessageHandler, Examinable {
                 } else if (type == CommandMessage.GO) {
                     handled = this.handleGo(ctx, msg);
                 } else if (type == CommandMessage.INTERACT) {
-                    ctx.sendMsg(new SingleHelpMessage(this.interceptorCmds, type));
+                    ctx.sendMsg(new HelpMessage(this.gatherHelp(), type));
                     handled = true;
                 } else if (type == CommandMessage.TAKE) {
-                    ctx.sendMsg(new SingleHelpMessage(this.interceptorCmds, type));
+                    ctx.sendMsg(new HelpMessage(this.gatherHelp(), type));
                     handled = true;
                 }
             }

@@ -8,12 +8,14 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.game.item.interfaces.Takeable;
+import com.lhf.messages.OutMessageType;
 
 public class InventoryOutMessage extends OutMessage {
     private Collection<Takeable> items;
     private Map<EquipmentSlots, Equipable> equipment;
 
     public InventoryOutMessage(Collection<Takeable> items) {
+        super(OutMessageType.INVENTORY);
         this.items = items;
     }
 

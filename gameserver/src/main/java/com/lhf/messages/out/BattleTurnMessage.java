@@ -1,6 +1,7 @@
 package com.lhf.messages.out;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.messages.OutMessageType;
 
 public class BattleTurnMessage extends OutMessage {
     private Creature myTurn;
@@ -9,6 +10,7 @@ public class BattleTurnMessage extends OutMessage {
     private boolean wasted;
 
     public BattleTurnMessage(Creature myTurn, boolean yesTurn, boolean addressTurner) {
+        super(OutMessageType.BATTLE_TURN);
         this.myTurn = myTurn;
         this.yesTurn = yesTurn;
         this.addressTurner = addressTurner;
@@ -17,6 +19,7 @@ public class BattleTurnMessage extends OutMessage {
 
     // will only address everyone
     public BattleTurnMessage(Creature myTurn, boolean wasted) {
+        super(OutMessageType.BATTLE_TURN);
         this.myTurn = myTurn;
         this.yesTurn = true;
         this.addressTurner = false;

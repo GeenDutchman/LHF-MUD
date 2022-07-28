@@ -4,17 +4,20 @@ import java.util.Collection;
 import java.util.StringJoiner;
 
 import com.lhf.game.map.Directions;
+import com.lhf.messages.OutMessageType;
 
 public class BadGoMessage extends OutMessage {
     private Directions attempted;
     private Collection<String> available; // TODO: change this to a list of directions
 
     public BadGoMessage(Directions attempted) {
+        super(OutMessageType.BAD_GO);
         this.attempted = attempted;
         this.available = null;
     }
 
     public BadGoMessage(Directions attempted, Collection<String> available) {
+        super(OutMessageType.BAD_GO);
         this.attempted = attempted;
         this.available = available;
     }
