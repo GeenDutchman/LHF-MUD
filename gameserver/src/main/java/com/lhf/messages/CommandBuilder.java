@@ -46,6 +46,10 @@ public class CommandBuilder {
         }
     }
 
+    public static Command fromCommand(CommandMessage cmdMsg, String arguments) {
+        return InMessage.fromCommand(cmdMsg, arguments);
+    }
+
     public static Command addDirect(Command toEdit, String direct) {
         toEdit.addDirect(direct);
         return toEdit;
