@@ -80,7 +80,7 @@ public class Client implements MessageHandler, ClientMessenger {
         if (badMessageType != null) {
             this.sendMsg(new BadMessage(badMessageType, helps, msg));
         } else {
-            this.sendMsg(new HelpMessage(helps, msg.getType()));
+            this.sendMsg(new HelpMessage(helps, msg == null ? null : msg.getType()));
         }
         return true;
     }
