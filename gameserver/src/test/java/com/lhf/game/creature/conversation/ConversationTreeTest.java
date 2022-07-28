@@ -59,7 +59,8 @@ public class ConversationTreeTest {
                 new ConversationPattern("Are you sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
                 new ConversationTreeNode(secondBody));
         String thirdBody = "Fine!";
-        tree.addNode(start.getNodeID(), new ConversationPattern("Fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE),
+        tree.addNode(start.getNodeID(),
+                new ConversationPattern("Fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE),
                 new ConversationTreeNode(thirdBody));
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
@@ -82,7 +83,8 @@ public class ConversationTreeTest {
                 new ConversationPattern("Are you sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
                 new ConversationTreeNode(secondBody));
         String thirdBody = "Fine!";
-        tree.addNode(start.getNodeID(), new ConversationPattern("Fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE),
+        tree.addNode(start.getNodeID(),
+                new ConversationPattern("Fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE),
                 new ConversationTreeNode(thirdBody));
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
@@ -110,10 +112,12 @@ public class ConversationTreeTest {
         ConversationTree tree = new ConversationTree(start);
         String secondBody = "Yes I am!";
         ConversationTreeNode secondNode = new ConversationTreeNode(secondBody);
-        tree.addNode(start.getNodeID(), new ConversationPattern("sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
+        tree.addNode(start.getNodeID(),
+                new ConversationPattern("sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
                 secondNode);
         String thirdBody = "Fine!";
-        tree.addNode(secondNode.getNodeID(), new ConversationPattern("fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE),
+        tree.addNode(secondNode.getNodeID(),
+                new ConversationPattern("fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE),
                 new ConversationTreeNode(thirdBody));
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
@@ -138,10 +142,12 @@ public class ConversationTreeTest {
         ConversationTreeNode start = new ConversationTreeNode(basicEmpty);
         ConversationTree tree = new ConversationTree(start);
         String secondBody = "Yes I am!";
-        tree.addNode(start.getNodeID(), new ConversationPattern("sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
+        tree.addNode(start.getNodeID(),
+                new ConversationPattern("sure?", "\\bsure\\b.*?", Pattern.CASE_INSENSITIVE),
                 new ConversationTreeNode(secondBody));
         String thirdBody = "Fine!";
-        tree.addNode(start.getNodeID(), new ConversationPattern("fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE),
+        tree.addNode(start.getNodeID(),
+                new ConversationPattern("fine!", "^fine\\b!$", Pattern.CASE_INSENSITIVE),
                 new ConversationTreeNode(thirdBody));
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
@@ -163,7 +169,9 @@ public class ConversationTreeTest {
         ConversationTreeNode second = new ConversationTreeNode(body2);
 
         tree.addNode(start.getNodeID(),
-                new ConversationPattern("I'm a traveller?", "\\btraveller\\b", Pattern.CASE_INSENSITIVE), second);
+                new ConversationPattern("I'm a traveller?", "\\btraveller\\b",
+                        Pattern.CASE_INSENSITIVE),
+                second);
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
         Truth.assertThat(response.getBody()).contains("<convo>traveller</convo>");
     }
@@ -196,9 +204,11 @@ public class ConversationTreeTest {
         ConversationTreeNode otherWay = new ConversationTreeNode("I am not friendly");
 
         ConversationTreeBranch oneBranch = tree.addNode(start.getNodeID(),
-                new ConversationPattern("I'm welcome?", "\\bwelcome\\b", Pattern.CASE_INSENSITIVE), oneWay);
+                new ConversationPattern("I'm welcome?", "\\bwelcome\\b", Pattern.CASE_INSENSITIVE),
+                oneWay);
         tree.addNode(start.getNodeID(),
-                new ConversationPattern("I'm unwelcome?", "\\bunwelcome\\b", Pattern.CASE_INSENSITIVE), otherWay);
+                new ConversationPattern("I'm unwelcome?", "\\bunwelcome\\b", Pattern.CASE_INSENSITIVE),
+                otherWay);
 
         // unwelcome is not welcome to the oneWay
         oneBranch.addRule(ConversationContextKey.TALKER_NAME,
@@ -252,7 +262,8 @@ public class ConversationTreeTest {
 
         // unwelcome is not welcome to the oneWay
         oneBranch.addRule(ConversationContextKey.TALKER_NAME,
-                new ConversationPattern(unwelcome.getName(), "\\b" + unwelcome.getName() + "\\b"));
+                new ConversationPattern(unwelcome.getName(),
+                        "\\b" + Pattern.quote(unwelcome.getName()) + "\\b"));
 
         // welcome
         ConversationTreeNodeResult response = tree.listen(welcome, "hello there!");
@@ -288,7 +299,8 @@ public class ConversationTreeTest {
 
         ConversationTreeNode oneWaySecond = new ConversationTreeNode("So very friendly!");
         tree.addNode(oneWay.getNodeID(),
-                new ConversationPattern("You are friendly?", "\\bfriendly\\b", Pattern.CASE_INSENSITIVE),
+                new ConversationPattern("You are friendly?", "\\bfriendly\\b",
+                        Pattern.CASE_INSENSITIVE),
                 oneWaySecond);
 
         GsonBuilder gb = new GsonBuilder().setPrettyPrinting();
@@ -330,7 +342,8 @@ public class ConversationTreeTest {
 
         ConversationTreeNode oneWaySecond = new ConversationTreeNode("So very friendly!");
         tree.addNode(oneWay.getNodeID(),
-                new ConversationPattern("you are friendly?", "\\bfriendly\\b", Pattern.CASE_INSENSITIVE),
+                new ConversationPattern("you are friendly?", "\\bfriendly\\b",
+                        Pattern.CASE_INSENSITIVE),
                 oneWaySecond);
 
         String mermaid = tree.toMermaid(false);
