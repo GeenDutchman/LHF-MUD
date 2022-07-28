@@ -2,16 +2,12 @@ package com.lhf.game.creature.intelligence;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
 
 import com.google.common.truth.Truth;
 import com.lhf.Taggable;
 import com.lhf.game.creature.NonPlayerCharacter;
-import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.enums.CreatureFaction;
@@ -21,8 +17,8 @@ import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.out.AttackDamageMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.StringBufferSendStrategy;
 
 public class BasicAITest {
