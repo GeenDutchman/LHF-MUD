@@ -125,8 +125,8 @@ public abstract class Creature
     private HashMap<EquipmentSlots, Equipable> equipmentSlots; // See enum for slots
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
-    private ClientMessenger controller;
-    private MessageHandler successor;
+    private transient ClientMessenger controller;
+    private transient MessageHandler successor;
     private Map<CommandMessage, String> cmds;
 
     // Default constructor
