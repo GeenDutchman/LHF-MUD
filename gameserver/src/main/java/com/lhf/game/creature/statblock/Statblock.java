@@ -1,13 +1,15 @@
 package com.lhf.game.creature.statblock;
 
-import com.lhf.game.creature.Creature;
-import com.lhf.game.creature.inventory.Inventory;
-import com.lhf.game.enums.*;
-import com.lhf.game.item.Item;
-import com.lhf.game.item.interfaces.Equipable;
-
 import java.util.HashMap;
 import java.util.HashSet;
+
+import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.Stats;
+import com.lhf.game.item.interfaces.Equipable;
 
 public class Statblock {
 

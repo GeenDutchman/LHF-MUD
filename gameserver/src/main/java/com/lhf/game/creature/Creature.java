@@ -1,5 +1,19 @@
 package com.lhf.game.creature;
 
+import static com.lhf.game.enums.Attributes.DEX;
+import static com.lhf.game.enums.Attributes.STR;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.StringJoiner;
+import java.util.regex.PatternSyntaxException;
+
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.Inventory;
@@ -9,14 +23,22 @@ import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice;
+import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.DieType;
-import com.lhf.game.dice.Dice.RollResult;
-import com.lhf.game.enums.*;
+import com.lhf.game.enums.Attributes;
+import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
-import com.lhf.game.item.interfaces.*;
-import com.lhf.game.magic.CubeHolder;
+import com.lhf.game.item.interfaces.Equipable;
+import com.lhf.game.item.interfaces.Takeable;
+import com.lhf.game.item.interfaces.Usable;
+import com.lhf.game.item.interfaces.Weapon;
+import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.interfaces.CreatureAffector;
 import com.lhf.game.magic.interfaces.DamageSpell;
 import com.lhf.messages.ClientMessenger;
@@ -28,19 +50,14 @@ import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.UnequipMessage;
 import com.lhf.messages.out.AttackDamageMessage;
 import com.lhf.messages.out.EquipOutMessage;
+import com.lhf.messages.out.EquipOutMessage.EquipResultType;
 import com.lhf.messages.out.NotPossessedMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
+import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 import com.lhf.messages.out.StatusOutMessage;
 import com.lhf.messages.out.UnequipOutMessage;
-import com.lhf.messages.out.EquipOutMessage.EquipResultType;
-import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 import com.lhf.server.client.ClientID;
-
-import java.util.*;
-import java.util.regex.PatternSyntaxException;
-
-import static com.lhf.game.enums.Attributes.*;
 
 public abstract class Creature
         implements InventoryOwner, EquipmentOwner, ClientMessenger, MessageHandler, Comparable<Creature> {

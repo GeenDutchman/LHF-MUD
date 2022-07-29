@@ -2,7 +2,6 @@ package com.lhf.game.creature.conversation;
 
 import java.lang.reflect.Type;
 
-import com.google.gson.InstanceCreator;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
