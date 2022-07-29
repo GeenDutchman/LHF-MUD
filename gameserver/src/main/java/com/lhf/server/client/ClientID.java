@@ -1,24 +1,30 @@
 package com.lhf.server.client;
 
-import java.util.Optional;
+import java.util.Objects;
+import java.util.UUID;
 
 public class ClientID {
-    private Optional<Integer> index;
-    private static int total_count;
+    private UUID uuid;
+
     public ClientID() {
-        index = Optional.of(total_count++);
+        uuid = UUID.randomUUID();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(uuid);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof ClientID) {
-            ClientID clientObj = (ClientID) obj;
-            return clientObj.getIndex() == index;
+        if (this == obj) {
+            return true;
         }
-        return false;
+        if (!(obj instanceof ClientID)) {
+            return false;
+        }
+        ClientID other = (ClientID) obj;
+        return Objects.equals(uuid, other.uuid);
     }
 
-    private Optional<Integer> getIndex() {
-        return index;
-    }
 }
