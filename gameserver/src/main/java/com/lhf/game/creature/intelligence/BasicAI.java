@@ -65,22 +65,22 @@ public class BasicAI extends Client {
                         }
                     }
                 }
-                if (this.lastAttacker == null) {
+                if (bai.getLastAttacker() == null) {
                     for (Creature c : creaturesFound) {
-                        if (c.getFaction() != this.npc.getFaction()) {
+                        if (c.getFaction() != bai.getNpc().getFaction()) {
                             bai.setLastAttacker(c);
                             break;
                         }
                     }
                 }
-                this.useTurn(false);
+                bai.useTurn(false);
             }
         });
         this.handlers.put(OutMessageType.BATTLE_TURN, (BasicAI bai, OutMessage msg) -> {
             if (msg.getOutType().equals(OutMessageType.BATTLE_TURN)) {
                 BattleTurnMessage btm = (BattleTurnMessage) msg;
                 if (!btm.isWasted() && btm.isAddressTurner() && btm.isYesTurn()) {
-                    this.useTurn(false);
+                    bai.useTurn(false);
                 }
                 return;
             }
@@ -89,15 +89,15 @@ public class BasicAI extends Client {
             if (msg.getOutType().equals(OutMessageType.SPEAKING)) {
                 SpeakingMessage sm = (SpeakingMessage) msg;
                 if (!sm.getShouting() && sm.getHearer() != null && sm.getHearer() instanceof NonPlayerCharacter) {
-                    if (sm.getSayer() instanceof Creature && this.npc.getConvoTree() != null) {
+                    if (sm.getSayer() instanceof Creature && bai.getNpc().getConvoTree() != null) {
                         Creature sayer = (Creature) sm.getSayer();
-                        ConversationTreeNodeResult result = this.npc.getConvoTree().listen(sayer, sm.getMessage());
+                        ConversationTreeNodeResult result = bai.getNpc().getConvoTree().listen(sayer, sm.getMessage());
                         if (result != null && result.getBody() != null) {
                             SayMessage say = (SayMessage) CommandBuilder.fromCommand(CommandMessage.SAY,
                                     "say \"" + result.getBody() + "\" to " + sayer.getName());
                             CommandBuilder.addDirect(say, result.getBody());
                             CommandBuilder.addIndirect(say, "to", sayer.getName());
-                            super.handleMessage(null, say);
+                            bai.handleMessage(null, say);
                         }
                     }
                 }
@@ -109,7 +109,7 @@ public class BasicAI extends Client {
         this.handlers.put(type, chunk);
     }
 
-    private void useTurn(boolean spell) {
+    protected void useTurn(boolean spell) {
         if (spell || this.lastAttacker == null) {
             CastMessage cMessage = (CastMessage) CommandBuilder.fromCommand(CommandMessage.CAST, "turnwaster!!");
             CommandBuilder.addDirect(cMessage, "turnwaster!!");
