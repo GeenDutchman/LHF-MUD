@@ -42,10 +42,12 @@ public class QueuedAI extends BasicAI {
     public synchronized void sendMsg(OutMessage msg) {
         super.sendMsg(msg);
         try {
-            this.queue.offer(msg, 30, TimeUnit.SECONDS);
-            this.runner.getAttention(this);
+            if (this.queue.offer(msg, 30, TimeUnit.SECONDS)) {
+                this.runner.getAttention(this);
+            } else {
+                System.err.println("Unable to queue: " + msg.toString());
+            }
         } catch (InterruptedException e) {
-            System.err.println("Unable to queue: " + msg.toString());
             e.printStackTrace();
         }
     }

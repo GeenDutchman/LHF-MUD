@@ -11,10 +11,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.server.client.ClientID;
 
+// see https://gamedev.stackexchange.com/questions/12458/how-to-manage-all-the-npc-ai-objects-on-the-server/12512#12512
+
 public class AIRunner implements Runnable {
     private BlockingQueue<ClientID> attentionQueue;
-    private long time;
-    private TimeUnit unit;
     private int chew;
 
     private class AIPair<T extends QueuedAI> {
