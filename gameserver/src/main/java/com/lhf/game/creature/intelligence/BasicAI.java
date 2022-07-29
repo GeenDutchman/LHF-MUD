@@ -24,9 +24,9 @@ import com.lhf.server.client.Client;
 import com.lhf.server.client.DoNothingSendStrategy;
 
 public class BasicAI extends Client {
-    private NonPlayerCharacter npc;
-    private Creature lastAttacker;
-    private Map<OutMessageType, AIChunk> handlers;
+    protected NonPlayerCharacter npc;
+    protected Creature lastAttacker;
+    protected Map<OutMessageType, AIChunk> handlers;
 
     public BasicAI(NonPlayerCharacter npc) {
         super();
