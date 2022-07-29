@@ -110,6 +110,7 @@ public class BasicAI extends Client {
     }
 
     protected void useTurn(boolean spell) {
+        // TODO: implement (penalized) ways to pass a turn
         if (spell || this.lastAttacker == null) {
             CastMessage cMessage = (CastMessage) CommandBuilder.fromCommand(CommandMessage.CAST, "turnwaster!!");
             CommandBuilder.addDirect(cMessage, "turnwaster!!");
