@@ -20,7 +20,6 @@ public class ConversationTree implements Serializable {
     private String endOfConvo;
     private String notRecognized;
     private boolean tagkeywords;
-    // TODO: tag keywords optionally
 
     public ConversationTree(@NotNull ConversationTreeNode startNode) {
         this.treeName = UUID.randomUUID().toString();
