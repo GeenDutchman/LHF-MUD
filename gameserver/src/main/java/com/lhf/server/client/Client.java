@@ -63,7 +63,7 @@ public class Client implements MessageHandler, ClientMessenger {
         if (this.out == null) {
             this.SetOut(new PrintWriterSendStrategy(System.out));
         }
-        this.out.send(msg.toString());
+        this.out.send(msg);
     }
 
     void disconnect() throws IOException {
