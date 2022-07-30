@@ -8,6 +8,7 @@ public class BattleTurnMessage extends OutMessage {
     private boolean yesTurn;
     private boolean addressTurner;
     private boolean wasted;
+    private int wastedPenalty;
 
     public BattleTurnMessage(Creature myTurn, boolean yesTurn, boolean addressTurner) {
         super(OutMessageType.BATTLE_TURN);
@@ -15,6 +16,7 @@ public class BattleTurnMessage extends OutMessage {
         this.yesTurn = yesTurn;
         this.addressTurner = addressTurner;
         this.wasted = false;
+        this.wastedPenalty = 0;
     }
 
     // will only address everyone
@@ -24,12 +26,37 @@ public class BattleTurnMessage extends OutMessage {
         this.yesTurn = true;
         this.addressTurner = false;
         this.wasted = wasted;
+        this.wastedPenalty = 0;
+    }
+
+    // will only address everyone
+    public BattleTurnMessage(Creature myTurn, boolean wasted, int wastedPenalty) {
+        super(OutMessageType.BATTLE_TURN);
+        this.myTurn = myTurn;
+        this.yesTurn = true;
+        this.addressTurner = false;
+        this.wasted = wasted;
+        this.setPenalty(wastedPenalty);
+    }
+
+    public void setPenalty(int wastedPenalty) {
+        this.wastedPenalty = wastedPenalty <= 0 ? wastedPenalty : -1 * wastedPenalty;
+    }
+
+    public int getPenalty() {
+        if (this.wasted) {
+            return this.wastedPenalty;
+        }
+        return 0;
     }
 
     @Override
     public String toString() {
         if (this.wasted) {
-            return this.myTurn.getColorTaggedName() + " has wasted their turn!";
+            String penaltyString = this.wastedPenalty > 0
+                    ? " They have incurred a penalty of " + Integer.toString(this.wastedPenalty) + " damage!"
+                    : "";
+            return this.myTurn.getColorTaggedName() + " has wasted their turn!" + penaltyString;
         }
         if (this.addressTurner) {
             if (this.yesTurn) {

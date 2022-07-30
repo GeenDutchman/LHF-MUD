@@ -13,7 +13,7 @@ import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.OutMessageType;
 import com.lhf.messages.in.AttackMessage;
-import com.lhf.messages.in.CastMessage;
+import com.lhf.messages.in.PassMessage;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.out.AttackDamageMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
@@ -73,14 +73,23 @@ public class BasicAI extends Client {
                         }
                     }
                 }
-                bai.useTurn(false);
+                if (bai.getLastAttacker() == null) {
+                    PassMessage passCommand = (PassMessage) CommandBuilder.fromCommand(CommandMessage.PASS, "pass");
+                    bai.handleMessage(null, passCommand);
+                } else {
+                    AttackMessage aMessage = (AttackMessage) CommandBuilder.fromCommand(CommandMessage.ATTACK,
+                            bai.getLastAttacker().getName());
+                    CommandBuilder.addDirect(aMessage, bai.getLastAttacker().getName());
+                    super.handleMessage(null, aMessage);
+                }
             }
         });
         this.handlers.put(OutMessageType.BATTLE_TURN, (BasicAI bai, OutMessage msg) -> {
             if (msg.getOutType().equals(OutMessageType.BATTLE_TURN)) {
                 BattleTurnMessage btm = (BattleTurnMessage) msg;
                 if (!btm.isWasted() && btm.isAddressTurner() && btm.isYesTurn()) {
-                    bai.useTurn(false);
+                    PassMessage passCommand = (PassMessage) CommandBuilder.fromCommand(CommandMessage.PASS, "pass");
+                    bai.handleMessage(null, passCommand);
                 }
                 return;
             }
@@ -107,20 +116,6 @@ public class BasicAI extends Client {
 
     public void addHandler(OutMessageType type, AIChunk chunk) {
         this.handlers.put(type, chunk);
-    }
-
-    protected void useTurn(boolean spell) {
-        // TODO: implement (penalized) ways to pass a turn
-        if (spell || this.lastAttacker == null) {
-            CastMessage cMessage = (CastMessage) CommandBuilder.fromCommand(CommandMessage.CAST, "turnwaster!!");
-            CommandBuilder.addDirect(cMessage, "turnwaster!!");
-            super.handleMessage(null, cMessage);
-        } else {
-            AttackMessage aMessage = (AttackMessage) CommandBuilder.fromCommand(CommandMessage.ATTACK,
-                    this.lastAttacker.getName());
-            CommandBuilder.addDirect(aMessage, this.lastAttacker.getName());
-            super.handleMessage(null, aMessage);
-        }
     }
 
     @Override

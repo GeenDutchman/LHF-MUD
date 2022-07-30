@@ -66,7 +66,8 @@ public class InMessage {
 
             case USE:
                 return new UseMessage(arguments);
-
+            case PASS:
+                return new PassMessage(arguments);
             default:
                 return new HelpInMessage(arguments);
 

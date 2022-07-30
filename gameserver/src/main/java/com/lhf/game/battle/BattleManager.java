@@ -78,6 +78,9 @@ public class BattleManager implements MessageHandler, Examinable {
         sj.add("\"attack [name] with [weapon]\"").add("Attack the named creature with a weapon that you have.");
         sj.add("In the unlikely event that either the creature or the weapon's name contains 'with', enclose the name in quotation marks.");
         cmds.put(CommandMessage.ATTACK, sj.toString());
+        sj = new StringJoiner(" ");
+        sj.add("\"pass\"").add("Skips your turn in battle, but you get hurt for doing so!");
+        cmds.put(CommandMessage.PASS, sj.toString());
         return cmds;
     }
 
@@ -224,6 +227,15 @@ public class BattleManager implements MessageHandler, Examinable {
         }
     }
 
+    private int calculateWastePenalty(Creature waster) {
+        int penalty = -1;
+        if (waster.getVocation().isPresent()) {
+            int wasterLevel = waster.getVocation().get().getLevel();
+            penalty += wasterLevel > 0 ? -1 * wasterLevel : wasterLevel;
+        }
+        return penalty;
+    }
+
     public void takeAction(Creature attacker, BattleAction action) {
 
         if (this.getCurrent() != null && attacker != this.getCurrent()) {
@@ -282,8 +294,14 @@ public class BattleManager implements MessageHandler, Examinable {
                 }
             }
             applySpell(spell.getCaster(), spell, targets);
+        } else if (action instanceof PassTurn) {
+            int penalty = this.calculateWastePenalty(attacker);
+            sendMessageToAllParticipants(new BattleTurnMessage(attacker, true, penalty));
+            attacker.updateHitpoints(penalty);
         } else {
-            sendMessageToAllParticipants(new BattleTurnMessage(attacker, true));
+            int penalty = this.calculateWastePenalty(attacker);
+            sendMessageToAllParticipants(new BattleTurnMessage(attacker, true, penalty));
+            attacker.updateHitpoints(penalty);
         }
         endTurn();
     }
@@ -387,6 +405,9 @@ public class BattleManager implements MessageHandler, Examinable {
                 } else if (type == CommandMessage.TAKE) {
                     ctx.sendMsg(new HelpMessage(this.gatherHelp(), type));
                     handled = true;
+                } else if (type == CommandMessage.PASS) {
+                    this.takeAction(ctx.getCreature(), new PassTurn(ctx.getCreature()));
+                    return true;
                 }
             }
             if (handled) {

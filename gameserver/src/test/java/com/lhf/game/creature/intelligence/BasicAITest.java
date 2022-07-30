@@ -65,7 +65,7 @@ public class BasicAITest {
         Truth.assertThat(searcher.brain.getLastAttacker()).isNull();
         Truth.assertThat(searcher.sent).isNotEmpty();
         Truth.assertThat(searcher.sent).hasSize(1);
-        Truth.assertThat(searcher.sent.get(0).toString()).ignoringCase().contains("turnwaster");
+        Truth.assertThat(searcher.sent.get(0).toString()).ignoringCase().contains("pass");
 
         AIComBundle victim = new AIComBundle();
         victim.npc.setFaction(CreatureFaction.MONSTER);
@@ -87,7 +87,7 @@ public class BasicAITest {
         Truth.assertThat(searcher.brain.getLastAttacker()).isNull();
         Truth.assertThat(searcher.sent).isNotEmpty();
         Truth.assertThat(searcher.sent).hasSize(3);
-        Truth.assertThat(searcher.sent.get(2).toString()).ignoringCase().contains("Turnwaster");
+        Truth.assertThat(searcher.sent.get(2).toString()).ignoringCase().contains("pass");
     }
 
 }
