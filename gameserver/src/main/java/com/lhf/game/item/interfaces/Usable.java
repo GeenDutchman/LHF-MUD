@@ -1,11 +1,12 @@
 package com.lhf.game.item.interfaces;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.lhf.game.creature.Creature;
 import com.lhf.game.item.Item;
 import com.lhf.game.map.Room;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class Usable extends Takeable {
     private Integer numCanUseTimes;
@@ -88,6 +89,12 @@ public abstract class Usable extends Takeable {
         }
 
         return method.useAction(usingOn);
+    }
+
+    @Override
+    public SeeOutMessage produceMessage() {
+        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        return seeOutMessage;
     }
 
 }

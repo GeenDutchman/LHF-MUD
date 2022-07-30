@@ -53,6 +53,7 @@ import com.lhf.messages.out.EquipOutMessage;
 import com.lhf.messages.out.EquipOutMessage.EquipResultType;
 import com.lhf.messages.out.NotPossessedMessage;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 import com.lhf.messages.out.StatusOutMessage;
@@ -94,9 +95,13 @@ public abstract class Creature
         }
 
         @Override
+        public SeeOutMessage produceMessage() {
+            SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+            return seeOutMessage;
+        }
+
+        @Override
         public String printDescription() {
-            // sb.append("And best used if you have these proficiencies:
-            // ").append(printWhichTypes());
             return "This is a " + getName() + " attached to a " + Creature.this.getName() + "\n" +
                     this.printStats();
         }
@@ -587,6 +592,12 @@ public abstract class Creature
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public SeeOutMessage produceMessage() {
+        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        return seeOutMessage;
     }
 
     public Optional<Item> getItem(String itemName) {

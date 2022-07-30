@@ -30,6 +30,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.AttackMessage;
+import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.out.*;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 
@@ -367,8 +368,23 @@ public class BattleManager implements MessageHandler, Examinable {
     }
 
     @Override
+    public SeeOutMessage produceMessage() {
+        SeeOutMessage seeMessage = new SeeOutMessage(this, "Current: " + this.getCurrent().getColorTaggedName());
+        for (Creature c : participants) {
+            seeMessage.addSeen("Participants", c);
+        }
+        return seeMessage;
+    }
+
+    @Override
     public String printDescription() {
-        return this.toString();
+        StringBuilder sb = new StringBuilder();
+        if (this.isBattleOngoing()) {
+            sb.append("The battle is on! ");
+        } else {
+            sb.append("There is no fight right now. ");
+        }
+        return sb.toString();
     }
 
     @Override
@@ -400,8 +416,7 @@ public class BattleManager implements MessageHandler, Examinable {
                 handled = handleAttack(ctx, aMessage);
             } else if (this.isHappening && ctx.getCreature().isInBattle() && this.interceptorCmds.containsKey(type)) {
                 if (type == CommandMessage.SEE) {
-                    ctx.sendMsg(new SeeOutMessage(this));
-                    handled = true;
+                    handled = this.handleSee(ctx, msg);
                 } else if (type == CommandMessage.GO) {
                     handled = this.handleGo(ctx, msg);
                 } else if (type == CommandMessage.INTERACT) {
@@ -421,6 +436,19 @@ public class BattleManager implements MessageHandler, Examinable {
         }
         ctx.setBattleManager(this);
         return MessageHandler.super.handleMessage(ctx, msg);
+    }
+
+    private boolean handleSee(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.SEE) {
+            SeeMessage seeMessage = (SeeMessage) msg;
+            if (seeMessage.getThing() == null) {
+                ctx.setBattleManager(this);
+                return this.room.handleMessage(ctx, msg);
+            }
+            ctx.sendMsg(this.produceMessage());
+            return true;
+        }
+        return false;
     }
 
     private Boolean handleGo(CommandContext ctx, Command msg) {

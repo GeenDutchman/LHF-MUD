@@ -4,6 +4,7 @@ import java.util.regex.PatternSyntaxException;
 
 import com.lhf.Examinable;
 import com.lhf.Taggable;
+import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class Item implements Examinable, Taggable {
     // Class name for discrimination
@@ -102,6 +103,12 @@ public abstract class Item implements Examinable, Taggable {
     @Override
     public String printDescription() {
         return this.descriptionString;
+    }
+
+    @Override
+    public SeeOutMessage produceMessage() {
+        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        return seeOutMessage;
     }
 
 }

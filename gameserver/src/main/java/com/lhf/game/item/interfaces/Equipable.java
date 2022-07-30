@@ -1,13 +1,14 @@
 package com.lhf.game.item.interfaces;
 
-import com.lhf.game.creature.inventory.EquipmentOwner;
-import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.enums.EquipmentTypes;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+
+import com.lhf.game.creature.inventory.EquipmentOwner;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class Equipable extends Usable {
 
@@ -52,6 +53,7 @@ public abstract class Equipable extends Usable {
     }
 
     public String printStats() {
+        // TODO: move some of these to the produceMessage
         StringBuilder sb = new StringBuilder();
         if (this.getEquippingChanges().size() > 0) {
             sb.append("When equipped: ").append(this.printEquippingChanges()).append("\n");
@@ -63,6 +65,12 @@ public abstract class Equipable extends Usable {
             sb.append("This can be best used with the proficiencies: ").append(this.printWhichTypes()).append("\n");
         }
         return sb.toString();
+    }
+
+    @Override
+    public SeeOutMessage produceMessage() {
+        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        return seeOutMessage;
     }
 
     public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {

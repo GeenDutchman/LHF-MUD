@@ -4,6 +4,8 @@ import com.lhf.game.Container;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Takeable;
 import com.lhf.messages.out.InventoryOutMessage;
+import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,5 +90,14 @@ public class Inventory implements Container {
     @Override
     public String printDescription() {
         return "This is your inventory.";
+    }
+
+    @Override
+    public SeeOutMessage produceMessage() {
+        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        for (Takeable thing : this.items) {
+            seeOutMessage.addSeen(SeeCategory.TAKEABLE, thing);
+        }
+        return seeOutMessage;
     }
 }

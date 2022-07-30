@@ -14,6 +14,8 @@ import java.util.regex.PatternSyntaxException;
 import com.lhf.game.Container;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.Monster;
+import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.Player;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.Item;
@@ -36,6 +38,7 @@ import com.lhf.messages.in.TakeMessage;
 import com.lhf.messages.out.*;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
+import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 import com.lhf.messages.out.TakeOutMessage.TakeOutType;
 import com.lhf.server.client.user.UserID;
@@ -402,7 +405,40 @@ public class Room implements Container, MessageHandler {
 
     @Override
     public String printDescription() {
-        return this.toString();
+        return this.getDescription();
+    }
+
+    @Override
+    public SeeOutMessage produceMessage() {
+        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        for (Creature c : this.allCreatures) {
+            if (c instanceof Player) {
+                seeOutMessage.addSeen(SeeCategory.PLAYER, c);
+            } else if (c instanceof Monster) {
+                seeOutMessage.addSeen(SeeCategory.MONSTER, c);
+            } else if (c instanceof NonPlayerCharacter) {
+                seeOutMessage.addSeen(SeeCategory.NPC, c);
+            } else {
+                seeOutMessage.addSeen(SeeCategory.CREATURE, c);
+            }
+        }
+        for (String exit : this.exits.keySet()) {
+            Directions dirExit = Directions.getDirections(exit);
+            if (dirExit != null) {
+                seeOutMessage.addSeen(SeeCategory.DIRECTION, dirExit);
+            }
+        }
+        for (Item item : this.items) {
+            if (!item.checkVisibility()) {
+                continue;
+            }
+            if (item instanceof Takeable) {
+                seeOutMessage.addSeen(SeeCategory.TAKEABLE, item);
+            } else {
+                seeOutMessage.addSeen(SeeCategory.ROOM_ITEM, item);
+            }
+        }
+        return seeOutMessage;
     }
 
     public void cast(Creature caster, ISpell spell) {
@@ -628,7 +664,7 @@ public class Room implements Container, MessageHandler {
             if (sMessage.getThing() != null) {
                 ctx.sendMsg(this.examine(ctx.getCreature(), sMessage.getThing()));
             } else {
-                ctx.sendMsg(new SeeOutMessage(this));
+                ctx.sendMsg(this.produceMessage());
             }
             return true;
         }
@@ -659,6 +695,12 @@ public class Room implements Container, MessageHandler {
     }
 
     private SeeOutMessage examine(Creature creature, String name) {
+        ArrayList<Creature> found = this.getCreaturesInRoom(name);
+        // we should be able to see people in a fight
+        if (found.size() == 1) {
+            return new SeeOutMessage(found.get(0), "They are in the room with you.");
+        }
+
         if (creature.isInBattle()) {
             return new SeeOutMessage("You are in a fight right now, you are too busy to examine that!");
         }
@@ -680,8 +722,6 @@ public class Room implements Container, MessageHandler {
             Item thing = maybeThing.get();
             return new SeeOutMessage(thing, "You see it in your inventory.");
         }
-
-        // TODO: make creatures examinable
 
         return new SeeOutMessage("You couldn't find " + name + " to examine.");
     }

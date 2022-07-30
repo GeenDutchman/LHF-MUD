@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import com.lhf.game.Container;
 import com.lhf.game.item.Item;
+import com.lhf.messages.out.SeeOutMessage;
 
 // TODO: actually use this
 
@@ -21,6 +22,12 @@ public class Corpse extends Item implements Container {
     public String printDescription() {
         return "This is " + this.getColorTaggedName()
                 + ".  They are quite clearly dead.  You can't quite tell the cause...";
+    }
+
+    @Override
+    public SeeOutMessage produceMessage() {
+        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        return seeOutMessage;
     }
 
     @Override

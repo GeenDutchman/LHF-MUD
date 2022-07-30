@@ -4,6 +4,7 @@ import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.CastingMessage;
+import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class ISpell implements Taggable, Examinable {
     private final String className;
@@ -92,6 +93,12 @@ public abstract class ISpell implements Taggable, Examinable {
         }
         sb.append(this.getSbEntry()).append("\n");
         return sb.toString();
+    }
+
+    @Override
+    public SeeOutMessage produceMessage() {
+        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        return seeOutMessage;
     }
 
     @Override
