@@ -9,8 +9,13 @@ import com.lhf.server.client.user.User;
 public class DMRoom extends Room {
     private Set<User> users;
 
-    DMRoom(String description) {
-        super(description);
+    DMRoom(String name) {
+        super(name);
+        this.users = new TreeSet<>();
+    }
+
+    DMRoom(String name, String description) {
+        super(name, description);
         this.users = new TreeSet<>();
     }
 

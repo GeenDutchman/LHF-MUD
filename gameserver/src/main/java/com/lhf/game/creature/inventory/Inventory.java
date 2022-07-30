@@ -17,6 +17,11 @@ public class Inventory implements Container {
         items = new ArrayList<>();
     }
 
+    @Override
+    public String getName() {
+        return "Inventory";
+    }
+
     public boolean addItem(Item i) {
         if (i instanceof Takeable) {
             this.items.add((Takeable) i);

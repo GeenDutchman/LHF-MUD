@@ -37,7 +37,7 @@ public class DungeonBuilder {
         Statblock hobgoblin = loader.statblockFromfile("hobgoblin");
 
         // Entry Room RM1
-        Room entryRoom = new Room("This is the entry room.");
+        Room entryRoom = new Room("Entry Room", "This is the entry room.");
         Note addNote = new Note("interact note", true, "This note is to test the switch action.");
 
         // Switch test start
@@ -70,7 +70,7 @@ public class DungeonBuilder {
         entryRoom.addItem(testSwitch);
 
         // History Hall RM2
-        Room historyHall = new Room("This is the history hall.");
+        Room historyHall = new Room("History Hall", "This is the history hall.");
         Note loreNote = new Note("ominous lore", true,
                 "You read the page and it says 'This page intentionally left blank.'");
         historyHall.addItem(loreNote);
@@ -92,20 +92,20 @@ public class DungeonBuilder {
         historyHall.addItem(dispenser);
 
         // RM3
-        Room offeringRoom = new Room("This is the offering room.");
+        Room offeringRoom = new Room("Offering Room", "This is the offering room.");
 
         // RM4
-        Room trappedHall = new Room("This is the trapped room.");
+        Room trappedHall = new Room("Trapped Room", "This is the trapped room.");
         HealPotion h1 = new HealPotion(true);
         trappedHall.addItem(h1);
 
         // RM5
-        Room statueRoom = new Room("This is the statue room.");
+        Room statueRoom = new Room("Statue Room", "This is the statue room.");
 
         Note bossNote = new Note("note from boss", true, "The tutorial boss is on vacation right now.");
         statueRoom.addItem(bossNote);
 
-        Room secretRoom = new Room("This is the secret room!");
+        Room secretRoom = new Room("Secret Room", "This is the secret room!");
 
         MantleOfDeath mantle = new MantleOfDeath(false);
         ReaperScythe scythe = new ReaperScythe(false);
@@ -143,7 +143,7 @@ public class DungeonBuilder {
         statueRoom.addItem(statue);
 
         // RM6 The armory
-        Room armory = new Room("An armory");
+        Room armory = new Room("Armory", "An armory");
         CarnivorousArmor mimic = new CarnivorousArmor(true);
         ChainMail mail = new ChainMail(true);
         Whimsystick stick = new Whimsystick(true);
@@ -156,9 +156,9 @@ public class DungeonBuilder {
         armory.addItem(potion);
 
         // RM7
-        Room passage = new Room("An old dusty passageway");
+        Room passage = new Room("Passageway", "An old dusty passageway");
         // RM8
-        Room treasury = new Room("A looted vault room");
+        Room treasury = new Room("Vault", "A looted vault room");
         HealPotion regular = new HealPotion(true);
         HealPotion greater = new HealPotion(HealType.Greater);
         HealPotion critical = new HealPotion(HealType.Critical);

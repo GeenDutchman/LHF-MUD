@@ -45,6 +45,7 @@ public class Room implements Container, MessageHandler {
     private Map<String, Room> exits; // TODO: make Doors that connect rooms, some need Keys
     private List<Item> items;
     private String description;
+    private String name;
     private BattleManager battleManager;
     private Set<Creature> allCreatures;
     private Dungeon dungeon;
@@ -52,13 +53,25 @@ public class Room implements Container, MessageHandler {
     private Map<CommandMessage, String> commands;
     private MessageHandler successor;
 
-    Room(String description) {
+    Room(String name) {
+        this.name = name;
+        this.description = name;
+        this.init();
+    }
+
+    Room(String name, String description) {
+        this.name = name;
         this.description = description;
-        exits = new HashMap<>();
-        items = new ArrayList<>();
-        battleManager = new BattleManager(this);
-        allCreatures = new HashSet<>();
+        this.init();
+    }
+
+    private Room init() {
+        this.exits = new HashMap<>();
+        this.items = new ArrayList<>();
+        this.battleManager = new BattleManager(this);
+        this.allCreatures = new HashSet<>();
         this.commands = this.buildCommands();
+        return this;
     }
 
     private Map<CommandMessage, String> buildCommands() {
@@ -82,6 +95,11 @@ public class Room implements Container, MessageHandler {
         sj.add("\"drop [itemname]\"").add("Drop an item that you have.").add("Like \"drop longsword\"");
         cmds.put(CommandMessage.DROP, sj.toString());
         return cmds;
+    }
+
+    @Override
+    public String getName() {
+        return this.name;
     }
 
     boolean addPlayer(Player p) {
