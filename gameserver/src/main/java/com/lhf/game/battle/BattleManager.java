@@ -84,6 +84,11 @@ public class BattleManager implements MessageHandler, Examinable {
         return cmds;
     }
 
+    @Override
+    public String getName() {
+        return "Battle";
+    }
+
     public void addCreatureToBattle(Creature c) {
         if (!c.isInBattle() && !this.isCreatureInBattle(c)) {
             participants.addLast(c);
