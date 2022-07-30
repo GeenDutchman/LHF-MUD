@@ -54,10 +54,10 @@ public class Phrase implements GrammarStateMachine {
             String endQuote = this.openClosers.get(this.stack.peek().opensWith);
             if (token.equals(endQuote)) {
                 QuotedPhrase qPhrase = this.stack.pop();
-                this.phrase.append(qPhrase.qPhrase.toString().trim()).append(endQuote).append(" ");
+                this.phrase.append(qPhrase.qPhrase.toString().trim()).append(endQuote);
                 return true;
             } else {
-                this.stack.peek().add(token).add(" ");
+                this.stack.peek().add(token);
                 return true;
             }
         }
@@ -69,7 +69,7 @@ public class Phrase implements GrammarStateMachine {
         if (this.stack.size() == 0 && endflags.contains(token.toLowerCase())) {
             return false;
         }
-        this.phrase.append(token).append(" ");
+        this.phrase.append(token);
         return true;
     }
 

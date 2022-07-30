@@ -15,7 +15,7 @@ public class CommandBuilder {
         GrammaredCommandPhrase parser = new GrammaredCommandPhrase();
 
         try {
-            Pattern splitter = Pattern.compile("\\w+|[^\\s]");
+            Pattern splitter = Pattern.compile("\\w+|[^\\s]|\\s+");
             Matcher matcher = splitter.matcher(toParse);
             Boolean accepted = true;
             while (matcher.find()) {
