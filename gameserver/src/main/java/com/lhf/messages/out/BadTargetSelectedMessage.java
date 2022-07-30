@@ -8,7 +8,7 @@ import com.lhf.messages.OutMessageType;
 
 public class BadTargetSelectedMessage extends OutMessage {
     public enum BadTargetOption {
-        SELF, NOTARGET, DNE, UNCLEAR;
+        SELF, NOTARGET, DNE, UNCLEAR, TOO_MANY;
     }
 
     private BadTargetOption bde;
@@ -51,6 +51,24 @@ public class BadTargetSelectedMessage extends OutMessage {
                     sj.add("You cannot target '").add(this.badTarget).add("' because it is unclear.");
                 } else {
                     sj.add("It is unclear what you are targeting.");
+                }
+                break;
+            case TOO_MANY:
+                if (this.possibleTargets != null && this.possibleTargets.size() > 0) {
+                    sj.add(Integer.toString(this.possibleTargets.size())).add("is too many targets.");
+                    if (this.badTarget != null && !this.badTarget.isBlank()) {
+                        String extracted;
+                        for (int i = 0; i < this.possibleTargets.size(); i++) {
+                            Taggable taggable = this.possibleTargets.get(i);
+                            extracted = Taggable.extract(taggable);
+                            if (this.badTarget.equals(extracted)) {
+                                sj.add("You can select up to").add(Integer.toString(i)).add(".");
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    sj.add("You cannot select that many targets");
                 }
                 break;
             default:

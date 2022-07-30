@@ -2,9 +2,7 @@ package com.lhf.game.battle;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.item.interfaces.Weapon;
@@ -12,11 +10,11 @@ import com.lhf.game.item.interfaces.Weapon;
 public class AttackAction implements BattleAction {
 
     protected Weapon weapon;
-    protected Set<Creature> targets;
+    protected List<Creature> targets;
 
     public AttackAction(Creature target, Weapon withWeapon) {
         this.weapon = withWeapon;
-        this.targets = new HashSet<>();
+        this.targets = new ArrayList<>();
         this.addTarget(target);
     }
 

@@ -1,5 +1,7 @@
 package com.lhf.messages.in;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
@@ -23,11 +25,18 @@ public class AttackMessage extends Command {
         return this.indirects.getOrDefault("with", null);
     }
 
-    public String getTarget() {
-        if (this.directs.size() < 1) {
+    public int getNumTargets() {
+        if (this.directs == null) {
+            return 0;
+        }
+        return this.directs.size();
+    }
+
+    public List<String> getTargets() {
+        if (this.directs == null || this.directs.size() < 1) {
             return null;
         }
-        return this.directs.get(0); // TODO: can attack multiple based on level
+        return new ArrayList<>(this.directs);
     }
 
     @Override
@@ -35,9 +44,9 @@ public class AttackMessage extends Command {
         StringJoiner sj = new StringJoiner(" ");
         sj.add("Message:").add(this.getType().toString());
         sj.add("Valid:").add(this.isValid().toString());
-        sj.add("Target:");
-        if (this.getTarget() != null) {
-            sj.add(this.getTarget());
+        sj.add("Targets:");
+        if (this.getTargets() != null) {
+            sj.add(this.getTargets().toString());
         } else {
             sj.add("No target specified!");
         }

@@ -414,7 +414,7 @@ public class BattleManager implements MessageHandler, Examinable {
     }
 
     private Boolean handleAttack(CommandContext ctx, AttackMessage aMessage) {
-        System.out.println(ctx.getCreature().toString() + " attempts attacking " + aMessage.getTarget());
+        System.out.println(ctx.getCreature().toString() + " attempts attacking " + aMessage.getTargets());
 
         Creature attacker = ctx.getCreature();
 
@@ -436,22 +436,51 @@ public class BattleManager implements MessageHandler, Examinable {
             weapon = attacker.getWeapon();
         }
 
-        Creature targetCreature = null;
-        List<Creature> possTargets = this.room.getCreaturesInRoom(aMessage.getTarget());
-        if (possTargets.size() == 1) {
-            targetCreature = possTargets.get(0);
+        int numAllowedTargets = 1;
+        if (attacker.getVocation().isPresent() && attacker.getVocation().get().getName().equals("Fighter")) {
+            numAllowedTargets += attacker.getVocation().get().getLevel() / 5;
         }
-        if (targetCreature == null) {
-            if (possTargets.size() == 0) {
-                ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, aMessage.getTarget(), possTargets));
-            } else {
-                ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, aMessage.getTarget(), possTargets));
-            }
+
+        if (aMessage.getNumTargets() == 0) {
+            ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, null));
             return true;
         }
 
-        AttackAction attackAction = new AttackAction(targetCreature, weapon);
-        this.takeAction(ctx.getCreature(), attackAction);
+        if (aMessage.getNumTargets() > numAllowedTargets) {
+            String badTarget = aMessage.getTargets().get(numAllowedTargets + 1);
+            ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.TOO_MANY, badTarget));
+            return true;
+        }
+
+        AttackAction attackAction = null;
+        for (String targetName : aMessage.getTargets()) {
+            Creature targetCreature = null;
+            List<Creature> possTargets = this.room.getCreaturesInRoom(targetName);
+            if (possTargets.size() == 1) {
+                targetCreature = possTargets.get(0);
+            }
+            if (targetCreature == null) {
+                if (possTargets.size() == 0) {
+                    ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, targetName, possTargets));
+                } else {
+                    ctx.sendMsg(
+                            new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, targetName, possTargets));
+                }
+                return true;
+            }
+            if (attackAction == null) {
+                attackAction = new AttackAction(targetCreature, weapon);
+            } else {
+                attackAction.addTarget(targetCreature);
+            }
+        }
+
+        if (attackAction == null) {
+            ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, null));
+            return true;
+        }
+
+        this.takeAction(attacker, attackAction);
         return true;
     }
 
