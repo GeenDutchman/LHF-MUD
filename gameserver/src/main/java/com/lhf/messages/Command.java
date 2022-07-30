@@ -100,18 +100,18 @@ public abstract class Command {
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof Command)) {
             return false;
         }
         Command other = (Command) obj;
-        if (isValid == null) {
-            if (other.isValid != null) {
-                return false;
-            }
-        } else if (!isValid.equals(other.isValid)) {
+        if (command != other.command) {
             return false;
         }
-        if (command != other.command) {
+        if (isValid() == null) {
+            if (other.isValid() != null) {
+                return false;
+            }
+        } else if (!isValid().equals(other.isValid())) {
             return false;
         }
         if (directs == null) {
