@@ -148,7 +148,7 @@ public class ServerTest {
         String room1 = this.comm.create("Tester");
         Truth.assertThat(room1).contains("east");
         String room2 = this.comm.handleCommand("go east");
-        Truth.assertThat(room2).contains("room");
+        Truth.assertThat(room2).contains("hall");
         Truth.assertThat(room1).isNotEqualTo(room2);
         String origRoom = this.comm.handleCommand("go west");
         Truth.assertThat(room2).isNotEqualTo(origRoom);

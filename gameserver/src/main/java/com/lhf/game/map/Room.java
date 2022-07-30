@@ -113,7 +113,7 @@ public class Room implements Container, MessageHandler {
         c.setSuccessor(this);
         boolean added = this.allCreatures.add(c);
         if (added) {
-            c.sendMsg(new SeeOutMessage(this));
+            c.sendMsg(this.produceMessage());
             this.sendMessageToAllExcept(new RoomEnteredOutMessage(c), c.getName());
             if (this.allCreatures.size() > 1 && !this.commands.containsKey(CommandMessage.ATTACK)) {
                 StringJoiner sj = new StringJoiner(" ");

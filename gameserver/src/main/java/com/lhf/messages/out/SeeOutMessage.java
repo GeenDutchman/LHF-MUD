@@ -100,6 +100,7 @@ public class SeeOutMessage extends OutMessage {
                         break;
                     case TAKEABLE:
                         sj.add("Items that you can see:");
+                        break;
                     case OTHER:
                     default:
                         sj.add("Other things that you can see:");
