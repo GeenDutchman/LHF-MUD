@@ -46,6 +46,10 @@ public class Phrase implements GrammarStateMachine {
         this.openClosers.put("{", "}");
     }
 
+    public boolean opened() {
+        return this.stack.size() > 0;
+    }
+
     public Boolean parse(String token) {
         if (token == null) {
             return false;
@@ -54,7 +58,7 @@ public class Phrase implements GrammarStateMachine {
             String endQuote = this.openClosers.get(this.stack.peek().opensWith);
             if (token.equals(endQuote)) {
                 QuotedPhrase qPhrase = this.stack.pop();
-                this.phrase.append(qPhrase.qPhrase.toString().trim()).append(endQuote);
+                this.phrase.append(qPhrase.qPhrase.toString()).append(endQuote);
                 return true;
             } else {
                 this.stack.peek().add(token);

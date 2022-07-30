@@ -54,12 +54,13 @@ public class PhraseList implements GrammarStateMachine, Iterable<Phrase> {
         if (this.phrases.size() == 0) {
             this.phrases.add(new Phrase(this.enders));
         }
-        if (this.listSeparator.contains(token.toLowerCase())) {
+        Phrase lastPhrase = this.phrases.get(this.phrases.size() - 1);
+        if (this.listSeparator.contains(token.toLowerCase()) && !lastPhrase.opened()) {
             this.phrases.add(new Phrase(this.enders));
             return true;
         }
         // delegation!
-        return this.phrases.get(this.phrases.size() - 1).parse(token);
+        return lastPhrase.parse(token);
     }
 
     @Override

@@ -74,6 +74,11 @@ public class GrammaredCommandPhrase implements GrammarStateMachine {
             return accepted;
         }
 
+        if (this.optWhat.isEmpty() && token.isBlank()) {
+            // we can skip the post command spaces
+            return true;
+        }
+
         if (this.optWhat.isEmpty()) {
             // this should only happen on the second token or later
             this.optWhat = Optional.of(new PhraseList(this.prepositions));
