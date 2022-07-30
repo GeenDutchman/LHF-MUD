@@ -179,31 +179,15 @@ public class DungeonBuilder {
         offeringRoom.addCreature(rightHandMan);
 
         // Path
-        entryRoom.addExit("east", historyHall);
-
-        historyHall.addExit("west", entryRoom);
-        historyHall.addExit("east", offeringRoom);
-        historyHall.addExit("north", armory);
-
-        offeringRoom.addExit("west", historyHall);
-        offeringRoom.addExit("east", trappedHall);
-
-        trappedHall.addExit("west", offeringRoom);
-        trappedHall.addExit("south", statueRoom);
-        trappedHall.addExit("north", treasury);
-
-        statueRoom.addExit("north", trappedHall);
-
-        secretRoom.addExit("secret door", statueRoom);
-
-        armory.addExit("east", passage);
-        armory.addExit("south", historyHall);
-
-        passage.addExit("south", treasury);
-        passage.addExit("west", armory);
-
-        treasury.addExit("north", passage);
-        treasury.addExit("south", trappedHall);
+        new StandardDoorway(entryRoom, Directions.EAST, historyHall);
+        new StandardDoorway(historyHall, Directions.EAST, offeringRoom);
+        new StandardDoorway(historyHall, Directions.NORTH, armory);
+        new StandardDoorway(offeringRoom, Directions.EAST, trappedHall);
+        new StandardDoorway(armory, Directions.EAST, passage);
+        new StandardDoorway(passage, Directions.SOUTH, treasury);
+        new StandardDoorway(treasury, Directions.SOUTH, trappedHall);
+        new StandardDoorway(trappedHall, Directions.SOUTH, statueRoom);
+        new HiddenDoor(secretRoom, Directions.WEST, statueRoom);
 
         // Set starting room
         dungeon.setStartingRoom(entryRoom);

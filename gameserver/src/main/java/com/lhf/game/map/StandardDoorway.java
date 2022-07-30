@@ -10,8 +10,8 @@ public class StandardDoorway extends Doorway {
 
         Directions toRoomA = toRoomB.opposite();
 
-        this.roomA.addExit(toRoomB.toString(), roomB);
-        this.roomB.addExit(toRoomA.toString(), roomA);
+        assert this.roomA.addExit(toRoomB, this);
+        assert this.roomB.addExit(toRoomA, this);
     }
 
     @Override

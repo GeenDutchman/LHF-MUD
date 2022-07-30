@@ -7,17 +7,24 @@ import com.lhf.game.map.Directions;
 import com.lhf.messages.OutMessageType;
 
 public class BadGoMessage extends OutMessage {
-    private Directions attempted;
-    private Collection<String> available; // TODO: change this to a list of directions
+    public enum BadGoType {
+        DNE, BLOCKED;
+    }
 
-    public BadGoMessage(Directions attempted) {
+    private BadGoType type;
+    private Directions attempted;
+    private Collection<Directions> available;
+
+    public BadGoMessage(BadGoType type, Directions attempted) {
         super(OutMessageType.BAD_GO);
+        this.type = type;
         this.attempted = attempted;
         this.available = null;
     }
 
-    public BadGoMessage(Directions attempted, Collection<String> available) {
+    public BadGoMessage(BadGoType type, Directions attempted, Collection<Directions> available) {
         super(OutMessageType.BAD_GO);
+        this.type = type;
         this.attempted = attempted;
         this.available = available;
     }
@@ -32,13 +39,24 @@ public class BadGoMessage extends OutMessage {
             sb.append("that way");
         }
         sb.append(". ");
+        if (this.type == BadGoType.DNE || this.attempted == null) {
+            sb.append("That way is a wall. ");
+        } else if (this.type == BadGoType.BLOCKED) {
+            sb.append("Your path is blocked ");
+        }
         if (this.available != null && this.available.size() > 0) {
-            sb.append("You could try to go one of:");
-            StringJoiner sj = new StringJoiner(", ");
-            for (String s : this.available) {
-                sj.add(s);
+            if (this.available.size() == 1 && this.attempted != null && this.type == BadGoType.BLOCKED) {
+                sb.append("No other directions are available.  Try finding a way to unblock it. ");
+            } else {
+                sb.append("You could try to go one of:");
+                StringJoiner sj = new StringJoiner(", ");
+                for (Directions s : this.available) {
+                    if (!(this.type == BadGoType.BLOCKED && s.equals(this.attempted))) {
+                        sj.add(s.getColorTaggedName());
+                    }
+                }
+                sb.append(sj.toString());
             }
-            sb.append(sj.toString());
         } else {
             sb.append("No directions are available.");
         }
@@ -49,7 +67,7 @@ public class BadGoMessage extends OutMessage {
         return attempted;
     }
 
-    public Collection<String> getAvailable() {
+    public Collection<Directions> getAvailable() {
         return available;
     }
 

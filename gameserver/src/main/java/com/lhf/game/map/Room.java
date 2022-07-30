@@ -36,6 +36,7 @@ import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.TakeMessage;
 import com.lhf.messages.out.*;
+import com.lhf.messages.out.BadGoMessage.BadGoType;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
@@ -45,7 +46,7 @@ import com.lhf.server.client.user.UserID;
 
 public class Room implements Container, MessageHandler {
 
-    private Map<String, Room> exits; // TODO: make Doors that connect rooms, some need Keys
+    private Map<Directions, Doorway> exits;
     private List<Item> items;
     private String description;
     private String name;
@@ -158,11 +159,11 @@ public class Room implements Container, MessageHandler {
         dungeon.reincarnate(p);
     }
 
-    boolean addExit(String direction, Room room) {
+    boolean addExit(Directions direction, Doorway doorway) {
         if (exits.containsKey(direction)) {
             return false;
         }
-        exits.put(direction, room);
+        exits.put(direction, doorway);
         return true;
     }
 
@@ -352,8 +353,8 @@ public class Room implements Container, MessageHandler {
 
     public String getDirections() {
         StringJoiner output = new StringJoiner(", ");
-        for (String s : exits.keySet()) {
-            output.add("<exit>" + s + "</exit>");
+        for (Directions dir : exits.keySet()) {
+            output.add(dir.getColorTaggedName());
         }
         return output.toString();
     }
@@ -422,11 +423,8 @@ public class Room implements Container, MessageHandler {
                 seeOutMessage.addSeen(SeeCategory.CREATURE, c);
             }
         }
-        for (String exit : this.exits.keySet()) {
-            Directions dirExit = Directions.getDirections(exit);
-            if (dirExit != null) {
-                seeOutMessage.addSeen(SeeCategory.DIRECTION, dirExit);
-            }
+        for (Directions dir : this.exits.keySet()) {
+            seeOutMessage.addSeen(SeeCategory.DIRECTION, dir);
         }
         for (Item item : this.items) {
             if (!item.checkVisibility()) {
@@ -645,13 +643,12 @@ public class Room implements Container, MessageHandler {
     private Boolean handleGo(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.GO) {
             GoMessage goMessage = (GoMessage) msg;
-            if (exits.containsKey(goMessage.getDirection().toString().toLowerCase())) {
-                Room otherRoom = exits.get(goMessage.getDirection().toString().toLowerCase());
-                ctx.getCreature().setSuccessor(otherRoom);
-                this.removeCreature(ctx.getCreature());
-                otherRoom.addCreature(ctx.getCreature());
+            if (exits.containsKey(goMessage.getDirection())) {
+                if (!exits.get(goMessage.getDirection()).traverse(ctx.getCreature())) {
+                    ctx.sendMsg(new BadGoMessage(BadGoType.BLOCKED, goMessage.getDirection()));
+                }
             } else {
-                ctx.sendMsg(new BadGoMessage(goMessage.getDirection(), this.exits.keySet()));
+                ctx.sendMsg(new BadGoMessage(BadGoType.DNE, goMessage.getDirection(), this.exits.keySet()));
             }
             return true;
         }
