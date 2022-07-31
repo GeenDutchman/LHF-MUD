@@ -1,6 +1,7 @@
-package com.lhf.game.map;
+package com.lhf.game.map.doors;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.game.map.Room;
 
 public abstract class Doorway {
     public abstract Room getRoomA();

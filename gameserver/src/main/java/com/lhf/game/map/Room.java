@@ -25,6 +25,7 @@ import com.lhf.game.magic.ISpell;
 import com.lhf.game.magic.interfaces.CreatureAffector;
 import com.lhf.game.magic.interfaces.DamageSpell;
 import com.lhf.game.magic.interfaces.RoomAffector;
+import com.lhf.game.map.doors.Doorway;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -159,7 +160,7 @@ public class Room implements Container, MessageHandler {
         dungeon.reincarnate(p);
     }
 
-    boolean addExit(Directions direction, Doorway doorway) {
+    public boolean addExit(Directions direction, Doorway doorway) {
         if (exits.containsKey(direction)) {
             return false;
         }

@@ -21,6 +21,8 @@ import com.lhf.game.item.concrete.equipment.RustyDagger;
 import com.lhf.game.item.concrete.equipment.Shortsword;
 import com.lhf.game.item.concrete.equipment.Whimsystick;
 import com.lhf.game.item.interfaces.InteractAction;
+import com.lhf.game.map.doors.HiddenDoor;
+import com.lhf.game.map.doors.StandardDoorway;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;

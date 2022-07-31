@@ -1,6 +1,8 @@
-package com.lhf.game.map;
+package com.lhf.game.map.doors;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.game.map.Directions;
+import com.lhf.game.map.Room;
 
 public class HiddenDoor extends Doorway {
     private Room hiddenRoom;

@@ -1,4 +1,4 @@
-package com.lhf.game.map;
+package com.lhf.game.map.doors;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
