@@ -1,16 +1,24 @@
 package com.lhf.game.map.doors;
 
-import com.lhf.game.map.Directions;
 import com.lhf.game.map.Room;
 
-public class StandardDoorway extends OneWayDoor {
+public class StandardDoorway implements Doorway {
+    private Room roomA;
+    private Room roomB;
 
-    public StandardDoorway(Room roomA, Directions toRoomB, Room roomB) {
-        super(roomA, toRoomB, roomB);
+    public StandardDoorway(Room roomA, Room roomB) {
+        this.roomA = roomA;
+        this.roomB = roomB;
+    }
 
-        Directions toRoomA = toRoomB.opposite();
+    @Override
+    public Room getRoomA() {
+        return this.roomA;
+    }
 
-        assert this.getRoomB().addExit(toRoomA, this);
+    @Override
+    public Room getRoomB() {
+        return this.roomB;
     }
 
 }
