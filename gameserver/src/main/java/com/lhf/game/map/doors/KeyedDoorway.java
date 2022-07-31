@@ -9,7 +9,7 @@ public interface KeyedDoorway extends BlockableDoorway {
     public UUID getUuid();
 
     public default boolean canTraverse(Creature creature) {
-        String keyname = DoorKey.generateKeyName(this.getUuid();
+        String keyname = DoorKey.generateKeyName(this.getUuid());
         if (creature.hasItem(keyname)) {
             this.open();
             creature.removeItem(keyname);
