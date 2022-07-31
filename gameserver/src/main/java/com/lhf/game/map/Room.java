@@ -111,7 +111,8 @@ public class Room implements Container, MessageHandler {
         return this.addCreature(p);
     }
 
-    boolean addCreature(Creature c) {
+    // TODO: AUDIT public access
+    public boolean addCreature(Creature c) {
         c.setSuccessor(this);
         boolean added = this.allCreatures.add(c);
         if (added) {
@@ -160,6 +161,7 @@ public class Room implements Container, MessageHandler {
         dungeon.reincarnate(p);
     }
 
+    // TODO: AUDIT public access
     public boolean addExit(Directions direction, Doorway doorway) {
         if (exits.containsKey(direction)) {
             return false;
