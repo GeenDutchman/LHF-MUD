@@ -354,17 +354,7 @@ public class BattleManager implements MessageHandler, Examinable {
     }
 
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("Battle Participants:\r\n");
-        for (Creature c : participants) {
-            sb.append(c.getColorTaggedName()).append("\r\n");
-        }
-        sb.append("\r\n");
-        sb.append("Up Next: ");
-        Creature c = getCurrent();
-        sb.append(c.getColorTaggedName()).append("\r\n");
-        return sb.toString();
+        return this.produceMessage().toString();
     }
 
     @Override

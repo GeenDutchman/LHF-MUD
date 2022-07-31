@@ -30,13 +30,13 @@ public class SeeOutMessage extends OutMessage {
 
     private Examinable examinable;
     private Map<String, List<Taggable>> seenCategorized;
-    private String extraInfo;
+    private StringJoiner extraInfo;
     private String deniedReason;
 
     public SeeOutMessage(Examinable examinable) {
         super(OutMessageType.SEE);
         this.examinable = examinable;
-        this.extraInfo = null;
+        this.extraInfo = new StringJoiner("\r\n").setEmptyValue("");
         this.deniedReason = null;
         this.seenCategorized = new TreeMap<>();
     }
@@ -44,7 +44,7 @@ public class SeeOutMessage extends OutMessage {
     public SeeOutMessage(Examinable examinable, String extraInfo) {
         super(OutMessageType.SEE);
         this.examinable = examinable;
-        this.extraInfo = extraInfo.trim();
+        this.extraInfo = new StringJoiner("\r\n").add(extraInfo.trim());
         this.deniedReason = null;
         this.seenCategorized = new TreeMap<>();
     }
@@ -53,20 +53,27 @@ public class SeeOutMessage extends OutMessage {
         super(OutMessageType.SEE);
         this.deniedReason = deniedReason.trim();
         this.examinable = null;
-        this.extraInfo = null;
+        this.extraInfo = new StringJoiner("\r\n").setEmptyValue("");
         this.seenCategorized = new TreeMap<>();
     }
 
-    public void addSeen(String category, Taggable thing) {
+    public SeeOutMessage addExtraInfo(String extraInfo) {
+        this.extraInfo.add(extraInfo);
+        return this;
+    }
+
+    public SeeOutMessage addSeen(String category, Taggable thing) {
         if (this.seenCategorized == null) {
             this.seenCategorized = new TreeMap<>();
         }
         this.seenCategorized.putIfAbsent(category, new ArrayList<>());
         this.seenCategorized.get(category).add(thing);
+        return this;
     }
 
-    public void addSeen(SeeCategory category, Taggable thing) {
+    public SeeOutMessage addSeen(SeeCategory category, Taggable thing) {
         this.addSeen(category.name(), thing);
+        return this;
     }
 
     private StringJoiner addTaggables(StringJoiner sj) {
@@ -131,8 +138,8 @@ public class SeeOutMessage extends OutMessage {
             sj.add(this.examinable.getName());
         }
         sj.add("\r\n");
-        if (this.extraInfo != null) {
-            sj.add(this.extraInfo).add("\r\n");
+        if (this.extraInfo != null && this.extraInfo.length() > 0) {
+            sj.add(this.extraInfo.toString()).add("\r\n");
         }
         sj.add("<description>").add(this.examinable.printDescription()).add("</description>").add("\r\n");
         sj = this.addTaggables(sj);

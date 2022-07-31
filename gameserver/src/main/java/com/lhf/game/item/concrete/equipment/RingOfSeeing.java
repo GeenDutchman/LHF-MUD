@@ -22,15 +22,8 @@ public class RingOfSeeing extends Equipable {
             if (object == null) {
                 return "That is not a valid target at all!";
             } else if (object instanceof Room) {
-                String output = printDescription() +
-                        "\r\n" +
-                        "The possible directions are:\r\n";
-                output += ((Room) object).getDirections();
-                output += "\r\n";
-                output += "Items you can see:\r\n";
-                output += ((Room) object).printListOfAllItems();
-                output += "\r\n";
-                return output;
+                Room seenRoom = (Room) object;
+                return seenRoom.toString();
             }
             return "You cannot use a " + this.getName() + " on that.";
         });

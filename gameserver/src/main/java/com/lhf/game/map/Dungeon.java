@@ -66,6 +66,7 @@ public class Dungeon implements MessageHandler {
 
     void setStartingRoom(Room r) {
         startingRoom = r;
+        this.addRoom(r);
     }
 
     boolean addRoom(Room r) {

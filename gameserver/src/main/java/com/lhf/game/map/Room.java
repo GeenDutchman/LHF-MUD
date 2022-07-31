@@ -230,38 +230,6 @@ public class Room implements Container, MessageHandler {
         return Optional.empty();
     }
 
-    public String getDescription() {
-        return "<description>" + description + "</description>";
-    }
-
-    private String printListOfAllVisibleImovables() {
-        StringJoiner output = new StringJoiner(", ");
-        for (Item item : items) {
-            if (item.checkVisibility() && !(item instanceof Takeable)) {
-                output.add(item.getColorTaggedName());
-            }
-        }
-        return output.toString();
-    }
-
-    private String printListOfAllVisibleTakeables() {
-        StringJoiner output = new StringJoiner(", ");
-        for (Item item : items) {
-            if (item.checkVisibility() && item instanceof Takeable) {
-                output.add(item.getColorTaggedName());
-            }
-        }
-        return output.toString();
-    }
-
-    public String printListOfAllItems() {
-        StringJoiner output = new StringJoiner(", ");
-        for (Item o : items) {
-            output.add(o.getColorTaggedName());
-        }
-        return output.toString();
-    }
-
     public String use(Player p, String usefulObject, String onWhat) {
         Object indirectObject = null; // indirectObject is the receiver of the action
         if (onWhat != null && onWhat.length() > 0) {
@@ -327,14 +295,12 @@ public class Room implements Container, MessageHandler {
 
     public ArrayList<Creature> getCreaturesInRoom(String creatureName) {
         ArrayList<Creature> match = new ArrayList<>();
+        ArrayList<Creature> closeMatch = new ArrayList<>();
+
         for (Creature c : this.allCreatures) {
             if (c.CheckNameRegex(creatureName, 3)) {
                 match.add(c);
             }
-        }
-
-        ArrayList<Creature> closeMatch = new ArrayList<>();
-        for (Creature c : match) {
             if (c.checkName(creatureName)) {
                 closeMatch.add(c);
                 return closeMatch;
@@ -354,62 +320,24 @@ public class Room implements Container, MessageHandler {
         return players;
     }
 
-    public String getDirections() {
-        StringJoiner output = new StringJoiner(", ");
-        for (Directions dir : exits.keySet()) {
-            output.add(dir.getColorTaggedName());
-        }
-        return output.toString();
-    }
-
-    private String getListOfPlayers() {
-        StringJoiner output = new StringJoiner(", ");
-        for (Player p : this.getAllPlayersInRoom()) {
-            output.add(p.getColorTaggedName());
-        }
-        return output.toString();
-    }
-
-    private String getListOfCreaturesNotPlayers() {
-        StringJoiner output = new StringJoiner(", ");
-        output.setEmptyValue("None.");
-        for (Creature c : this.allCreatures) {
-            if (!(c instanceof Player)) {
-                output.add(c.getColorTaggedName());
-            }
-        }
-        return output.toString();
-    }
-
     @Override
     public String toString() {
-        String output = "\r\n";
-        output += getDescription();
-        output += "\r\n";
-        output += "The possible directions are:\r\n";
-        output += getDirections();
-        output += "\r\n\r\n";
-        output += "Objects you can see:\r\n";
-        output += printListOfAllVisibleImovables();
-        output += "\r\n\r\n";
-        output += "Items you can see:\r\n";
-        output += printListOfAllVisibleTakeables();
-        output += "\r\n\r\n";
-        output += "Players in room:\r\n";
-        output += getListOfPlayers();
-        output += "\r\n\r\n";
-        output += "Creatures you can see:\r\n";
-        output += getListOfCreaturesNotPlayers();
-        output += "\r\n\r\n";
-        if (this.battleManager.isBattleOngoing()) {
-            output += "There is a battle going on!\r\n";
+        SeeOutMessage seeOutMessage = this.produceMessage();
+        for (Item item : this.items) {
+            if (!item.checkVisibility()) {
+                if (item instanceof Takeable) {
+                    seeOutMessage.addSeen("Invisible Takeables", item);
+                } else {
+                    seeOutMessage.addSeen("Other invisible items", item);
+                }
+            }
         }
-        return output;
+        return seeOutMessage.toString();
     }
 
     @Override
     public String printDescription() {
-        return this.getDescription();
+        return "<description>" + this.description + "</description>";
     }
 
     @Override
@@ -438,6 +366,9 @@ public class Room implements Container, MessageHandler {
             } else {
                 seeOutMessage.addSeen(SeeCategory.ROOM_ITEM, item);
             }
+        }
+        if (this.battleManager.isBattleOngoing()) {
+            seeOutMessage.addExtraInfo("There is a battle going on!");
         }
         return seeOutMessage;
     }
