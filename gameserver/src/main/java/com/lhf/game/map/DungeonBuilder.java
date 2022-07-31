@@ -1,6 +1,7 @@
 package com.lhf.game.map;
 
 import java.io.FileNotFoundException;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.Monster;
@@ -28,6 +29,42 @@ import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 
 public class DungeonBuilder {
+
+    private Room startingRoom;
+    private MessageHandler successor;
+    private Set<Room> rooms;
+
+    public static DungeonBuilder newInstance() {
+        return new DungeonBuilder();
+    }
+
+    private DungeonBuilder() {
+    }
+
+    public DungeonBuilder addStartingRoom(Room startingRoom) {
+        this.startingRoom = startingRoom;
+        return this;
+    }
+
+    public DungeonBuilder setSuccessor(MessageHandler successor) {
+        this.successor = successor;
+        return this;
+    }
+
+    public DungeonBuilder addRoom(Room toAdd) {
+        this.rooms.add(toAdd);
+        return this;
+    }
+
+    public Dungeon build() {
+        Dungeon dungeon = new Dungeon(this.successor);
+        dungeon.setStartingRoom(this.startingRoom);
+        dungeon.addRoom(this.startingRoom);
+        for (Room r : this.rooms) {
+            dungeon.addRoom(r);
+        }
+        return dungeon;
+    }
 
     public static Dungeon buildStaticDungeon(MessageHandler successor) throws FileNotFoundException {
         Dungeon dungeon = new Dungeon(successor);
