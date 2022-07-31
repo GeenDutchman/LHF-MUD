@@ -21,7 +21,7 @@ import com.lhf.game.item.concrete.equipment.RustyDagger;
 import com.lhf.game.item.concrete.equipment.Shortsword;
 import com.lhf.game.item.concrete.equipment.Whimsystick;
 import com.lhf.game.item.interfaces.InteractAction;
-import com.lhf.game.map.doors.HiddenDoor;
+import com.lhf.game.map.doors.OneWayDoor;
 import com.lhf.game.map.doors.StandardDoorway;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.out.InteractOutMessage;
@@ -189,7 +189,7 @@ public class DungeonBuilder {
         new StandardDoorway(passage, Directions.SOUTH, treasury);
         new StandardDoorway(treasury, Directions.SOUTH, trappedHall);
         new StandardDoorway(trappedHall, Directions.SOUTH, statueRoom);
-        new HiddenDoor(secretRoom, Directions.WEST, statueRoom);
+        new OneWayDoor(secretRoom, Directions.WEST, statueRoom);
 
         // Set starting room
         dungeon.setStartingRoom(entryRoom);

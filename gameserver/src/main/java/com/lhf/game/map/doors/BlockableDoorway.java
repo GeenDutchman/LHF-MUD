@@ -1,30 +1,21 @@
 package com.lhf.game.map.doors;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import com.lhf.game.creature.Creature;
 
-public abstract class BlockableDoorway extends Doorway {
-    private AtomicBoolean opened = new AtomicBoolean(false);
+public interface BlockableDoorway extends Doorway {
 
-    public void open() {
-        this.opened.set(true);
-    }
+    public void open();
 
-    public void close() {
-        this.opened.set(false);
-    }
+    public void close();
 
-    public boolean isOpen() {
-        return this.opened.get();
-    }
+    public boolean isOpen();
 
     @Override
-    public boolean traverse(Creature creature) {
+    public default boolean traverse(Creature creature) {
         if (!this.isOpen()) {
             return false;
         }
-        return super.traverse(creature);
+        return Doorway.super.traverse(creature);
     }
 
 }

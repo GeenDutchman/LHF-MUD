@@ -3,12 +3,12 @@ package com.lhf.game.map.doors;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.map.Room;
 
-public abstract class Doorway {
+public interface Doorway {
     public abstract Room getRoomA();
 
     public abstract Room getRoomB();
 
-    public boolean traverse(Creature creature) {
+    public default boolean traverse(Creature creature) {
 
         Room roomA = this.getRoomA();
         Room roomB = this.getRoomB();

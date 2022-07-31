@@ -1,30 +1,36 @@
 package com.lhf.game.map.doors;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.lhf.game.creature.Creature;
 import com.lhf.game.map.Directions;
 import com.lhf.game.map.Room;
 
-public class StandardBlockableDoorway extends BlockableDoorway {
-    private Room roomA;
-    private Room roomB;
+public class StandardBlockableDoorway extends StandardDoorway implements BlockableDoorway {
+    private AtomicBoolean opened = new AtomicBoolean(false);
 
     public StandardBlockableDoorway(Room roomA, Directions toRoomB, Room roomB) {
-        this.roomA = roomA;
-        this.roomB = roomB;
-
-        Directions toRoomA = toRoomB.opposite();
-
-        assert this.roomA.addExit(toRoomB, this);
-        assert this.roomB.addExit(toRoomA, this);
+        super(roomA, toRoomB, roomB);
     }
 
     @Override
-    public Room getRoomA() {
-        return this.roomA;
+    public void open() {
+        this.opened.set(true);
     }
 
     @Override
-    public Room getRoomB() {
-        return this.roomB;
+    public void close() {
+        this.opened.set(false);
+    }
+
+    @Override
+    public boolean isOpen() {
+        return this.opened.get();
+    }
+
+    @Override
+    public boolean traverse(Creature creature) {
+        return BlockableDoorway.super.traverse(creature);
     }
 
 }
