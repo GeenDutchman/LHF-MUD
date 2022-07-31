@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.lhf.game.item.Item;
 
 public class LockKey extends Item {
+    // TODO: make this usable?
     private UUID lockedItemUuid;
     private UUID keyUuid;
 
