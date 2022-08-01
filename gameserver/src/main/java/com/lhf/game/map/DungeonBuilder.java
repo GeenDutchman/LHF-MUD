@@ -56,19 +56,19 @@ public class DungeonBuilder {
     }
 
     public DungeonBuilder addRoom(Room existing, Directions toExistingRoom, Room toAdd) {
-        assert this.rooms.contains(existing);
+        assert this.rooms.contains(existing) : existing.getName() + " not yet added";
         Directions toNewRoom = toExistingRoom.opposite();
         Doorway doorway = new StandardDoorway(existing, toAdd);
-        assert existing.addExit(toNewRoom, doorway);
-        assert toAdd.addExit(toExistingRoom, doorway);
+        assert existing.addExit(toNewRoom, doorway) : toNewRoom.toString() + " new direction already";
+        assert toAdd.addExit(toExistingRoom, doorway) : toExistingRoom.toString() + " existing direction already";
         this.rooms.add(toAdd);
         return this;
     }
 
     public DungeonBuilder addSecretDoor(Room existing, Directions toExistingRoom, Room secretRoom) {
-        assert this.rooms.contains(existing);
+        assert this.rooms.contains(existing) : existing.getName() + " not yet added";
         Doorway doorway = new OneWayDoor(secretRoom, existing);
-        assert secretRoom.addExit(toExistingRoom, doorway);
+        assert secretRoom.addExit(toExistingRoom, doorway) : toExistingRoom.toString() + " existing direction already";
         this.rooms.add(secretRoom);
         return this;
     }
@@ -236,6 +236,7 @@ public class DungeonBuilder {
         offeringRoom.addCreature(rightHandMan);
 
         // Path
+        builder.addStartingRoom(entryRoom);
         builder.addRoom(entryRoom, Directions.EAST, historyHall);
         builder.addRoom(historyHall, Directions.EAST, offeringRoom);
         builder.addRoom(historyHall, Directions.NORTH, armory);

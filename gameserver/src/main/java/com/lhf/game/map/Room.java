@@ -1,14 +1,6 @@
 package com.lhf.game.map;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.Container;
@@ -46,7 +38,7 @@ import com.lhf.messages.out.TakeOutMessage.TakeOutType;
 import com.lhf.server.client.user.UserID;
 
 public class Room implements Container, MessageHandler {
-
+    private UUID uuid = UUID.randomUUID();
     private Map<Directions, Doorway> exits;
     private List<Item> items;
     private String description;
@@ -105,6 +97,10 @@ public class Room implements Container, MessageHandler {
     @Override
     public String getName() {
         return this.name;
+    }
+
+    public UUID getUuid() {
+        return uuid;
     }
 
     boolean addPlayer(Player p) {
