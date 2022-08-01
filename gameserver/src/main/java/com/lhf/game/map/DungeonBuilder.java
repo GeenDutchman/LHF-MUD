@@ -1,6 +1,7 @@
 package com.lhf.game.map;
 
 import java.io.FileNotFoundException;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -22,6 +23,7 @@ import com.lhf.game.item.concrete.equipment.RustyDagger;
 import com.lhf.game.item.concrete.equipment.Shortsword;
 import com.lhf.game.item.concrete.equipment.Whimsystick;
 import com.lhf.game.item.interfaces.InteractAction;
+import com.lhf.game.map.doors.Doorway;
 import com.lhf.game.map.doors.OneWayDoor;
 import com.lhf.game.map.doors.StandardDoorway;
 import com.lhf.messages.MessageHandler;
@@ -39,10 +41,12 @@ public class DungeonBuilder {
     }
 
     private DungeonBuilder() {
+        this.rooms = new HashSet<>();
     }
 
     public DungeonBuilder addStartingRoom(Room startingRoom) {
         this.startingRoom = startingRoom;
+        this.rooms.add(this.startingRoom);
         return this;
     }
 
@@ -51,8 +55,21 @@ public class DungeonBuilder {
         return this;
     }
 
-    public DungeonBuilder addRoom(Room toAdd) {
+    public DungeonBuilder addRoom(Room existing, Directions toExistingRoom, Room toAdd) {
+        assert this.rooms.contains(existing);
+        Directions toNewRoom = toExistingRoom.opposite();
+        Doorway doorway = new StandardDoorway(existing, toAdd);
+        assert existing.addExit(toNewRoom, doorway);
+        assert toAdd.addExit(toExistingRoom, doorway);
         this.rooms.add(toAdd);
+        return this;
+    }
+
+    public DungeonBuilder addSecretDoor(Room existing, Directions toExistingRoom, Room secretRoom) {
+        assert this.rooms.contains(existing);
+        Doorway doorway = new OneWayDoor(secretRoom, existing);
+        assert secretRoom.addExit(toExistingRoom, doorway);
+        this.rooms.add(secretRoom);
         return this;
     }
 

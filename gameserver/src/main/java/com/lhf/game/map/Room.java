@@ -161,8 +161,7 @@ public class Room implements Container, MessageHandler {
         dungeon.reincarnate(p);
     }
 
-    // TODO: AUDIT public access
-    public boolean addExit(Directions direction, Doorway doorway) {
+    boolean addExit(Directions direction, Doorway doorway) {
         if (exits.containsKey(direction)) {
             return false;
         }
