@@ -93,7 +93,7 @@ public class DungeonBuilder {
                 if (this.mapping.get(exits.getValue()).containsKey(exits.getKey().opposite())) {
                     dungeon.connectRoom(room, exits.getKey().opposite(), exits.getValue());
                 } else {
-                    dungeon.connectRoomOneWay(room, exits.getKey().opposite(), exits.getValue());
+                    dungeon.connectRoomOneWay(exits.getValue(), exits.getKey().opposite(), room);
                 }
             }
         }
@@ -256,11 +256,11 @@ public class DungeonBuilder {
         builder.addStartingRoom(entryRoom);
 
         // Path
-        builder.connectRoom(entryRoom, Directions.EAST, historyHall);
-        builder.connectRoom(historyHall, Directions.EAST, offeringRoom);
+        builder.connectRoom(entryRoom, Directions.WEST, historyHall);
+        builder.connectRoom(historyHall, Directions.WEST, offeringRoom);
         builder.connectRoom(historyHall, Directions.NORTH, armory);
-        builder.connectRoom(offeringRoom, Directions.EAST, trappedHall);
-        builder.connectRoom(armory, Directions.EAST, passage);
+        builder.connectRoom(offeringRoom, Directions.WEST, trappedHall);
+        builder.connectRoom(armory, Directions.WEST, passage);
         builder.connectRoom(passage, Directions.SOUTH, treasury);
         builder.connectRoom(treasury, Directions.SOUTH, trappedHall);
         builder.connectRoom(trappedHall, Directions.SOUTH, statueRoom);

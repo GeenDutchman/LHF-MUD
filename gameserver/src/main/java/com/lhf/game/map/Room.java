@@ -104,7 +104,11 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         c.setSuccessor(this);
         boolean added = this.allCreatures.add(c);
         if (added) {
-            c.sendMsg(this.dungeon.seeRoomExits(this));
+            if (this.dungeon != null) {
+                c.sendMsg(this.dungeon.seeRoomExits(this));
+            } else {
+                c.sendMsg(this.produceMessage());
+            }
             this.sendMessageToAllExcept(new RoomEnteredOutMessage(c), c.getName());
             if (this.allCreatures.size() > 1 && !this.commands.containsKey(CommandMessage.ATTACK)) {
                 StringJoiner sj = new StringJoiner(" ");

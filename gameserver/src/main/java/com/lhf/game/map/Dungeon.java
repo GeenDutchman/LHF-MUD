@@ -268,4 +268,29 @@ public class Dungeon implements MessageHandler {
         return MessageHandler.super.handleMessage(ctx, msg);
     }
 
+    public String toMermaid(boolean fence) {
+        StringBuilder sb = new StringBuilder();
+        StringBuilder edges = new StringBuilder();
+        if (fence) {
+            sb.append("```mermaid").append("\r\n");
+        }
+        sb.append("flowchart LR").append("\r\n");
+        for (Map.Entry<Room, Map<Directions, Room>> mappingEntry : this.mapping.entrySet()) {
+            Room room = mappingEntry.getKey();
+            String editUUID = room.getUuid().toString();
+            sb.append("    ").append(editUUID).append("[").append(room.getName()).append("]\r\n");
+            for (Map.Entry<Directions, Room> exits : mappingEntry.getValue().entrySet()) {
+                String otherUUID = exits.getValue().getUuid().toString();
+                edges.append("    ").append(editUUID).append("-->|").append(exits.getKey().toString()).append("|")
+                        .append(otherUUID).append("\r\n");
+            }
+        }
+        sb.append("\r\n");
+        sb.append(edges.toString());
+        if (fence) {
+            sb.append("```").append("\r\n");
+        }
+        return sb.toString();
+    }
+
 }
