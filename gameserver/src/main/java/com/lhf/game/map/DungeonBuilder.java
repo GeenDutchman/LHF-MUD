@@ -84,7 +84,8 @@ public class DungeonBuilder {
     }
 
     public static Dungeon buildStaticDungeon(MessageHandler successor) throws FileNotFoundException {
-        Dungeon dungeon = new Dungeon(successor);
+        DungeonBuilder builder = DungeonBuilder.newInstance();
+        builder.setSuccessor(successor);
 
         ConversationManager convoLoader = new ConversationManager();
         StatblockManager loader = new StatblockManager();
@@ -235,31 +236,20 @@ public class DungeonBuilder {
         offeringRoom.addCreature(rightHandMan);
 
         // Path
-        new StandardDoorway(entryRoom, Directions.EAST, historyHall);
-        new StandardDoorway(historyHall, Directions.EAST, offeringRoom);
-        new StandardDoorway(historyHall, Directions.NORTH, armory);
-        new StandardDoorway(offeringRoom, Directions.EAST, trappedHall);
-        new StandardDoorway(armory, Directions.EAST, passage);
-        new StandardDoorway(passage, Directions.SOUTH, treasury);
-        new StandardDoorway(treasury, Directions.SOUTH, trappedHall);
-        new StandardDoorway(trappedHall, Directions.SOUTH, statueRoom);
-        new OneWayDoor(secretRoom, Directions.WEST, statueRoom);
+        builder.addRoom(entryRoom, Directions.EAST, historyHall);
+        builder.addRoom(historyHall, Directions.EAST, offeringRoom);
+        builder.addRoom(historyHall, Directions.NORTH, armory);
+        builder.addRoom(offeringRoom, Directions.EAST, trappedHall);
+        builder.addRoom(armory, Directions.EAST, passage);
+        builder.addRoom(passage, Directions.SOUTH, treasury);
+        builder.addRoom(treasury, Directions.SOUTH, trappedHall);
+        builder.addRoom(trappedHall, Directions.SOUTH, statueRoom);
+        builder.addSecretDoor(statueRoom, Directions.WEST, secretRoom)
 
         // Set starting room
-        dungeon.setStartingRoom(entryRoom);
+        builder.addStartingRoom(entryRoom);
 
-        // Add to Dungeon
-        dungeon.addRoom(entryRoom);
-        dungeon.addRoom(historyHall);
-        dungeon.addRoom(offeringRoom);
-        dungeon.addRoom(trappedHall);
-        dungeon.addRoom(statueRoom);
-        dungeon.addRoom(secretRoom);
-        dungeon.addRoom(armory);
-        dungeon.addRoom(passage);
-        dungeon.addRoom(treasury);
-
-        return dungeon;
+        return builder.build();
     }
 
     public static Dungeon buildDynamicDungeon(int seed) {
