@@ -1,8 +1,11 @@
 package com.lhf.game.map;
 
 import java.io.FileNotFoundException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.Monster;
@@ -23,9 +26,6 @@ import com.lhf.game.item.concrete.equipment.RustyDagger;
 import com.lhf.game.item.concrete.equipment.Shortsword;
 import com.lhf.game.item.concrete.equipment.Whimsystick;
 import com.lhf.game.item.interfaces.InteractAction;
-import com.lhf.game.map.doors.Doorway;
-import com.lhf.game.map.doors.OneWayDoor;
-import com.lhf.game.map.doors.StandardDoorway;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
@@ -34,19 +34,22 @@ public class DungeonBuilder {
 
     private Room startingRoom;
     private MessageHandler successor;
-    private Set<Room> rooms;
+    private Map<Room, Map<Directions, Room>> mapping;
+    private List<Room> orderAdded;
 
     public static DungeonBuilder newInstance() {
         return new DungeonBuilder();
     }
 
     private DungeonBuilder() {
-        this.rooms = new HashSet<>();
+        this.mapping = new HashMap<>();
+        this.orderAdded = new ArrayList<>();
     }
 
     public DungeonBuilder addStartingRoom(Room startingRoom) {
         this.startingRoom = startingRoom;
-        this.rooms.add(this.startingRoom);
+        this.mapping.putIfAbsent(this.startingRoom, new TreeMap<>());
+        this.orderAdded.add(startingRoom);
         return this;
     }
 
@@ -55,30 +58,44 @@ public class DungeonBuilder {
         return this;
     }
 
-    public DungeonBuilder addRoom(Room existing, Directions toExistingRoom, Room toAdd) {
-        assert this.rooms.contains(existing) : existing.getName() + " not yet added";
+    public DungeonBuilder connectRoom(Room existing, Directions toExistingRoom, Room toAdd) {
+        assert this.mapping.containsKey(existing) : existing.getName() + " not yet added";
         Directions toNewRoom = toExistingRoom.opposite();
-        Doorway doorway = new StandardDoorway(existing, toAdd);
-        assert existing.addExit(toNewRoom, doorway) : toNewRoom.toString() + " new direction already";
-        assert toAdd.addExit(toExistingRoom, doorway) : toExistingRoom.toString() + " existing direction already";
-        this.rooms.add(toAdd);
+        this.mapping.putIfAbsent(toAdd, new TreeMap<>());
+        Map<Directions, Room> toAddExits = this.mapping.get(toAdd);
+        assert !toAddExits.containsKey(toExistingRoom)
+                : toAdd.getName() + " already has direction " + toExistingRoom.toString();
+        toAddExits.put(toExistingRoom, existing);
+        Map<Directions, Room> existingExits = this.mapping.get(existing);
+        assert !existingExits.containsKey(toNewRoom)
+                : existing.getName() + " already has direction " + toNewRoom.toString();
+        existingExits.put(toNewRoom, toAdd);
+        this.orderAdded.add(toAdd);
         return this;
     }
 
-    public DungeonBuilder addSecretDoor(Room existing, Directions toExistingRoom, Room secretRoom) {
-        assert this.rooms.contains(existing) : existing.getName() + " not yet added";
-        Doorway doorway = new OneWayDoor(secretRoom, existing);
-        assert secretRoom.addExit(toExistingRoom, doorway) : toExistingRoom.toString() + " existing direction already";
-        this.rooms.add(secretRoom);
+    public DungeonBuilder connectRoomOneWay(Room existing, Directions toExistingRoom, Room secretRoom) {
+        assert this.mapping.containsKey(existing) : existing.getName() + " not yet added";
+        this.mapping.putIfAbsent(secretRoom, new TreeMap<>());
+        Map<Directions, Room> secretExits = this.mapping.get(secretRoom);
+        assert !secretExits.containsKey(toExistingRoom)
+                : secretRoom.getName() + " already has direction " + toExistingRoom.toString();
+        secretExits.put(toExistingRoom, existing);
+        this.orderAdded.add(secretRoom);
         return this;
     }
 
     public Dungeon build() {
         Dungeon dungeon = new Dungeon(this.successor);
         dungeon.setStartingRoom(this.startingRoom);
-        dungeon.addRoom(this.startingRoom);
-        for (Room r : this.rooms) {
-            dungeon.addRoom(r);
+        for (Room room : this.orderAdded) {
+            for (Map.Entry<Directions, Room> exits : this.mapping.get(room).entrySet()) {
+                if (this.mapping.get(exits.getValue()).containsKey(exits.getKey().opposite())) {
+                    dungeon.connectRoom(room, exits.getKey().opposite(), exits.getValue());
+                } else {
+                    dungeon.connectRoomOneWay(room, exits.getKey().opposite(), exits.getValue());
+                }
+            }
         }
         return dungeon;
     }
@@ -235,20 +252,19 @@ public class DungeonBuilder {
         Monster rightHandMan = new Monster("Right", hobgoblin);
         offeringRoom.addCreature(rightHandMan);
 
-        // Path
-        builder.addStartingRoom(entryRoom);
-        builder.addRoom(entryRoom, Directions.EAST, historyHall);
-        builder.addRoom(historyHall, Directions.EAST, offeringRoom);
-        builder.addRoom(historyHall, Directions.NORTH, armory);
-        builder.addRoom(offeringRoom, Directions.EAST, trappedHall);
-        builder.addRoom(armory, Directions.EAST, passage);
-        builder.addRoom(passage, Directions.SOUTH, treasury);
-        builder.addRoom(treasury, Directions.SOUTH, trappedHall);
-        builder.addRoom(trappedHall, Directions.SOUTH, statueRoom);
-        builder.addSecretDoor(statueRoom, Directions.WEST, secretRoom);
-
         // Set starting room
         builder.addStartingRoom(entryRoom);
+
+        // Path
+        builder.connectRoom(entryRoom, Directions.EAST, historyHall);
+        builder.connectRoom(historyHall, Directions.EAST, offeringRoom);
+        builder.connectRoom(historyHall, Directions.NORTH, armory);
+        builder.connectRoom(offeringRoom, Directions.EAST, trappedHall);
+        builder.connectRoom(armory, Directions.EAST, passage);
+        builder.connectRoom(passage, Directions.SOUTH, treasury);
+        builder.connectRoom(treasury, Directions.SOUTH, trappedHall);
+        builder.connectRoom(trappedHall, Directions.SOUTH, statueRoom);
+        builder.connectRoomOneWay(statueRoom, Directions.WEST, secretRoom);
 
         return builder.build();
     }

@@ -17,19 +17,16 @@ import com.lhf.game.magic.ISpell;
 import com.lhf.game.magic.interfaces.CreatureAffector;
 import com.lhf.game.magic.interfaces.DamageSpell;
 import com.lhf.game.magic.interfaces.RoomAffector;
-import com.lhf.game.map.doors.Doorway;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.DropMessage;
-import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.InteractMessage;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.TakeMessage;
 import com.lhf.messages.out.*;
-import com.lhf.messages.out.BadGoMessage.BadGoType;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
@@ -39,7 +36,6 @@ import com.lhf.server.client.user.UserID;
 
 public class Room implements Container, MessageHandler, Comparable<Room> {
     private UUID uuid = UUID.randomUUID();
-    private Map<Directions, Doorway> exits;
     private List<Item> items;
     private String description;
     private String name;
@@ -63,7 +59,6 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
     }
 
     private Room init() {
-        this.exits = new HashMap<>();
         this.items = new ArrayList<>();
         this.battleManager = new BattleManager(this);
         this.allCreatures = new HashSet<>();
@@ -85,9 +80,6 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         sj.add("\"see\"").add("Will give you some information about your surroundings.\r\n");
         sj.add("\"see [name]\"").add("May tell you more about the object with that name.");
         cmds.put(CommandMessage.SEE, sj.toString());
-        sj = new StringJoiner(" ");
-        sj.add("\"go [direction]\"").add("Move in the desired direction, if that direction exists.  Like \"go east\"");
-        cmds.put(CommandMessage.GO, sj.toString());
         sj = new StringJoiner(" ");
         sj.add("\"drop [itemname]\"").add("Drop an item that you have.").add("Like \"drop longsword\"");
         cmds.put(CommandMessage.DROP, sj.toString());
@@ -112,7 +104,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         c.setSuccessor(this);
         boolean added = this.allCreatures.add(c);
         if (added) {
-            c.sendMsg(this.produceMessage());
+            c.sendMsg(this.dungeon.seeRoomExits(this));
             this.sendMessageToAllExcept(new RoomEnteredOutMessage(c), c.getName());
             if (this.allCreatures.size() > 1 && !this.commands.containsKey(CommandMessage.ATTACK)) {
                 StringJoiner sj = new StringJoiner(" ");
@@ -155,14 +147,6 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
     public void killPlayer(Player p) {
         this.allCreatures.remove(p);
         dungeon.reincarnate(p);
-    }
-
-    boolean addExit(Directions direction, Doorway doorway) {
-        if (exits.containsKey(direction)) {
-            return false;
-        }
-        exits.put(direction, doorway);
-        return true;
     }
 
     public boolean addItem(Item obj) {
@@ -349,9 +333,6 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
                 seeOutMessage.addSeen(SeeCategory.CREATURE, c);
             }
         }
-        for (Directions dir : this.exits.keySet()) {
-            seeOutMessage.addSeen(SeeCategory.DIRECTION, dir);
-        }
         for (Item item : this.items) {
             if (!item.checkVisibility()) {
                 continue;
@@ -450,8 +431,6 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
                 handled = this.handleSay(ctx, msg);
             } else if (type == CommandMessage.SEE) {
                 handled = this.handleSee(ctx, msg);
-            } else if (type == CommandMessage.GO) {
-                handled = this.handleGo(ctx, msg);
             } else if (type == CommandMessage.DROP) {
                 handled = this.handleDrop(ctx, msg);
             } else if (type == CommandMessage.INTERACT) {
@@ -569,28 +548,14 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return false;
     }
 
-    private Boolean handleGo(CommandContext ctx, Command msg) {
-        if (msg.getType() == CommandMessage.GO) {
-            GoMessage goMessage = (GoMessage) msg;
-            if (exits.containsKey(goMessage.getDirection())) {
-                if (!exits.get(goMessage.getDirection()).traverse(ctx.getCreature())) {
-                    ctx.sendMsg(new BadGoMessage(BadGoType.BLOCKED, goMessage.getDirection()));
-                }
-            } else {
-                ctx.sendMsg(new BadGoMessage(BadGoType.DNE, goMessage.getDirection(), this.exits.keySet()));
-            }
-            return true;
-        }
-        return false;
-    }
-
+    // only used to examine items and creatures in this room
     private Boolean handleSee(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SEE) {
             SeeMessage sMessage = (SeeMessage) msg;
             if (sMessage.getThing() != null) {
                 ctx.sendMsg(this.examine(ctx.getCreature(), sMessage.getThing()));
             } else {
-                ctx.sendMsg(this.produceMessage());
+                return false;
             }
             return true;
         }
