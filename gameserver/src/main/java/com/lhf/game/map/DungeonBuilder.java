@@ -244,7 +244,7 @@ public class DungeonBuilder {
         builder.addRoom(passage, Directions.SOUTH, treasury);
         builder.addRoom(treasury, Directions.SOUTH, trappedHall);
         builder.addRoom(trappedHall, Directions.SOUTH, statueRoom);
-        builder.addSecretDoor(statueRoom, Directions.WEST, secretRoom)
+        builder.addSecretDoor(statueRoom, Directions.WEST, secretRoom);
 
         // Set starting room
         builder.addStartingRoom(entryRoom);

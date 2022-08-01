@@ -74,7 +74,7 @@ public abstract class Usable extends Takeable {
             }
         } else if (usingOn instanceof Room) {
             // specific to that Room
-            method = methods.get(((Room) usingOn).getDescription());
+            method = methods.get(((Room) usingOn).getName());
             if (method == null) {
                 method = methods.get(Room.class.getName());
             }
