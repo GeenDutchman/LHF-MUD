@@ -37,7 +37,7 @@ import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 import com.lhf.messages.out.TakeOutMessage.TakeOutType;
 import com.lhf.server.client.user.UserID;
 
-public class Room implements Container, MessageHandler {
+public class Room implements Container, MessageHandler, Comparable<Room> {
     private UUID uuid = UUID.randomUUID();
     private Map<Directions, Doorway> exits;
     private List<Item> items;
@@ -651,4 +651,30 @@ public class Room implements Container, MessageHandler {
 
         return new SeeOutMessage("You couldn't find " + name + " to examine.");
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, uuid);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Room)) {
+            return false;
+        }
+        Room other = (Room) obj;
+        return Objects.equals(name, other.name) && Objects.equals(uuid, other.uuid);
+    }
+
+    @Override
+    public int compareTo(Room o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        return this.uuid.compareTo(o.getUuid());
+    }
+
 }
