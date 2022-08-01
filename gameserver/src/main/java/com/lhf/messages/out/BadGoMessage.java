@@ -8,7 +8,7 @@ import com.lhf.messages.OutMessageType;
 
 public class BadGoMessage extends OutMessage {
     public enum BadGoType {
-        DNE, BLOCKED;
+        DNE, BLOCKED, NO_ROOM;
     }
 
     private BadGoType type;
@@ -43,6 +43,8 @@ public class BadGoMessage extends OutMessage {
             sb.append("That way is a wall. ");
         } else if (this.type == BadGoType.BLOCKED) {
             sb.append("Your path is blocked ");
+        } else if (this.type == BadGoType.NO_ROOM) {
+            sb.append("You are not in a room. ");
         }
         if (this.available != null && this.available.size() > 0) {
             if (this.available.size() == 1 && this.attempted != null && this.type == BadGoType.BLOCKED) {
