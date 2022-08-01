@@ -1,0 +1,114 @@
+{
+  "treeName": "verbal_default",
+  "start": {
+    "nodeID": "876ae9d8-8c55-43c8-a3d5-ede57116d1cf",
+    "body": "Hello TALKER_TAGGED_NAME",
+    "prompts": []
+  },
+  "nodes": {
+    "876ae9d8-8c55-43c8-a3d5-ede57116d1cf": {
+      "nodeID": "876ae9d8-8c55-43c8-a3d5-ede57116d1cf",
+      "body": "Hello TALKER_TAGGED_NAME",
+      "prompts": []
+    },
+    "d9d4dba4-178d-4b56-b595-6f8630b37cfb": {
+      "nodeID": "d9d4dba4-178d-4b56-b595-6f8630b37cfb",
+      "body": "This dungeon has secrets, if you look.",
+      "prompts": []
+    },
+    "e6c1df87-4705-4d96-a1ea-4e475dc7960e": {
+      "nodeID": "e6c1df87-4705-4d96-a1ea-4e475dc7960e",
+      "body": "*Mysterious Smile* I have said enough.",
+      "prompts": []
+    },
+    "e6d244d5-8cb7-4e7e-a9e8-44269b6fad0d": {
+      "nodeID": "e6d244d5-8cb7-4e7e-a9e8-44269b6fad0d",
+      "body": "Greetings",
+      "prompts": []
+    },
+    "3f432397-ca0b-4081-b690-e7136291c686": {
+      "nodeID": "3f432397-ca0b-4081-b690-e7136291c686",
+      "body": "May the Dungeon Mistress and Dungeon Master watch over and forgive you.",
+      "prompts": []
+    }
+  },
+  "branches": {
+    "876ae9d8-8c55-43c8-a3d5-ede57116d1cf": [
+      {
+        "regex": {
+          "regex": ".*",
+          "flags": 2,
+          "example": "Hi"
+        },
+        "nodeID": "e6d244d5-8cb7-4e7e-a9e8-44269b6fad0d",
+        "blacklist": {}
+      }
+    ],
+    "d9d4dba4-178d-4b56-b595-6f8630b37cfb": [
+      {
+        "regex": {
+          "regex": "what",
+          "flags": 2,
+          "example": "Like what?"
+        },
+        "nodeID": "e6c1df87-4705-4d96-a1ea-4e475dc7960e",
+        "blacklist": {}
+      }
+    ],
+    "e6d244d5-8cb7-4e7e-a9e8-44269b6fad0d": [
+      {
+        "regex": {
+          "regex": "tell me",
+          "flags": 2,
+          "example": "What can you tell me?"
+        },
+        "nodeID": "d9d4dba4-178d-4b56-b595-6f8630b37cfb",
+        "blacklist": {}
+      },
+      {
+        "regex": {
+          "regex": ".*",
+          "flags": 2,
+          "example": "I must go."
+        },
+        "nodeID": "3f432397-ca0b-4081-b690-e7136291c686",
+        "blacklist": {}
+      }
+    ]
+  },
+  "greetings": [
+    {
+      "regex": {
+        "regex": "^hello\\b",
+        "flags": 2,
+        "example": "hello"
+      },
+      "nodeID": "876ae9d8-8c55-43c8-a3d5-ede57116d1cf",
+      "blacklist": {}
+    },
+    {
+      "regex": {
+        "regex": "^hi\\b",
+        "flags": 2,
+        "example": "hi"
+      },
+      "nodeID": "876ae9d8-8c55-43c8-a3d5-ede57116d1cf",
+      "blacklist": {}
+    }
+  ],
+  "repeatWords": [
+    {
+      "regex": "\\brepeat\\b",
+      "flags": 2,
+      "example": "repeat"
+    },
+    {
+      "regex": "\\bagain\\b",
+      "flags": 2,
+      "example": "again"
+    }
+  ],
+  "endOfConvo": "Goodbye",
+  "notRecognized": "What did you say? ...",
+  "tagkeywords": true
+}

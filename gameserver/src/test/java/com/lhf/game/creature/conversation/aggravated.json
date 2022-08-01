@@ -1,0 +1,94 @@
+{
+  "treeName": "aggravated",
+  "start": {
+    "nodeID": "17d1c7a0-ecf9-4c3e-949e-600ba26337e3",
+    "body": " ",
+    "prompts": [
+      "PROMPT COMMAND ATTACK TALKER_NAME"
+    ]
+  },
+  "nodes": {
+    "17d1c7a0-ecf9-4c3e-949e-600ba26337e3": {
+      "nodeID": "17d1c7a0-ecf9-4c3e-949e-600ba26337e3",
+      "body": " ",
+      "prompts": [
+        "PROMPT COMMAND ATTACK TALKER_NAME"
+      ]
+    },
+    "63f4869a-4cbb-423b-98a1-57fa71414afd": {
+      "nodeID": "63f4869a-4cbb-423b-98a1-57fa71414afd",
+      "body": " ",
+      "prompts": [
+        "PROMPT COMMAND ATTACK TALKER_NAME"
+      ]
+    }
+  },
+  "branches": {
+    "17d1c7a0-ecf9-4c3e-949e-600ba26337e3": [
+      {
+        "regex": {
+          "regex": ".*",
+          "flags": 2,
+          "example": "Really?"
+        },
+        "nodeID": "63f4869a-4cbb-423b-98a1-57fa71414afd",
+        "blacklist": {}
+      }
+    ],
+    "63f4869a-4cbb-423b-98a1-57fa71414afd": [
+      {
+        "regex": {
+          "regex": ".*",
+          "flags": 2,
+          "example": "Really?"
+        },
+        "nodeID": "63f4869a-4cbb-423b-98a1-57fa71414afd",
+        "blacklist": {}
+      }
+    ]
+  },
+  "greetings": [
+    {
+      "regex": {
+        "regex": "^hello\\b",
+        "flags": 2,
+        "example": "hello"
+      },
+      "nodeID": "17d1c7a0-ecf9-4c3e-949e-600ba26337e3",
+      "blacklist": {}
+    },
+    {
+      "regex": {
+        "regex": "^hi\\b",
+        "flags": 2,
+        "example": "hi"
+      },
+      "nodeID": "17d1c7a0-ecf9-4c3e-949e-600ba26337e3",
+      "blacklist": {}
+    },
+    {
+      "regex": {
+        "regex": ".*",
+        "flags": 2,
+        "example": "Greetings"
+      },
+      "nodeID": "17d1c7a0-ecf9-4c3e-949e-600ba26337e3",
+      "blacklist": {}
+    }
+  ],
+  "repeatWords": [
+    {
+      "regex": "\\brepeat\\b",
+      "flags": 2,
+      "example": "repeat"
+    },
+    {
+      "regex": "\\bagain\\b",
+      "flags": 2,
+      "example": "again"
+    }
+  ],
+  "endOfConvo": "Goodbye",
+  "notRecognized": "What did you say? ...",
+  "tagkeywords": true
+}
