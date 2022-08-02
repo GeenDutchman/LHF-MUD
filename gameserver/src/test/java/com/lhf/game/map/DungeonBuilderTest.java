@@ -11,8 +11,8 @@ public class DungeonBuilderTest {
     void testBuildStaticDungeon() throws FileNotFoundException {
         Dungeon built = DungeonBuilder.buildStaticDungeon(null);
         String mermaid = built.toMermaid(false);
+        System.out.println(mermaid);
         Truth.assertThat(mermaid).isNotEmpty();
         Truth.assertThat(mermaid).ignoringCase().contains("Armory");
-        System.out.println(mermaid);
     }
 }

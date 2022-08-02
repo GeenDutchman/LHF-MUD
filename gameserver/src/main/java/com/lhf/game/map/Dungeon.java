@@ -325,8 +325,8 @@ public class Dungeon implements MessageHandler {
             sb.append("    ").append(editUUID).append("[").append(room.getName()).append("]\r\n");
             for (Entry<Directions, Doorway> exits : roomAndDirs.exits.entrySet()) {
                 String otherUUID = exits.getValue().getRoomAccross(room.getUuid()).toString();
-                edges.append("    ").append(otherUUID).append("-->|").append(exits.getKey().toString()).append("|")
-                        .append(editUUID).append("\r\n");
+                edges.append("    ").append(editUUID).append("-->|").append(exits.getKey().toString()).append("|")
+                        .append(otherUUID).append("\r\n");
             }
         }
         sb.append("\r\n");
