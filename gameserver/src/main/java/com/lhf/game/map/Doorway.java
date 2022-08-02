@@ -6,10 +6,12 @@ import com.lhf.game.creature.Creature;
 
 class Doorway {
     private UUID roomAUuid;
+    private Directions fromBtoA;
     private UUID roomBUuid;
 
-    public Doorway(UUID roomAUuid, UUID roomBUuid) {
+    public Doorway(UUID roomAUuid, Directions fromBtoA, UUID roomBUuid) {
         this.roomAUuid = roomAUuid;
+        this.fromBtoA = fromBtoA;
         this.roomBUuid = roomBUuid;
     }
 
@@ -21,7 +23,11 @@ class Doorway {
         return roomBUuid;
     }
 
-    public boolean canTraverse(Creature creature) {
+    public Directions getFromBtoA() {
+        return fromBtoA;
+    }
+
+    public boolean canTraverse(Creature creature, Directions whichWay) {
         return true;
     }
 

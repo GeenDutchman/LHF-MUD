@@ -8,8 +8,8 @@ import com.lhf.game.item.concrete.LockKey;
 class KeyedDoorway extends CloseableDoorway {
     private UUID doorwayUuid;
 
-    public KeyedDoorway(UUID roomAUuid, UUID roomBUuid) {
-        super(roomAUuid, roomBUuid);
+    public KeyedDoorway(UUID roomAUuid, Directions fromBtoA, UUID roomBUuid) {
+        super(roomAUuid, fromBtoA, roomBUuid);
         this.close();
         this.doorwayUuid = UUID.randomUUID();
     }
@@ -23,13 +23,13 @@ class KeyedDoorway extends CloseableDoorway {
     }
 
     @Override
-    public boolean canTraverse(Creature creature) {
+    public boolean canTraverse(Creature creature, Directions whichWay) {
         String keyName = LockKey.generateKeyName(this.getDoorwayUuid());
         if (creature.hasItem(keyName)) {
             this.open();
             creature.removeItem(keyName);
         }
-        return super.canTraverse(creature);
+        return super.canTraverse(creature, whichWay);
     }
 
 }

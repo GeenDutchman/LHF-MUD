@@ -8,13 +8,13 @@ import com.lhf.game.creature.Creature;
 class CloseableDoorway extends Doorway {
     private AtomicBoolean opened;
 
-    public CloseableDoorway(UUID roomAUuid, UUID roomBUuid) {
-        super(roomAUuid, roomBUuid);
+    public CloseableDoorway(UUID roomAUuid, Directions fromBtoA, UUID roomBUuid) {
+        super(roomAUuid, fromBtoA, roomBUuid);
         this.opened = new AtomicBoolean(false);
     }
 
-    public CloseableDoorway(UUID roomAUuid, UUID roomBUuid, boolean opened) {
-        super(roomAUuid, roomBUuid);
+    public CloseableDoorway(UUID roomAUuid, Directions fromBtoA, UUID roomBUuid, boolean opened) {
+        super(roomAUuid, fromBtoA, roomBUuid);
         this.opened = new AtomicBoolean(opened);
     }
 
@@ -31,11 +31,11 @@ class CloseableDoorway extends Doorway {
     }
 
     @Override
-    public boolean canTraverse(Creature creature) {
-        if (this.isOpen()) {
-            return super.canTraverse(creature);
+    public boolean canTraverse(Creature creature, Directions whichWay) {
+        if (!this.isOpen()) {
+            return false;
         }
-        return false;
+        return super.canTraverse(creature, whichWay);
     }
 
 }
