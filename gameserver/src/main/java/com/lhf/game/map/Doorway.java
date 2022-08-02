@@ -27,6 +27,15 @@ class Doorway {
         return fromBtoA;
     }
 
+    public UUID getRoomAccross(UUID presentUuid) {
+        if (this.getRoomAUuid().equals(presentUuid)) {
+            return this.getRoomBUuid();
+        } else if (this.getRoomBUuid().equals(presentUuid)) {
+            return this.getRoomAUuid();
+        }
+        return null;
+    }
+
     public boolean canTraverse(Creature creature, Directions whichWay) {
         return true;
     }

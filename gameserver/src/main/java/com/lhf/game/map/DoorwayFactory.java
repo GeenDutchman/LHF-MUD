@@ -5,7 +5,7 @@ public class DoorwayFactory {
         STANDARD, ONE_WAY, CLOSEABLE, KEYED;
     }
 
-    public static Doorway createDoorway(DoorwayType type, Room existing, Directions toExistingRoom, Room toAdd) {
+    public static Doorway createDoorway(DoorwayType type, Room toAdd, Directions toExistingRoom, Room existing) {
         switch (type) {
             case ONE_WAY:
                 return new OneWayDoorway(existing.getUuid(), toExistingRoom, toAdd.getUuid());

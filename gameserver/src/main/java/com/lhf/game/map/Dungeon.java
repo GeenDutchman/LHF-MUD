@@ -103,12 +103,12 @@ public class Dungeon implements MessageHandler {
         return true;
     }
 
-    boolean connectRoom(DoorwayType type, Room existing, Directions toExistingRoom, Room tooAdd) {
-        if (!this.basicAddRoom(existing, tooAdd)) {
+    boolean connectRoom(DoorwayType type, Room toAdd, Directions toExistingRoom, Room existing) {
+        if (!this.basicAddRoom(existing, toAdd)) {
             return false;
         }
-        Doorway doorway = DoorwayFactory.createDoorway(type, existing, toExistingRoom, tooAdd);
-        RoomAndDirs addedDirs = this.mapping.get(tooAdd.getUuid());
+        Doorway doorway = DoorwayFactory.createDoorway(type, toAdd, toExistingRoom, existing);
+        RoomAndDirs addedDirs = this.mapping.get(toAdd.getUuid());
         if (addedDirs.exits.containsKey(toExistingRoom)) {
             return false;
         }
@@ -120,7 +120,7 @@ public class Dungeon implements MessageHandler {
                 existingDirs.exits.put(toExistingRoom.opposite(), doorway) == null;
     }
 
-    boolean connectRoomExclusiveOneWay(Room existing, Directions toExistingRoom, Room secretRoom) {
+    boolean connectRoomExclusiveOneWay(Room secretRoom, Directions toExistingRoom, Room existing) {
         if (!this.basicAddRoom(existing, secretRoom)) {
             return false;
         }
@@ -128,7 +128,7 @@ public class Dungeon implements MessageHandler {
         if (secretDirs.exits.containsKey(toExistingRoom)) {
             return false;
         }
-        Doorway onewayDoor = DoorwayFactory.createDoorway(DoorwayType.ONE_WAY, existing, toExistingRoom, secretRoom);
+        Doorway onewayDoor = DoorwayFactory.createDoorway(DoorwayType.ONE_WAY, secretRoom, toExistingRoom, existing);
         return secretDirs.exits.put(toExistingRoom, onewayDoor) == null;
     }
 
