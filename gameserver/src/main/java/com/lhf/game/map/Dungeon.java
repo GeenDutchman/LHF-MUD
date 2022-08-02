@@ -6,8 +6,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
+import java.util.Map.Entry;
 
 import com.lhf.game.creature.Player;
+import com.lhf.game.map.DoorwayFactory.DoorwayType;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -25,13 +28,23 @@ import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.user.UserID;
 
 public class Dungeon implements MessageHandler {
-    private Map<Room, Map<Directions, Room>> mapping;
+    private class RoomAndDirs {
+        public final Room room;
+        public Map<Directions, Doorway> exits;
+
+        RoomAndDirs(Room room) {
+            this.room = room;
+            this.exits = new TreeMap<>();
+        }
+    }
+
+    private Map<UUID, RoomAndDirs> mapping;
     private Room startingRoom = null;
     private MessageHandler successor;
     private Map<CommandMessage, String> commands;
 
     Dungeon(MessageHandler successor) {
-        this.mapping = new HashMap<>();
+        this.mapping = new TreeMap<>();
         this.successor = successor;
         this.commands = this.buildCommands();
     }
@@ -75,49 +88,63 @@ public class Dungeon implements MessageHandler {
 
     void setStartingRoom(Room r) {
         this.startingRoom = r;
-        this.mapping.putIfAbsent(r, new TreeMap<>());
+        this.mapping.putIfAbsent(r.getUuid(), new RoomAndDirs(r));
         r.setDungeon(this);
         r.setSuccessor(this);
     }
 
-    boolean connectRoom(Room existing, Directions toExistingRoom, Room tooAdd) {
-        if (!this.connectRoomOneWay(existing, toExistingRoom, tooAdd)) {
+    private boolean basicAddRoom(Room existing, Room toAdd) {
+        if (!this.mapping.containsKey(existing.getUuid())) {
             return false;
         }
-        Map<Directions, Room> existingExits = this.mapping.get(existing);
-        if (existingExits.containsKey(toExistingRoom.opposite())) {
-            return false;
-        }
-        return existingExits.put(toExistingRoom.opposite(), tooAdd) == null;
+        toAdd.setDungeon(this);
+        toAdd.setSuccessor(this);
+        this.mapping.putIfAbsent(toAdd.getUuid(), new RoomAndDirs(toAdd));
+        return true;
     }
 
-    boolean connectRoomOneWay(Room existing, Directions toExistingRoom, Room secretRoom) {
-        if (!this.mapping.containsKey(existing)) {
+    boolean connectRoom(DoorwayType type, Room existing, Directions toExistingRoom, Room tooAdd) {
+        if (!this.basicAddRoom(existing, tooAdd)) {
             return false;
         }
-        secretRoom.setDungeon(this);
-        secretRoom.setSuccessor(this);
-        this.mapping.putIfAbsent(secretRoom, new TreeMap<>());
-        Map<Directions, Room> tooAddExits = this.mapping.get(secretRoom);
-        if (tooAddExits.containsKey(toExistingRoom)) {
+        Doorway doorway = DoorwayFactory.createDoorway(type, existing, toExistingRoom, tooAdd);
+        RoomAndDirs addedDirs = this.mapping.get(tooAdd.getUuid());
+        if (addedDirs.exits.containsKey(toExistingRoom)) {
             return false;
         }
-        return tooAddExits.put(toExistingRoom, existing) == null;
+        RoomAndDirs existingDirs = this.mapping.get(existing.getUuid());
+        if (existingDirs.exits.containsKey(toExistingRoom.opposite())) {
+            return false;
+        }
+        return addedDirs.exits.put(toExistingRoom, doorway) == null &&
+                existingDirs.exits.put(toExistingRoom.opposite(), doorway) == null;
+    }
+
+    boolean connectRoomExclusiveOneWay(Room existing, Directions toExistingRoom, Room secretRoom) {
+        if (!this.basicAddRoom(existing, secretRoom)) {
+            return false;
+        }
+        RoomAndDirs secretDirs = this.mapping.get(secretRoom.getUuid());
+        if (secretDirs.exits.containsKey(toExistingRoom)) {
+            return false;
+        }
+        Doorway onewayDoor = DoorwayFactory.createDoorway(DoorwayType.ONE_WAY, existing, toExistingRoom, secretRoom);
+        return secretDirs.exits.put(toExistingRoom, onewayDoor) == null;
     }
 
     public Room getPlayerRoom(UserID id) {
-        for (Room r : this.mapping.keySet()) {
-            Player p = r.getPlayerInRoom(id);
+        for (RoomAndDirs rAndD : this.mapping.values()) {
+            Player p = rAndD.room.getPlayerInRoom(id);
             if (p != null) {
-                return r;
+                return rAndD.room;
             }
         }
         return null;
     }
 
     public Player getPlayerById(UserID id) {
-        for (Room r : this.mapping.keySet()) {
-            Player p = r.getPlayerInRoom(id);
+        for (RoomAndDirs rAndD : this.mapping.values()) {
+            Player p = rAndD.room.getPlayerInRoom(id);
             if (p != null) {
                 return p;
             }
@@ -151,28 +178,28 @@ public class Dungeon implements MessageHandler {
     }
 
     public void sendMessageToAll(OutMessage msg) {
-        if (!this.mapping.containsKey(this.startingRoom)) {
+        if (!this.mapping.containsKey(this.startingRoom.getUuid())) {
             this.sendMessageToAllInRoom(this.startingRoom, msg);
         }
-        for (Room room : this.mapping.keySet()) {
-            this.sendMessageToAllInRoom(room, msg);
+        for (RoomAndDirs rAndD : this.mapping.values()) {
+            this.sendMessageToAllInRoom(rAndD.room, msg);
         }
     }
 
     public void sendMessageToAllExcept(OutMessage msg, String... exactNames) {
-        if (!this.mapping.containsKey(this.startingRoom)) {
+        if (!this.mapping.containsKey(this.startingRoom.getUuid())) {
             this.sendMessageToAllInRoomExcept(this.startingRoom, msg, exactNames);
         }
-        for (Room room : this.mapping.keySet()) {
-            this.sendMessageToAllInRoomExcept(room, msg, exactNames);
+        for (RoomAndDirs rAndD : this.mapping.values()) {
+            this.sendMessageToAllInRoomExcept(rAndD.room, msg, exactNames);
         }
     }
 
     private Boolean handleShout(CommandContext ctx, Command cmd) {
         if (cmd.getType() == CommandMessage.SHOUT) {
             ShoutMessage shoutMessage = (ShoutMessage) cmd;
-            for (Room room : this.mapping.keySet()) {
-                for (Player p : room.getAllPlayersInRoom()) {
+            for (RoomAndDirs rAndD : this.mapping.values()) {
+                for (Player p : rAndD.room.getAllPlayersInRoom()) {
                     p.sendMsg(new SpeakingMessage(ctx.getCreature(), true, shoutMessage.getMessage()));
                 }
             }
@@ -184,19 +211,36 @@ public class Dungeon implements MessageHandler {
     private Boolean handleGo(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.GO) {
             GoMessage goMessage = (GoMessage) msg;
+            Directions toGo = goMessage.getDirection();
             if (ctx.getRoom() == null) {
-                ctx.sendMsg(new BadGoMessage(BadGoType.NO_ROOM, goMessage.getDirection()));
+                ctx.sendMsg(new BadGoMessage(BadGoType.NO_ROOM, toGo));
                 return true;
             }
             Room presentRoom = ctx.getRoom();
-            if (this.mapping.containsKey(presentRoom)) {
-                Map<Directions, Room> exits = this.mapping.get(presentRoom);
-                if (exits == null || exits.size() == 0 || !exits.containsKey(goMessage.getDirection())
-                        || exits.get(goMessage.getDirection()) == null) {
-                    ctx.sendMsg(new BadGoMessage(BadGoType.DNE, goMessage.getDirection()));
+            if (this.mapping.containsKey(presentRoom.getUuid())) {
+                RoomAndDirs roomAndDirs = this.mapping.get(presentRoom.getUuid());
+                if (roomAndDirs.exits == null || roomAndDirs.exits.size() == 0
+                        || !roomAndDirs.exits.containsKey(toGo)
+                        || roomAndDirs.exits.get(toGo) == null) {
+                    ctx.sendMsg(new BadGoMessage(BadGoType.DNE, toGo));
                     return true;
                 }
-                Room nextRoom = exits.get(goMessage.getDirection());
+                Doorway doorway = roomAndDirs.exits.get(toGo);
+                if (!doorway.canTraverse(ctx.getCreature(), toGo)) {
+                    ctx.sendMsg(new BadGoMessage(BadGoType.BLOCKED, toGo, roomAndDirs.exits.keySet()));
+                    return true;
+                }
+                UUID nextRoomUuid = doorway.getRoomAccross(presentRoom.getUuid());
+                RoomAndDirs nextRandD = this.mapping.get(nextRoomUuid);
+                if (nextRoomUuid == null || nextRandD == null) {
+                    ctx.sendMsg(new BadGoMessage(BadGoType.DNE, toGo, roomAndDirs.exits.keySet()));
+                    return true;
+                }
+                Room nextRoom = nextRandD.room;
+                if (nextRoom == null) {
+                    ctx.sendMsg(new BadGoMessage(BadGoType.DNE, toGo, roomAndDirs.exits.keySet()));
+                    return true;
+                }
                 ctx.getCreature().setSuccessor(nextRoom);
                 nextRoom.addCreature(ctx.getCreature());
                 presentRoom.removeCreature(ctx.getCreature());
@@ -214,10 +258,10 @@ public class Dungeon implements MessageHandler {
             return new SeeOutMessage("You are not in a room, so you can't see much.");
         }
         SeeOutMessage roomSeen = room.produceMessage();
-        if (this.mapping.containsKey(room)) {
-            Map<Directions, Room> presentExits = this.mapping.get(room);
-            if (presentExits != null) {
-                for (Directions dir : presentExits.keySet()) {
+        if (this.mapping.containsKey(room.getUuid())) {
+            RoomAndDirs rAndD = this.mapping.get(room.getUuid());
+            if (rAndD.exits != null) {
+                for (Directions dir : rAndD.exits.keySet()) {
                     roomSeen.addSeen(SeeCategory.DIRECTION, dir);
                 }
             }
@@ -275,12 +319,12 @@ public class Dungeon implements MessageHandler {
             sb.append("```mermaid").append("\r\n");
         }
         sb.append("flowchart LR").append("\r\n");
-        for (Map.Entry<Room, Map<Directions, Room>> mappingEntry : this.mapping.entrySet()) {
-            Room room = mappingEntry.getKey();
+        for (RoomAndDirs roomAndDirs : this.mapping.values()) {
+            Room room = roomAndDirs.room;
             String editUUID = room.getUuid().toString();
             sb.append("    ").append(editUUID).append("[").append(room.getName()).append("]\r\n");
-            for (Map.Entry<Directions, Room> exits : mappingEntry.getValue().entrySet()) {
-                String otherUUID = exits.getValue().getUuid().toString();
+            for (Entry<Directions, Doorway> exits : roomAndDirs.exits.entrySet()) {
+                String otherUUID = exits.getValue().getRoomAccross(room.getUuid()).toString();
                 edges.append("    ").append(otherUUID).append("-->|").append(exits.getKey().toString()).append("|")
                         .append(editUUID).append("\r\n");
             }
