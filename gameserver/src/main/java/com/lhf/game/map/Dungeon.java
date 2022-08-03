@@ -28,10 +28,11 @@ import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.user.UserID;
 
 public class Dungeon implements MessageHandler {
-    private class RoomAndDirs {
+    public class RoomAndDirs {
         public final Room room;
         public Map<Directions, Doorway> exits;
 
+        // package private
         RoomAndDirs(Room room) {
             this.room = room;
             this.exits = new TreeMap<>();
@@ -101,6 +102,10 @@ public class Dungeon implements MessageHandler {
         toAdd.setSuccessor(this);
         this.mapping.putIfAbsent(toAdd.getUuid(), new RoomAndDirs(toAdd));
         return true;
+    }
+
+    public RoomAndDirs getRoomExits(Room room) {
+        return this.mapping.get(room.getUuid());
     }
 
     boolean connectRoom(DoorwayType type, Room toAdd, Directions toExistingRoom, Room existing) {

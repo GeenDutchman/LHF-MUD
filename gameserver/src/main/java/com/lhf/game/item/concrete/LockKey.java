@@ -3,9 +3,9 @@ package com.lhf.game.item.concrete;
 import java.util.Objects;
 import java.util.UUID;
 
-import com.lhf.game.item.Item;
+import com.lhf.game.item.interfaces.Takeable;
 
-public class LockKey extends Item {
+public class LockKey extends Takeable {
     // TODO: make this usable?
     private UUID lockedItemUuid;
     private UUID keyUuid;
