@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.item.concrete.LockKey;
+import com.lhf.game.map.DoorwayFactory.DoorwayType;
 
 class KeyedDoorway extends CloseableDoorway {
     private UUID doorwayUuid;
@@ -12,6 +13,11 @@ class KeyedDoorway extends CloseableDoorway {
         super(roomAUuid, fromBtoA, roomBUuid);
         this.close();
         this.doorwayUuid = UUID.randomUUID();
+    }
+
+    @Override
+    public DoorwayType getType() {
+        return DoorwayType.KEYED;
     }
 
     public LockKey generateKey() {

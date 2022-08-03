@@ -4,6 +4,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.game.map.DoorwayFactory.DoorwayType;
 
 class CloseableDoorway extends Doorway {
     private AtomicBoolean opened;
@@ -16,6 +17,11 @@ class CloseableDoorway extends Doorway {
     public CloseableDoorway(UUID roomAUuid, Directions fromBtoA, UUID roomBUuid, boolean opened) {
         super(roomAUuid, fromBtoA, roomBUuid);
         this.opened = new AtomicBoolean(opened);
+    }
+
+    @Override
+    public DoorwayType getType() {
+        return DoorwayType.CLOSEABLE;
     }
 
     public void open() {

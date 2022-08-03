@@ -3,6 +3,7 @@ package com.lhf.game.map;
 import java.util.UUID;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.game.map.DoorwayFactory.DoorwayType;
 
 class Doorway {
     private UUID roomAUuid;
@@ -13,6 +14,10 @@ class Doorway {
         this.roomAUuid = roomAUuid;
         this.fromBtoA = fromBtoA;
         this.roomBUuid = roomBUuid;
+    }
+
+    public DoorwayType getType() {
+        return DoorwayType.STANDARD;
     }
 
     public UUID getRoomAUuid() {
