@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.Monster;
@@ -32,10 +33,19 @@ import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 
 public class DungeonBuilder {
+    private class RoomAndDirs {
+        public final Room room;
+        public Map<Directions, Doorway> exits;
 
-    private Room startingRoom;
+        RoomAndDirs(Room room) {
+            this.room = room;
+            this.exits = new TreeMap<>();
+        }
+    }
+
+    private Map<UUID, RoomAndDirs> mapping;
+    private Room startingRoom = null;
     private MessageHandler successor;
-    private Map<Room, Map<Directions, Room>> mapping;
     private List<Room> orderAdded;
 
     public static DungeonBuilder newInstance() {
@@ -49,7 +59,7 @@ public class DungeonBuilder {
 
     public DungeonBuilder addStartingRoom(Room startingRoom) {
         this.startingRoom = startingRoom;
-        this.mapping.putIfAbsent(this.startingRoom, new TreeMap<>());
+        this.mapping.putIfAbsent(this.startingRoom.getUuid(), new RoomAndDirs(startingRoom));
         this.orderAdded.add(startingRoom);
         return this;
     }
@@ -59,29 +69,35 @@ public class DungeonBuilder {
         return this;
     }
 
-    public DungeonBuilder connectRoom(Room toAdd, Directions toExistingRoom, Room existing) {
-        assert this.mapping.containsKey(existing) : existing.getName() + " not yet added";
+    public DungeonBuilder connectRoom(DoorwayType type, Room toAdd, Directions toExistingRoom, Room existing) {
+        assert this.mapping.containsKey(existing.getUuid()) : existing.getName() + " not yet added";
         Directions toNewRoom = toExistingRoom.opposite();
-        this.mapping.putIfAbsent(toAdd, new TreeMap<>());
-        Map<Directions, Room> toAddExits = this.mapping.get(toAdd);
+        this.mapping.putIfAbsent(toAdd.getUuid(), new RoomAndDirs(toAdd));
+        Map<Directions, Doorway> toAddExits = this.mapping.get(toAdd.getUuid()).exits;
         assert !toAddExits.containsKey(toExistingRoom)
                 : toAdd.getName() + " already has direction " + toExistingRoom.toString();
-        toAddExits.put(toExistingRoom, existing);
-        Map<Directions, Room> existingExits = this.mapping.get(existing);
+        Doorway doorway = DoorwayFactory.createDoorway(type, toAdd, toExistingRoom, existing);
+        toAddExits.put(toExistingRoom, doorway);
+        Map<Directions, Doorway> existingExits = this.mapping.get(existing.getUuid()).exits;
         assert !existingExits.containsKey(toNewRoom)
                 : existing.getName() + " already has direction " + toNewRoom.toString();
-        existingExits.put(toNewRoom, toAdd);
+        existingExits.put(toNewRoom, doorway);
         this.orderAdded.add(toAdd);
         return this;
     }
 
+    public DungeonBuilder connectRoom(Room toAdd, Directions toExistingRoom, Room existing) {
+        return this.connectRoom(DoorwayType.STANDARD, toAdd, toExistingRoom, existing);
+    }
+
     public DungeonBuilder connectRoomOneWay(Room secretRoom, Directions toExistingRoom, Room existing) {
-        assert this.mapping.containsKey(existing) : existing.getName() + " not yet added";
-        this.mapping.putIfAbsent(secretRoom, new TreeMap<>());
-        Map<Directions, Room> secretExits = this.mapping.get(secretRoom);
+        assert this.mapping.containsKey(existing.getUuid()) : existing.getName() + " not yet added";
+        this.mapping.putIfAbsent(secretRoom.getUuid(), new RoomAndDirs(secretRoom));
+        Map<Directions, Doorway> secretExits = this.mapping.get(secretRoom.getUuid()).exits;
         assert !secretExits.containsKey(toExistingRoom)
                 : secretRoom.getName() + " already has direction " + toExistingRoom.toString();
-        secretExits.put(toExistingRoom, existing);
+        Doorway oneWayDoor = DoorwayFactory.createDoorway(DoorwayType.ONE_WAY, secretRoom, toExistingRoom, existing);
+        secretExits.put(toExistingRoom, oneWayDoor);
         this.orderAdded.add(secretRoom);
         return this;
     }
@@ -91,14 +107,17 @@ public class DungeonBuilder {
         System.out.printf("Adding starting room %s\r\n", this.startingRoom.getName());
         dungeon.setStartingRoom(this.startingRoom);
         for (Room existing : this.orderAdded) {
-            Map<Directions, Room> existingExits = this.mapping.get(existing);
+            Map<Directions, Doorway> existingExits = this.mapping.get(existing.getUuid()).exits;
             for (Directions exitDirection : existingExits.keySet()) {
-                Room nextRoom = existingExits.get(exitDirection);
-                if (this.mapping.get(nextRoom).containsKey(exitDirection.opposite())) {
+                Doorway door = existingExits.get(exitDirection);
+                UUID nextRoomUuid = door.getRoomAccross(existing.getUuid());
+                Room nextRoom = this.mapping.get(nextRoomUuid).room;
+                Map<Directions, Doorway> nextExits = this.mapping.get(nextRoomUuid).exits;
+                if (nextExits.containsKey(exitDirection.opposite())) {
                     System.out.printf("%s go %s to room %s\r\n", nextRoom.getName(),
                             exitDirection.opposite().toString(),
                             existing.getName());
-                    dungeon.connectRoom(DoorwayType.STANDARD, nextRoom, exitDirection.opposite(), existing);
+                    dungeon.connectRoom(door.getType(), nextRoom, exitDirection.opposite(), existing);
                 } else {
                     System.out.printf("hidden %s go %s to room %s, but not back\r\n", existing.getName(),
                             exitDirection.toString(), nextRoom.getName());
