@@ -207,7 +207,7 @@ public class BattleManager implements MessageHandler, Examinable {
             room.addItem(corpse);
 
             for (String i : c.getInventory().getItemList()) {
-                Item drop = c.dropItem(i).get();
+                Item drop = c.removeItem(i).get();
                 room.addItem(drop);
             }
 

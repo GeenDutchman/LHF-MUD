@@ -483,7 +483,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
                     }
                     Item item = maybeItem.get();
                     if (item instanceof Takeable) {
-                        ctx.getCreature().takeItem((Takeable) item);
+                        ctx.getCreature().addItem((Takeable) item);
                         this.items.remove(item);
                         ctx.sendMsg(new TakeOutMessage(thing, item, TakeOutType.FOUND_TAKEN));
                         continue;
@@ -538,7 +538,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
                 ctx.sendMsg(new BadTargetSelectedMessage(BadTargetSelectedMessage.BadTargetOption.NOTARGET, null));
             }
             for (String itemName : dMessage.getDirects()) {
-                Optional<Item> maybeTakeable = ctx.getCreature().dropItem(itemName);
+                Optional<Item> maybeTakeable = ctx.getCreature().removeItem(itemName);
                 if (maybeTakeable.isEmpty()) {
                     ctx.sendMsg(new NotPossessedMessage(Item.class.getSimpleName(), itemName));
                     continue;

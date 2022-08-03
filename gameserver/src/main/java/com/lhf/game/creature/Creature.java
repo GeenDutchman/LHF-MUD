@@ -541,32 +541,6 @@ public abstract class Creature
     }
 
     @Override
-    public Optional<Item> removeItem(String itemName) {
-        Optional<Item> item = this.inventory.getItem(itemName);
-        if (item.isPresent()) {
-            this.inventory.removeItem(item.get());
-            return item;
-        }
-
-        for (EquipmentSlots slot : this.equipmentSlots.keySet()) {
-            Takeable thing = (Takeable) this.equipmentSlots.get(slot);
-            if (thing.CheckNameRegex(itemName, 3)) {
-                this.equipmentSlots.remove(slot);
-                return Optional.of(thing);
-            }
-        }
-        return Optional.empty();
-    }
-
-    public Optional<Item> dropItem(String itemName) {
-        return this.removeItem(itemName);
-    }
-
-    public boolean takeItem(Takeable item) {
-        return this.addItem(item);
-    }
-
-    @Override
     public Inventory getInventory() {
         return this.inventory;
     }
@@ -598,36 +572,6 @@ public abstract class Creature
     public SeeOutMessage produceMessage() {
         SeeOutMessage seeOutMessage = new SeeOutMessage(this);
         return seeOutMessage;
-    }
-
-    public Optional<Item> getItem(String itemName) {
-        Optional<Item> maybeTakeable = this.inventory.getItem(itemName);
-        if (maybeTakeable.isPresent()) {
-            return maybeTakeable;
-        }
-
-        for (Item equipped : this.equipmentSlots.values()) {
-            if (equipped.CheckNameRegex(itemName, 3)) {
-                return Optional.of(equipped);
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    @Override
-    public boolean addItem(Item item) {
-        return this.inventory.addItem(item);
-    }
-
-    @Override
-    public boolean hasItem(String name) {
-        for (Item equipped : this.equipmentSlots.values()) {
-            if (equipped.checkName(name)) {
-                return true;
-            }
-        }
-        return this.getInventory().hasItem(name);
     }
 
     @Override
