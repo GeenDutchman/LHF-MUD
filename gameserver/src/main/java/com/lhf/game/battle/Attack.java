@@ -9,6 +9,7 @@ import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.DamageFlavor;
 
 public class Attack implements Iterable<Map.Entry<DamageFlavor, RollResult>> {
+    // TODO: add aggro
     private Creature attacker;
     private RollResult toHit;
     private Map<DamageFlavor, RollResult> flavorAndDamage;
