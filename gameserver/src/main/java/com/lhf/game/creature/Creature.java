@@ -449,12 +449,6 @@ public abstract class Creature
         return getHealth() > 0;
     }
 
-    // public void ( Ability ability, String target);
-
-    // private int getAttribute(Attributes attribute) {
-    // return this.attributes.getOrDefault(attribute, 10);
-    // }
-
     private Item getWhatInSlot(EquipmentSlots slot) {
         return this.equipmentSlots.get(slot);
     }
