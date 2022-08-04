@@ -334,7 +334,6 @@ public class BattleManager implements MessageHandler, Examinable {
     private void applyAttacks(Creature attacker, Weapon weapon, Collection<Creature> targets) {
         for (Creature target : targets) {
             Attack a = attacker.attack(weapon);
-            sendMessageToAllParticipants(new AttackDamageMessage(attacker, target));
             if (target.getStats().get(Stats.AC) > a.getToHit().getTotal()) { // misses
                 sendMessageToAllParticipants(new MissMessage(attacker, target, a.getToHit(), null));
             } else {

@@ -3,17 +3,10 @@ package com.lhf.game.creature;
 import static com.lhf.game.enums.Attributes.DEX;
 import static com.lhf.game.enums.Attributes.STR;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
+import com.lhf.game.EntityEffector.EffectPersistence;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.Inventory;
@@ -48,7 +41,7 @@ import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.UnequipMessage;
-import com.lhf.messages.out.AttackDamageMessage;
+import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.EquipOutMessage;
 import com.lhf.messages.out.EquipOutMessage.EquipResultType;
 import com.lhf.messages.out.NotPossessedMessage;
@@ -129,6 +122,7 @@ public abstract class Creature
     private Optional<Vocation> vocation;
     // private MonsterType monsterType; // I dont know if we'll need this
 
+    private Set<CreatureEffector> effects;
     // uses attributes STR, DEX, CON, INT, WIS, CHA
     private AttributeBlock attributeBlock;
 
@@ -161,7 +155,7 @@ public abstract class Creature
 
         // Set attributes to default values
         this.attributeBlock = new AttributeBlock();
-
+        this.effects = new TreeSet<>();
         // Set default stats (10 HP, 2 proficiency bonus, etc.)
         this.stats = new HashMap<>();
         this.stats.put(Stats.MAXHP, 10);
@@ -189,7 +183,7 @@ public abstract class Creature
         this.cmds = this.buildCommands();
         this.name = name;
         this.vocation = Optional.empty();
-
+        this.effects = new TreeSet<>();
         this.faction = statblock.faction;
         this.attributeBlock = statblock.attributes;
         this.stats = statblock.stats;
@@ -406,19 +400,32 @@ public abstract class Creature
         }
     }
 
-    public AttackDamageMessage applyAttack(Attack attack) {
-        AttackDamageMessage dmOut = new AttackDamageMessage(attack.getAttacker(), this);
-        for (Map.Entry<DamageFlavor, RollResult> entry : attack) {
-            DamageFlavor flavor = (DamageFlavor) entry.getKey();
-            RollResult damage = (RollResult) entry.getValue();
+    public CreatureAffectedMessage applyAttack(Attack attack) {
+        for (DamageFlavor flavor : attack.getDamages().keySet()) {
+            RollResult damage = attack.getDamages().get(flavor);
             damage = adjustDamageByFlavor(flavor, damage);
             updateHitpoints(damage.getTotal());
-            dmOut.addDamage(damage);
+        }
+        for (Stats delta : attack.getStatChanges().keySet()) {
+            Integer theStat = this.stats.get(delta) + attack.getStatChanges().get(delta);
+            this.stats.put(delta, theStat);
+        }
+        for (Attributes delta : attack.getAttributeScoreChanges().keySet()) {
+            Integer theAttr = this.attributeBlock.getScore(delta) + attack.getAttributeScoreChanges().get(delta);
+            this.attributeBlock.setScore(delta, theAttr);
+        }
+        for (Attributes delta : attack.getAttributeBonusChanges().keySet()) {
+            Integer theAttr = this.attributeBlock.getModBonus(delta) + attack.getAttributeBonusChanges().get(delta);
+            this.attributeBlock.setModBonus(delta, theAttr);
         }
         if (!isAlive()) {
-            dmOut.announceDeath();
+            attack.announceDeath();
         }
-        return dmOut;
+        if (attack.getPersistence() == EffectPersistence.DURATION) {
+            this.effects.add(attack);
+        }
+        CreatureAffectedMessage camOut = new CreatureAffectedMessage(this, attack);
+        return camOut;
     }
 
     public OutMessage applySpell(CreatureAffector spell) {

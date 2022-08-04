@@ -14,8 +14,8 @@ public class CreatureAffectedMessage extends OutMessage {
     private Creature affected;
     private CreatureEffector effects;
 
-    public CreatureAffectedMessage(OutMessageType type, Creature affected, CreatureEffector effects) {
-        super(type);
+    public CreatureAffectedMessage(Creature affected, CreatureEffector effects) {
+        super(OutMessageType.CREATURE_AFFECTED);
         this.affected = affected;
         this.effects = effects;
     }
@@ -31,7 +31,7 @@ public class CreatureAffectedMessage extends OutMessage {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
-        sj.add(this.effects.getGeneratedBy());
+        sj.add(this.effects.getGeneratedBy().getColorTaggedName());
         if (this.effects.getDamages().size() > 0) {
             sj.add("has dealt");
             RollResult sum = null;

@@ -6,12 +6,14 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.truth.Truth;
 import com.lhf.Taggable;
+import com.lhf.game.EntityEffector.EffectPersistence;
+import com.lhf.game.creature.CreatureEffector;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.messages.out.AttackDamageMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.SpeakingMessage;
 
 public class BasicAITest {
@@ -38,7 +40,8 @@ public class BasicAITest {
         AIComBundle victim = new AIComBundle();
         AIComBundle attacker = new AIComBundle();
 
-        AttackDamageMessage adm = new AttackDamageMessage(attacker.npc, victim.npc);
+        CreatureEffector effects = new CreatureEffector(attacker.npc, EffectPersistence.INSTANT);
+        CreatureAffectedMessage adm = new CreatureAffectedMessage(victim.npc, effects);
         victim.npc.sendMsg(adm);
 
         Truth.assertThat(victim.sent).isEmpty();
@@ -46,7 +49,8 @@ public class BasicAITest {
 
         victim.npc.setInBattle(true); // turn it on!
 
-        AttackDamageMessage notdone = new AttackDamageMessage(attacker.npc, attacker.npc);
+        effects = new CreatureEffector(attacker.npc, EffectPersistence.INSTANT);
+        CreatureAffectedMessage notdone = new CreatureAffectedMessage(victim.npc, effects);
         victim.npc.sendMsg(notdone);
         Truth.assertThat(victim.sent).isEmpty();
         Truth.assertThat(victim.brain.getLastAttacker()).isNull();

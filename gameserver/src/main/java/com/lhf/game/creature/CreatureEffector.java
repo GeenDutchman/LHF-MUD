@@ -3,6 +3,7 @@ package com.lhf.game.creature;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.lhf.Taggable;
 import com.lhf.game.EntityEffector;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.Attributes;
@@ -15,14 +16,16 @@ public class CreatureEffector extends EntityEffector {
     private Map<Attributes, Integer> attributeBonusChanges;
     private Map<DamageFlavor, RollResult> damages;
     private boolean restoreFaction;
+    private boolean deathResult;
 
-    public CreatureEffector(String generatedBy, EffectPersistence persistence) {
+    public CreatureEffector(Taggable generatedBy, EffectPersistence persistence) {
         super(generatedBy, persistence);
         this.statChanges = new TreeMap<>();
         this.attributeScoreChanges = new TreeMap<>();
         this.attributeBonusChanges = new TreeMap<>();
         this.damages = new TreeMap<>();
         this.restoreFaction = false;
+        this.deathResult = false;
     }
 
     public Map<Stats, Integer> getStatChanges() {
@@ -43,6 +46,10 @@ public class CreatureEffector extends EntityEffector {
 
     public boolean isRestoreFaction() {
         return restoreFaction;
+    }
+
+    public boolean isDeathResult() {
+        return deathResult;
     }
 
     // replaces whatever value was in `stats`, if it existed
@@ -76,6 +83,10 @@ public class CreatureEffector extends EntityEffector {
 
     public void setRestoreFaction(boolean restoreFaction) {
         this.restoreFaction = restoreFaction;
+    }
+
+    public void announceDeath() {
+        this.deathResult = true;
     }
 
 }

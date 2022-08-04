@@ -2,20 +2,22 @@ package com.lhf.game;
 
 import java.util.Objects;
 
+import com.lhf.Taggable;
+
 public class EntityEffector implements Comparable<EntityEffector> {
     public enum EffectPersistence {
         INSTANT, DURATION;
     }
 
-    protected String generatedBy; // TODO: should this be taggable
+    protected Taggable generatedBy;
     protected EffectPersistence persistence;
 
-    public EntityEffector(String generatedBy, EffectPersistence persistence) {
+    public EntityEffector(Taggable generatedBy, EffectPersistence persistence) {
         this.generatedBy = generatedBy;
         this.persistence = persistence;
     }
 
-    public String getGeneratedBy() {
+    public Taggable getGeneratedBy() {
         return generatedBy;
     }
 
@@ -53,7 +55,7 @@ public class EntityEffector implements Comparable<EntityEffector> {
         if (this.equals(o)) {
             return 0;
         }
-        int namecompare = this.generatedBy.compareTo(o.getGeneratedBy());
+        int namecompare = this.generatedBy.getColorTaggedName().compareTo(o.getGeneratedBy().getColorTaggedName());
         if (namecompare != 0) {
             return namecompare;
         }

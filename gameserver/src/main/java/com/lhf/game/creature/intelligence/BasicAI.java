@@ -15,9 +15,9 @@ import com.lhf.messages.OutMessageType;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.PassMessage;
 import com.lhf.messages.in.SayMessage;
-import com.lhf.messages.out.AttackDamageMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BattleTurnMessage;
+import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.Client;
@@ -41,13 +41,13 @@ public class BasicAI extends Client {
         if (this.handlers == null) {
             this.handlers = new TreeMap<>();
         }
-        this.handlers.put(OutMessageType.ATTACK_DAMAGE, (BasicAI bai, OutMessage msg) -> {
-            if (msg.getOutType().equals(OutMessageType.ATTACK_DAMAGE) && bai.getNpc().isInBattle()) {
-                AttackDamageMessage attackDamageMessage = (AttackDamageMessage) msg;
-                if (attackDamageMessage.getVictim() != bai.getNpc()) {
+        this.handlers.put(OutMessageType.CREATURE_AFFECTED, (BasicAI bai, OutMessage msg) -> {
+            if (msg.getOutType().equals(OutMessageType.CREATURE_AFFECTED) && bai.getNpc().isInBattle()) {
+                CreatureAffectedMessage caMessage = (CreatureAffectedMessage) msg;
+                if (caMessage.getAffected() != bai.getNpc()) {
                     return;
                 }
-                bai.setLastAttacker(attackDamageMessage.getAttacker());
+                bai.setLastAttacker((Creature) caMessage.getEffects().getGeneratedBy());
             }
         });
         this.handlers.put(OutMessageType.BAD_TARGET_SELECTED, (BasicAI bai, OutMessage msg) -> {

@@ -14,7 +14,7 @@ public class Attack extends CreatureEffector implements Iterable<Map.Entry<Damag
     private RollResult toHit;
 
     public Attack(Creature attacker, RollResult toHit) {
-        super(attacker.getName(), EffectPersistence.INSTANT);
+        super(attacker, EffectPersistence.INSTANT);
         this.toHit = toHit;
         this.attacker = attacker;
     }

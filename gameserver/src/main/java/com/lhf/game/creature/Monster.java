@@ -6,7 +6,7 @@ import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.MonsterAI;
 import com.lhf.game.enums.Stats;
-import com.lhf.messages.out.AttackDamageMessage;
+import com.lhf.messages.out.CreatureAffectedMessage;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -86,9 +86,9 @@ public class Monster extends NonPlayerCharacter implements BattleAI {
     }
 
     @Override
-    public AttackDamageMessage applyAttack(Attack attack) {
+    public CreatureAffectedMessage applyAttack(Attack attack) {
         int prevHealth = this.getStats().get(Stats.CURRENTHP);
-        AttackDamageMessage result = super.applyAttack(attack); // perhaps a better way to do this?
+        CreatureAffectedMessage result = super.applyAttack(attack); // perhaps a better way to do this?
         int damageDealt = prevHealth - this.getStats().get(Stats.CURRENTHP);
         switch (aiType) {
             case RETALIATORY:
