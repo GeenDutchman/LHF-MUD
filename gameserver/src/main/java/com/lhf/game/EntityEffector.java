@@ -2,12 +2,12 @@ package com.lhf.game;
 
 import java.util.Objects;
 
-public class EntityEffector {
+public class EntityEffector implements Comparable<EntityEffector> {
     public enum EffectPersistence {
         INSTANT, DURATION;
     }
 
-    protected String generatedBy;
+    protected String generatedBy; // TODO: should this be taggable
     protected EffectPersistence persistence;
 
     public EntityEffector(String generatedBy, EffectPersistence persistence) {
@@ -46,6 +46,18 @@ public class EntityEffector {
         }
         EntityEffector other = (EntityEffector) obj;
         return Objects.equals(generatedBy, other.generatedBy) && persistence == other.persistence;
+    }
+
+    @Override
+    public int compareTo(EntityEffector o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        int namecompare = this.generatedBy.compareTo(o.getGeneratedBy());
+        if (namecompare != 0) {
+            return namecompare;
+        }
+        return this.getPersistence().compareTo(o.getPersistence());
     }
 
 }
