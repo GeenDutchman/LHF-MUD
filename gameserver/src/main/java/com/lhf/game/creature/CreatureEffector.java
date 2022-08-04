@@ -37,6 +37,10 @@ public class CreatureEffector extends EntityEffector {
         return attributeBonusChanges;
     }
 
+    public Map<DamageFlavor, RollResult> getDamages() {
+        return damages;
+    }
+
     public boolean isRestoreFaction() {
         return restoreFaction;
     }
