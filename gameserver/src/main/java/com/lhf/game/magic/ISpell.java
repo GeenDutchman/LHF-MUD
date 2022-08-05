@@ -2,17 +2,18 @@ package com.lhf.game.magic;
 
 import com.lhf.Examinable;
 import com.lhf.Taggable;
+import com.lhf.game.EntityEffector;
 import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.CastingMessage;
 import com.lhf.messages.out.SeeOutMessage;
 
-public abstract class ISpell implements Taggable, Examinable {
+public abstract class ISpell implements EntityEffector, Taggable, Examinable {
     private final String className;
     protected Integer level;
     protected String name;
     protected String invocation;
     protected String sbEntry;
-    protected Creature caster;
+    protected transient Creature caster;
 
     protected ISpell(Integer level, String name, String description) {
         this.className = this.getClass().getName();
@@ -65,6 +66,11 @@ public abstract class ISpell implements Taggable, Examinable {
 
     public String getInvocation() {
         return this.invocation;
+    }
+
+    @Override
+    public Taggable getGeneratedBy() {
+        return this;
     }
 
     @Override
@@ -170,6 +176,11 @@ public abstract class ISpell implements Taggable, Examinable {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public int compareTo(EntityEffector o) {
+        return EntityEffector.super.compareTo(o);
     }
 
 }
