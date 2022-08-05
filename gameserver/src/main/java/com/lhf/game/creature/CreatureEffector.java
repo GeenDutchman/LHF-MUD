@@ -18,9 +18,13 @@ public interface CreatureEffector extends EntityEffector {
 
     public Map<DamageFlavor, RollResult> getDamages();
 
-    public boolean isRestoreFaction();
+    public default boolean isRestoreFaction() {
+        return false;
+    }
 
-    public boolean isDeathResult();
+    public default boolean isDeathResult() {
+        return false;
+    }
 
     public void setRestoreFaction(boolean restoreFaction);
 
