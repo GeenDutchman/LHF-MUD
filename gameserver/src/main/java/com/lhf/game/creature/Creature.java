@@ -332,45 +332,7 @@ public abstract class Creature
     }
 
     public Attack attack(Weapon weapon) {
-        RollResult toHit;
-        int attributeBonus = 0;
-        AttributeBlock retrieved = this.getAttributes();
-        Integer str = retrieved.getMod(STR);
-        Integer dex = retrieved.getMod(DEX);
-        switch (weapon.getSubType()) {
-            case CREATUREPART:
-                // fallthrough
-            case FINESSE:
-                if (dex > str) {
-                    attributeBonus = dex;
-                    toHit = this.check(DEX);
-                } else {
-                    attributeBonus = str;
-                    toHit = this.check(STR);
-                }
-                break;
-            case PRECISE:
-                attributeBonus = dex;
-                toHit = this.check(DEX);
-                break;
-            case MARTIAL:
-                // fallthrough
-            default:
-                attributeBonus = str;
-                toHit = this.check(STR);
-                break;
-        }
-        Attack a = new Attack(this, toHit.addBonus(attributeBonus));
-        a = weapon.modifyAttack(a);
-        a = a.addDamageBonus(weapon.getMainFlavor(), attributeBonus);
-        // for (EquipmentTypes cet : this.getProficiencies()) {
-        // for (EquipmentTypes wet : weapon.getTypes()) {
-        // if (cet == wet) {
-        // a = a.addToHitBonus(1);
-        // }
-        // }
-        // }
-
+        Attack a = new Attack(this, weapon);
         return a;
     }
 

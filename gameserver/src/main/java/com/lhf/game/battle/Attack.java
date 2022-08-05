@@ -7,14 +7,18 @@ import java.util.TreeMap;
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffector;
+import com.lhf.game.creature.statblock.AttributeBlock;
+import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.item.interfaces.Weapon;
 
 public class Attack implements CreatureEffector, Iterable<Map.Entry<DamageFlavor, RollResult>> {
     // TODO: add aggro
     private Creature attacker;
+    private Weapon weapon;
     private RollResult toHit;
     private Map<Stats, Integer> statChanges;
     private Map<Attributes, Integer> attributeScoreChanges;
@@ -23,15 +27,49 @@ public class Attack implements CreatureEffector, Iterable<Map.Entry<DamageFlavor
     private boolean restoreFaction;
     private boolean deathResult;
 
-    public Attack(Creature attacker, RollResult toHit) {
-        this.toHit = toHit;
+    public Attack(Creature attacker, Weapon weapon) {
         this.attacker = attacker;
+        this.weapon = weapon;
         this.statChanges = new TreeMap<>();
         this.attributeScoreChanges = new TreeMap<>();
         this.attributeBonusChanges = new TreeMap<>();
         this.damages = new TreeMap<>();
         this.restoreFaction = false;
         this.deathResult = false;
+        this.calculateHitAndDamage();
+    }
+
+    private void calculateHitAndDamage() {
+        int attributeBonus = 0;
+        AttributeBlock retrieved = this.attacker.getAttributes();
+        Integer str = retrieved.getMod(Attributes.STR);
+        Integer dex = retrieved.getMod(Attributes.DEX);
+        switch (weapon.getSubType()) {
+            case CREATUREPART:
+                // fallthrough
+            case FINESSE:
+                if (dex > str) {
+                    attributeBonus = dex;
+                    this.toHit = this.attacker.check(Attributes.DEX);
+                } else {
+                    attributeBonus = str;
+                    this.toHit = this.attacker.check(Attributes.STR);
+                }
+                break;
+            case PRECISE:
+                attributeBonus = dex;
+                this.toHit = this.attacker.check(Attributes.DEX);
+                break;
+            case MARTIAL:
+                // fallthrough
+            default:
+                attributeBonus = str;
+                this.toHit = this.attacker.check(Attributes.STR);
+                break;
+        }
+        this.toHit.addBonus(attributeBonus);
+        this.weapon.modifyAttack(this);
+        this.addDamageBonus(this.weapon.getMainFlavor(), attributeBonus);
     }
 
     public Attack addFlavorAndRoll(DamageFlavor flavor, RollResult attackDamage) {
@@ -64,6 +102,10 @@ public class Attack implements CreatureEffector, Iterable<Map.Entry<DamageFlavor
 
     public Creature getAttacker() {
         return attacker;
+    }
+
+    public Weapon getWeapon() {
+        return weapon;
     }
 
     public Attack setAttacker(Creature attacker) {
@@ -112,7 +154,7 @@ public class Attack implements CreatureEffector, Iterable<Map.Entry<DamageFlavor
 
     @Override
     public Taggable getGeneratedBy() {
-        return this.attacker;
+        return this.weapon;
     }
 
     @Override
