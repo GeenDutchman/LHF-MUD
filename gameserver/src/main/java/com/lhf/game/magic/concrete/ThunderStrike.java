@@ -7,11 +7,11 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
-import com.lhf.game.magic.interfaces.CreatureAffector;
+import com.lhf.game.magic.interfaces.CreatureTargetingSpell;
 import com.lhf.game.magic.interfaces.DamageSpell;
 import com.lhf.messages.out.CastingMessage;
 
-public class ThunderStrike extends CreatureAffector implements DamageSpell {
+public class ThunderStrike extends CreatureTargetingSpell implements DamageSpell {
     private List<DamageDice> damages;
 
     public ThunderStrike(Integer level, String name, String description) {

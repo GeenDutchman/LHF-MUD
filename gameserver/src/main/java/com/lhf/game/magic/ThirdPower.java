@@ -8,7 +8,7 @@ import java.util.StringJoiner;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
-import com.lhf.game.magic.interfaces.CreatureAffector;
+import com.lhf.game.magic.interfaces.CreatureTargetingSpell;
 import com.lhf.game.magic.interfaces.RoomAffector;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -76,7 +76,7 @@ public class ThirdPower implements MessageHandler {
             ctx.getRoom().cast(caster, roomSpell.setRoom(ctx.getRoom()));
             return true;
         }
-        if (spell instanceof CreatureAffector && casting.getTarget().length() > 0) {
+        if (spell instanceof CreatureTargetingSpell && casting.getTarget().length() > 0) {
             Creature targetCreature = null;
             List<Creature> possTargets = ctx.getRoom().getCreaturesInRoom(casting.getTarget());
             if (possTargets.size() == 1) {
@@ -91,7 +91,7 @@ public class ThirdPower implements MessageHandler {
                 }
                 return true;
             }
-            CreatureAffector cSpell = (CreatureAffector) spell;
+            CreatureTargetingSpell cSpell = (CreatureTargetingSpell) spell;
             cSpell.addTarget(targetCreature);
             ctx.getRoom().cast(caster, cSpell);
             return true;

@@ -9,15 +9,16 @@ import java.util.Optional;
 
 import com.lhf.game.battle.BattleAction;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.CreatureEffector;
 import com.lhf.game.magic.ISpell;
 import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 
-public abstract class CreatureAffector extends ISpell implements BattleAction {
+public abstract class CreatureTargetingSpell extends ISpell implements CreatureEffector, BattleAction {
     protected Map<Creature, Creature> targets;
     protected Boolean singleTarget;
     protected Optional<CasterVsCreatureStrategy> strategy;
 
-    protected CreatureAffector(Integer level, String name, String description, Boolean singleTarget) {
+    protected CreatureTargetingSpell(Integer level, String name, String description, Boolean singleTarget) {
         super(level, name, description);
         this.targets = new HashMap<>();
         this.singleTarget = singleTarget;
@@ -25,7 +26,7 @@ public abstract class CreatureAffector extends ISpell implements BattleAction {
     }
 
     @Override
-    public CreatureAffector addTarget(Creature target) {
+    public CreatureTargetingSpell addTarget(Creature target) {
         if (this.singleTarget && this.targets.size() > 0) {
             this.targets.clear();
         }

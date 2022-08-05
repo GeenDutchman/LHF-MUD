@@ -21,7 +21,7 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.Weapon;
-import com.lhf.game.magic.interfaces.CreatureAffector;
+import com.lhf.game.magic.interfaces.CreatureTargetingSpell;
 import com.lhf.game.magic.interfaces.DamageSpell;
 import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 import com.lhf.game.map.Room;
@@ -281,8 +281,8 @@ public class BattleManager implements MessageHandler, Examinable {
 
             applyAttacks(attacker, attackAction.getWeapon(), targets);
 
-        } else if (action instanceof CreatureAffector) {
-            CreatureAffector spell = (CreatureAffector) action;
+        } else if (action instanceof CreatureTargetingSpell) {
+            CreatureTargetingSpell spell = (CreatureTargetingSpell) action;
             if (!spell.hasTargets()) {
                 attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, null));
                 return;
@@ -312,7 +312,7 @@ public class BattleManager implements MessageHandler, Examinable {
         endTurn();
     }
 
-    private void applySpell(Creature attacker, CreatureAffector spell, Collection<Creature> targets) {
+    private void applySpell(Creature attacker, CreatureTargetingSpell spell, Collection<Creature> targets) {
         sendMessageToAllParticipants(spell.Cast());
         Optional<CasterVsCreatureStrategy> strategy = spell.getStrategy();
         for (Creature target : targets) {

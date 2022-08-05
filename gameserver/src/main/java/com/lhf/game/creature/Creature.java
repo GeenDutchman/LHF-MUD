@@ -32,7 +32,7 @@ import com.lhf.game.item.interfaces.Takeable;
 import com.lhf.game.item.interfaces.Usable;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
-import com.lhf.game.magic.interfaces.CreatureAffector;
+import com.lhf.game.magic.interfaces.CreatureTargetingSpell;
 import com.lhf.game.magic.interfaces.DamageSpell;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
@@ -390,7 +390,7 @@ public abstract class Creature
         return camOut;
     }
 
-    public OutMessage applySpell(CreatureAffector spell) {
+    public OutMessage applySpell(CreatureTargetingSpell spell) {
         if (spell instanceof DamageSpell) {
             DamageSpell dSpell = (DamageSpell) spell;
             AttackDamageMessage dmOut = new AttackDamageMessage((Creature) spell.getCaster(), this); // TODO: this is a
