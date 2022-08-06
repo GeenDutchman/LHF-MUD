@@ -80,6 +80,7 @@ public class Attack implements CreatureEffector {
         if (this.damageDone != null) {
             this.damageDone.addBonus(attributeBonus);
         }
+        this.weapon.modifyAttack(this);
     }
 
     public Attack addToHitBonus(int bonus) {

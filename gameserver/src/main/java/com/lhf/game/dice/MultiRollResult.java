@@ -1,13 +1,14 @@
 package com.lhf.game.dice;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
 import com.lhf.game.dice.Dice.RollResult;
 
-public class MultiRollResult implements Taggable {
+public class MultiRollResult implements Taggable, Iterable<RollResult> {
     protected List<RollResult> rolls;
     protected List<Integer> bonuses;
 
@@ -109,6 +110,11 @@ public class MultiRollResult implements Taggable {
     @Override
     public String getColorTaggedName() {
         return this.getStartTag() + this.toString() + this.getEndTag();
+    }
+
+    @Override
+    public Iterator<RollResult> iterator() {
+        return this.rolls.listIterator();
     }
 
 }

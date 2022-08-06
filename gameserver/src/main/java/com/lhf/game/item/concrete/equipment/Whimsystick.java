@@ -11,6 +11,7 @@ import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD6;
 import com.lhf.game.dice.DieType;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
@@ -71,12 +72,9 @@ public class Whimsystick extends Weapon {
     @Override
     public Attack modifyAttack(Attack attack) {
         Dice chooser = new DiceD6(1);
-        if (chooser.rollDice().getTotal() <= 2) {
-            attack = attack.addFlavorAndRoll(DamageFlavor.HEALING, chooser.rollDice());
-        } else {
-            for (DamageDice dd : this.getDamages()) {
-                attack = attack.addFlavorAndRoll(dd.getFlavor(), dd.rollDice());
-            }
+        if (chooser.rollDice().getRoll() <= 2) {
+            DamageDice healDice = new DamageDice(1, DieType.SIX, DamageFlavor.HEALING);
+            attack.updateDamageResult(new MultiRollResult(healDice.rollDice()));
         }
         return attack;
     }
