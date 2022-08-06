@@ -12,7 +12,7 @@ import com.lhf.messages.OutMessageType;
 
 public class SeeOutMessage extends OutMessage {
     public enum SeeCategory {
-        DIRECTION, CREATURE, PLAYER, NPC, MONSTER, ROOM_ITEM, TAKEABLE, OTHER;
+        DIRECTION, CREATURE, PLAYER, NPC, MONSTER, ROOM_ITEM, TAKEABLE, OTHER, SPELL;
 
         public static SeeCategory getSeeCategory(String value) {
             for (SeeCategory category : values()) {
@@ -107,6 +107,9 @@ public class SeeOutMessage extends OutMessage {
                         break;
                     case TAKEABLE:
                         sj.add("Items that you can see:");
+                        break;
+                    case SPELL:
+                        sj.add("Spells that you know of:");
                         break;
                     case OTHER:
                     default:
