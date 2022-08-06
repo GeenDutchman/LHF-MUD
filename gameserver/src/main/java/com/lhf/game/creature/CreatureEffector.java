@@ -1,8 +1,11 @@
 package com.lhf.game.creature;
 
+import java.util.List;
 import java.util.Map;
 
 import com.lhf.game.EntityEffector;
+import com.lhf.game.dice.DamageDice;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
@@ -16,7 +19,9 @@ public interface CreatureEffector extends EntityEffector {
 
     public Map<Attributes, Integer> getAttributeBonusChanges();
 
-    public Map<DamageFlavor, RollResult> getDamages();
+    public abstract List<DamageDice> getDamages();
+
+    public abstract MultiRollResult getDamageResult();
 
     public default boolean isRestoreFaction() {
         return false;
