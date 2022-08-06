@@ -19,6 +19,8 @@ import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.DieType;
+import com.lhf.game.dice.MultiRollResult;
+import com.lhf.game.dice.DamageDice.FlavoredRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
@@ -248,9 +250,10 @@ public abstract class Creature
         }
     }
 
-    public RollResult check(Attributes attribute) {
+    public MultiRollResult check(Attributes attribute) {
         Dice d20 = new DiceD20(1);
-        return d20.rollDice().addBonus(this.getAttributes().getMod(attribute));
+        MultiRollResult result = new MultiRollResult(d20.rollDice(), this.getAttributes().getMod(attribute));
+        return result;
     }
 
     public void updateModifier(Attributes modifier, int value) {
@@ -353,21 +356,27 @@ public abstract class Creature
         return Objects.requireNonNullElseGet(weapon, Fist::new);
     }
 
-    protected RollResult adjustDamageByFlavor(DamageFlavor flavor, RollResult roll) {
-        switch (flavor) {
-            case HEALING:
-                return roll;
-            default:
-                return roll.flipSign();
+    protected MultiRollResult adjustDamageByFlavor(MultiRollResult mrr) {
+        for (RollResult rr : mrr) {
+            if (rr instanceof FlavoredRollResult) {
+                FlavoredRollResult frr = (FlavoredRollResult) rr;
+                switch (frr.getFlavor()) {
+                    case HEALING:
+                        // do nothing
+                        break;
+                    default:
+                        rr.flipSign();
+                        break;
+                }
+            }
         }
+        return mrr;
     }
 
     public CreatureAffectedMessage applyAttack(Attack attack) {
-        for (DamageFlavor flavor : attack.getDamages().keySet()) {
-            RollResult damage = attack.getDamages().get(flavor);
-            damage = adjustDamageByFlavor(flavor, damage);
-            updateHitpoints(damage.getTotal());
-        }
+        MultiRollResult mrr = this.adjustDamageByFlavor(attack.getDamageResult());
+        attack.updateDamageResult(mrr);
+        this.updateHitpoints(mrr.getTotal());
         for (Stats delta : attack.getStatChanges().keySet()) {
             Integer theStat = this.stats.get(delta) + attack.getStatChanges().get(delta);
             this.stats.put(delta, theStat);
