@@ -58,6 +58,16 @@ public class CreatureTargetingSpellEntry extends SpellEntry {
         this.init();
     }
 
+    public CreatureTargetingSpellEntry(CreatureTargetingSpellEntry other) {
+        super(other);
+        this.singleTarget = other.singleTarget;
+        this.restoreFaction = other.restoreFaction;
+        this.statChanges = new TreeMap<>(other.getStatChanges());
+        this.attributeScoreChanges = new TreeMap<>(other.getAttributeScoreChanges());
+        this.attributeBonusChanges = new TreeMap<>(other.getAttributeBonusChanges());
+        this.damages = new ArrayList<>(other.getDamages());
+    }
+
     public boolean isSingleTarget() {
         return singleTarget;
     }
@@ -119,6 +129,13 @@ public class CreatureTargetingSpellEntry extends SpellEntry {
             }
             sj.add("\r\n");
         }
+        if (this.getStatChanges().size() > 0) {
+            sj.add("The target's");
+            for (Map.Entry<Stats, Integer> deltas : this.getStatChanges().entrySet()) {
+                sj.add(deltas.getKey().toString()).add("stat will change by").add(deltas.getValue().toString());
+            }
+            sj.add("\r\n");
+        }
         if (this.getAttributeScoreChanges().size() > 0) {
             sj.add("The target's");
             for (Map.Entry<Attributes, Integer> deltas : this.getAttributeScoreChanges().entrySet()) {
@@ -130,13 +147,6 @@ public class CreatureTargetingSpellEntry extends SpellEntry {
             sj.add("The target's");
             for (Map.Entry<Attributes, Integer> deltas : this.getAttributeBonusChanges().entrySet()) {
                 sj.add(deltas.getKey().toString()).add("bonus will change by").add(deltas.getValue().toString());
-            }
-            sj.add("\r\n");
-        }
-        if (this.getStatChanges().size() > 0) {
-            sj.add("The target's");
-            for (Map.Entry<Stats, Integer> deltas : this.getStatChanges().entrySet()) {
-                sj.add(deltas.getKey().toString()).add("stat will change by").add(deltas.getValue().toString());
             }
             sj.add("\r\n");
         }

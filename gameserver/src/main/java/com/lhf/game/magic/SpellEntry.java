@@ -1,5 +1,7 @@
 package com.lhf.game.magic;
 
+import java.util.Objects;
+
 import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffector.EffectPersistence;
@@ -30,6 +32,26 @@ public abstract class SpellEntry implements Taggable, Examinable {
         this.persistence = persistence;
         this.description = description;
     }
+
+    public SpellEntry(SpellEntry other) {
+        this.className = this.getClass().getName();
+        this.level = other.level;
+        this.name = other.name;
+        this.invocation = other.invocation;
+        this.persistence = other.persistence;
+        this.description = new String(other.description);
+    }
+
+    public boolean Invoke(String invokeAttempt) {
+        int invokeLen = this.getInvocation().length();
+        if (invokeAttempt.length() < invokeLen) {
+            return false;
+        }
+        String trimmedInvoke = invokeAttempt.substring(0, invokeLen);
+        return this.getInvocation().equals(trimmedInvoke);
+    }
+
+    // public abstract ISpell create();
 
     public String getClassName() {
         return this.className;
@@ -81,5 +103,24 @@ public abstract class SpellEntry implements Taggable, Examinable {
         sb.append("Invocation:\"").append(this.getInvocation()).append("\"\r\n");
         sb.append(this.printDescription()).append("\r\n");
         return sb.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(className, description, invocation, level, name, persistence);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SpellEntry)) {
+            return false;
+        }
+        SpellEntry other = (SpellEntry) obj;
+        return Objects.equals(className, other.className) && Objects.equals(description, other.description)
+                && Objects.equals(invocation, other.invocation) && Objects.equals(level, other.level)
+                && Objects.equals(name, other.name) && persistence == other.persistence;
     }
 }
