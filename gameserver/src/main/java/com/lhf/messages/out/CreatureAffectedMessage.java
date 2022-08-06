@@ -5,6 +5,7 @@ import java.util.StringJoiner;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffector;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
@@ -32,17 +33,11 @@ public class CreatureAffectedMessage extends OutMessage {
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
         sj.add(this.effects.getGeneratedBy().getColorTaggedName());
-        if (this.effects.getDamages().size() > 0) {
+        MultiRollResult damageResults = this.effects.getDamageResult();
+        if (damageResults != null) {
             sj.add("has dealt");
-            RollResult sum = null;
-            for (RollResult damages : this.effects.getDamages().values()) {
-                if (sum == null) {
-                    sum = damages;
-                } else {
-                    sum.combine(damages);
-                }
-            }
-            sj.add(sum.getColorTaggedName()).add("damage to").add(this.affected.getColorTaggedName()).add("\r\n");
+            sj.add(damageResults.getColorTaggedName()).add("damage to").add(this.affected.getColorTaggedName())
+                    .add("\r\n");
         }
         if (this.effects.getAttributeScoreChanges().size() > 0) {
             sj.add(this.affected.getColorTaggedName() + "'s");
