@@ -6,7 +6,6 @@ import java.util.StringJoiner;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffector;
 import com.lhf.game.dice.MultiRollResult;
-import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
 import com.lhf.messages.OutMessageType;
@@ -19,6 +18,10 @@ public class CreatureAffectedMessage extends OutMessage {
         super(OutMessageType.CREATURE_AFFECTED);
         this.affected = affected;
         this.effects = effects;
+    }
+
+    public boolean isResultedInDeath() {
+        return !this.affected.isAlive();
     }
 
     public Creature getAffected() {
@@ -39,6 +42,17 @@ public class CreatureAffectedMessage extends OutMessage {
             sj.add(damageResults.getColorTaggedName()).add("damage to").add(this.affected.getColorTaggedName())
                     .add("\r\n");
         }
+        if (this.effects.getStatChanges().size() > 0) {
+            sj.add(this.affected.getColorTaggedName() + "'s");
+            for (Map.Entry<Stats, Integer> deltas : this.effects.getStatChanges().entrySet()) {
+                sj.add(deltas.getKey().toString()).add("stat will change by").add(deltas.getValue().toString());
+            }
+            sj.add("\r\n");
+        }
+        if (this.isResultedInDeath()) {
+            sj.add("And as a result of these things,").add(this.affected.getColorTaggedName()).add("has died.");
+            return sj.toString();
+        }
         if (this.effects.getAttributeScoreChanges().size() > 0) {
             sj.add(this.affected.getColorTaggedName() + "'s");
             for (Map.Entry<Attributes, Integer> deltas : this.effects.getAttributeScoreChanges().entrySet()) {
@@ -50,13 +64,6 @@ public class CreatureAffectedMessage extends OutMessage {
             sj.add(this.affected.getColorTaggedName() + "'s");
             for (Map.Entry<Attributes, Integer> deltas : this.effects.getAttributeBonusChanges().entrySet()) {
                 sj.add(deltas.getKey().toString()).add("bonus will change by").add(deltas.getValue().toString());
-            }
-            sj.add("\r\n");
-        }
-        if (this.effects.getStatChanges().size() > 0) {
-            sj.add(this.affected.getColorTaggedName() + "'s");
-            for (Map.Entry<Stats, Integer> deltas : this.effects.getStatChanges().entrySet()) {
-                sj.add(deltas.getKey().toString()).add("stat will change by").add(deltas.getValue().toString());
             }
             sj.add("\r\n");
         }
