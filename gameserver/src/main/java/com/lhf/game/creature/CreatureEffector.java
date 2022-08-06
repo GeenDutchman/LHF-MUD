@@ -6,9 +6,7 @@ import java.util.Map;
 import com.lhf.game.EntityEffector;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.MultiRollResult;
-import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.Attributes;
-import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
 
 public interface CreatureEffector extends EntityEffector {
@@ -22,6 +20,8 @@ public interface CreatureEffector extends EntityEffector {
     public abstract List<DamageDice> getDamages();
 
     public abstract MultiRollResult getDamageResult();
+
+    public abstract void updateDamageResult(MultiRollResult mrr);
 
     public default boolean isRestoreFaction() {
         return false;
@@ -53,13 +53,14 @@ public interface CreatureEffector extends EntityEffector {
         return this;
     }
 
-    // combines whatever damage is of that flavor, if it exists. Otherwise it is
-    // set.
-    public default CreatureEffector addDamage(DamageFlavor flavor, RollResult rollResult) {
-        if (this.getDamages().containsKey(flavor)) {
-            this.getDamages().get(flavor).combine(rollResult);
-        } else {
-            this.getDamages().put(flavor, rollResult);
+    public default CreatureEffector addDamage(DamageDice damageDice) {
+        this.getDamages().add(damageDice);
+        return this;
+    }
+
+    public default CreatureEffector addDamageBonus(int bonus) {
+        if (this.getDamageResult() != null) {
+            this.getDamageResult().addBonus(bonus);
         }
         return this;
     }

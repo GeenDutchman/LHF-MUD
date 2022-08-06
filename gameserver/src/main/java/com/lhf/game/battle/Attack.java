@@ -1,6 +1,7 @@
 package com.lhf.game.battle;
 
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -9,21 +10,21 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffector;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.dice.DamageDice;
-import com.lhf.game.dice.Dice.RollResult;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
-import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.interfaces.Weapon;
 
-public class Attack implements CreatureEffector, Iterable<Map.Entry<DamageFlavor, RollResult>> {
+public class Attack implements CreatureEffector {
     // TODO: add aggro
     private Creature attacker;
     private Weapon weapon;
-    private RollResult toHit;
+    private MultiRollResult toHit;
     private Map<Stats, Integer> statChanges;
     private Map<Attributes, Integer> attributeScoreChanges;
     private Map<Attributes, Integer> attributeBonusChanges;
-    private Map<DamageFlavor, RollResult> damages;
+    private List<DamageDice> damages;
+    private MultiRollResult damageDone;
     private boolean restoreFaction;
     private boolean deathResult;
 
@@ -33,7 +34,8 @@ public class Attack implements CreatureEffector, Iterable<Map.Entry<DamageFlavor
         this.statChanges = new TreeMap<>();
         this.attributeScoreChanges = new TreeMap<>();
         this.attributeBonusChanges = new TreeMap<>();
-        this.damages = new TreeMap<>();
+        this.damages = new ArrayList<>(weapon.getDamages());
+        this.damageDone = null;
         this.restoreFaction = false;
         this.deathResult = false;
         this.calculateHitAndDamage();
@@ -68,27 +70,16 @@ public class Attack implements CreatureEffector, Iterable<Map.Entry<DamageFlavor
                 break;
         }
         this.toHit.addBonus(attributeBonus);
-        this.weapon.modifyAttack(this);
-        this.addDamageBonus(this.weapon.getMainFlavor(), attributeBonus);
-    }
-
-    public Attack addFlavorAndRoll(DamageFlavor flavor, RollResult attackDamage) {
-        CreatureEffector.super.addDamage(flavor, attackDamage);
-        return this;
-    }
-
-    // Will first try to add bonus to `flavor` and if that isn't there, will try to
-    // add it to any one flavor. Else, no change.
-    public Attack addDamageBonus(DamageFlavor flavor, int bonus) {
-        if (this.getDamages().containsKey(flavor)) {
-            this.getDamages().put(flavor, this.getDamages().get(flavor).addBonus(bonus));
-        } else if (this.getDamages().size() > 0) {
-            for (DamageFlavor iterFlavor : this.getDamages().keySet()) {
-                this.getDamages().put(iterFlavor, this.getDamages().get(iterFlavor).addBonus(bonus));
-                break;
+        for (DamageDice dd : this.getDamages()) {
+            if (this.damageDone == null) {
+                this.damageDone = new MultiRollResult(dd.rollDice());
+            } else {
+                this.damageDone.addResult(dd.rollDice());
             }
         }
-        return this;
+        if (this.damageDone != null) {
+            this.damageDone.addBonus(attributeBonus);
+        }
     }
 
     public Attack addToHitBonus(int bonus) {
@@ -96,7 +87,7 @@ public class Attack implements CreatureEffector, Iterable<Map.Entry<DamageFlavor
         return this;
     }
 
-    public RollResult getToHit() {
+    public MultiRollResult getToHit() {
         return toHit;
     }
 
@@ -113,11 +104,6 @@ public class Attack implements CreatureEffector, Iterable<Map.Entry<DamageFlavor
         return this;
     }
 
-    @Override
-    public Iterator<Map.Entry<DamageFlavor, RollResult>> iterator() {
-        return this.getDamages().entrySet().iterator();
-    }
-
     public Map<Stats, Integer> getStatChanges() {
         return statChanges;
     }
@@ -130,8 +116,18 @@ public class Attack implements CreatureEffector, Iterable<Map.Entry<DamageFlavor
         return attributeBonusChanges;
     }
 
-    public Map<DamageFlavor, RollResult> getDamages() {
+    public List<DamageDice> getDamages() {
         return damages;
+    }
+
+    @Override
+    public MultiRollResult getDamageResult() {
+        return this.damageDone;
+    }
+
+    @Override
+    public void updateDamageResult(MultiRollResult mrr) {
+        this.damageDone = mrr;
     }
 
     public boolean isRestoreFaction() {

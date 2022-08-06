@@ -3,7 +3,6 @@ package com.lhf.game.item.interfaces;
 import java.util.List;
 import java.util.StringJoiner;
 
-import com.lhf.game.battle.Attack;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.enums.DamageFlavor;
 
@@ -21,13 +20,6 @@ public abstract class Weapon extends Equipable {
             sj.add(dd.getColorTaggedName());
         }
         return sj.toString();
-    }
-
-    public Attack modifyAttack(Attack attack) {
-        for (DamageDice dd : this.getDamages()) {
-            attack = attack.addFlavorAndRoll(dd.getFlavor(), dd.rollDice());
-        }
-        return attack;
     }
 
     public abstract DamageFlavor getMainFlavor();
