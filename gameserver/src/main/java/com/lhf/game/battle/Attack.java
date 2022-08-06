@@ -26,7 +26,6 @@ public class Attack implements CreatureEffector {
     private List<DamageDice> damages;
     private MultiRollResult damageDone;
     private boolean restoreFaction;
-    private boolean deathResult;
 
     public Attack(Creature attacker, Weapon weapon) {
         this.attacker = attacker;
@@ -37,7 +36,6 @@ public class Attack implements CreatureEffector {
         this.damages = new ArrayList<>(weapon.getDamages());
         this.damageDone = null;
         this.restoreFaction = false;
-        this.deathResult = false;
         this.calculateHitAndDamage();
     }
 
@@ -135,18 +133,9 @@ public class Attack implements CreatureEffector {
         return restoreFaction;
     }
 
-    public boolean isDeathResult() {
-        return deathResult;
-    }
-
     @Override
     public void setRestoreFaction(boolean restoreFaction) {
         this.restoreFaction = restoreFaction;
-    }
-
-    @Override
-    public void announceDeath() {
-        this.deathResult = true;
     }
 
     @Override

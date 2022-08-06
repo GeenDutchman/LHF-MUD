@@ -27,8 +27,6 @@ public interface CreatureEffector extends EntityEffector {
         return false;
     }
 
-    public void setRestoreFaction(boolean restoreFaction);
-
     // replaces whatever value was in `stats`, if it existed
     public default CreatureEffector addStatChange(Stats stats, Integer delta) {
         this.getStatChanges().put(stats, delta);

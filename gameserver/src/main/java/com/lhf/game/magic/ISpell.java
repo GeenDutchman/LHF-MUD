@@ -1,31 +1,21 @@
 package com.lhf.game.magic;
 
+import java.util.Objects;
+
 import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffector;
 import com.lhf.game.creature.Creature;
-import com.lhf.messages.out.CastingMessage;
 import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class ISpell implements EntityEffector, Taggable, Examinable {
     private final String className;
-    protected Integer level;
-    protected String name;
-    protected String invocation;
-    protected String sbEntry;
+    protected final SpellEntry entry;
     protected transient Creature caster;
 
-    protected ISpell(Integer level, String name, String description) {
+    public ISpell(SpellEntry entry) {
         this.className = this.getClass().getName();
-        this.level = level;
-        this.name = name;
-        this.sbEntry = description;
-        this.invocation = name;
-    }
-
-    public ISpell setInvocation(String invocation) {
-        this.invocation = invocation;
-        return this;
+        this.entry = entry;
     }
 
     public ISpell setCaster(Creature caster) {
@@ -33,72 +23,58 @@ public abstract class ISpell implements EntityEffector, Taggable, Examinable {
         return this;
     }
 
-    public boolean Invoke(String invokeAttempt) {
-        int invokeLen = this.getInvocation().length();
-        if (invokeAttempt.length() < invokeLen) {
-            return false;
-        }
-        String trimmedInvoke = invokeAttempt.substring(0, invokeLen);
-        return this.getInvocation().equals(trimmedInvoke);
-    }
-
-    abstract public CastingMessage Cast();
-
     public String getClassName() {
         return this.className;
-    }
-
-    public Integer getLevel() {
-        return this.level;
-    }
-
-    public String getName() {
-        return this.name;
     }
 
     public Creature getCaster() {
         return this.caster;
     }
 
-    public String getSbEntry() {
-        return this.sbEntry;
+    public SpellEntry getEntry() {
+        return entry;
+    }
+
+    @Override
+    public String getName() {
+        return this.entry.getName();
+    }
+
+    public Integer getLevel() {
+        return this.entry.getLevel();
     }
 
     public String getInvocation() {
-        return this.invocation;
+        return this.entry.getInvocation();
+    }
+
+    public EffectPersistence getPersistence() {
+        return this.entry.getPersistence();
+    }
+
+    @Override
+    public String printDescription() {
+        return this.entry.printDescription();
     }
 
     @Override
     public Taggable getGeneratedBy() {
-        return this;
+        return this.entry;
     }
 
     @Override
     public String getStartTag() {
-        return "<spell>";
+        return this.entry.getStartTag();
     }
 
     @Override
     public String getEndTag() {
-        return "</spell>";
+        return this.entry.getEndTag();
     }
 
     @Override
     public String getColorTaggedName() {
         return this.getStartTag() + this.getName() + this.getEndTag();
-    }
-
-    @Override
-    public String printDescription() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Level ").append(this.getLevel()).append(" ");
-        sb.append(this.getColorTaggedName()).append("\n");
-        if (!this.getName().equals(this.getInvocation())) {
-            sb.append("Invocation: ");
-            sb.append(this.getStartTag()).append(this.getInvocation()).append(this.getEndTag()).append("\n");
-        }
-        sb.append(this.getSbEntry()).append("\n");
-        return sb.toString();
     }
 
     @Override
@@ -109,23 +85,12 @@ public abstract class ISpell implements EntityEffector, Taggable, Examinable {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("ISpell [caster=").append(caster).append(", className=").append(className)
-                .append(", invocation=").append(invocation).append(", level=").append(level).append(", name=")
-                .append(name).append(", sbEntry=").append(sbEntry).append("]");
-        return builder.toString();
+        return this.entry.toString() + "Caster: " + this.caster.getColorTaggedName() + "\r\n";
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((className == null) ? 0 : className.hashCode());
-        result = prime * result + ((invocation == null) ? 0 : invocation.hashCode());
-        result = prime * result + ((level == null) ? 0 : level.hashCode());
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
-        result = prime * result + ((sbEntry == null) ? 0 : sbEntry.hashCode());
-        return result;
+        return Objects.hash(caster, className, entry);
     }
 
     @Override
@@ -133,49 +98,12 @@ public abstract class ISpell implements EntityEffector, Taggable, Examinable {
         if (this == obj) {
             return true;
         }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof ISpell)) {
             return false;
         }
         ISpell other = (ISpell) obj;
-        if (className == null) {
-            if (other.className != null) {
-                return false;
-            }
-        } else if (!className.equals(other.className)) {
-            return false;
-        }
-        if (invocation == null) {
-            if (other.invocation != null) {
-                return false;
-            }
-        } else if (!invocation.equals(other.invocation)) {
-            return false;
-        }
-        if (level == null) {
-            if (other.level != null) {
-                return false;
-            }
-        } else if (!level.equals(other.level)) {
-            return false;
-        }
-        if (name == null) {
-            if (other.name != null) {
-                return false;
-            }
-        } else if (!name.equals(other.name)) {
-            return false;
-        }
-        if (sbEntry == null) {
-            if (other.sbEntry != null) {
-                return false;
-            }
-        } else if (!sbEntry.equals(other.sbEntry)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(caster, other.caster) && Objects.equals(className, other.className)
+                && Objects.equals(entry, other.entry);
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.lhf.game.creature.Creature;
 import java.util.*;
 
 public interface BattleAction {
+    // TODO: get rid of this
 
     public BattleAction addTarget(Creature target);
 

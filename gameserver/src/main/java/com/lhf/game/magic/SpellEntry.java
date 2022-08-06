@@ -5,6 +5,7 @@ import java.util.Objects;
 import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffector.EffectPersistence;
+import com.lhf.messages.out.CastingMessage;
 
 public abstract class SpellEntry implements Taggable, Examinable {
     private final String className;
@@ -68,6 +69,8 @@ public abstract class SpellEntry implements Taggable, Examinable {
     public EffectPersistence getPersistence() {
         return persistence;
     }
+
+    abstract public CastingMessage Cast();
 
     @Override
     public String getColorTaggedName() {

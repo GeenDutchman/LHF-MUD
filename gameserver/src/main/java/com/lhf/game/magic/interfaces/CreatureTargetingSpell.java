@@ -1,61 +1,30 @@
 package com.lhf.game.magic.interfaces;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.lhf.game.battle.BattleAction;
-import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffector;
+import com.lhf.game.dice.DamageDice;
+import com.lhf.game.dice.MultiRollResult;
+import com.lhf.game.enums.Attributes;
+import com.lhf.game.enums.Stats;
+import com.lhf.game.magic.CreatureTargetingSpellEntry;
 import com.lhf.game.magic.ISpell;
 import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 
-public abstract class CreatureTargetingSpell extends ISpell implements CreatureEffector, BattleAction {
-    protected Map<Creature, Creature> targets;
-    protected Boolean singleTarget;
+public class CreatureTargetingSpell extends ISpell implements CreatureEffector {
+    protected MultiRollResult damageDone;
     protected Optional<CasterVsCreatureStrategy> strategy;
 
-    protected CreatureTargetingSpell(Integer level, String name, String description, Boolean singleTarget) {
-        super(level, name, description);
-        this.targets = new HashMap<>();
-        this.singleTarget = singleTarget;
+    protected CreatureTargetingSpell(CreatureTargetingSpellEntry entry) {
+        super(entry);
         this.strategy = Optional.empty();
+        this.damageDone = null;
     }
 
-    @Override
-    public CreatureTargetingSpell addTarget(Creature target) {
-        if (this.singleTarget && this.targets.size() > 0) {
-            this.targets.clear();
-        }
-        this.targets.put(target, target);
-        return this;
-    }
-
-    @Override
-    public BattleAction addTargets(Collection<Creature> targets) {
-        if (this.singleTarget && this.targets.size() > 0 && targets.size() > 0) {
-            this.targets.clear();
-            Creature first = (Creature) targets.toArray()[0];
-            this.targets.put(first, first);
-        } else {
-            for (Creature creature : targets) {
-                this.targets.put(creature, creature);
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public boolean hasTargets() {
-        return this.targets.size() > 0;
-    }
-
-    @Override
-    public List<Creature> getTargets() {
-        return new ArrayList<Creature>(this.targets.keySet());
+    private CreatureTargetingSpellEntry getTypedEntry() {
+        return (CreatureTargetingSpellEntry) this.entry;
     }
 
     public Optional<CasterVsCreatureStrategy> getStrategy() {
@@ -64,6 +33,49 @@ public abstract class CreatureTargetingSpell extends ISpell implements CreatureE
 
     public void setStrategy(CasterVsCreatureStrategy strategem) {
         this.strategy = Optional.of(strategem);
+    }
+
+    public boolean isSingleTarget() {
+        return this.getTypedEntry().isSingleTarget();
+    }
+
+    public Map<Stats, Integer> getStatChanges() {
+        return this.getTypedEntry().getStatChanges();
+    }
+
+    public Map<Attributes, Integer> getAttributeScoreChanges() {
+        return this.getTypedEntry().getAttributeScoreChanges();
+    }
+
+    public Map<Attributes, Integer> getAttributeBonusChanges() {
+        return this.getTypedEntry().getAttributeBonusChanges();
+    }
+
+    public List<DamageDice> getDamages() {
+        return this.getTypedEntry().getDamages();
+    }
+
+    public boolean isRestoreFaction() {
+        return this.getTypedEntry().isRestoreFaction();
+    }
+
+    @Override
+    public MultiRollResult getDamageResult() {
+        if (this.damageDone == null) {
+            for (DamageDice dd : this.getDamages()) {
+                if (this.damageDone == null) {
+                    this.damageDone = new MultiRollResult(dd.rollDice());
+                } else {
+                    this.damageDone.addResult(dd.rollDice());
+                }
+            }
+        }
+        return this.damageDone;
+    }
+
+    @Override
+    public void updateDamageResult(MultiRollResult mrr) {
+        this.damageDone = mrr;
     }
 
 }
