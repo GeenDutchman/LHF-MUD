@@ -2,6 +2,7 @@ package com.lhf.game.magic.interfaces;
 
 import com.lhf.game.magic.ISpell;
 import com.lhf.game.map.Dungeon;
+import com.lhf.game.map.Room;
 
 public abstract class DungeonAffector extends ISpell {
     protected Dungeon dungeon;
@@ -19,5 +20,7 @@ public abstract class DungeonAffector extends ISpell {
     public Dungeon getDungeon() {
         return this.dungeon;
     }
+
+    public abstract Room roomToSummon();
 
 }
