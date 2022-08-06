@@ -42,6 +42,12 @@ public class MultiRollResult implements Taggable {
         this.bonuses = new ArrayList<>(bonuses);
     }
 
+    public MultiRollResult combine(MultiRollResult otherToConsume) {
+        this.rolls.addAll(otherToConsume.rolls);
+        this.bonuses.addAll(otherToConsume.bonuses);
+        return this;
+    }
+
     public MultiRollResult addResult(RollResult next) {
         this.rolls.add(next);
         return this;
