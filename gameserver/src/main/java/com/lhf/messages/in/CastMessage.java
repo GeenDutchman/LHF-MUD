@@ -3,6 +3,7 @@ package com.lhf.messages.in;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.regex.Pattern;
 
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
@@ -35,7 +36,12 @@ public class CastMessage extends Command {
         if (!this.indirects.containsKey("at")) {
             return new ArrayList<>();
         }
-        return List.of(this.indirects.getOrDefault("at", null)); // TODO: allow for target selection
+        List<String> targets = new ArrayList<>();
+        String[] splitten = this.indirects.get("at").split(Pattern.quote(", "));
+        for (String target : splitten) {
+            targets.add(target);
+        }
+        return targets;
     }
 
     public Integer getLevel() {
