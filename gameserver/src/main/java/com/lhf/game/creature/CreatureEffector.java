@@ -27,13 +27,7 @@ public interface CreatureEffector extends EntityEffector {
         return false;
     }
 
-    public default boolean isDeathResult() {
-        return false;
-    }
-
     public void setRestoreFaction(boolean restoreFaction);
-
-    public void announceDeath();
 
     // replaces whatever value was in `stats`, if it existed
     public default CreatureEffector addStatChange(Stats stats, Integer delta) {
