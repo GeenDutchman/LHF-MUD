@@ -1,5 +1,7 @@
 package com.lhf.messages.in;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
@@ -16,12 +18,8 @@ public class CastMessage extends Command {
     @Override
     public Boolean isValid() {
         Boolean indirectsvalid = true;
-        if (this.indirects.size() == 1) {
+        if (this.indirects.size() >= 1) {
             indirectsvalid = this.indirects.containsKey("at") || this.indirects.containsKey("use");
-        } else if (this.indirects.size() == 2) {
-            indirectsvalid = this.indirects.containsKey("at") && this.indirects.containsKey("use");
-        } else if (this.indirects.size() > 2) {
-            indirectsvalid = false;
         }
         return super.isValid() && this.directs.size() == 1 && indirectsvalid;
     }
@@ -33,8 +31,11 @@ public class CastMessage extends Command {
         return this.directs.get(0);
     }
 
-    public String getTarget() {
-        return this.indirects.getOrDefault("at", null); // TODO: allow for target selection
+    public List<String> getTargets() {
+        if (!this.indirects.containsKey("at")) {
+            return new ArrayList<>();
+        }
+        return List.of(this.indirects.getOrDefault("at", null)); // TODO: allow for target selection
     }
 
     public Integer getLevel() {
@@ -56,11 +57,11 @@ public class CastMessage extends Command {
         } else {
             sj.add("No invocation!");
         }
-        sj.add("Target:");
-        if (this.getTarget() != null) {
-            sj.add(this.getTarget());
+        sj.add("Targets:");
+        if (this.getTargets() != null && this.getTargets().size() > 0) {
+            sj.add(this.getTargets().toString());
         } else {
-            sj.add("no target");
+            sj.add("no targets specified");
         }
         sj.add("Level:");
         if (this.getLevel() != null && this.getLevel() >= 0) {
