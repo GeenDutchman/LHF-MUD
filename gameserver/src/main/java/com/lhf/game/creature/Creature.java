@@ -381,20 +381,20 @@ public abstract class Creature
             Integer theStat = this.stats.get(delta) + attack.getStatChanges().get(delta);
             this.stats.put(delta, theStat);
         }
-        for (Attributes delta : attack.getAttributeScoreChanges().keySet()) {
-            Integer theAttr = this.attributeBlock.getScore(delta) + attack.getAttributeScoreChanges().get(delta);
-            this.attributeBlock.setScore(delta, theAttr);
+        if (this.isAlive()) {
+            for (Attributes delta : attack.getAttributeScoreChanges().keySet()) {
+                Integer theAttr = this.attributeBlock.getScore(delta) + attack.getAttributeScoreChanges().get(delta);
+                this.attributeBlock.setScore(delta, theAttr);
+            }
+            for (Attributes delta : attack.getAttributeBonusChanges().keySet()) {
+                Integer theAttr = this.attributeBlock.getModBonus(delta) + attack.getAttributeBonusChanges().get(delta);
+                this.attributeBlock.setModBonus(delta, theAttr);
+            }
+            if (attack.getPersistence() == EffectPersistence.DURATION) {
+                this.effects.add(attack);
+            }
         }
-        for (Attributes delta : attack.getAttributeBonusChanges().keySet()) {
-            Integer theAttr = this.attributeBlock.getModBonus(delta) + attack.getAttributeBonusChanges().get(delta);
-            this.attributeBlock.setModBonus(delta, theAttr);
-        }
-        if (!isAlive()) {
-            attack.announceDeath();
-        }
-        if (attack.getPersistence() == EffectPersistence.DURATION) {
-            this.effects.add(attack);
-        }
+
         CreatureAffectedMessage camOut = new CreatureAffectedMessage(this, attack);
         return camOut;
     }
