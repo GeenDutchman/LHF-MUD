@@ -15,8 +15,7 @@ import com.lhf.game.item.interfaces.InteractObject;
 import com.lhf.game.item.interfaces.Takeable;
 import com.lhf.game.magic.ISpell;
 import com.lhf.game.magic.interfaces.CreatureTargetingSpell;
-import com.lhf.game.magic.interfaces.DamageSpell;
-import com.lhf.game.magic.interfaces.RoomAffector;
+import com.lhf.game.magic.interfaces.RoomTargetingSpell;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -354,7 +353,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
     }
 
     public void cast(Creature caster, ISpell spell) {
-        if (spell instanceof RoomAffector) {
+        if (spell instanceof RoomTargetingSpell) {
             this.sendMessageToAll(spell.Cast());
             return;
         }
