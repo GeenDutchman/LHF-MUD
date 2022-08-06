@@ -32,6 +32,16 @@ public class MultiRollResult implements Taggable {
         this.bonuses = new ArrayList<>(bonuses);
     }
 
+    public MultiRollResult(List<RollResult> rolls) {
+        this.rolls = new ArrayList<>(rolls);
+        this.bonuses = new ArrayList<>();
+    }
+
+    public MultiRollResult(List<RollResult> rolls, List<Integer> bonuses) {
+        this.rolls = new ArrayList<>(rolls);
+        this.bonuses = new ArrayList<>(bonuses);
+    }
+
     public MultiRollResult addResult(RollResult next) {
         this.rolls.add(next);
         return this;
