@@ -129,11 +129,11 @@ public class Attack implements CreatureEffector {
         this.damageDone = mrr;
     }
 
+    @Override
     public boolean isRestoreFaction() {
         return restoreFaction;
     }
 
-    @Override
     public void setRestoreFaction(boolean restoreFaction) {
         this.restoreFaction = restoreFaction;
     }
