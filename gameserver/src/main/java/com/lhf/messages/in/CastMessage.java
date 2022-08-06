@@ -37,7 +37,7 @@ public class CastMessage extends Command {
             return new ArrayList<>();
         }
         List<String> targets = new ArrayList<>();
-        String[] splitten = this.indirects.get("at").split(Pattern.quote(", "));
+        String[] splitten = this.indirects.get("at").split(Pattern.quote(", ")); // TODO: test this
         for (String target : splitten) {
             targets.add(target);
         }
