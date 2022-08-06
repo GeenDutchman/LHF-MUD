@@ -7,6 +7,7 @@ import com.lhf.Taggable;
 import com.lhf.game.enums.EquipmentTypes;
 
 public abstract class Vocation implements Taggable, Comparable<Vocation> {
+    // TODO: make this a MessageHandler
     protected int level;
     protected final String name;
     protected final HashSet<EquipmentTypes> proficiencies;
