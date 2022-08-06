@@ -3,70 +3,37 @@ package com.lhf.game.dice;
 import com.lhf.Taggable;
 
 public abstract class Dice implements Taggable {
-    protected int count;
-    protected DieType type;
-    protected int staticBonus;
+    protected final int count;
+    protected final DieType type;
 
     public class RollResult implements Taggable {
-        protected int total;
-        protected String result;
+        protected final int roll;
 
-        public RollResult(int total, String result) {
-            this.total = total;
-            this.result = result;
+        public RollResult(int total) {
+            this.roll = total;
         }
 
-        public int getTotal() {
-            return this.total;
-        }
-
-        public RollResult addBonus(int bonus) {
-            this.total += bonus;
-            if (this.result.length() > 0) {
-                this.result = this.result + '+' + String.valueOf(bonus);
-            } else {
-                this.result = String.valueOf(bonus);
-            }
-            return this;
+        public int getRoll() {
+            return this.roll;
         }
 
         public RollResult twice() {
-            this.total *= 2;
-            if (this.result.length() > 0) {
-                this.result = "(" + this.result + ") x 2";
-            }
-            return this;
+            return new RollResult(this.roll * 2);
         }
 
         public RollResult flipSign() {
-            this.total *= -1;
-            return this;
+            return new RollResult(this.roll * -1);
         }
 
         public RollResult half() {
-            this.total /= 2;
-            if (this.result.length() > 0) {
-                this.result = "(" + this.result + ") / 2";
-            }
-            return this;
-        }
-
-        public RollResult combine(RollResult other) {
-            this.total += other.total;
-            if (this.result.length() > 0 && other.result.length() > 0) {
-                this.result = this.result + '+' + other.result;
-            } else if (this.result.length() == 0 && other.result.length() > 0) {
-                this.result = other.result;
-            }
-            return this;
+            return new RollResult(this.roll / 2);
         }
 
         @Override
         public String toString() {
-            if (this.result.length() == 0) {
-                return String.valueOf(this.total);
-            }
-            return this.result + " (" + String.valueOf(this.total) + ")";
+            StringBuilder sb = new StringBuilder();
+            sb.append(Dice.this.toString()).append("(").append(this.getRoll()).append(")");
+            return sb.toString();
         }
 
         @Override
@@ -88,32 +55,18 @@ public abstract class Dice implements Taggable {
     public Dice(int count, DieType type) {
         this.count = count;
         this.type = type;
-        this.staticBonus = 0;
     }
 
     public Dice(int count, DieType type, int bonus) {
         this.count = count;
         this.type = type;
-        this.staticBonus = bonus;
     }
 
     abstract protected int roll();
 
     public RollResult rollDice() {
-        RollResult rr = new Dice.RollResult(this.roll(), this.toString());
-        if (this.staticBonus != 0) {
-            rr.addBonus(this.staticBonus);
-        }
+        RollResult rr = new Dice.RollResult(this.roll());
         return rr;
-    }
-
-    public Dice setStaticBonus(int bonus) {
-        this.staticBonus = bonus;
-        return this;
-    }
-
-    public RollResult rollDice(int bonus) {
-        return this.rollDice().addBonus(bonus);
     }
 
     @Override
