@@ -6,10 +6,13 @@ import java.util.Map;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 
+import com.lhf.Taggable;
 import com.lhf.game.EntityEffector.EffectPersistence;
+import com.lhf.game.creature.Creature;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
+import com.lhf.messages.out.CastingMessage;
 import com.lhf.messages.out.SeeOutMessage;
 
 public class CreatureTargetingSpellEntry extends SpellEntry {
@@ -113,6 +116,11 @@ public class CreatureTargetingSpellEntry extends SpellEntry {
     @Override
     public SeeOutMessage produceMessage() {
         return new SeeOutMessage(this);
+    }
+
+    @Override
+    public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets) {
+        return new CastingMessage(caster, this, null);
     }
 
     @Override
