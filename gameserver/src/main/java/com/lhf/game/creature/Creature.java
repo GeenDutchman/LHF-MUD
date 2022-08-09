@@ -34,7 +34,7 @@ import com.lhf.game.item.interfaces.Takeable;
 import com.lhf.game.item.interfaces.Usable;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
-import com.lhf.game.magic.interfaces.CreatureTargetingSpell;
+import com.lhf.game.magic.CreatureTargetingSpell;
 import com.lhf.game.magic.interfaces.DamageSpell;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
@@ -376,7 +376,7 @@ public abstract class Creature
     public CreatureAffectedMessage applyAttack(Attack attack) {
         MultiRollResult mrr = this.adjustDamageByFlavor(attack.getDamageResult());
         attack.updateDamageResult(mrr);
-        this.updateHitpoints(mrr.getTotal());
+        this.updateHitpoints(mrr.getRoll());
         for (Stats delta : attack.getStatChanges().keySet()) {
             Integer theStat = this.stats.get(delta) + attack.getStatChanges().get(delta);
             this.stats.put(delta, theStat);
@@ -407,7 +407,7 @@ public abstract class Creature
             for (DamageDice dd : dSpell.getDamages()) {
                 RollResult damage = dd.rollDice();
                 damage = adjustDamageByFlavor(dd.getFlavor(), damage);
-                updateHitpoints(damage.getTotal());
+                updateHitpoints(damage.getRoll());
                 dmOut.addDamage(damage);
             }
             if (!isAlive()) {

@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import com.lhf.Examinable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
@@ -21,8 +22,7 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.Weapon;
-import com.lhf.game.magic.interfaces.CreatureTargetingSpell;
-import com.lhf.game.magic.interfaces.DamageSpell;
+import com.lhf.game.magic.CreatureTargetingSpell;
 import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 import com.lhf.game.map.Room;
 import com.lhf.messages.Command;
@@ -320,7 +320,7 @@ public class BattleManager implements MessageHandler, Examinable {
                 CasterVsCreatureStrategy strat = strategy.get();
                 RollResult casterResult = strat.getCasterEffort();
                 RollResult targetResult = strat.getTargetEffort(target);
-                if (casterResult.getTotal() <= targetResult.getTotal()) {
+                if (casterResult.getRoll() <= targetResult.getRoll()) {
                     sendMessageToAllParticipants(new MissMessage(attacker, target, casterResult, targetResult));
                     continue;
                 }
@@ -334,7 +334,7 @@ public class BattleManager implements MessageHandler, Examinable {
     private void applyAttacks(Creature attacker, Weapon weapon, Collection<Creature> targets) {
         for (Creature target : targets) {
             Attack a = attacker.attack(weapon);
-            if (target.getStats().get(Stats.AC) > a.getToHit().getTotal()) { // misses
+            if (target.getStats().get(Stats.AC) > a.getToHit().getRoll()) { // misses
                 sendMessageToAllParticipants(new MissMessage(attacker, target, a.getToHit(), null));
             } else {
                 sendMessageToAllParticipants(target.applyAttack(a));
@@ -443,8 +443,8 @@ public class BattleManager implements MessageHandler, Examinable {
     private Boolean handleGo(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.GO) {
             Integer check = 10 + this.participants.size();
-            RollResult result = ctx.getCreature().check(Attributes.DEX);
-            if (result.getTotal() < check) {
+            MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
+            if (result.getRoll() < check) {
                 ctx.sendMsg(new FleeMessage(ctx.getCreature(), true, result, false));
                 this.room.sendMessageToAllExcept(new FleeMessage(ctx.getCreature(), false, result, false),
                         ctx.getCreature().getName());
