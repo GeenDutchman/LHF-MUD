@@ -30,7 +30,7 @@ public class MissMessage extends OutMessage {
         if (this.staticOutput == null) {
             StringJoiner output = new StringJoiner(" ");
             Dice chooser = new DiceD4(1);
-            int which = chooser.rollDice().getTotal();
+            int which = chooser.rollDice().getRoll();
             switch (which) {
                 case 1:
                     output.add(attacker.getColorTaggedName());
