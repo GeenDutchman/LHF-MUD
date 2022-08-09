@@ -83,6 +83,10 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
         return sum;
     }
 
+    public int getRoll() {
+        return this.getTotal();
+    }
+
     public String toString() {
         StringJoiner sj = new StringJoiner(" + ");
         int sum = 0;
