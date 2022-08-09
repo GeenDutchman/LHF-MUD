@@ -9,7 +9,6 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
-import com.lhf.game.magic.CreatureTargetingSpell;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
 import com.lhf.messages.out.CastingMessage;
 
