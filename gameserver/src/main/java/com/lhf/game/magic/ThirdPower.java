@@ -1,5 +1,6 @@
 package com.lhf.game.magic;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,14 +9,13 @@ import java.util.StringJoiner;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
-import com.lhf.game.magic.interfaces.CreatureTargetingSpell;
-import com.lhf.game.magic.interfaces.RoomAffector;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.CastMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
+import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
@@ -33,16 +33,17 @@ public class ThirdPower implements MessageHandler {
      * 
      * 
      */
-
-    private ShockBolt shockBolt;
-    private Thaumaturgy thaumaturgy;
+    private Map<String, SpellEntry> entries;
     private MessageHandler successor;
     private HashMap<CommandMessage, String> cmds;
 
     public ThirdPower(MessageHandler successor) {
         this.successor = successor;
-        this.shockBolt = new ShockBolt();
-        this.thaumaturgy = new Thaumaturgy();
+        this.entries = new HashMap<>();
+        SpellEntry shockBolt = new ShockBolt();
+        this.entries.put(shockBolt.getInvocation(), shockBolt);
+        SpellEntry thaumaturgy = new Thaumaturgy();
+        this.entries.put(thaumaturgy.getInvocation(), thaumaturgy);
         this.cmds = this.generateCommands();
     }
 
@@ -58,45 +59,50 @@ public class ThirdPower implements MessageHandler {
         return toGenerate;
     }
 
-    public ISpell onCast(Creature cubeHolder, String invocation) {
-        if (invocation.equals(shockBolt.getInvocation())) {
-            return this.shockBolt.setCaster(cubeHolder);
-        } else if (invocation.equals(thaumaturgy.getInvocation())) {
-            return this.thaumaturgy.setCaster(cubeHolder);
-        }
-        return this.thaumaturgy.setCaster(cubeHolder);
-    }
-
     private boolean handleCast(CommandContext ctx, Command msg) {
         CastMessage casting = (CastMessage) msg;
         Creature caster = ctx.getCreature();
-        ISpell spell = this.onCast(caster, casting.getInvocation());
-        if (spell instanceof RoomAffector) {
-            RoomAffector roomSpell = (RoomAffector) spell;
-            ctx.getRoom().cast(caster, roomSpell.setRoom(ctx.getRoom()));
+        SpellEntry entry = this.entries.get(casting.getInvocation());
+        if (entry == null) {
+            ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.MISPRONOUNCE, caster, true));
+            if (ctx.getRoom() != null) {
+                ctx.getRoom().sendMessageToAll(new SpellFizzleMessage(SpellFizzleType.MISPRONOUNCE, caster, false));
+            }
             return true;
         }
-        if (spell instanceof CreatureTargetingSpell && casting.getTarget().length() > 0) {
-            Creature targetCreature = null;
-            List<Creature> possTargets = ctx.getRoom().getCreaturesInRoom(casting.getTarget());
-            if (possTargets.size() == 1) {
-                targetCreature = possTargets.get(0);
-            }
-            if (targetCreature == null) {
-                if (possTargets.size() == 0) {
-                    ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, casting.getTarget(), possTargets));
-                } else {
-                    ctx.sendMsg(
-                            new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, casting.getTarget(), possTargets));
-                }
+        if (entry instanceof CreatureTargetingSpellEntry) {
+            CreatureTargetingSpell spell = new CreatureTargetingSpell((CreatureTargetingSpellEntry) entry);
+            spell.setCaster(caster);
+            // TODO: duration should be a thing
+            if (ctx.getRoom() == null) {
+                ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
                 return true;
             }
-            CreatureTargetingSpell cSpell = (CreatureTargetingSpell) spell;
-            cSpell.addTarget(targetCreature);
-            ctx.getRoom().cast(caster, cSpell);
+            List<Creature> possTargets = new ArrayList<>();
+            for (String targetName : casting.getTargets()) {
+                List<Creature> found = ctx.getRoom().getCreaturesInRoom(targetName);
+                if (found.size() > 1 || found.size() == 0) {
+                    ctx.sendMsg(new BadTargetSelectedMessage(
+                            found.size() > 1 ? BadTargetOption.UNCLEAR : BadTargetOption.NOTARGET, targetName, found));
+                    return true;
+                }
+                possTargets.add(found.get(0));
+            }
+            ctx.getRoom().sendMessageToAll(entry.Cast(caster, casting.getLevel(), possTargets));
+            for (Creature target : possTargets) {
+                CreatureAffectedMessage cam = target.applyAffects(spell);
+                if (ctx.getBattleManager() != null) {
+                    ctx.getBattleManager().sendMessageToAllParticipants(cam);
+                } else if (ctx.getRoom() != null) {
+                    ctx.getRoom().sendMessageToAll(cam);
+                } else {
+                    caster.sendMsg(cam);
+                    target.sendMsg(cam);
+                }
+            }
             return true;
-        }
-        ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, null));
+        } // TODO: other cases
+
         return true;
     }
 
