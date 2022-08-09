@@ -13,9 +13,9 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.InteractObject;
 import com.lhf.game.item.interfaces.Takeable;
+import com.lhf.game.magic.CreatureTargetingSpell;
 import com.lhf.game.magic.ISpell;
-import com.lhf.game.magic.interfaces.CreatureTargetingSpell;
-import com.lhf.game.magic.interfaces.RoomTargetingSpell;
+import com.lhf.game.magic.RoomTargetingSpell;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -440,6 +440,8 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
                 handled = this.handleInteract(ctx, msg);
             } else if (type == CommandMessage.TAKE) {
                 handled = this.handleTake(ctx, msg);
+            } else if (type == CommandMessage.CAST) {
+                handled = this.handleCast(ctx, msg);
             }
         }
         if (handled) {
@@ -454,6 +456,12 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
             return false;
         }
         return this.battleManager.handleMessage(ctx, msg);
+    }
+
+    private boolean handleCast(CommandContext ctx, Command msg) {
+        ctx.setBattleManager(this.battleManager);
+
+        return false; // let a successor (ThirdPower) handle it
     }
 
     private Boolean handleTake(CommandContext ctx, Command msg) {
