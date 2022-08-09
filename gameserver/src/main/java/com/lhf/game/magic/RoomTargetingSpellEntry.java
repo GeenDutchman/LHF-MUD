@@ -1,8 +1,10 @@
 package com.lhf.game.magic;
 
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.lhf.Taggable;
 import com.lhf.game.EntityEffector.EffectPersistence;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.statblock.Statblock;
@@ -116,9 +118,8 @@ public class RoomTargetingSpellEntry extends SpellEntry {
     }
 
     @Override
-    public CastingMessage Cast() {
-        // TODO Auto-generated method stub
-        return null;
+    public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets) {
+        return new CastingMessage(caster, this, null);
     }
 
     @Override

@@ -1,6 +1,10 @@
 package com.lhf.game.magic;
 
+import java.util.List;
+
+import com.lhf.Taggable;
 import com.lhf.game.EntityEffector.EffectPersistence;
+import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.CastingMessage;
 import com.lhf.messages.out.SeeOutMessage;
 
@@ -35,9 +39,8 @@ public class DungeonTargetingSpellEntry extends SpellEntry {
     }
 
     @Override
-    public CastingMessage Cast() {
-        // TODO Auto-generated method stub
-        return null;
+    public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets) {
+        return new CastingMessage(caster, this, null);
     }
 
     @Override
