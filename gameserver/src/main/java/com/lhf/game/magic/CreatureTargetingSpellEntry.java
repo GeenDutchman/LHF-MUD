@@ -20,6 +20,8 @@ public class CreatureTargetingSpellEntry extends SpellEntry {
     protected List<DamageDice> damages;
     protected final boolean restoreFaction;
 
+    // TODO: add boolean AOE
+
     private void init() {
         this.statChanges = new TreeMap<>();
         this.attributeScoreChanges = new TreeMap<>();

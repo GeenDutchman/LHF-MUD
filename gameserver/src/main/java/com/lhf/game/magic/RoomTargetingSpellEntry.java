@@ -35,7 +35,6 @@ public class RoomTargetingSpellEntry extends SpellEntry {
         this.creaturesToSummon = new TreeMap<>();
     }
 
-    @Deprecated
     public RoomTargetingSpellEntry(Integer level, String name, EffectPersistence persistence, String description,
             boolean banishesItems, boolean banishesCreatures) {
         super(level, name, persistence, description);
@@ -52,7 +51,6 @@ public class RoomTargetingSpellEntry extends SpellEntry {
         this.init();
     }
 
-    @Deprecated
     public RoomTargetingSpellEntry(Integer level, String name, String invocation, EffectPersistence persistence,
             String description, boolean banishesItems, boolean banishesCreatures) {
         super(level, name, invocation, persistence, description);

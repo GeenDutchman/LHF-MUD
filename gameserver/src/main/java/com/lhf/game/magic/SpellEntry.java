@@ -1,10 +1,12 @@
 package com.lhf.game.magic;
 
+import java.util.List;
 import java.util.Objects;
 
 import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffector.EffectPersistence;
+import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.CastingMessage;
 
 public abstract class SpellEntry implements Taggable, Examinable {
@@ -70,7 +72,7 @@ public abstract class SpellEntry implements Taggable, Examinable {
         return persistence;
     }
 
-    abstract public CastingMessage Cast();
+    abstract public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets);
 
     @Override
     public String getColorTaggedName() {
