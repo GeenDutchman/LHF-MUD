@@ -310,6 +310,8 @@ public abstract class Creature
         }
     }
 
+    public abstract void restoreFaction();
+
     public CreatureFaction getFaction() {
         return faction;
     }
@@ -373,50 +375,34 @@ public abstract class Creature
         return mrr;
     }
 
-    public CreatureAffectedMessage applyAttack(Attack attack) {
-        MultiRollResult mrr = this.adjustDamageByFlavor(attack.getDamageResult());
-        attack.updateDamageResult(mrr);
+    public CreatureAffectedMessage applyAffects(CreatureEffector effector) {
+        MultiRollResult mrr = this.adjustDamageByFlavor(effector.getDamageResult());
+        effector.updateDamageResult(mrr);
         this.updateHitpoints(mrr.getRoll());
-        for (Stats delta : attack.getStatChanges().keySet()) {
-            Integer theStat = this.stats.get(delta) + attack.getStatChanges().get(delta);
+        for (Stats delta : effector.getStatChanges().keySet()) {
+            Integer theStat = this.stats.get(delta) + effector.getStatChanges().get(delta);
             this.stats.put(delta, theStat);
         }
         if (this.isAlive()) {
-            for (Attributes delta : attack.getAttributeScoreChanges().keySet()) {
-                Integer theAttr = this.attributeBlock.getScore(delta) + attack.getAttributeScoreChanges().get(delta);
+            for (Attributes delta : effector.getAttributeScoreChanges().keySet()) {
+                Integer theAttr = this.attributeBlock.getScore(delta) + effector.getAttributeScoreChanges().get(delta);
                 this.attributeBlock.setScore(delta, theAttr);
             }
-            for (Attributes delta : attack.getAttributeBonusChanges().keySet()) {
-                Integer theAttr = this.attributeBlock.getModBonus(delta) + attack.getAttributeBonusChanges().get(delta);
+            for (Attributes delta : effector.getAttributeBonusChanges().keySet()) {
+                Integer theAttr = this.attributeBlock.getModBonus(delta)
+                        + effector.getAttributeBonusChanges().get(delta);
                 this.attributeBlock.setModBonus(delta, theAttr);
             }
-            if (attack.getPersistence() == EffectPersistence.DURATION) {
-                this.effects.add(attack);
+            if (effector.getPersistence() == EffectPersistence.DURATION) {
+                this.effects.add(effector);
+            }
+            if (effector.isRestoreFaction()) {
+                this.restoreFaction();
             }
         }
 
-        CreatureAffectedMessage camOut = new CreatureAffectedMessage(this, attack);
+        CreatureAffectedMessage camOut = new CreatureAffectedMessage(this, effector);
         return camOut;
-    }
-
-    public OutMessage applySpell(CreatureTargetingSpell spell) {
-        if (spell instanceof DamageSpell) {
-            DamageSpell dSpell = (DamageSpell) spell;
-            AttackDamageMessage dmOut = new AttackDamageMessage((Creature) spell.getCaster(), this); // TODO: this is a
-                                                                                                     // horrible hack
-            for (DamageDice dd : dSpell.getDamages()) {
-                RollResult damage = dd.rollDice();
-                damage = adjustDamageByFlavor(dd.getFlavor(), damage);
-                updateHitpoints(damage.getRoll());
-                dmOut.addDamage(damage);
-            }
-            if (!isAlive()) {
-                dmOut.announceDeath();
-            }
-            return dmOut;
-        }
-
-        return new SpellFizzleMessage(SpellFizzleType.OTHER, spell.getCaster(), false);
     }
 
     private int getHealth() {
