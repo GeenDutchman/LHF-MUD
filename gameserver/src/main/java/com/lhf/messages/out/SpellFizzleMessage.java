@@ -7,7 +7,7 @@ import com.lhf.messages.OutMessageType;
 
 public class SpellFizzleMessage extends OutMessage {
     public enum SpellFizzleType {
-        NOT_CASTER, BAD_POWER, NOT_SPELL, OTHER;
+        NOT_CASTER, BAD_POWER, NOT_SPELL, MISPRONOUNCE, OTHER;
     }
 
     private SpellFizzleType type;
@@ -36,6 +36,8 @@ public class SpellFizzleMessage extends OutMessage {
                 return "You have insufficient power to cast that spell.";
             case NOT_SPELL:
                 return "That is not a spell that you can cast.";
+            case MISPRONOUNCE:
+                return "You did not invoke a spell properly";
             case OTHER:
             default:
                 return "Weird, that spell should have done something.";
