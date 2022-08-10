@@ -35,6 +35,8 @@ public abstract class ISpell implements EntityEffector, Taggable, Examinable {
         return entry;
     }
 
+    public abstract boolean isOffensive();
+
     @Override
     public String getName() {
         return this.entry.getName();
