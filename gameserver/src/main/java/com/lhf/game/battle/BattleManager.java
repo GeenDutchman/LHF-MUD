@@ -66,6 +66,8 @@ public class BattleManager implements MessageHandler, Examinable {
         sj.add("\"take [item]\"").add("You can't mess with stuff on the floor right now.");
         cmds.put(CommandMessage.TAKE, sj.toString());
         sj = new StringJoiner(" ");
+        sj.add("\"pass\"").add("Skips your turn in battle!");
+        cmds.put(CommandMessage.PASS, sj.toString());
         return cmds;
     }
 
@@ -77,8 +79,6 @@ public class BattleManager implements MessageHandler, Examinable {
         sj.add("In the unlikely event that either the creature or the weapon's name contains 'with', enclose the name in quotation marks.");
         cmds.put(CommandMessage.ATTACK, sj.toString());
         sj = new StringJoiner(" ");
-        sj.add("\"pass\"").add("Skips your turn in battle, but you get hurt for doing so!");
-        cmds.put(CommandMessage.PASS, sj.toString());
         return cmds;
     }
 
@@ -383,12 +383,12 @@ public class BattleManager implements MessageHandler, Examinable {
         return MessageHandler.super.handleMessage(ctx, msg);
     }
 
-    // TODO: this is perhaps unfair
     private boolean handlePass(CommandContext ctx, Command msg) {
         if (this.checkTurn(ctx.getCreature())) {
-            int penalty = this.calculateWastePenalty(ctx.getCreature());
-            sendMessageToAllParticipants(new BattleTurnMessage(ctx.getCreature(), true, penalty));
-            ctx.getCreature().updateHitpoints(penalty);
+            // int penalty = this.calculateWastePenalty(ctx.getCreature());
+            // sendMessageToAllParticipants(new BattleTurnMessage(ctx.getCreature(), true,
+            // penalty));
+            // ctx.getCreature().updateHitpoints(penalty);
             this.endTurn();
         }
         return true;
