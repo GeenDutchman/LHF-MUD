@@ -1,8 +1,5 @@
 package com.lhf.game.creature;
 
-import static com.lhf.game.enums.Attributes.DEX;
-import static com.lhf.game.enums.Attributes.STR;
-
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
@@ -15,12 +12,12 @@ import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.DamageDice;
+import com.lhf.game.dice.DamageDice.FlavoredRollResult;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.dice.MultiRollResult;
-import com.lhf.game.dice.DamageDice.FlavoredRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
@@ -34,8 +31,6 @@ import com.lhf.game.item.interfaces.Takeable;
 import com.lhf.game.item.interfaces.Usable;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
-import com.lhf.game.magic.CreatureTargetingSpell;
-import com.lhf.game.magic.interfaces.DamageSpell;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -49,8 +44,6 @@ import com.lhf.messages.out.EquipOutMessage.EquipResultType;
 import com.lhf.messages.out.NotPossessedMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SpellFizzleMessage;
-import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 import com.lhf.messages.out.StatusOutMessage;
 import com.lhf.messages.out.UnequipOutMessage;
 import com.lhf.server.client.ClientID;

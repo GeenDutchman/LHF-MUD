@@ -139,6 +139,11 @@ public class Attack implements CreatureEffector {
     }
 
     @Override
+    public Creature creatureResponsible() {
+        return this.attacker;
+    }
+
+    @Override
     public Taggable getGeneratedBy() {
         return this.weapon;
     }

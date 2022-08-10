@@ -60,6 +60,11 @@ public abstract class ISpell implements EntityEffector, Taggable, Examinable {
     }
 
     @Override
+    public Creature creatureResponsible() {
+        return this.caster;
+    }
+
+    @Override
     public Taggable getGeneratedBy() {
         return this.entry;
     }
