@@ -151,11 +151,7 @@ public class BattleManager implements MessageHandler, Examinable {
         for (Creature creature : participants) {
             creature.sendMsg(new StartFightMessage(instigator, true));
         }
-        // If the player started the fight, then it already has an action
-        // about to happen. No need to prompt them for it.
-        if (!(instigator instanceof Player)) {
-            startTurn();
-        }
+        // if someone started a fight, no need to prompt them for their turn
     }
 
     public void endBattle() {
@@ -176,13 +172,8 @@ public class BattleManager implements MessageHandler, Examinable {
 
     private void startTurn() {
         Creature current = getCurrent();
-        if (current instanceof Player) {
-            // prompt player to do something
-            promptCreatureToAct((Player) current);
-        } else if (current instanceof BattleAI) {
-            Collection<Creature> targets = ((BattleAI) current).selectAttackTargets(participants);
-            applyAttacks(current, current.getWeapon(), targets);
-            endTurn();
+        if (current != null) {
+            promptCreatureToAct(current);
         } else {
             // Bad juju
             Logger logger = Logger.getLogger(BattleManager.class.getPackageName());

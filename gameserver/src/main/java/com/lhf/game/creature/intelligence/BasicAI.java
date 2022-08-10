@@ -1,6 +1,7 @@
 package com.lhf.game.creature.intelligence;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -47,7 +48,9 @@ public class BasicAI extends Client {
                 if (caMessage.getAffected() != bai.getNpc()) {
                     return;
                 }
-                bai.setLastAttacker((Creature) caMessage.getEffects().getGeneratedBy());
+                if (caMessage.getEffects().getDamageResult().getTotal() < 0) {
+                    bai.setLastAttacker(caMessage.getEffects().creatureResponsible());
+                }
             }
         });
         this.handlers.put(OutMessageType.BAD_TARGET_SELECTED, (BasicAI bai, OutMessage msg) -> {
@@ -57,39 +60,18 @@ public class BasicAI extends Client {
                 ArrayList<Creature> creaturesFound = new ArrayList<>();
                 for (Taggable target : btsm.getPossibleTargets()) {
                     if (target instanceof Creature) {
-                        Creature possTarget = (Creature) target;
-                        creaturesFound.add(possTarget);
-                        if (possTarget.getFaction() == CreatureFaction.RENEGADE) {
-                            bai.setLastAttacker(possTarget);
-                            break;
-                        }
+                        creaturesFound.add((Creature) target);
                     }
                 }
-                if (bai.getLastAttacker() == null) {
-                    for (Creature c : creaturesFound) {
-                        if (c.getFaction() != bai.getNpc().getFaction()) {
-                            bai.setLastAttacker(c);
-                            break;
-                        }
-                    }
-                }
-                if (bai.getLastAttacker() == null) {
-                    PassMessage passCommand = (PassMessage) CommandBuilder.fromCommand(CommandMessage.PASS, "pass");
-                    bai.handleMessage(null, passCommand);
-                } else {
-                    AttackMessage aMessage = (AttackMessage) CommandBuilder.fromCommand(CommandMessage.ATTACK,
-                            bai.getLastAttacker().getName());
-                    CommandBuilder.addDirect(aMessage, bai.getLastAttacker().getName());
-                    super.handleMessage(null, aMessage);
-                }
+                bai.selectNextTarget(creaturesFound);
+                bai.basicAttack();
             }
         });
         this.handlers.put(OutMessageType.BATTLE_TURN, (BasicAI bai, OutMessage msg) -> {
             if (msg.getOutType().equals(OutMessageType.BATTLE_TURN)) {
                 BattleTurnMessage btm = (BattleTurnMessage) msg;
                 if (!btm.isWasted() && btm.isAddressTurner() && btm.isYesTurn()) {
-                    PassMessage passCommand = (PassMessage) CommandBuilder.fromCommand(CommandMessage.PASS, "pass");
-                    bai.handleMessage(null, passCommand);
+                    bai.basicAttack();
                 }
                 return;
             }
@@ -114,6 +96,35 @@ public class BasicAI extends Client {
         });
     }
 
+    protected void selectNextTarget(Collection<Creature> possTargets) {
+        if (this.getLastAttacker() != null) {
+            return; // no need to reselect if known
+        }
+        for (Creature creature : possTargets) {
+            if (creature.getFaction() == null || CreatureFaction.RENEGADE.equals(creature.getFaction())) {
+                this.setLastAttacker(creature);
+            }
+            if (this.getLastAttacker() == null) {
+                if (!CreatureFaction.NPC.equals(creature.getFaction())
+                        && creature.getFaction() != this.npc.getFaction()) {
+                    this.setLastAttacker(creature);
+                }
+            }
+        }
+    }
+
+    protected void basicAttack() {
+        if (this.getLastAttacker() == null) {
+            PassMessage passCommand = (PassMessage) CommandBuilder.fromCommand(CommandMessage.PASS, "pass");
+            this.handleMessage(null, passCommand);
+            return;
+        }
+        AttackMessage aMessage = (AttackMessage) CommandBuilder.fromCommand(CommandMessage.ATTACK,
+                this.getLastAttacker().getName());
+        CommandBuilder.addDirect(aMessage, this.getLastAttacker().getName());
+        super.handleMessage(null, aMessage);
+    }
+
     public void addHandler(OutMessageType type, AIChunk chunk) {
         this.handlers.put(type, chunk);
     }
@@ -136,7 +147,9 @@ public class BasicAI extends Client {
     }
 
     public void setLastAttacker(Creature lastAttacker) {
-        this.lastAttacker = lastAttacker;
+        if (lastAttacker != this.npc) {
+            this.lastAttacker = lastAttacker;
+        }
     }
 
 }
