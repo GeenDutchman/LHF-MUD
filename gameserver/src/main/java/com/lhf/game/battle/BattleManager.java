@@ -224,7 +224,8 @@ public class BattleManager implements MessageHandler, Examinable {
 
     private void promptCreatureToAct(Creature current) {
         // send message to creature that it is their turn
-        current.sendMsg(new BattleTurnMessage(current, true, false));
+        this.sendMessageToAllParticipants(new BattleTurnMessage(current, true, false));
+        current.sendMsg(new BattleTurnMessage(current, true, true));
     }
 
     public void handleTurnRenegade(Creature turned) {
