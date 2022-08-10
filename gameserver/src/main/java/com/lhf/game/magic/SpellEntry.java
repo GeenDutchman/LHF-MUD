@@ -1,5 +1,7 @@
 package com.lhf.game.magic;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -7,6 +9,7 @@ import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffector.EffectPersistence;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.messages.out.CastingMessage;
 
 public abstract class SpellEntry implements Taggable, Examinable, Comparable<SpellEntry> {
@@ -16,24 +19,36 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
     protected final String invocation;
     protected final EffectPersistence persistence;
     protected String description;
+    protected final List<VocationName> allowedVocations;
 
-    public SpellEntry(Integer level, String name, EffectPersistence persistence, String description) {
+    public SpellEntry(Integer level, String name, EffectPersistence persistence, String description,
+            VocationName... allowed) {
         this.className = this.getClass().getName();
         this.level = level;
         this.name = name;
         this.persistence = persistence;
         this.description = description;
         this.invocation = name;
+        ArrayList<VocationName> vocations = new ArrayList<>();
+        for (VocationName vocName : allowed) {
+            vocations.add(vocName);
+        }
+        this.allowedVocations = Collections.unmodifiableList(vocations);
     }
 
     public SpellEntry(Integer level, String name, String invocation, EffectPersistence persistence,
-            String description) {
+            String description, VocationName... allowed) {
         this.className = this.getClass().getName();
         this.level = level;
         this.name = name;
         this.invocation = invocation;
         this.persistence = persistence;
         this.description = description;
+        ArrayList<VocationName> vocations = new ArrayList<>();
+        for (VocationName vocName : allowed) {
+            vocations.add(vocName);
+        }
+        this.allowedVocations = Collections.unmodifiableList(vocations);
     }
 
     public SpellEntry(SpellEntry other) {
@@ -43,6 +58,7 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         this.invocation = other.invocation;
         this.persistence = other.persistence;
         this.description = new String(other.description);
+        this.allowedVocations = Collections.unmodifiableList(other.allowedVocations);
     }
 
     public boolean Invoke(String invokeAttempt) {
@@ -70,6 +86,10 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
 
     public EffectPersistence getPersistence() {
         return persistence;
+    }
+
+    public List<VocationName> getAllowedVocations() {
+        return allowedVocations;
     }
 
     abstract public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets);

@@ -6,6 +6,7 @@ import java.util.List;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffector.EffectPersistence;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
@@ -17,7 +18,7 @@ public class ThunderStrike extends CreatureTargetingSpellEntry {
     public ThunderStrike(Integer level, String name, String description) {
         super(1, "Thunder Strike", "Bonearge Laarzen", EffectPersistence.INSTANT,
                 "A small but loud bolt of electricity shocks a creature you choose as a target",
-                true, false);
+                true, false, VocationName.MAGE);
         this.damages = Arrays.asList(new DamageDice(1, DieType.SIX, DamageFlavor.THUNDER),
                 new DamageDice(1, DieType.FOUR, DamageFlavor.LIGHTNING));
     }

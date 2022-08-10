@@ -8,6 +8,7 @@ import com.lhf.Taggable;
 import com.lhf.game.EntityEffector.EffectPersistence;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.item.Item;
 import com.lhf.messages.out.CastingMessage;
 import com.lhf.messages.out.SeeOutMessage;
@@ -38,32 +39,32 @@ public class RoomTargetingSpellEntry extends SpellEntry {
     }
 
     public RoomTargetingSpellEntry(Integer level, String name, EffectPersistence persistence, String description,
-            boolean banishesItems, boolean banishesCreatures) {
-        super(level, name, persistence, description);
+            boolean banishesItems, boolean banishesCreatures, VocationName... allowed) {
+        super(level, name, persistence, description, allowed);
         this.banishesItems = banishesItems;
         this.banishesCreatures = banishesCreatures;
         this.init();
     }
 
     public RoomTargetingSpellEntry(Integer level, String name, String description,
-            boolean banishesItems, boolean banishesCreatures) {
-        super(level, name, EffectPersistence.DURATION, description);
+            boolean banishesItems, boolean banishesCreatures, VocationName... allowed) {
+        super(level, name, EffectPersistence.DURATION, description, allowed);
         this.banishesItems = banishesItems;
         this.banishesCreatures = banishesCreatures;
         this.init();
     }
 
     public RoomTargetingSpellEntry(Integer level, String name, String invocation, EffectPersistence persistence,
-            String description, boolean banishesItems, boolean banishesCreatures) {
-        super(level, name, invocation, persistence, description);
+            String description, boolean banishesItems, boolean banishesCreatures, VocationName... allowed) {
+        super(level, name, invocation, persistence, description, allowed);
         this.banishesItems = banishesItems;
         this.banishesCreatures = banishesCreatures;
         this.init();
     }
 
     public RoomTargetingSpellEntry(Integer level, String name, String invocation,
-            String description, boolean banishesItems, boolean banishesCreatures) {
-        super(level, name, invocation, EffectPersistence.DURATION, description);
+            String description, boolean banishesItems, boolean banishesCreatures, VocationName... allowed) {
+        super(level, name, invocation, EffectPersistence.DURATION, description, allowed);
         this.banishesItems = banishesItems;
         this.banishesCreatures = banishesCreatures;
         this.init();

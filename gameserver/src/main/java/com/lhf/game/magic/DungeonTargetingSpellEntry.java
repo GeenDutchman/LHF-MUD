@@ -5,6 +5,7 @@ import java.util.List;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffector.EffectPersistence;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.messages.out.CastingMessage;
 import com.lhf.messages.out.SeeOutMessage;
 
@@ -13,14 +14,14 @@ public class DungeonTargetingSpellEntry extends SpellEntry {
     protected boolean addsRoomToDungeon;
 
     public DungeonTargetingSpellEntry(Integer level, String name, EffectPersistence persistence, String description,
-            boolean addsRoomToDungeon) {
-        super(level, name, persistence, description);
+            boolean addsRoomToDungeon, VocationName... allowed) {
+        super(level, name, persistence, description, allowed);
         this.addsRoomToDungeon = addsRoomToDungeon;
     }
 
     public DungeonTargetingSpellEntry(Integer level, String name, String invocation, EffectPersistence persistence,
-            String description, boolean addsRoomToDungeon) {
-        super(level, name, invocation, persistence, description);
+            String description, boolean addsRoomToDungeon, VocationName... allowed) {
+        super(level, name, invocation, persistence, description, allowed);
         this.addsRoomToDungeon = addsRoomToDungeon;
     }
 

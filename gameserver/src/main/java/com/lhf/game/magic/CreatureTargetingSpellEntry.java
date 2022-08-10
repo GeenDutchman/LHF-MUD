@@ -9,6 +9,7 @@ import java.util.TreeMap;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffector.EffectPersistence;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
@@ -32,32 +33,33 @@ public class CreatureTargetingSpellEntry extends SpellEntry {
         this.damages = new ArrayList<>();
     }
 
-    public CreatureTargetingSpellEntry(Integer level, String name, EffectPersistence persistence, String description) {
-        super(level, name, persistence, description);
+    public CreatureTargetingSpellEntry(Integer level, String name, EffectPersistence persistence, String description,
+            VocationName... allowed) {
+        super(level, name, persistence, description, allowed);
         this.singleTarget = false;
         this.restoreFaction = false;
         this.init();
     }
 
     public CreatureTargetingSpellEntry(Integer level, String name, String invocation, EffectPersistence persistence,
-            String description) {
-        super(level, name, invocation, persistence, description);
+            String description, VocationName... allowed) {
+        super(level, name, invocation, persistence, description, allowed);
         this.singleTarget = false;
         this.restoreFaction = false;
         this.init();
     }
 
     public CreatureTargetingSpellEntry(Integer level, String name, EffectPersistence persistence, String description,
-            boolean singleTarget, boolean restoreFaction) {
-        super(level, name, persistence, description);
+            boolean singleTarget, boolean restoreFaction, VocationName... allowed) {
+        super(level, name, persistence, description, allowed);
         this.singleTarget = singleTarget;
         this.restoreFaction = restoreFaction;
         this.init();
     }
 
     public CreatureTargetingSpellEntry(Integer level, String name, String invocation, EffectPersistence persistence,
-            String description, boolean singleTarget, boolean restoreFaction) {
-        super(level, name, invocation, persistence, description);
+            String description, boolean singleTarget, boolean restoreFaction, VocationName... allowed) {
+        super(level, name, invocation, persistence, description, allowed);
         this.singleTarget = singleTarget;
         this.restoreFaction = restoreFaction;
         this.init();
