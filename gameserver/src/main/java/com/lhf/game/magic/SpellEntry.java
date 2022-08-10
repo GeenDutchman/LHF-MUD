@@ -9,7 +9,7 @@ import com.lhf.game.EntityEffector.EffectPersistence;
 import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.CastingMessage;
 
-public abstract class SpellEntry implements Taggable, Examinable {
+public abstract class SpellEntry implements Taggable, Examinable, Comparable<SpellEntry> {
     private final String className;
     protected final Integer level;
     protected final String name;
@@ -127,5 +127,33 @@ public abstract class SpellEntry implements Taggable, Examinable {
         return Objects.equals(className, other.className) && Objects.equals(description, other.description)
                 && Objects.equals(invocation, other.invocation) && Objects.equals(level, other.level)
                 && Objects.equals(name, other.name) && persistence == other.persistence;
+    }
+
+    @Override
+    public int compareTo(SpellEntry other) {
+        if (this.equals(other)) {
+            return 0;
+        }
+        int diff = this.getLevel() - other.getLevel();
+        if (diff != 0) {
+            return diff;
+        }
+        diff = this.getName().compareTo(other.getName());
+        if (diff != 0) {
+            return diff;
+        }
+        diff = this.getInvocation().compareTo(other.getInvocation());
+        if (diff != 0) {
+            return diff;
+        }
+        diff = this.printDescription().compareTo(other.printDescription());
+        if (diff != 0) {
+            return diff;
+        }
+        diff = this.getClassName().compareTo(other.getClassName());
+        if (diff != 0) {
+            return diff;
+        }
+        return this.getPersistence().compareTo(other.getPersistence());
     }
 }
