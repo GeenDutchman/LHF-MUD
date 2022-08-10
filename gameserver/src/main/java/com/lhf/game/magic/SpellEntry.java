@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 
 import com.lhf.Examinable;
 import com.lhf.Taggable;
@@ -126,6 +127,12 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         sb.append("Level:").append(this.getLevel()).append(" Persistence:").append(this.getPersistence())
                 .append("\r\n");
         sb.append("Invocation:\"").append(this.getInvocation()).append("\"\r\n");
+        sb.append("Can be cast by:");
+        StringJoiner sj = new StringJoiner(", ").setEmptyValue("anyone with magical powers.");
+        for (VocationName vocName : this.getAllowedVocations()) {
+            sj.add(vocName.getColorTaggedName());
+        }
+        sb.append(sj.toString()).append("\r\n");
         sb.append(this.printDescription()).append("\r\n");
         return sb.toString();
     }

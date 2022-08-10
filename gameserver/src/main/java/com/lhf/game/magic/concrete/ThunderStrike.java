@@ -15,7 +15,7 @@ import com.lhf.messages.out.CastingMessage;
 
 public class ThunderStrike extends CreatureTargetingSpellEntry {
 
-    public ThunderStrike(Integer level, String name, String description) {
+    public ThunderStrike() {
         super(1, "Thunder Strike", "Bonearge Laarzen", EffectPersistence.INSTANT,
                 "A small but loud bolt of electricity shocks a creature you choose as a target",
                 true, false, VocationName.MAGE);

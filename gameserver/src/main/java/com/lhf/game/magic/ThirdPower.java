@@ -1,17 +1,16 @@
 package com.lhf.game.magic;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.StringJoiner;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
+import com.lhf.game.magic.concrete.ThunderStrike;
 import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
@@ -41,17 +40,19 @@ public class ThirdPower implements MessageHandler {
      * 
      * 
      */
-    private Map<String, SpellEntry> entries;
+    private SortedSet<SpellEntry> entries;
     private MessageHandler successor;
     private HashMap<CommandMessage, String> cmds;
 
     public ThirdPower(MessageHandler successor) {
         this.successor = successor;
-        this.entries = new HashMap<>();
+        this.entries = new TreeSet<>();
         SpellEntry shockBolt = new ShockBolt();
-        this.entries.put(shockBolt.getInvocation(), shockBolt);
+        this.entries.add(shockBolt);
         SpellEntry thaumaturgy = new Thaumaturgy();
-        this.entries.put(thaumaturgy.getInvocation(), thaumaturgy);
+        this.entries.add(thaumaturgy);
+        SpellEntry thunderStrike = new ThunderStrike();
+        this.entries.add(thunderStrike);
         this.cmds = this.generateCommands();
     }
 
@@ -67,17 +68,49 @@ public class ThirdPower implements MessageHandler {
         return toGenerate;
     }
 
+    public SortedSet<SpellEntry> filterByExactLevel(int level) {
+        Supplier<TreeSet<SpellEntry>> sortSupplier = () -> new TreeSet<SpellEntry>();
+        return this.entries.stream().filter(entry -> entry.getLevel() == level)
+                .collect(Collectors.toCollection(sortSupplier));
+    }
+
+    public SortedSet<SpellEntry> filterByVocationName(VocationName vocationName) {
+        Supplier<TreeSet<SpellEntry>> sortSupplier = () -> new TreeSet<SpellEntry>();
+        return this.entries.stream().filter(
+                entry -> entry.getAllowedVocations().size() == 0 || entry.getAllowedVocations().contains(vocationName)
+                        || VocationName.DUNGEON_MASTER.equals(vocationName))
+                .collect(Collectors.toCollection(sortSupplier));
+    }
+
+    public SortedSet<SpellEntry> filterByVocationAndLevels(VocationName vocationName, Collection<Integer> levels) {
+        Supplier<TreeSet<SpellEntry>> sortSupplier = () -> new TreeSet<SpellEntry>();
+        return this.entries.stream().filter(
+                entry -> entry.getAllowedVocations().size() == 0 || entry.getAllowedVocations().contains(vocationName)
+                        || VocationName.DUNGEON_MASTER.equals(vocationName))
+                .filter(entry -> levels != null && levels.contains(entry.getLevel()))
+                .collect(Collectors.toCollection(sortSupplier));
+    }
+
+    public Optional<SpellEntry> filterByExactName(String name) {
+        return this.entries.stream().filter(entry -> entry.getName().equals(name)).findFirst();
+    }
+
+    public Optional<SpellEntry> filterByExactInvocation(String invocation) {
+        return this.entries.stream().filter(entry -> entry.getInvocation().equals(invocation)).findFirst();
+    }
+
     private boolean handleCast(CommandContext ctx, Command msg) {
         CastMessage casting = (CastMessage) msg;
         Creature caster = ctx.getCreature();
-        SpellEntry entry = this.entries.get(casting.getInvocation());
-        if (entry == null) {
+        Optional<SpellEntry> foundByInvocation = this.filterByExactInvocation(casting.getInvocation());
+        if (foundByInvocation.isEmpty()) {
             ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.MISPRONOUNCE, caster, true));
             if (ctx.getRoom() != null) {
                 ctx.getRoom().sendMessageToAll(new SpellFizzleMessage(SpellFizzleType.MISPRONOUNCE, caster, false));
             }
             return true;
         }
+        SpellEntry entry = foundByInvocation.get();
         BattleManager battleManager = ctx.getBattleManager();
         if (battleManager != null && battleManager.isBattleOngoing()) {
             if (!battleManager.checkTurn(caster)) {
