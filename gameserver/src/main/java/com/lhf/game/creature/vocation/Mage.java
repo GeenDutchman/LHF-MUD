@@ -9,7 +9,7 @@ import com.lhf.game.magic.CubeHolder;
 
 public class Mage extends Vocation implements CubeHolder {
     public Mage() {
-        super("Mage", Mage.generateProficiencies());
+        super(VocationName.MAGE, Mage.generateProficiencies());
     }
 
     private static HashSet<EquipmentTypes> generateProficiencies() {

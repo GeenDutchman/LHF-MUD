@@ -8,17 +8,37 @@ import com.lhf.game.enums.EquipmentTypes;
 
 public abstract class Vocation implements Taggable, Comparable<Vocation> {
     // TODO: make this a MessageHandler
+
+    public enum VocationName implements Taggable {
+        FIGHTER, MAGE;
+
+        @Override
+        public String getStartTag() {
+            return "<vocation>";
+        }
+
+        @Override
+        public String getEndTag() {
+            return "</vocation>";
+        }
+
+        @Override
+        public String getColorTaggedName() {
+            return this.getStartTag() + this.toString() + this.getEndTag();
+        }
+    }
+
     protected int level;
-    protected final String name;
+    protected final VocationName name;
     protected final HashSet<EquipmentTypes> proficiencies;
 
-    public Vocation(String name) {
+    public Vocation(VocationName name) {
         this.name = name;
         this.proficiencies = new HashSet<>();
         this.level = 1;
     }
 
-    public Vocation(String name, HashSet<EquipmentTypes> proficiencies) {
+    public Vocation(VocationName name, HashSet<EquipmentTypes> proficiencies) {
         this.name = name;
         this.proficiencies = proficiencies;
         this.level = 1;
@@ -29,7 +49,7 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
     }
 
     public String getName() {
-        return name;
+        return name.toString();
     }
 
     public HashSet<EquipmentTypes> getProficiencies() {
@@ -38,7 +58,7 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
     @Override
     public String getColorTaggedName() {
-        return this.getStartTag() + this.getName() + this.getEndTag();
+        return this.name.getColorTaggedName();
     }
 
     @Override

@@ -7,7 +7,7 @@ import com.lhf.game.enums.EquipmentTypes;
 public class Fighter extends Vocation {
 
     public Fighter() {
-        super("Fighter", Fighter.generateProficiencies());
+        super(VocationName.FIGHTER, Fighter.generateProficiencies());
     }
 
     private static HashSet<EquipmentTypes> generateProficiencies() {
