@@ -62,6 +62,11 @@ public class Player extends Creature {
     }
 
     @Override
+    public void restoreFaction() {
+        this.setFaction(CreatureFaction.PLAYER);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof Player)) {
             return false;

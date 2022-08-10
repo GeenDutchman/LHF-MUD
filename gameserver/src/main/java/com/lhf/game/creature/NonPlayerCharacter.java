@@ -51,4 +51,9 @@ public class NonPlayerCharacter extends Creature {
         }
         super.sendMsg(msg);
     }
+
+    @Override
+    public void restoreFaction() {
+        this.setFaction(CreatureFaction.NPC);
+    }
 }

@@ -38,6 +38,11 @@ public class Monster extends NonPlayerCharacter implements BattleAI {
         this.setFaction(CreatureFaction.MONSTER);
     }
 
+    @Override
+    public void restoreFaction() {
+        this.setFaction(CreatureFaction.MONSTER);
+    }
+
     public void setAiType(MonsterAI newType) {
         this.aiType = newType;
     }
