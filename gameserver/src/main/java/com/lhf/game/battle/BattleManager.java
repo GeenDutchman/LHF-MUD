@@ -246,6 +246,7 @@ public class BattleManager implements MessageHandler, Examinable {
         return false;
     }
 
+    // TODO: for threading and waiting
     private int calculateWastePenalty(Creature waster) {
         int penalty = -1;
         if (waster.getVocation().isPresent()) {
