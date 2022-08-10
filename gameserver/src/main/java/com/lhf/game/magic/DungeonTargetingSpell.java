@@ -55,4 +55,9 @@ public class DungeonTargetingSpell extends ISpell implements DungeonEffector {
         return this.createdRoom;
     }
 
+    @Override
+    public boolean isOffensive() {
+        return false;
+    }
+
 }
