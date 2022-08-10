@@ -15,16 +15,12 @@ import com.lhf.Examinable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.dice.MultiRollResult;
-import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.Weapon;
-import com.lhf.game.magic.CreatureTargetingSpell;
-import com.lhf.game.magic.ISpell;
-import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 import com.lhf.game.map.Room;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -289,7 +285,7 @@ public class BattleManager implements MessageHandler, Examinable {
 
     private void applyAttacks(Creature attacker, Weapon weapon, Collection<Creature> targets) {
         for (Creature target : targets) {
-            this.checkAndHandleTurnRenegade(attacker, target)
+            this.checkAndHandleTurnRenegade(attacker, target);
             if (!this.isCreatureInBattle(target)) {
                 this.addCreatureToBattle(target);
                 this.callReinforcements(attacker, target);
