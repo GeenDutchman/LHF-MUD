@@ -8,6 +8,7 @@ import com.lhf.game.creature.CreatureEffector;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
+import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 
@@ -55,6 +56,33 @@ public class CreatureTargetingSpell extends ISpell implements CreatureEffector {
 
     public boolean isRestoreFaction() {
         return this.getTypedEntry().isRestoreFaction();
+    }
+
+    @Override
+    public boolean isOffensive() {
+        if (this.getDamages() != null && this.getDamages().size() > 0) {
+            for (DamageDice dd : this.getDamages()) {
+                if (dd.getFlavor() != DamageFlavor.HEALING) {
+                    return true;
+                }
+            }
+        }
+        for (Integer delta : this.getStatChanges().values()) {
+            if (delta < 0) {
+                return true;
+            }
+        }
+        for (Integer delta : this.getAttributeScoreChanges().values()) {
+            if (delta < 0) {
+                return true;
+            }
+        }
+        for (Integer delta : this.getAttributeBonusChanges().values()) {
+            if (delta < 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
