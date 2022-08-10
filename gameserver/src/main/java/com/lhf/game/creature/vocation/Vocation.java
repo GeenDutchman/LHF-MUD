@@ -10,7 +10,7 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
     // TODO: make this a MessageHandler
 
     public enum VocationName implements Taggable {
-        FIGHTER, MAGE;
+        FIGHTER, MAGE, DUNGEON_MASTER;
 
         @Override
         public String getStartTag() {
