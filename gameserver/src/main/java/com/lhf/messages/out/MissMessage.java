@@ -5,18 +5,18 @@ import java.util.StringJoiner;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD4;
-import com.lhf.game.dice.Dice.RollResult;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.messages.OutMessageType;
 
 public class MissMessage extends OutMessage {
     private Creature attacker;
     private Creature target;
-    private RollResult offense;
-    private RollResult defense;
+    private MultiRollResult offense;
+    private MultiRollResult defense;
 
     private String staticOutput;
 
-    public MissMessage(Creature attacker, Creature target, RollResult offense, RollResult defense) {
+    public MissMessage(Creature attacker, Creature target, MultiRollResult offense, MultiRollResult defense) {
         super(OutMessageType.MISS);
         this.attacker = attacker;
         this.target = target;
@@ -91,11 +91,11 @@ public class MissMessage extends OutMessage {
         return target;
     }
 
-    public RollResult getOffense() {
+    public MultiRollResult getOffense() {
         return offense;
     }
 
-    public RollResult getDefense() {
+    public MultiRollResult getDefense() {
         return defense;
     }
 
