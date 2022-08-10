@@ -158,6 +158,7 @@ public class ServerTest {
     @Test
     void testDropTake() {
         this.comm.create("Tester");
+        this.comm.handleCommand("inventory");
         this.comm.handleCommand("take longsword", true, false);
         this.comm.handleCommand("drop longsword");
         this.comm.handleCommand("drop longsword");

@@ -630,6 +630,20 @@ public abstract class Creature
     }
 
     @Override
+    public Optional<Item> removeItem(String name) {
+        Optional<Item> toRemove = InventoryOwner.super.removeItem(name);
+        if (toRemove.isEmpty()) {
+            for (Item item : this.equipmentSlots.values()) {
+                if (item.CheckNameRegex(name, 3)) {
+                    toRemove = Optional.of(item);
+                    break;
+                }
+            }
+        }
+        return toRemove;
+    }
+
+    @Override
     public String getStartTag() {
         String tag = "<" + this.getClass().getSimpleName().toLowerCase() + ">";
         CreatureFaction foundFaction = this.getFaction();

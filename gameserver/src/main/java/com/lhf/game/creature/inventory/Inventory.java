@@ -79,7 +79,7 @@ public class Inventory implements Container {
 
     public Optional<Item> removeItem(String name) {
         for (Item exact : this.items) {
-            if (exact.checkName(name)) {
+            if (exact.CheckNameRegex(name, 3)) {
                 this.items.remove(exact);
                 return Optional.of(exact);
             }
