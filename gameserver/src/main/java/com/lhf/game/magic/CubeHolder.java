@@ -1,7 +1,7 @@
 package com.lhf.game.magic;
 
 import com.lhf.Taggable;
-import com.lhf.game.dice.Dice.RollResult;
+import com.lhf.game.dice.MultiRollResult;
 
 public interface CubeHolder extends Taggable {
     public String getName();
@@ -10,6 +10,6 @@ public interface CubeHolder extends Taggable {
 
     public Integer getCasterDifficulty();
 
-    public RollResult spellAttack();
+    public MultiRollResult spellAttack();
 
 }
