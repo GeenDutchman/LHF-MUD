@@ -352,20 +352,23 @@ public abstract class Creature
     }
 
     protected MultiRollResult adjustDamageByFlavor(MultiRollResult mrr) {
+        ArrayList<RollResult> adjusted = new ArrayList<>();
         for (RollResult rr : mrr) {
             if (rr instanceof FlavoredRollResult) {
                 FlavoredRollResult frr = (FlavoredRollResult) rr;
                 switch (frr.getFlavor()) {
                     case HEALING:
-                        // do nothing
+                        adjusted.add(rr);
                         break;
                     default:
-                        rr.flipSign();
+                        adjusted.add(rr.negative());
                         break;
                 }
+            } else {
+                adjusted.add(rr);
             }
         }
-        return mrr;
+        return new MultiRollResult(adjusted, mrr.getBonuses());
     }
 
     public CreatureAffectedMessage applyAffects(CreatureEffector effector) {

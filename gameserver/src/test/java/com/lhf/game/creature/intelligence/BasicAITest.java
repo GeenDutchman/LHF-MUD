@@ -9,6 +9,8 @@ import com.lhf.Taggable;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
+import com.lhf.game.dice.MultiRollResult;
+import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
@@ -49,14 +51,17 @@ public class BasicAITest {
         victim.npc.setInBattle(true); // turn it on!
 
         attack = attacker.npc.attack(attacker.npc.getWeapon());
-        CreatureAffectedMessage notdone = new CreatureAffectedMessage(victim.npc, attack);
-        victim.npc.sendMsg(notdone);
-        Truth.assertThat(victim.sent).isEmpty();
-        Truth.assertThat(victim.brain.getLastAttacker()).isNull();
-
-        victim.npc.sendMsg(adm);
+        ArrayList<RollResult> negative = new ArrayList<>();
+        for (RollResult rr : attack.getDamageResult()) {
+            negative.add(rr.negative());
+        }
+        attack.updateDamageResult(new MultiRollResult(negative, attack.getDamageResult().getBonuses()));
+        Truth.assertThat(attack.getDamageResult().getTotal()).isLessThan(0);
+        CreatureAffectedMessage doneAttack = new CreatureAffectedMessage(victim.npc, attack);
+        victim.npc.sendMsg(doneAttack);
         Truth.assertThat(victim.sent).isEmpty();
         Truth.assertThat(victim.brain.getLastAttacker()).isEqualTo(attacker.npc);
+
     }
 
     @Test
