@@ -23,6 +23,7 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.magic.CreatureTargetingSpell;
+import com.lhf.game.magic.ISpell;
 import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 import com.lhf.game.map.Room;
 import com.lhf.messages.Command;
@@ -142,8 +143,14 @@ public class BattleManager implements MessageHandler, Examinable {
         return isHappening;
     }
 
-    public void startBattle(Creature instigator) {
+    public void startBattle(Creature instigator, Collection<Creature> victims) {
         isHappening = true;
+        this.addCreatureToBattle(instigator);
+        if (victims != null) {
+            for (Creature c : victims) {
+                this.addCreatureToBattle(c);
+            }
+        }
         this.room.sendMessageToAll(new StartFightMessage(instigator, false));
         for (Creature creature : participants) {
             creature.sendMsg(new StartFightMessage(instigator, true));
@@ -187,6 +194,14 @@ public class BattleManager implements MessageHandler, Examinable {
         }
     }
 
+    public boolean endTurn(Creature ender) {
+        if (this.checkTurn(ender)) {
+            this.endTurn();
+            return true;
+        }
+        return false;
+    }
+
     private void endTurn() {
         clearDead();
         if (isBattleOngoing()) {
@@ -225,12 +240,22 @@ public class BattleManager implements MessageHandler, Examinable {
         current.sendMsg(new BattleTurnMessage(current, true, false));
     }
 
-    private void handleTurnRenegade(Creature turned) {
+    public void handleTurnRenegade(Creature turned) {
         if (!CreatureFaction.RENEGADE.equals(turned.getFaction())) {
             turned.setFaction(CreatureFaction.RENEGADE);
             turned.sendMsg(new RenegadeAnnouncement());
             room.sendMessageToAllExcept(new RenegadeAnnouncement(turned), turned.getName());
         }
+    }
+
+    public boolean checkAndHandleTurnRenegade(Creature attacker, Creature target) {
+        if (!CreatureFaction.RENEGADE.equals(target.getFaction())
+                && !CreatureFaction.RENEGADE.equals(attacker.getFaction())
+                && attacker.getFaction().equals(target.getFaction())) {
+            this.handleTurnRenegade(attacker);
+            return true;
+        }
+        return false;
     }
 
     private int calculateWastePenalty(Creature waster) {
@@ -242,102 +267,38 @@ public class BattleManager implements MessageHandler, Examinable {
         return penalty;
     }
 
-    public void takeAction(Creature attacker, BattleAction action) {
-
-        if (this.getCurrent() != null && attacker != this.getCurrent()) {
+    /**
+     * If the battle has no participants, it is your turn.
+     * Otherwise, if it is not the attemter's turn, then warn them and add them to
+     * to fight!
+     * 
+     * @param attempter tries to see if it is their turn
+     * @return true if it is their turn, false otherwise
+     */
+    public boolean checkTurn(Creature attempter) {
+        // if we have a current and you are not it, then you cannot act
+        if (this.getCurrent() != null && attempter != this.getCurrent()) {
             // give out of turn message
-            attacker.sendMsg(new BattleTurnMessage(attacker, false, true));
-            return;
+            attempter.sendMsg(new BattleTurnMessage(attempter, false, true));
+            // even if it's not their turn, make sure they are in it
+            this.addCreatureToBattle(attempter);
+            return false;
         }
-
-        if (!this.isBattleOngoing()) {
-            this.startBattle(attacker);
-        }
-
-        if (action instanceof AttackAction) {
-            AttackAction attackAction = (AttackAction) action;
-
-            if (!attackAction.hasTargets()) {
-                attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, null));
-                return;
-            }
-            List<Creature> targets = attackAction.getTargets();
-            if (targets.contains(attacker)) {
-                attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.SELF, null));
-                return;
-            }
-            this.addCreatureToBattle(attacker);
-            for (Creature targeted : targets) {
-                if (!CreatureFaction.RENEGADE.equals(targeted.getFaction())
-                        && !CreatureFaction.RENEGADE.equals(attacker.getFaction())
-                        && attacker.getFaction().equals(targeted.getFaction())) {
-                    this.handleTurnRenegade(attacker);
-                }
-                if (!this.isCreatureInBattle(targeted)) {
-                    this.addCreatureToBattle(targeted);
-                    this.callReinforcements(attacker, targeted);
-                }
-            }
-
-            applyAttacks(attacker, attackAction.getWeapon(), targets);
-
-        } else if (action instanceof CreatureTargetingSpell) {
-            CreatureTargetingSpell spell = (CreatureTargetingSpell) action;
-            if (!spell.hasTargets()) {
-                attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, null));
-                return;
-            }
-            List<Creature> targets = spell.getTargets();
-            for (Creature c : targets) {
-                if (!isCreatureInBattle(c)) {
-                    // invalid target in list
-                    attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, c.getName()));
-                    return;
-                }
-                if (spell instanceof DamageSpell && c.getFaction() != CreatureFaction.RENEGADE
-                        && attacker.getFaction().equals(c.getFaction())) {
-                    this.handleTurnRenegade(attacker);
-                }
-            }
-            applySpell(spell.getCaster(), spell, targets);
-        } else if (action instanceof PassTurn) {
-            int penalty = this.calculateWastePenalty(attacker);
-            sendMessageToAllParticipants(new BattleTurnMessage(attacker, true, penalty));
-            attacker.updateHitpoints(penalty);
-        } else {
-            int penalty = this.calculateWastePenalty(attacker);
-            sendMessageToAllParticipants(new BattleTurnMessage(attacker, true, penalty));
-            attacker.updateHitpoints(penalty);
-        }
-        endTurn();
-    }
-
-    private void applySpell(Creature attacker, CreatureTargetingSpell spell, Collection<Creature> targets) {
-        sendMessageToAllParticipants(spell.Cast());
-        Optional<CasterVsCreatureStrategy> strategy = spell.getStrategy();
-        for (Creature target : targets) {
-            if (strategy.isPresent()) {
-                CasterVsCreatureStrategy strat = strategy.get();
-                RollResult casterResult = strat.getCasterEffort();
-                RollResult targetResult = strat.getTargetEffort(target);
-                if (casterResult.getRoll() <= targetResult.getRoll()) {
-                    sendMessageToAllParticipants(new MissMessage(attacker, target, casterResult, targetResult));
-                    continue;
-                }
-            }
-            // hack it
-
-            sendMessageToAllParticipants(target.applySpell(spell));
-        }
+        return true;
     }
 
     private void applyAttacks(Creature attacker, Weapon weapon, Collection<Creature> targets) {
         for (Creature target : targets) {
+            this.checkAndHandleTurnRenegade(attacker, target)
+            if (!this.isCreatureInBattle(target)) {
+                this.addCreatureToBattle(target);
+                this.callReinforcements(attacker, target);
+            }
             Attack a = attacker.attack(weapon);
             if (target.getStats().get(Stats.AC) > a.getToHit().getRoll()) { // misses
                 sendMessageToAllParticipants(new MissMessage(attacker, target, a.getToHit(), null));
             } else {
-                sendMessageToAllParticipants(target.applyAttack(a));
+                sendMessageToAllParticipants(target.applyAffects(a));
             }
         }
     }
@@ -415,8 +376,7 @@ public class BattleManager implements MessageHandler, Examinable {
                     ctx.sendMsg(new HelpMessage(this.gatherHelp(), type));
                     handled = true;
                 } else if (type == CommandMessage.PASS) {
-                    this.takeAction(ctx.getCreature(), new PassTurn(ctx.getCreature()));
-                    return true;
+                    handled = this.handlePass(ctx, msg);
                 }
             }
             if (handled) {
@@ -425,6 +385,17 @@ public class BattleManager implements MessageHandler, Examinable {
         }
         ctx.setBattleManager(this);
         return MessageHandler.super.handleMessage(ctx, msg);
+    }
+
+    // TODO: this is perhaps unfair
+    private boolean handlePass(CommandContext ctx, Command msg) {
+        if (this.checkTurn(ctx.getCreature())) {
+            int penalty = this.calculateWastePenalty(ctx.getCreature());
+            sendMessageToAllParticipants(new BattleTurnMessage(ctx.getCreature(), true, penalty));
+            ctx.getCreature().updateHitpoints(penalty);
+            this.endTurn();
+        }
+        return true;
     }
 
     private boolean handleSee(CommandContext ctx, Command msg) {
@@ -461,6 +432,11 @@ public class BattleManager implements MessageHandler, Examinable {
 
         Creature attacker = ctx.getCreature();
 
+        if (!this.checkTurn(attacker)) {
+
+            return true;
+        }
+
         String weaponName = aMessage.getWeapon();
         Weapon weapon;
         if (weaponName != null && weaponName.length() > 0) {
@@ -495,14 +471,17 @@ public class BattleManager implements MessageHandler, Examinable {
             return true;
         }
 
-        AttackAction attackAction = null;
+        List<Creature> targets = new ArrayList<>();
         for (String targetName : aMessage.getTargets()) {
-            Creature targetCreature = null;
             List<Creature> possTargets = this.room.getCreaturesInRoom(targetName);
             if (possTargets.size() == 1) {
-                targetCreature = possTargets.get(0);
-            }
-            if (targetCreature == null) {
+                Creature targeted = possTargets.get(0);
+                if (targeted.equals(attacker)) {
+                    attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.SELF, null));
+                    return true;
+                }
+                targets.add(targeted);
+            } else {
                 if (possTargets.size() == 0) {
                     ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, targetName, possTargets));
                 } else {
@@ -511,23 +490,17 @@ public class BattleManager implements MessageHandler, Examinable {
                 }
                 return true;
             }
-            if (attackAction == null) {
-                attackAction = new AttackAction(targetCreature, weapon);
-            } else {
-                attackAction.addTarget(targetCreature);
-            }
         }
 
-        if (attackAction == null) {
-            ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, null));
-            return true;
+        if (!this.isBattleOngoing()) {
+            this.startBattle(attacker, targets);
         }
-
-        this.takeAction(attacker, attackAction);
+        this.applyAttacks(attacker, weapon, targets);
+        endTurn();
         return true;
     }
 
-    private void callReinforcements(Creature attackingCreature, Creature targetCreature) {
+    public void callReinforcements(Creature attackingCreature, Creature targetCreature) {
         if (targetCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(targetCreature.getFaction())) {
             targetCreature.sendMsg(new ReinforcementsCall(targetCreature, true));
             return;

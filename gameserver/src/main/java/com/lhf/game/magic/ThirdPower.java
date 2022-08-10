@@ -4,20 +4,28 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.StringJoiner;
 
+import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
+import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.CastMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.CreatureAffectedMessage;
-import com.lhf.messages.out.SpellFizzleMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.out.CastingMessage;
+import com.lhf.messages.out.CreatureAffectedMessage;
+import com.lhf.messages.out.MissMessage;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.SpellFizzleMessage;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 
 public class ThirdPower implements MessageHandler {
@@ -70,6 +78,12 @@ public class ThirdPower implements MessageHandler {
             }
             return true;
         }
+        BattleManager battleManager = ctx.getBattleManager();
+        if (battleManager != null && battleManager.isBattleOngoing()) {
+            if (!battleManager.checkTurn(caster)) {
+                return true; // even if not caster's turn, we handled it
+            }
+        }
         if (entry instanceof CreatureTargetingSpellEntry) {
             CreatureTargetingSpell spell = new CreatureTargetingSpell((CreatureTargetingSpellEntry) entry);
             spell.setCaster(caster);
@@ -88,22 +102,56 @@ public class ThirdPower implements MessageHandler {
                 }
                 possTargets.add(found.get(0));
             }
-            ctx.getRoom().sendMessageToAll(entry.Cast(caster, casting.getLevel(), possTargets));
-            for (Creature target : possTargets) {
-                CreatureAffectedMessage cam = target.applyAffects(spell);
-                if (ctx.getBattleManager() != null) {
-                    ctx.getBattleManager().sendMessageToAllParticipants(cam);
-                } else if (ctx.getRoom() != null) {
-                    ctx.getRoom().sendMessageToAll(cam);
-                } else {
-                    caster.sendMsg(cam);
-                    target.sendMsg(cam);
-                }
+            CastingMessage castingMessage = entry.Cast(caster, casting.getLevel(), possTargets);
+            if (spell.isOffensive() && battleManager != null && !battleManager.isBattleOngoing()) {
+                battleManager.startBattle(caster, possTargets);
             }
-            return true;
-        } // TODO: other cases
+            this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
+            Optional<CasterVsCreatureStrategy> defense = Optional.empty();
+            if (spell.isOffensive()) {
+                defense = spell.getStrategy();
+            }
+            for (Creature target : possTargets) {
+                if (spell.isOffensive() && battleManager != null) {
+                    battleManager.checkAndHandleTurnRenegade(caster, target);
+                    if (!battleManager.isCreatureInBattle(target)) {
+                        battleManager.addCreatureToBattle(target);
+                        battleManager.callReinforcements(caster, target);
+                    }
+                    if (defense.isPresent()) {
+                        CasterVsCreatureStrategy strat = defense.get();
+                        MultiRollResult casterResult = strat.getCasterEffort();
+                        MultiRollResult targetResult = strat.getTargetEffort(target);
+                        if (casterResult.getTotal() <= targetResult.getTotal()) {
+                            battleManager.sendMessageToAllParticipants(
+                                    new MissMessage(caster, target, casterResult, targetResult));
+                            continue;
+                        }
+                    }
+                }
+                CreatureAffectedMessage cam = target.applyAffects(spell);
+                this.channelizeMessage(ctx, cam, spell.isOffensive(), caster, target);
+            }
 
+        } // TODO: other cases
+        if (battleManager != null && battleManager.isCreatureInBattle(caster)) {
+            battleManager.endTurn(caster);
+        }
         return true;
+    }
+
+    private void channelizeMessage(CommandContext ctx, OutMessage message, boolean includeBattle,
+            ClientMessenger... directs) {
+        BattleManager bm = ctx.getBattleManager();
+        if (includeBattle && bm != null && bm.isBattleOngoing()) {
+            bm.sendMessageToAllParticipants(message);
+        } else if (ctx.getRoom() != null) {
+            ctx.getRoom().sendMessageToAll(message);
+        } else if (directs != null) {
+            for (ClientMessenger direct : directs) {
+                direct.sendMsg(message);
+            }
+        }
     }
 
     @Override
