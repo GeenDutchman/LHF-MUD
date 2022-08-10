@@ -68,4 +68,12 @@ public class RoomTargetingSpell extends ISpell implements RoomEffector {
         return creaturesToBanish;
     }
 
+    @Override
+    public boolean isOffensive() {
+        if (this.getCreaturesToBanish().size() > 0) {
+            return true;
+        }
+        return false;
+    }
+
 }
