@@ -17,16 +17,18 @@ public abstract class Dice implements Taggable {
             return this.roll;
         }
 
-        public RollResult twice() {
-            return new RollResult(this.roll * 2);
-        }
-
-        public RollResult flipSign() {
+        public RollResult negative() {
+            if (this.roll <= 0) {
+                return this;
+            }
             return new RollResult(this.roll * -1);
         }
 
-        public RollResult half() {
-            return new RollResult(this.roll / 2);
+        public RollResult positive() {
+            if (this.roll >= 0) {
+                return this;
+            }
+            return new RollResult(this.roll * -1);
         }
 
         @Override
@@ -53,11 +55,6 @@ public abstract class Dice implements Taggable {
     }
 
     public Dice(int count, DieType type) {
-        this.count = count;
-        this.type = type;
-    }
-
-    public Dice(int count, DieType type, int bonus) {
         this.count = count;
         this.type = type;
     }

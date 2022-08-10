@@ -63,15 +63,6 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
         return this;
     }
 
-    public MultiRollResult twiceDice() {
-        List<RollResult> next = new ArrayList<>();
-        for (RollResult rr : this.rolls) {
-            next.add(rr.twice());
-        }
-        this.rolls = next;
-        return this;
-    }
-
     public int getTotal() {
         int sum = 0;
         for (RollResult rr : this.rolls) {
