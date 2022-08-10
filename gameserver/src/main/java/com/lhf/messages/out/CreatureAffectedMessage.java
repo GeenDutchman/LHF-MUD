@@ -35,7 +35,12 @@ public class CreatureAffectedMessage extends OutMessage {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
-        sj.add(this.effects.getGeneratedBy().getColorTaggedName());
+        if (this.effects.creatureResponsible() != null) {
+            sj.add(this.effects.creatureResponsible().getColorTaggedName()).add("used");
+            sj.add(this.effects.getGeneratedBy().getColorTaggedName()).add("and thus");
+        } else {
+            sj.add(this.effects.getGeneratedBy().getColorTaggedName());
+        }
         MultiRollResult damageResults = this.effects.getDamageResult();
         if (damageResults != null) {
             sj.add("has dealt");
@@ -68,7 +73,7 @@ public class CreatureAffectedMessage extends OutMessage {
             sj.add("\r\n");
         }
         if (this.effects.isRestoreFaction()) {
-            sj.add("And will attempt to restore").add(this.affected.getColorTaggedName() + "'s").add("faction");
+            sj.add(this.affected.getColorTaggedName() + "'s").add("faction will be restored!");
         }
         return sj.toString();
     }
