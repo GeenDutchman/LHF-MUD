@@ -2,6 +2,7 @@ package com.lhf.game.magic.strategies;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.dice.DiceDC;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.magic.CubeHolder;
@@ -18,14 +19,14 @@ public class TargetCheckVsCasterDc extends CasterVsCreatureStrategy {
     }
 
     @Override
-    public RollResult getTargetEffort(Creature target) {
+    public MultiRollResult getTargetEffort(Creature target) {
         return target.check(this.getAttrToUse());
     }
 
     @Override
     public void setCasterEffort(Creature caster) {
         CubeHolder ch = (CubeHolder) caster.getVocation().get();
-        this.setCasterEffort(new DiceDC(ch.getCasterDifficulty()).rollDice());
+        this.setCasterEffort(new MultiRollResult(new DiceDC(ch.getCasterDifficulty()).rollDice()));
     }
 
 }
