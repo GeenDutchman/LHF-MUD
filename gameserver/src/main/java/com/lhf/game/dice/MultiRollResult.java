@@ -95,8 +95,10 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
             sum += rr.getRoll();
         }
         for (int bonus : this.bonuses) {
-            sj.add(String.valueOf(bonus));
-            sum += bonus;
+            if (bonus != 0) {
+                sj.add(String.valueOf(bonus));
+                sum += bonus;
+            }
         }
         return sj.toString() + "=" + String.valueOf(sum);
     }
