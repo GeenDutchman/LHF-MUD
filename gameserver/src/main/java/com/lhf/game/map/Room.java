@@ -3,6 +3,8 @@ package com.lhf.game.map;
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
+import org.mockito.exceptions.misusing.UnfinishedStubbingException;
+
 import com.lhf.game.Container;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
@@ -13,9 +15,6 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.InteractObject;
 import com.lhf.game.item.interfaces.Takeable;
-import com.lhf.game.magic.CreatureTargetingSpell;
-import com.lhf.game.magic.ISpell;
-import com.lhf.game.magic.RoomTargetingSpell;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -29,7 +28,6 @@ import com.lhf.messages.out.*;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
-import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 import com.lhf.messages.out.TakeOutMessage.TakeOutType;
 import com.lhf.server.client.user.UserID;
 
@@ -352,36 +350,19 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return seeOutMessage;
     }
 
-    public void cast(Creature caster, ISpell spell) {
-        if (spell instanceof RoomTargetingSpell) {
-            this.sendMessageToAll(spell.Cast());
-            return;
+    public OutMessage applyAffects(RoomEffector effector) {
+        // TODO: make banishing work!
+        if (effector.getCreaturesToBanish().size() > 0 || effector.getCreaturesToBanish().size() > 0) {
+            throw new UnfinishedStubbingException("We don't have this yet");
         }
-        if (spell instanceof CreatureTargetingSpell) {
-            CreatureTargetingSpell creatureSpell = (CreatureTargetingSpell) spell;
-            if (creatureSpell instanceof DamageSpell) {
-                if (!caster.isInBattle()) {
-                    this.battleManager.addCreatureToBattle(caster);
-                }
-                for (Creature target : creatureSpell.getTargets()) {
-                    if (!target.isInBattle()) {
-                        this.battleManager.addCreatureToBattle(target);
-                    }
-                }
-                if (!this.battleManager.isBattleOngoing()) {
-                    this.battleManager.startBattle(caster);
-                }
-                this.battleManager.takeAction(caster, creatureSpell);
-                return;
-            }
-            this.sendMessageToAll(spell.Cast());
-            for (Creature target : creatureSpell.getTargets()) {
-                this.sendMessageToAll(target.applySpell(creatureSpell));
-            }
-            return;
+
+        for (Item item : effector.getItemsToSummon()) {
+            this.addItem(item);
         }
-        caster.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
-        return;
+        for (Creature creature : effector.getCreaturesToSummon()) {
+            this.addCreature(creature);
+        }
+        return null; // TODO: return the effects!
     }
 
     public void sendMessageToAll(OutMessage message) {
