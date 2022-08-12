@@ -351,49 +351,74 @@ public abstract class Creature
         return Objects.requireNonNullElseGet(weapon, Fist::new);
     }
 
-    protected MultiRollResult adjustDamageByFlavor(MultiRollResult mrr) {
+    protected MultiRollResult adjustDamageByFlavor(MultiRollResult mrr, boolean reverse) {
         ArrayList<RollResult> adjusted = new ArrayList<>();
         for (RollResult rr : mrr) {
             if (rr instanceof FlavoredRollResult) {
                 FlavoredRollResult frr = (FlavoredRollResult) rr;
                 switch (frr.getFlavor()) {
                     case HEALING:
-                        adjusted.add(rr);
+                        if (reverse) {
+                            adjusted.add(rr.negative());
+                        } else {
+                            adjusted.add(rr);
+                        }
                         break;
                     default:
-                        adjusted.add(rr.negative());
+                        if (reverse) {
+                            adjusted.add(rr);
+                        } else {
+                            adjusted.add(rr.negative());
+                        }
                         break;
                 }
             } else {
-                adjusted.add(rr);
+                if (reverse) {
+                    adjusted.add(rr.negative());
+                } else {
+                    adjusted.add(rr);
+                }
             }
         }
         return new MultiRollResult(adjusted, mrr.getBonuses());
     }
 
-    public CreatureAffectedMessage applyAffects(CreatureEffector effector) {
-        MultiRollResult mrr = this.adjustDamageByFlavor(effector.getDamageResult());
+    public CreatureAffectedMessage applyAffects(CreatureEffector effector, boolean reverse) {
+        MultiRollResult mrr = this.adjustDamageByFlavor(effector.getDamageResult(), reverse);
         effector.updateDamageResult(mrr);
         this.updateHitpoints(mrr.getRoll());
         for (Stats delta : effector.getStatChanges().keySet()) {
-            this.updateStat(delta, effector.getStatChanges().get(delta));
+            int amount = effector.getStatChanges().get(delta);
+            if (reverse) {
+                amount = amount * -1;
+            }
+            this.updateStat(delta, amount);
         }
         if (this.isAlive()) {
             for (Attributes delta : effector.getAttributeScoreChanges().keySet()) {
-                this.updateAttribute(delta, effector.getAttributeScoreChanges().get(delta));
+                int amount = effector.getAttributeScoreChanges().get(delta);
+                if (reverse) {
+                    amount = amount * -1;
+                }
+                this.updateAttribute(delta, amount);
             }
             for (Attributes delta : effector.getAttributeBonusChanges().keySet()) {
-                this.updateModifier(delta, effector.getAttributeBonusChanges().get(delta));
+                int amount = effector.getAttributeBonusChanges().get(delta);
+                if (reverse) {
+                    amount = amount * -1;
+                }
+                this.updateModifier(delta, amount);
             }
-            if (effector.getPersistence().getTickSize() != TickType.INSTANT) {
+            if (!reverse && effector.getPersistence().getTickSize() != TickType.INSTANT) {
                 this.effects.add(effector);
             }
+            // for now...cannot curse someone with being a renegade
             if (effector.isRestoreFaction()) {
                 this.restoreFaction();
             }
         }
 
-        CreatureAffectedMessage camOut = new CreatureAffectedMessage(this, effector);
+        CreatureAffectedMessage camOut = new CreatureAffectedMessage(this, effector, reverse);
         return camOut;
     }
 
