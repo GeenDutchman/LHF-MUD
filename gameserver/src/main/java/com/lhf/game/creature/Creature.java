@@ -385,7 +385,7 @@ public abstract class Creature
             for (Attributes delta : effector.getAttributeBonusChanges().keySet()) {
                 this.updateModifier(delta, effector.getAttributeBonusChanges().get(delta));
             }
-            if (effector.getPersistence() == EffectPersistence.DURATION) {
+            if (effector.getPersistence() != EffectPersistence.INSTANT) {
                 this.effects.add(effector);
             }
             if (effector.isRestoreFaction()) {
