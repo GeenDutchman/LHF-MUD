@@ -11,7 +11,7 @@ public class DMBlessing extends CreatureTargetingSpellEntry {
     public static final String name = "DMBlessing";
 
     public DMBlessing() {
-        super(10, DMBlessing.name, "I bless you", EffectPersistence.DURATION,
+        super(10, DMBlessing.name, "I bless you", EffectPersistence.CONDITIONAL,
                 "Blesses the target with extra stats and attributes, and does extra stuff for NPC's.",
                 true, false, VocationName.DUNGEON_MASTER);
 

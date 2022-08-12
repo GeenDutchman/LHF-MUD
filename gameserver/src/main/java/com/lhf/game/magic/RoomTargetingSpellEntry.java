@@ -48,7 +48,7 @@ public class RoomTargetingSpellEntry extends SpellEntry {
 
     public RoomTargetingSpellEntry(Integer level, String name, String description,
             boolean banishesItems, boolean banishesCreatures, VocationName... allowed) {
-        super(level, name, EffectPersistence.DURATION, description, allowed);
+        super(level, name, EffectPersistence.CONDITIONAL, description, allowed);
         this.banishesItems = banishesItems;
         this.banishesCreatures = banishesCreatures;
         this.init();
@@ -64,7 +64,7 @@ public class RoomTargetingSpellEntry extends SpellEntry {
 
     public RoomTargetingSpellEntry(Integer level, String name, String invocation,
             String description, boolean banishesItems, boolean banishesCreatures, VocationName... allowed) {
-        super(level, name, invocation, EffectPersistence.DURATION, description, allowed);
+        super(level, name, invocation, EffectPersistence.CONDITIONAL, description, allowed);
         this.banishesItems = banishesItems;
         this.banishesCreatures = banishesCreatures;
         this.init();
