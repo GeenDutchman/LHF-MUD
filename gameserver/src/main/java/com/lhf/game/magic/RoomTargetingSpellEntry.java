@@ -5,7 +5,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.lhf.Taggable;
-import com.lhf.game.EntityEffector.EffectPersistence;
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
@@ -48,7 +49,7 @@ public class RoomTargetingSpellEntry extends SpellEntry {
 
     public RoomTargetingSpellEntry(Integer level, String name, String description,
             boolean banishesItems, boolean banishesCreatures, VocationName... allowed) {
-        super(level, name, EffectPersistence.CONDITIONAL, description, allowed);
+        super(level, name, new EffectPersistence(TickType.CONDITIONAL), description, allowed);
         this.banishesItems = banishesItems;
         this.banishesCreatures = banishesCreatures;
         this.init();
@@ -64,7 +65,7 @@ public class RoomTargetingSpellEntry extends SpellEntry {
 
     public RoomTargetingSpellEntry(Integer level, String name, String invocation,
             String description, boolean banishesItems, boolean banishesCreatures, VocationName... allowed) {
-        super(level, name, invocation, EffectPersistence.CONDITIONAL, description, allowed);
+        super(level, name, invocation, new EffectPersistence(TickType.CONDITIONAL), description, allowed);
         this.banishesItems = banishesItems;
         this.banishesCreatures = banishesCreatures;
         this.init();

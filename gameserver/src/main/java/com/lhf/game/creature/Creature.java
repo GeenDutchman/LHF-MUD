@@ -3,7 +3,7 @@ package com.lhf.game.creature;
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
-import com.lhf.game.EntityEffector.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.Inventory;
@@ -385,7 +385,7 @@ public abstract class Creature
             for (Attributes delta : effector.getAttributeBonusChanges().keySet()) {
                 this.updateModifier(delta, effector.getAttributeBonusChanges().get(delta));
             }
-            if (effector.getPersistence() != EffectPersistence.INSTANT) {
+            if (effector.getPersistence().getTickSize() != TickType.INSTANT) {
                 this.effects.add(effector);
             }
             if (effector.isRestoreFaction()) {

@@ -1,6 +1,7 @@
 package com.lhf.game.magic.concrete;
 
-import com.lhf.game.EntityEffector.EffectPersistence;
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
@@ -11,7 +12,7 @@ public class DMBlessing extends CreatureTargetingSpellEntry {
     public static final String name = "DMBlessing";
 
     public DMBlessing() {
-        super(10, DMBlessing.name, "I bless you", EffectPersistence.CONDITIONAL,
+        super(10, DMBlessing.name, "I bless you", new EffectPersistence(TickType.CONDITIONAL),
                 "Blesses the target with extra stats and attributes, and does extra stuff for NPC's.",
                 true, false, VocationName.DUNGEON_MASTER);
 

@@ -3,7 +3,8 @@ package com.lhf.game.magic.concrete;
 import java.util.List;
 
 import com.lhf.Taggable;
-import com.lhf.game.EntityEffector.EffectPersistence;
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.magic.RoomTargetingSpellEntry;
 import com.lhf.messages.out.CastingMessage;
@@ -11,7 +12,8 @@ import com.lhf.messages.out.CastingMessage;
 public class Thaumaturgy extends RoomTargetingSpellEntry {
 
     public Thaumaturgy() {
-        super(0, "Thaumaturgy", "zarmamoo", EffectPersistence.INSTANT, "A way to magically announce your presence",
+        super(0, "Thaumaturgy", "zarmamoo", new EffectPersistence(TickType.INSTANT),
+                "A way to magically announce your presence",
                 false, false);
     }
 

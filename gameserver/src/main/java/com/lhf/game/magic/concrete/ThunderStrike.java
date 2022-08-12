@@ -4,7 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.lhf.Taggable;
-import com.lhf.game.EntityEffector.EffectPersistence;
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DamageDice;
@@ -16,7 +17,7 @@ import com.lhf.messages.out.CastingMessage;
 public class ThunderStrike extends CreatureTargetingSpellEntry {
 
     public ThunderStrike() {
-        super(1, "Thunder Strike", "Bonearge Laarzen", EffectPersistence.INSTANT,
+        super(1, "Thunder Strike", "Bonearge Laarzen", new EffectPersistence(TickType.INSTANT),
                 "A small but loud bolt of electricity shocks a creature you choose as a target",
                 true, false, VocationName.MAGE);
         this.damages = Arrays.asList(new DamageDice(1, DieType.SIX, DamageFlavor.THUNDER),

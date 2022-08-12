@@ -30,7 +30,11 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
     public EffectPersistence(int count, @NotNull TickType tickSize) {
         this.tickSize = tickSize;
         this.initCount(count);
+    }
 
+    public EffectPersistence(EffectPersistence persistence) {
+        this.tickSize = persistence.tickSize;
+        this.count = persistence.count;
     }
 
     public int getCount() {

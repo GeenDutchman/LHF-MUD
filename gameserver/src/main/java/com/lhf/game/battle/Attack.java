@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.lhf.Taggable;
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffector;
 import com.lhf.game.creature.statblock.AttributeBlock;
@@ -150,6 +152,6 @@ public class Attack implements CreatureEffector {
 
     @Override
     public EffectPersistence getPersistence() {
-        return EffectPersistence.INSTANT;
+        return new EffectPersistence(TickType.INSTANT);
     }
 }
