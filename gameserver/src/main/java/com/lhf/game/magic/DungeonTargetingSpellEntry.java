@@ -3,7 +3,7 @@ package com.lhf.game.magic;
 import java.util.List;
 
 import com.lhf.Taggable;
-import com.lhf.game.EntityEffector.EffectPersistence;
+import com.lhf.game.EffectPersistence;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.messages.out.CastingMessage;
