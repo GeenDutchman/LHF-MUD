@@ -7,7 +7,7 @@ import java.util.StringJoiner;
 import java.util.TreeMap;
 
 import com.lhf.Taggable;
-import com.lhf.game.EntityEffector.EffectPersistence;
+import com.lhf.game.EffectPersistence;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DamageDice;
