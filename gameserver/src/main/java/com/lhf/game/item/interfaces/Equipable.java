@@ -11,7 +11,7 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class Equipable extends Usable {
-
+    // TODO: make this creauture effecture
     public Equipable(String name, boolean isVisible) {
         super(name, isVisible, -1);
     }

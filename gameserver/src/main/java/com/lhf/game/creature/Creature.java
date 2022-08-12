@@ -376,18 +376,14 @@ public abstract class Creature
         effector.updateDamageResult(mrr);
         this.updateHitpoints(mrr.getRoll());
         for (Stats delta : effector.getStatChanges().keySet()) {
-            Integer theStat = this.stats.get(delta) + effector.getStatChanges().get(delta);
-            this.stats.put(delta, theStat);
+            this.updateStat(delta, effector.getStatChanges().get(delta));
         }
         if (this.isAlive()) {
             for (Attributes delta : effector.getAttributeScoreChanges().keySet()) {
-                Integer theAttr = this.attributeBlock.getScore(delta) + effector.getAttributeScoreChanges().get(delta);
-                this.attributeBlock.setScore(delta, theAttr);
+                this.updateAttribute(delta, effector.getAttributeScoreChanges().get(delta));
             }
             for (Attributes delta : effector.getAttributeBonusChanges().keySet()) {
-                Integer theAttr = this.attributeBlock.getModBonus(delta)
-                        + effector.getAttributeBonusChanges().get(delta);
-                this.attributeBlock.setModBonus(delta, theAttr);
+                this.updateModifier(delta, effector.getAttributeBonusChanges().get(delta));
             }
             if (effector.getPersistence() == EffectPersistence.DURATION) {
                 this.effects.add(effector);
