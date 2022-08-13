@@ -6,17 +6,49 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.CreatureEffector.BasicCreatureEffector;
 import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.interfaces.Equipable;
+import com.lhf.game.item.interfaces.UseAction.UseageResult;
+import com.lhf.messages.OutMessagePair;
+import com.lhf.messages.out.UseOutMessage;
+import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 
 public class CarnivorousArmor extends Equipable {
+    private class EatingResults extends BasicCreatureEffector {
+        private int eatsHealth;
+
+        EatingResults(Creature causer, int eatsHealth) {
+            super(causer, CarnivorousArmor.this, new EffectPersistence(TickType.INSTANT));
+            this.eatsHealth = eatsHealth;
+        }
+
+        @Override
+        public Map<Stats, Integer> getStatChanges() {
+            return Map.of(Stats.CURRENTHP, -1 * eatsHealth);
+        }
+
+    }
+
+    private class EatingACResults extends BasicCreatureEffector {
+        EatingACResults(Creature creatureResponsible) {
+            super(creatureResponsible, CarnivorousArmor.this, new EffectPersistence(TickType.INSTANT));
+        }
+
+        @Override
+        public Map<Stats, Integer> getStatChanges() {
+            return Map.of(Stats.AC, 3);
+        }
+    }
+
     private int AC = 2;
     private int eatsHealthTo = 5;
-    private int rewardAC = 3;
     private boolean equipped = false;
     private boolean equippedAndUsed = false;
 
@@ -57,31 +89,47 @@ public class CarnivorousArmor extends Equipable {
         this.equipped = true;
         this.equippedAndUsed = false;
 
-        setUseAction(newOwner.getName(), (object) -> {
+        setUseAction(newOwner.getName(), (ctx, object) -> {
             if (!equipped) {
-                return "You need to equip this item in order to use it.";
+                return new UseageResult(new OutMessagePair(null).addDirected(ctx,
+                        new UseOutMessage(UseOutMessageOption.REQUIRE_EQUIPPED, ctx.getCreature(), this, null)), null);
             }
             if (object == null) {
-                return "That is not a valid target at all!";
+                return new UseageResult(new OutMessagePair(null).addDirected(ctx,
+                        new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, null)), null);
+
             } else if (object instanceof Creature) {
+                Creature target = (Creature) object;
                 if (equippedAndUsed) {
-                    return "The " + this.getColorTaggedName()
+                    String snuggle = "The " + this.getColorTaggedName()
                             + " snuggles around you as you poke at it, but otherwise does nothing.";
+                    return new UseageResult(new OutMessagePair(null).addDirected(ctx,
+                            new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target, snuggle)), null);
                 }
-                Integer currHealth = ((Creature) object).getStats().get(Stats.CURRENTHP);
+                Integer currHealth = target.getStats().get(Stats.CURRENTHP);
                 if (currHealth > eatsHealthTo) {
                     int diff = currHealth - eatsHealthTo;
-                    ((Creature) object).updateHitpoints(-1 * diff);
-                    ((Creature) object).updateAc(rewardAC);
-                    equippedAndUsed = true;
-                    return "A thousand teeth sink into your body, and you feel life force ripped out of you.  " +
+                    EatingResults useResults = new EatingResults(ctx.getCreature(), diff);
+                    EatingACResults eatingACResults = new EatingACResults(ctx.getCreature());
+                    String eatDescription = "A thousand teeth sink into your body, and you feel life force ripped out of you.  "
+                            +
                             "Once it is sated, you feel the " + this.getColorTaggedName() +
                             " tighten up around its most recent, precious meal.  It leaves the rest for later.";
+                    equippedAndUsed = true;
+                    return new UseageResult(new OutMessagePair(null).addDirected(ctx,
+                            new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target, eatDescription)),
+                            useResults).addEffect(eatingACResults);
                 } else {
-                    return "You need more health to use this item.";
+                    String moreNeeded = "You need more health to use this item.";
+                    return new UseageResult(new OutMessagePair(null).addDirected(ctx,
+                            new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, target,
+                                    moreNeeded)),
+                            null);
                 }
             }
-            return "You cannot use this on that!  You can only use it on yourself.";
+            String notUse = "You cannot use this on that!  You can only use it on yourself.";
+            return new UseageResult(new OutMessagePair(null).addDirected(ctx,
+                    new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, null, notUse)), null);
         });
 
         return super.onEquippedBy(newOwner);
