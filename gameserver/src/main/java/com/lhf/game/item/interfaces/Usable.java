@@ -6,7 +6,10 @@ import java.util.Map;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.item.Item;
 import com.lhf.game.map.Room;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.UseMessage;
+import com.lhf.messages.out.UseMessage.UseMessageOption;
 
 public abstract class Usable extends Takeable {
     private Integer numCanUseTimes;
@@ -45,12 +48,12 @@ public abstract class Usable extends Takeable {
         return (numCanUseTimes < 0) || (hasBeenUsedTimes < numCanUseTimes);
     }
 
-    public String doUseAction(Object usingOn) {
+    public OutMessage doUseAction(Object usingOn) {
         if (methods == null || usingOn == null) {
-            return "You cannot use this like that!";
+            return new UseMessage(UseMessageOption.NO_USES, this, null);
         }
         if (!hasUsesLeft()) {
-            return "This item has been used up.";
+            return new UseMessage(UseMessageOption.USED_UP, this, null);
         }
 
         UseAction method = null;
@@ -81,7 +84,7 @@ public abstract class Usable extends Takeable {
         }
 
         if (method == null) {
-            return "You cannot use " + this.getColorTaggedName() + " on that!";
+            return new UseMessage(UseMessageOption.NO_USES, this, null);
         }
 
         if (numCanUseTimes > 0) {

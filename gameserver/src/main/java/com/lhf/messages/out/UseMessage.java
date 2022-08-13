@@ -1,18 +1,19 @@
 package com.lhf.messages.out;
 
+import com.lhf.Taggable;
 import com.lhf.game.item.interfaces.Usable;
 import com.lhf.messages.OutMessageType;
 
 public class UseMessage extends OutMessage {
     public enum UseMessageOption {
-        OK, USED_UP, NO_USES;
+        OK, USED_UP, NO_USES, REQUIRE_EQUIPPED;
     }
 
     private UseMessageOption umo;
     private Usable usable;
-    private String target;
+    private Taggable target;
 
-    public UseMessage(UseMessageOption umo, Usable usable, String target) {
+    public UseMessage(UseMessageOption umo, Usable usable, Taggable target) {
         super(OutMessageType.USE);
         this.umo = umo;
         this.usable = usable;
@@ -27,7 +28,7 @@ public class UseMessage extends OutMessage {
         return usable;
     }
 
-    public String getTarget() {
+    public Taggable getTarget() {
         return target;
     }
 
@@ -38,6 +39,8 @@ public class UseMessage extends OutMessage {
                 return "You cannot use this " + this.usable.getColorTaggedName() + " like that!";
             case USED_UP:
                 return "This " + this.usable.getColorTaggedName() + " has been used up.";
+            case REQUIRE_EQUIPPED:
+                return "You need to have this " + this.usable.getColorTaggedName() + " equipped in order to use it!";
             case OK:
             default:
                 return "You used " + this.usable.getColorTaggedName();
