@@ -8,8 +8,8 @@ import com.lhf.game.item.Item;
 import com.lhf.game.map.Room;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.UseMessage;
-import com.lhf.messages.out.UseMessage.UseMessageOption;
+import com.lhf.messages.out.UseOutMessage;
+import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 
 public abstract class Usable extends Takeable {
     private Integer numCanUseTimes;
@@ -50,10 +50,10 @@ public abstract class Usable extends Takeable {
 
     public OutMessage doUseAction(Object usingOn) {
         if (methods == null || usingOn == null) {
-            return new UseMessage(UseMessageOption.NO_USES, this, null);
+            return new UseOutMessage(UseOutMessageOption.NO_USES, this, null);
         }
         if (!hasUsesLeft()) {
-            return new UseMessage(UseMessageOption.USED_UP, this, null);
+            return new UseOutMessage(UseOutMessageOption.USED_UP, this, null);
         }
 
         UseAction method = null;
@@ -84,7 +84,7 @@ public abstract class Usable extends Takeable {
         }
 
         if (method == null) {
-            return new UseMessage(UseMessageOption.NO_USES, this, null);
+            return new UseOutMessage(UseOutMessageOption.NO_USES, this, null);
         }
 
         if (numCanUseTimes > 0) {

@@ -4,24 +4,24 @@ import com.lhf.Taggable;
 import com.lhf.game.item.interfaces.Usable;
 import com.lhf.messages.OutMessageType;
 
-public class UseMessage extends OutMessage {
-    public enum UseMessageOption {
+public class UseOutMessage extends OutMessage {
+    public enum UseOutMessageOption {
         OK, USED_UP, NO_USES, REQUIRE_EQUIPPED;
     }
 
-    private UseMessageOption umo;
+    private UseOutMessageOption uomo;
     private Usable usable;
     private Taggable target;
 
-    public UseMessage(UseMessageOption umo, Usable usable, Taggable target) {
+    public UseOutMessage(UseOutMessageOption uomo, Usable usable, Taggable target) {
         super(OutMessageType.USE);
-        this.umo = umo;
+        this.uomo = uomo;
         this.usable = usable;
         this.target = target;
     }
 
-    public UseMessageOption getUmo() {
-        return umo;
+    public UseOutMessageOption getUmo() {
+        return uomo;
     }
 
     public Usable getUsable() {
@@ -34,7 +34,7 @@ public class UseMessage extends OutMessage {
 
     @Override
     public String toString() {
-        switch (this.umo) {
+        switch (this.uomo) {
             case NO_USES:
                 return "You cannot use this " + this.usable.getColorTaggedName() + " like that!";
             case USED_UP:
