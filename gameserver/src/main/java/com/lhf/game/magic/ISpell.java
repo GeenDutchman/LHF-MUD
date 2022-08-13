@@ -6,7 +6,7 @@ import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EntityEffector;
-import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.SeeOutMessage;
 
@@ -14,12 +14,12 @@ public abstract class ISpell implements EntityEffector, Taggable, Examinable {
     private final String className;
     protected final SpellEntry entry;
     protected transient Creature caster;
-    protected EffectPersistence timeLeft;
+    protected Ticker timeLeft;
 
     public ISpell(SpellEntry entry) {
         this.className = this.getClass().getName();
         this.entry = entry;
-        this.timeLeft = new EffectPersistence(entry.getPersistence());
+        this.timeLeft = entry.getPersistence().getTicker();
     }
 
     public ISpell setCaster(Creature caster) {
@@ -58,12 +58,9 @@ public abstract class ISpell implements EntityEffector, Taggable, Examinable {
         return this.entry.getPersistence();
     }
 
-    public EffectPersistence getTimeLeft() {
+    @Override
+    public Ticker getTicker() {
         return timeLeft;
-    }
-
-    public int tick(TickType type) {
-        return this.timeLeft.tick(type);
     }
 
     @Override

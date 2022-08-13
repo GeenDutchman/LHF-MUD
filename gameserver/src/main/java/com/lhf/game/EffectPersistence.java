@@ -9,10 +9,55 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
         INSTANT, ACTION, BATTLE, ROOM, CONDITIONAL;
     }
 
-    private int count;
+    public class Ticker {
+        private int countdown;
+
+        public Ticker(int countdown) {
+            this.countdown = countdown;
+        }
+
+        public int tick(TickType type) {
+            if (EffectPersistence.this.getTickSize().equals(type) && this.countdown > 0) {
+                this.countdown = this.countdown - 1;
+            }
+            return this.countdown;
+        }
+
+        public int getCountdown() {
+            return countdown;
+        }
+
+        @Override
+        public String toString() {
+            if (this.countdown > 0) {
+                return String.valueOf(this.countdown) + "/" + EffectPersistence.this.toString();
+            }
+            return EffectPersistence.this.toString();
+        }
+
+        public int getCount() {
+            return count;
+        }
+
+        public TickType getTickSize() {
+            return tickSize;
+        }
+    }
+
+    private final int count;
     private final TickType tickSize;
 
-    private void initCount(int count) {
+    public EffectPersistence(@NotNull TickType tickSize) {
+        this.tickSize = tickSize;
+        if (TickType.CONDITIONAL.equals(tickSize)) {
+            this.count = -1;
+        } else {
+            this.count = 1;
+        }
+    }
+
+    public EffectPersistence(int count, @NotNull TickType tickSize) {
+        this.tickSize = tickSize;
         if (TickType.INSTANT.equals(tickSize)) {
             this.count = 1;
         } else if (TickType.CONDITIONAL.equals(tickSize)) {
@@ -20,16 +65,6 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
         } else {
             this.count = count;
         }
-    }
-
-    public EffectPersistence(@NotNull TickType tickSize) {
-        this.tickSize = tickSize;
-        this.initCount(1);
-    }
-
-    public EffectPersistence(int count, @NotNull TickType tickSize) {
-        this.tickSize = tickSize;
-        this.initCount(count);
     }
 
     public EffectPersistence(EffectPersistence persistence) {
@@ -45,11 +80,8 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
         return tickSize;
     }
 
-    public int tick(TickType type) {
-        if (this.tickSize.equals(type) && this.count > 0) {
-            this.count = this.count - 1;
-        }
-        return this.count;
+    public Ticker getTicker() {
+        return new Ticker(this.count);
     }
 
     @Override

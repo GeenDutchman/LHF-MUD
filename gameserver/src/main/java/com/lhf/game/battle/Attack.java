@@ -8,6 +8,7 @@ import java.util.TreeMap;
 import com.lhf.Taggable;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffector;
 import com.lhf.game.creature.statblock.AttributeBlock;
@@ -28,6 +29,7 @@ public class Attack implements CreatureEffector {
     private List<DamageDice> damages;
     private MultiRollResult damageDone;
     private boolean restoreFaction;
+    private Ticker ticker;
 
     public Attack(Creature attacker, Weapon weapon) {
         this.attacker = attacker;
@@ -38,6 +40,7 @@ public class Attack implements CreatureEffector {
         this.damages = new ArrayList<>(weapon.getDamages());
         this.damageDone = null;
         this.restoreFaction = false;
+        this.ticker = null;
         this.calculateHitAndDamage();
     }
 
@@ -153,5 +156,13 @@ public class Attack implements CreatureEffector {
     @Override
     public EffectPersistence getPersistence() {
         return new EffectPersistence(TickType.INSTANT);
+    }
+
+    @Override
+    public Ticker getTicker() {
+        if (this.ticker == null) {
+            this.ticker = this.getPersistence().getTicker();
+        }
+        return this.ticker;
     }
 }
