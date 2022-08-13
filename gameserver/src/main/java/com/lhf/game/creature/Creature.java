@@ -422,6 +422,20 @@ public abstract class Creature
         return camOut;
     }
 
+    public CreatureAffectedMessage applyAffects(CreatureEffector effector) {
+        return this.applyAffects(effector, false);
+    }
+
+    public void tick(TickType type) {
+        this.effects.removeIf(effect -> {
+            if (effect.tick(type) == 0) {
+                this.applyAffects(effect, true);
+                return true;
+            }
+            return false;
+        });
+    }
+
     private int getHealth() {
         return stats.get(Stats.CURRENTHP);
     }
@@ -750,6 +764,7 @@ public abstract class Creature
         }
 
         if (handled) {
+            this.tick(TickType.ACTION);
             return handled;
         }
         ctx.setCreature(this);

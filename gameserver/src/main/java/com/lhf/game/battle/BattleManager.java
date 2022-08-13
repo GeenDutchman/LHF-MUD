@@ -12,6 +12,7 @@ import java.util.StringJoiner;
 import java.util.logging.Logger;
 
 import com.lhf.Examinable;
+import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.dice.MultiRollResult;
@@ -158,6 +159,7 @@ public class BattleManager implements MessageHandler, Examinable {
         for (Creature creature : participants) {
             creature.sendMsg(new FightOverMessage(true));
             creature.setInBattle(false);
+            creature.tick(TickType.BATTLE);
         }
         participants.clear();
         this.room.sendMessageToAll(new FightOverMessage(false));

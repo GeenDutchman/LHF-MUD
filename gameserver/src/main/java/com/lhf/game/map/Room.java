@@ -6,6 +6,7 @@ import java.util.regex.PatternSyntaxException;
 import org.mockito.exceptions.misusing.UnfinishedStubbingException;
 
 import com.lhf.game.Container;
+import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Monster;
@@ -137,6 +138,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         }
         if (this.allCreatures.contains(c)) {
             this.allCreatures.remove(c);
+            c.tick(TickType.ROOM);
             if (this.allCreatures.size() < 2) {
                 this.commands.remove(CommandMessage.ATTACK);
             }
