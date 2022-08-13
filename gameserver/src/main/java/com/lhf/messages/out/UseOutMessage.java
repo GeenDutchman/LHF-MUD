@@ -14,6 +14,7 @@ public class UseOutMessage extends OutMessage {
     private Creature itemUser;
     private Usable usable;
     private Taggable target;
+    private String message;
 
     public UseOutMessage(UseOutMessageOption uomo, Creature itemUser, Usable usable, Taggable target) {
         super(OutMessageType.USE);
@@ -21,6 +22,16 @@ public class UseOutMessage extends OutMessage {
         this.itemUser = itemUser;
         this.usable = usable;
         this.target = target;
+        this.message = null;
+    }
+
+    public UseOutMessage(UseOutMessageOption uomo, Creature itemUser, Usable usable, Taggable target, String message) {
+        super(OutMessageType.USE);
+        this.uomo = uomo;
+        this.itemUser = itemUser;
+        this.usable = usable;
+        this.target = target;
+        this.message = message;
     }
 
     public UseOutMessageOption getUomo() {
@@ -39,6 +50,10 @@ public class UseOutMessage extends OutMessage {
         return target;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
     @Override
     public String toString() {
         switch (this.uomo) {
@@ -50,7 +65,7 @@ public class UseOutMessage extends OutMessage {
                 return "You need to have this " + this.usable.getColorTaggedName() + " equipped in order to use it!";
             case OK:
             default:
-                return "You used " + this.usable.getColorTaggedName();
+                return this.message == null ? "You used " + this.usable.getColorTaggedName() : this.getMessage();
 
         }
     }
