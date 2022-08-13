@@ -1,5 +1,7 @@
 package com.lhf.messages.out;
 
+import java.util.StringJoiner;
+
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.item.interfaces.Usable;
@@ -56,17 +58,22 @@ public class UseOutMessage extends OutMessage {
 
     @Override
     public String toString() {
+        StringJoiner sj = new StringJoiner(" ");
         switch (this.uomo) {
             case NO_USES:
-                return "You cannot use this " + this.usable.getColorTaggedName() + " like that!";
+                sj.add("You cannot use this").add(this.usable.getColorTaggedName()).add("like that!");
             case USED_UP:
-                return "This " + this.usable.getColorTaggedName() + " has been used up.";
+                sj.add("This").add(this.usable.getColorTaggedName()).add("has been used up.");
             case REQUIRE_EQUIPPED:
-                return "You need to have this " + this.usable.getColorTaggedName() + " equipped in order to use it!";
+                sj.add("You need to have this").add(this.usable.getColorTaggedName())
+                        .add("equipped in order to use it!");
             case OK:
             default:
-                return this.message == null ? "You used " + this.usable.getColorTaggedName() : this.getMessage();
-
+                sj.add("You used").add(this.usable.getColorTaggedName()).add(".");
         }
+        if (this.message != null && !this.message.isBlank()) {
+            sj.add(this.getMessage());
+        }
+        return sj.toString();
     }
 }
