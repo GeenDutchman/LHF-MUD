@@ -8,7 +8,7 @@ import com.lhf.messages.OutMessageType;
 
 public class BadTargetSelectedMessage extends OutMessage {
     public enum BadTargetOption {
-        SELF, NOTARGET, DNE, UNCLEAR, TOO_MANY;
+        SELF, NOTARGET, DNE, UNCLEAR, TOO_MANY, UNTARGETABLE;
     }
 
     private BadTargetOption bde;
@@ -69,6 +69,13 @@ public class BadTargetSelectedMessage extends OutMessage {
                     }
                 } else {
                     sj.add("You cannot select that many targets");
+                }
+                break;
+            case UNTARGETABLE:
+                if (this.badTarget != null && !this.badTarget.isBlank()) {
+                    sj.add(this.badTarget).add("is not targetable.");
+                } else {
+                    sj.add("You cannot target this.");
                 }
                 break;
             default:
