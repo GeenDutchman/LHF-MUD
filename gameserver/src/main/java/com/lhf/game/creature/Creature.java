@@ -3,7 +3,6 @@ package com.lhf.game.creature;
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
-import com.lhf.game.EntityEffector;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
@@ -43,10 +42,10 @@ import com.lhf.messages.in.UnequipMessage;
 import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.EquipOutMessage;
 import com.lhf.messages.out.EquipOutMessage.EquipResultType;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.NotPossessedMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.StatusOutMessage;
 import com.lhf.messages.out.UnequipOutMessage;
 import com.lhf.server.client.ClientID;
@@ -56,13 +55,22 @@ public abstract class Creature
 
     public class Fist extends Weapon {
 
-        private List<EquipmentSlots> slots;
-        private List<EquipmentTypes> types;
-        private List<DamageDice> damages;
-        private Map<String, Integer> equippingChanges;
+        protected List<EquipmentSlots> slots;
+        protected List<EquipmentTypes> types;
+        protected List<DamageDice> damages;
+        protected Map<String, Integer> equippingChanges;
 
         Fist() {
             super("Fist", false);
+
+            types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
+            slots = Collections.singletonList(EquipmentSlots.WEAPON);
+            damages = Arrays.asList(new DamageDice(1, DieType.TWO, this.getMainFlavor()));
+            equippingChanges = new HashMap<>(0); // changes nothing
+        }
+
+        Fist(String overrideName) {
+            super(overrideName, false);
 
             types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
             slots = Collections.singletonList(EquipmentSlots.WEAPON);
@@ -449,6 +457,10 @@ public abstract class Creature
 
     public void removeEffectByName(String name) {
         this.effects.removeIf(effect -> effect.getName().equals(name));
+    }
+
+    public boolean hasEffect(String name) {
+        return this.effects.stream().anyMatch(effect -> effect.getName().equals(name));
     }
 
     private Item getWhatInSlot(EquipmentSlots slot) {
