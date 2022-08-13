@@ -3,6 +3,7 @@ package com.lhf.game.creature;
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
+import com.lhf.game.EntityEffector;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
@@ -31,6 +32,7 @@ import com.lhf.game.item.interfaces.Takeable;
 import com.lhf.game.item.interfaces.Usable;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
+import com.lhf.game.magic.ISpell;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -41,6 +43,7 @@ import com.lhf.messages.in.UnequipMessage;
 import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.EquipOutMessage;
 import com.lhf.messages.out.EquipOutMessage.EquipResultType;
+import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.NotPossessedMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SeeOutMessage;
@@ -560,6 +563,11 @@ public abstract class Creature
     @Override
     public SeeOutMessage produceMessage() {
         SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        for (CreatureEffector effector : this.effects) {
+            if (effector instanceof ISpell) {
+                seeOutMessage.addSeen(SeeCategory.SPELL, (ISpell) effector);
+            }
+        }
         return seeOutMessage;
     }
 
