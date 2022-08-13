@@ -1,6 +1,7 @@
 package com.lhf.messages.out;
 
 import com.lhf.Taggable;
+import com.lhf.game.creature.Creature;
 import com.lhf.game.item.interfaces.Usable;
 import com.lhf.messages.OutMessageType;
 
@@ -10,18 +11,24 @@ public class UseOutMessage extends OutMessage {
     }
 
     private UseOutMessageOption uomo;
+    private Creature itemUser;
     private Usable usable;
     private Taggable target;
 
-    public UseOutMessage(UseOutMessageOption uomo, Usable usable, Taggable target) {
+    public UseOutMessage(UseOutMessageOption uomo, Creature itemUser, Usable usable, Taggable target) {
         super(OutMessageType.USE);
         this.uomo = uomo;
+        this.itemUser = itemUser;
         this.usable = usable;
         this.target = target;
     }
 
-    public UseOutMessageOption getUmo() {
+    public UseOutMessageOption getUomo() {
         return uomo;
+    }
+
+    public Creature getItemUser() {
+        return itemUser;
     }
 
     public Usable getUsable() {
