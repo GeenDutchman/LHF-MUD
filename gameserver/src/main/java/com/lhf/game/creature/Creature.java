@@ -214,6 +214,14 @@ public abstract class Creature
         return cmds;
     }
 
+    private int getHealth() {
+        return stats.get(Stats.CURRENTHP);
+    }
+
+    public boolean isAlive() {
+        return getHealth() > 0;
+    }
+
     public void updateHitpoints(int value) {
         int current = stats.get(Stats.CURRENTHP);
         int max = stats.get(Stats.MAXHP);
@@ -434,14 +442,6 @@ public abstract class Creature
             }
             return false;
         });
-    }
-
-    private int getHealth() {
-        return stats.get(Stats.CURRENTHP);
-    }
-
-    public boolean isAlive() {
-        return getHealth() > 0;
     }
 
     private Item getWhatInSlot(EquipmentSlots slot) {
