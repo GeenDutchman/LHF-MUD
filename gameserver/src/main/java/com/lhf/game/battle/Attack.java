@@ -44,6 +44,11 @@ public class Attack implements CreatureEffector {
         this.calculateHitAndDamage();
     }
 
+    @Override
+    public String getName() {
+        return "Attack";
+    }
+
     private void calculateHitAndDamage() {
         int attributeBonus = 0;
         AttributeBlock retrieved = this.attacker.getAttributes();

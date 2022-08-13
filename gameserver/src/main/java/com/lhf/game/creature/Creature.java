@@ -447,6 +447,10 @@ public abstract class Creature
         });
     }
 
+    public void removeEffectByName(String name) {
+        this.effects.removeIf(effect -> effect.getName().equals(name));
+    }
+
     private Item getWhatInSlot(EquipmentSlots slot) {
         return this.equipmentSlots.get(slot);
     }

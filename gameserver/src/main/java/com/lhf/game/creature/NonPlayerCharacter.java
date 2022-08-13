@@ -7,6 +7,8 @@ import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.magic.concrete.DMBlessing;
 import com.lhf.messages.out.OutMessage;
 
 public class NonPlayerCharacter extends Creature {
@@ -20,6 +22,15 @@ public class NonPlayerCharacter extends Creature {
     public NonPlayerCharacter(String name, Statblock statblock) {
         super(name, statblock);
         this.setFaction(CreatureFaction.NPC);
+    }
+
+    @Override
+    public OutMessage equipItem(String itemName, EquipmentSlots slot) {
+        OutMessage equipMessage = super.equipItem(itemName, slot);
+        if (this.getEquipped(EquipmentSlots.ARMOR) != null) {
+            this.removeEffectByName(DMBlessing.name);
+        }
+        return equipMessage;
     }
 
     public void setConvoTree(ConversationTree tree) {

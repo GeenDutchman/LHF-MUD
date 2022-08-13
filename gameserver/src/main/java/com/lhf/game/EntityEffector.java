@@ -10,6 +10,8 @@ public interface EntityEffector extends Comparable<EntityEffector> {
 
     public Taggable getGeneratedBy();
 
+    public String getName();
+
     public EffectPersistence getPersistence();
 
     public Ticker getTicker();
