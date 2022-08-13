@@ -6,6 +6,45 @@ import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.Creature;
 
 public interface EntityEffector extends Comparable<EntityEffector> {
+
+    public class BasicEntityEffector implements EntityEffector {
+        protected Creature creatureResponsible;
+        protected Taggable generatedBy;
+        protected EffectPersistence persistence;
+        protected Ticker ticker;
+
+        public BasicEntityEffector(Creature creatureResponsible, Taggable generatedBy, EffectPersistence persistence) {
+            this.creatureResponsible = creatureResponsible;
+            this.generatedBy = generatedBy;
+            this.persistence = persistence;
+            this.ticker = null;
+        }
+
+        @Override
+        public Creature creatureResponsible() {
+            return this.creatureResponsible;
+        }
+
+        @Override
+        public Taggable getGeneratedBy() {
+            return this.generatedBy;
+        }
+
+        @Override
+        public EffectPersistence getPersistence() {
+            return this.persistence;
+        }
+
+        @Override
+        public Ticker getTicker() {
+            if (this.ticker == null) {
+                this.ticker = this.persistence.getTicker();
+            }
+            return this.ticker;
+        }
+
+    }
+
     public Creature creatureResponsible();
 
     public Taggable getGeneratedBy();

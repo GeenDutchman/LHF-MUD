@@ -1,8 +1,12 @@
 package com.lhf.game.creature;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
+import com.lhf.Taggable;
+import com.lhf.game.EffectPersistence;
 import com.lhf.game.EntityEffector;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.MultiRollResult;
@@ -10,6 +14,70 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
 
 public interface CreatureEffector extends EntityEffector {
+
+    public class BasicCreatureEffector extends EntityEffector.BasicEntityEffector implements CreatureEffector {
+        protected Map<Stats, Integer> statChanges;
+
+        protected Map<Attributes, Integer> attributeScoreChanges;
+
+        protected Map<Attributes, Integer> attributeBonusChanges;
+
+        protected List<DamageDice> damages;
+
+        protected MultiRollResult damageResult;
+
+        protected boolean restoreFaction;
+
+        public BasicCreatureEffector(Creature creatureResponsible, Taggable generatedBy,
+                EffectPersistence persistence) {
+            super(creatureResponsible, generatedBy, persistence);
+            this.statChanges = new TreeMap<>();
+            this.attributeScoreChanges = new TreeMap<>();
+            this.attributeBonusChanges = new TreeMap<>();
+            this.damages = new ArrayList<>();
+            this.damageResult = null;
+            this.restoreFaction = false;
+        }
+
+        @Override
+        public Map<Stats, Integer> getStatChanges() {
+            return this.statChanges;
+        }
+
+        @Override
+        public Map<Attributes, Integer> getAttributeScoreChanges() {
+            return this.attributeScoreChanges;
+        }
+
+        @Override
+        public Map<Attributes, Integer> getAttributeBonusChanges() {
+            return this.attributeBonusChanges;
+        }
+
+        @Override
+        public List<DamageDice> getDamages() {
+            return this.damages;
+        }
+
+        @Override
+        public MultiRollResult getDamageResult() {
+            if (this.damageResult == null) {
+                for (DamageDice dd : this.getDamages()) {
+                    if (this.damageResult == null) {
+                        this.damageResult = new MultiRollResult(dd.rollDice());
+                    } else {
+                        this.damageResult.addResult(dd.rollDice());
+                    }
+                }
+            }
+            return this.damageResult;
+        }
+
+        @Override
+        public void updateDamageResult(MultiRollResult mrr) {
+            this.damageResult = mrr;
+        }
+    }
 
     public Map<Stats, Integer> getStatChanges();
 
