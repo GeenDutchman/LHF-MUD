@@ -153,7 +153,7 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         SpellEntry other = (SpellEntry) obj;
         return Objects.equals(className, other.className) && Objects.equals(description, other.description)
                 && Objects.equals(invocation, other.invocation) && Objects.equals(level, other.level)
-                && Objects.equals(name, other.name) && persistence == other.persistence;
+                && Objects.equals(name, other.name) && Objects.equals(persistence, other.persistence);
     }
 
     @Override

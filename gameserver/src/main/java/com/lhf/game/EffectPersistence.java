@@ -1,5 +1,6 @@
 package com.lhf.game;
 
+import java.util.Objects;
 import java.util.StringJoiner;
 
 import com.lhf.server.interfaces.NotNull;
@@ -101,6 +102,23 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
             return compareSize;
         }
         return this.getCount() - o.getCount();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(count, tickSize);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof EffectPersistence)) {
+            return false;
+        }
+        EffectPersistence other = (EffectPersistence) obj;
+        return count == other.count && tickSize == other.tickSize;
     }
 
 }
