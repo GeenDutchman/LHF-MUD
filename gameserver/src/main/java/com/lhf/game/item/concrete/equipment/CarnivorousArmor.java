@@ -91,20 +91,19 @@ public class CarnivorousArmor extends Equipable {
 
         setUseAction(newOwner.getName(), (ctx, object) -> {
             if (!equipped) {
-                return new UseageResult(new OutMessagePair(null).addDirected(ctx,
-                        new UseOutMessage(UseOutMessageOption.REQUIRE_EQUIPPED, ctx.getCreature(), this, null)), null);
+                ctx.sendMsg(new UseOutMessage(UseOutMessageOption.REQUIRE_EQUIPPED, ctx.getCreature(), this, null));
+                return true;
             }
             if (object == null) {
-                return new UseageResult(new OutMessagePair(null).addDirected(ctx,
-                        new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, null)), null);
-
+                ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, null));
+                return true;
             } else if (object instanceof Creature) {
                 Creature target = (Creature) object;
                 if (equippedAndUsed) {
                     String snuggle = "The " + this.getColorTaggedName()
                             + " snuggles around you as you poke at it, but otherwise does nothing.";
-                    return new UseageResult(new OutMessagePair(null).addDirected(ctx,
-                            new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target, snuggle)), null);
+                    ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target, snuggle));
+                    return true;
                 }
                 Integer currHealth = target.getStats().get(Stats.CURRENTHP);
                 if (currHealth > eatsHealthTo) {
@@ -116,20 +115,21 @@ public class CarnivorousArmor extends Equipable {
                             "Once it is sated, you feel the " + this.getColorTaggedName() +
                             " tighten up around its most recent, precious meal.  It leaves the rest for later.";
                     equippedAndUsed = true;
-                    return new UseageResult(new OutMessagePair(null).addDirected(ctx,
-                            new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target, eatDescription)),
-                            useResults).addEffect(eatingACResults);
+                    ctx.sendMsg(
+                            new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target, eatDescription));
+                    ctx.sendMsg(target.applyAffects(useResults));
+                    ctx.sendMsg(target.applyAffects(eatingACResults));
+                    return true;
                 } else {
                     String moreNeeded = "You need more health to use this item.";
-                    return new UseageResult(new OutMessagePair(null).addDirected(ctx,
-                            new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, target,
-                                    moreNeeded)),
-                            null);
+                    ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, target,
+                            moreNeeded));
+                    return true;
                 }
             }
             String notUse = "You cannot use this on that!  You can only use it on yourself.";
-            return new UseageResult(new OutMessagePair(null).addDirected(ctx,
-                    new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, null, notUse)), null);
+            ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, null, notUse));
+            return true;
         });
 
         return super.onEquippedBy(newOwner);
