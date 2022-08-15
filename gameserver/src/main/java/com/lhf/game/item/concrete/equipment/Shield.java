@@ -1,27 +1,47 @@
 package com.lhf.game.item.concrete.equipment;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.CreatureEffector;
+import com.lhf.game.creature.CreatureEffector.BasicCreatureEffector;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.interfaces.Equipable;
 
 public class Shield extends Equipable {
-    private int AC = 2;
+    private class ACBonus extends BasicCreatureEffector {
+
+        public ACBonus() {
+            super(null, Shield.this, new EffectPersistence(TickType.CONDITIONAL));
+            this.init();
+        }
+
+        public ACBonus(Creature creatureResponsible) {
+            super(creatureResponsible, Shield.this, new EffectPersistence(TickType.CONDITIONAL));
+            this.init();
+        }
+
+        private void init() {
+            this.addStatChange(Stats.AC, Shield.this.AC);
+        }
+
+    }
+
+    private final int AC = 2;
     private List<EquipmentSlots> slots;
     private List<EquipmentTypes> types;
-    private Map<String, Integer> equippingChanges;
+    private List<CreatureEffector> equippingEffects;
 
     public Shield(boolean isVisible) {
         super("Shield", isVisible);
-        types = Collections.singletonList(EquipmentTypes.SHIELD);
-        slots = Collections.singletonList(EquipmentSlots.SHIELD);
-        equippingChanges = new HashMap<>();
-        equippingChanges.put(Stats.AC.toString(), this.AC);
+        this.types = Collections.singletonList(EquipmentTypes.SHIELD);
+        this.slots = Collections.singletonList(EquipmentSlots.SHIELD);
+        this.equippingEffects = Collections.singletonList(new ACBonus());
     }
 
     @Override
@@ -35,13 +55,12 @@ public class Shield extends Equipable {
     }
 
     @Override
-    public Map<String, Integer> getEquippingChanges() {
-        return this.equippingChanges;
+    public List<CreatureEffector> getEquippingEffects(boolean alsoHidden) {
+        return this.equippingEffects;
     }
 
     @Override
     public String printDescription() {
-        return "This is a simple shield, it should protect you a little bit. \n"
-                + this.printStats();
+        return "This is a simple shield, it should protect you a little bit. \n";
     }
 }
