@@ -11,6 +11,7 @@ import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class ISpell implements EntityEffector, Taggable, Examinable {
+    // TODO: make this an Iterable<EntityEffector>
     private final String className;
     protected final SpellEntry entry;
     protected transient Creature caster;
