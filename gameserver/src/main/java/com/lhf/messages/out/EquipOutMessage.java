@@ -12,14 +12,12 @@ public class EquipOutMessage extends OutMessage {
 
     private EquipResultType type;
     private Item item;
-    private OutMessage unequipMessage;
     private String attemptedItemName;
     private EquipmentSlots attemptedSlot;
 
-    public EquipOutMessage(OutMessage unequipMessage, Item equipped) {
+    public EquipOutMessage(Item equipped) {
         super(OutMessageType.EQUIP);
         this.type = EquipResultType.SUCCESS;
-        this.unequipMessage = unequipMessage;
         this.item = equipped;
     }
 
@@ -36,9 +34,6 @@ public class EquipOutMessage extends OutMessage {
         StringBuilder sb = new StringBuilder();
         switch (this.type) {
             case SUCCESS:
-                if (this.unequipMessage != null) {
-                    sb.append(this.unequipMessage.toString()).append(" ");
-                }
                 sb.append("You successfully equipped your ").append(this.item.getColorTaggedName());
                 if (this.attemptedSlot != null) {
                     sb.append(" to your ").append(this.attemptedSlot.getColorTaggedName()).append(" equiment slot.");
@@ -98,10 +93,6 @@ public class EquipOutMessage extends OutMessage {
 
     public Item getItem() {
         return item;
-    }
-
-    public OutMessage getUnequipMessage() {
-        return unequipMessage;
     }
 
     public String getAttemptedItemName() {

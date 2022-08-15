@@ -1,17 +1,17 @@
 package com.lhf.game.item.interfaces;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
 
-import com.lhf.game.creature.inventory.EquipmentOwner;
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.CreatureEffector;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 public abstract class Equipable extends Usable {
-    // TODO: make this creauture effecture
     public Equipable(String name, boolean isVisible) {
         super(name, isVisible, -1);
     }
@@ -24,64 +24,40 @@ public abstract class Equipable extends Usable {
 
     public abstract List<EquipmentSlots> getWhichSlots();
 
-    public abstract Map<String, Integer> getEquippingChanges();
-
-    public String printWhichTypes() {
-        StringJoiner sj = new StringJoiner(", ");
-        sj.setEmptyValue("no types!");
-        for (EquipmentTypes type : this.getTypes()) {
-            sj.add(type.toString());
-        }
-        return sj.toString();
-    }
-
-    public String printWhichSlots() {
-        StringJoiner sj = new StringJoiner(", ");
-        sj.setEmptyValue("no slot!");
-        for (EquipmentSlots slot : this.getWhichSlots()) {
-            sj.add(slot.toString());
-        }
-        return sj.toString();
-    }
-
-    public String printEquippingChanges() {
-        StringJoiner sj = new StringJoiner(", ");
-        for (String attr : this.getEquippingChanges().keySet()) {
-            sj.add(attr + " would change by " + this.getEquippingChanges().get(attr));
-        }
-        return sj.toString();
-    }
-
-    public String printStats() {
-        // TODO: move some of these to the produceMessage
-        StringBuilder sb = new StringBuilder();
-        if (this.getEquippingChanges().size() > 0) {
-            sb.append("When equipped: ").append(this.printEquippingChanges()).append("\n");
-        }
-        if (this.getWhichSlots().size() > 0) {
-            sb.append("This can be equipped to: ").append(this.printWhichSlots()).append("\n");
-        }
-        if (this.getTypes().size() > 0) {
-            sb.append("This can be best used with the proficiencies: ").append(this.printWhichTypes()).append("\n");
-        }
-        return sb.toString();
-    }
+    public abstract List<CreatureEffector> getEquippingEffects(boolean alsoHidden);
 
     @Override
     public SeeOutMessage produceMessage() {
         SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        for (CreatureEffector effector : this.getEquippingEffects(false)) {
+            seeOutMessage.addEffector(effector);
+        }
+        if (this.getWhichSlots() != null && this.getWhichSlots().size() > 0) {
+            for (EquipmentSlots slot : this.getWhichSlots()) {
+                seeOutMessage.addSeen(SeeCategory.EQUIPMENT_SLOTS, slot);
+            }
+        }
+        if (this.getTypes() != null && this.getTypes().size() > 0) {
+            for (EquipmentTypes type : this.getTypes()) {
+                seeOutMessage.addSeen(SeeCategory.PROFICIENCIES, type);
+            }
+        }
         return seeOutMessage;
     }
 
-    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
-        return this.getEquippingChanges();
+    public void onEquippedBy(Creature equipper) {
+        for (CreatureEffector effector : this.getEquippingEffects(true)) {
+            equipper.sendMsg(equipper.applyAffects(effector));
+        }
     }
 
-    public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
-        Map<String, Integer> undo = new HashMap<String, Integer>(this.getEquippingChanges());
-        for (String key : undo.keySet()) {
-            undo.put(key, undo.get(key) * -1);
+    public void onUnequippedBy(Creature unequipper) {
+        for (CreatureEffector effector : this.getEquippingEffects(true)) {
+            if (effector.getPersistence() != null
+                    && TickType.CONDITIONAL.equals(effector.getPersistence().getTickSize())) {
+                unequipper.sendMsg(unequipper.applyAffects(effector, true));
+            }
         }
-        return undo;
     }
+
 }
