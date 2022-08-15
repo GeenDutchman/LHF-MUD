@@ -3,6 +3,7 @@ package com.lhf.game.creature;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 
 import com.lhf.Taggable;
@@ -76,6 +77,44 @@ public interface CreatureEffector extends EntityEffector {
         @Override
         public void updateDamageResult(MultiRollResult mrr) {
             this.damageResult = mrr;
+        }
+
+        @Override
+        public String toString() {
+            StringJoiner sj = new StringJoiner(" ");
+
+            if (this.getDamages() != null && this.getDamages().size() > 0) {
+                sj.add("The target will be damaged with:");
+                for (DamageDice dd : this.getDamages()) {
+                    sj.add(dd.toString());
+                }
+                sj.add("\r\n");
+            }
+            if (this.getStatChanges() != null && this.getStatChanges().size() > 0) {
+                sj.add("The target's");
+                for (Map.Entry<Stats, Integer> deltas : this.getStatChanges().entrySet()) {
+                    sj.add(deltas.getKey().toString()).add("stat will change by").add(deltas.getValue().toString());
+                }
+                sj.add("\r\n");
+            }
+            if (this.getAttributeScoreChanges() != null && this.getAttributeScoreChanges().size() > 0) {
+                sj.add("The target's");
+                for (Map.Entry<Attributes, Integer> deltas : this.getAttributeScoreChanges().entrySet()) {
+                    sj.add(deltas.getKey().toString()).add("score will change by").add(deltas.getValue().toString());
+                }
+                sj.add("\r\n");
+            }
+            if (this.getAttributeBonusChanges() != null && this.getAttributeBonusChanges().size() > 0) {
+                sj.add("The target's");
+                for (Map.Entry<Attributes, Integer> deltas : this.getAttributeBonusChanges().entrySet()) {
+                    sj.add(deltas.getKey().toString()).add("bonus will change by").add(deltas.getValue().toString());
+                }
+                sj.add("\r\n");
+            }
+            if (this.isRestoreFaction()) {
+                sj.add("And will attempt to restore").add("the target's").add("faction");
+            }
+            return sj.toString();
         }
     }
 
