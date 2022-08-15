@@ -2,7 +2,6 @@ package com.lhf.game.item.interfaces;
 
 import java.util.List;
 
-import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffector;
