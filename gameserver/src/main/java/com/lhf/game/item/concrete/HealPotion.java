@@ -1,27 +1,65 @@
 package com.lhf.game.item.concrete;
 
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.CreatureEffector;
+import com.lhf.game.creature.CreatureEffector.BasicCreatureEffector;
 import com.lhf.game.dice.*;
+import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealType;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.interfaces.Usable;
 import com.lhf.game.item.interfaces.UseAction;
+import com.lhf.game.item.interfaces.UseAction.UseageResult;
+import com.lhf.messages.OutMessagePair;
+import com.lhf.messages.out.BattleTurnMessage;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.UseOutMessage;
+import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 
 public class HealPotion extends Usable {
 
     private HealType healtype;
 
     private void setUp() {
-        UseAction useAction = (object) -> {
+        UseAction useAction = (ctx, object) -> {
             if (object == null) {
-                return "That is not a valid target at all!";
+                ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES,
+                        ctx.getCreature(), this, null, "That is not a valid target at all!"));
+                return true;
             } else if (object instanceof Creature) {
-                Integer healed = this.use();
-                ((Creature) object).updateHitpoints(healed);
-                return "You drank a " + this.getName() + ".  You now have "
-                        + ((Creature) object).getStats().get(Stats.CURRENTHP) + " health points.";
+                Creature target = (Creature) object;
+                CreatureEffector bce = new BasicCreatureEffector(ctx.getCreature(), this,
+                        new EffectPersistence(TickType.INSTANT));
+                bce = this.setHealing(bce);
+                if (ctx.getBattleManager() != null) {
+                    BattleManager bm = ctx.getBattleManager();
+                    if (bm.isCreatureInBattle(target) && !bm.isCreatureInBattle(ctx.getCreature())) {
+                        // give out of turn message
+                        ctx.sendMsg(new BattleTurnMessage(ctx.getCreature(), false, true));
+                        bm.addCreatureToBattle(ctx.getCreature());
+                        return false;
+                    }
+                    ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
+                    OutMessage results = target.applyAffects(bce);
+                    bm.sendMessageToAllParticipants(results);
+                } else if (ctx.getRoom() != null) {
+                    ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
+                    OutMessage results = target.applyAffects(bce);
+                    ctx.getRoom().sendMessageToAll(results);
+                } else {
+                    ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
+                    OutMessage results = target.applyAffects(bce);
+                    ctx.sendMsg(results);
+                    target.sendMsg(results);
+                }
+                return true;
             }
-            return "You cannot use a " + this.getName() + " on that.";
+            ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, null,
+                    "You cannot use a " + this.getName() + " on that."));
+            return true;
         };
         this.setUseAction(Creature.class.getName(), useAction);
     }
@@ -44,17 +82,20 @@ public class HealPotion extends Usable {
         setUp();
     }
 
-    public Integer use() {
-        DiceRoller die = DiceRoller.getInstance();
+    private CreatureEffector setHealing(CreatureEffector cEffector) {
         switch (this.healtype) {
-            case Regular:
-                return die.d4(1) + 1;
-            case Greater:
-                return die.d6(1) + 1;
             case Critical:
-                return die.d8(1) + 1;
+                cEffector.addDamage(new DamageDice(1, DieType.EIGHT, DamageFlavor.HEALING));
+            case Greater:
+                cEffector.addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.HEALING));
+            case Regular:
+                cEffector.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
+            default:
+                cEffector.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
+
         }
-        return 0;
+        cEffector.addDamageBonus(-1);
+        return cEffector;
     }
 
     @Override
