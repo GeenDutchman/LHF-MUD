@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
-import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffector;
 import com.lhf.game.creature.CreatureEffector.BasicCreatureEffector;
 import com.lhf.game.enums.EquipmentSlots;
@@ -16,32 +15,14 @@ import com.lhf.game.item.interfaces.Equipable;
 public class Shield extends Equipable {
 
     private final int AC = 2;
-    private List<EquipmentSlots> slots;
-    private List<EquipmentTypes> types;
-    private List<CreatureEffector> equippingEffects;
 
     public Shield(boolean isVisible) {
         super("Shield", isVisible);
         this.types = Collections.singletonList(EquipmentTypes.SHIELD);
         this.slots = Collections.singletonList(EquipmentSlots.SHIELD);
-        this.equippingEffects = Collections
+        this.equipEffects = Collections
                 .singletonList(new BasicCreatureEffector(null, this, new EffectPersistence(TickType.CONDITIONAL))
                         .addStatChange(Stats.AC, this.AC));
-    }
-
-    @Override
-    public List<EquipmentTypes> getTypes() {
-        return types;
-    }
-
-    @Override
-    public List<EquipmentSlots> getWhichSlots() {
-        return slots;
-    }
-
-    @Override
-    public List<CreatureEffector> getEquippingEffects(boolean alsoHidden) {
-        return this.equippingEffects;
     }
 
     @Override

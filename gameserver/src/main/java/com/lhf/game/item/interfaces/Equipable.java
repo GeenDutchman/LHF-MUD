@@ -1,5 +1,7 @@
 package com.lhf.game.item.interfaces;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.lhf.game.EffectPersistence.TickType;
@@ -11,19 +13,47 @@ import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 public abstract class Equipable extends Usable {
+    protected List<EquipmentTypes> types;
+    protected List<EquipmentSlots> slots;
+    protected List<CreatureEffector> equipEffects;
+    protected List<CreatureEffector> hiddenEquipEffects;
+
+    private void initLists() {
+        this.types = new ArrayList<>();
+        this.slots = new ArrayList<>();
+        this.equipEffects = new ArrayList<>();
+        this.hiddenEquipEffects = new ArrayList<>();
+    }
+
     public Equipable(String name, boolean isVisible) {
         super(name, isVisible, -1);
+        this.initLists();
     }
 
     public Equipable(String name, boolean isVisible, int useSoManyTimes) {
         super(name, isVisible, useSoManyTimes);
+        this.initLists();
+        ;
     }
 
-    public abstract List<EquipmentTypes> getTypes();
+    // returns unmodifiable
+    public List<EquipmentTypes> getTypes() {
+        return Collections.unmodifiableList(this.types);
+    }
 
-    public abstract List<EquipmentSlots> getWhichSlots();
+    // returns unmodifiable
+    public List<EquipmentSlots> getWhichSlots() {
+        return Collections.unmodifiableList(this.slots);
+    }
 
-    public abstract List<CreatureEffector> getEquippingEffects(boolean alsoHidden);
+    // returns unmodifiable
+    public List<CreatureEffector> getEquippingEffects(boolean alsoHidden) {
+        List<CreatureEffector> comboList = new ArrayList<>(this.equipEffects);
+        if (alsoHidden) {
+            comboList.addAll(this.hiddenEquipEffects);
+        }
+        return Collections.unmodifiableList(comboList);
+    }
 
     @Override
     public SeeOutMessage produceMessage() {
