@@ -388,6 +388,7 @@ public class BattleManager implements MessageHandler, Examinable {
     }
 
     private boolean handleUse(CommandContext ctx, Command msg) {
+        // TODO: test me!
         if (this.checkTurn(ctx.getCreature())) {
             return false;
         }

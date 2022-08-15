@@ -6,7 +6,6 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
 
 public class UseMessage extends Command {
-    // TODO: no one uses me! use me!
     UseMessage(String payload) {
         super(CommandMessage.USE, payload, true);
         this.addPreposition("on");
