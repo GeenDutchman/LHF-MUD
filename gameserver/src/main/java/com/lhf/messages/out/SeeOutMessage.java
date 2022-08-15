@@ -12,7 +12,8 @@ import com.lhf.messages.OutMessageType;
 
 public class SeeOutMessage extends OutMessage {
     public enum SeeCategory {
-        DIRECTION, CREATURE, PLAYER, NPC, MONSTER, ROOM_ITEM, TAKEABLE, OTHER, SPELL;
+        DIRECTION, CREATURE, PLAYER, NPC, MONSTER, ROOM_ITEM, TAKEABLE, OTHER, SPELL, INVISIBLE_CREATURE,
+        INVISIBLE_ROOM_ITEM, INVISIBLE_TAKEABLE;
 
         public static SeeCategory getSeeCategory(String value) {
             for (SeeCategory category : values()) {

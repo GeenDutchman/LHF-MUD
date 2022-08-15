@@ -304,16 +304,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
 
     @Override
     public String toString() {
-        SeeOutMessage seeOutMessage = this.produceMessage();
-        for (Item item : this.items) {
-            if (!item.checkVisibility()) {
-                if (item instanceof Takeable) {
-                    seeOutMessage.addSeen("Invisible Takeables", item);
-                } else {
-                    seeOutMessage.addSeen("Other invisible items", item);
-                }
-            }
-        }
+        SeeOutMessage seeOutMessage = this.produceMessage(true);
         return seeOutMessage.toString();
     }
 
@@ -322,8 +313,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return "<description>" + this.description + "</description>";
     }
 
-    @Override
-    public SeeOutMessage produceMessage() {
+    public SeeOutMessage produceMessage(boolean invisibleAlso) {
         SeeOutMessage seeOutMessage = new SeeOutMessage(this);
         for (Creature c : this.allCreatures) {
             if (c instanceof Player) {
@@ -337,19 +327,26 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
             }
         }
         for (Item item : this.items) {
-            if (!item.checkVisibility()) {
+            if (!item.checkVisibility() && !invisibleAlso) {
                 continue;
             }
             if (item instanceof Takeable) {
-                seeOutMessage.addSeen(SeeCategory.TAKEABLE, item);
+                seeOutMessage.addSeen(item.checkVisibility() ? SeeCategory.INVISIBLE_TAKEABLE : SeeCategory.TAKEABLE,
+                        item);
             } else {
-                seeOutMessage.addSeen(SeeCategory.ROOM_ITEM, item);
+                seeOutMessage.addSeen(item.checkVisibility() ? SeeCategory.INVISIBLE_ROOM_ITEM : SeeCategory.ROOM_ITEM,
+                        item);
             }
         }
         if (this.battleManager.isBattleOngoing()) {
             seeOutMessage.addExtraInfo("There is a battle going on!");
         }
         return seeOutMessage;
+    }
+
+    @Override
+    public SeeOutMessage produceMessage() {
+        return this.produceMessage(false);
     }
 
     public OutMessage applyAffects(RoomEffector effector) {

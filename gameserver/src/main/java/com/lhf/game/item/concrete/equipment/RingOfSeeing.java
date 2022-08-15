@@ -10,6 +10,8 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.game.map.Room;
+import com.lhf.messages.out.UseOutMessage;
+import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 
 public class RingOfSeeing extends Equipable {
     private List<EquipmentSlots> slots;
@@ -18,14 +20,19 @@ public class RingOfSeeing extends Equipable {
 
     public RingOfSeeing(boolean isVisible) {
         super("Ring of Seeing", isVisible, 3);
-        this.setUseAction(Room.class.getName(), (object) -> {
+        this.setUseAction(Room.class.getName(), (ctx, object) -> {
             if (object == null) {
-                return "That is not a valid target at all!";
+                ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES,
+                        ctx.getCreature(), this, null, "That is not a valid target at all!"));
+                return true;
             } else if (object instanceof Room) {
                 Room seenRoom = (Room) object;
-                return seenRoom.toString();
+                ctx.sendMsg(seenRoom.produceMessage(true));
+                return true;
             }
-            return "You cannot use a " + this.getName() + " on that.";
+            ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, null,
+                    "You cannot use a " + this.getName() + " on that."));
+            return true;
         });
 
         types = new ArrayList<>();
