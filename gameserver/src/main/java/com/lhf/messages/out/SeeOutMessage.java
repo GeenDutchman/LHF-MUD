@@ -14,7 +14,8 @@ import com.lhf.messages.OutMessageType;
 
 public class SeeOutMessage extends OutMessage {
     public enum SeeCategory {
-        DIRECTION, CREATURE, PLAYER, NPC, MONSTER, ROOM_ITEM, TAKEABLE, SPELL, STATS, ATTRIBUTE_SCORE, ATTRIBUTE_BONUS,
+        DIRECTION, CREATURE, PLAYER, NPC, MONSTER, ROOM_ITEM, TAKEABLE, SPELL, EQUIPMENT_SLOTS, PROFICIENCIES, STATS,
+        ATTRIBUTE_SCORE, ATTRIBUTE_BONUS,
         DAMAGES, OTHER, INVISIBLE_CREATURE,
         INVISIBLE_ROOM_ITEM, INVISIBLE_TAKEABLE;
 
@@ -123,6 +124,12 @@ public class SeeOutMessage extends OutMessage {
                         break;
                     case SPELL:
                         sj.add("Spells that you know of:");
+                        break;
+                    case EQUIPMENT_SLOTS:
+                        sj.add("Equipment slots it will use:");
+                        break;
+                    case PROFICIENCIES:
+                        sj.add("Proficiencies you will need for proper use:");
                         break;
                     case STATS:
                         sj.add("Stats that will change:");
