@@ -1,6 +1,7 @@
 package com.lhf.messages.out;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -8,6 +9,7 @@ import java.util.TreeMap;
 
 import com.lhf.Examinable;
 import com.lhf.Taggable;
+import com.lhf.game.EntityEffector;
 import com.lhf.messages.OutMessageType;
 
 public class SeeOutMessage extends OutMessage {
@@ -32,6 +34,7 @@ public class SeeOutMessage extends OutMessage {
 
     private Examinable examinable;
     private Map<String, List<Taggable>> seenCategorized;
+    private List<EntityEffector> effectors;
     private StringJoiner extraInfo;
     private String deniedReason;
 
@@ -41,6 +44,7 @@ public class SeeOutMessage extends OutMessage {
         this.extraInfo = new StringJoiner("\r\n").setEmptyValue("");
         this.deniedReason = null;
         this.seenCategorized = new TreeMap<>();
+        this.effectors = new ArrayList<>();
     }
 
     public SeeOutMessage(Examinable examinable, String extraInfo) {
@@ -49,6 +53,7 @@ public class SeeOutMessage extends OutMessage {
         this.extraInfo = new StringJoiner("\r\n").add(extraInfo.trim());
         this.deniedReason = null;
         this.seenCategorized = new TreeMap<>();
+        this.effectors = new ArrayList<>();
     }
 
     public SeeOutMessage(String deniedReason) {
@@ -57,6 +62,7 @@ public class SeeOutMessage extends OutMessage {
         this.examinable = null;
         this.extraInfo = new StringJoiner("\r\n").setEmptyValue("");
         this.seenCategorized = new TreeMap<>();
+        this.effectors = new ArrayList<>();
     }
 
     public SeeOutMessage addExtraInfo(String extraInfo) {
@@ -78,7 +84,12 @@ public class SeeOutMessage extends OutMessage {
         return this;
     }
 
-    private StringJoiner addTaggables(StringJoiner sj) {
+    public SeeOutMessage addEffector(EntityEffector effector) {
+        this.effectors.add(effector);
+        return this;
+    }
+
+    private StringJoiner listTaggables(StringJoiner sj) {
         for (String category : this.seenCategorized.keySet()) {
             List<Taggable> taggedlist = this.seenCategorized.get(category);
             if (taggedlist == null || taggedlist.size() <= 0) {
@@ -146,6 +157,18 @@ public class SeeOutMessage extends OutMessage {
         return sj;
     }
 
+    private String listEffectors() {
+        // TODO: poor man's way, not parseable
+        StringJoiner sj = new StringJoiner("\r\n");
+        if (this.effectors != null && this.effectors.size() > 0) {
+            sj.add("Effects that you can see:");
+            for (EntityEffector entityEffector : this.effectors) {
+                sj.add(entityEffector.toString());
+            }
+        }
+        return sj.toString();
+    }
+
     @Override
     public String toString() {
         if (this.isDenied()) {
@@ -165,7 +188,11 @@ public class SeeOutMessage extends OutMessage {
             sj.add(this.extraInfo.toString()).add("\r\n");
         }
         sj.add("<description>").add(this.examinable.printDescription()).add("</description>").add("\r\n");
-        sj = this.addTaggables(sj);
+        sj = this.listTaggables(sj);
+        String listedEffects = this.listEffectors();
+        if (!listedEffects.isBlank()) {
+            sj.add("\r\n").add(listedEffects);
+        }
         return sj.toString();
     }
 
@@ -183,5 +210,9 @@ public class SeeOutMessage extends OutMessage {
 
     public boolean isDenied() {
         return this.deniedReason != null;
+    }
+
+    public List<EntityEffector> getEffectors() {
+        return Collections.unmodifiableList(effectors);
     }
 }
