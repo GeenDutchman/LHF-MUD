@@ -69,6 +69,13 @@ public class BattleManager implements MessageHandler, Examinable {
         sj = new StringJoiner(" ");
         sj.add("\"pass\"").add("Skips your turn in battle!");
         cmds.put(CommandMessage.PASS, sj.toString());
+        sj = new StringJoiner(" ");
+        sj.add("\"use [itemname]\"").add("Uses an item that you have on yourself, if applicable.")
+                .add("Like \"use potion\"").add("\r\n");
+        sj.add("\"use [itemname] on [otherthing]\"")
+                .add("Uses an item that you have on something or someone else, if applicable.")
+                .add("Like \"use potion on Bob\"");
+        cmds.put(CommandMessage.USE, sj.toString());
         return cmds;
     }
 
@@ -368,6 +375,8 @@ public class BattleManager implements MessageHandler, Examinable {
                     handled = true;
                 } else if (type == CommandMessage.PASS) {
                     handled = this.handlePass(ctx, msg);
+                } else if (type == CommandMessage.USE) {
+                    handled = this.handleUse(ctx, msg);
                 }
             }
             if (handled) {
@@ -376,6 +385,13 @@ public class BattleManager implements MessageHandler, Examinable {
         }
         ctx.setBattleManager(this);
         return MessageHandler.super.handleMessage(ctx, msg);
+    }
+
+    private boolean handleUse(CommandContext ctx, Command msg) {
+        if (this.checkTurn(ctx.getCreature())) {
+            return false;
+        }
+        return true;
     }
 
     private boolean handlePass(CommandContext ctx, Command msg) {

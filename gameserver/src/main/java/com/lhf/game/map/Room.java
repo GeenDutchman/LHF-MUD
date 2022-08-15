@@ -84,6 +84,13 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         sj = new StringJoiner(" ");
         sj.add("\"drop [itemname]\"").add("Drop an item that you have.").add("Like \"drop longsword\"");
         cmds.put(CommandMessage.DROP, sj.toString());
+        sj = new StringJoiner(" ");
+        sj.add("\"use [itemname]\"").add("Uses an item that you have on yourself, if applicable.")
+                .add("Like \"use potion\"").add("\r\n");
+        sj.add("\"use [itemname] on [otherthing]\"")
+                .add("Uses an item that you have on something or someone else, if applicable.")
+                .add("Like \"use potion on Bob\"");
+        cmds.put(CommandMessage.USE, sj.toString());
         return cmds;
     }
 
