@@ -10,8 +10,6 @@ public interface InventoryOwner extends Container {
 
     String printInventory();
 
-    String useItem(String itemName, Object onWhat);
-
     @Override
     public default Optional<Item> getItem(String name) {
         Inventory inventory = this.getInventory();

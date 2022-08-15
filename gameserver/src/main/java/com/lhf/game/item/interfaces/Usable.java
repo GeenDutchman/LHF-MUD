@@ -6,7 +6,7 @@ import java.util.Map;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.item.Item;
 import com.lhf.game.map.Room;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.UseOutMessage;
 import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
@@ -48,12 +48,14 @@ public abstract class Usable extends Takeable {
         return (numCanUseTimes < 0) || (hasBeenUsedTimes < numCanUseTimes);
     }
 
-    public OutMessage doUseAction(Object usingOn) {
+    public boolean doUseAction(CommandContext ctx, Object usingOn) {
         if (methods == null || usingOn == null) {
-            return new UseOutMessage(UseOutMessageOption.NO_USES, this, null);
+            ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, null));
+            return false;
         }
         if (!hasUsesLeft()) {
-            return new UseOutMessage(UseOutMessageOption.USED_UP, this, null);
+            ctx.sendMsg(new UseOutMessage(UseOutMessageOption.USED_UP, ctx.getCreature(), this, null));
+            return false;
         }
 
         UseAction method = null;
@@ -84,14 +86,15 @@ public abstract class Usable extends Takeable {
         }
 
         if (method == null) {
-            return new UseOutMessage(UseOutMessageOption.NO_USES, this, null);
+            ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, null));
+            return false;
         }
 
         if (numCanUseTimes > 0) {
             hasBeenUsedTimes++;
         }
 
-        return method.useAction(usingOn);
+        return method.useAction(ctx, usingOn);
     }
 
     @Override

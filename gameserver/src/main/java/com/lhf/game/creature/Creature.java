@@ -27,8 +27,6 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.Equipable;
-import com.lhf.game.item.interfaces.Takeable;
-import com.lhf.game.item.interfaces.Usable;
 import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.messages.ClientMessenger;
@@ -561,29 +559,6 @@ public abstract class Creature
     public SeeOutMessage produceMessage() {
         SeeOutMessage seeOutMessage = new SeeOutMessage(this);
         return seeOutMessage;
-    }
-
-    @Override
-    public String useItem(String itemName, Object onWhat) {
-        // if onWhat is not specified, use this creature
-        Object useOn = onWhat;
-        if (useOn == null) {
-            useOn = this;
-        }
-
-        Optional<Item> maybeItem = this.getItem(itemName);
-        if (maybeItem.isPresent()) {
-            Item item = maybeItem.get();
-            if (item instanceof Usable) {
-                String result = ((Usable) item).doUseAction(useOn);
-                if (!((Usable) item).hasUsesLeft()) {
-                    inventory.removeItem((Takeable) item);
-                }
-                return result;
-            }
-            return item.getColorTaggedName() + " is not usable!";
-        }
-        return "You do not have that '" + itemName + "' to use!";
     }
 
     public boolean applyUse(Map<String, Integer> applications) {

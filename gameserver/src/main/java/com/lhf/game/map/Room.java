@@ -16,6 +16,7 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.InteractObject;
 import com.lhf.game.item.interfaces.Takeable;
+import com.lhf.game.item.interfaces.Usable;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -25,11 +26,13 @@ import com.lhf.messages.in.InteractMessage;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.TakeMessage;
+import com.lhf.messages.in.UseMessage;
 import com.lhf.messages.out.*;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.TakeOutMessage.TakeOutType;
+import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 import com.lhf.server.client.user.UserID;
 
 public class Room implements Container, MessageHandler, Comparable<Room> {
@@ -212,49 +215,6 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return Optional.empty();
     }
 
-    public String use(Player p, String usefulObject, String onWhat) {
-        Object indirectObject = null; // indirectObject is the receiver of the action
-        if (onWhat != null && onWhat.length() > 0) {
-            List<Item> roomObjectThings = new ArrayList<>();
-            for (Item ro : items) {
-                if (ro.CheckNameRegex(onWhat, 3) && ro instanceof InteractObject) {
-                    roomObjectThings.add(ro);
-                }
-            }
-
-            if (roomObjectThings.size() == 1) {
-                indirectObject = roomObjectThings.get(0);
-            }
-            List<Creature> targets = new ArrayList<>();
-            if (indirectObject == null) {
-                targets = getCreaturesInRoom(onWhat);
-                if (targets.size() == 1) {
-                    indirectObject = targets.get(0);
-                }
-            }
-            if (indirectObject == null) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("You couldn't find '").append(onWhat).append("' to target.\n");
-                StringJoiner sj = new StringJoiner(", ");
-                if (roomObjectThings.size() > 0 || targets.size() > 0) {
-                    for (Item ro : roomObjectThings) {
-                        if (ro.checkVisibility()) {
-                            sj.add(ro.getColorTaggedName());
-                        }
-                    }
-                    for (Creature target : targets) {
-                        sj.add(target.getColorTaggedName());
-                    }
-                }
-                if (sj.toString().length() > 0) {
-                    sb.append("Did you mean one of: ").append(sj.toString()).append("\n");
-                }
-                return sb.toString();
-            }
-        }
-        return p.useItem(usefulObject, indirectObject);
-    }
-
     public Player getPlayerInRoom(UserID id) {
         for (Creature creature : this.allCreatures) {
             if (creature instanceof Player) {
@@ -422,6 +382,8 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
                 handled = this.handleTake(ctx, msg);
             } else if (type == CommandMessage.CAST) {
                 handled = this.handleCast(ctx, msg);
+            } else if (type == CommandMessage.USE) {
+                handled = this.handleUse(ctx, msg);
             }
         }
         if (handled) {
@@ -571,6 +533,44 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
             } else {
                 this.sendMessageToAll(new SpeakingMessage(ctx.getCreature(), sMessage.getMessage()));
             }
+            return true;
+        }
+        return false;
+    }
+
+    private Boolean handleUse(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.USE) {
+            UseMessage useMessage = (UseMessage) msg;
+            Optional<Item> maybeItem = ctx.getCreature().getItem(useMessage.getUsefulItem());
+            if (maybeItem.isEmpty() || !(maybeItem.get() instanceof Usable)) {
+                ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), null, null));
+                return true;
+            }
+            Usable usable = (Usable) maybeItem.get();
+            if (useMessage.getTarget() == null || useMessage.getTarget().isBlank()) {
+                usable.doUseAction(ctx, ctx.getCreature());
+                return true;
+            }
+            List<Creature> maybeCreature = this.getCreaturesInRoom(useMessage.getTarget());
+            if (maybeCreature.size() == 1) {
+                usable.doUseAction(ctx, maybeCreature.get(0));
+                return true;
+            } else if (maybeCreature.size() > 1) {
+                ctx.sendMsg(
+                        new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, useMessage.getTarget(), maybeCreature));
+                return true;
+            }
+            Optional<Item> maybeRoomItem = this.getItem(useMessage.getTarget());
+            if (maybeRoomItem.isPresent()) {
+                usable.doUseAction(ctx, maybeRoomItem.get());
+                return true;
+            }
+            Optional<Item> maybeInventory = ctx.getCreature().getItem(useMessage.getTarget());
+            if (maybeInventory.isPresent()) {
+                usable.doUseAction(ctx, maybeInventory.get());
+                return true;
+            }
+            ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, useMessage.getTarget(), null));
             return true;
         }
         return false;
