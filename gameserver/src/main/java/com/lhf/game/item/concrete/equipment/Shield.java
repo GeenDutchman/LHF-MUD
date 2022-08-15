@@ -14,23 +14,6 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.interfaces.Equipable;
 
 public class Shield extends Equipable {
-    private class ACBonus extends BasicCreatureEffector {
-
-        public ACBonus() {
-            super(null, Shield.this, new EffectPersistence(TickType.CONDITIONAL));
-            this.init();
-        }
-
-        public ACBonus(Creature creatureResponsible) {
-            super(creatureResponsible, Shield.this, new EffectPersistence(TickType.CONDITIONAL));
-            this.init();
-        }
-
-        private void init() {
-            this.addStatChange(Stats.AC, Shield.this.AC);
-        }
-
-    }
 
     private final int AC = 2;
     private List<EquipmentSlots> slots;
@@ -41,7 +24,9 @@ public class Shield extends Equipable {
         super("Shield", isVisible);
         this.types = Collections.singletonList(EquipmentTypes.SHIELD);
         this.slots = Collections.singletonList(EquipmentSlots.SHIELD);
-        this.equippingEffects = Collections.singletonList(new ACBonus());
+        this.equippingEffects = Collections
+                .singletonList(new BasicCreatureEffector(null, this, new EffectPersistence(TickType.CONDITIONAL))
+                        .addStatChange(Stats.AC, this.AC));
     }
 
     @Override
