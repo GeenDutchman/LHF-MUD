@@ -159,10 +159,9 @@ public class ThirdPower implements MessageHandler {
                         battleManager.addCreatureToBattle(target);
                         battleManager.callReinforcements(caster, target);
                     }
-                    if (defense.isPresent()) {
-                        CasterVsCreatureStrategy strat = defense.get();
-                        MultiRollResult casterResult = strat.getCasterEffort();
-                        MultiRollResult targetResult = strat.getTargetEffort(target);
+                    if (defense != null) {
+                        MultiRollResult casterResult = defense.getCasterEffort();
+                        MultiRollResult targetResult = defense.getTargetEffort(target);
                         if (casterResult.getTotal() <= targetResult.getTotal()) {
                             battleManager.sendMessageToAllParticipants(
                                     new MissMessage(caster, target, casterResult, targetResult));

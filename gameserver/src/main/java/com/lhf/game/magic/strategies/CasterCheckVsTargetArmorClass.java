@@ -22,7 +22,7 @@ public class CasterCheckVsTargetArmorClass extends CasterVsCreatureStrategy {
             this.setCasterEffort(new MultiRollResult(new DiceDC(1).rollDice()));
             return;
         }
-        CubeHolder ch = (CubeHolder) caster.getVocation().get();
+        CubeHolder ch = (CubeHolder) caster.getVocation();
         this.setCasterEffort(ch.spellAttack());
     }
 
