@@ -63,10 +63,12 @@ public class StatblockTest {
         Truth.assertThat(num2.getStats().get(Stats.MAXHP)).isEqualTo(s.getStats().get(Stats.MAXHP));
         for (String itemName : inv.getItemList()) {
             Truth.assertThat(num2.getInventory().hasItem(itemName)).isTrue();
-            ;
         }
-        Truth.assertThat(num2.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).printDescription())
-                .isEqualTo(s.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).printDescription());
+        System.out.println(
+                num2.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).produceMessage().toString());
+        Truth.assertThat(num2.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).produceMessage()
+                .toString())
+                .isEqualTo(s.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).produceMessage().toString());
 
     }
 }
