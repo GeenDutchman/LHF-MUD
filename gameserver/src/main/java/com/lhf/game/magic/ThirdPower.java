@@ -169,7 +169,7 @@ public class ThirdPower implements MessageHandler {
                         }
                     }
                 }
-                CreatureAffectedMessage cam = target.applyEffects(spell);
+                CreatureAffectedMessage cam = target.applyEffect(spell);
                 this.channelizeMessage(ctx, cam, spell.isOffensive(), caster, target);
             }
 

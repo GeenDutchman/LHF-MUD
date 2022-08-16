@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
-import com.lhf.game.creature.CreatureEffector.BasicCreatureEffector;
+import com.lhf.game.creature.CreatureEffect.BasicCreatureEffect;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -19,7 +19,7 @@ public class MantleOfDeath extends Equipable {
 
         this.slots = List.of(EquipmentSlots.ARMOR);
         this.types = List.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
-        this.equipEffects = List.of(new BasicCreatureEffector(null, this, new EffectPersistence(TickType.CONDITIONAL))
+        this.equipEffects = List.of(new BasicCreatureEffect(null, this, new EffectPersistence(TickType.CONDITIONAL))
                 .addStatChange(Stats.AC, this.AC).addStatChange(Stats.MAXHP, this.MAX_HEALTH)
                 .addStatChange(Stats.CURRENTHP, this.MAX_HEALTH));
     }

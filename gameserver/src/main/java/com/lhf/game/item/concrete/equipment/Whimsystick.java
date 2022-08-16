@@ -6,7 +6,7 @@ import java.util.List;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.battle.Attack;
-import com.lhf.game.creature.CreatureEffector.BasicCreatureEffector;
+import com.lhf.game.creature.CreatureEffect.BasicCreatureEffect;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD6;
@@ -29,7 +29,7 @@ public class Whimsystick extends Weapon {
         this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.QUARTERSTAFF, EquipmentTypes.CLUB);
         this.damages = List.of(new DamageDice(1, DieType.SIX, this.getMainFlavor()));
         this.equipEffects = Collections
-                .singletonList(new BasicCreatureEffector(null, this, new EffectPersistence(TickType.CONDITIONAL))
+                .singletonList(new BasicCreatureEffect(null, this, new EffectPersistence(TickType.CONDITIONAL))
                         .addStatChange(Stats.AC, this.acBonus));
         this.descriptionString = "This isn't quite a quarterstaff, but also not a club...it is hard to tell. " +
                 "But what you can tell is it seems to have a laughing aura around it, like it doesn't " +

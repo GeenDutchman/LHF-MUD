@@ -10,7 +10,7 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.Creature;
-import com.lhf.game.creature.CreatureEffector;
+import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.MultiRollResult;
@@ -18,7 +18,7 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Weapon;
 
-public class Attack implements CreatureEffector {
+public class Attack implements CreatureEffect {
     // TODO: add aggro
     private Creature attacker;
     private Weapon weapon;

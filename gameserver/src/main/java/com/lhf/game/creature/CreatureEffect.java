@@ -14,9 +14,9 @@ import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
 
-public interface CreatureEffector extends EntityEffect {
+public interface CreatureEffect extends EntityEffect {
 
-    public class BasicCreatureEffector extends EntityEffect.BasicEntityEffect implements CreatureEffector {
+    public class BasicCreatureEffect extends EntityEffect.BasicEntityEffect implements CreatureEffect {
         protected Map<Stats, Integer> statChanges;
 
         protected Map<Attributes, Integer> attributeScoreChanges;
@@ -29,7 +29,7 @@ public interface CreatureEffector extends EntityEffect {
 
         protected boolean restoreFaction;
 
-        public BasicCreatureEffector(Creature creatureResponsible, Taggable generatedBy,
+        public BasicCreatureEffect(Creature creatureResponsible, Taggable generatedBy,
                 EffectPersistence persistence) {
             super(creatureResponsible, generatedBy, persistence);
             this.statChanges = new TreeMap<>();
@@ -135,29 +135,29 @@ public interface CreatureEffector extends EntityEffect {
     }
 
     // replaces whatever value was in `stats`, if it existed
-    public default CreatureEffector addStatChange(Stats stats, Integer delta) {
+    public default CreatureEffect addStatChange(Stats stats, Integer delta) {
         this.getStatChanges().put(stats, delta);
         return this;
     }
 
     // replaces whatever value was in `attr`, if it existed
-    public default CreatureEffector addAttributeScoreChange(Attributes attr, Integer delta) {
+    public default CreatureEffect addAttributeScoreChange(Attributes attr, Integer delta) {
         this.getAttributeScoreChanges().put(attr, delta);
         return this;
     }
 
     // replaces whatever value was in `attr`, if it existed
-    public default CreatureEffector addAttributeBonusChange(Attributes attr, Integer delta) {
+    public default CreatureEffect addAttributeBonusChange(Attributes attr, Integer delta) {
         this.getAttributeScoreChanges().put(attr, delta);
         return this;
     }
 
-    public default CreatureEffector addDamage(DamageDice damageDice) {
+    public default CreatureEffect addDamage(DamageDice damageDice) {
         this.getDamages().add(damageDice);
         return this;
     }
 
-    public default CreatureEffector addDamageBonus(int bonus) {
+    public default CreatureEffect addDamageBonus(int bonus) {
         if (this.getDamageResult() != null) {
             this.getDamageResult().addBonus(bonus);
         }

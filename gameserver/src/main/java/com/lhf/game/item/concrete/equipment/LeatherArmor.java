@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
-import com.lhf.game.creature.CreatureEffector.BasicCreatureEffector;
+import com.lhf.game.creature.CreatureEffect.BasicCreatureEffect;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -20,7 +20,7 @@ public class LeatherArmor extends Equipable {
         this.slots = Collections.singletonList(EquipmentSlots.ARMOR);
         this.types = List.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
         this.equipEffects = Collections.singletonList(
-                new BasicCreatureEffector(null, this, new EffectPersistence(TickType.CONDITIONAL))
+                new BasicCreatureEffect(null, this, new EffectPersistence(TickType.CONDITIONAL))
                         .addStatChange(Stats.AC, this.AC));
     }
 

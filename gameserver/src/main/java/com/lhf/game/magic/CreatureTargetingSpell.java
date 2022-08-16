@@ -3,7 +3,7 @@ package com.lhf.game.magic;
 import java.util.List;
 import java.util.Map;
 
-import com.lhf.game.creature.CreatureEffector;
+import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
@@ -11,7 +11,7 @@ import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 
-public class CreatureTargetingSpell extends ISpell implements CreatureEffector {
+public class CreatureTargetingSpell extends ISpell implements CreatureEffect {
     protected MultiRollResult damageDone;
     protected CasterVsCreatureStrategy strategy;
 

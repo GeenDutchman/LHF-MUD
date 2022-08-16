@@ -68,7 +68,7 @@ public abstract class Creature
     private Vocation vocation;
     // private MonsterType monsterType; // I dont know if we'll need this
 
-    private Set<CreatureEffector> effects;
+    private Set<CreatureEffect> effects;
     // uses attributes STR, DEX, CON, INT, WIS, CHA
     private AttributeBlock attributeBlock;
 
@@ -334,55 +334,55 @@ public abstract class Creature
         return new MultiRollResult(adjusted, mrr.getBonuses());
     }
 
-    public CreatureAffectedMessage applyEffects(CreatureEffector effector, boolean reverse) {
-        MultiRollResult mrr = this.adjustDamageByFlavor(effector.getDamageResult(), reverse);
-        effector.updateDamageResult(mrr);
+    public CreatureAffectedMessage applyEffect(CreatureEffect effect, boolean reverse) {
+        MultiRollResult mrr = this.adjustDamageByFlavor(effect.getDamageResult(), reverse);
+        effect.updateDamageResult(mrr);
         this.updateHitpoints(mrr.getRoll());
-        for (Stats delta : effector.getStatChanges().keySet()) {
-            int amount = effector.getStatChanges().get(delta);
+        for (Stats delta : effect.getStatChanges().keySet()) {
+            int amount = effect.getStatChanges().get(delta);
             if (reverse) {
                 amount = amount * -1;
             }
             this.updateStat(delta, amount);
         }
         if (this.isAlive()) {
-            for (Attributes delta : effector.getAttributeScoreChanges().keySet()) {
-                int amount = effector.getAttributeScoreChanges().get(delta);
+            for (Attributes delta : effect.getAttributeScoreChanges().keySet()) {
+                int amount = effect.getAttributeScoreChanges().get(delta);
                 if (reverse) {
                     amount = amount * -1;
                 }
                 this.updateAttribute(delta, amount);
             }
-            for (Attributes delta : effector.getAttributeBonusChanges().keySet()) {
-                int amount = effector.getAttributeBonusChanges().get(delta);
+            for (Attributes delta : effect.getAttributeBonusChanges().keySet()) {
+                int amount = effect.getAttributeBonusChanges().get(delta);
                 if (reverse) {
                     amount = amount * -1;
                 }
                 this.updateModifier(delta, amount);
             }
-            if (!reverse && effector.getPersistence().getTickSize() != TickType.INSTANT) {
-                this.effects.add(effector);
-            } else if (reverse && this.effects.contains(effector)) {
-                this.effects.remove(effector);
+            if (!reverse && effect.getPersistence().getTickSize() != TickType.INSTANT) {
+                this.effects.add(effect);
+            } else if (reverse && this.effects.contains(effect)) {
+                this.effects.remove(effect);
             }
             // for now...cannot curse someone with being a renegade
-            if (effector.isRestoreFaction()) {
+            if (effect.isRestoreFaction()) {
                 this.restoreFaction();
             }
         }
 
-        CreatureAffectedMessage camOut = new CreatureAffectedMessage(this, effector, reverse);
+        CreatureAffectedMessage camOut = new CreatureAffectedMessage(this, effect, reverse);
         return camOut;
     }
 
-    public CreatureAffectedMessage applyEffects(CreatureEffector effector) {
-        return this.applyEffects(effector, false);
+    public CreatureAffectedMessage applyEffect(CreatureEffect effect) {
+        return this.applyEffect(effect, false);
     }
 
     public void tick(TickType type) {
         this.effects.removeIf(effect -> {
             if (effect.tick(type) == 0) {
-                this.applyEffects(effect, true);
+                this.applyEffect(effect, true);
                 return true;
             }
             return false;

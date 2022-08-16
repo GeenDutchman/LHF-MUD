@@ -2,7 +2,7 @@ package com.lhf.game.item.concrete.equipment;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
-import com.lhf.game.creature.CreatureEffector.BasicCreatureEffector;
+import com.lhf.game.creature.CreatureEffect.BasicCreatureEffect;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
@@ -31,7 +31,7 @@ public class RingOfSeeing extends Equipable {
 
         this.slots.add(EquipmentSlots.LEFTHAND);
         this.slots.add(EquipmentSlots.RIGHTHAND);
-        this.equipEffects.add(new BasicCreatureEffector(null, this, new EffectPersistence(TickType.CONDITIONAL))
+        this.equipEffects.add(new BasicCreatureEffect(null, this, new EffectPersistence(TickType.CONDITIONAL))
                 .addAttributeBonusChange(Attributes.WIS, 2));
         this.descriptionString = "This ring can help you see things that are not visible to the naked eye. ";
         this.descriptionString += "It can only be used so many times though, and then the ring itself disappears... \n";
