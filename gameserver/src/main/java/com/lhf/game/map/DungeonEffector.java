@@ -1,8 +1,8 @@
 package com.lhf.game.map;
 
-import com.lhf.game.EntityEffector;
+import com.lhf.game.EntityEffect;
 
-public interface DungeonEffector extends EntityEffector {
+public interface DungeonEffector extends EntityEffect {
     public String getRoomName();
 
     public String getRoomDescription();

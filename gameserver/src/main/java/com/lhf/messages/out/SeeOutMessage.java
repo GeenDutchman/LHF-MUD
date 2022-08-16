@@ -9,7 +9,7 @@ import java.util.TreeMap;
 
 import com.lhf.Examinable;
 import com.lhf.Taggable;
-import com.lhf.game.EntityEffector;
+import com.lhf.game.EntityEffect;
 import com.lhf.messages.OutMessageType;
 
 public class SeeOutMessage extends OutMessage {
@@ -35,7 +35,7 @@ public class SeeOutMessage extends OutMessage {
 
     private Examinable examinable;
     private Map<String, List<Taggable>> seenCategorized;
-    private List<EntityEffector> effectors;
+    private List<EntityEffect> effects;
     private StringJoiner extraInfo;
     private String deniedReason;
 
@@ -45,7 +45,7 @@ public class SeeOutMessage extends OutMessage {
         this.extraInfo = new StringJoiner("\r\n").setEmptyValue("");
         this.deniedReason = null;
         this.seenCategorized = new TreeMap<>();
-        this.effectors = new ArrayList<>();
+        this.effects = new ArrayList<>();
     }
 
     public SeeOutMessage(Examinable examinable, String extraInfo) {
@@ -54,7 +54,7 @@ public class SeeOutMessage extends OutMessage {
         this.extraInfo = new StringJoiner("\r\n").add(extraInfo.trim());
         this.deniedReason = null;
         this.seenCategorized = new TreeMap<>();
-        this.effectors = new ArrayList<>();
+        this.effects = new ArrayList<>();
     }
 
     public SeeOutMessage(String deniedReason) {
@@ -63,7 +63,7 @@ public class SeeOutMessage extends OutMessage {
         this.examinable = null;
         this.extraInfo = new StringJoiner("\r\n").setEmptyValue("");
         this.seenCategorized = new TreeMap<>();
-        this.effectors = new ArrayList<>();
+        this.effects = new ArrayList<>();
     }
 
     public SeeOutMessage addExtraInfo(String extraInfo) {
@@ -85,8 +85,8 @@ public class SeeOutMessage extends OutMessage {
         return this;
     }
 
-    public SeeOutMessage addEffector(EntityEffector effector) {
-        this.effectors.add(effector);
+    public SeeOutMessage addEffector(EntityEffect effect) {
+        this.effects.add(effect);
         return this;
     }
 
@@ -170,10 +170,10 @@ public class SeeOutMessage extends OutMessage {
     private String listEffectors() {
         // TODO: poor man's way, not parseable
         StringJoiner sj = new StringJoiner("\r\n");
-        if (this.effectors != null && this.effectors.size() > 0) {
+        if (this.effects != null && this.effects.size() > 0) {
             sj.add("Effects that you can see:");
-            for (EntityEffector entityEffector : this.effectors) {
-                sj.add(entityEffector.toString());
+            for (EntityEffect entityEffect : this.effects) {
+                sj.add(entityEffect.toString());
             }
         }
         return sj.toString();
@@ -222,7 +222,7 @@ public class SeeOutMessage extends OutMessage {
         return this.deniedReason != null;
     }
 
-    public List<EntityEffector> getEffectors() {
-        return Collections.unmodifiableList(effectors);
+    public List<EntityEffect> getEffects() {
+        return Collections.unmodifiableList(effects);
     }
 }

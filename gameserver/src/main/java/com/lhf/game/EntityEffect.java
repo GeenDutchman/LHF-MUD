@@ -5,15 +5,15 @@ import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.Creature;
 
-public interface EntityEffector extends Comparable<EntityEffector> {
+public interface EntityEffect extends Comparable<EntityEffect> {
 
-    public class BasicEntityEffector implements EntityEffector {
+    public class BasicEntityEffect implements EntityEffect {
         protected Creature creatureResponsible;
         protected Taggable generatedBy;
         protected EffectPersistence persistence;
         protected Ticker ticker;
 
-        public BasicEntityEffector(Creature creatureResponsible, Taggable generatedBy, EffectPersistence persistence) {
+        public BasicEntityEffect(Creature creatureResponsible, Taggable generatedBy, EffectPersistence persistence) {
             this.creatureResponsible = creatureResponsible;
             this.generatedBy = generatedBy;
             this.persistence = persistence;
@@ -58,7 +58,7 @@ public interface EntityEffector extends Comparable<EntityEffector> {
     }
 
     @Override
-    public default int compareTo(EntityEffector o) {
+    public default int compareTo(EntityEffect o) {
         if (this.equals(o)) {
             return 0;
         }

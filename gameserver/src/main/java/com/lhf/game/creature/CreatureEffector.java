@@ -8,15 +8,15 @@ import java.util.TreeMap;
 
 import com.lhf.Taggable;
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EntityEffector;
+import com.lhf.game.EntityEffect;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
 
-public interface CreatureEffector extends EntityEffector {
+public interface CreatureEffector extends EntityEffect {
 
-    public class BasicCreatureEffector extends EntityEffector.BasicEntityEffector implements CreatureEffector {
+    public class BasicCreatureEffector extends EntityEffect.BasicEntityEffect implements CreatureEffector {
         protected Map<Stats, Integer> statChanges;
 
         protected Map<Attributes, Integer> attributeScoreChanges;

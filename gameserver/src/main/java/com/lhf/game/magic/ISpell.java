@@ -5,12 +5,12 @@ import java.util.Objects;
 import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EntityEffector;
+import com.lhf.game.EntityEffect;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.SeeOutMessage;
 
-public abstract class ISpell implements EntityEffector, Taggable, Examinable {
+public abstract class ISpell implements EntityEffect, Taggable, Examinable {
     // TODO: make this an Iterable<EntityEffector>
     private final String className;
     protected final SpellEntry entry;
@@ -124,8 +124,8 @@ public abstract class ISpell implements EntityEffector, Taggable, Examinable {
     }
 
     @Override
-    public int compareTo(EntityEffector o) {
-        return EntityEffector.super.compareTo(o);
+    public int compareTo(EntityEffect o) {
+        return EntityEffect.super.compareTo(o);
     }
 
 }
