@@ -65,7 +65,7 @@ public abstract class Creature
     private String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
     private CreatureFaction faction; // See shared enum
     private String creatureRace;
-    private Optional<Vocation> vocation;
+    private Vocation vocation;
     // private MonsterType monsterType; // I dont know if we'll need this
 
     private Set<CreatureEffector> effects;
@@ -97,7 +97,7 @@ public abstract class Creature
         // Instantiate creature with no name and type Monster
         this.name = NameGenerator.GenerateSuffix(NameGenerator.GenerateGiven());
         this.faction = CreatureFaction.NPC;
-        this.vocation = Optional.empty();
+        this.vocation = null;
 
         // Set attributes to default values
         this.attributeBlock = new AttributeBlock();
@@ -128,7 +128,7 @@ public abstract class Creature
     public Creature(String name, Statblock statblock) {
         this.cmds = this.buildCommands();
         this.name = name;
-        this.vocation = Optional.empty();
+        this.vocation = null;
         this.effects = new TreeSet<>();
         this.faction = statblock.faction;
         this.attributeBlock = statblock.attributes;
@@ -409,7 +409,7 @@ public abstract class Creature
         this.creatureRace = creatureRace;
     }
 
-    public Optional<Vocation> getVocation() {
+    public Vocation getVocation() {
         return this.vocation;
     }
 
@@ -419,13 +419,13 @@ public abstract class Creature
     }
 
     public void setVocation(Vocation job) {
-        if (this.vocation.isPresent()) {
-            this.proficiencies.removeAll(this.vocation.get().getProficiencies());
+        if (this.vocation != null) {
+            this.proficiencies.removeAll(this.vocation.getProficiencies());
         }
         if (job == null) {
-            this.vocation = Optional.empty();
+            this.vocation = null;
         } else {
-            this.vocation = Optional.of(job);
+            this.vocation = job;
             this.proficiencies.addAll(job.getProficiencies());
         }
     }

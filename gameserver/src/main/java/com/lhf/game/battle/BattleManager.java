@@ -258,8 +258,8 @@ public class BattleManager implements MessageHandler, Examinable {
     // TODO: for threading and waiting
     private int calculateWastePenalty(Creature waster) {
         int penalty = -1;
-        if (waster.getVocation().isPresent()) {
-            int wasterLevel = waster.getVocation().get().getLevel();
+        if (waster.getVocation() != null) {
+            int wasterLevel = waster.getVocation().getLevel();
             penalty += wasterLevel > 0 ? -1 * wasterLevel : wasterLevel;
         }
         return penalty;
@@ -464,8 +464,8 @@ public class BattleManager implements MessageHandler, Examinable {
         }
 
         int numAllowedTargets = 1;
-        if (attacker.getVocation().isPresent() && attacker.getVocation().get().getName().equals("Fighter")) {
-            numAllowedTargets += attacker.getVocation().get().getLevel() / 5;
+        if (attacker.getVocation() != null && attacker.getVocation().getName().equals("Fighter")) {
+            numAllowedTargets += attacker.getVocation().getLevel() / 5;
         }
 
         if (aMessage.getNumTargets() == 0) {

@@ -24,8 +24,12 @@ public class TargetCheckVsCasterDc extends CasterVsCreatureStrategy {
 
     @Override
     public void setCasterEffort(Creature caster) {
-        CubeHolder ch = (CubeHolder) caster.getVocation().get();
-        this.setCasterEffort(new MultiRollResult(new DiceDC(ch.getCasterDifficulty()).rollDice()));
+        if (caster.getVocation() != null) {
+            CubeHolder ch = (CubeHolder) caster.getVocation();
+            this.setCasterEffort(new MultiRollResult(new DiceDC(ch.getCasterDifficulty()).rollDice()));
+            return;
+        }
+        this.setCasterEffort(new MultiRollResult(new DiceDC(1).rollDice()));
     }
 
 }

@@ -201,7 +201,7 @@ public class ThirdPower implements MessageHandler {
     public Boolean handleMessage(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.CAST) {
             Creature attempter = ctx.getCreature();
-            if (attempter.getVocation().isEmpty() || !(attempter.getVocation().get() instanceof CubeHolder)) {
+            if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
                 ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.NOT_CASTER, attempter, true));
                 if (ctx.getRoom() != null) {
                     ctx.getRoom().sendMessageToAllExcept(
