@@ -33,7 +33,6 @@ public abstract class Equipable extends Usable {
     public Equipable(String name, boolean isVisible, int useSoManyTimes) {
         super(name, isVisible, useSoManyTimes);
         this.initLists();
-        ;
     }
 
     // returns unmodifiable
@@ -57,7 +56,7 @@ public abstract class Equipable extends Usable {
 
     @Override
     public SeeOutMessage produceMessage() {
-        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        SeeOutMessage seeOutMessage = super.produceMessage();
         for (CreatureEffector effector : this.getEquippingEffects(false)) {
             seeOutMessage.addEffector(effector);
         }
