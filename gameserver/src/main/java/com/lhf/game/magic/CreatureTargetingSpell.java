@@ -2,7 +2,6 @@ package com.lhf.game.magic;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import com.lhf.game.creature.CreatureEffector;
 import com.lhf.game.dice.DamageDice;
@@ -14,11 +13,11 @@ import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 
 public class CreatureTargetingSpell extends ISpell implements CreatureEffector {
     protected MultiRollResult damageDone;
-    protected Optional<CasterVsCreatureStrategy> strategy;
+    protected CasterVsCreatureStrategy strategy;
 
     protected CreatureTargetingSpell(CreatureTargetingSpellEntry entry) {
         super(entry);
-        this.strategy = Optional.empty();
+        this.strategy = null;
         this.damageDone = null;
     }
 
@@ -26,12 +25,12 @@ public class CreatureTargetingSpell extends ISpell implements CreatureEffector {
         return (CreatureTargetingSpellEntry) this.entry;
     }
 
-    public Optional<CasterVsCreatureStrategy> getStrategy() {
-        return this.strategy;
+    public CasterVsCreatureStrategy getStrategy() {
+        return strategy;
     }
 
-    public void setStrategy(CasterVsCreatureStrategy strategem) {
-        this.strategy = Optional.of(strategem);
+    public void setStrategy(CasterVsCreatureStrategy strategy) {
+        this.strategy = strategy;
     }
 
     public boolean isSingleTarget() {

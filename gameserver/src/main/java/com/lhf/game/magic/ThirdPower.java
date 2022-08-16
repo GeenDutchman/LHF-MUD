@@ -1,6 +1,14 @@
 package com.lhf.game.magic;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.SortedSet;
+import java.util.StringJoiner;
+import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -140,7 +148,7 @@ public class ThirdPower implements MessageHandler {
                 battleManager.startBattle(caster, possTargets);
             }
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
-            Optional<CasterVsCreatureStrategy> defense = Optional.empty();
+            CasterVsCreatureStrategy defense = null;
             if (spell.isOffensive()) {
                 defense = spell.getStrategy();
             }
