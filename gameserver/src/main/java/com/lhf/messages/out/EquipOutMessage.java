@@ -1,5 +1,8 @@
 package com.lhf.messages.out;
 
+import java.util.List;
+import java.util.StringJoiner;
+
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.interfaces.Equipable;
@@ -49,8 +52,13 @@ public class EquipOutMessage extends OutMessage {
                     sb.append("that");
                 }
                 sb.append(".");
-                if (this.item != null && this.item instanceof Equipable) {
-                    sb.append("You can equip it to: ").append(((Equipable) this.item).printWhichSlots());
+                if (this.item != null && this.getCorrectSlots().size() > 0) {
+                    sb.append("You can equip it to: ");
+                    StringJoiner sj = new StringJoiner(", ");
+                    for (EquipmentSlots slots : this.getCorrectSlots()) {
+                        sj.add(slots.getColorTaggedName());
+                    }
+                    sb.append(sj.toString());
                 }
                 break;
             case NOTEQUIPBLE:
@@ -73,8 +81,12 @@ public class EquipOutMessage extends OutMessage {
                 if (this.item != null) {
                     sb.append(", and found ").append(this.item.getColorTaggedName()).append(" ");
                     if (this.item instanceof Equipable) {
-                        sb.append("which could equip to any of these slots: ")
-                                .append(((Equipable) this.item).printWhichSlots()).append(". ");
+                        sb.append("which could equip to any of these slots: ");
+                        StringJoiner sj = new StringJoiner(", ");
+                        for (EquipmentSlots slots : this.getCorrectSlots()) {
+                            sj.add(slots.getColorTaggedName());
+                        }
+                        sb.append(sj.toString()).append(". ");
                         if (this.attemptedSlot != null) {
                             sb.append("And you equipped it.");
                         }
@@ -101,5 +113,12 @@ public class EquipOutMessage extends OutMessage {
 
     public EquipmentSlots getAttemptedSlot() {
         return attemptedSlot;
+    }
+
+    public List<EquipmentSlots> getCorrectSlots() {
+        if (this.item != null && this.item instanceof Equipable) {
+            return ((Equipable) this.item).getWhichSlots();
+        }
+        return List.of();
     }
 }

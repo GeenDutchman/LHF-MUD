@@ -1,22 +1,16 @@
 package com.lhf.game.item.concrete.equipment;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.creature.CreatureEffector.BasicCreatureEffector;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.game.map.Room;
 import com.lhf.messages.out.UseOutMessage;
 import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 
 public class RingOfSeeing extends Equipable {
-    private List<EquipmentSlots> slots;
-    private List<EquipmentTypes> types;
-    private Map<String, Integer> equippingChanges;
 
     public RingOfSeeing(boolean isVisible) {
         super("Ring of Seeing", isVisible, 3);
@@ -35,35 +29,12 @@ public class RingOfSeeing extends Equipable {
             return true;
         });
 
-        types = new ArrayList<>();
-        slots = new ArrayList<>();
-        slots.add(EquipmentSlots.LEFTHAND);
-        slots.add(EquipmentSlots.RIGHTHAND);
-        equippingChanges = new HashMap<>(0);
-        equippingChanges.put(Attributes.WIS.toString(), 2);
-    }
-
-    @Override
-    public List<EquipmentTypes> getTypes() {
-        return types;
-    }
-
-    @Override
-    public List<EquipmentSlots> getWhichSlots() {
-        return slots;
-    }
-
-    @Override
-    public Map<String, Integer> getEquippingChanges() {
-        return this.equippingChanges;
-    }
-
-    @Override
-    public String printDescription() {
-        String result = "This ring can help you see things that are not visible to the naked eye. ";
-        result += "It can only be used so many times though, and then the ring itself disappears... \n";
-        result += this.printStats();
-        return result;
+        this.slots.add(EquipmentSlots.LEFTHAND);
+        this.slots.add(EquipmentSlots.RIGHTHAND);
+        this.equipEffects.add(new BasicCreatureEffector(null, this, new EffectPersistence(TickType.CONDITIONAL))
+                .addAttributeBonusChange(Attributes.WIS, 2));
+        this.descriptionString = "This ring can help you see things that are not visible to the naked eye. ";
+        this.descriptionString += "It can only be used so many times though, and then the ring itself disappears... \n";
     }
 
 }

@@ -1,16 +1,13 @@
 package com.lhf.game.item.concrete.equipment;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.CreatureEffector;
 import com.lhf.game.creature.CreatureEffector.BasicCreatureEffector;
-import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -45,22 +42,19 @@ public class CarnivorousArmor extends Equipable {
         }
     }
 
-    private int AC = 2;
-    private int eatsHealthTo = 5;
+    private final int AC = 2;
+    private final int eatsHealthTo = 5;
     private boolean equipped = false;
     private boolean equippedAndUsed = false;
-
-    private List<EquipmentSlots> slots;
-    private List<EquipmentTypes> types;
-    private Map<String, Integer> equippingChanges;
 
     public CarnivorousArmor(boolean isVisible) {
         super("Carnivorous Armor", isVisible, -1);
 
-        slots = Collections.singletonList(EquipmentSlots.ARMOR);
-        types = Arrays.asList(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
-        equippingChanges = new HashMap<>();
-        equippingChanges.put(Stats.AC.toString(), this.AC);
+        this.slots = List.of(EquipmentSlots.ARMOR);
+        this.types = List.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
+        this.equipEffects = List.of(new BasicCreatureEffector(null, this, new EffectPersistence(TickType.CONDITIONAL))
+                .addStatChange(Stats.AC, this.AC));
+        this.descriptionString = "This is some simple leather armor. " + "There is plenty of blood on it...\n";
     }
 
     @Override
@@ -73,17 +67,7 @@ public class CarnivorousArmor extends Equipable {
     }
 
     @Override
-    public List<EquipmentTypes> getTypes() {
-        return types;
-    }
-
-    @Override
-    public List<EquipmentSlots> getWhichSlots() {
-        return slots;
-    }
-
-    @Override
-    public Map<String, Integer> onEquippedBy(EquipmentOwner newOwner) {
+    public void onEquippedBy(Creature newOwner) {
         this.equipped = true;
         this.equippedAndUsed = false;
 
@@ -130,29 +114,20 @@ public class CarnivorousArmor extends Equipable {
             return true;
         });
 
-        return super.onEquippedBy(newOwner);
+        super.onEquippedBy(newOwner);
     }
 
     @Override
-    public Map<String, Integer> onUnequippedBy(EquipmentOwner disowner) {
-        Map<String, Integer> result = super.onUnequippedBy(disowner);
+    public void onUnequippedBy(Creature disowner) {
+        super.onUnequippedBy(disowner);
         if (equippedAndUsed) {
-            result.put(Stats.CURRENTHP.toString(), -2);
+            CreatureEffector lastBite = new BasicCreatureEffector(null, this, new EffectPersistence(TickType.INSTANT))
+                    .addStatChange(Stats.CURRENTHP, -2);
+            disowner.sendMsg(disowner.applyAffects(lastBite));
         }
         equipped = false;
         equippedAndUsed = false;
         removeUseAction(disowner.getName());
-        return result;
     }
 
-    @Override
-    public Map<String, Integer> getEquippingChanges() {
-        return this.equippingChanges;
-    }
-
-    @Override
-    public String printDescription() {
-        return "This is some simple leather armor. " + "There is plenty of blood on it...\n" +
-                this.printStats();
-    }
 }

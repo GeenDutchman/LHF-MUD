@@ -51,45 +51,15 @@ public abstract class Creature
 
     public class Fist extends Weapon {
 
-        private List<EquipmentSlots> slots;
-        private List<EquipmentTypes> types;
         private List<DamageDice> damages;
-        private Map<String, Integer> equippingChanges;
 
         Fist() {
             super("Fist", false);
 
-            types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
-            slots = Collections.singletonList(EquipmentSlots.WEAPON);
-            damages = Arrays.asList(new DamageDice(1, DieType.TWO, this.getMainFlavor()));
-            equippingChanges = new HashMap<>(0); // changes nothing
-        }
-
-        @Override
-        public List<EquipmentTypes> getTypes() {
-            return types;
-        }
-
-        @Override
-        public List<EquipmentSlots> getWhichSlots() {
-            return slots;
-        }
-
-        @Override
-        public Map<String, Integer> getEquippingChanges() {
-            return this.equippingChanges;
-        }
-
-        @Override
-        public SeeOutMessage produceMessage() {
-            SeeOutMessage seeOutMessage = new SeeOutMessage(this);
-            return seeOutMessage;
-        }
-
-        @Override
-        public String printDescription() {
-            return "This is a " + getName() + " attached to a " + Creature.this.getName() + "\n" +
-                    this.printStats();
+            this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
+            this.slots = List.of(EquipmentSlots.WEAPON);
+            this.damages = List.of(new DamageDice(1, DieType.TWO, this.getMainFlavor()));
+            this.descriptionString = "This is a " + getName() + " attached to a " + Creature.this.getName() + "\n";
         }
 
         @Override
@@ -186,7 +156,7 @@ public abstract class Creature
         this.equipmentSlots = statblock.equipmentSlots;
         for (Item item : this.equipmentSlots.values()) {
             Equipable equipped = (Equipable) item;
-            this.applyUse(equipped.onEquippedBy(this));
+            equipped.onEquippedBy(this);
         }
     }
 
@@ -561,24 +531,6 @@ public abstract class Creature
     public SeeOutMessage produceMessage() {
         SeeOutMessage seeOutMessage = new SeeOutMessage(this);
         return seeOutMessage;
-    }
-
-    public boolean applyUse(Map<String, Integer> applications) {
-        for (Map.Entry<String, Integer> p : applications.entrySet()) {
-            try {
-                Attributes attribute = Attributes.valueOf(p.getKey());
-                this.updateAttribute(attribute, p.getValue());
-            } catch (IllegalArgumentException e) {
-                try {
-                    Stats stat = Stats.valueOf(p.getKey());
-                    this.updateStat(stat, p.getValue());
-                } catch (IllegalArgumentException e2) {
-                    e2.printStackTrace();
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     @Override
