@@ -7,9 +7,9 @@ import java.util.TreeSet;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.item.Item;
-import com.lhf.game.map.RoomEffector;
+import com.lhf.game.map.RoomEffect;
 
-public class RoomTargetingSpell extends ISpell implements RoomEffector {
+public class RoomTargetingSpell extends ISpell implements RoomEffect {
     protected List<Item> itemsToSummon;
     protected List<Item> itemsToBanish;
     protected Set<Creature> creaturesToSummon;

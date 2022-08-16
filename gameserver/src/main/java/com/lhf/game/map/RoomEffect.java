@@ -7,7 +7,7 @@ import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.item.Item;
 
-public interface RoomEffector extends EntityEffect {
+public interface RoomEffect extends EntityEffect {
     public List<Item> getItemsToSummon();
 
     public List<Item> getItemsToBanish();

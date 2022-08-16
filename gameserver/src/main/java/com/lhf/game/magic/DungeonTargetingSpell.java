@@ -1,11 +1,11 @@
 package com.lhf.game.magic;
 
 import com.lhf.game.map.Directions;
-import com.lhf.game.map.DungeonEffector;
+import com.lhf.game.map.DungeonEffect;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomBuilder;
 
-public class DungeonTargetingSpell extends ISpell implements DungeonEffector {
+public class DungeonTargetingSpell extends ISpell implements DungeonEffect {
     protected String createdRoomName;
     protected Directions toCreatedRoom;
     protected String createdRoomDescription;
