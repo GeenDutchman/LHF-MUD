@@ -99,8 +99,8 @@ public class CarnivorousArmor extends Equipable {
                     equippedAndUsed = true;
                     ctx.sendMsg(
                             new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target, eatDescription));
-                    ctx.sendMsg(target.applyAffects(useResults));
-                    ctx.sendMsg(target.applyAffects(eatingACResults));
+                    ctx.sendMsg(target.applyEffects(useResults));
+                    ctx.sendMsg(target.applyEffects(eatingACResults));
                     return true;
                 } else {
                     String moreNeeded = "You need more health to use this item.";
@@ -123,7 +123,7 @@ public class CarnivorousArmor extends Equipable {
         if (equippedAndUsed) {
             CreatureEffector lastBite = new BasicCreatureEffector(null, this, new EffectPersistence(TickType.INSTANT))
                     .addStatChange(Stats.CURRENTHP, -2);
-            disowner.sendMsg(disowner.applyAffects(lastBite));
+            disowner.sendMsg(disowner.applyEffects(lastBite));
         }
         equipped = false;
         equippedAndUsed = false;

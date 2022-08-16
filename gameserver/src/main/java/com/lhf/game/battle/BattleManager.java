@@ -296,7 +296,7 @@ public class BattleManager implements MessageHandler, Examinable {
             if (target.getStats().get(Stats.AC) > a.getToHit().getRoll()) { // misses
                 sendMessageToAllParticipants(new MissMessage(attacker, target, a.getToHit(), null));
             } else {
-                sendMessageToAllParticipants(target.applyAffects(a));
+                sendMessageToAllParticipants(target.applyEffects(a));
             }
         }
     }

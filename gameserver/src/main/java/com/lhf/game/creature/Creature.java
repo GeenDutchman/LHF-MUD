@@ -334,7 +334,7 @@ public abstract class Creature
         return new MultiRollResult(adjusted, mrr.getBonuses());
     }
 
-    public CreatureAffectedMessage applyAffects(CreatureEffector effector, boolean reverse) {
+    public CreatureAffectedMessage applyEffects(CreatureEffector effector, boolean reverse) {
         MultiRollResult mrr = this.adjustDamageByFlavor(effector.getDamageResult(), reverse);
         effector.updateDamageResult(mrr);
         this.updateHitpoints(mrr.getRoll());
@@ -375,14 +375,14 @@ public abstract class Creature
         return camOut;
     }
 
-    public CreatureAffectedMessage applyAffects(CreatureEffector effector) {
-        return this.applyAffects(effector, false);
+    public CreatureAffectedMessage applyEffects(CreatureEffector effector) {
+        return this.applyEffects(effector, false);
     }
 
     public void tick(TickType type) {
         this.effects.removeIf(effect -> {
             if (effect.tick(type) == 0) {
-                this.applyAffects(effect, true);
+                this.applyEffects(effect, true);
                 return true;
             }
             return false;

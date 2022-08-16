@@ -41,15 +41,15 @@ public class HealPotion extends Usable {
                         return false;
                     }
                     ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
-                    OutMessage results = target.applyAffects(bce);
+                    OutMessage results = target.applyEffects(bce);
                     bm.sendMessageToAllParticipants(results);
                 } else if (ctx.getRoom() != null) {
                     ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
-                    OutMessage results = target.applyAffects(bce);
+                    OutMessage results = target.applyEffects(bce);
                     ctx.getRoom().sendMessageToAll(results);
                 } else {
                     ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
-                    OutMessage results = target.applyAffects(bce);
+                    OutMessage results = target.applyEffects(bce);
                     ctx.sendMsg(results);
                     target.sendMsg(results);
                 }
