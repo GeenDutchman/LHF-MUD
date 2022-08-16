@@ -134,6 +134,9 @@ public class SeeOutMessage extends OutMessage {
                     case STATS:
                         sj.add("Stats that will change:");
                         break;
+                    case DAMAGES:
+                        sj.add("Causes damage like:");
+                        break;
                     case ATTRIBUTE_SCORE:
                         sj.add("Changes to attribute scores:");
                         break;
