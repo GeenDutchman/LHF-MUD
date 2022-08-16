@@ -15,9 +15,9 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
-import com.lhf.game.item.interfaces.Equipable;
-import com.lhf.game.item.interfaces.Takeable;
+import com.lhf.game.item.Takeable;
 
 public class CLIAdaptor implements CreatorAdaptor {
 

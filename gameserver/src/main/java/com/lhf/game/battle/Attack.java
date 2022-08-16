@@ -16,7 +16,7 @@ import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.interfaces.Weapon;
+import com.lhf.game.item.Weapon;
 
 public class Attack implements CreatureEffector {
     // TODO: add aggro

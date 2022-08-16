@@ -4,7 +4,7 @@ import java.util.StringJoiner;
 
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
-import com.lhf.game.item.interfaces.Usable;
+import com.lhf.game.item.Usable;
 import com.lhf.messages.OutMessageType;
 
 public class UseOutMessage extends OutMessage {

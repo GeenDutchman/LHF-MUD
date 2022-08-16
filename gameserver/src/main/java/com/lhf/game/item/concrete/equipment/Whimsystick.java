@@ -16,15 +16,14 @@ import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.interfaces.Weapon;
+import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 
 public class Whimsystick extends Weapon {
-    private List<DamageDice> damages;
     private final int acBonus = 1;
 
     public Whimsystick(boolean isVisible) {
-        super("Whimsystick", isVisible);
+        super("Whimsystick", isVisible, DamageFlavor.MAGICAL_BLUDGEONING, WeaponSubtype.MARTIAL);
 
         this.slots = Collections.singletonList(EquipmentSlots.WEAPON);
         this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.QUARTERSTAFF, EquipmentTypes.CLUB);
@@ -38,16 +37,6 @@ public class Whimsystick extends Weapon {
     }
 
     @Override
-    public DamageFlavor getMainFlavor() {
-        return DamageFlavor.MAGICAL_BLUDGEONING;
-    }
-
-    @Override
-    public List<DamageDice> getDamages() {
-        return damages;
-    }
-
-    @Override
     public Attack modifyAttack(Attack attack) {
         Dice chooser = new DiceD6(1);
         if (chooser.rollDice().getRoll() <= 2) {
@@ -57,8 +46,4 @@ public class Whimsystick extends Weapon {
         return attack;
     }
 
-    @Override
-    public WeaponSubtype getSubType() {
-        return WeaponSubtype.MARTIAL;
-    }
 }

@@ -5,9 +5,9 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
-import com.lhf.game.item.interfaces.Equipable;
-import com.lhf.game.item.interfaces.Takeable;
+import com.lhf.game.item.Takeable;
 import com.lhf.messages.OutMessageType;
 
 public class InventoryOutMessage extends OutMessage {

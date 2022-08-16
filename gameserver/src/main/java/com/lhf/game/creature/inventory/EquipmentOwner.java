@@ -1,7 +1,7 @@
 package com.lhf.game.creature.inventory;
 
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.item.interfaces.Equipable;
+import com.lhf.game.item.Equipable;
 
 public interface EquipmentOwner {
     boolean equipItem(String itemName, EquipmentSlots slot);

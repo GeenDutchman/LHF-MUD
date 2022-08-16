@@ -13,12 +13,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import com.lhf.game.item.Equipable;
 import com.lhf.game.item.EquipableDeserializer;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.ItemDeserializer;
+import com.lhf.game.item.Takeable;
 import com.lhf.game.item.TakeableDeserializer;
-import com.lhf.game.item.interfaces.Equipable;
-import com.lhf.game.item.interfaces.Takeable;
 
 public class StatblockManager {
     private String[] path_to_monsterStatblocks = { ".", "monsterStatblocks" };

@@ -8,15 +8,13 @@ import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
-import com.lhf.game.item.interfaces.Weapon;
+import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 
 public class ReaperScythe extends Weapon {
 
-    private List<DamageDice> damages;
-
     public ReaperScythe(boolean isVisible) {
-        super("Reaper Scythe", isVisible);
+        super("Reaper Scythe", isVisible, DamageFlavor.NECROTIC, WeaponSubtype.FINESSE);
 
         this.slots = List.of(EquipmentSlots.WEAPON);
         this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
@@ -25,25 +23,10 @@ public class ReaperScythe extends Weapon {
     }
 
     @Override
-    public DamageFlavor getMainFlavor() {
-        return DamageFlavor.NECROTIC;
-    }
-
-    @Override
-    public List<DamageDice> getDamages() {
-        return this.damages;
-    }
-
-    @Override
     public Attack modifyAttack(Attack attack) {
         attack = super.modifyAttack(attack).addToHitBonus(10);
         attack.addDamageBonus(100);
         return attack;
-    }
-
-    @Override
-    public WeaponSubtype getSubType() {
-        return WeaponSubtype.FINESSE;
     }
 
 }

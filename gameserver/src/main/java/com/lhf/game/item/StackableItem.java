@@ -1,8 +1,6 @@
 package com.lhf.game.item;
 
-import com.lhf.game.item.interfaces.Usable;
-
-public abstract class StackableItem extends Usable {
+public class StackableItem extends Usable {
 
     public static class StackableItemException extends Exception {
         StackableItemException(String message) {

@@ -8,7 +8,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
-import com.lhf.game.item.interfaces.Takeable;
 
 public class TakeableDeserializer<T extends Takeable> implements JsonDeserializer<T> {
 

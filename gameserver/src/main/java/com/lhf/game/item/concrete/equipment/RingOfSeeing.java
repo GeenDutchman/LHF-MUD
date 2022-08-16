@@ -5,7 +5,7 @@ import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.CreatureEffector.BasicCreatureEffector;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.item.interfaces.Equipable;
+import com.lhf.game.item.Equipable;
 import com.lhf.game.map.Room;
 import com.lhf.messages.out.UseOutMessage;
 import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;

@@ -2,7 +2,7 @@ package com.lhf.game.creature.inventory;
 
 import com.lhf.game.Container;
 import com.lhf.game.item.Item;
-import com.lhf.game.item.interfaces.Takeable;
+import com.lhf.game.item.Takeable;
 import com.lhf.messages.out.InventoryOutMessage;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;

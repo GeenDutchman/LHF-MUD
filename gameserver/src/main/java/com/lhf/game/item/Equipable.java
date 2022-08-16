@@ -1,4 +1,4 @@
-package com.lhf.game.item.interfaces;
+package com.lhf.game.item;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,7 +12,7 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
-public abstract class Equipable extends Usable {
+public class Equipable extends Usable {
     protected List<EquipmentTypes> types;
     protected List<EquipmentSlots> slots;
     protected List<CreatureEffector> equipEffects;

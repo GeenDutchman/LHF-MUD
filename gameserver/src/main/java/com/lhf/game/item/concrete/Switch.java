@@ -1,6 +1,6 @@
 package com.lhf.game.item.concrete;
 
-import com.lhf.game.item.interfaces.InteractObject;
+import com.lhf.game.item.InteractObject;
 
 public class Switch extends InteractObject {
     public Switch(String name, boolean isVisible, boolean isRepeatable, String description) {

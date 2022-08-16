@@ -8,7 +8,7 @@ import com.lhf.game.creature.CreatureEffector.BasicCreatureEffector;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.interfaces.Equipable;
+import com.lhf.game.item.Equipable;
 
 public class Shield extends Equipable {
 

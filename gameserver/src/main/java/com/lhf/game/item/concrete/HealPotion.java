@@ -10,7 +10,7 @@ import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealType;
-import com.lhf.game.item.interfaces.Usable;
+import com.lhf.game.item.Usable;
 import com.lhf.game.item.interfaces.UseAction;
 import com.lhf.messages.out.BattleTurnMessage;
 import com.lhf.messages.out.OutMessage;

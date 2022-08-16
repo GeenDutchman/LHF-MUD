@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.interfaces.InteractAction;
-import com.lhf.game.item.interfaces.InteractObject;
 import com.lhf.game.map.Room;
 import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.OutMessage;

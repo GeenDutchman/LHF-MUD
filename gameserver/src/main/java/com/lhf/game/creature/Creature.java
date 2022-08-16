@@ -24,10 +24,10 @@ import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
-import com.lhf.game.item.interfaces.Equipable;
-import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
@@ -51,30 +51,13 @@ public abstract class Creature
 
     public class Fist extends Weapon {
 
-        private List<DamageDice> damages;
-
         Fist() {
-            super("Fist", false);
+            super("Fist", false, DamageFlavor.BLUDGEONING, WeaponSubtype.CREATUREPART);
 
             this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
             this.slots = List.of(EquipmentSlots.WEAPON);
             this.damages = List.of(new DamageDice(1, DieType.TWO, this.getMainFlavor()));
             this.descriptionString = "This is a " + getName() + " attached to a " + Creature.this.getName() + "\n";
-        }
-
-        @Override
-        public DamageFlavor getMainFlavor() {
-            return DamageFlavor.BLUDGEONING;
-        }
-
-        @Override
-        public List<DamageDice> getDamages() {
-            return this.damages;
-        }
-
-        @Override
-        public WeaponSubtype getSubType() {
-            return WeaponSubtype.CREATUREPART;
         }
 
     }

@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
-import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.messages.OutMessageType;
 
 public class EquipOutMessage extends OutMessage {
