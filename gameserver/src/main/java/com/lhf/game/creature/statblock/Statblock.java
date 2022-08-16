@@ -41,6 +41,16 @@ public class Statblock {
 
     }
 
+    public Statblock(Statblock other) {
+        this.creatureRace = other.getCreatureRace();
+        this.faction = other.getFaction();
+        this.attributes = other.getAttributes();
+        this.stats = other.getStats();
+        this.proficiencies = other.getProficiencies();
+        this.inventory = other.getInventory();
+        this.equipmentSlots = other.getEquipmentSlots();
+    }
+
     public String creatureRace;
     // see the enums file
     public CreatureFaction faction;

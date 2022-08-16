@@ -13,7 +13,7 @@ import com.lhf.game.item.interfaces.WeaponSubtype;
 public class Longsword extends Weapon {
 
     public Longsword(boolean isVisible) {
-        super("Longsword", isVisible, , DamageFlavor.SLASHING, WeaponSubtype.MARTIAL);
+        super("Longsword", isVisible, DamageFlavor.SLASHING, WeaponSubtype.MARTIAL);
 
         this.slots = List.of(EquipmentSlots.WEAPON);
         this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);

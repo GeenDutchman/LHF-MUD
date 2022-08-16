@@ -90,10 +90,9 @@ public class CreatureCreator {
 
         built.setEquipmentSlots(adapter.equipFromInventory(built.getInventory()));
 
-        Statblock test = new Statblock(built.toString());
-        // System.out.println(test);
+        System.out.println(built.toString());
 
-        test = CreatureCreator.writeStatblock(test);
+        built = CreatureCreator.writeStatblock(built);
         // System.err.println(test);
         adapter.close();
         // System.out.println("\nCreature Creation Complete!");
