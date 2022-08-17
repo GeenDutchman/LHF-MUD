@@ -1,8 +1,5 @@
 package com.lhf.game.magic;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -22,9 +19,10 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
     protected final String invocation;
     protected String description;
     protected final Set<VocationName> allowedVocations;
-    protected final Set<EntityEffectSource> effectSources;
+    protected final Set<? extends EntityEffectSource> effectSources;
 
-    public SpellEntry(Integer level, String name, Set<EntityEffectSource> effectSources, Set<VocationName> allowed,
+    public SpellEntry(Integer level, String name, Set<? extends EntityEffectSource> effectSources,
+            Set<VocationName> allowed,
             String description) {
         this.className = this.getClass().getName();
         this.level = level;
@@ -91,7 +89,7 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         return allowedVocations;
     }
 
-    public Set<EntityEffectSource> getEffectSources() {
+    public Set<? extends EntityEffectSource> getEffectSources() {
         return this.effectSources;
     }
 
