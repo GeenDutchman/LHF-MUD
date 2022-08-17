@@ -61,8 +61,12 @@ onSpell():
 ```mermaid
 classDiagram
     direction TB
-    SpellEntry
-    ISpell
+    class SpellEntry {
+        <<abstract>>
+    }
+    class ISpell {
+        <<abstract>>
+    }
     CreatureTargetingSpellEntry
     RoomTargetingSpellEntry
     DungeonTargetingSpellEntry
