@@ -4,23 +4,18 @@ import java.util.Objects;
 
 import com.lhf.Examinable;
 import com.lhf.Taggable;
-import com.lhf.game.EffectPersistence;
 import com.lhf.game.EntityEffect;
-import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.SeeOutMessage;
 
-public abstract class ISpell implements EntityEffect, Taggable, Examinable {
-    // TODO: make this an Iterable<EntityEffector>
+public abstract class ISpell implements Comparable<ISpell>, Iterable<EntityEffect>, Taggable, Examinable {
     private final String className;
     protected final SpellEntry entry;
     protected transient Creature caster;
-    protected Ticker timeLeft;
 
     public ISpell(SpellEntry entry) {
         this.className = this.getClass().getName();
         this.entry = entry;
-        this.timeLeft = entry.getPersistence().getTicker();
     }
 
     public ISpell setCaster(Creature caster) {
@@ -40,7 +35,9 @@ public abstract class ISpell implements EntityEffect, Taggable, Examinable {
         return entry;
     }
 
-    public abstract boolean isOffensive();
+    public boolean isOffensive() {
+        return this.entry.isOffensive();
+    }
 
     @Override
     public String getName() {
@@ -55,26 +52,15 @@ public abstract class ISpell implements EntityEffect, Taggable, Examinable {
         return this.entry.getInvocation();
     }
 
-    public EffectPersistence getPersistence() {
-        return this.entry.getPersistence();
-    }
-
-    @Override
-    public Ticker getTicker() {
-        return timeLeft;
-    }
-
     @Override
     public String printDescription() {
         return this.entry.printDescription();
     }
 
-    @Override
     public Creature creatureResponsible() {
         return this.caster;
     }
 
-    @Override
     public Taggable getGeneratedBy() {
         return this.entry;
     }
@@ -124,8 +110,11 @@ public abstract class ISpell implements EntityEffect, Taggable, Examinable {
     }
 
     @Override
-    public int compareTo(EntityEffect o) {
-        return EntityEffect.super.compareTo(o);
+    public int compareTo(ISpell o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        return this.entry.compareTo(o.getEntry());
     }
 
 }
