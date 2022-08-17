@@ -2,7 +2,6 @@ package com.lhf.game.map;
 
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
-import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.Creature;
 
 public class DungeonEffect extends EntityEffect {
