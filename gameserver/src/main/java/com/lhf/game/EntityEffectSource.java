@@ -74,4 +74,6 @@ public abstract class EntityEffectSource implements Taggable, Examinable {
                 && Objects.equals(persistence, other.persistence);
     }
 
+    public abstract boolean isOffensive();
+
 }

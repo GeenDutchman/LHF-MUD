@@ -54,6 +54,7 @@ public class CreatureEffectSource extends EntityEffectSource {
         return this.damages;
     }
 
+    @Override
     public boolean isOffensive() {
         for (DamageDice dd : this.damages) {
             if (!DamageFlavor.HEALING.equals(dd.getFlavor())) {
