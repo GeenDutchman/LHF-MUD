@@ -66,7 +66,14 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         return this.getInvocation().equals(trimmedInvoke);
     }
 
-    // public abstract ISpell create();
+    public boolean isOffensive() {
+        for (EntityEffectSource source : this.effectSources) {
+            if (source.isOffensive()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public String getClassName() {
         return this.className;
