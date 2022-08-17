@@ -87,4 +87,9 @@ public abstract class EntityEffect implements Examinable, Taggable, Comparable<E
         return this.source.getStartTag();
     }
 
+    @Override
+    public String toString() {
+        return this.produceMessage().toString();
+    }
+
 }

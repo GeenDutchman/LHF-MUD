@@ -49,4 +49,9 @@ public abstract class EntityEffectSource implements Taggable, Examinable {
         return this.getStartTag() + this.getName() + this.getEndTag();
     }
 
+    @Override
+    public String toString() {
+        return this.produceMessage().toString();
+    }
+
 }
