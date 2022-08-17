@@ -133,8 +133,7 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(this.getColorTaggedName()).append("\r\n");
-        sb.append("Level:").append(this.getLevel()).append(" Persistence:").append(this.getPersistence())
-                .append("\r\n");
+        sb.append("Level:").append(this.getLevel()).append("\r\n");
         sb.append("Invocation:\"").append(this.getInvocation()).append("\"\r\n");
         sb.append("Can be cast by:");
         StringJoiner sj = new StringJoiner(", ").setEmptyValue("anyone with magical powers.");
