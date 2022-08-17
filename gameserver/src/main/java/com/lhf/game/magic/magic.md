@@ -67,12 +67,12 @@ classDiagram
     class ISpell {
         <<abstract>>
     }
-    CreatureTargetingSpellEntry
-    RoomTargetingSpellEntry
-    DungeonTargetingSpellEntry
-    CreatureTargetingSpell
-    RoomTargetingSpell
-    DungeonTargetingSpell
+    class CreatureTargetingSpellEntry
+    class RoomTargetingSpellEntry
+    class DungeonTargetingSpellEntry
+    class CreatureTargetingSpell
+    class RoomTargetingSpell
+    class DungeonTargetingSpell
 
     SpellEntry <|.. CreatureTargetingSpellEntry
     SpellEntry --o ISpell
