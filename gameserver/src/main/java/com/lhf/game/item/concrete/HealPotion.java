@@ -5,7 +5,8 @@ import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
-import com.lhf.game.creature.CreatureEffect.BasicCreatureEffect;
+import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.BasicCreatureEffect;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
@@ -29,8 +30,8 @@ public class HealPotion extends Usable {
                 return true;
             } else if (object instanceof Creature) {
                 Creature target = (Creature) object;
-                CreatureEffect bce = new BasicCreatureEffect(ctx.getCreature(), this,
-                        new EffectPersistence(TickType.INSTANT));
+                CreatureEffectSource bce = new CreatureEffectSource(this.healtype.toString() + " healing",
+                        new EffectPersistence(TickType.INSTANT), "Heals you a little bit", false);
                 bce = this.setHealing(bce);
                 if (ctx.getBattleManager() != null) {
                     BattleManager bm = ctx.getBattleManager();
@@ -41,15 +42,15 @@ public class HealPotion extends Usable {
                         return false;
                     }
                     ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
-                    OutMessage results = target.applyEffect(bce);
+                    OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     bm.sendMessageToAllParticipants(results);
                 } else if (ctx.getRoom() != null) {
                     ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
-                    OutMessage results = target.applyEffect(bce);
+                    OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     ctx.getRoom().sendMessageToAll(results);
                 } else {
                     ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
-                    OutMessage results = target.applyEffect(bce);
+                    OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     ctx.sendMsg(results);
                     target.sendMsg(results);
                 }
@@ -80,7 +81,7 @@ public class HealPotion extends Usable {
         setUp();
     }
 
-    private CreatureEffect setHealing(CreatureEffect effect) {
+    private CreatureEffectSource setHealing(CreatureEffectSource effect) {
         switch (this.healtype) {
             case Critical:
                 effect.addDamage(new DamageDice(1, DieType.EIGHT, DamageFlavor.HEALING));
@@ -92,6 +93,7 @@ public class HealPotion extends Usable {
                 effect.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
 
         }
+
         effect.addDamageBonus(-1);
         return effect;
     }
