@@ -7,6 +7,7 @@ import java.util.List;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.messages.out.SeeOutMessage;
@@ -15,8 +16,8 @@ import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 public class Equipable extends Usable {
     protected List<EquipmentTypes> types;
     protected List<EquipmentSlots> slots;
-    protected List<CreatureEffect> equipEffects;
-    protected List<CreatureEffect> hiddenEquipEffects;
+    protected List<CreatureEffectSource> equipEffects;
+    protected List<CreatureEffectSource> hiddenEquipEffects;
 
     private void initLists() {
         this.types = new ArrayList<>();
@@ -46,8 +47,8 @@ public class Equipable extends Usable {
     }
 
     // returns unmodifiable
-    public List<CreatureEffect> getEquippingEffects(boolean alsoHidden) {
-        List<CreatureEffect> comboList = new ArrayList<>(this.equipEffects);
+    public List<CreatureEffectSource> getEquippingEffects(boolean alsoHidden) {
+        List<CreatureEffectSource> comboList = new ArrayList<>(this.equipEffects);
         if (alsoHidden) {
             comboList.addAll(this.hiddenEquipEffects);
         }
@@ -57,7 +58,7 @@ public class Equipable extends Usable {
     @Override
     public SeeOutMessage produceMessage() {
         SeeOutMessage seeOutMessage = super.produceMessage();
-        for (CreatureEffect effector : this.getEquippingEffects(false)) {
+        for (CreatureEffectSource effector : this.getEquippingEffects(false)) {
             seeOutMessage.addEffector(effector);
         }
         if (this.getWhichSlots() != null && this.getWhichSlots().size() > 0) {
@@ -74,16 +75,16 @@ public class Equipable extends Usable {
     }
 
     public void onEquippedBy(Creature equipper) {
-        for (CreatureEffect effector : this.getEquippingEffects(true)) {
-            equipper.sendMsg(equipper.applyEffect(effector));
+        for (CreatureEffectSource effector : this.getEquippingEffects(true)) {
+            equipper.sendMsg(equipper.applyEffect(new CreatureEffect(effector, equipper, this)));
         }
     }
 
     public void onUnequippedBy(Creature unequipper) {
-        for (CreatureEffect effector : this.getEquippingEffects(true)) {
+        for (CreatureEffectSource effector : this.getEquippingEffects(true)) {
             if (effector.getPersistence() != null
                     && TickType.CONDITIONAL.equals(effector.getPersistence().getTickSize())) {
-                unequipper.sendMsg(unequipper.applyEffect(effector, true));
+                unequipper.sendMsg(unequipper.applyEffect(new CreatureEffect(effector, unequipper, this), true));
             }
         }
     }
