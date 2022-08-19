@@ -4,7 +4,7 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.EntityEffectSource;
 
 public class DungeonEffectSource extends EntityEffectSource {
-    protected boolean addsRoomToDungeon;
+    protected final boolean addsRoomToDungeon;
 
     public DungeonEffectSource(String name, EffectPersistence persistence, String description,
             boolean addsRoomToDungeon) {
@@ -24,6 +24,11 @@ public class DungeonEffectSource extends EntityEffectSource {
     public String printDescription() {
         return super.printDescription()
                 + (this.addsRoomToDungeon ? "\r\nAdds a room to the dungeon!" : "\r\nWill modify the current dungeon.");
+    }
+
+    @Override
+    public boolean isOffensive() {
+        return false;
     }
 
 }

@@ -1,27 +1,36 @@
 package com.lhf.game.magic;
 
+import java.util.Iterator;
+import java.util.Set;
+
+import com.lhf.game.EntityEffectSource;
+import com.lhf.game.creature.Creature;
 import com.lhf.game.map.Directions;
 import com.lhf.game.map.DungeonEffect;
+import com.lhf.game.map.DungeonEffectSource;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomBuilder;
 
-public class DungeonTargetingSpell extends ISpell implements DungeonEffect {
+public class DungeonTargetingSpell extends ISpell<DungeonEffect> {
+    protected Set<DungeonEffect> effects;
     protected String createdRoomName;
     protected Directions toCreatedRoom;
     protected String createdRoomDescription;
     protected Room createdRoom;
 
-    public DungeonTargetingSpell(SpellEntry entry, String createdRoomName, Directions toCreatedRoom) {
-        super(entry);
+    public DungeonTargetingSpell(DungeonTargetingSpellEntry entry, Creature caster, String createdRoomName,
+            Directions toCreatedRoom) {
+        super(entry, caster);
         this.createdRoomName = createdRoomName;
         this.toCreatedRoom = toCreatedRoom;
         this.createdRoomDescription = "Created by the great mage " + this.getCaster().getColorTaggedName();
         this.createdRoom = null;
     }
 
-    public DungeonTargetingSpell(SpellEntry entry, String createdRoomName, Directions toCreatedRoom,
+    public DungeonTargetingSpell(DungeonTargetingSpellEntry entry, Creature caster, String createdRoomName,
+            Directions toCreatedRoom,
             String createdRoomDescription) {
-        super(entry);
+        super(entry, caster);
         this.createdRoomName = createdRoomName;
         this.toCreatedRoom = toCreatedRoom;
         this.createdRoomDescription = "Created by the great mage " + this.getCaster().getColorTaggedName() + "\r\n"
@@ -29,22 +38,18 @@ public class DungeonTargetingSpell extends ISpell implements DungeonEffect {
         this.createdRoom = null;
     }
 
-    @Override
     public String getRoomName() {
         return this.createdRoomName;
     }
 
-    @Override
     public Directions getDirectionToAddedRoom() {
         return this.toCreatedRoom;
     }
 
-    @Override
     public String getRoomDescription() {
         return this.createdRoomDescription;
     }
 
-    @Override
     public Room getRoomToAdd() {
         if (this.createdRoom == null) {
             RoomBuilder rb = RoomBuilder.getInstance();
@@ -58,6 +63,24 @@ public class DungeonTargetingSpell extends ISpell implements DungeonEffect {
     @Override
     public boolean isOffensive() {
         return false;
+    }
+
+    @Override
+    public Iterator<DungeonEffect> iterator() {
+        return this.getEffects().iterator();
+    }
+
+    @Override
+    public Set<DungeonEffect> getEffects() {
+        if (this.effects == null) {
+            this.effects = new HashSet<>();
+            for (EntityEffectSource source : this.getEntry().getEffectSources()) {
+                if (source instanceof DungeonEffectSource) {
+                    this.effects.add(new DungeonEffect((DungeonEffectSource) source, this.getCaster(), this,
+                            this.getRoomName(), this.getDirectionToAddedRoom(), this.getRoomDescription()));
+                }
+            }
+        }
     }
 
 }
