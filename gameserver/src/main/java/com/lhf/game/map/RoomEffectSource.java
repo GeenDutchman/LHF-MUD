@@ -65,6 +65,14 @@ public class RoomEffectSource extends EntityEffectSource {
         return creaturesToBanish;
     }
 
+    @Override
+    public boolean isOffensive() {
+        if (this.creaturesToBanish.size() > 0) {
+            return true;
+        }
+        return false;
+    }
+
     private void printCreatures(StringBuilder sb, Set<Creature> creatures, String action) {
         if (creatures.size() > 0) {
             sb.append("Creatures it will ").append(action).append(":\r\n");

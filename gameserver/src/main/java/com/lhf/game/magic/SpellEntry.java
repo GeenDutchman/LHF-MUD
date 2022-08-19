@@ -11,6 +11,7 @@ import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.messages.out.CastingMessage;
+import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class SpellEntry implements Taggable, Examinable, Comparable<SpellEntry> {
     private final String className;
@@ -115,15 +116,21 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         return this.name;
     }
 
-    @Override
-    public String printDescription() {
-        StringBuilder sb = new StringBuilder(this.description);
+    protected String printEffectDescriptions() {
+        StringBuilder sb = new StringBuilder();
         if (this.effectSources.size() > 0) {
             sb.append("\r\n");
             for (EntityEffectSource source : this.effectSources) {
                 sb.append(source.printDescription()).append("\r\n");
             }
         }
+        return sb.toString();
+    }
+
+    @Override
+    public String printDescription() {
+        StringBuilder sb = new StringBuilder(this.description);
+        sb.append(this.printEffectDescriptions());
         return sb.toString();
     }
 
@@ -188,5 +195,10 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
             return diff;
         }
         return this.getEffectSources().size() - other.getEffectSources().size();
+    }
+
+    @Override
+    public SeeOutMessage produceMessage() {
+        return new SeeOutMessage(this);
     }
 }

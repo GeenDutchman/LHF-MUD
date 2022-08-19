@@ -1,5 +1,7 @@
 package com.lhf.game;
 
+import java.util.Objects;
+
 import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EffectPersistence.TickType;
@@ -90,6 +92,23 @@ public abstract class EntityEffect implements Examinable, Taggable, Comparable<E
     @Override
     public String toString() {
         return this.produceMessage().toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(source);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof EntityEffect)) {
+            return false;
+        }
+        EntityEffect other = (EntityEffect) obj;
+        return Objects.equals(source, other.source);
     }
 
 }

@@ -1,24 +1,23 @@
 package com.lhf.game.magic;
 
-import java.util.List;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
+import com.lhf.game.EntityEffectSource;
+import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
-import com.lhf.game.dice.DamageDice;
-import com.lhf.game.dice.MultiRollResult;
-import com.lhf.game.enums.Attributes;
-import com.lhf.game.enums.DamageFlavor;
-import com.lhf.game.enums.Stats;
+import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 
-public class CreatureTargetingSpell extends ISpell implements CreatureEffect {
-    protected MultiRollResult damageDone;
+public class CreatureTargetingSpell extends ISpell<CreatureEffect> {
     protected CasterVsCreatureStrategy strategy;
+    protected Set<CreatureEffect> effects;
 
-    protected CreatureTargetingSpell(CreatureTargetingSpellEntry entry) {
-        super(entry);
+    protected CreatureTargetingSpell(CreatureTargetingSpellEntry entry, Creature caster) {
+        super(entry, caster);
         this.strategy = null;
-        this.damageDone = null;
+        this.effects = null;
     }
 
     private CreatureTargetingSpellEntry getTypedEntry() {
@@ -37,70 +36,22 @@ public class CreatureTargetingSpell extends ISpell implements CreatureEffect {
         return this.getTypedEntry().isSingleTarget();
     }
 
-    public Map<Stats, Integer> getStatChanges() {
-        return this.getTypedEntry().getStatChanges();
-    }
-
-    public Map<Attributes, Integer> getAttributeScoreChanges() {
-        return this.getTypedEntry().getAttributeScoreChanges();
-    }
-
-    public Map<Attributes, Integer> getAttributeBonusChanges() {
-        return this.getTypedEntry().getAttributeBonusChanges();
-    }
-
-    public List<DamageDice> getDamages() {
-        return this.getTypedEntry().getDamages();
-    }
-
-    public boolean isRestoreFaction() {
-        return this.getTypedEntry().isRestoreFaction();
-    }
-
     @Override
-    public boolean isOffensive() {
-        if (this.getDamages() != null && this.getDamages().size() > 0) {
-            for (DamageDice dd : this.getDamages()) {
-                if (dd.getFlavor() != DamageFlavor.HEALING) {
-                    return true;
+    public Set<CreatureEffect> getEffects() {
+        if (this.effects == null) {
+            this.effects = new HashSet<>();
+            for (EntityEffectSource source : this.getEntry().getEffectSources()) {
+                if (source instanceof CreatureEffectSource) {
+                    this.effects.add(new CreatureEffect((CreatureEffectSource) source, this.getCaster(), this));
                 }
             }
         }
-        for (Integer delta : this.getStatChanges().values()) {
-            if (delta < 0) {
-                return true;
-            }
-        }
-        for (Integer delta : this.getAttributeScoreChanges().values()) {
-            if (delta < 0) {
-                return true;
-            }
-        }
-        for (Integer delta : this.getAttributeBonusChanges().values()) {
-            if (delta < 0) {
-                return true;
-            }
-        }
-        return false;
+        return this.effects;
     }
 
     @Override
-    public MultiRollResult getDamageResult() {
-        if (this.damageDone == null) {
-            for (DamageDice dd : this.getDamages()) {
-                if (this.damageDone == null) {
-                    this.damageDone = new MultiRollResult(dd.rollDice());
-                } else {
-                    this.damageDone.addResult(dd.rollDice());
-                }
-            }
-        }
-        return this.damageDone;
-    }
-
-    @Override
-    public void updateDamageResult(MultiRollResult mrr) {
-        this.damageDone = mrr;
+    public Iterator<CreatureEffect> iterator() {
+        return this.getEffects().iterator();
     }
 
 }

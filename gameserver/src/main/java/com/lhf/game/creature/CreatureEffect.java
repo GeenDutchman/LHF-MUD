@@ -52,11 +52,11 @@ public class CreatureEffect extends EntityEffect {
     }
 
     public Map<Attributes, Integer> getAttributeScoreChanges() {
-        return Collections.unmodifiableMap(this.getSource().getAttributeScoreChanges())
+        return Collections.unmodifiableMap(this.getSource().getAttributeScoreChanges());
     }
 
     public Map<Attributes, Integer> getAttributeBonusChanges() {
-        return Collections.unmodifiableMap(this.getSource().getAttributeBonusChanges())
+        return Collections.unmodifiableMap(this.getSource().getAttributeBonusChanges());
     }
 
     public List<DamageDice> getDamages() {
