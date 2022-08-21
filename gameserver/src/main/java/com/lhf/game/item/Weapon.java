@@ -30,9 +30,18 @@ public class Weapon extends Equipable {
     }
 
     public Attack generateAttack(Creature attacker) {
+        return this.generateAttack(attacker, null);
+    }
+
+    protected Attack generateAttack(Creature attacker, Set<CreatureEffectSource> extraSources) {
         Set<CreatureEffect> effects = new HashSet<>();
         for (CreatureEffectSource source : this.effectSources) {
             effects.add(new CreatureEffect(source, attacker, this));
+        }
+        if (extraSources != null) {
+            for (CreatureEffectSource extra : extraSources) {
+                effects.add(new CreatureEffect(extra, attacker, this));
+            }
         }
         MultiRollResult toHit = this.calculateToHit(attacker);
         return new Attack(attacker, this, toHit, effects);
