@@ -1,7 +1,11 @@
 package com.lhf.game.item.concrete.equipment;
 
 import java.util.List;
+import java.util.Set;
 
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
@@ -13,11 +17,13 @@ import com.lhf.game.item.interfaces.WeaponSubtype;
 public class BossClub extends Weapon {
 
     public BossClub(boolean isVisible) {
-        super("Boss Club", isVisible, DamageFlavor.BLUDGEONING, WeaponSubtype.MARTIAL);
+        super("Boss Club", isVisible, Set.of(
+                new CreatureEffectSource("Bash", new EffectPersistence(TickType.INSTANT), "Club it like a boss.", false)
+                        .addDamage(new DamageDice(2, DieType.EIGHT, DamageFlavor.BLUDGEONING))),
+                DamageFlavor.BLUDGEONING, WeaponSubtype.MARTIAL);
 
         this.slots = List.of(EquipmentSlots.WEAPON);
         this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
-        this.damages = List.of(new DamageDice(2, DieType.EIGHT, this.getMainFlavor()));
         this.descriptionString = "This is a large club, it seems a bit rusty... wait that is not rust...\n";
 
     }
