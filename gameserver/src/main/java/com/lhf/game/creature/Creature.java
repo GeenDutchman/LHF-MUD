@@ -3,6 +3,7 @@ package com.lhf.game.creature;
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
+import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
@@ -52,11 +53,14 @@ public abstract class Creature
     public class Fist extends Weapon {
 
         Fist() {
-            super("Fist", false, DamageFlavor.BLUDGEONING, WeaponSubtype.CREATUREPART);
+            super("Fist", false, Set.of(
+                    new CreatureEffectSource("Punch", new EffectPersistence(TickType.INSTANT), "Fists punch things",
+                            false)
+                            .addDamage(new DamageDice(1, DieType.TWO, DamageFlavor.BLUDGEONING))),
+                    DamageFlavor.BLUDGEONING, WeaponSubtype.CREATUREPART);
 
             this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
             this.slots = List.of(EquipmentSlots.WEAPON);
-            this.damages = List.of(new DamageDice(1, DieType.TWO, this.getMainFlavor()));
             this.descriptionString = "This is a " + getName() + " attached to a " + Creature.this.getName() + "\n";
         }
 
@@ -281,7 +285,7 @@ public abstract class Creature
     }
 
     public Attack attack(Weapon weapon) {
-        Attack a = new Attack(this, weapon);
+        Attack a = weapon.generateAttack(this);
         return a;
     }
 

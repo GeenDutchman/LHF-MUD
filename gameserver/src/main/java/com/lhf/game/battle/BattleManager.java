@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import com.lhf.Examinable;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.Player;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
@@ -296,7 +297,9 @@ public class BattleManager implements MessageHandler, Examinable {
             if (target.getStats().get(Stats.AC) > a.getToHit().getRoll()) { // misses
                 sendMessageToAllParticipants(new MissMessage(attacker, target, a.getToHit(), null));
             } else {
-                sendMessageToAllParticipants(target.applyEffect(a));
+                for (CreatureEffect effect : a) {
+                    sendMessageToAllParticipants(target.applyEffect(effect));
+                }
             }
         }
     }
