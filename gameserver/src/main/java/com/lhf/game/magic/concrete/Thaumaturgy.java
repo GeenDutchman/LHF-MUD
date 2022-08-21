@@ -1,20 +1,26 @@
 package com.lhf.game.magic.concrete;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.lhf.Taggable;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.magic.RoomTargetingSpellEntry;
+import com.lhf.game.map.RoomEffectSource;
 import com.lhf.messages.out.CastingMessage;
 
 public class Thaumaturgy extends RoomTargetingSpellEntry {
 
+    private static final Set<RoomEffectSource> spellEffects = Set.of(new RoomEffectSource("Announce yourself",
+            new EffectPersistence(TickType.INSTANT), "Announce yourself to the room!"));
+
     public Thaumaturgy() {
-        super(0, "Thaumaturgy", "zarmamoo", new EffectPersistence(TickType.INSTANT),
-                "A way to magically announce your presence",
-                false, false);
+        super(0, "Thaumaturgy", "zarmamoo", spellEffects, new HashSet<VocationName>(),
+                "A way to magically announce your presence", false, false);
     }
 
     @Override
