@@ -16,10 +16,6 @@ public class DungeonEffectSource extends EntityEffectSource {
         return addsRoomToDungeon;
     }
 
-    public void setAddsRoomToDungeon(boolean addsRoomToDungeon) {
-        this.addsRoomToDungeon = addsRoomToDungeon;
-    }
-
     @Override
     public String printDescription() {
         return super.printDescription()
