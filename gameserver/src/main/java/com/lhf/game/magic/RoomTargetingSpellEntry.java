@@ -38,6 +38,15 @@ public class RoomTargetingSpellEntry extends SpellEntry {
         this.creaturesToSummon = new TreeMap<>();
     }
 
+    public RoomTargetingSpellEntry(Integer level, String name, String invocation, Set<RoomEffectSource> effectSources,
+            Set<VocationName> allowed, String description,
+            boolean banishesItems, boolean banishesCreatures) {
+        super(level, name, invocation, effectSources, allowed, description);
+        this.banishesItems = banishesItems;
+        this.banishesCreatures = banishesCreatures;
+        this.init();
+    }
+
     public RoomTargetingSpellEntry(Integer level, String name, Set<RoomEffectSource> effectSources,
             Set<VocationName> allowed, String description,
             boolean banishesItems, boolean banishesCreatures) {

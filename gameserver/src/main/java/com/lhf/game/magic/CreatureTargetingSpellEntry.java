@@ -21,6 +21,13 @@ public class CreatureTargetingSpellEntry extends SpellEntry {
         this.singleTarget = singleTarget;
     }
 
+    public CreatureTargetingSpellEntry(Integer level, String name, String invocation,
+            Set<CreatureEffectSource> effectSources,
+            Set<VocationName> allowed, String description, boolean singleTarget) {
+        super(level, name, invocation, effectSources, allowed, description);
+        this.singleTarget = singleTarget;
+    }
+
     public boolean isSingleTarget() {
         return singleTarget;
     }

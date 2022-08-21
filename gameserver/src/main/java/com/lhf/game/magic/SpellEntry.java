@@ -34,7 +34,7 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         this.effectSources = Set.copyOf(effectSources);
     }
 
-    public SpellEntry(Integer level, String name, String invocation, Set<EntityEffectSource> effectSources,
+    public SpellEntry(Integer level, String name, String invocation, Set<? extends EntityEffectSource> effectSources,
             Set<VocationName> allowed,
             String description) {
         this.className = this.getClass().getName();
