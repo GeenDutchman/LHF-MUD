@@ -4,7 +4,7 @@ import java.util.Collections;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
-import com.lhf.game.creature.CreatureEffect.BasicCreatureEffect;
+import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -18,8 +18,9 @@ public class Shield extends Equipable {
         super("Shield", isVisible);
         this.types = Collections.singletonList(EquipmentTypes.SHIELD);
         this.slots = Collections.singletonList(EquipmentSlots.SHIELD);
-        this.equipEffects = Collections
-                .singletonList(new BasicCreatureEffect(null, this, new EffectPersistence(TickType.CONDITIONAL))
+        this.equipEffects = Collections.singletonList(
+                new CreatureEffectSource("AC Boost", new EffectPersistence(TickType.CONDITIONAL),
+                        "Using a shield makes you harder to hit", false)
                         .addStatChange(Stats.AC, this.AC));
     }
 

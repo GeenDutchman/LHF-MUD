@@ -1,13 +1,12 @@
 package com.lhf.game.item.concrete.equipment;
 
 import java.util.List;
-import java.util.Map;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
-import com.lhf.game.creature.CreatureEffect.BasicCreatureEffect;
+import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -16,31 +15,16 @@ import com.lhf.messages.out.UseOutMessage;
 import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 
 public class CarnivorousArmor extends Equipable {
-    private class EatingResults extends BasicCreatureEffect {
-        private int eatsHealth;
+    private final CreatureEffectSource eatingResults = new CreatureEffectSource("Eaten Alive",
+            new EffectPersistence(TickType.INSTANT), "You are eaten alive...just a bite.", false);
 
-        EatingResults(Creature causer, int eatsHealth) {
-            super(causer, CarnivorousArmor.this, new EffectPersistence(TickType.INSTANT));
-            this.eatsHealth = eatsHealth;
-        }
+    private final CreatureEffectSource eatingACResults = new CreatureEffectSource("Protect the Meal",
+            new EffectPersistence(TickType.CONDITIONAL), "Must protect the next meal...you!", false)
+            .addStatChange(Stats.AC, 3);
 
-        @Override
-        public Map<Stats, Integer> getStatChanges() {
-            return Map.of(Stats.CURRENTHP, -1 * eatsHealth);
-        }
-
-    }
-
-    private class EatingACResults extends BasicCreatureEffect {
-        EatingACResults(Creature creatureResponsible) {
-            super(creatureResponsible, CarnivorousArmor.this, new EffectPersistence(TickType.INSTANT));
-        }
-
-        @Override
-        public Map<Stats, Integer> getStatChanges() {
-            return Map.of(Stats.AC, 3);
-        }
-    }
+    private final CreatureEffectSource lastBite = new CreatureEffectSource("Last Bite",
+            new EffectPersistence(TickType.INSTANT), "As you tear it off, one last bite!", false)
+            .addStatChange(Stats.AC, -2);
 
     private final int AC = 2;
     private final int eatsHealthTo = 5;
@@ -52,7 +36,8 @@ public class CarnivorousArmor extends Equipable {
 
         this.slots = List.of(EquipmentSlots.ARMOR);
         this.types = List.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
-        this.equipEffects = List.of(new BasicCreatureEffect(null, this, new EffectPersistence(TickType.CONDITIONAL))
+        this.equipEffects = List.of(new CreatureEffectSource("It is Armor.",
+                new EffectPersistence(TickType.CONDITIONAL), "You are now wearing armor.", false)
                 .addStatChange(Stats.AC, this.AC));
         this.descriptionString = "This is some simple leather armor. " + "There is plenty of blood on it...\n";
     }
@@ -90,8 +75,7 @@ public class CarnivorousArmor extends Equipable {
                 Integer currHealth = target.getStats().get(Stats.CURRENTHP);
                 if (currHealth > eatsHealthTo) {
                     int diff = currHealth - eatsHealthTo;
-                    EatingResults useResults = new EatingResults(ctx.getCreature(), diff);
-                    EatingACResults eatingACResults = new EatingACResults(ctx.getCreature());
+                    this.eatingResults.addStatChange(Stats.CURRENTHP, -1 * diff);
                     String eatDescription = "A thousand teeth sink into your body, and you feel life force ripped out of you.  "
                             +
                             "Once it is sated, you feel the " + this.getColorTaggedName() +
@@ -99,8 +83,8 @@ public class CarnivorousArmor extends Equipable {
                     equippedAndUsed = true;
                     ctx.sendMsg(
                             new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target, eatDescription));
-                    ctx.sendMsg(target.applyEffect(useResults));
-                    ctx.sendMsg(target.applyEffect(eatingACResults));
+                    ctx.sendMsg(target.applyEffect(new CreatureEffect(this.eatingResults, ctx.getCreature(), this)));
+                    ctx.sendMsg(target.applyEffect(new CreatureEffect(this.eatingACResults, ctx.getCreature(), this)));
                     return true;
                 } else {
                     String moreNeeded = "You need more health to use this item.";
@@ -121,9 +105,7 @@ public class CarnivorousArmor extends Equipable {
     public void onUnequippedBy(Creature disowner) {
         super.onUnequippedBy(disowner);
         if (equippedAndUsed) {
-            CreatureEffect lastBite = new BasicCreatureEffect(null, this, new EffectPersistence(TickType.INSTANT))
-                    .addStatChange(Stats.CURRENTHP, -2);
-            disowner.sendMsg(disowner.applyEffect(lastBite));
+            disowner.sendMsg(disowner.applyEffect(new CreatureEffect(this.lastBite, disowner, this)));
         }
         equipped = false;
         equippedAndUsed = false;
