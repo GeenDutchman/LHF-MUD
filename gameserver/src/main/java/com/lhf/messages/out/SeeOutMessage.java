@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
+import com.lhf.game.EntityEffectSource;
 import com.lhf.messages.OutMessageType;
 
 public class SeeOutMessage extends OutMessage {
@@ -35,7 +36,7 @@ public class SeeOutMessage extends OutMessage {
 
     private Examinable examinable;
     private Map<String, List<Taggable>> seenCategorized;
-    private List<EntityEffect> effects;
+    private List<EntityEffectSource> effects;
     private StringJoiner extraInfo;
     private String deniedReason;
 
@@ -85,7 +86,7 @@ public class SeeOutMessage extends OutMessage {
         return this;
     }
 
-    public SeeOutMessage addEffector(EntityEffect effect) {
+    public SeeOutMessage addEffector(EntityEffectSource effect) {
         this.effects.add(effect);
         return this;
     }
@@ -172,7 +173,7 @@ public class SeeOutMessage extends OutMessage {
         StringJoiner sj = new StringJoiner("\r\n");
         if (this.effects != null && this.effects.size() > 0) {
             sj.add("Effects that you can see:");
-            for (EntityEffect entityEffect : this.effects) {
+            for (EntityEffectSource entityEffect : this.effects) {
                 sj.add(entityEffect.toString());
             }
         }
@@ -222,7 +223,7 @@ public class SeeOutMessage extends OutMessage {
         return this.deniedReason != null;
     }
 
-    public List<EntityEffect> getEffects() {
+    public List<EntityEffectSource> getEffects() {
         return Collections.unmodifiableList(effects);
     }
 }
