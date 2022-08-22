@@ -7,10 +7,9 @@ import org.junit.jupiter.api.Test;
 import com.google.common.truth.Truth;
 import com.lhf.Taggable;
 import com.lhf.game.battle.Attack;
+import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
-import com.lhf.game.dice.MultiRollResult;
-import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
@@ -42,7 +41,8 @@ public class BasicAITest {
         AIComBundle attacker = new AIComBundle();
 
         Attack attack = attacker.npc.attack(attacker.npc.getWeapon());
-        CreatureAffectedMessage adm = new CreatureAffectedMessage(victim.npc, attack);
+        CreatureEffect effect = attack.getEffects().stream().findFirst().get();
+        CreatureAffectedMessage adm = new CreatureAffectedMessage(victim.npc, effect);
         victim.npc.sendMsg(adm);
 
         Truth.assertThat(victim.sent).isEmpty();
@@ -50,14 +50,8 @@ public class BasicAITest {
 
         victim.npc.setInBattle(true); // turn it on!
 
-        attack = attacker.npc.attack(attacker.npc.getWeapon());
-        ArrayList<RollResult> negative = new ArrayList<>();
-        for (RollResult rr : attack.getDamageResult()) {
-            negative.add(rr.negative());
-        }
-        attack.updateDamageResult(new MultiRollResult(negative, attack.getDamageResult().getBonuses()));
-        Truth.assertThat(attack.getDamageResult().getTotal()).isLessThan(0);
-        CreatureAffectedMessage doneAttack = new CreatureAffectedMessage(victim.npc, attack);
+        Truth.assertThat(effect.getDamageResult().getTotal()).isLessThan(0);
+        CreatureAffectedMessage doneAttack = new CreatureAffectedMessage(victim.npc, effect);
         victim.npc.sendMsg(doneAttack);
         Truth.assertThat(victim.sent).isEmpty();
         Truth.assertThat(victim.brain.getLastAttacker()).isEqualTo(attacker.npc);
