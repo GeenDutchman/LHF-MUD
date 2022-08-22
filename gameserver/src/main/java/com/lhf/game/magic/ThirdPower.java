@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.magic.concrete.ShockBolt;
@@ -126,7 +127,7 @@ public class ThirdPower implements MessageHandler {
             }
         }
         if (entry instanceof CreatureTargetingSpellEntry) {
-            CreatureTargetingSpell spell = new CreatureTargetingSpell((CreatureTargetingSpellEntry) entry);
+            CreatureTargetingSpell spell = new CreatureTargetingSpell((CreatureTargetingSpellEntry) entry, caster);
             spell.setCaster(caster);
             // TODO: duration should be a thing
             if (ctx.getRoom() == null) {
@@ -169,8 +170,10 @@ public class ThirdPower implements MessageHandler {
                         }
                     }
                 }
-                CreatureAffectedMessage cam = target.applyEffect(spell);
-                this.channelizeMessage(ctx, cam, spell.isOffensive(), caster, target);
+                for (CreatureEffect effect : spell) {
+                    CreatureAffectedMessage cam = target.applyEffect(effect);
+                    this.channelizeMessage(ctx, cam, spell.isOffensive(), caster, target);
+                }
             }
 
         } // TODO: other cases
