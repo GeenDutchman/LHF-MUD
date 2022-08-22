@@ -6,11 +6,11 @@ import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
-import com.lhf.game.creature.CreatureEffectSource.BasicCreatureEffect;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealType;
+import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.interfaces.UseAction;
 import com.lhf.messages.out.BattleTurnMessage;
@@ -94,7 +94,7 @@ public class HealPotion extends Usable {
 
         }
 
-        effect.addDamageBonus(-1);
+        effect.addStatChange(Stats.CURRENTHP, 1);
         return effect;
     }
 
