@@ -31,6 +31,10 @@ public abstract class EntityEffect implements Examinable, Taggable, Comparable<E
         return this.generatedBy;
     }
 
+    public boolean isOffensive() {
+        return this.source.isOffensive();
+    }
+
     public EffectPersistence getPersistence() {
         return this.source.getPersistence();
     }
