@@ -1,111 +1,164 @@
 {
-    "creatureRace": "goblin",
-    "creatureType": "MONSTER",
-    "attributes": {
-        "strength": {
-            "score": 8,
-            "scoreBonus": 0,
-            "modBonus": 0
-        },
-        "dexterity": {
-            "score": 14,
-            "scoreBonus": 0,
-            "modBonus": 0
-        },
-        "constitution": {
-            "score": 10,
-            "scoreBonus": 0,
-            "modBonus": 0
-        },
-        "intelligence": {
-            "score": 10,
-            "scoreBonus": 0,
-            "modBonus": 0
-        },
-        "wisdom": {
-            "score": 8,
-            "scoreBonus": 0,
-            "modBonus": 0
-        },
-        "charisma": {
-            "score": 8,
-            "scoreBonus": 0,
-            "modBonus": 0
-        }
+  "creatureRace": "goblinV2",
+  "faction": "MONSTER",
+  "attributes": {
+    "strength": {
+      "score": 8,
+      "scoreBonus": 0,
+      "modBonus": 0
     },
-    "stats": {
-        "XPWORTH": 50,
-        "MAXHP": 7,
-        "AC": 13,
-        "XPEARNED": 0,
-        "PROFICIENCYBONUS": 0,
-        "CURRENTHP": 7
+    "dexterity": {
+      "score": 14,
+      "scoreBonus": 0,
+      "modBonus": 0
     },
-    "proficiencies": [
-        "SIMPLEMELEEWEAPONS",
-        "SHIELD",
-        "LIGHTARMOR"
-    ],
-    "inventory": {
-        "items": []
+    "constitution": {
+      "score": 10,
+      "scoreBonus": 0,
+      "modBonus": 0
     },
-    "equipmentSlots": {
-        "SHIELD": {
-            "AC": 2,
-            "slots": [
-                "SHIELD"
-            ],
-            "types": [
-                "SHIELD"
-            ],
-            "className": "com.lhf.game.item.concrete.equipment.Shield",
-            "objectName": "Shield",
-            "isVisible": true,
-            "equippingChanges": {
-                "AC": 2
-            }
-        },
-        "ARMOR": {
-            "AC": 2,
-            "slots": [
-                "ARMOR"
-            ],
-            "types": [
-                "LIGHTARMOR",
-                "LEATHER"
-            ],
-            "className": "com.lhf.game.item.concrete.equipment.LeatherArmor",
-            "objectName": "Leather Armor",
-            "isVisible": true,
-            "equippingChanges": {
-                "AC": 2
-            }
-        },
-        "WEAPON": {
-            "slots": [
-                "WEAPON"
-            ],
-            "types": [
-                "SIMPLEMELEEWEAPONS",
-                "LONGSWORD"
-            ],
-            "damages": [
-                {
-                    "flavor": "SLASHING",
-                    "count": 1,
-                    "type": "SIX",
-                    "staticBonus": 0
-                }
-            ],
-            "numCanUseTimes": -1,
-            "hasBeenUsedTimes": 0,
-            "methods": {},
-            "className": "com.lhf.game.item.concrete.equipment.Shortsword",
-            "objectName": "Shortsword",
-            "isVisible": true,
-            "equippingChanges": {
-                "AC": 2
-            }
-        }
+    "intelligence": {
+      "score": 10,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "wisdom": {
+      "score": 8,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "charisma": {
+      "score": 8,
+      "scoreBonus": 0,
+      "modBonus": 0
     }
+  },
+  "stats": {
+    "MAXHP": 7,
+    "AC": 12,
+    "PROFICIENCYBONUS": 0,
+    "CURRENTHP": 7,
+    "XPWORTH": 50,
+    "XPEARNED": 0
+  },
+  "proficiencies": [
+    "SIMPLEMELEEWEAPONS",
+    "SHIELD",
+    "LIGHTARMOR"
+  ],
+  "inventory": {
+    "items": []
+  },
+  "equipmentSlots": {
+    "WEAPON": {
+      "effectSources": [
+        {
+          "statChanges": {},
+          "attributeScoreChanges": {},
+          "attributeBonusChanges": {},
+          "damages": [
+            {
+              "flavor": "SLASHING",
+              "count": 1,
+              "type": "SIX"
+            }
+          ],
+          "restoreFaction": false,
+          "name": "Slash",
+          "persistence": {
+            "count": 1,
+            "tickSize": "INSTANT"
+          },
+          "description": "Swords cut things"
+        }
+      ],
+      "mainFlavor": "SLASHING",
+      "subtype": "MARTIAL",
+      "types": [
+        "SIMPLEMELEEWEAPONS",
+        "LONGSWORD"
+      ],
+      "slots": [
+        "WEAPON"
+      ],
+      "equipEffects": [],
+      "hiddenEquipEffects": [],
+      "numCanUseTimes": -1,
+      "hasBeenUsedTimes": 0,
+      "methods": {},
+      "className": "com.lhf.game.item.concrete.equipment.Shortsword",
+      "objectName": "Shortsword",
+      "isVisible": true,
+      "descriptionString": "This is a nice, short, shiny sword with a leather grip.  It\u0027s a bit simple though...\n"
+    },
+    "SHIELD": {
+      "AC": 2,
+      "types": [
+        "SHIELD"
+      ],
+      "slots": [
+        "SHIELD"
+      ],
+      "equipEffects": [
+        {
+          "statChanges": {
+            "AC": 2
+          },
+          "attributeScoreChanges": {},
+          "attributeBonusChanges": {},
+          "damages": [],
+          "restoreFaction": false,
+          "name": "AC Boost",
+          "persistence": {
+            "count": -1,
+            "tickSize": "CONDITIONAL"
+          },
+          "description": "Using a shield makes you harder to hit"
+        }
+      ],
+      "hiddenEquipEffects": [],
+      "numCanUseTimes": -1,
+      "hasBeenUsedTimes": 0,
+      "methods": {},
+      "className": "com.lhf.game.item.concrete.equipment.Shield",
+      "objectName": "Shield",
+      "isVisible": true,
+      "descriptionString": "\u003ctakeable\u003eShield\u003c/takeable\u003e"
+    },
+    "ARMOR": {
+      "AC": 2,
+      "types": [
+        "LIGHTARMOR",
+        "LEATHER"
+      ],
+      "slots": [
+        "ARMOR"
+      ],
+      "equipEffects": [
+        {
+          "statChanges": {
+            "AC": 2
+          },
+          "attributeScoreChanges": {},
+          "attributeBonusChanges": {},
+          "damages": [],
+          "restoreFaction": false,
+          "name": "AC Boost",
+          "persistence": {
+            "count": -1,
+            "tickSize": "CONDITIONAL"
+          },
+          "description": "Wearing armor makes you harder to hit"
+        }
+      ],
+      "hiddenEquipEffects": [],
+      "numCanUseTimes": -1,
+      "hasBeenUsedTimes": 0,
+      "methods": {},
+      "className": "com.lhf.game.item.concrete.equipment.LeatherArmor",
+      "objectName": "Leather Armor",
+      "isVisible": true,
+      "descriptionString": "\u003ctakeable\u003eLeather Armor\u003c/takeable\u003e"
+    }
+  }
 }

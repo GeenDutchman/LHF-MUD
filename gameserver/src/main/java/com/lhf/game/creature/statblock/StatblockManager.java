@@ -46,6 +46,15 @@ public class StatblockManager {
             e.printStackTrace();
             return false;
         }
+        String rightWritePath = this.path.replaceAll("target(.)classes", "src$1main$1resources");
+        System.out.println("Also writing to: " + rightWritePath);
+        try (JsonWriter jWriter = gson.newJsonWriter(
+                new FileWriter(rightWritePath.toString() + statblock.creatureRace + ".json"))) {
+            gson.toJson(statblock, Statblock.class, jWriter);
+        } catch (JsonIOException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
         return true;
     }
 
