@@ -2,11 +2,13 @@ package com.lhf.game.magic.concrete;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import com.lhf.Taggable;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
@@ -16,12 +18,15 @@ import com.lhf.messages.out.CastingMessage;
 
 public class ThunderStrike extends CreatureTargetingSpellEntry {
 
+    private static final Set<CreatureEffectSource> spellEffects = Set.of(
+            new CreatureEffectSource("Loud Zap", new EffectPersistence(TickType.INSTANT), "Zaps your target", false)
+                    .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.THUNDER))
+                    .addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.LIGHTNING)));
+
     public ThunderStrike() {
-        super(1, "Thunder Strike", "Bonearge Laarzen", new EffectPersistence(TickType.INSTANT),
+        super(1, "Thunder Strike", "Bonearge Laarzen", spellEffects, Set.of(VocationName.MAGE),
                 "A small but loud bolt of electricity shocks a creature you choose as a target",
-                true, false, VocationName.MAGE);
-        this.damages = Arrays.asList(new DamageDice(1, DieType.SIX, DamageFlavor.THUNDER),
-                new DamageDice(1, DieType.FOUR, DamageFlavor.LIGHTNING));
+                true);
     }
 
     @Override
