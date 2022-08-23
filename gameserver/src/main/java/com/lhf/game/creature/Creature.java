@@ -307,6 +307,9 @@ public abstract class Creature
     }
 
     protected MultiRollResult adjustDamageByFlavor(MultiRollResult mrr, boolean reverse) {
+        if (mrr == null) {
+            return null;
+        }
         ArrayList<RollResult> adjusted = new ArrayList<>();
         for (RollResult rr : mrr) {
             if (rr instanceof FlavoredRollResult) {
@@ -340,8 +343,10 @@ public abstract class Creature
 
     public CreatureAffectedMessage applyEffect(CreatureEffect effect, boolean reverse) {
         MultiRollResult mrr = this.adjustDamageByFlavor(effect.getDamageResult(), reverse);
-        effect.updateDamageResult(mrr);
-        this.updateHitpoints(mrr.getRoll());
+        if (mrr != null) {
+            effect.updateDamageResult(mrr);
+            this.updateHitpoints(mrr.getRoll());
+        }
         for (Stats delta : effect.getStatChanges().keySet()) {
             int amount = effect.getStatChanges().get(delta);
             if (reverse) {

@@ -48,7 +48,7 @@ public class BasicAI extends Client {
                 if (caMessage.getAffected() != bai.getNpc()) {
                     return;
                 }
-                if (caMessage.getEffect().getDamageResult().getTotal() < 0) {
+                if (caMessage.getEffect().isOffensive()) {
                     bai.setLastAttacker(caMessage.getEffect().creatureResponsible());
                 }
             }

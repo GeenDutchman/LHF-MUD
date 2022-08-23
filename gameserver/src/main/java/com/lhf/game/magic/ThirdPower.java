@@ -86,16 +86,18 @@ public class ThirdPower implements MessageHandler {
     public SortedSet<SpellEntry> filterByVocationName(VocationName vocationName) {
         Supplier<TreeSet<SpellEntry>> sortSupplier = () -> new TreeSet<SpellEntry>();
         return this.entries.stream().filter(
-                entry -> entry.getAllowedVocations().size() == 0 || entry.getAllowedVocations().contains(vocationName)
-                        || VocationName.DUNGEON_MASTER.equals(vocationName))
+                entry -> entry.getAllowedVocations().size() == 0 ||
+                        (vocationName != null && entry.getAllowedVocations().contains(vocationName)) ||
+                        VocationName.DUNGEON_MASTER.equals(vocationName))
                 .collect(Collectors.toCollection(sortSupplier));
     }
 
     public SortedSet<SpellEntry> filterByVocationAndLevels(VocationName vocationName, Collection<Integer> levels) {
         Supplier<TreeSet<SpellEntry>> sortSupplier = () -> new TreeSet<SpellEntry>();
         return this.entries.stream().filter(
-                entry -> entry.getAllowedVocations().size() == 0 || entry.getAllowedVocations().contains(vocationName)
-                        || VocationName.DUNGEON_MASTER.equals(vocationName))
+                entry -> entry.getAllowedVocations().size() == 0 ||
+                        (vocationName != null && entry.getAllowedVocations().contains(vocationName)) ||
+                        VocationName.DUNGEON_MASTER.equals(vocationName))
                 .filter(entry -> levels != null && levels.contains(entry.getLevel()))
                 .collect(Collectors.toCollection(sortSupplier));
     }

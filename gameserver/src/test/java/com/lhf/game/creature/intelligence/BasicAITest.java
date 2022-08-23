@@ -50,7 +50,7 @@ public class BasicAITest {
 
         victim.npc.setInBattle(true); // turn it on!
 
-        Truth.assertThat(effect.getDamageResult().getTotal()).isLessThan(0);
+        Truth.assertThat(effect.getDamageResult().getTotal()).isNotEqualTo(0);
         CreatureAffectedMessage doneAttack = new CreatureAffectedMessage(victim.npc, effect);
         victim.npc.sendMsg(doneAttack);
         Truth.assertThat(victim.sent).isEmpty();
