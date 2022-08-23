@@ -137,7 +137,7 @@ public class CreatureEffectSource extends EntityEffectSource {
 
     // replaces whatever value was in `attr`, if it existed
     public CreatureEffectSource addAttributeBonusChange(Attributes attr, Integer delta) {
-        this.getAttributeScoreChanges().put(attr, delta);
+        this.getAttributeBonusChanges().put(attr, delta);
         return this;
     }
 
