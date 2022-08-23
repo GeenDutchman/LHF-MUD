@@ -12,6 +12,19 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
     public enum VocationName implements Taggable {
         FIGHTER, MAGE, DUNGEON_MASTER;
 
+        public static VocationName getVocationName(String value) {
+            for (VocationName vName : values()) {
+                if (vName.toString().equalsIgnoreCase(value)) {
+                    return vName;
+                }
+            }
+            return null;
+        }
+
+        public static boolean isDamageFlavor(String value) {
+            return VocationName.getVocationName(value) != null;
+        }
+
         @Override
         public String getStartTag() {
             return "<vocation>";
