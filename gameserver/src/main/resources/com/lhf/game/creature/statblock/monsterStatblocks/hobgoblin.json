@@ -1,6 +1,6 @@
 {
   "creatureRace": "hobgoblin",
-  "creatureType": "MONSTER",
+  "faction": "MONSTER",
   "attributes": {
     "strength": {
       "score": 13,
@@ -34,76 +34,131 @@
     }
   },
   "stats": {
-    "XPWORTH": 100,
-    "MAXHP": 11,
-    "AC": 18,
-    "XPEARNED": 0,
+    "MAXHP": 12,
+    "AC": 11,
     "PROFICIENCYBONUS": 0,
-    "CURRENTHP": 11
+    "CURRENTHP": 12,
+    "XPWORTH": 100,
+    "XPEARNED": 0
   },
   "proficiencies": [
     "MARTIALWEAPONS",
+    "HEAVYARMOR",
     "SIMPLEMELEEWEAPONS",
-    "SHIELD",
-    "HEAVYARMOR"
+    "SHIELD"
   ],
   "inventory": {
     "items": []
   },
   "equipmentSlots": {
-    "SHIELD": {
-      "AC": 2,
-      "slots": [
-        "SHIELD"
-      ],
-      "types": [
-        "SHIELD"
-      ],
-      "className": "com.lhf.game.item.concrete.equipment.Shield",
-      "objectName": "Shield",
-      "isVisible": true,
-      "equippingChanges": {
-        "AC": 2
-      }
-    },
     "ARMOR": {
       "AC": 5,
-      "slots": [
-        "ARMOR"
-      ],
       "types": [
         "HEAVYARMOR"
       ],
+      "slots": [
+        "ARMOR"
+      ],
+      "equipEffects": [
+        {
+          "statChanges": {
+            "AC": 5
+          },
+          "attributeScoreChanges": {},
+          "attributeBonusChanges": {},
+          "damages": [],
+          "restoreFaction": false,
+          "name": "AC Boost",
+          "persistence": {
+            "count": -1,
+            "tickSize": "CONDITIONAL"
+          },
+          "description": "Wearing armor makes you harder to hit"
+        }
+      ],
+      "hiddenEquipEffects": [],
+      "numCanUseTimes": -1,
+      "hasBeenUsedTimes": 0,
+      "methods": {},
       "className": "com.lhf.game.item.concrete.equipment.ChainMail",
       "objectName": "Chain Mail",
       "isVisible": true,
-      "equippingChanges": {
-        "AC": 2
-      }
+      "descriptionString": "\u003ctakeable\u003eChain Mail\u003c/takeable\u003e"
     },
     "WEAPON": {
-      "slots": [
-        "WEAPON"
+      "effectSources": [
+        {
+          "statChanges": {},
+          "attributeScoreChanges": {},
+          "attributeBonusChanges": {},
+          "damages": [
+            {
+              "flavor": "SLASHING",
+              "count": 1,
+              "type": "EIGHT"
+            }
+          ],
+          "restoreFaction": false,
+          "name": "Slash",
+          "persistence": {
+            "count": 1,
+            "tickSize": "INSTANT"
+          },
+          "description": "Swords cut things"
+        }
       ],
+      "mainFlavor": "SLASHING",
+      "subtype": "MARTIAL",
       "types": [
         "SIMPLEMELEEWEAPONS",
         "LONGSWORD"
       ],
-      "damages": [
-        {
-          "flavor": "SLASHING",
-          "count": 1,
-          "type": "EIGHT",
-          "staticBonus": 0
-        }
+      "slots": [
+        "WEAPON"
       ],
+      "equipEffects": [],
+      "hiddenEquipEffects": [],
       "numCanUseTimes": -1,
       "hasBeenUsedTimes": 0,
       "methods": {},
       "className": "com.lhf.game.item.concrete.equipment.Longsword",
       "objectName": "Longsword",
       "isVisible": true,
-      "equippingChanges": {}
+      "descriptionString": "This is a nice, long, shiny sword.  It\u0027s a bit simple though...\n"
+    },
+    "SHIELD": {
+      "AC": 2,
+      "types": [
+        "SHIELD"
+      ],
+      "slots": [
+        "SHIELD"
+      ],
+      "equipEffects": [
+        {
+          "statChanges": {
+            "AC": 2
+          },
+          "attributeScoreChanges": {},
+          "attributeBonusChanges": {},
+          "damages": [],
+          "restoreFaction": false,
+          "name": "AC Boost",
+          "persistence": {
+            "count": -1,
+            "tickSize": "CONDITIONAL"
+          },
+          "description": "Using a shield makes you harder to hit"
+        }
+      ],
+      "hiddenEquipEffects": [],
+      "numCanUseTimes": -1,
+      "hasBeenUsedTimes": 0,
+      "methods": {},
+      "className": "com.lhf.game.item.concrete.equipment.Shield",
+      "objectName": "Shield",
+      "isVisible": true,
+      "descriptionString": "\u003ctakeable\u003eShield\u003c/takeable\u003e"
     }
   }
 }

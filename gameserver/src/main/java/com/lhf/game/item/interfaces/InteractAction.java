@@ -1,6 +1,7 @@
 package com.lhf.game.item.interfaces;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.game.item.InteractObject;
 import com.lhf.messages.out.OutMessage;
 
 import java.util.Map;

@@ -19,6 +19,7 @@ import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BattleTurnMessage;
 import com.lhf.messages.out.CreatureAffectedMessage;
+import com.lhf.messages.out.MissMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.Client;
@@ -42,14 +43,30 @@ public class BasicAI extends Client {
         if (this.handlers == null) {
             this.handlers = new TreeMap<>();
         }
+        this.handlers.put(OutMessageType.MISS, (BasicAI bai, OutMessage msg) -> {
+            if (msg.getOutType().equals(OutMessageType.MISS) && bai.getNpc().isInBattle()) {
+                MissMessage missMessage = (MissMessage) msg;
+                if (missMessage.getTarget() != bai.getNpc()) {
+                    return;
+                }
+                if (bai.getLastAttacker() == null) {
+                    bai.setLastAttacker(missMessage.getAttacker());
+                }
+            }
+        });
+        this.handlers.put(OutMessageType.FIGHT_OVER, (BasicAI bai, OutMessage msg) -> {
+            if (msg.getOutType().equals(OutMessageType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
+                bai.setLastAttacker(null);
+            }
+        });
         this.handlers.put(OutMessageType.CREATURE_AFFECTED, (BasicAI bai, OutMessage msg) -> {
             if (msg.getOutType().equals(OutMessageType.CREATURE_AFFECTED) && bai.getNpc().isInBattle()) {
                 CreatureAffectedMessage caMessage = (CreatureAffectedMessage) msg;
                 if (caMessage.getAffected() != bai.getNpc()) {
                     return;
                 }
-                if (caMessage.getEffects().getDamageResult().getTotal() < 0) {
-                    bai.setLastAttacker(caMessage.getEffects().creatureResponsible());
+                if (caMessage.getEffect().isOffensive()) {
+                    bai.setLastAttacker(caMessage.getEffect().creatureResponsible());
                 }
             }
         });

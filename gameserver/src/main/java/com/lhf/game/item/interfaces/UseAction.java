@@ -1,5 +1,8 @@
 package com.lhf.game.item.interfaces;
 
+import com.lhf.messages.CommandContext;
+
 public interface UseAction {
-    String useAction(Object useOn);
+
+    boolean useAction(CommandContext ctx, Object useOn);
 }

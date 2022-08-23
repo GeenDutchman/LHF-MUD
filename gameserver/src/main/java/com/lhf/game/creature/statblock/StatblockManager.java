@@ -13,12 +13,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import com.lhf.game.item.Equipable;
 import com.lhf.game.item.EquipableDeserializer;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.ItemDeserializer;
+import com.lhf.game.item.Takeable;
 import com.lhf.game.item.TakeableDeserializer;
-import com.lhf.game.item.interfaces.Equipable;
-import com.lhf.game.item.interfaces.Takeable;
 
 public class StatblockManager {
     private String[] path_to_monsterStatblocks = { ".", "monsterStatblocks" };
@@ -41,6 +41,15 @@ public class StatblockManager {
         Gson gson = gBuilder.create();
         try (JsonWriter jWriter = gson.newJsonWriter(
                 new FileWriter(this.path.toString() + statblock.creatureRace + ".json"))) {
+            gson.toJson(statblock, Statblock.class, jWriter);
+        } catch (JsonIOException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        String rightWritePath = this.path.replaceAll("target(.)classes", "src$1main$1resources");
+        System.out.println("Also writing to: " + rightWritePath);
+        try (JsonWriter jWriter = gson.newJsonWriter(
+                new FileWriter(rightWritePath.toString() + statblock.creatureRace + ".json"))) {
             gson.toJson(statblock, Statblock.class, jWriter);
         } catch (JsonIOException | IOException e) {
             e.printStackTrace();

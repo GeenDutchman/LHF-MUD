@@ -3,6 +3,7 @@ package com.lhf.game.creature;
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
+import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
@@ -24,12 +25,10 @@ import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
-import com.lhf.game.item.interfaces.Equipable;
-import com.lhf.game.item.interfaces.Takeable;
-import com.lhf.game.item.interfaces.Usable;
-import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.ISpell;
 import com.lhf.messages.ClientMessenger;
@@ -55,69 +54,16 @@ public abstract class Creature
 
     public class Fist extends Weapon {
 
-        protected List<EquipmentSlots> slots;
-        protected List<EquipmentTypes> types;
-        protected List<DamageDice> damages;
-        protected Map<String, Integer> equippingChanges;
-
         Fist() {
-            super("Fist", false);
+            super("Fist", false, Set.of(
+                    new CreatureEffectSource("Punch", new EffectPersistence(TickType.INSTANT), "Fists punch things",
+                            false)
+                            .addDamage(new DamageDice(1, DieType.TWO, DamageFlavor.BLUDGEONING))),
+                    DamageFlavor.BLUDGEONING, WeaponSubtype.CREATUREPART);
 
-            types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
-            slots = Collections.singletonList(EquipmentSlots.WEAPON);
-            damages = Arrays.asList(new DamageDice(1, DieType.TWO, this.getMainFlavor()));
-            equippingChanges = new HashMap<>(0); // changes nothing
-        }
-
-        Fist(String overrideName) {
-            super(overrideName, false);
-
-            types = Arrays.asList(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
-            slots = Collections.singletonList(EquipmentSlots.WEAPON);
-            damages = Arrays.asList(new DamageDice(1, DieType.TWO, this.getMainFlavor()));
-            equippingChanges = new HashMap<>(0); // changes nothing
-        }
-
-        @Override
-        public List<EquipmentTypes> getTypes() {
-            return types;
-        }
-
-        @Override
-        public List<EquipmentSlots> getWhichSlots() {
-            return slots;
-        }
-
-        @Override
-        public Map<String, Integer> getEquippingChanges() {
-            return this.equippingChanges;
-        }
-
-        @Override
-        public SeeOutMessage produceMessage() {
-            SeeOutMessage seeOutMessage = new SeeOutMessage(this);
-            return seeOutMessage;
-        }
-
-        @Override
-        public String printDescription() {
-            return "This is a " + getName() + " attached to a " + Creature.this.getName() + "\n" +
-                    this.printStats();
-        }
-
-        @Override
-        public DamageFlavor getMainFlavor() {
-            return DamageFlavor.BLUDGEONING;
-        }
-
-        @Override
-        public List<DamageDice> getDamages() {
-            return this.damages;
-        }
-
-        @Override
-        public WeaponSubtype getSubType() {
-            return WeaponSubtype.CREATUREPART;
+            this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
+            this.slots = List.of(EquipmentSlots.WEAPON);
+            this.descriptionString = "This is a " + getName() + " attached to a " + Creature.this.getName() + "\n";
         }
 
     }
@@ -125,10 +71,10 @@ public abstract class Creature
     private String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
     private CreatureFaction faction; // See shared enum
     private String creatureRace;
-    private Optional<Vocation> vocation;
+    private Vocation vocation;
     // private MonsterType monsterType; // I dont know if we'll need this
 
-    private Set<CreatureEffector> effects;
+    private Set<CreatureEffect> effects;
     // uses attributes STR, DEX, CON, INT, WIS, CHA
     private AttributeBlock attributeBlock;
 
@@ -157,7 +103,7 @@ public abstract class Creature
         // Instantiate creature with no name and type Monster
         this.name = NameGenerator.GenerateSuffix(NameGenerator.GenerateGiven());
         this.faction = CreatureFaction.NPC;
-        this.vocation = Optional.empty();
+        this.vocation = null;
 
         // Set attributes to default values
         this.attributeBlock = new AttributeBlock();
@@ -188,7 +134,8 @@ public abstract class Creature
     public Creature(String name, Statblock statblock) {
         this.cmds = this.buildCommands();
         this.name = name;
-        this.vocation = Optional.empty();
+        this.creatureRace = statblock.getCreatureRace();
+        this.vocation = null;
         this.effects = new TreeSet<>();
         this.faction = statblock.faction;
         this.attributeBlock = statblock.attributes;
@@ -199,7 +146,7 @@ public abstract class Creature
         this.equipmentSlots = statblock.equipmentSlots;
         for (Item item : this.equipmentSlots.values()) {
             Equipable equipped = (Equipable) item;
-            this.applyUse(equipped.onEquippedBy(this));
+            equipped.onEquippedBy(this);
         }
     }
 
@@ -349,7 +296,7 @@ public abstract class Creature
     }
 
     public Attack attack(Weapon weapon) {
-        Attack a = new Attack(this, weapon);
+        Attack a = weapon.generateAttack(this);
         return a;
     }
 
@@ -371,6 +318,9 @@ public abstract class Creature
     }
 
     protected MultiRollResult adjustDamageByFlavor(MultiRollResult mrr, boolean reverse) {
+        if (mrr == null) {
+            return null;
+        }
         ArrayList<RollResult> adjusted = new ArrayList<>();
         for (RollResult rr : mrr) {
             if (rr instanceof FlavoredRollResult) {
@@ -402,53 +352,57 @@ public abstract class Creature
         return new MultiRollResult(adjusted, mrr.getBonuses());
     }
 
-    public CreatureAffectedMessage applyAffects(CreatureEffector effector, boolean reverse) {
-        MultiRollResult mrr = this.adjustDamageByFlavor(effector.getDamageResult(), reverse);
-        effector.updateDamageResult(mrr);
-        this.updateHitpoints(mrr.getRoll());
-        for (Stats delta : effector.getStatChanges().keySet()) {
-            int amount = effector.getStatChanges().get(delta);
+    public CreatureAffectedMessage applyEffect(CreatureEffect effect, boolean reverse) {
+        MultiRollResult mrr = this.adjustDamageByFlavor(effect.getDamageResult(), reverse);
+        if (mrr != null) {
+            effect.updateDamageResult(mrr);
+            this.updateHitpoints(mrr.getRoll());
+        }
+        for (Stats delta : effect.getStatChanges().keySet()) {
+            int amount = effect.getStatChanges().get(delta);
             if (reverse) {
                 amount = amount * -1;
             }
             this.updateStat(delta, amount);
         }
         if (this.isAlive()) {
-            for (Attributes delta : effector.getAttributeScoreChanges().keySet()) {
-                int amount = effector.getAttributeScoreChanges().get(delta);
+            for (Attributes delta : effect.getAttributeScoreChanges().keySet()) {
+                int amount = effect.getAttributeScoreChanges().get(delta);
                 if (reverse) {
                     amount = amount * -1;
                 }
                 this.updateAttribute(delta, amount);
             }
-            for (Attributes delta : effector.getAttributeBonusChanges().keySet()) {
-                int amount = effector.getAttributeBonusChanges().get(delta);
+            for (Attributes delta : effect.getAttributeBonusChanges().keySet()) {
+                int amount = effect.getAttributeBonusChanges().get(delta);
                 if (reverse) {
                     amount = amount * -1;
                 }
                 this.updateModifier(delta, amount);
             }
-            if (!reverse && effector.getPersistence().getTickSize() != TickType.INSTANT) {
-                this.effects.add(effector);
+            if (!reverse && effect.getPersistence().getTickSize() != TickType.INSTANT) {
+                this.effects.add(effect);
+            } else if (reverse && this.effects.contains(effect)) {
+                this.effects.remove(effect);
             }
             // for now...cannot curse someone with being a renegade
-            if (effector.isRestoreFaction()) {
+            if (effect.isRestoreFaction()) {
                 this.restoreFaction();
             }
         }
 
-        CreatureAffectedMessage camOut = new CreatureAffectedMessage(this, effector, reverse);
+        CreatureAffectedMessage camOut = new CreatureAffectedMessage(this, effect, reverse);
         return camOut;
     }
 
-    public CreatureAffectedMessage applyAffects(CreatureEffector effector) {
-        return this.applyAffects(effector, false);
+    public CreatureAffectedMessage applyEffect(CreatureEffect effect) {
+        return this.applyEffect(effect, false);
     }
 
     public void tick(TickType type) {
         this.effects.removeIf(effect -> {
             if (effect.tick(type) == 0) {
-                this.applyAffects(effect, true);
+                this.applyEffect(effect, true);
                 return true;
             }
             return false;
@@ -475,7 +429,7 @@ public abstract class Creature
         this.creatureRace = creatureRace;
     }
 
-    public Optional<Vocation> getVocation() {
+    public Vocation getVocation() {
         return this.vocation;
     }
 
@@ -485,13 +439,13 @@ public abstract class Creature
     }
 
     public void setVocation(Vocation job) {
-        if (this.vocation.isPresent()) {
-            this.proficiencies.removeAll(this.vocation.get().getProficiencies());
+        if (this.vocation != null) {
+            this.proficiencies.removeAll(this.vocation.getProficiencies());
         }
         if (job == null) {
-            this.vocation = Optional.empty();
+            this.vocation = null;
         } else {
-            this.vocation = Optional.of(job);
+            this.vocation = job;
             this.proficiencies.addAll(job.getProficiencies());
         }
     }
@@ -579,57 +533,11 @@ public abstract class Creature
     @Override
     public SeeOutMessage produceMessage() {
         SeeOutMessage seeOutMessage = new SeeOutMessage(this);
-        for (CreatureEffector effector : this.effects) {
-            if (effector instanceof ISpell) {
-                seeOutMessage.addSeen(SeeCategory.SPELL, (ISpell) effector);
-            }
-        }
         return seeOutMessage;
     }
 
     @Override
-    public String useItem(String itemName, Object onWhat) {
-        // if onWhat is not specified, use this creature
-        Object useOn = onWhat;
-        if (useOn == null) {
-            useOn = this;
-        }
-
-        Optional<Item> maybeItem = this.getItem(itemName);
-        if (maybeItem.isPresent()) {
-            Item item = maybeItem.get();
-            if (item instanceof Usable) {
-                String result = ((Usable) item).doUseAction(useOn);
-                if (!((Usable) item).hasUsesLeft()) {
-                    inventory.removeItem((Takeable) item);
-                }
-                return result;
-            }
-            return item.getColorTaggedName() + " is not usable!";
-        }
-        return "You do not have that '" + itemName + "' to use!";
-    }
-
-    public boolean applyUse(Map<String, Integer> applications) {
-        for (Map.Entry<String, Integer> p : applications.entrySet()) {
-            try {
-                Attributes attribute = Attributes.valueOf(p.getKey());
-                this.updateAttribute(attribute, p.getValue());
-            } catch (IllegalArgumentException e) {
-                try {
-                    Stats stat = Stats.valueOf(p.getKey());
-                    this.updateStat(stat, p.getValue());
-                } catch (IllegalArgumentException e2) {
-                    e2.printStackTrace();
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public OutMessage equipItem(String itemName, EquipmentSlots slot) {
+    public boolean equipItem(String itemName, EquipmentSlots slot) {
         Optional<Item> maybeItem = this.inventory.getItem(itemName);
         if (maybeItem.isPresent()) {
             Item fromInventory = maybeItem.get();
@@ -639,21 +547,26 @@ public abstract class Creature
                     slot = equipThing.getWhichSlots().get(0);
                 }
                 if (equipThing.getWhichSlots().contains(slot)) {
-                    OutMessage unequipMessage = this.unequipItem(slot, "");
-                    this.applyUse(equipThing.onEquippedBy(this));
+                    this.unequipItem(slot, "");
                     this.inventory.removeItem(equipThing);
                     this.equipmentSlots.putIfAbsent(slot, equipThing);
-                    return new EquipOutMessage(unequipMessage, equipThing);
+                    this.sendMsg(new EquipOutMessage(equipThing));
+                    equipThing.onEquippedBy(this);
+
+                    return true;
                 }
-                return new EquipOutMessage(EquipResultType.BADSLOT, equipThing, itemName, slot);
+                this.sendMsg(new EquipOutMessage(EquipResultType.BADSLOT, equipThing, itemName, slot));
+                return true;
             }
-            return new EquipOutMessage(EquipResultType.NOTEQUIPBLE, fromInventory, itemName, slot);
+            this.sendMsg(new EquipOutMessage(EquipResultType.NOTEQUIPBLE, fromInventory, itemName, slot));
+            return true;
         }
-        return new NotPossessedMessage(Item.class.getSimpleName(), itemName);
+        this.sendMsg(new NotPossessedMessage(Item.class.getSimpleName(), itemName));
+        return true;
     }
 
     @Override
-    public OutMessage unequipItem(EquipmentSlots slot, String weapon) {
+    public boolean unequipItem(EquipmentSlots slot, String weapon) {
         if (slot == null) {
             // if they specified weapon and not slot
             Optional<Item> optItem = getItem(weapon);
@@ -663,24 +576,29 @@ public abstract class Creature
                     for (EquipmentSlots thingSlot : equippedThing.getWhichSlots()) {
                         if (equippedThing.equals(equipmentSlots.get(thingSlot))) {
                             this.equipmentSlots.remove(thingSlot);
-                            this.applyUse(equippedThing.onUnequippedBy(this));
                             this.inventory.addItem(equippedThing);
-                            return new UnequipOutMessage(thingSlot, equippedThing);
+                            this.sendMsg(new UnequipOutMessage(thingSlot, equippedThing));
+                            equippedThing.onUnequippedBy(this);
+                            return true;
                         }
                     }
                 }
-                return new UnequipOutMessage(null, optItem.get());
+                this.sendMsg(new UnequipOutMessage(null, optItem.get()));
+                return false;
             }
 
-            return new NotPossessedMessage(Item.class.getSimpleName(), weapon);
+            this.sendMsg(new NotPossessedMessage(Item.class.getSimpleName(), weapon));
+            return false;
         }
         Equipable thing = getEquipmentSlots().remove(slot);
         if (thing != null) {
-            this.applyUse(thing.onUnequippedBy(this));
             this.inventory.addItem(thing);
-            return new UnequipOutMessage(slot, thing);
+            this.sendMsg(new UnequipOutMessage(slot, thing));
+            thing.onUnequippedBy(this);
+            return true;
         }
-        return new UnequipOutMessage(slot, thing); // thing is null
+        this.sendMsg(new UnequipOutMessage(slot, thing)); // thing is null
+        return false;
     }
 
     @Override
@@ -772,12 +690,12 @@ public abstract class Creature
         boolean handled = false;
         if (msg.getType() == CommandMessage.EQUIP) {
             EquipMessage eqmsg = (EquipMessage) msg;
-            ctx.sendMsg(this.equipItem(eqmsg.getItemName(), eqmsg.getEquipSlot()));
+            this.equipItem(eqmsg.getItemName(), eqmsg.getEquipSlot());
             handled = true;
         } else if (msg.getType() == CommandMessage.UNEQUIP) {
             UnequipMessage uneqmsg = (UnequipMessage) msg;
-            ctx.sendMsg(this.unequipItem(EquipmentSlots.getEquipmentSlot(uneqmsg.getUnequipWhat()),
-                    uneqmsg.getUnequipWhat()));
+            this.unequipItem(EquipmentSlots.getEquipmentSlot(uneqmsg.getUnequipWhat()),
+                    uneqmsg.getUnequipWhat());
             handled = true;
         } else if (msg.getType() == CommandMessage.STATUS) {
             ctx.sendMsg(new StatusOutMessage(this, true));

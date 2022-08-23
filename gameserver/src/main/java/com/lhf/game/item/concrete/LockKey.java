@@ -3,7 +3,7 @@ package com.lhf.game.item.concrete;
 import java.util.Objects;
 import java.util.UUID;
 
-import com.lhf.game.item.interfaces.Takeable;
+import com.lhf.game.item.Takeable;
 
 public class LockKey extends Takeable {
     // TODO: make this usable?

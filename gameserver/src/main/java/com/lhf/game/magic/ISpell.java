@@ -1,28 +1,27 @@
 package com.lhf.game.magic;
 
 import java.util.Objects;
+import java.util.Set;
 
 import com.lhf.Examinable;
 import com.lhf.Taggable;
-import com.lhf.game.EffectPersistence;
-import com.lhf.game.EntityEffector;
-import com.lhf.game.EffectPersistence.Ticker;
+import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.SeeOutMessage;
 
-public abstract class ISpell implements EntityEffector, Taggable, Examinable {
+public abstract class ISpell<T extends EntityEffect>
+        implements Comparable<ISpell<?>>, Iterable<T>, Taggable, Examinable {
     private final String className;
     protected final SpellEntry entry;
     protected transient Creature caster;
-    protected Ticker timeLeft;
 
-    public ISpell(SpellEntry entry) {
+    public ISpell(SpellEntry entry, Creature caster) {
         this.className = this.getClass().getName();
         this.entry = entry;
-        this.timeLeft = entry.getPersistence().getTicker();
+        this.caster = caster;
     }
 
-    public ISpell setCaster(Creature caster) {
+    public ISpell<T> setCaster(Creature caster) {
         this.caster = caster;
         return this;
     }
@@ -39,7 +38,9 @@ public abstract class ISpell implements EntityEffector, Taggable, Examinable {
         return entry;
     }
 
-    public abstract boolean isOffensive();
+    public boolean isOffensive() {
+        return this.entry.isOffensive();
+    }
 
     @Override
     public String getName() {
@@ -54,26 +55,17 @@ public abstract class ISpell implements EntityEffector, Taggable, Examinable {
         return this.entry.getInvocation();
     }
 
-    public EffectPersistence getPersistence() {
-        return this.entry.getPersistence();
-    }
-
-    @Override
-    public Ticker getTicker() {
-        return timeLeft;
-    }
+    public abstract Set<T> getEffects();
 
     @Override
     public String printDescription() {
         return this.entry.printDescription();
     }
 
-    @Override
     public Creature creatureResponsible() {
         return this.caster;
     }
 
-    @Override
     public Taggable getGeneratedBy() {
         return this.entry;
     }
@@ -114,17 +106,20 @@ public abstract class ISpell implements EntityEffector, Taggable, Examinable {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof ISpell)) {
+        if (!(obj instanceof ISpell<?>)) {
             return false;
         }
-        ISpell other = (ISpell) obj;
+        ISpell<?> other = (ISpell<?>) obj;
         return Objects.equals(caster, other.caster) && Objects.equals(className, other.className)
                 && Objects.equals(entry, other.entry);
     }
 
     @Override
-    public int compareTo(EntityEffector o) {
-        return EntityEffector.super.compareTo(o);
+    public int compareTo(ISpell<?> o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        return this.entry.compareTo(o.getEntry());
     }
 
 }

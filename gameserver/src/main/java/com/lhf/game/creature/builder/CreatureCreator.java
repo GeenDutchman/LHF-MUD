@@ -16,7 +16,7 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.interfaces.Equipable;
+import com.lhf.game.item.Equipable;
 import com.lhf.server.client.user.User;
 
 public class CreatureCreator {
@@ -90,10 +90,9 @@ public class CreatureCreator {
 
         built.setEquipmentSlots(adapter.equipFromInventory(built.getInventory()));
 
-        Statblock test = new Statblock(built.toString());
-        // System.out.println(test);
+        System.out.println(built.toString());
 
-        test = CreatureCreator.writeStatblock(test);
+        built = CreatureCreator.writeStatblock(built);
         // System.err.println(test);
         adapter.close();
         // System.out.println("\nCreature Creation Complete!");

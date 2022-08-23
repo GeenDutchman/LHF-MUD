@@ -1,42 +1,27 @@
 package com.lhf.game.magic;
 
 import java.util.List;
+import java.util.Set;
 
 import com.lhf.Taggable;
-import com.lhf.game.EffectPersistence;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.map.DungeonEffectSource;
 import com.lhf.messages.out.CastingMessage;
-import com.lhf.messages.out.SeeOutMessage;
 
 public class DungeonTargetingSpellEntry extends SpellEntry {
     // add way to create dungeon?
-    protected boolean addsRoomToDungeon;
+    protected final boolean addsRoomToDungeon;
 
-    public DungeonTargetingSpellEntry(Integer level, String name, EffectPersistence persistence, String description,
-            boolean addsRoomToDungeon, VocationName... allowed) {
-        super(level, name, persistence, description, allowed);
+    public DungeonTargetingSpellEntry(Integer level, String name, Set<DungeonEffectSource> effectSources,
+            Set<VocationName> allowed, String description,
+            boolean addsRoomToDungeon) {
+        super(level, name, effectSources, allowed, description);
         this.addsRoomToDungeon = addsRoomToDungeon;
-    }
-
-    public DungeonTargetingSpellEntry(Integer level, String name, String invocation, EffectPersistence persistence,
-            String description, boolean addsRoomToDungeon, VocationName... allowed) {
-        super(level, name, invocation, persistence, description, allowed);
-        this.addsRoomToDungeon = addsRoomToDungeon;
-    }
-
-    public DungeonTargetingSpellEntry(DungeonTargetingSpellEntry other) {
-        super(other);
-        this.addsRoomToDungeon = other.addsRoomToDungeon;
     }
 
     public boolean isAddsRoomToDungeon() {
         return addsRoomToDungeon;
-    }
-
-    @Override
-    public SeeOutMessage produceMessage() {
-        return new SeeOutMessage(this);
     }
 
     @Override
@@ -45,15 +30,15 @@ public class DungeonTargetingSpellEntry extends SpellEntry {
     }
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder(super.toString());
+    public String printDescription() {
+        StringBuilder sb = new StringBuilder(this.description);
         if (this.isAddsRoomToDungeon()) {
             sb.append("And will add a room to the current dungeon.");
         } else {
             sb.append("And will modify the current dungeon.");
         }
         sb.append("\r\n");
-        return sb.toString();
+        return sb.toString() + super.printEffectDescriptions();
     }
 
 }

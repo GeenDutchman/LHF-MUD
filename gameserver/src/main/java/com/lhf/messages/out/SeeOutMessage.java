@@ -1,6 +1,7 @@
 package com.lhf.messages.out;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -8,11 +9,15 @@ import java.util.TreeMap;
 
 import com.lhf.Examinable;
 import com.lhf.Taggable;
+import com.lhf.game.EntityEffectSource;
 import com.lhf.messages.OutMessageType;
 
 public class SeeOutMessage extends OutMessage {
     public enum SeeCategory {
-        DIRECTION, CREATURE, PLAYER, NPC, MONSTER, ROOM_ITEM, TAKEABLE, OTHER, SPELL;
+        DIRECTION, CREATURE, PLAYER, NPC, MONSTER, ROOM_ITEM, TAKEABLE, SPELL, EQUIPMENT_SLOTS, PROFICIENCIES, STATS,
+        ATTRIBUTE_SCORE, ATTRIBUTE_BONUS,
+        DAMAGES, OTHER, INVISIBLE_CREATURE,
+        INVISIBLE_ROOM_ITEM, INVISIBLE_TAKEABLE;
 
         public static SeeCategory getSeeCategory(String value) {
             for (SeeCategory category : values()) {
@@ -30,6 +35,7 @@ public class SeeOutMessage extends OutMessage {
 
     private Examinable examinable;
     private Map<String, List<Taggable>> seenCategorized;
+    private List<EntityEffectSource> effects;
     private StringJoiner extraInfo;
     private String deniedReason;
 
@@ -39,6 +45,7 @@ public class SeeOutMessage extends OutMessage {
         this.extraInfo = new StringJoiner("\r\n").setEmptyValue("");
         this.deniedReason = null;
         this.seenCategorized = new TreeMap<>();
+        this.effects = new ArrayList<>();
     }
 
     public SeeOutMessage(Examinable examinable, String extraInfo) {
@@ -47,6 +54,7 @@ public class SeeOutMessage extends OutMessage {
         this.extraInfo = new StringJoiner("\r\n").add(extraInfo.trim());
         this.deniedReason = null;
         this.seenCategorized = new TreeMap<>();
+        this.effects = new ArrayList<>();
     }
 
     public SeeOutMessage(String deniedReason) {
@@ -55,6 +63,7 @@ public class SeeOutMessage extends OutMessage {
         this.examinable = null;
         this.extraInfo = new StringJoiner("\r\n").setEmptyValue("");
         this.seenCategorized = new TreeMap<>();
+        this.effects = new ArrayList<>();
     }
 
     public SeeOutMessage addExtraInfo(String extraInfo) {
@@ -76,7 +85,12 @@ public class SeeOutMessage extends OutMessage {
         return this;
     }
 
-    private StringJoiner addTaggables(StringJoiner sj) {
+    public SeeOutMessage addEffector(EntityEffectSource effect) {
+        this.effects.add(effect);
+        return this;
+    }
+
+    private StringJoiner listTaggables(StringJoiner sj) {
         for (String category : this.seenCategorized.keySet()) {
             List<Taggable> taggedlist = this.seenCategorized.get(category);
             if (taggedlist == null || taggedlist.size() <= 0) {
@@ -111,6 +125,33 @@ public class SeeOutMessage extends OutMessage {
                     case SPELL:
                         sj.add("Spells that you know of:");
                         break;
+                    case EQUIPMENT_SLOTS:
+                        sj.add("Equipment slots it will use:");
+                        break;
+                    case PROFICIENCIES:
+                        sj.add("Proficiencies you will need for proper use:");
+                        break;
+                    case STATS:
+                        sj.add("Stats that will change:");
+                        break;
+                    case DAMAGES:
+                        sj.add("Causes damage like:");
+                        break;
+                    case ATTRIBUTE_SCORE:
+                        sj.add("Changes to attribute scores:");
+                        break;
+                    case ATTRIBUTE_BONUS:
+                        sj.add("Changes to attribute bonuses:");
+                        break;
+                    case INVISIBLE_CREATURE:
+                        sj.add("Invisible creatures that you can see:");
+                        break;
+                    case INVISIBLE_ROOM_ITEM:
+                        sj.add("Invisible objects that you can see:");
+                        break;
+                    case INVISIBLE_TAKEABLE:
+                        sj.add("Invisible items that you can see:");
+                        break;
                     case OTHER:
                     default:
                         sj.add("Other things that you can see:");
@@ -124,6 +165,18 @@ public class SeeOutMessage extends OutMessage {
             sj.add("\r\n");
         }
         return sj;
+    }
+
+    private String listEffectors() {
+        // TODO: poor man's way, not parseable
+        StringJoiner sj = new StringJoiner("\r\n");
+        if (this.effects != null && this.effects.size() > 0) {
+            sj.add("Effects that you can see:");
+            for (EntityEffectSource entityEffect : this.effects) {
+                sj.add(entityEffect.toString());
+            }
+        }
+        return sj.toString();
     }
 
     @Override
@@ -145,7 +198,11 @@ public class SeeOutMessage extends OutMessage {
             sj.add(this.extraInfo.toString()).add("\r\n");
         }
         sj.add("<description>").add(this.examinable.printDescription()).add("</description>").add("\r\n");
-        sj = this.addTaggables(sj);
+        sj = this.listTaggables(sj);
+        String listedEffects = this.listEffectors();
+        if (!listedEffects.isBlank()) {
+            sj.add("\r\n").add(listedEffects);
+        }
         return sj.toString();
     }
 
@@ -163,5 +220,9 @@ public class SeeOutMessage extends OutMessage {
 
     public boolean isDenied() {
         return this.deniedReason != null;
+    }
+
+    public List<EntityEffectSource> getEffects() {
+        return Collections.unmodifiableList(effects);
     }
 }

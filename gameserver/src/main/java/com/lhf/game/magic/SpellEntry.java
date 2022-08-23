@@ -1,55 +1,49 @@
 package com.lhf.game.magic;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.StringJoiner;
 
 import com.lhf.Examinable;
 import com.lhf.Taggable;
-import com.lhf.game.EffectPersistence;
+import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.messages.out.CastingMessage;
+import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class SpellEntry implements Taggable, Examinable, Comparable<SpellEntry> {
     private final String className;
     protected final Integer level;
     protected final String name;
     protected final String invocation;
-    protected final EffectPersistence persistence;
     protected String description;
-    protected final List<VocationName> allowedVocations;
+    protected final Set<VocationName> allowedVocations;
+    protected final Set<? extends EntityEffectSource> effectSources;
 
-    public SpellEntry(Integer level, String name, EffectPersistence persistence, String description,
-            VocationName... allowed) {
+    public SpellEntry(Integer level, String name, Set<? extends EntityEffectSource> effectSources,
+            Set<VocationName> allowed,
+            String description) {
         this.className = this.getClass().getName();
         this.level = level;
         this.name = name;
-        this.persistence = persistence;
         this.description = description;
         this.invocation = name;
-        ArrayList<VocationName> vocations = new ArrayList<>();
-        for (VocationName vocName : allowed) {
-            vocations.add(vocName);
-        }
-        this.allowedVocations = Collections.unmodifiableList(vocations);
+        this.allowedVocations = Set.copyOf(allowed);
+        this.effectSources = Set.copyOf(effectSources);
     }
 
-    public SpellEntry(Integer level, String name, String invocation, EffectPersistence persistence,
-            String description, VocationName... allowed) {
+    public SpellEntry(Integer level, String name, String invocation, Set<? extends EntityEffectSource> effectSources,
+            Set<VocationName> allowed,
+            String description) {
         this.className = this.getClass().getName();
         this.level = level;
         this.name = name;
         this.invocation = invocation;
-        this.persistence = persistence;
         this.description = description;
-        ArrayList<VocationName> vocations = new ArrayList<>();
-        for (VocationName vocName : allowed) {
-            vocations.add(vocName);
-        }
-        this.allowedVocations = Collections.unmodifiableList(vocations);
+        this.allowedVocations = Set.copyOf(allowed);
+        this.effectSources = Set.copyOf(effectSources);
     }
 
     public SpellEntry(SpellEntry other) {
@@ -57,9 +51,9 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         this.level = other.level;
         this.name = other.name;
         this.invocation = other.invocation;
-        this.persistence = other.persistence;
         this.description = new String(other.description);
-        this.allowedVocations = Collections.unmodifiableList(other.allowedVocations);
+        this.allowedVocations = other.allowedVocations;
+        this.effectSources = other.effectSources;
     }
 
     public boolean Invoke(String invokeAttempt) {
@@ -71,7 +65,14 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         return this.getInvocation().equals(trimmedInvoke);
     }
 
-    // public abstract ISpell create();
+    public boolean isOffensive() {
+        for (EntityEffectSource source : this.effectSources) {
+            if (source.isOffensive()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public String getClassName() {
         return this.className;
@@ -85,12 +86,12 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         return invocation;
     }
 
-    public EffectPersistence getPersistence() {
-        return persistence;
+    public Set<VocationName> getAllowedVocations() {
+        return allowedVocations;
     }
 
-    public List<VocationName> getAllowedVocations() {
-        return allowedVocations;
+    public Set<? extends EntityEffectSource> getEffectSources() {
+        return this.effectSources;
     }
 
     abstract public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets);
@@ -115,17 +116,29 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         return this.name;
     }
 
+    protected String printEffectDescriptions() {
+        StringBuilder sb = new StringBuilder();
+        if (this.effectSources.size() > 0) {
+            sb.append("\r\n");
+            for (EntityEffectSource source : this.effectSources) {
+                sb.append(source.printDescription()).append("\r\n");
+            }
+        }
+        return sb.toString();
+    }
+
     @Override
     public String printDescription() {
-        return this.description;
+        StringBuilder sb = new StringBuilder(this.description);
+        sb.append(this.printEffectDescriptions());
+        return sb.toString();
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(this.getColorTaggedName()).append("\r\n");
-        sb.append("Level:").append(this.getLevel()).append(" Persistence:").append(this.getPersistence())
-                .append("\r\n");
+        sb.append("Level:").append(this.getLevel()).append("\r\n");
         sb.append("Invocation:\"").append(this.getInvocation()).append("\"\r\n");
         sb.append("Can be cast by:");
         StringJoiner sj = new StringJoiner(", ").setEmptyValue("anyone with magical powers.");
@@ -139,7 +152,7 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
 
     @Override
     public int hashCode() {
-        return Objects.hash(className, description, invocation, level, name, persistence);
+        return Objects.hash(allowedVocations, className, effectSources, invocation, level, name);
     }
 
     @Override
@@ -151,9 +164,9 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
             return false;
         }
         SpellEntry other = (SpellEntry) obj;
-        return Objects.equals(className, other.className) && Objects.equals(description, other.description)
-                && Objects.equals(invocation, other.invocation) && Objects.equals(level, other.level)
-                && Objects.equals(name, other.name) && Objects.equals(persistence, other.persistence);
+        return Objects.equals(allowedVocations, other.allowedVocations) && Objects.equals(className, other.className)
+                && Objects.equals(effectSources, other.effectSources) && Objects.equals(invocation, other.invocation)
+                && Objects.equals(level, other.level) && Objects.equals(name, other.name);
     }
 
     @Override
@@ -181,6 +194,11 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         if (diff != 0) {
             return diff;
         }
-        return this.getPersistence().compareTo(other.getPersistence());
+        return this.getEffectSources().size() - other.getEffectSources().size();
+    }
+
+    @Override
+    public SeeOutMessage produceMessage() {
+        return new SeeOutMessage(this);
     }
 }

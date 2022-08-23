@@ -5,6 +5,7 @@ import java.util.regex.PatternSyntaxException;
 
 import org.mockito.exceptions.misusing.UnfinishedStubbingException;
 
+import com.lhf.Examinable;
 import com.lhf.game.Container;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.battle.BattleManager;
@@ -13,9 +14,10 @@ import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.Player;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
-import com.lhf.game.item.interfaces.InteractObject;
-import com.lhf.game.item.interfaces.Takeable;
+import com.lhf.game.item.Takeable;
+import com.lhf.game.item.Usable;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -25,11 +27,13 @@ import com.lhf.messages.in.InteractMessage;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.TakeMessage;
+import com.lhf.messages.in.UseMessage;
 import com.lhf.messages.out.*;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.TakeOutMessage.TakeOutType;
+import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 import com.lhf.server.client.user.UserID;
 
 public class Room implements Container, MessageHandler, Comparable<Room> {
@@ -81,6 +85,13 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         sj = new StringJoiner(" ");
         sj.add("\"drop [itemname]\"").add("Drop an item that you have.").add("Like \"drop longsword\"");
         cmds.put(CommandMessage.DROP, sj.toString());
+        sj = new StringJoiner(" ");
+        sj.add("\"use [itemname]\"").add("Uses an item that you have on yourself, if applicable.")
+                .add("Like \"use potion\"").add("\r\n");
+        sj.add("\"use [itemname] on [otherthing]\"")
+                .add("Uses an item that you have on something or someone else, if applicable.")
+                .add("Like \"use potion on Bob\"");
+        cmds.put(CommandMessage.USE, sj.toString());
         return cmds;
     }
 
@@ -212,49 +223,6 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return Optional.empty();
     }
 
-    public String use(Player p, String usefulObject, String onWhat) {
-        Object indirectObject = null; // indirectObject is the receiver of the action
-        if (onWhat != null && onWhat.length() > 0) {
-            List<Item> roomObjectThings = new ArrayList<>();
-            for (Item ro : items) {
-                if (ro.CheckNameRegex(onWhat, 3) && ro instanceof InteractObject) {
-                    roomObjectThings.add(ro);
-                }
-            }
-
-            if (roomObjectThings.size() == 1) {
-                indirectObject = roomObjectThings.get(0);
-            }
-            List<Creature> targets = new ArrayList<>();
-            if (indirectObject == null) {
-                targets = getCreaturesInRoom(onWhat);
-                if (targets.size() == 1) {
-                    indirectObject = targets.get(0);
-                }
-            }
-            if (indirectObject == null) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("You couldn't find '").append(onWhat).append("' to target.\n");
-                StringJoiner sj = new StringJoiner(", ");
-                if (roomObjectThings.size() > 0 || targets.size() > 0) {
-                    for (Item ro : roomObjectThings) {
-                        if (ro.checkVisibility()) {
-                            sj.add(ro.getColorTaggedName());
-                        }
-                    }
-                    for (Creature target : targets) {
-                        sj.add(target.getColorTaggedName());
-                    }
-                }
-                if (sj.toString().length() > 0) {
-                    sb.append("Did you mean one of: ").append(sj.toString()).append("\n");
-                }
-                return sb.toString();
-            }
-        }
-        return p.useItem(usefulObject, indirectObject);
-    }
-
     public Player getPlayerInRoom(UserID id) {
         for (Creature creature : this.allCreatures) {
             if (creature instanceof Player) {
@@ -304,16 +272,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
 
     @Override
     public String toString() {
-        SeeOutMessage seeOutMessage = this.produceMessage();
-        for (Item item : this.items) {
-            if (!item.checkVisibility()) {
-                if (item instanceof Takeable) {
-                    seeOutMessage.addSeen("Invisible Takeables", item);
-                } else {
-                    seeOutMessage.addSeen("Other invisible items", item);
-                }
-            }
-        }
+        SeeOutMessage seeOutMessage = this.produceMessage(true);
         return seeOutMessage.toString();
     }
 
@@ -322,8 +281,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return "<description>" + this.description + "</description>";
     }
 
-    @Override
-    public SeeOutMessage produceMessage() {
+    public SeeOutMessage produceMessage(boolean invisibleAlso) {
         SeeOutMessage seeOutMessage = new SeeOutMessage(this);
         for (Creature c : this.allCreatures) {
             if (c instanceof Player) {
@@ -337,13 +295,15 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
             }
         }
         for (Item item : this.items) {
-            if (!item.checkVisibility()) {
+            if (!item.checkVisibility() && !invisibleAlso) {
                 continue;
             }
             if (item instanceof Takeable) {
-                seeOutMessage.addSeen(SeeCategory.TAKEABLE, item);
+                seeOutMessage.addSeen(item.checkVisibility() ? SeeCategory.TAKEABLE : SeeCategory.INVISIBLE_TAKEABLE,
+                        item);
             } else {
-                seeOutMessage.addSeen(SeeCategory.ROOM_ITEM, item);
+                seeOutMessage.addSeen(item.checkVisibility() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
+                        item);
             }
         }
         if (this.battleManager.isBattleOngoing()) {
@@ -352,16 +312,21 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return seeOutMessage;
     }
 
-    public OutMessage applyAffects(RoomEffector effector) {
+    @Override
+    public SeeOutMessage produceMessage() {
+        return this.produceMessage(false);
+    }
+
+    public OutMessage applyEffect(RoomEffect effect) {
         // TODO: make banishing work!
-        if (effector.getCreaturesToBanish().size() > 0 || effector.getCreaturesToBanish().size() > 0) {
+        if (effect.getCreaturesToBanish().size() > 0 || effect.getCreaturesToBanish().size() > 0) {
             throw new UnfinishedStubbingException("We don't have this yet");
         }
 
-        for (Item item : effector.getItemsToSummon()) {
+        for (Item item : effect.getItemsToSummon()) {
             this.addItem(item);
         }
-        for (Creature creature : effector.getCreaturesToSummon()) {
+        for (Creature creature : effect.getCreaturesToSummon()) {
             this.addCreature(creature);
         }
         return null; // TODO: return the effects!
@@ -425,6 +390,8 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
                 handled = this.handleTake(ctx, msg);
             } else if (type == CommandMessage.CAST) {
                 handled = this.handleCast(ctx, msg);
+            } else if (type == CommandMessage.USE) {
+                handled = this.handleUse(ctx, msg);
             }
         }
         if (handled) {
@@ -579,11 +546,49 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return false;
     }
 
+    private Boolean handleUse(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.USE) {
+            UseMessage useMessage = (UseMessage) msg;
+            Optional<Item> maybeItem = ctx.getCreature().getItem(useMessage.getUsefulItem());
+            if (maybeItem.isEmpty() || !(maybeItem.get() instanceof Usable)) {
+                ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), null, null));
+                return true;
+            }
+            Usable usable = (Usable) maybeItem.get();
+            if (useMessage.getTarget() == null || useMessage.getTarget().isBlank()) {
+                usable.doUseAction(ctx, ctx.getCreature());
+                return true;
+            }
+            List<Creature> maybeCreature = this.getCreaturesInRoom(useMessage.getTarget());
+            if (maybeCreature.size() == 1) {
+                usable.doUseAction(ctx, maybeCreature.get(0));
+                return true;
+            } else if (maybeCreature.size() > 1) {
+                ctx.sendMsg(
+                        new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, useMessage.getTarget(), maybeCreature));
+                return true;
+            }
+            Optional<Item> maybeRoomItem = this.getItem(useMessage.getTarget());
+            if (maybeRoomItem.isPresent()) {
+                usable.doUseAction(ctx, maybeRoomItem.get());
+                return true;
+            }
+            Optional<Item> maybeInventory = ctx.getCreature().getItem(useMessage.getTarget());
+            if (maybeInventory.isPresent()) {
+                usable.doUseAction(ctx, maybeInventory.get());
+                return true;
+            }
+            ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, useMessage.getTarget(), null));
+            return true;
+        }
+        return false;
+    }
+
     private SeeOutMessage examine(Creature creature, String name) {
         ArrayList<Creature> found = this.getCreaturesInRoom(name);
         // we should be able to see people in a fight
         if (found.size() == 1) {
-            return new SeeOutMessage(found.get(0), "They are in the room with you.");
+            return found.get(0).produceMessage().addExtraInfo("They are in the room with you. ");
         }
 
         if (creature.isInBattle()) {
@@ -598,6 +603,9 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
 
         for (Item thing : creature.getEquipmentSlots().values()) {
             if (thing.CheckNameRegex(name, 3)) {
+                if (thing instanceof Examinable) {
+                    return thing.produceMessage().addExtraInfo("You have it equipped. ");
+                }
                 return new SeeOutMessage(thing, "You have it equipped. ");
             }
         }
@@ -605,10 +613,13 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         Optional<Item> maybeThing = creature.getInventory().getItem(name);
         if (maybeThing.isPresent()) {
             Item thing = maybeThing.get();
-            return new SeeOutMessage(thing, "You see it in your inventory.");
+            if (thing instanceof Examinable) {
+                return thing.produceMessage().addExtraInfo("You see it in your inventory. ");
+            }
+            return new SeeOutMessage(thing, "You see it in your inventory. ");
         }
 
-        return new SeeOutMessage("You couldn't find " + name + " to examine.");
+        return new SeeOutMessage("You couldn't find " + name + " to examine. ");
     }
 
     @Override

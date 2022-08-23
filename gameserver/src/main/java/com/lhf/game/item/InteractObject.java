@@ -1,7 +1,7 @@
-package com.lhf.game.item.interfaces;
+package com.lhf.game.item;
 
 import com.lhf.game.creature.Creature;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
@@ -9,7 +9,7 @@ import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class InteractObject extends Item {
+public class InteractObject extends Item {
     private Map<String, Object> interactItems;
     private InteractAction method = null;
     // Indicates if the action can be used multiple times

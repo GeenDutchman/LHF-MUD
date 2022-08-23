@@ -49,7 +49,7 @@ public class StatusOutMessage extends OutMessage {
         sb.append("Faction:").append(this.faction.toString()).append("\r\n");
         sb.append("Health: ").append(this.healthBucket.getColorTaggedName());
         if (this.full && this.currentHealth != null && this.maxHealth != null) {
-            sb.append("(").append(this.currentHealth).append("/").append(this.maxHealth).append(")");
+            sb.append(" (").append(this.currentHealth).append("/").append(this.maxHealth).append(")");
         }
         sb.append("\r\n");
         if (this.full && this.armorClass != null) {

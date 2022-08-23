@@ -58,6 +58,39 @@ onSpell():
 			return noaffect
 	apply effects to target
     
+```mermaid
+classDiagram
+    direction TB
+    class SpellEntry {
+        <<abstract>>
+    }
+    class ISpell {
+        <<abstract>>
+    }
+    class CreatureTargetingSpellEntry
+    class RoomTargetingSpellEntry
+    class DungeonTargetingSpellEntry
+    class CreatureTargetingSpell
+    class RoomTargetingSpell
+    class DungeonTargetingSpell
+
+    SpellEntry <|.. CreatureTargetingSpellEntry
+    SpellEntry --o ISpell
+    SpellEntry <|.. RoomTargetingSpellEntry
+    SpellEntry <|.. DungeonTargetingSpellEntry
+
+    ISpell <|.. CreatureTargetingSpell
+    ISpell <|.. RoomTargetingSpell
+    ISpell <|.. DungeonTargetingSpell
+
+    CreatureTargetingSpellEntry --o CreatureTargetingSpell
+    RoomTargetingSpellEntry --o RoomTargetingSpell
+    DungeonTargetingSpellEntry --o DungeonTargetingSpell
+
+
+            
+```
+### old
 
 
 ```mermaid

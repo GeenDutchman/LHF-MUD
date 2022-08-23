@@ -9,7 +9,7 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.interfaces.Equipable;
+import com.lhf.game.item.Equipable;
 
 public class Statblock {
 
@@ -39,6 +39,16 @@ public class Statblock {
         this.inventory = creature.getInventory();
         this.equipmentSlots = creature.getEquipmentSlots();
 
+    }
+
+    public Statblock(Statblock other) {
+        this.creatureRace = other.getCreatureRace();
+        this.faction = other.getFaction();
+        this.attributes = other.getAttributes();
+        this.stats = other.getStats();
+        this.proficiencies = other.getProficiencies();
+        this.inventory = other.getInventory();
+        this.equipmentSlots = other.getEquipmentSlots();
     }
 
     public String creatureRace;

@@ -1,47 +1,31 @@
 package com.lhf.game.item.concrete.equipment;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.interfaces.Equipable;
+import com.lhf.game.item.Equipable;
 
 public class Shield extends Equipable {
-    private int AC = 2;
-    private List<EquipmentSlots> slots;
-    private List<EquipmentTypes> types;
-    private Map<String, Integer> equippingChanges;
+
+    private final int AC = 2;
 
     public Shield(boolean isVisible) {
         super("Shield", isVisible);
-        types = Collections.singletonList(EquipmentTypes.SHIELD);
-        slots = Collections.singletonList(EquipmentSlots.SHIELD);
-        equippingChanges = new HashMap<>();
-        equippingChanges.put(Stats.AC.toString(), this.AC);
-    }
-
-    @Override
-    public List<EquipmentTypes> getTypes() {
-        return types;
-    }
-
-    @Override
-    public List<EquipmentSlots> getWhichSlots() {
-        return slots;
-    }
-
-    @Override
-    public Map<String, Integer> getEquippingChanges() {
-        return this.equippingChanges;
+        this.types = Collections.singletonList(EquipmentTypes.SHIELD);
+        this.slots = Collections.singletonList(EquipmentSlots.SHIELD);
+        this.equipEffects = Collections.singletonList(
+                new CreatureEffectSource("AC Boost", new EffectPersistence(TickType.CONDITIONAL),
+                        "Using a shield makes you harder to hit", false)
+                        .addStatChange(Stats.AC, this.AC));
     }
 
     @Override
     public String printDescription() {
-        return "This is a simple shield, it should protect you a little bit. \n"
-                + this.printStats();
+        return "This is a simple shield, it should protect you a little bit. \n";
     }
 }

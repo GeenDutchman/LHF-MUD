@@ -1,8 +1,11 @@
 package com.lhf.messages.out;
 
+import java.util.List;
+import java.util.StringJoiner;
+
 import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
-import com.lhf.game.item.interfaces.Equipable;
 import com.lhf.messages.OutMessageType;
 
 public class EquipOutMessage extends OutMessage {
@@ -12,14 +15,12 @@ public class EquipOutMessage extends OutMessage {
 
     private EquipResultType type;
     private Item item;
-    private OutMessage unequipMessage;
     private String attemptedItemName;
     private EquipmentSlots attemptedSlot;
 
-    public EquipOutMessage(OutMessage unequipMessage, Item equipped) {
+    public EquipOutMessage(Item equipped) {
         super(OutMessageType.EQUIP);
         this.type = EquipResultType.SUCCESS;
-        this.unequipMessage = unequipMessage;
         this.item = equipped;
     }
 
@@ -36,9 +37,6 @@ public class EquipOutMessage extends OutMessage {
         StringBuilder sb = new StringBuilder();
         switch (this.type) {
             case SUCCESS:
-                if (this.unequipMessage != null) {
-                    sb.append(this.unequipMessage.toString()).append(" ");
-                }
                 sb.append("You successfully equipped your ").append(this.item.getColorTaggedName());
                 if (this.attemptedSlot != null) {
                     sb.append(" to your ").append(this.attemptedSlot.getColorTaggedName()).append(" equiment slot.");
@@ -54,8 +52,13 @@ public class EquipOutMessage extends OutMessage {
                     sb.append("that");
                 }
                 sb.append(".");
-                if (this.item != null && this.item instanceof Equipable) {
-                    sb.append("You can equip it to: ").append(((Equipable) this.item).printWhichSlots());
+                if (this.item != null && this.getCorrectSlots().size() > 0) {
+                    sb.append("You can equip it to: ");
+                    StringJoiner sj = new StringJoiner(", ");
+                    for (EquipmentSlots slots : this.getCorrectSlots()) {
+                        sj.add(slots.getColorTaggedName());
+                    }
+                    sb.append(sj.toString());
                 }
                 break;
             case NOTEQUIPBLE:
@@ -78,8 +81,12 @@ public class EquipOutMessage extends OutMessage {
                 if (this.item != null) {
                     sb.append(", and found ").append(this.item.getColorTaggedName()).append(" ");
                     if (this.item instanceof Equipable) {
-                        sb.append("which could equip to any of these slots: ")
-                                .append(((Equipable) this.item).printWhichSlots()).append(". ");
+                        sb.append("which could equip to any of these slots: ");
+                        StringJoiner sj = new StringJoiner(", ");
+                        for (EquipmentSlots slots : this.getCorrectSlots()) {
+                            sj.add(slots.getColorTaggedName());
+                        }
+                        sb.append(sj.toString()).append(". ");
                         if (this.attemptedSlot != null) {
                             sb.append("And you equipped it.");
                         }
@@ -100,15 +107,18 @@ public class EquipOutMessage extends OutMessage {
         return item;
     }
 
-    public OutMessage getUnequipMessage() {
-        return unequipMessage;
-    }
-
     public String getAttemptedItemName() {
         return attemptedItemName;
     }
 
     public EquipmentSlots getAttemptedSlot() {
         return attemptedSlot;
+    }
+
+    public List<EquipmentSlots> getCorrectSlots() {
+        if (this.item != null && this.item instanceof Equipable) {
+            return ((Equipable) this.item).getWhichSlots();
+        }
+        return List.of();
     }
 }

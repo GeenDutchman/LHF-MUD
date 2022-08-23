@@ -1,6 +1,6 @@
 package com.lhf.game.item.concrete;
 
-import com.lhf.game.item.interfaces.InteractObject;
+import com.lhf.game.item.InteractObject;
 import com.lhf.messages.out.SeeOutMessage;
 
 public class Dispenser extends InteractObject {

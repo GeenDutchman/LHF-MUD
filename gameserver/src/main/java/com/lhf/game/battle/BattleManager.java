@@ -14,14 +14,15 @@ import java.util.logging.Logger;
 import com.lhf.Examinable;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.Player;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
-import com.lhf.game.item.interfaces.Weapon;
 import com.lhf.game.map.Room;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -69,6 +70,13 @@ public class BattleManager implements MessageHandler, Examinable {
         sj = new StringJoiner(" ");
         sj.add("\"pass\"").add("Skips your turn in battle!");
         cmds.put(CommandMessage.PASS, sj.toString());
+        sj = new StringJoiner(" ");
+        sj.add("\"use [itemname]\"").add("Uses an item that you have on yourself, if applicable.")
+                .add("Like \"use potion\"").add("\r\n");
+        sj.add("\"use [itemname] on [otherthing]\"")
+                .add("Uses an item that you have on something or someone else, if applicable.")
+                .add("Like \"use potion on Bob\"");
+        cmds.put(CommandMessage.USE, sj.toString());
         return cmds;
     }
 
@@ -251,8 +259,8 @@ public class BattleManager implements MessageHandler, Examinable {
     // TODO: for threading and waiting
     private int calculateWastePenalty(Creature waster) {
         int penalty = -1;
-        if (waster.getVocation().isPresent()) {
-            int wasterLevel = waster.getVocation().get().getLevel();
+        if (waster.getVocation() != null) {
+            int wasterLevel = waster.getVocation().getLevel();
             penalty += wasterLevel > 0 ? -1 * wasterLevel : wasterLevel;
         }
         return penalty;
@@ -289,7 +297,9 @@ public class BattleManager implements MessageHandler, Examinable {
             if (target.getStats().get(Stats.AC) > a.getToHit().getRoll()) { // misses
                 sendMessageToAllParticipants(new MissMessage(attacker, target, a.getToHit(), null));
             } else {
-                sendMessageToAllParticipants(target.applyAffects(a));
+                for (CreatureEffect effect : a) {
+                    sendMessageToAllParticipants(target.applyEffect(effect));
+                }
             }
         }
     }
@@ -368,6 +378,8 @@ public class BattleManager implements MessageHandler, Examinable {
                     handled = true;
                 } else if (type == CommandMessage.PASS) {
                     handled = this.handlePass(ctx, msg);
+                } else if (type == CommandMessage.USE) {
+                    handled = this.handleUse(ctx, msg);
                 }
             }
             if (handled) {
@@ -376,6 +388,14 @@ public class BattleManager implements MessageHandler, Examinable {
         }
         ctx.setBattleManager(this);
         return MessageHandler.super.handleMessage(ctx, msg);
+    }
+
+    private boolean handleUse(CommandContext ctx, Command msg) {
+        // TODO: test me!
+        if (this.checkTurn(ctx.getCreature())) {
+            return false;
+        }
+        return true;
     }
 
     private boolean handlePass(CommandContext ctx, Command msg) {
@@ -447,8 +467,8 @@ public class BattleManager implements MessageHandler, Examinable {
         }
 
         int numAllowedTargets = 1;
-        if (attacker.getVocation().isPresent() && attacker.getVocation().get().getName().equals("Fighter")) {
-            numAllowedTargets += attacker.getVocation().get().getLevel() / 5;
+        if (attacker.getVocation() != null && attacker.getVocation().getName().equals("Fighter")) {
+            numAllowedTargets += attacker.getVocation().getLevel() / 5;
         }
 
         if (aMessage.getNumTargets() == 0) {

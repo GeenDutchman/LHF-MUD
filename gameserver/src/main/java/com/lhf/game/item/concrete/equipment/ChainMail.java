@@ -1,50 +1,31 @@
 package com.lhf.game.item.concrete.equipment;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.interfaces.Equipable;
+import com.lhf.game.item.Equipable;
 
 public class ChainMail extends Equipable {
-    private int AC = 5;
-
-    private List<EquipmentSlots> slots;
-    private List<EquipmentTypes> types;
-    private Map<String, Integer> equippingChanges;
+    private final int AC = 5;
 
     public ChainMail(boolean isVisible) {
         super("Chain Mail", isVisible);
 
-        slots = Collections.singletonList(EquipmentSlots.ARMOR);
-        types = Arrays.asList(EquipmentTypes.HEAVYARMOR);
-        equippingChanges = new HashMap<>();
-        equippingChanges.put(Stats.AC.toString(), this.AC);
-    }
-
-    @Override
-    public List<EquipmentTypes> getTypes() {
-        return types;
-    }
-
-    @Override
-    public List<EquipmentSlots> getWhichSlots() {
-        return slots;
-    }
-
-    @Override
-    public Map<String, Integer> getEquippingChanges() {
-        return this.equippingChanges;
+        this.slots = Collections.singletonList(EquipmentSlots.ARMOR);
+        this.types = Collections.singletonList(EquipmentTypes.HEAVYARMOR);
+        this.equipEffects = Collections.singletonList(
+                new CreatureEffectSource("AC Boost", new EffectPersistence(TickType.CONDITIONAL),
+                        "Wearing armor makes you harder to hit", false)
+                        .addStatChange(Stats.AC, this.AC));
     }
 
     @Override
     public String printDescription() {
-        return "This is some heavy chainmail. " + "It looks protective... now if only it wasn't so heavy\n" +
-                this.printStats();
+        return "This is some heavy chainmail. " + "It looks protective... now if only it wasn't so heavy\n";
     }
 }

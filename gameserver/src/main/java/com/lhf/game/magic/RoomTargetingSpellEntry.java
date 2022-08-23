@@ -2,17 +2,16 @@ package com.lhf.game.magic;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import com.lhf.Taggable;
-import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.item.Item;
+import com.lhf.game.map.RoomEffectSource;
 import com.lhf.messages.out.CastingMessage;
-import com.lhf.messages.out.SeeOutMessage;
 
 public class RoomTargetingSpellEntry extends SpellEntry {
     private class NameAndCount {
@@ -31,52 +30,30 @@ public class RoomTargetingSpellEntry extends SpellEntry {
 
     protected Map<String, NameAndCount> itemClassNamesToSummon;
     protected Map<String, NameAndCount> creaturesToSummon;
-    protected boolean banishesItems;
-    protected boolean banishesCreatures;
+    protected final boolean banishesItems;
+    protected final boolean banishesCreatures;
 
     private void init() {
         this.itemClassNamesToSummon = new TreeMap<>();
         this.creaturesToSummon = new TreeMap<>();
     }
 
-    public RoomTargetingSpellEntry(Integer level, String name, EffectPersistence persistence, String description,
-            boolean banishesItems, boolean banishesCreatures, VocationName... allowed) {
-        super(level, name, persistence, description, allowed);
+    public RoomTargetingSpellEntry(Integer level, String name, String invocation, Set<RoomEffectSource> effectSources,
+            Set<VocationName> allowed, String description,
+            boolean banishesItems, boolean banishesCreatures) {
+        super(level, name, invocation, effectSources, allowed, description);
         this.banishesItems = banishesItems;
         this.banishesCreatures = banishesCreatures;
         this.init();
     }
 
-    public RoomTargetingSpellEntry(Integer level, String name, String description,
-            boolean banishesItems, boolean banishesCreatures, VocationName... allowed) {
-        super(level, name, new EffectPersistence(TickType.CONDITIONAL), description, allowed);
+    public RoomTargetingSpellEntry(Integer level, String name, Set<RoomEffectSource> effectSources,
+            Set<VocationName> allowed, String description,
+            boolean banishesItems, boolean banishesCreatures) {
+        super(level, name, effectSources, allowed, description);
         this.banishesItems = banishesItems;
         this.banishesCreatures = banishesCreatures;
         this.init();
-    }
-
-    public RoomTargetingSpellEntry(Integer level, String name, String invocation, EffectPersistence persistence,
-            String description, boolean banishesItems, boolean banishesCreatures, VocationName... allowed) {
-        super(level, name, invocation, persistence, description, allowed);
-        this.banishesItems = banishesItems;
-        this.banishesCreatures = banishesCreatures;
-        this.init();
-    }
-
-    public RoomTargetingSpellEntry(Integer level, String name, String invocation,
-            String description, boolean banishesItems, boolean banishesCreatures, VocationName... allowed) {
-        super(level, name, invocation, new EffectPersistence(TickType.CONDITIONAL), description, allowed);
-        this.banishesItems = banishesItems;
-        this.banishesCreatures = banishesCreatures;
-        this.init();
-    }
-
-    public RoomTargetingSpellEntry(RoomTargetingSpellEntry other) {
-        super(other);
-        this.banishesItems = other.banishesItems;
-        this.banishesCreatures = other.banishesCreatures;
-        this.creaturesToSummon = new TreeMap<>(other.creaturesToSummon);
-        this.itemClassNamesToSummon = new TreeMap<>(other.itemClassNamesToSummon);
     }
 
     public RoomTargetingSpellEntry addSummonItem(Item item, int count) {
@@ -115,18 +92,13 @@ public class RoomTargetingSpellEntry extends SpellEntry {
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
-        return new SeeOutMessage(this);
-    }
-
-    @Override
     public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets) {
         return new CastingMessage(caster, this, null);
     }
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder(super.toString());
+    public String printDescription() {
+        StringBuilder sb = new StringBuilder(this.description);
         if (this.itemClassNamesToSummon.size() > 0) {
             sb.append("This spell will summon the items: ");
             for (NameAndCount nameAndCount : this.itemClassNamesToSummon.values()) {
@@ -147,7 +119,7 @@ public class RoomTargetingSpellEntry extends SpellEntry {
         if (this.banishesItems) {
             sb.append("This spell will banish items. ").append("\r\n");
         }
-        return sb.toString();
+        return sb.toString() + super.printEffectDescriptions();
     }
 
 }

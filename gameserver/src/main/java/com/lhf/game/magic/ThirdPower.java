@@ -1,11 +1,20 @@
 package com.lhf.game.magic;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.SortedSet;
+import java.util.StringJoiner;
+import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.magic.concrete.ShockBolt;
@@ -77,16 +86,18 @@ public class ThirdPower implements MessageHandler {
     public SortedSet<SpellEntry> filterByVocationName(VocationName vocationName) {
         Supplier<TreeSet<SpellEntry>> sortSupplier = () -> new TreeSet<SpellEntry>();
         return this.entries.stream().filter(
-                entry -> entry.getAllowedVocations().size() == 0 || entry.getAllowedVocations().contains(vocationName)
-                        || VocationName.DUNGEON_MASTER.equals(vocationName))
+                entry -> entry.getAllowedVocations().size() == 0 ||
+                        (vocationName != null && entry.getAllowedVocations().contains(vocationName)) ||
+                        VocationName.DUNGEON_MASTER.equals(vocationName))
                 .collect(Collectors.toCollection(sortSupplier));
     }
 
     public SortedSet<SpellEntry> filterByVocationAndLevels(VocationName vocationName, Collection<Integer> levels) {
         Supplier<TreeSet<SpellEntry>> sortSupplier = () -> new TreeSet<SpellEntry>();
         return this.entries.stream().filter(
-                entry -> entry.getAllowedVocations().size() == 0 || entry.getAllowedVocations().contains(vocationName)
-                        || VocationName.DUNGEON_MASTER.equals(vocationName))
+                entry -> entry.getAllowedVocations().size() == 0 ||
+                        (vocationName != null && entry.getAllowedVocations().contains(vocationName)) ||
+                        VocationName.DUNGEON_MASTER.equals(vocationName))
                 .filter(entry -> levels != null && levels.contains(entry.getLevel()))
                 .collect(Collectors.toCollection(sortSupplier));
     }
@@ -118,7 +129,7 @@ public class ThirdPower implements MessageHandler {
             }
         }
         if (entry instanceof CreatureTargetingSpellEntry) {
-            CreatureTargetingSpell spell = new CreatureTargetingSpell((CreatureTargetingSpellEntry) entry);
+            CreatureTargetingSpell spell = new CreatureTargetingSpell((CreatureTargetingSpellEntry) entry, caster);
             spell.setCaster(caster);
             // TODO: duration should be a thing
             if (ctx.getRoom() == null) {
@@ -140,7 +151,7 @@ public class ThirdPower implements MessageHandler {
                 battleManager.startBattle(caster, possTargets);
             }
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
-            Optional<CasterVsCreatureStrategy> defense = Optional.empty();
+            CasterVsCreatureStrategy defense = null;
             if (spell.isOffensive()) {
                 defense = spell.getStrategy();
             }
@@ -151,10 +162,9 @@ public class ThirdPower implements MessageHandler {
                         battleManager.addCreatureToBattle(target);
                         battleManager.callReinforcements(caster, target);
                     }
-                    if (defense.isPresent()) {
-                        CasterVsCreatureStrategy strat = defense.get();
-                        MultiRollResult casterResult = strat.getCasterEffort();
-                        MultiRollResult targetResult = strat.getTargetEffort(target);
+                    if (defense != null) {
+                        MultiRollResult casterResult = defense.getCasterEffort();
+                        MultiRollResult targetResult = defense.getTargetEffort(target);
                         if (casterResult.getTotal() <= targetResult.getTotal()) {
                             battleManager.sendMessageToAllParticipants(
                                     new MissMessage(caster, target, casterResult, targetResult));
@@ -162,8 +172,10 @@ public class ThirdPower implements MessageHandler {
                         }
                     }
                 }
-                CreatureAffectedMessage cam = target.applyAffects(spell);
-                this.channelizeMessage(ctx, cam, spell.isOffensive(), caster, target);
+                for (CreatureEffect effect : spell) {
+                    CreatureAffectedMessage cam = target.applyEffect(effect);
+                    this.channelizeMessage(ctx, cam, spell.isOffensive(), caster, target);
+                }
             }
 
         } // TODO: other cases
@@ -201,7 +213,7 @@ public class ThirdPower implements MessageHandler {
     public Boolean handleMessage(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.CAST) {
             Creature attempter = ctx.getCreature();
-            if (attempter.getVocation().isEmpty() || !(attempter.getVocation().get() instanceof CubeHolder)) {
+            if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
                 ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.NOT_CASTER, attempter, true));
                 if (ctx.getRoom() != null) {
                     ctx.getRoom().sendMessageToAllExcept(

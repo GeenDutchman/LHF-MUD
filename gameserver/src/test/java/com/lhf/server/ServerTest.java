@@ -145,7 +145,8 @@ public class ServerTest {
     @Test
     void testGo() {
         this.comm.clear();
-        String room1 = this.comm.create("Tester");
+        this.comm.create("Tester");
+        String room1 = this.comm.handleCommand("see");
         Truth.assertThat(room1).contains("east");
         String room2 = this.comm.handleCommand("go east");
         Truth.assertThat(room2).contains("hall");
