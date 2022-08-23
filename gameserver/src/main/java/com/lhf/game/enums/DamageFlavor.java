@@ -6,6 +6,19 @@ public enum DamageFlavor implements Taggable {
     SLASHING, MAGICAL_SLASHING, BLUDGEONING, MAGICAL_BLUDGEONING, PIERCING, MAGICAL_PIERCING,
     VOID, FORCE, FIRE, COLD, HEALING, NECROTIC, POISON, ACID, LIGHTNING, THUNDER, PSYCHIC;
 
+    public static DamageFlavor getDamageFlavor(String value) {
+        for (DamageFlavor flavor : values()) {
+            if (flavor.toString().equalsIgnoreCase(value)) {
+                return flavor;
+            }
+        }
+        return null;
+    }
+
+    public static boolean isDamageFlavor(String value) {
+        return DamageFlavor.getDamageFlavor(value) != null;
+    }
+
     @Override
     public String getStartTag() {
         return "<dmgFlavor>";
