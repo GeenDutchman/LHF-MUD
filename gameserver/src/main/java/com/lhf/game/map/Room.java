@@ -5,6 +5,7 @@ import java.util.regex.PatternSyntaxException;
 
 import org.mockito.exceptions.misusing.UnfinishedStubbingException;
 
+import com.lhf.Examinable;
 import com.lhf.game.Container;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.battle.BattleManager;
@@ -298,10 +299,10 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
                 continue;
             }
             if (item instanceof Takeable) {
-                seeOutMessage.addSeen(item.checkVisibility() ? SeeCategory.INVISIBLE_TAKEABLE : SeeCategory.TAKEABLE,
+                seeOutMessage.addSeen(item.checkVisibility() ? SeeCategory.TAKEABLE : SeeCategory.INVISIBLE_TAKEABLE,
                         item);
             } else {
-                seeOutMessage.addSeen(item.checkVisibility() ? SeeCategory.INVISIBLE_ROOM_ITEM : SeeCategory.ROOM_ITEM,
+                seeOutMessage.addSeen(item.checkVisibility() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
                         item);
             }
         }
@@ -587,7 +588,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         ArrayList<Creature> found = this.getCreaturesInRoom(name);
         // we should be able to see people in a fight
         if (found.size() == 1) {
-            return new SeeOutMessage(found.get(0), "They are in the room with you.");
+            return found.get(0).produceMessage().addExtraInfo("They are in the room with you. ");
         }
 
         if (creature.isInBattle()) {
@@ -602,6 +603,9 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
 
         for (Item thing : creature.getEquipmentSlots().values()) {
             if (thing.CheckNameRegex(name, 3)) {
+                if (thing instanceof Examinable) {
+                    return thing.produceMessage().addExtraInfo("You have it equipped. ");
+                }
                 return new SeeOutMessage(thing, "You have it equipped. ");
             }
         }
@@ -609,10 +613,13 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         Optional<Item> maybeThing = creature.getInventory().getItem(name);
         if (maybeThing.isPresent()) {
             Item thing = maybeThing.get();
-            return new SeeOutMessage(thing, "You see it in your inventory.");
+            if (thing instanceof Examinable) {
+                return thing.produceMessage().addExtraInfo("You see it in your inventory. ");
+            }
+            return new SeeOutMessage(thing, "You see it in your inventory. ");
         }
 
-        return new SeeOutMessage("You couldn't find " + name + " to examine.");
+        return new SeeOutMessage("You couldn't find " + name + " to examine. ");
     }
 
     @Override

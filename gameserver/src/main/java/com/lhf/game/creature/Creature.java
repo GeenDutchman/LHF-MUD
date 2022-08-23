@@ -132,6 +132,7 @@ public abstract class Creature
     public Creature(String name, Statblock statblock) {
         this.cmds = this.buildCommands();
         this.name = name;
+        this.creatureRace = statblock.getCreatureRace();
         this.vocation = null;
         this.effects = new TreeSet<>();
         this.faction = statblock.faction;
