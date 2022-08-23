@@ -1,10 +1,11 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
-import com.lhf.game.battle.Attack;
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.BasicAI;
@@ -14,38 +15,34 @@ import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.item.interfaces.Weapon;
+import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.item.Weapon;
+import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
 import com.lhf.messages.out.OutMessage;
 
 public class NonPlayerCharacter extends Creature {
-    public class BlessedFist extends Creature.Fist {
-        private List<DamageDice> blessedDamage;
+    public static class BlessedFist extends Weapon {
+        private final static CreatureEffectSource source = new CreatureEffectSource("Blessed Punch",
+                new EffectPersistence(TickType.INSTANT), "A blessed fist punches harder.", false);
 
-        BlessedFist() {
-            super("Blessed Fist");
-
-            this.blessedDamage = new ArrayList<>();
-            for (DamageFlavor df : DamageFlavor.values()) {
-                this.blessedDamage.add(new DamageDice(1, DieType.FOUR, df));
+        BlessedFist(NonPlayerCharacter owner) {
+            super("Blessed Fist", false, Set.of(BlessedFist.source), DamageFlavor.MAGICAL_BLUDGEONING,
+                    WeaponSubtype.CREATUREPART);
+            if (BlessedFist.source.getDamages().size() == 0) {
+                for (DamageFlavor df : DamageFlavor.values()) {
+                    BlessedFist.source.addDamage(new DamageDice(1, DieType.FOUR, df));
+                }
             }
-            this.blessedDamage.addAll(this.damages);
-        }
 
-        @Override
-        public List<DamageDice> getDamages() {
-            return this.blessedDamage;
-        }
-
-        @Override
-        public Attack modifyAttack(Attack attack) {
-            Attack superDone = super.modifyAttack(attack);
-            superDone.addToHitBonus(30);
-            return superDone;
+            this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
+            this.slots = List.of(EquipmentSlots.WEAPON);
+            this.descriptionString = "This is a " + getName() + " attached to a " + owner.getName()
+                    + "\n";
         }
     }
 
-    private final Weapon defaultWeapon = new BlessedFist();
+    private final Weapon defaultWeapon = new BlessedFist(this);
     private ConversationTree convoTree = null;
     public static final String defaultConvoTreeName = "verbal_default";
 
@@ -59,12 +56,12 @@ public class NonPlayerCharacter extends Creature {
     }
 
     @Override
-    public OutMessage equipItem(String itemName, EquipmentSlots slot) {
-        OutMessage equipMessage = super.equipItem(itemName, slot);
+    public boolean equipItem(String itemName, EquipmentSlots slot) {
+        boolean did = super.equipItem(itemName, slot);
         if (this.getEquipped(EquipmentSlots.ARMOR) != null) {
             this.removeEffectByName(DMBlessing.name);
         }
-        return equipMessage;
+        return did;
     }
 
     @Override
