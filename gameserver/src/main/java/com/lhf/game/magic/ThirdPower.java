@@ -130,8 +130,6 @@ public class ThirdPower implements MessageHandler {
         }
         if (entry instanceof CreatureTargetingSpellEntry) {
             CreatureTargetingSpell spell = new CreatureTargetingSpell((CreatureTargetingSpellEntry) entry, caster);
-            spell.setCaster(caster);
-            // TODO: duration should be a thing
             if (ctx.getRoom() == null) {
                 ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
                 return true;
