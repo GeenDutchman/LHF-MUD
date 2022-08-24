@@ -24,7 +24,7 @@ public enum CreatureFaction {
             case MONSTER:
                 return PLAYER.equals(other);
             case NPC:
-                return false;
+                return !NPC.equals(other);
             case PLAYER:
                 return MONSTER.equals(other);
             case RENEGADE:
