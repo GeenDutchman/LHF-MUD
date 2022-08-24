@@ -17,13 +17,14 @@ public class CreatureAOESpellEntry extends SpellEntry {
         protected final boolean caster;
         protected final boolean allies;
         protected final boolean enemies;
-        protected final boolean renegades = false;
+        protected final boolean renegades;
 
         public AutoSafe() {
             this.npc = false;
             this.caster = false;
             this.allies = false;
             this.enemies = false;
+            this.renegades = false;
         }
 
         public AutoSafe(boolean npc, boolean caster, boolean allies, boolean enemies) {
@@ -31,6 +32,15 @@ public class CreatureAOESpellEntry extends SpellEntry {
             this.caster = caster;
             this.allies = allies;
             this.enemies = enemies;
+            this.renegades = false;
+        }
+
+        public AutoSafe(boolean npc, boolean caster, boolean allies, boolean enemies, boolean renegades) {
+            this.npc = npc;
+            this.caster = caster;
+            this.allies = allies;
+            this.enemies = enemies;
+            this.renegades = renegades;
         }
 
         public static AutoSafe override(AutoSafe one, AutoSafe two) {
@@ -47,7 +57,7 @@ public class CreatureAOESpellEntry extends SpellEntry {
                 return this;
             }
             return new AutoSafe(this.npc || other.npc, this.caster || other.caster, this.allies || other.allies,
-                    this.enemies || other.enemies);
+                    this.enemies || other.enemies, this.renegades || other.renegades);
         }
 
         public boolean isNpc() {
