@@ -13,29 +13,31 @@ import com.lhf.messages.out.CastingMessage;
 
 public class CreatureAOESpellEntry extends SpellEntry {
     public static class AutoSafe {
-        protected final boolean npc;
-        protected final boolean caster;
-        protected final boolean allies;
-        protected final boolean enemies;
-        protected final boolean renegades;
+        protected final int npc;
+        protected final int caster;
+        protected final int allies;
+        protected final int enemies;
+        protected final int renegades;
 
         public AutoSafe() {
-            this.npc = false;
-            this.caster = false;
-            this.allies = false;
-            this.enemies = false;
-            this.renegades = false;
+            this.npc = 1;
+            this.caster = 2;
+            this.allies = 3;
+            this.enemies = 4;
+            this.renegades = 5;
         }
 
-        public AutoSafe(boolean npc, boolean caster, boolean allies, boolean enemies) {
+        public AutoSafe(int npc, int caster, int allies, int enemies) {
             this.npc = npc;
             this.caster = caster;
             this.allies = allies;
             this.enemies = enemies;
-            this.renegades = false;
+            int maximum = Integer.max(npc, caster);
+            maximum = Integer.max(maximum, allies);
+            this.renegades = Integer.max(maximum, enemies) + 1;
         }
 
-        public AutoSafe(boolean npc, boolean caster, boolean allies, boolean enemies, boolean renegades) {
+        public AutoSafe(int npc, int caster, int allies, int enemies, int renegades) {
             this.npc = npc;
             this.caster = caster;
             this.allies = allies;
@@ -56,50 +58,62 @@ public class CreatureAOESpellEntry extends SpellEntry {
             if (other == null) {
                 return this;
             }
-            return new AutoSafe(this.npc || other.npc, this.caster || other.caster, this.allies || other.allies,
-                    this.enemies || other.enemies, this.renegades || other.renegades);
+            return new AutoSafe(Integer.min(this.npc, other.npc), Integer.min(this.caster, other.caster),
+                    Integer.min(this.allies, other.allies),
+                    Integer.min(this.enemies, other.enemies), Integer.min(this.renegades, other.renegades));
         }
 
-        public boolean isNpc() {
-            return npc;
+        public boolean isNpc(int base, int level) {
+            return base + npc <= level;
         }
 
-        public boolean isCaster() {
-            return caster;
+        public boolean isCaster(int base, int level) {
+            return base + caster <= level;
         }
 
-        public boolean isAllies() {
-            return allies;
+        public boolean isAllies(int base, int level) {
+            return base + allies <= level;
         }
 
-        public boolean isEnemies() {
-            return enemies;
+        public boolean isEnemies(int base, int level) {
+            return base + enemies <= level;
         }
 
-        public boolean isRenegades() {
-            return renegades;
+        public boolean isRenegades(int base, int level) {
+            return base + renegades <= level;
+        }
+
+        public String atLevel(int base, int level) {
+            StringJoiner sj = new StringJoiner(", ")
+                    .setEmptyValue("all the creatures in the room");
+            if (this.isNpc(base, level)) {
+                sj.add("NPC's");
+            }
+            if (this.isCaster(base, level)) {
+                sj.add("the caster");
+            }
+            if (this.isAllies(base, level)) {
+                sj.add("the caster's allies");
+            }
+            if (this.isEnemies(base, level)) {
+                sj.add("the caster's enemies");
+            }
+            if (this.isRenegades(base, level)) {
+                sj.add("renegades");
+            }
+            return " Upon casting: " + sj.toString() + " will be affected.";
         }
 
         @Override
         public String toString() {
-            StringJoiner sj = new StringJoiner(", ")
-                    .setEmptyValue("all the creatures in the room");
-            if (this.npc) {
-                sj.add("NPC's");
-            }
-            if (this.caster) {
-                sj.add("the caster");
-            }
-            if (this.allies) {
-                sj.add("the caster's allies");
-            }
-            if (this.enemies) {
-                sj.add("the caster's enemies");
-            }
-            if (this.renegades) {
-                sj.add("renegades");
-            }
-            return " Upon casting: " + sj.toString() + " will be affected.";
+            StringBuilder sb = new StringBuilder();
+            sb.append("NPC's affected ").append(this.npc).append(" levels above base.").append("\r\n");
+            sb.append("Caster affected ").append(this.caster).append(" levels above base.").append("\r\n");
+            sb.append("Allies affected ").append(this.allies).append(" levels above base.").append("\r\n");
+            sb.append("Enimies affected ").append(this.enemies).append(" levels above base.").append("\r\n");
+            sb.append("Renegades affected ").append(this.renegades).append(" levels above base.").append("\r\n");
+
+            return sb.toString();
         }
 
         @Override
