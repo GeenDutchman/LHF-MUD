@@ -270,6 +270,9 @@ public abstract class Creature
     public abstract void restoreFaction();
 
     public CreatureFaction getFaction() {
+        if (this.faction == null) {
+            this.faction = CreatureFaction.RENEGADE;
+        }
         return faction;
     }
 
