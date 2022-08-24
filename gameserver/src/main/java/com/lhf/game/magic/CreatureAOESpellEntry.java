@@ -87,7 +87,7 @@ public class CreatureAOESpellEntry extends SpellEntry {
             StringJoiner sj = new StringJoiner(", ")
                     .setEmptyValue("all the creatures in the room");
             if (this.isNpc(base, level)) {
-                sj.add("NPC's");
+                sj.add("NPCs");
             }
             if (this.isCaster(base, level)) {
                 sj.add("the caster");
@@ -107,7 +107,7 @@ public class CreatureAOESpellEntry extends SpellEntry {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
-            sb.append("NPC's affected ").append(this.npc).append(" levels above base.").append("\r\n");
+            sb.append("NPCs affected ").append(this.npc).append(" levels above base.").append("\r\n");
             sb.append("Caster affected ").append(this.caster).append(" levels above base.").append("\r\n");
             sb.append("Allies affected ").append(this.allies).append(" levels above base.").append("\r\n");
             sb.append("Enimies affected ").append(this.enemies).append(" levels above base.").append("\r\n");
