@@ -45,6 +45,17 @@ public class CreatureAOESpellEntry extends SpellEntry {
             this.renegades = renegades;
         }
 
+        public static AutoSafe upCast(AutoSafe safe, final int levels) {
+            if (safe != null) {
+                return safe.upCast(levels);
+            }
+            return new AutoSafe(0, 1, 2, 3, 4);
+        }
+
+        public AutoSafe upCast(final int levels) {
+            return new AutoSafe(npc - levels, caster - levels, allies - levels, enemies - levels, renegades - levels);
+        }
+
         public static AutoSafe override(AutoSafe one, AutoSafe two) {
             if (one != null) {
                 return one.override(two);
