@@ -74,55 +74,77 @@ public class CreatureAOESpellEntry extends SpellEntry {
                     Integer.min(this.enemies, other.enemies), Integer.min(this.renegades, other.renegades));
         }
 
-        public boolean isNpc(int base, int level) {
-            return base + npc <= level;
+        public boolean areNpcSafe() {
+            return npc <= 0;
         }
 
-        public boolean isCaster(int base, int level) {
-            return base + caster <= level;
+        public boolean isCasterSafe() {
+            return caster <= 0;
         }
 
-        public boolean isAllies(int base, int level) {
-            return base + allies <= level;
+        public boolean areAlliesSafe() {
+            return allies <= 0;
         }
 
-        public boolean isEnemies(int base, int level) {
-            return base + enemies <= level;
+        public boolean areEnemiesSafe() {
+            return enemies <= 0;
         }
 
-        public boolean isRenegades(int base, int level) {
-            return base + renegades <= level;
+        public boolean areRenegadesSafe() {
+            return renegades <= 0;
         }
 
-        public String atLevel(int base, int level) {
+        public String printAffected() {
             StringJoiner sj = new StringJoiner(", ")
-                    .setEmptyValue("all the creatures in the room");
-            if (this.isNpc(base, level)) {
+                    .setEmptyValue("nobody");
+            if (!this.areNpcSafe()) {
                 sj.add("NPCs");
             }
-            if (this.isCaster(base, level)) {
+            if (!this.isCasterSafe()) {
                 sj.add("the caster");
             }
-            if (this.isAllies(base, level)) {
+            if (!this.areAlliesSafe()) {
                 sj.add("the caster's allies");
             }
-            if (this.isEnemies(base, level)) {
+            if (!this.areEnemiesSafe()) {
                 sj.add("the caster's enemies");
             }
-            if (this.isRenegades(base, level)) {
+            if (!this.areRenegadesSafe()) {
                 sj.add("renegades");
             }
             return " Upon casting: " + sj.toString() + " will be affected.";
         }
 
+        public String printUnffected() {
+            StringJoiner sj = new StringJoiner(", ")
+                    .setEmptyValue("nobody");
+            if (this.areNpcSafe()) {
+                sj.add("NPCs");
+            }
+            if (this.isCasterSafe()) {
+                sj.add("the caster");
+            }
+            if (this.areAlliesSafe()) {
+                sj.add("the caster's allies");
+            }
+            if (this.areEnemiesSafe()) {
+                sj.add("the caster's enemies");
+            }
+            if (this.areRenegadesSafe()) {
+                sj.add("renegades");
+            }
+            return " Upon casting: " + sj.toString() + " will be not be affected.";
+        }
+
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
-            sb.append("NPCs affected ").append(this.npc).append(" levels above base.").append("\r\n");
-            sb.append("Caster affected ").append(this.caster).append(" levels above base.").append("\r\n");
-            sb.append("Allies affected ").append(this.allies).append(" levels above base.").append("\r\n");
-            sb.append("Enimies affected ").append(this.enemies).append(" levels above base.").append("\r\n");
-            sb.append("Renegades affected ").append(this.renegades).append(" levels above base.").append("\r\n");
+            sb.append("NPCs unaffected ").append(this.npc).append(" levels above casting level.").append("\r\n");
+            sb.append("Caster unaffected ").append(this.caster).append(" levels above casting level.").append("\r\n");
+            sb.append("Allies unaffected ").append(this.allies).append(" levels above casting level.").append("\r\n");
+            sb.append("Enimies unaffected ").append(this.enemies).append(" levels above casting level.").append("\r\n");
+            sb.append("Renegades unaffected ").append(this.renegades).append(" levels above casting level.")
+                    .append("\r\n");
 
             return sb.toString();
         }
