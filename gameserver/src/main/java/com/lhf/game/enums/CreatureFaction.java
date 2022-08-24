@@ -34,12 +34,4 @@ public enum CreatureFaction {
         }
     }
 
-    public static boolean areCompeting(CreatureFaction one, CreatureFaction two) {
-        if (one != null) {
-            return one.competing(two);
-        } else if (two != null) {
-            return two.competing(one);
-        }
-        return true;
-    }
 }
