@@ -29,7 +29,6 @@ import com.lhf.game.magic.concrete.Thaumaturgy;
 import com.lhf.game.magic.concrete.ThunderStrike;
 import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 import com.lhf.game.map.DungeonEffectSource;
-import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomEffectSource;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
@@ -302,7 +301,7 @@ public class ThirdPower implements MessageHandler {
             if (spell.isOffensive()) {
                 defense = spell.getStrategy();
             }
-            CastingMessage castingMessage = entry.Cast(caster, casting.getLevel(), targets);
+            CastingMessage castingMessage = entry.Cast(caster, casting.getLevel(), new ArrayList<>(targets));
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
 
             return this.affectCreatures(ctx, spell, defense, targets);
