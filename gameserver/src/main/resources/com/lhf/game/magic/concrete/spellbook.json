@@ -1,0 +1,98 @@
+[
+  {
+    "singleTarget": true,
+    "className": "com.lhf.game.magic.concrete.ShockBolt",
+    "level": 0,
+    "name": "Shock Bolt",
+    "invocation": "Astra Horeb",
+    "description": "A small spark of electricity shocks a creature you choose as a target",
+    "allowedVocations": [],
+    "effectSources": [
+      {
+        "className": "com.lhf.game.creature.CreatureEffectSource",
+        "statChanges": {},
+        "attributeScoreChanges": {},
+        "attributeBonusChanges": {},
+        "damages": [
+          {
+            "flavor": "LIGHTNING",
+            "count": 1,
+            "type": "FOUR"
+          }
+        ],
+        "restoreFaction": false,
+        "name": "Zap",
+        "persistence": {
+          "count": 1,
+          "tickSize": "INSTANT"
+        },
+        "description": "This spell zaps things."
+      }
+    ]
+  },
+  {
+    "itemClassNamesToSummon": {},
+    "creaturesToSummon": {},
+    "banishesItems": false,
+    "banishesCreatures": false,
+    "className": "com.lhf.game.magic.concrete.Thaumaturgy",
+    "level": 0,
+    "name": "Thaumaturgy",
+    "invocation": "zarmamoo",
+    "description": "A way to magically announce your presence",
+    "allowedVocations": [],
+    "effectSources": [
+      {
+        "className": "com.lhf.game.map.RoomEffectSource",
+        "itemsToSummon": [],
+        "itemsToBanish": [],
+        "creaturesToSummon": [],
+        "creaturesToBanish": [],
+        "name": "Announce yourself",
+        "persistence": {
+          "count": 1,
+          "tickSize": "INSTANT"
+        },
+        "description": "Announce yourself to the room!"
+      }
+    ]
+  },
+  {
+    "singleTarget": true,
+    "className": "com.lhf.game.magic.concrete.ThunderStrike",
+    "level": 1,
+    "name": "Thunder Strike",
+    "invocation": "Bonearge Laarzen",
+    "description": "A small but loud bolt of electricity shocks a creature you choose as a target",
+    "allowedVocations": [
+      "MAGE"
+    ],
+    "effectSources": [
+      {
+        "className": "com.lhf.game.creature.CreatureEffectSource",
+        "statChanges": {},
+        "attributeScoreChanges": {},
+        "attributeBonusChanges": {},
+        "damages": [
+          {
+            "flavor": "THUNDER",
+            "count": 1,
+            "type": "SIX"
+          },
+          {
+            "flavor": "LIGHTNING",
+            "count": 1,
+            "type": "FOUR"
+          }
+        ],
+        "restoreFaction": false,
+        "name": "Loud Zap",
+        "persistence": {
+          "count": 1,
+          "tickSize": "INSTANT"
+        },
+        "description": "Zaps your target"
+      }
+    ]
+  }
+]

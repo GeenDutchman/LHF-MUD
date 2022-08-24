@@ -1,5 +1,10 @@
 package com.lhf.game.magic;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -12,15 +17,25 @@ import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonIOException;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import com.lhf.game.EntityEffectSource;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
 import com.lhf.game.magic.concrete.ThunderStrike;
 import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
+import com.lhf.game.map.DungeonEffectSource;
+import com.lhf.game.map.RoomEffectSource;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -49,9 +64,11 @@ public class ThirdPower implements MessageHandler {
      * 
      * 
      */
+    private String path;
     private SortedSet<SpellEntry> entries;
     private MessageHandler successor;
     private HashMap<CommandMessage, String> cmds;
+    private final String[] path_to_spellbook = { ".", "concrete" };
 
     public ThirdPower(MessageHandler successor) {
         this.successor = successor;
@@ -63,6 +80,75 @@ public class ThirdPower implements MessageHandler {
         SpellEntry thunderStrike = new ThunderStrike();
         this.entries.add(thunderStrike);
         this.cmds = this.generateCommands();
+        this.setupPath();
+    }
+
+    private void setupPath() {
+        StringBuilder makePath = new StringBuilder();
+        for (String part : path_to_spellbook) {
+            makePath.append(part).append(File.separator);
+        }
+        this.path = getClass().getResource(makePath.toString()).getPath().replaceAll("target(.)classes",
+                "src$1main$1resources");
+    }
+
+    private Gson getAdaptedGson() {
+        RuntimeTypeAdapterFactory<SpellEntry> spellEntryAdapter = RuntimeTypeAdapterFactory
+                .of(SpellEntry.class, "className")
+                .registerSubtype(CreatureTargetingSpellEntry.class, CreatureTargetingSpellEntry.class.getName())
+                .registerSubtype(RoomTargetingSpellEntry.class, RoomTargetingSpellEntry.class.getName())
+                .registerSubtype(DungeonTargetingSpellEntry.class, DungeonTargetingSpellEntry.class.getName())
+                .registerSubtype(ShockBolt.class, ShockBolt.class.getName())
+                .registerSubtype(ThunderStrike.class, ThunderStrike.class.getName())
+                .registerSubtype(Thaumaturgy.class, Thaumaturgy.class.getName());
+        RuntimeTypeAdapterFactory<EntityEffectSource> effectSourceAdapter = RuntimeTypeAdapterFactory
+                .of(EntityEffectSource.class, "className")
+                .registerSubtype(CreatureEffectSource.class, CreatureEffectSource.class.getName())
+                .registerSubtype(RoomEffectSource.class, RoomEffectSource.class.getName())
+                .registerSubtype(DungeonEffectSource.class, DungeonEffectSource.class.getName());
+        GsonBuilder gb = new GsonBuilder().registerTypeAdapterFactory(spellEntryAdapter)
+                .registerTypeAdapterFactory(effectSourceAdapter).setPrettyPrinting();
+        return gb.create();
+    }
+
+    public boolean saveToFile() throws IOException {
+        return this.saveToFile(true);
+    }
+
+    @Deprecated(forRemoval = false)
+    private boolean saveToFile(boolean loadFirst) throws IOException {
+        if (loadFirst && !this.loadFromFile()) {
+            throw new IOException("Cannot preload spellbook!");
+        }
+        Gson gson = this.getAdaptedGson();
+        System.out.println("Writing to " + this.path);
+        try (FileWriter fileWriter = new FileWriter(this.path + "spellbook.json")) {
+            String asJson = gson.toJson(this.entries);
+            System.out.println(asJson);
+            fileWriter.write(asJson);
+        } catch (JsonIOException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public boolean loadFromFile() {
+        Gson gson = this.getAdaptedGson();
+        System.out.println("Reading from " + this.path + "spellbook.json");
+        Integer preSize = this.entries.size();
+        try (JsonReader jReader = new JsonReader(new FileReader(this.path + "spellbook.json"))) {
+            Type collectionType = new TypeToken<TreeSet<SpellEntry>>() {
+            }.getType();
+            SortedSet<SpellEntry> retrieved = gson.fromJson(jReader, collectionType);
+            System.out.println(retrieved);
+            this.entries.addAll(retrieved);
+        } catch (JsonIOException | IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        System.out.printf("Spellbook size changed by %d\n", this.entries.size() - preSize);
+        return true;
     }
 
     private HashMap<CommandMessage, String> generateCommands() {
