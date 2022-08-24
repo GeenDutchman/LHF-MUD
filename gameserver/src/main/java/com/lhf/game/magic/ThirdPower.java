@@ -96,6 +96,7 @@ public class ThirdPower implements MessageHandler {
         RuntimeTypeAdapterFactory<SpellEntry> spellEntryAdapter = RuntimeTypeAdapterFactory
                 .of(SpellEntry.class, "className")
                 .registerSubtype(CreatureTargetingSpellEntry.class, CreatureTargetingSpellEntry.class.getName())
+                .registerSubtype(CreatureAOESpellEntry.class, CreatureAOESpellEntry.class.getName())
                 .registerSubtype(RoomTargetingSpellEntry.class, RoomTargetingSpellEntry.class.getName())
                 .registerSubtype(DungeonTargetingSpellEntry.class, DungeonTargetingSpellEntry.class.getName())
                 .registerSubtype(ShockBolt.class, ShockBolt.class.getName())
