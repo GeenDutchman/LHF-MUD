@@ -75,7 +75,7 @@ public class Client implements MessageHandler, ClientMessenger {
     }
 
     private Boolean handleHelpMessage(Command msg, BadMessageType badMessageType) {
-        TreeMap<CommandMessage, String> helps = new TreeMap<>(this.gatherHelp());
+        TreeMap<CommandMessage, String> helps = new TreeMap<>(this.gatherHelp(null));
 
         if (badMessageType != null) {
             this.sendMsg(new BadMessage(badMessageType, helps, msg));
