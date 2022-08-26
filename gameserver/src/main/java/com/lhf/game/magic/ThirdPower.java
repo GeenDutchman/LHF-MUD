@@ -212,8 +212,8 @@ public class ThirdPower implements MessageHandler {
                 MultiRollResult casterResult = null;
                 MultiRollResult targetResult = null;
                 if (resistance != null) {
-                    casterResult = resistance.actorEffort(caster);
-                    targetResult = resistance.targetEffort(target);
+                    casterResult = resistance.actorEffort(caster, 0);
+                    targetResult = resistance.targetEffort(target, 0);
                 }
 
                 if (resistance == null || targetResult == null

@@ -45,7 +45,7 @@ public class ReaperScythe extends Weapon {
                         new EffectResistance(null, null, actorDC, null, Stats.AC, null, TargetResistAmount.HALF),
                         "This weapon does extra necrotic damage.", false).addStatChange(Stats.CURRENTHP, -100));
 
-        return super.generateAttack(attacker, extraSources).addToHitBonus(10);
+        return super.generateAttack(attacker, extraSources);
     }
 
 }

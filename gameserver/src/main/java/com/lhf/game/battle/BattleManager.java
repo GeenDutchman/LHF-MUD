@@ -13,13 +13,13 @@ import java.util.logging.Logger;
 
 import com.lhf.Examinable;
 import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.Player;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
@@ -294,13 +294,25 @@ public class BattleManager implements MessageHandler, Examinable {
                 this.callReinforcements(attacker, target);
             }
             Attack a = attacker.attack(weapon);
-            if (target.getStats().get(Stats.AC) > a.getToHit().getRoll()) { // misses
-                sendMessageToAllParticipants(new MissMessage(attacker, target, a.getToHit(), null));
-            } else {
-                for (CreatureEffect effect : a) {
-                    sendMessageToAllParticipants(target.applyEffect(effect));
+
+            for (CreatureEffect effect : a) {
+                EffectResistance resistance = effect.getResistance();
+                MultiRollResult attackerResult = null;
+                MultiRollResult targetResult = null;
+                if (resistance != null) {
+                    attackerResult = resistance.actorEffort(attacker, weapon.getToHitBonus());
+                    targetResult = resistance.targetEffort(target, 0);
+                }
+
+                if (resistance == null || targetResult == null
+                        || (attackerResult != null && (attackerResult.getTotal() > targetResult.getTotal()))) {
+                    CreatureAffectedMessage cam = target.applyEffect(effect);
+                    sendMessageToAllParticipants(cam);
+                } else {
+                    sendMessageToAllParticipants(new MissMessage(attacker, target, attackerResult, targetResult));
                 }
             }
+
         }
     }
 
