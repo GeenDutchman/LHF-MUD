@@ -9,16 +9,23 @@ import com.lhf.messages.out.SeeOutMessage;
 public abstract class EntityEffectSource implements Taggable, Examinable {
     protected final String name;
     protected final EffectPersistence persistence;
+    protected final EffectResistance resistance;
     protected String description;
 
-    public EntityEffectSource(String name, EffectPersistence persistence, String description) {
+    public EntityEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
+            String description) {
         this.name = name;
         this.persistence = persistence;
+        this.resistance = resistance;
         this.description = description;
     }
 
     public EffectPersistence getPersistence() {
         return persistence;
+    }
+
+    public EffectResistance getResistance() {
+        return resistance;
     }
 
     @Override
@@ -28,7 +35,14 @@ public abstract class EntityEffectSource implements Taggable, Examinable {
 
     @Override
     public String printDescription() {
-        return this.description + "\nIt will last " + this.persistence.toString();
+        StringBuilder sb = new StringBuilder(this.description);
+        if (this.persistence != null) {
+            sb.append("\nIt will last ").append(this.persistence.toString());
+        }
+        if (this.resistance != null) {
+            sb.append("\n").append(this.resistance.toString());
+        }
+        return sb.toString();
     }
 
     @Override

@@ -133,4 +133,27 @@ public class EffectResistance {
         return resistAmount != null ? resistAmount : TargetResistAmount.ALL;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("Resistance to this effect is determined by: ");
+        if (actorAttr != null) {
+            sb.append("The causing party's ").append(actorAttr).append(" check ");
+        } else if (actorStat != null) {
+            sb.append("The causing party's ").append(actorStat).append(" stat ");
+        } else if (actorDC != null) {
+            sb.append("The static DC of ").append(actorDC).append(" ");
+        } else {
+            return " The target automatically succeeds. ";
+        }
+        if (targetAttr != null) {
+            sb.append("v.s. the target's ").append(targetAttr).append(" check. ");
+        } else if (targetStat != null) {
+            sb.append("v.s. the target's ").append(targetStat).append(" stat. ");
+        } else if (targetDC != null) {
+            sb.append("v.s. the target DC of ").append(targetDC).append(". ");
+        } else {
+            return " The effect is automatically applied. ";
+        }
+        return sb.toString();
+    }
 }
