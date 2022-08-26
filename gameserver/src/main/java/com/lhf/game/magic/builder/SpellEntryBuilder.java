@@ -79,6 +79,7 @@ public class SpellEntryBuilder {
             System.out.println("Main menu:");
             System.out.println("What to do?");
             menuChoice = adapter.menuChoice(List.of("exit", "make", "print", "list", "add"));
+            System.out.println(menuChoice);
             switch (menuChoice) {
                 case 0:
                     System.out.println("Exiting...");
@@ -99,7 +100,8 @@ public class SpellEntryBuilder {
                 case 3:
                     System.out.println("Printing spellbook:");
                     for (SpellEntry entry : spellbook.getEntries()) {
-                        System.out.println(entry.toString());
+                        System.out.printf("%d %s\r\n", entry.getLevel(), entry.getName());
+                        System.out.println(entry.printDescription());
                     }
                     break;
                 case 4:
