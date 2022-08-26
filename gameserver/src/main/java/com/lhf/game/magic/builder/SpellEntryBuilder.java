@@ -10,6 +10,7 @@ import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
 import com.lhf.game.magic.SpellEntry;
+import com.lhf.game.magic.Spellbook;
 
 public class SpellEntryBuilder {
     public interface SpellEntryBuilderAdapter extends Closeable {
@@ -65,8 +66,61 @@ public class SpellEntryBuilder {
 
     }
 
+    private static void menu(CLIAdapter adapter) {
+        int menuChoice = -1;
+        Spellbook spellbook = new Spellbook();
+        if (spellbook.loadFromFile()) {
+            System.out.println("loaded from file");
+        } else {
+            System.out.println("Failed to load spellbook");
+        }
+        SpellEntry selected = null;
+        do {
+            System.out.println("Main menu:");
+            System.out.println("What to do?");
+            menuChoice = adapter.menuChoice(List.of("exit", "make", "print", "list", "add"));
+            switch (menuChoice) {
+                case 0:
+                    System.out.println("Exiting...");
+                    return;
+                case 1:
+                    System.out.println("Making a spell entry...");
+                    selected = SpellEntryBuilder.makeSpellEntry(adapter);
+                    System.out.println(selected);
+                    break;
+                case 2:
+                    if (selected != null) {
+                        System.out.println("Selected:");
+                        System.out.println(selected);
+                    } else {
+                        System.out.println("No spellentry selected or made");
+                    }
+                    break;
+                case 3:
+                    System.out.println("Printing spellbook:");
+                    for (SpellEntry entry : spellbook.getEntries()) {
+                        System.out.println(entry.toString());
+                    }
+                    break;
+                case 4:
+                    if (selected != null) {
+                        System.out.println("Adding " + selected.getName());
+                        if (!spellbook.addEntry(selected)) {
+                            System.out.println("It was not added.");
+                        }
+                    } else {
+                        System.out.println("No spellentry selected or made");
+                    }
+                    break;
+                default:
+                    System.out.println("Unrecognized option, repeating menu...");
+                    break;
+            }
+        } while (menuChoice != 0);
+    }
+
     public static void main(String[] args) {
-        SpellEntryBuilderAdapter adapter = new CLIAdapter();
-        System.out.println(SpellEntryBuilder.makeSpellEntry(adapter));
+        CLIAdapter adapter = new CLIAdapter();
+        SpellEntryBuilder.menu(adapter);
     }
 }
