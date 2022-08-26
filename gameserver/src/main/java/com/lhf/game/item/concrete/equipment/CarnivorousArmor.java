@@ -16,14 +16,14 @@ import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 
 public class CarnivorousArmor extends Equipable {
     private final CreatureEffectSource eatingResults = new CreatureEffectSource("Eaten Alive",
-            new EffectPersistence(TickType.INSTANT), "You are eaten alive...just a bite.", false);
+            new EffectPersistence(TickType.INSTANT), null, "You are eaten alive...just a bite.", false);
 
     private final CreatureEffectSource eatingACResults = new CreatureEffectSource("Protect the Meal",
-            new EffectPersistence(TickType.CONDITIONAL), "Must protect the next meal...you!", false)
+            new EffectPersistence(TickType.CONDITIONAL), null, "Must protect the next meal...you!", false)
             .addStatChange(Stats.AC, 3);
 
     private final CreatureEffectSource lastBite = new CreatureEffectSource("Last Bite",
-            new EffectPersistence(TickType.INSTANT), "As you tear it off, one last bite!", false)
+            new EffectPersistence(TickType.INSTANT), null, "As you tear it off, one last bite!", false)
             .addStatChange(Stats.AC, -2);
 
     private final int AC = 2;
@@ -37,7 +37,7 @@ public class CarnivorousArmor extends Equipable {
         this.slots = List.of(EquipmentSlots.ARMOR);
         this.types = List.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
         this.equipEffects = List.of(new CreatureEffectSource("It is Armor.",
-                new EffectPersistence(TickType.CONDITIONAL), "You are now wearing armor.", false)
+                new EffectPersistence(TickType.CONDITIONAL), null, "You are now wearing armor.", false)
                 .addStatChange(Stats.AC, this.AC));
         this.descriptionString = "This is some simple leather armor. " + "There is plenty of blood on it...\n";
     }

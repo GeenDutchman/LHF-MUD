@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectResistance;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
@@ -54,8 +55,9 @@ public abstract class Creature
 
         Fist() {
             super("Fist", false, Set.of(
-                    new CreatureEffectSource("Punch", new EffectPersistence(TickType.INSTANT), "Fists punch things",
-                            false)
+                    new CreatureEffectSource("Punch", new EffectPersistence(TickType.INSTANT),
+                            new EffectResistance(EnumSet.of(Attributes.STR, Attributes.DEX), Stats.AC),
+                            "Fists punch things", false)
                             .addDamage(new DamageDice(1, DieType.TWO, DamageFlavor.BLUDGEONING))),
                     DamageFlavor.BLUDGEONING, WeaponSubtype.CREATUREPART);
 

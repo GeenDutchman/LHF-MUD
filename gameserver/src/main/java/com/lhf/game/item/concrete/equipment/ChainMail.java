@@ -20,7 +20,7 @@ public class ChainMail extends Equipable {
         this.types = Collections.singletonList(EquipmentTypes.HEAVYARMOR);
         this.equipEffects = Collections.singletonList(
                 new CreatureEffectSource("AC Boost", new EffectPersistence(TickType.CONDITIONAL),
-                        "Wearing armor makes you harder to hit", false)
+                        null, "Wearing armor makes you harder to hit", false)
                         .addStatChange(Stats.AC, this.AC));
     }
 

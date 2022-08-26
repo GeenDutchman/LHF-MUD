@@ -32,7 +32,7 @@ public class RingOfSeeing extends Equipable {
         this.slots.add(EquipmentSlots.LEFTHAND);
         this.slots.add(EquipmentSlots.RIGHTHAND);
         this.equipEffects.add(new CreatureEffectSource("Seeing wisdom", new EffectPersistence(TickType.CONDITIONAL),
-                "If you can see, then you are wise.", false)
+                null, "If you can see, then you are wise.", false)
                 .addAttributeBonusChange(Attributes.WIS, 2));
         this.descriptionString = "This ring can help you see things that are not visible to the naked eye. ";
         this.descriptionString += "It can only be used so many times though, and then the ring itself disappears... \n";

@@ -20,7 +20,7 @@ public class Shield extends Equipable {
         this.slots = Collections.singletonList(EquipmentSlots.SHIELD);
         this.equipEffects = Collections.singletonList(
                 new CreatureEffectSource("AC Boost", new EffectPersistence(TickType.CONDITIONAL),
-                        "Using a shield makes you harder to hit", false)
+                        null, "Using a shield makes you harder to hit", false)
                         .addStatChange(Stats.AC, this.AC));
     }
 

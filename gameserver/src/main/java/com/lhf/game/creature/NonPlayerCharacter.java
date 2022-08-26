@@ -1,21 +1,25 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
+import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
@@ -24,7 +28,9 @@ import com.lhf.messages.out.OutMessage;
 public class NonPlayerCharacter extends Creature {
     public static class BlessedFist extends Weapon {
         private final static CreatureEffectSource source = new CreatureEffectSource("Blessed Punch",
-                new EffectPersistence(TickType.INSTANT), "A blessed fist punches harder.", false);
+                new EffectPersistence(TickType.INSTANT),
+                new EffectResistance(EnumSet.allOf(Attributes.class), Stats.AC), "A blessed fist punches harder.",
+                false);
 
         BlessedFist(NonPlayerCharacter owner) {
             super("Blessed Fist", false, Set.of(BlessedFist.source), DamageFlavor.MAGICAL_BLUDGEONING,

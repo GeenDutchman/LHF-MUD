@@ -20,7 +20,7 @@ public class MantleOfDeath extends Equipable {
         this.slots = List.of(EquipmentSlots.ARMOR);
         this.types = List.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
         this.equipEffects = List.of(new CreatureEffectSource("AC Boost", new EffectPersistence(TickType.CONDITIONAL),
-                "Wearing armor makes you harder to hit", false)
+                null, "Wearing armor makes you harder to hit", false)
                 .addStatChange(Stats.AC, this.AC).addStatChange(Stats.MAXHP, this.MAX_HEALTH)
                 .addStatChange(Stats.CURRENTHP, this.MAX_HEALTH));
     }

@@ -16,7 +16,7 @@ public class DMBlessing extends CreatureTargetingSpellEntry {
 
     private static final Set<CreatureEffectSource> spellEffects = Set.of(
             new CreatureEffectSource("DMBlessing", new EffectPersistence(TickType.CONDITIONAL),
-                    "Effects of the blessing", false)
+                    null, "Effects of the blessing", false)
                     .addStatChange(Stats.MAXHP, 200)
                     .addStatChange(Stats.MAXHP, 200)
                     .addStatChange(Stats.CURRENTHP, 200)

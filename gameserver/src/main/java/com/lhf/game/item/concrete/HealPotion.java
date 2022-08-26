@@ -31,7 +31,7 @@ public class HealPotion extends Usable {
             } else if (object instanceof Creature) {
                 Creature target = (Creature) object;
                 CreatureEffectSource bce = new CreatureEffectSource(this.healtype.toString() + " healing",
-                        new EffectPersistence(TickType.INSTANT), "Heals you a little bit", false);
+                        new EffectPersistence(TickType.INSTANT), null, "Heals you a little bit", false);
                 bce = this.setHealing(bce);
                 if (ctx.getBattleManager() != null) {
                     BattleManager bm = ctx.getBattleManager();
