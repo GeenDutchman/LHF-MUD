@@ -424,7 +424,7 @@ public class BattleManager implements MessageHandler, Examinable {
     private boolean handleSee(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SEE) {
             SeeMessage seeMessage = (SeeMessage) msg;
-            if (seeMessage.getThing() == null) {
+            if (seeMessage.getThing() != null) {
                 ctx.setBattleManager(this);
                 return this.room.handleMessage(ctx, msg);
             }

@@ -52,7 +52,9 @@ public class HealPotion extends Usable {
                     ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
                     OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     ctx.sendMsg(results);
-                    target.sendMsg(results);
+                    if (ctx.getCreature() != target) {
+                        target.sendMsg(results);
+                    }
                 }
                 return true;
             }
