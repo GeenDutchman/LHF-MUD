@@ -1,6 +1,7 @@
 package com.lhf.game.magic.builder;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -116,8 +117,13 @@ public class SpellEntryBuilder {
                 case 4:
                     if (selected != null) {
                         System.out.println("Adding " + selected.getName());
-                        if (!spellbook.addEntry(selected)) {
-                            System.out.println("It was not added.");
+                        try {
+                            if (!spellbook.addEntry(selected) && !spellbook.saveToFile()) {
+                                System.err.println("It was not added.");
+                            }
+                        } catch (IOException e) {
+                            System.err.println("It was not added.");
+                            e.printStackTrace();
                         }
                     } else {
                         System.out.println("No spellentry selected or made");
