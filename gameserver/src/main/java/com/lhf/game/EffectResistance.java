@@ -3,6 +3,9 @@ package com.lhf.game;
 import java.util.EnumSet;
 import java.util.StringJoiner;
 
+import com.lhf.game.creature.Creature;
+import com.lhf.game.dice.DiceDC;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
 
@@ -197,4 +200,41 @@ public class EffectResistance {
         }
         return sb.toString();
     }
+
+    public MultiRollResult actorEffort(Creature actor) {
+        MultiRollResult result = null;
+        if (actor != null && actorAttrs != null && actorAttrs.size() > 0) {
+            Attributes highest = actor.getHighestAttributeBonus(actorAttrs);
+            if (highest == null) {
+                return null;
+            }
+            result = actor.check(highest);
+        } else if (actor != null && actorStat != null) {
+            result = new MultiRollResult(new DiceDC(actor.getStats().get(actorStat)).rollDice());
+        } else if (actorDC != null) {
+            result = new MultiRollResult(new DiceDC(actorDC).rollDice());
+        }
+        return result;
+    }
+
+    public MultiRollResult targetEffort(Creature target) {
+        MultiRollResult result = null;
+        if (target != null && targetAttrs != null && targetAttrs.size() > 0) {
+            Attributes highest = target.getHighestAttributeBonus(targetAttrs);
+            if (highest == null) {
+                return null;
+            }
+            result = target.check(highest);
+        } else if (target != null && targetStat != null) {
+            result = new MultiRollResult(new DiceDC(target.getStats().get(targetStat)).rollDice());
+        } else if (targetDC != null) {
+            result = new MultiRollResult(new DiceDC(targetDC).rollDice());
+        }
+        return result;
+    }
+
+    public MultiRollResult targetEffort() {
+        return this.targetEffort(null);
+    }
+
 }
