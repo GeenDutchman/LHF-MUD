@@ -8,9 +8,11 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.magic.CreatureAOESpellEntry;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
 import com.lhf.game.magic.SpellEntry;
 import com.lhf.game.magic.Spellbook;
+import com.lhf.game.magic.CreatureAOESpellEntry.AutoSafe;
 
 public class SpellEntryBuilder {
     public interface SpellEntryBuilderAdapter extends Closeable {
@@ -36,6 +38,8 @@ public class SpellEntryBuilder {
 
         public EffectResistance buildEffectResistance();
 
+        public AutoSafe buildAutoSafe();
+
         public Set<CreatureEffectSource> buildCreatureEffectSources();
 
         public boolean buildSingleTarget();
@@ -53,13 +57,18 @@ public class SpellEntryBuilder {
         String description = adapter.buildDescription(name);
         Set<VocationName> allowed = adapter.buildVocations();
 
-        switch (adapter.menuChoice(List.of("creaturetarget", "room", "dungeon"))) {
+        Set<CreatureEffectSource> effectSources = null;
+
+        switch (adapter.menuChoice(List.of("creaturetarget", "aoe", "room", "dungeon"))) {
             case 0:
                 boolean singleTarget = adapter.buildSingleTarget();
-                Set<CreatureEffectSource> effectSources = adapter.buildCreatureEffectSources();
+                effectSources = adapter.buildCreatureEffectSources();
                 return new CreatureTargetingSpellEntry(level, name, invocation, effectSources, allowed, description,
                         singleTarget);
-
+            case 1:
+                AutoSafe safe = adapter.buildAutoSafe();
+                effectSources = adapter.buildCreatureEffectSources();
+                return new CreatureAOESpellEntry(level, name, invocation, effectSources, allowed, description, safe);
             default:
                 throw new IllegalStateException("Cannot build other types of spells!  For now anyway...");
         }

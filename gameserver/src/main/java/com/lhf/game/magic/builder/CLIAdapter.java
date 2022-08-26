@@ -19,6 +19,7 @@ import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.magic.CreatureAOESpellEntry.AutoSafe;
 import com.lhf.game.magic.builder.SpellEntryBuilder.SpellEntryBuilderAdapter;
 
 public class CLIAdapter implements SpellEntryBuilderAdapter {
@@ -419,6 +420,28 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
             } while (menu != 0);
         }
         return sources;
+    }
+
+    @Override
+    public AutoSafe buildAutoSafe() {
+        int npc = 1;
+        int caster = 2;
+        int allies = 3;
+        int enemies = 4;
+        int renegades = 5;
+        System.out.println("Building auto safe");
+        System.out.printf("How many levels above base are NPCs affected? (int) default %d\r\n", npc);
+        npc = this.input.nextInt();
+        System.out.printf("\r\nHow many levels above base is the caster affected? (int) default %d\r\n", caster);
+        caster = this.input.nextInt();
+        System.out.printf("\r\nHow many levels above base are allies affected? (int) default %d\r\n", allies);
+        allies = this.input.nextInt();
+        System.out.printf("\r\nHow many levels above base are enemies affected? (int) default %d\r\n", enemies);
+        enemies = this.input.nextInt();
+        System.out.printf("\r\nHow many levels above base are renegades affected? (int) default %d\r\n", renegades);
+        renegades = this.input.nextInt();
+        this.input.nextLine(); // clear
+        return new AutoSafe(npc, caster, allies, enemies, renegades);
     }
 
     @Override
