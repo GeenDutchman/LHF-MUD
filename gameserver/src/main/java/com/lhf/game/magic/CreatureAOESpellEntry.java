@@ -13,35 +13,52 @@ import com.lhf.messages.out.CastingMessage;
 
 public class CreatureAOESpellEntry extends SpellEntry {
     /**
-     * This class keeps track of which factions are unaffected by the spell.
+     * This class keeps track of which factions are un/affected by the spell.
      */
-    public static class AutoSafe {
-        // note that below or equal to zero means that they are unaffected
+    public static class AutoTargeted {
+        // note that values greater than or equal to zero means that they can be
+        // affected by the spell by that many upcasts
         protected final int npc;
         protected final int caster;
         protected final int allies;
         protected final int enemies;
         protected final int renegades;
 
-        public AutoSafe(boolean isOffensive) {
-            this.npc = isOffensive ? 1 : -1;
-            this.caster = isOffensive ? 2 : 0;
-            this.allies = isOffensive ? 3 : 0;
-            this.enemies = isOffensive ? 4 : -2;
-            this.renegades = isOffensive ? 5 : -3;
+        public AutoTargeted(boolean isOffensive) {
+            if (isOffensive) {
+                this.npc = 0; // upcast once to not affect with offensive spell
+                this.caster = 1;
+                this.allies = 2;
+                this.enemies = 3;
+                this.renegades = 4; // upcast four times to not affect with offensive spell
+                return;
+            }
+            this.npc = -1;
+            this.caster = 0;
+            this.allies = 0;
+            this.enemies = -2;
+            this.renegades = -3; // upcast three times to affect with a beneficial spell
         }
 
-        public AutoSafe(boolean isOffensive, int npc, int caster, int allies, int enemies) {
+        public AutoTargeted(boolean isOffensive, int npc, int caster, int allies, int enemies) {
             this.npc = npc;
             this.caster = caster;
             this.allies = allies;
             this.enemies = enemies;
-            int maximum = isOffensive ? Integer.max(npc, caster) : Integer.min(npc, caster);
-            maximum = isOffensive ? Integer.max(maximum, allies) : Integer.min(maximum, allies);
-            this.renegades = isOffensive ? Integer.max(maximum, enemies) + 1 : Integer.min(maximum, enemies) - 1;
+            if (isOffensive) {
+                // keep them targeted by offensive spells as long as possible
+                int maximum = Integer.max(npc, caster);
+                maximum = Integer.max(maximum, allies);
+                this.renegades = Integer.max(maximum, enemies) + 1;
+                return;
+            }
+            // prevent them from being targeted by beneficial spells as long as possible
+            int minimum = Integer.min(npc, caster);
+            minimum = Integer.min(minimum, allies);
+            this.renegades = Integer.min(minimum, enemies) - 1;
         }
 
-        public AutoSafe(int npc, int caster, int allies, int enemies, int renegades) {
+        public AutoTargeted(int npc, int caster, int allies, int enemies, int renegades) {
             this.npc = npc;
             this.caster = caster;
             this.allies = allies;
@@ -49,41 +66,44 @@ public class CreatureAOESpellEntry extends SpellEntry {
             this.renegades = renegades;
         }
 
-        public static AutoSafe upCast(AutoSafe safe, final int levels, boolean isOffensive) {
+        public static AutoTargeted upCast(AutoTargeted safe, final int levels, boolean isOffensive) {
             if (safe != null) {
                 return safe.upCast(levels, isOffensive);
             }
-            return new AutoSafe(0, isOffensive ? 1 : -1, isOffensive ? 2 : 1, isOffensive ? 3 : -1,
-                    isOffensive ? 4 : -2);
+            return new AutoTargeted(isOffensive).upCast(levels, isOffensive);
         }
 
-        public AutoSafe upCast(final int levels, boolean isOffensive) {
+        public AutoTargeted upCast(final int levels, boolean isOffensive) {
             if (isOffensive) {
-                return new AutoSafe(npc - levels, caster - levels, allies - levels, enemies - levels,
+                // upcast to keep people safe from offense (below 0)
+                return new AutoTargeted(npc - levels, caster - levels, allies - levels, enemies - levels,
                         renegades - levels);
-            } // upcast to affect more people
-            return new AutoSafe(npc + levels, caster + levels, allies + levels, enemies + levels, renegades + levels);
+            } // upcast to affect more people with benefits
+            return new AutoTargeted(npc + levels, caster + levels, allies + levels, enemies + levels,
+                    renegades + levels);
         }
 
-        public static AutoSafe override(AutoSafe one, AutoSafe two, boolean offensiveOverride) {
+        public static AutoTargeted override(AutoTargeted one, AutoTargeted two, boolean offensiveOverride) {
             if (one != null) {
                 return one.override(two, offensiveOverride);
             } else if (two != null) {
                 return two.override(one, offensiveOverride);
             }
-            return new AutoSafe(offensiveOverride);
+            return new AutoTargeted(offensiveOverride);
         }
 
-        public AutoSafe override(AutoSafe other, boolean offensiveOverride) {
+        public AutoTargeted override(AutoTargeted other, boolean offensiveOverride) {
             if (other == null) {
                 return this;
             }
             if (offensiveOverride) {
-                return new AutoSafe(Integer.max(this.npc, other.npc), Integer.max(this.caster, other.caster),
+                // keep them affected (above 0)
+                return new AutoTargeted(Integer.max(this.npc, other.npc), Integer.max(this.caster, other.caster),
                         Integer.max(this.allies, other.allies),
                         Integer.max(this.enemies, other.enemies), Integer.max(this.renegades, other.renegades));
             }
-            return new AutoSafe(Integer.min(this.npc, other.npc), Integer.min(this.caster, other.caster),
+            // keep them defended
+            return new AutoTargeted(Integer.min(this.npc, other.npc), Integer.min(this.caster, other.caster),
                     Integer.min(this.allies, other.allies),
                     Integer.min(this.enemies, other.enemies), Integer.min(this.renegades, other.renegades));
         }
@@ -180,32 +200,32 @@ public class CreatureAOESpellEntry extends SpellEntry {
             if (this == obj) {
                 return true;
             }
-            if (!(obj instanceof AutoSafe)) {
+            if (!(obj instanceof AutoTargeted)) {
                 return false;
             }
-            AutoSafe other = (AutoSafe) obj;
+            AutoTargeted other = (AutoTargeted) obj;
             return allies == other.allies && caster == other.caster && enemies == other.enemies && npc == other.npc
                     && renegades == other.renegades;
         }
 
     }
 
-    protected final AutoSafe autoSafe;
+    protected final AutoTargeted autoSafe;
 
     public CreatureAOESpellEntry(Integer level, String name, Set<CreatureEffectSource> effectSources,
-            Set<VocationName> allowed, String description, AutoSafe safe) {
+            Set<VocationName> allowed, String description, AutoTargeted safe) {
         super(level, name, effectSources, allowed, description);
         this.autoSafe = safe;
     }
 
     public CreatureAOESpellEntry(Integer level, String name, String invocation,
             Set<CreatureEffectSource> effectSources,
-            Set<VocationName> allowed, String description, AutoSafe safe) {
+            Set<VocationName> allowed, String description, AutoTargeted safe) {
         super(level, name, invocation, effectSources, allowed, description);
         this.autoSafe = safe;
     }
 
-    public AutoSafe getAutoSafe() {
+    public AutoTargeted getAutoSafe() {
         return autoSafe;
     }
 

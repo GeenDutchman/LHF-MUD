@@ -13,7 +13,7 @@ import com.lhf.game.magic.CreatureAOESpellEntry;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
 import com.lhf.game.magic.SpellEntry;
 import com.lhf.game.magic.Spellbook;
-import com.lhf.game.magic.CreatureAOESpellEntry.AutoSafe;
+import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
 
 public class SpellEntryBuilder {
     public interface SpellEntryBuilderAdapter extends Closeable {
@@ -39,7 +39,7 @@ public class SpellEntryBuilder {
 
         public EffectResistance buildEffectResistance();
 
-        public AutoSafe buildAutoSafe();
+        public AutoTargeted buildAutoSafe();
 
         public Set<CreatureEffectSource> buildCreatureEffectSources();
 
@@ -67,7 +67,7 @@ public class SpellEntryBuilder {
                 return new CreatureTargetingSpellEntry(level, name, invocation, effectSources, allowed, description,
                         singleTarget);
             case 1:
-                AutoSafe safe = adapter.buildAutoSafe();
+                AutoTargeted safe = adapter.buildAutoSafe();
                 effectSources = adapter.buildCreatureEffectSources();
                 return new CreatureAOESpellEntry(level, name, invocation, effectSources, allowed, description, safe);
             default:

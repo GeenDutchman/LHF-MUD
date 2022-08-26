@@ -11,7 +11,7 @@ import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.game.magic.CreatureAOESpellEntry.AutoSafe;
+import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -187,7 +187,7 @@ public class ThirdPower implements MessageHandler {
 
             CreatureAOESpellEntry aoeEntry = (CreatureAOESpellEntry) entry;
             int castLevel = casting.getLevel() != null ? casting.getLevel() : entry.getLevel();
-            AutoSafe upcasted = AutoSafe.upCast(aoeEntry.getAutoSafe(), castLevel - entry.getLevel(),
+            AutoTargeted upcasted = AutoTargeted.upCast(aoeEntry.getAutoSafe(), castLevel - entry.getLevel(),
                     entry.isOffensive());
             CreatureAOESpell spell = new CreatureAOESpell(aoeEntry, caster, upcasted);
 

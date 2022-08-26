@@ -19,7 +19,7 @@ import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.magic.CreatureAOESpellEntry.AutoSafe;
+import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
 import com.lhf.game.magic.builder.SpellEntryBuilder.SpellEntryBuilderAdapter;
 
 public class CLIAdapter implements SpellEntryBuilderAdapter {
@@ -423,7 +423,7 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
     }
 
     @Override
-    public AutoSafe buildAutoSafe() {
+    public AutoTargeted buildAutoSafe() {
         int npc = 1;
         int caster = 2;
         int allies = 3;
@@ -441,7 +441,7 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
         System.out.printf("\r\nHow many levels above base are renegades affected? (int) default %d\r\n", renegades);
         renegades = this.input.nextInt();
         this.input.nextLine(); // clear
-        return new AutoSafe(npc, caster, allies, enemies, renegades);
+        return new AutoTargeted(npc, caster, allies, enemies, renegades);
     }
 
     @Override

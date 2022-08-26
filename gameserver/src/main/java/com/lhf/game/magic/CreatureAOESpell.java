@@ -8,27 +8,27 @@ import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
-import com.lhf.game.magic.CreatureAOESpellEntry.AutoSafe;
+import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
 
 public class CreatureAOESpell extends ISpell<CreatureEffect> {
     protected Set<CreatureEffect> effects;
-    protected final AutoSafe safe;
+    protected final AutoTargeted safe;
 
-    protected CreatureAOESpell(CreatureAOESpellEntry entry, Creature caster, AutoSafe overrides) {
+    protected CreatureAOESpell(CreatureAOESpellEntry entry, Creature caster, AutoTargeted overrides) {
         super(entry, caster);
         this.effects = null;
-        this.safe = AutoSafe.override(this.getOriginalSafe(), overrides, this.isOffensive());
+        this.safe = AutoTargeted.override(this.getOriginalSafe(), overrides, this.isOffensive());
     }
 
     private CreatureAOESpellEntry getTypedEntry() {
         return (CreatureAOESpellEntry) this.entry;
     }
 
-    public AutoSafe getOriginalSafe() {
+    public AutoTargeted getOriginalSafe() {
         return this.getTypedEntry().getAutoSafe();
     }
 
-    public AutoSafe getSafe() {
+    public AutoTargeted getSafe() {
         return this.safe;
     }
 
@@ -52,7 +52,7 @@ public class CreatureAOESpell extends ISpell<CreatureEffect> {
 
     @Override
     public String printDescription() {
-        AutoSafe original = this.getTypedEntry().getAutoSafe();
+        AutoTargeted original = this.getTypedEntry().getAutoSafe();
         if (!this.safe.equals(original)) {
             return super.printDescription() + " Overriden so that "
                     + (this.isOffensive() ? this.safe.printUnffected() : this.safe.printAffected());
