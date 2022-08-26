@@ -187,7 +187,8 @@ public class ThirdPower implements MessageHandler {
 
             CreatureAOESpellEntry aoeEntry = (CreatureAOESpellEntry) entry;
             int castLevel = casting.getLevel() != null ? casting.getLevel() : entry.getLevel();
-            AutoSafe upcasted = AutoSafe.upCast(aoeEntry.getAutoSafe(), castLevel - entry.getLevel());
+            AutoSafe upcasted = AutoSafe.upCast(aoeEntry.getAutoSafe(), castLevel - entry.getLevel(),
+                    entry.isOffensive());
             CreatureAOESpell spell = new CreatureAOESpell(aoeEntry, caster, upcasted);
 
             Set<Creature> targets = new HashSet<>();

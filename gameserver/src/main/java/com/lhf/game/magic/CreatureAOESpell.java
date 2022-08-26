@@ -17,7 +17,7 @@ public class CreatureAOESpell extends ISpell<CreatureEffect> {
     protected CreatureAOESpell(CreatureAOESpellEntry entry, Creature caster, AutoSafe overrides) {
         super(entry, caster);
         this.effects = null;
-        this.safe = AutoSafe.override(this.getOriginalSafe(), overrides);
+        this.safe = AutoSafe.override(this.getOriginalSafe(), overrides, this.isOffensive());
     }
 
     private CreatureAOESpellEntry getTypedEntry() {
