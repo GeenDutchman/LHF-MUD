@@ -7,6 +7,7 @@ import java.util.StringJoiner;
 import java.util.TreeMap;
 
 import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.enums.Attributes;
@@ -27,9 +28,9 @@ public class CreatureEffectSource extends EntityEffectSource {
 
     protected boolean restoreFaction;
 
-    public CreatureEffectSource(String name, EffectPersistence persistence, String description,
-            boolean restoreFaction) {
-        super(name, persistence, description);
+    public CreatureEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
+            String description, boolean restoreFaction) {
+        super(name, persistence, resistance, description);
         this.restoreFaction = restoreFaction;
         this.statChanges = new TreeMap<>();
         this.attributeScoreChanges = new TreeMap<>();

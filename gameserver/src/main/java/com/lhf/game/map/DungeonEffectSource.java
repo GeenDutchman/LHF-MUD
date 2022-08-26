@@ -1,14 +1,15 @@
 package com.lhf.game.map;
 
 import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffectSource;
 
 public class DungeonEffectSource extends EntityEffectSource {
     protected final boolean addsRoomToDungeon;
 
-    public DungeonEffectSource(String name, EffectPersistence persistence, String description,
-            boolean addsRoomToDungeon) {
-        super(name, persistence, description);
+    public DungeonEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
+            String description, boolean addsRoomToDungeon) {
+        super(name, persistence, resistance, description);
         this.addsRoomToDungeon = addsRoomToDungeon;
     }
 

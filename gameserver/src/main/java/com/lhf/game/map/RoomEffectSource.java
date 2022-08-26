@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 
 import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.item.Item;
@@ -21,8 +22,9 @@ public class RoomEffectSource extends EntityEffectSource {
 
     protected Set<Creature> creaturesToBanish;
 
-    public RoomEffectSource(String name, EffectPersistence persistence, String description) {
-        super(name, persistence, description);
+    public RoomEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
+            String description) {
+        super(name, persistence, resistance, description);
         this.itemsToSummon = new ArrayList<>();
         this.itemsToBanish = new ArrayList<>();
         this.creaturesToBanish = new HashSet<>();
