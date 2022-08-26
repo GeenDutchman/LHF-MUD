@@ -7,6 +7,7 @@ import com.lhf.Taggable;
 import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class EntityEffectSource implements Taggable, Examinable {
+    protected final String className;
     protected final String name;
     protected final EffectPersistence persistence;
     protected final EffectResistance resistance;
@@ -14,6 +15,7 @@ public abstract class EntityEffectSource implements Taggable, Examinable {
 
     public EntityEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
             String description) {
+        this.className = this.getClass().getName();
         this.name = name;
         this.persistence = persistence;
         this.resistance = resistance;

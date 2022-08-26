@@ -82,7 +82,7 @@ public class Spellbook {
         Gson gson = this.getAdaptedGson();
         System.out.println("Writing to " + this.path);
         try (FileWriter fileWriter = new FileWriter(this.path + "spellbook.json")) {
-            String asJson = gson.toJson(this.entries, SpellEntry.class);
+            String asJson = gson.toJson(this.entries);
             System.out.println(asJson);
             fileWriter.write(asJson);
         } catch (JsonIOException | IOException e) {
