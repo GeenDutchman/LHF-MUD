@@ -54,7 +54,8 @@ public class CreatureAOESpell extends ISpell<CreatureEffect> {
     public String printDescription() {
         AutoSafe original = this.getTypedEntry().getAutoSafe();
         if (!this.safe.equals(original)) {
-            return super.printDescription() + " Overriden so that " + this.safe.toString();
+            return super.printDescription() + " Overriden so that "
+                    + (this.isOffensive() ? this.safe.printUnffected() : this.safe.printAffected());
         }
         return super.printDescription();
     }

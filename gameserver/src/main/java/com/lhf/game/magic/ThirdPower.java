@@ -193,19 +193,20 @@ public class ThirdPower implements MessageHandler {
             Set<Creature> targets = new HashSet<>();
             for (Creature possTarget : ctx.getRoom().getCreaturesInRoom()) {
                 if (possTarget.equals(caster)) {
-                    if (!upcasted.isCasterSafe()) {
+                    if (!upcasted.isCasterUnaffected()) {
                         targets.add(caster);
                     }
                     continue;
                 }
-                if (!upcasted.areNpcSafe() && CreatureFaction.NPC.equals(possTarget.getFaction())) {
+                if (!upcasted.areNpcUnaffected() && CreatureFaction.NPC.equals(possTarget.getFaction())) {
                     targets.add(possTarget);
-                } else if (!upcasted.areAlliesSafe() && !caster.getFaction().competing(possTarget.getFaction())) {
+                } else if (!upcasted.areAlliesUnaffected() && !caster.getFaction().competing(possTarget.getFaction())) {
                     targets.add(possTarget);
-                } else if (!upcasted.areEnemiesSafe() && caster.getFaction().competing(possTarget.getFaction())
+                } else if (!upcasted.areEnemiesUnaffected() && caster.getFaction().competing(possTarget.getFaction())
                         && !CreatureFaction.RENEGADE.equals(possTarget.getFaction())) {
                     targets.add(possTarget);
-                } else if (!upcasted.areRenegadesSafe() && CreatureFaction.RENEGADE.equals(possTarget.getFaction())) {
+                } else if (!upcasted.areRenegadesUnaffected()
+                        && CreatureFaction.RENEGADE.equals(possTarget.getFaction())) {
                     targets.add(possTarget);
                 }
             }

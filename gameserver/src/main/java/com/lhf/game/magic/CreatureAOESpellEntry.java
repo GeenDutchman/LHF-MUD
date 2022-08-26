@@ -12,29 +12,33 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.messages.out.CastingMessage;
 
 public class CreatureAOESpellEntry extends SpellEntry {
+    /**
+     * This class keeps track of which factions are unaffected by the spell.
+     */
     public static class AutoSafe {
+        // note that below or equal to zero means that they are unaffected
         protected final int npc;
         protected final int caster;
         protected final int allies;
         protected final int enemies;
         protected final int renegades;
 
-        public AutoSafe() {
-            this.npc = 1;
-            this.caster = 2;
-            this.allies = 3;
-            this.enemies = 4;
-            this.renegades = 5;
+        public AutoSafe(boolean isOffensive) {
+            this.npc = isOffensive ? 1 : -1;
+            this.caster = isOffensive ? 2 : 0;
+            this.allies = isOffensive ? 3 : 0;
+            this.enemies = isOffensive ? 4 : -2;
+            this.renegades = isOffensive ? 5 : -3;
         }
 
-        public AutoSafe(int npc, int caster, int allies, int enemies) {
+        public AutoSafe(boolean isOffensive, int npc, int caster, int allies, int enemies) {
             this.npc = npc;
             this.caster = caster;
             this.allies = allies;
             this.enemies = enemies;
-            int maximum = Integer.max(npc, caster);
-            maximum = Integer.max(maximum, allies);
-            this.renegades = Integer.max(maximum, enemies) + 1;
+            int maximum = isOffensive ? Integer.max(npc, caster) : Integer.min(npc, caster);
+            maximum = isOffensive ? Integer.max(maximum, allies) : Integer.min(maximum, allies);
+            this.renegades = isOffensive ? Integer.max(maximum, enemies) + 1 : Integer.min(maximum, enemies) - 1;
         }
 
         public AutoSafe(int npc, int caster, int allies, int enemies, int renegades) {
@@ -45,71 +49,81 @@ public class CreatureAOESpellEntry extends SpellEntry {
             this.renegades = renegades;
         }
 
-        public static AutoSafe upCast(AutoSafe safe, final int levels) {
+        public static AutoSafe upCast(AutoSafe safe, final int levels, boolean isOffensive) {
             if (safe != null) {
-                return safe.upCast(levels);
+                return safe.upCast(levels, isOffensive);
             }
-            return new AutoSafe(0, 1, 2, 3, 4);
+            return new AutoSafe(0, isOffensive ? 1 : -1, isOffensive ? 2 : 1, isOffensive ? 3 : -1,
+                    isOffensive ? 4 : -2);
         }
 
-        public AutoSafe upCast(final int levels) {
-            return new AutoSafe(npc - levels, caster - levels, allies - levels, enemies - levels, renegades - levels);
+        public AutoSafe upCast(final int levels, boolean isOffensive) {
+            if (isOffensive) {
+                return new AutoSafe(npc - levels, caster - levels, allies - levels, enemies - levels,
+                        renegades - levels);
+            } // upcast to affect more people
+            return new AutoSafe(npc + levels, caster + levels, allies + levels, enemies + levels, renegades + levels);
         }
 
-        public static AutoSafe override(AutoSafe one, AutoSafe two) {
+        public static AutoSafe override(AutoSafe one, AutoSafe two, boolean offensiveOverride) {
             if (one != null) {
-                return one.override(two);
+                return one.override(two, offensiveOverride);
             } else if (two != null) {
-                return two.override(one);
+                return two.override(one, offensiveOverride);
             }
-            return new AutoSafe();
+            return new AutoSafe(offensiveOverride);
         }
 
-        public AutoSafe override(AutoSafe other) {
+        public AutoSafe override(AutoSafe other, boolean offensiveOverride) {
             if (other == null) {
                 return this;
+            }
+            if (offensiveOverride) {
+                return new AutoSafe(Integer.max(this.npc, other.npc), Integer.max(this.caster, other.caster),
+                        Integer.max(this.allies, other.allies),
+                        Integer.max(this.enemies, other.enemies), Integer.max(this.renegades, other.renegades));
             }
             return new AutoSafe(Integer.min(this.npc, other.npc), Integer.min(this.caster, other.caster),
                     Integer.min(this.allies, other.allies),
                     Integer.min(this.enemies, other.enemies), Integer.min(this.renegades, other.renegades));
         }
 
-        public boolean areNpcSafe() {
+        public boolean areNpcUnaffected() {
             return npc <= 0;
         }
 
-        public boolean isCasterSafe() {
+        public boolean isCasterUnaffected() {
             return caster <= 0;
         }
 
-        public boolean areAlliesSafe() {
+        public boolean areAlliesUnaffected() {
             return allies <= 0;
         }
 
-        public boolean areEnemiesSafe() {
+        public boolean areEnemiesUnaffected() {
             return enemies <= 0;
         }
 
-        public boolean areRenegadesSafe() {
+        public boolean areRenegadesUnaffected() {
             return renegades <= 0;
         }
 
         public String printAffected() {
             StringJoiner sj = new StringJoiner(", ")
                     .setEmptyValue("nobody");
-            if (!this.areNpcSafe()) {
+            if (!this.areNpcUnaffected()) {
                 sj.add("NPCs");
             }
-            if (!this.isCasterSafe()) {
+            if (!this.isCasterUnaffected()) {
                 sj.add("the caster");
             }
-            if (!this.areAlliesSafe()) {
+            if (!this.areAlliesUnaffected()) {
                 sj.add("the caster's allies");
             }
-            if (!this.areEnemiesSafe()) {
+            if (!this.areEnemiesUnaffected()) {
                 sj.add("the caster's enemies");
             }
-            if (!this.areRenegadesSafe()) {
+            if (!this.areRenegadesUnaffected()) {
                 sj.add("renegades");
             }
             return " Upon casting: " + sj.toString() + " will be affected.";
@@ -118,19 +132,19 @@ public class CreatureAOESpellEntry extends SpellEntry {
         public String printUnffected() {
             StringJoiner sj = new StringJoiner(", ")
                     .setEmptyValue("nobody");
-            if (this.areNpcSafe()) {
+            if (this.areNpcUnaffected()) {
                 sj.add("NPCs");
             }
-            if (this.isCasterSafe()) {
+            if (this.isCasterUnaffected()) {
                 sj.add("the caster");
             }
-            if (this.areAlliesSafe()) {
+            if (this.areAlliesUnaffected()) {
                 sj.add("the caster's allies");
             }
-            if (this.areEnemiesSafe()) {
+            if (this.areEnemiesUnaffected()) {
                 sj.add("the caster's enemies");
             }
-            if (this.areRenegadesSafe()) {
+            if (this.areRenegadesUnaffected()) {
                 sj.add("renegades");
             }
             return " Upon casting: " + sj.toString() + " will be not be affected.";
@@ -139,11 +153,18 @@ public class CreatureAOESpellEntry extends SpellEntry {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
-            sb.append("NPCs unaffected ").append(this.npc).append(" levels above casting level.").append("\r\n");
-            sb.append("Caster unaffected ").append(this.caster).append(" levels above casting level.").append("\r\n");
-            sb.append("Allies unaffected ").append(this.allies).append(" levels above casting level.").append("\r\n");
-            sb.append("Enimies unaffected ").append(this.enemies).append(" levels above casting level.").append("\r\n");
-            sb.append("Renegades unaffected ").append(this.renegades).append(" levels above casting level.")
+            sb.append("NPCs are ").append(npc).append(this.areNpcUnaffected() ? "UNaffected" : "affected")
+                    .append("\r\n");
+            sb.append("The caster is ").append(caster).append(this.isCasterUnaffected() ? "UNaffected" : "affected")
+                    .append("\r\n");
+            sb.append("The caster's allies are ").append(allies)
+                    .append(this.areAlliesUnaffected() ? "UNaffected" : "affected")
+                    .append("\r\n");
+            sb.append("The caster's enemies are ").append(enemies)
+                    .append(this.areEnemiesUnaffected() ? "UNaffected" : "affected")
+                    .append("\r\n");
+            sb.append("Renegades are ").append(renegades)
+                    .append(this.areRenegadesUnaffected() ? "UNaffected" : "affected")
                     .append("\r\n");
 
             return sb.toString();
@@ -198,7 +219,7 @@ public class CreatureAOESpellEntry extends SpellEntry {
         StringJoiner sj = new StringJoiner(" ");
         sj.add(this.description);
         if (this.autoSafe != null) {
-            sj.add(this.autoSafe.toString());
+            sj.add(this.isOffensive() ? this.autoSafe.printUnffected() : this.autoSafe.printAffected());
         }
         sj.add("\r\n");
 
