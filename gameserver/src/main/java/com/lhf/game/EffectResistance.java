@@ -201,7 +201,7 @@ public class EffectResistance {
         return sb.toString();
     }
 
-    public MultiRollResult actorEffort(Creature actor) {
+    public MultiRollResult actorEffort(Creature actor, int bonus) {
         MultiRollResult result = null;
         if (actor != null && actorAttrs != null && actorAttrs.size() > 0) {
             Attributes highest = actor.getHighestAttributeBonus(actorAttrs);
@@ -214,10 +214,13 @@ public class EffectResistance {
         } else if (actorDC != null) {
             result = new MultiRollResult(new DiceDC(actorDC).rollDice());
         }
+        if (result != null && bonus != 0) {
+            result.addBonus(bonus);
+        }
         return result;
     }
 
-    public MultiRollResult targetEffort(Creature target) {
+    public MultiRollResult targetEffort(Creature target, int bonus) {
         MultiRollResult result = null;
         if (target != null && targetAttrs != null && targetAttrs.size() > 0) {
             Attributes highest = target.getHighestAttributeBonus(targetAttrs);
@@ -230,11 +233,14 @@ public class EffectResistance {
         } else if (targetDC != null) {
             result = new MultiRollResult(new DiceDC(targetDC).rollDice());
         }
+        if (result != null && bonus != 0) {
+            result.addBonus(bonus);
+        }
         return result;
     }
 
-    public MultiRollResult targetEffort() {
-        return this.targetEffort(null);
+    public MultiRollResult targetEffort(int bonus) {
+        return this.targetEffort(null, bonus);
     }
 
 }
