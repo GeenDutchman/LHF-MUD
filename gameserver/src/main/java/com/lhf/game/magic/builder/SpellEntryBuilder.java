@@ -88,7 +88,7 @@ public class SpellEntryBuilder {
         do {
             System.out.println("Main menu:");
             System.out.println("What to do?");
-            menuChoice = adapter.menuChoice(List.of("exit", "make", "print", "list", "add"));
+            menuChoice = adapter.menuChoice(List.of("exit", "make", "print", "list", "add", "save"));
             System.out.println(menuChoice);
             switch (menuChoice) {
                 case 0:
@@ -117,16 +117,24 @@ public class SpellEntryBuilder {
                 case 4:
                     if (selected != null) {
                         System.out.println("Adding " + selected.getName());
-                        try {
-                            if (!spellbook.addEntry(selected) && !spellbook.saveToFile()) {
-                                System.err.println("It was not added.");
-                            }
-                        } catch (IOException e) {
+                        if (!spellbook.addEntry(selected)) {
                             System.err.println("It was not added.");
-                            e.printStackTrace();
+                        } else {
+                            System.out.println("Added, but not saved!");
                         }
                     } else {
                         System.out.println("No spellentry selected or made");
+                    }
+                    break;
+                case 5:
+                    System.out.println("Saving....");
+                    try {
+                        if (!spellbook.saveToFile()) {
+                            System.err.println("It was not saved, but no exception");
+                        }
+                    } catch (Exception e) {
+                        System.err.println("It was not saved.");
+                        e.printStackTrace();
                     }
                     break;
                 default:

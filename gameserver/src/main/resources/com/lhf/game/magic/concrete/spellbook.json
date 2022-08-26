@@ -74,6 +74,48 @@
     ]
   },
   {
+    "autoSafe": {
+      "npc": -1,
+      "caster": 0,
+      "allies": 0,
+      "enemies": -2,
+      "renegades": -3
+    },
+    "className": "com.lhf.game.magic.CreatureAOESpellEntry",
+    "level": 1,
+    "name": "Party Heal",
+    "invocation": "bibbity boobity boo",
+    "description": "Gives some small AoE healing.",
+    "allowedVocations": [
+      "DUNGEON_MASTER",
+      "HEALER"
+    ],
+    "effectSources": [
+      {
+        "className": "com.lhf.game.creature.CreatureEffectSource",
+        "statChanges": {
+          "CURRENTHP": 1
+        },
+        "attributeScoreChanges": {},
+        "attributeBonusChanges": {},
+        "damages": [
+          {
+            "flavor": "HEALING",
+            "count": 2,
+            "type": "TWO"
+          }
+        ],
+        "restoreFaction": false,
+        "name": "Healing",
+        "persistence": {
+          "count": 1,
+          "tickSize": "INSTANT"
+        },
+        "description": "Healing"
+      }
+    ]
+  },
+  {
     "singleTarget": true,
     "className": "com.lhf.game.magic.concrete.ThunderStrike",
     "level": 1,

@@ -424,22 +424,44 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
 
     @Override
     public AutoTargeted buildAutoSafe() {
-        int npc = 1;
-        int caster = 2;
-        int allies = 3;
-        int enemies = 4;
-        int renegades = 5;
-        System.out.println("Building auto safe");
-        System.out.printf("How many levels above base are NPCs affected? (int) default %d\r\n", npc);
-        npc = this.input.nextInt();
-        System.out.printf("\r\nHow many levels above base is the caster affected? (int) default %d\r\n", caster);
-        caster = this.input.nextInt();
-        System.out.printf("\r\nHow many levels above base are allies affected? (int) default %d\r\n", allies);
-        allies = this.input.nextInt();
-        System.out.printf("\r\nHow many levels above base are enemies affected? (int) default %d\r\n", enemies);
-        enemies = this.input.nextInt();
-        System.out.printf("\r\nHow many levels above base are renegades affected? (int) default %d\r\n", renegades);
-        renegades = this.input.nextInt();
+        int npc, caster, allies, enemies, renegades;
+        System.out.println("Building auto safe, is this spell offensive?");
+        boolean isOffensive = this.yesOrNo();
+        if (isOffensive) {
+            npc = 0; // upcast once to not affect with offensive spell
+            caster = 1;
+            allies = 2;
+            enemies = 3;
+            renegades = 4; // upcast four times to not affect with offensive spell
+            System.out.printf("How many levels above base are NPCs unaffected? (int) default %d\r\n", npc);
+            npc = this.input.nextInt();
+            System.out.printf("\r\nHow many levels above base is the caster unaffected? (int) default %d\r\n", caster);
+            caster = this.input.nextInt();
+            System.out.printf("\r\nHow many levels above base are allies unaffected? (int) default %d\r\n", allies);
+            allies = this.input.nextInt();
+            System.out.printf("\r\nHow many levels above base are enemies unaffected? (int) default %d\r\n", enemies);
+            enemies = this.input.nextInt();
+            System.out.printf("\r\nHow many levels above base are renegades unaffected? (int) default %d\r\n",
+                    renegades);
+            renegades = this.input.nextInt();
+        } else {
+            npc = -1;
+            caster = 0;
+            allies = 0;
+            enemies = -2;
+            renegades = -3; // upcast three times to affect with a beneficial spell
+            System.out.printf("How many levels above base are NPCs affected? (int) default %d\r\n", npc);
+            npc = this.input.nextInt();
+            System.out.printf("\r\nHow many levels above base is the caster affected? (int) default %d\r\n", caster);
+            caster = this.input.nextInt();
+            System.out.printf("\r\nHow many levels above base are allies affected? (int) default %d\r\n", allies);
+            allies = this.input.nextInt();
+            System.out.printf("\r\nHow many levels above base are enemies affected? (int) default %d\r\n", enemies);
+            enemies = this.input.nextInt();
+            System.out.printf("\r\nHow many levels above base are renegades affected? (int) default %d\r\n", renegades);
+            renegades = this.input.nextInt();
+        }
+
         this.input.nextLine(); // clear
         return new AutoTargeted(npc, caster, allies, enemies, renegades);
     }
