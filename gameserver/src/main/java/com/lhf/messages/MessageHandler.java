@@ -1,6 +1,6 @@
 package com.lhf.messages;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 public interface MessageHandler {
@@ -14,28 +14,29 @@ public interface MessageHandler {
         this.setSuccessor(interceptor);
     }
 
-    public abstract Map<CommandMessage, String> getCommands();
+    public abstract EnumMap<CommandMessage, String> getCommands();
 
     public abstract CommandContext addSelfToContext(CommandContext ctx);
 
-    public default Map<CommandMessage, String> gatherHelp(CommandContext ctx) {
+    public default EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
         ctx = this.addSelfToContext(ctx);
-        Map<CommandMessage, String> myCommands = this.getCommands();
-        if (myCommands == null) {
-            myCommands = new HashMap<>();
+        EnumMap<CommandMessage, String> coalesce = new EnumMap<>(CommandMessage.class);
+        Map<CommandMessage, String> myCommands = new EnumMap<>(this.getCommands());
+        if (myCommands != null) {
+            coalesce.putAll(myCommands);
         }
         if (this.getSuccessor() == null) {
-            return myCommands;
+            return coalesce;
         }
-        Map<CommandMessage, String> received = this.getSuccessor().gatherHelp(ctx);
-        if (received == null) {
-            received = new HashMap<>();
+        EnumMap<CommandMessage, String> received = this.getSuccessor().gatherHelp(ctx);
+        if (received != null) {
+            received.putAll(coalesce); // override received with mine
+            return received;
         }
-        received.putAll(myCommands); // override received with mine
-        return received;
+        return coalesce;
     }
 
     public default Boolean handleMessage(CommandContext ctx, Command msg) {
