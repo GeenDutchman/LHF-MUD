@@ -26,6 +26,15 @@
           "count": 1,
           "tickSize": "INSTANT"
         },
+        "resistance": {
+          "actorAttrs": [
+            "INT",
+            "WIS",
+            "CHA"
+          ],
+          "targetStat": "AC",
+          "resistAmount": "ALL"
+        },
         "description": "This spell zaps things."
       }
     ]
@@ -52,6 +61,13 @@
         "persistence": {
           "count": 1,
           "tickSize": "INSTANT"
+        },
+        "resistance": {
+          "actorAttrs": [
+            "CHA"
+          ],
+          "targetDC": 5,
+          "resistAmount": "ALL"
         },
         "description": "Announce yourself to the room!"
       }
@@ -90,6 +106,13 @@
         "persistence": {
           "count": 1,
           "tickSize": "INSTANT"
+        },
+        "resistance": {
+          "actorAttrs": [
+            "INT"
+          ],
+          "targetStat": "AC",
+          "resistAmount": "ALL"
         },
         "description": "Zaps your target"
       }
