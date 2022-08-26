@@ -13,8 +13,6 @@ import com.lhf.messages.out.CastingMessage;
 public class CreatureTargetingSpellEntry extends SpellEntry {
     protected final boolean singleTarget;
 
-    // TODO: add boolean AOE
-
     public CreatureTargetingSpellEntry(Integer level, String name, Set<CreatureEffectSource> effectSources,
             Set<VocationName> allowed, String description, boolean singleTarget) {
         super(level, name, effectSources, allowed, description);

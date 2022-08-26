@@ -24,7 +24,7 @@ public class RoomTargetingSpell extends ISpell<RoomEffect> {
         this.itemsToSummon = new ArrayList<>();
         this.itemsToBanish = new ArrayList<>();
         this.creaturesToSummon = new TreeSet<>();
-        this.creaturesToBanish = new TreeSet<>(); // TODO: add resist
+        this.creaturesToBanish = new TreeSet<>();
     }
 
     public RoomTargetingSpell(RoomTargetingSpellEntry entry, Creature caster) {
