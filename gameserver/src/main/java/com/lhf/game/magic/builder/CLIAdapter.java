@@ -1,5 +1,6 @@
 package com.lhf.game.magic.builder;
 
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
@@ -9,6 +10,8 @@ import java.util.TreeSet;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.EffectResistance.TargetResistAmount;
+import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DamageDice;
@@ -189,6 +192,136 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
         return effectPersistence;
     }
 
+    private EnumSet<Attributes> pickAttributes() {
+        EnumSet<Attributes> attrSet = EnumSet.noneOf(Attributes.class);
+        Attributes attr = null;
+        System.out.println("Pick at least one from " + Attributes.values().toString() + " and then enter 'done'");
+        do {
+            attr = Attributes.getAttribute(this.input.nextLine());
+            if (attr != null) {
+                attrSet.add(attr);
+            }
+        } while (attr != null);
+        return attrSet.size() > 1 ? attrSet : null;
+    }
+
+    @Override
+    public EffectResistance buildEffectResistance() {
+        EnumSet<Attributes> actorAttrs = null;
+        Stats actorStat = null;
+        Integer actorDC = null;
+
+        // these are for the target of the effect
+        EnumSet<Attributes> targetAttrs = null;
+        Stats targetStat = null;
+        Integer targetDC = null;
+        TargetResistAmount resistAmount = null;
+
+        System.out.println("Should this spell be resistable?");
+        if (!this.yesOrNo()) {
+            System.out.println("Chosen to have no resistance.");
+            return null;
+        }
+        int menu = -1;
+        do {
+            System.out.println("What should the actor use?");
+            menu = this.menuChoice(List.of("nothing", "attributes", "stat", "dc"));
+            switch (menu) {
+                case 0:
+                    System.out.println("Chosen to have no resistance.");
+                    return null;
+                case 1:
+                    actorAttrs = this.pickAttributes();
+                    if (actorAttrs == null) {
+                        System.err.println("Unrecognized option...repeating menu.");
+                        continue;
+                    }
+                    menu = 0;
+                    break;
+                case 2:
+                    System.out.println("Pick a stat from " + Stats.values().toString());
+                    actorStat = Stats.getStat(this.input.nextLine());
+                    if (actorStat == null) {
+                        System.err.println("Unrecognized option...repeating menu.");
+                        continue;
+                    }
+                    menu = 0;
+                    break;
+                case 3:
+                    System.out.println("Pick a number to be the DC");
+                    try {
+                        actorDC = Integer.valueOf(this.input.nextLine());
+                    } catch (NumberFormatException e) {
+                        actorDC = null;
+                        System.err.println("Unrecognized option...repeating menu.");
+                        continue;
+                    }
+                    menu = 0;
+                    break;
+                default:
+                    System.err.println("Unrecognized option...repeating menu.");
+                    break;
+            }
+        } while (menu != 0);
+        if (actorAttrs == null && actorStat == null && actorDC == null) {
+            System.out.println("Chosen to have no resistance.");
+            return null;
+        }
+        menu = -1;
+        do {
+            System.out.println("What should the target use?");
+            menu = this.menuChoice(List.of("nothing", "attributes", "stat", "dc"));
+            switch (menu) {
+                case 0:
+                    System.out.println("Chosen to have no resistance.");
+                    return null;
+                case 1:
+                    targetAttrs = this.pickAttributes();
+                    if (targetAttrs == null) {
+                        System.err.println("Unrecognized option...repeating menu.");
+                        continue;
+                    }
+                    menu = 0;
+                    break;
+                case 2:
+                    System.out.println("Pick a stat from " + Stats.values().toString());
+                    targetStat = Stats.getStat(this.input.nextLine());
+                    if (targetStat == null) {
+                        System.err.println("Unrecognized option...repeating menu.");
+                        continue;
+                    }
+                    menu = 0;
+                    break;
+                case 3:
+                    System.out.println("Pick a number to be the DC");
+                    try {
+                        targetDC = Integer.valueOf(this.input.nextLine());
+                    } catch (NumberFormatException e) {
+                        targetDC = null;
+                        System.err.println("Unrecognized option...repeating menu.");
+                        continue;
+                    }
+                    menu = 0;
+                    break;
+                default:
+                    System.err.println("Unrecognized option...repeating menu.");
+                    break;
+            }
+        } while (menu != 0);
+        if (targetAttrs == null && targetStat == null && targetDC == null) {
+            System.out.println("Chosen to have no resistance.");
+            return null;
+        }
+        System.out.println("Should the target be able to save for half?");
+        if (this.yesOrNo()) {
+            resistAmount = TargetResistAmount.HALF;
+        } else {
+            resistAmount = TargetResistAmount.ALL;
+        }
+
+        return new EffectResistance(actorAttrs, actorStat, actorDC, targetAttrs, targetStat, targetDC, resistAmount);
+    }
+
     @Override
     public Set<CreatureEffectSource> buildCreatureEffectSources() {
         HashSet<CreatureEffectSource> sources = new HashSet<>();
@@ -206,9 +339,11 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
             String effectName = this.buildString("name", "creature effect", null);
             String effectDescription = this.buildString("description", "creature effect", effectName);
             EffectPersistence persistence = this.buildEffectPersistence();
+            EffectResistance resistance = this.buildEffectResistance();
             System.out.println("Should it restore the faction?");
             boolean restore = this.yesOrNo();
-            CreatureEffectSource source = new CreatureEffectSource(effectName, persistence, effectDescription, restore);
+            CreatureEffectSource source = new CreatureEffectSource(effectName, persistence, resistance,
+                    effectDescription, restore);
             System.out.printf("Added %s \n", source.toString());
             sources.add(source);
 

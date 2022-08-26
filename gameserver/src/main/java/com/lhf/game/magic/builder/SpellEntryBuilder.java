@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
@@ -31,6 +32,8 @@ public class SpellEntryBuilder {
         public Set<VocationName> buildVocations();
 
         public EffectPersistence buildEffectPersistence();
+
+        public EffectResistance buildEffectResistance();
 
         public Set<CreatureEffectSource> buildCreatureEffectSources();
 
