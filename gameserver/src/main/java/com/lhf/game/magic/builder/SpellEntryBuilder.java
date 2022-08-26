@@ -1,7 +1,6 @@
 package com.lhf.game.magic.builder;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -10,10 +9,10 @@ import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.magic.CreatureAOESpellEntry;
+import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
 import com.lhf.game.magic.SpellEntry;
 import com.lhf.game.magic.Spellbook;
-import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
 
 public class SpellEntryBuilder {
     public interface SpellEntryBuilderAdapter extends Closeable {
