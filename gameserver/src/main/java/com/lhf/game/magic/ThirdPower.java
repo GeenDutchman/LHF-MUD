@@ -15,6 +15,7 @@ import com.google.gson.JsonIOException;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
@@ -27,7 +28,6 @@ import com.lhf.game.magic.CreatureAOESpellEntry.AutoSafe;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
 import com.lhf.game.magic.concrete.ThunderStrike;
-import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 import com.lhf.game.map.DungeonEffectSource;
 import com.lhf.game.map.RoomEffectSource;
 import com.lhf.messages.ClientMessenger;
@@ -191,8 +191,7 @@ public class ThirdPower implements MessageHandler {
         return this.entries.stream().filter(entry -> entry.getInvocation().equals(invocation)).findFirst();
     }
 
-    private boolean affectCreatures(CommandContext ctx, ISpell<CreatureEffect> spell, CasterVsCreatureStrategy defense,
-            Collection<Creature> targets) {
+    private boolean affectCreatures(CommandContext ctx, ISpell<CreatureEffect> spell, Collection<Creature> targets) {
         Creature caster = ctx.getCreature();
         BattleManager battleManager = ctx.getBattleManager();
         if (spell.isOffensive() && battleManager != null && !battleManager.isBattleOngoing()) {
@@ -206,19 +205,25 @@ public class ThirdPower implements MessageHandler {
                     battleManager.addCreatureToBattle(target);
                     battleManager.callReinforcements(caster, target);
                 }
-                if (defense != null) {
-                    MultiRollResult casterResult = defense.getCasterEffort();
-                    MultiRollResult targetResult = defense.getTargetEffort(target);
-                    if (casterResult.getTotal() <= targetResult.getTotal()) {
-                        battleManager.sendMessageToAllParticipants(
-                                new MissMessage(caster, target, casterResult, targetResult));
-                        continue;
-                    }
-                }
             }
+
             for (CreatureEffect effect : spell) {
-                CreatureAffectedMessage cam = target.applyEffect(effect);
-                this.channelizeMessage(ctx, cam, spell.isOffensive(), caster, target);
+                EffectResistance resistance = effect.getResistance();
+                MultiRollResult casterResult = null;
+                MultiRollResult targetResult = null;
+                if (resistance != null) {
+                    casterResult = resistance.actorEffort(caster);
+                    targetResult = resistance.targetEffort(target);
+                }
+
+                if (resistance == null || targetResult == null
+                        || (casterResult != null && (casterResult.getTotal() > targetResult.getTotal()))) {
+                    CreatureAffectedMessage cam = target.applyEffect(effect);
+                    this.channelizeMessage(ctx, cam, spell.isOffensive(), caster, target);
+                } else {
+                    MissMessage missMessage = new MissMessage(caster, target, casterResult, targetResult);
+                    this.channelizeMessage(ctx, missMessage, spell.isOffensive());
+                }
             }
         }
         return true;
@@ -259,14 +264,11 @@ public class ThirdPower implements MessageHandler {
                 }
                 possTargets.add(found.get(0));
             }
-            CasterVsCreatureStrategy defense = null;
-            if (spell.isOffensive()) {
-                defense = spell.getStrategy();
-            }
+
             CastingMessage castingMessage = entry.Cast(caster, casting.getLevel(), possTargets);
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
 
-            return this.affectCreatures(ctx, spell, defense, possTargets);
+            return this.affectCreatures(ctx, spell, possTargets);
         } else if (entry instanceof CreatureAOESpellEntry) {
             if (ctx.getRoom() == null) {
                 ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
@@ -297,14 +299,11 @@ public class ThirdPower implements MessageHandler {
                     targets.add(possTarget);
                 }
             }
-            CasterVsCreatureStrategy defense = null;
-            if (spell.isOffensive()) {
-                defense = spell.getStrategy();
-            }
+
             CastingMessage castingMessage = entry.Cast(caster, casting.getLevel(), new ArrayList<>(targets));
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
 
-            return this.affectCreatures(ctx, spell, defense, targets);
+            return this.affectCreatures(ctx, spell, targets);
         } // TODO: other cases
         if (battleManager != null && battleManager.isCreatureInBattle(caster)) {
             battleManager.endTurn(caster);

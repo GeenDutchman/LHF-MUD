@@ -9,18 +9,15 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoSafe;
-import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 
 public class CreatureAOESpell extends ISpell<CreatureEffect> {
     protected Set<CreatureEffect> effects;
     protected final AutoSafe safe;
-    protected CasterVsCreatureStrategy strategy;
 
     protected CreatureAOESpell(CreatureAOESpellEntry entry, Creature caster, AutoSafe overrides) {
         super(entry, caster);
         this.effects = null;
         this.safe = AutoSafe.override(this.getOriginalSafe(), overrides);
-        this.strategy = null;
     }
 
     private CreatureAOESpellEntry getTypedEntry() {
@@ -33,14 +30,6 @@ public class CreatureAOESpell extends ISpell<CreatureEffect> {
 
     public AutoSafe getSafe() {
         return this.safe;
-    }
-
-    public CasterVsCreatureStrategy getStrategy() {
-        return strategy;
-    }
-
-    public void setStrategy(CasterVsCreatureStrategy strategy) {
-        this.strategy = strategy;
     }
 
     @Override

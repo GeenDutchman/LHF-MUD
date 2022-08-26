@@ -39,6 +39,10 @@ public abstract class EntityEffect implements Examinable, Taggable, Comparable<E
         return this.source.getPersistence();
     }
 
+    public EffectResistance getResistance() {
+        return this.source.getResistance();
+    }
+
     public Ticker getTicker() {
         if (this.ticker == null) {
             this.ticker = this.source.getPersistence().getTicker();

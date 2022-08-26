@@ -8,28 +8,17 @@ import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
-import com.lhf.game.magic.strategies.CasterVsCreatureStrategy;
 
 public class CreatureTargetingSpell extends ISpell<CreatureEffect> {
-    protected CasterVsCreatureStrategy strategy;
     protected Set<CreatureEffect> effects;
 
     protected CreatureTargetingSpell(CreatureTargetingSpellEntry entry, Creature caster) {
         super(entry, caster);
-        this.strategy = null;
         this.effects = null;
     }
 
     private CreatureTargetingSpellEntry getTypedEntry() {
         return (CreatureTargetingSpellEntry) this.entry;
-    }
-
-    public CasterVsCreatureStrategy getStrategy() {
-        return strategy;
-    }
-
-    public void setStrategy(CasterVsCreatureStrategy strategy) {
-        this.strategy = strategy;
     }
 
     public boolean isSingleTarget() {
