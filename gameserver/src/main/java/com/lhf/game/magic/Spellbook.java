@@ -50,19 +50,21 @@ public class Spellbook {
 
     private Gson getAdaptedGson() {
         RuntimeTypeAdapterFactory<SpellEntry> spellEntryAdapter = RuntimeTypeAdapterFactory
-                .of(SpellEntry.class, "className")
+                .of(SpellEntry.class, "className", true)
                 .registerSubtype(CreatureTargetingSpellEntry.class, CreatureTargetingSpellEntry.class.getName())
                 .registerSubtype(CreatureAOESpellEntry.class, CreatureAOESpellEntry.class.getName())
                 .registerSubtype(RoomTargetingSpellEntry.class, RoomTargetingSpellEntry.class.getName())
                 .registerSubtype(DungeonTargetingSpellEntry.class, DungeonTargetingSpellEntry.class.getName())
                 .registerSubtype(ShockBolt.class, ShockBolt.class.getName())
                 .registerSubtype(ThunderStrike.class, ThunderStrike.class.getName())
-                .registerSubtype(Thaumaturgy.class, Thaumaturgy.class.getName());
+                .registerSubtype(Thaumaturgy.class, Thaumaturgy.class.getName())
+                .recognizeSubtypes();
         RuntimeTypeAdapterFactory<EntityEffectSource> effectSourceAdapter = RuntimeTypeAdapterFactory
-                .of(EntityEffectSource.class, "className")
+                .of(EntityEffectSource.class, "className", true)
                 .registerSubtype(CreatureEffectSource.class, CreatureEffectSource.class.getName())
                 .registerSubtype(RoomEffectSource.class, RoomEffectSource.class.getName())
-                .registerSubtype(DungeonEffectSource.class, DungeonEffectSource.class.getName());
+                .registerSubtype(DungeonEffectSource.class, DungeonEffectSource.class.getName())
+                .recognizeSubtypes();
         GsonBuilder gb = new GsonBuilder().registerTypeAdapterFactory(spellEntryAdapter)
                 .registerTypeAdapterFactory(effectSourceAdapter).setPrettyPrinting();
         return gb.create();
@@ -80,7 +82,7 @@ public class Spellbook {
         Gson gson = this.getAdaptedGson();
         System.out.println("Writing to " + this.path);
         try (FileWriter fileWriter = new FileWriter(this.path + "spellbook.json")) {
-            String asJson = gson.toJson(this.entries);
+            String asJson = gson.toJson(this.entries, SpellEntry.class);
             System.out.println(asJson);
             fileWriter.write(asJson);
         } catch (JsonIOException | IOException e) {
