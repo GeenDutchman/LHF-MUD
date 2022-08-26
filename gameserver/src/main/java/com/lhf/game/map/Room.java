@@ -372,9 +372,18 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
     }
 
     @Override
+    public CommandContext addSelfToContext(CommandContext ctx) {
+        if (ctx.getRoom() == null) {
+            ctx.setRoom(this);
+        }
+        return ctx;
+    }
+
+    @Override
     public Boolean handleMessage(CommandContext ctx, Command msg) {
         Boolean handled = false;
         CommandMessage type = msg.getType();
+        ctx = this.addSelfToContext(ctx);
         if (type != null && this.commands.containsKey(type)) {
             if (type == CommandMessage.ATTACK) {
                 handled = this.handleAttack(ctx, msg);
@@ -397,7 +406,6 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         if (handled) {
             return handled;
         }
-        ctx.setRoom(this);
         return MessageHandler.super.handleMessage(ctx, msg);
     }
 
@@ -405,6 +413,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         if (msg.getType() != CommandMessage.ATTACK) {
             return false;
         }
+        ctx = this.addSelfToContext(ctx);
         return this.battleManager.handleMessage(ctx, msg);
     }
 

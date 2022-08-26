@@ -81,7 +81,13 @@ public class Game implements UserListener, MessageHandler {
 	}
 
 	@Override
+	public CommandContext addSelfToContext(CommandContext ctx) {
+		return ctx;
+	}
+
+	@Override
 	public Boolean handleMessage(CommandContext ctx, Command msg) {
+		ctx = this.addSelfToContext(ctx);
 		if (msg.getType() == CommandMessage.PLAYERS) {
 			return this.handleListPlayersMessage(ctx, msg);
 		}

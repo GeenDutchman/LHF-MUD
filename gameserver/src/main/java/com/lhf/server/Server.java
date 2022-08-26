@@ -125,8 +125,8 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public Map<CommandMessage, String> gatherHelp() {
-        return ServerInterface.super.gatherHelp();
+    public Map<CommandMessage, String> gatherHelp(CommandContext ctx) {
+        return ServerInterface.super.gatherHelp(ctx);
     }
 
     private boolean handleCreateMessage(CommandContext ctx, CreateInMessage msg) {
@@ -147,7 +147,13 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
+    public CommandContext addSelfToContext(CommandContext ctx) {
+        return ctx;
+    }
+
+    @Override
     public Boolean handleMessage(CommandContext ctx, Command msg) {
+        ctx = this.addSelfToContext(ctx);
         if (msg.getType() == CommandMessage.EXIT) {
             this.logger.info("client " + ctx.getClientID().toString() + " is exiting");
             this.game.userLeft(ctx.getUserID());

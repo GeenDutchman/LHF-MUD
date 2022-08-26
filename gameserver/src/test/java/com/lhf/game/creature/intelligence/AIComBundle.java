@@ -54,6 +54,11 @@ public class AIComBundle implements MessageHandler {
     }
 
     @Override
+    public CommandContext addSelfToContext(CommandContext ctx) {
+        return ctx;
+    }
+
+    @Override
     public Boolean handleMessage(CommandContext ctx, Command msg) {
         System.out.println(msg.toString());
         this.sent.add(msg);

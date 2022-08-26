@@ -709,8 +709,17 @@ public abstract class Creature
     }
 
     @Override
+    public CommandContext addSelfToContext(CommandContext ctx) {
+        if (ctx.getCreature() == null) {
+            ctx.setCreature(this);
+        }
+        return ctx;
+    }
+
+    @Override
     public Boolean handleMessage(CommandContext ctx, Command msg) {
         boolean handled = false;
+        ctx = this.addSelfToContext(ctx);
         if (msg.getType() == CommandMessage.EQUIP) {
             EquipMessage eqmsg = (EquipMessage) msg;
             this.equipItem(eqmsg.getItemName(), eqmsg.getEquipSlot());
@@ -732,7 +741,6 @@ public abstract class Creature
             this.tick(TickType.ACTION);
             return handled;
         }
-        ctx.setCreature(this);
         return MessageHandler.super.handleMessage(ctx, msg);
     }
 

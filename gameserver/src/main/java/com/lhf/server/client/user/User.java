@@ -70,8 +70,19 @@ public class User implements MessageHandler, ClientMessenger {
     }
 
     @Override
+    public CommandContext addSelfToContext(CommandContext ctx) {
+        if (ctx == null) {
+            ctx = new CommandContext();
+        }
+        if (ctx.getUserID() == null) {
+            ctx.setUserID(id);
+        }
+        return ctx;
+    }
+
+    @Override
     public Boolean handleMessage(CommandContext ctx, Command msg) {
-        ctx.setUserID(id);
+        ctx = this.addSelfToContext(ctx);
         return MessageHandler.super.handleMessage(ctx, msg);
     }
 

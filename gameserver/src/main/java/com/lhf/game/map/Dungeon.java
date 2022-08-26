@@ -302,8 +302,14 @@ public class Dungeon implements MessageHandler {
     }
 
     @Override
+    public CommandContext addSelfToContext(CommandContext ctx) {
+        return ctx;
+    }
+
+    @Override
     public Boolean handleMessage(CommandContext ctx, Command msg) {
         Boolean performed = false;
+        ctx = this.addSelfToContext(ctx);
         if (msg.getType() == CommandMessage.SHOUT) {
             performed = this.handleShout(ctx, msg);
         } else if (msg.getType() == CommandMessage.GO) {

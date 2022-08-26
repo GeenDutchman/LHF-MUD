@@ -16,7 +16,13 @@ public interface MessageHandler {
 
     public abstract Map<CommandMessage, String> getCommands();
 
-    public default Map<CommandMessage, String> gatherHelp() {
+    public abstract CommandContext addSelfToContext(CommandContext ctx);
+
+    public default Map<CommandMessage, String> gatherHelp(CommandContext ctx) {
+        if (ctx == null) {
+            ctx = new CommandContext();
+        }
+        ctx = this.addSelfToContext(ctx);
         Map<CommandMessage, String> myCommands = this.getCommands();
         if (myCommands == null) {
             myCommands = new HashMap<>();
@@ -24,7 +30,7 @@ public interface MessageHandler {
         if (this.getSuccessor() == null) {
             return myCommands;
         }
-        Map<CommandMessage, String> received = this.getSuccessor().gatherHelp();
+        Map<CommandMessage, String> received = this.getSuccessor().gatherHelp(ctx);
         if (received == null) {
             received = new HashMap<>();
         }

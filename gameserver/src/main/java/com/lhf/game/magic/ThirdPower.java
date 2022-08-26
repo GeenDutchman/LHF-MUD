@@ -248,7 +248,13 @@ public class ThirdPower implements MessageHandler {
     }
 
     @Override
+    public CommandContext addSelfToContext(CommandContext ctx) {
+        return ctx;
+    }
+
+    @Override
     public Boolean handleMessage(CommandContext ctx, Command msg) {
+        ctx = this.addSelfToContext(ctx);
         if (msg.getType() == CommandMessage.CAST) {
             Creature attempter = ctx.getCreature();
             if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {

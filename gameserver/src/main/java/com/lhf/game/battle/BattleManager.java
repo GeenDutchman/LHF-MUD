@@ -370,9 +370,18 @@ public class BattleManager implements MessageHandler, Examinable {
     }
 
     @Override
+    public CommandContext addSelfToContext(CommandContext ctx) {
+        if (ctx.getBattleManager() == null) {
+            ctx.setBattleManager(this);
+        }
+        return ctx;
+    }
+
+    @Override
     public Boolean handleMessage(CommandContext ctx, Command msg) {
         CommandMessage type = msg.getType();
         Boolean handled = false;
+        ctx = this.addSelfToContext(ctx);
         if (type != null) {
             if (type == CommandMessage.ATTACK) {
                 AttackMessage aMessage = (AttackMessage) msg;
@@ -383,10 +392,10 @@ public class BattleManager implements MessageHandler, Examinable {
                 } else if (type == CommandMessage.GO) {
                     handled = this.handleGo(ctx, msg);
                 } else if (type == CommandMessage.INTERACT) {
-                    ctx.sendMsg(new HelpMessage(this.gatherHelp(), type));
+                    ctx.sendMsg(new HelpMessage(this.gatherHelp(ctx), type));
                     handled = true;
                 } else if (type == CommandMessage.TAKE) {
-                    ctx.sendMsg(new HelpMessage(this.gatherHelp(), type));
+                    ctx.sendMsg(new HelpMessage(this.gatherHelp(ctx), type));
                     handled = true;
                 } else if (type == CommandMessage.PASS) {
                     handled = this.handlePass(ctx, msg);
@@ -398,7 +407,6 @@ public class BattleManager implements MessageHandler, Examinable {
                 return handled;
             }
         }
-        ctx.setBattleManager(this);
         return MessageHandler.super.handleMessage(ctx, msg);
     }
 
