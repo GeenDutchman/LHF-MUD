@@ -194,19 +194,19 @@ public class ThirdPower implements MessageHandler {
             Set<Creature> targets = new HashSet<>();
             for (Creature possTarget : ctx.getRoom().getCreaturesInRoom()) {
                 if (possTarget.equals(caster)) {
-                    if (!upcasted.isCasterUnaffected()) {
+                    if (upcasted.isCasterTargeted()) {
                         targets.add(caster);
                     }
                     continue;
                 }
-                if (!upcasted.areNpcUnaffected() && CreatureFaction.NPC.equals(possTarget.getFaction())) {
+                if (upcasted.areNPCsTargeted() && CreatureFaction.NPC.equals(possTarget.getFaction())) {
                     targets.add(possTarget);
-                } else if (!upcasted.areAlliesUnaffected() && !caster.getFaction().competing(possTarget.getFaction())) {
+                } else if (upcasted.areAlliesTargeted() && !caster.getFaction().competing(possTarget.getFaction())) {
                     targets.add(possTarget);
-                } else if (!upcasted.areEnemiesUnaffected() && caster.getFaction().competing(possTarget.getFaction())
+                } else if (upcasted.areEnemiesTargeted() && caster.getFaction().competing(possTarget.getFaction())
                         && !CreatureFaction.RENEGADE.equals(possTarget.getFaction())) {
                     targets.add(possTarget);
-                } else if (!upcasted.areRenegadesUnaffected()
+                } else if (upcasted.areRenegadesTargeted()
                         && CreatureFaction.RENEGADE.equals(possTarget.getFaction())) {
                     targets.add(possTarget);
                 }

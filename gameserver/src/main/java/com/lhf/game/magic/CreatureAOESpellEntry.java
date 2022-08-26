@@ -108,42 +108,42 @@ public class CreatureAOESpellEntry extends SpellEntry {
                     Integer.min(this.enemies, other.enemies), Integer.min(this.renegades, other.renegades));
         }
 
-        public boolean areNpcUnaffected() {
-            return npc <= 0;
+        public boolean areNPCsTargeted() {
+            return npc >= 0;
         }
 
-        public boolean isCasterUnaffected() {
-            return caster <= 0;
+        public boolean isCasterTargeted() {
+            return caster >= 0;
         }
 
-        public boolean areAlliesUnaffected() {
-            return allies <= 0;
+        public boolean areAlliesTargeted() {
+            return allies >= 0;
         }
 
-        public boolean areEnemiesUnaffected() {
-            return enemies <= 0;
+        public boolean areEnemiesTargeted() {
+            return enemies >= 0;
         }
 
-        public boolean areRenegadesUnaffected() {
-            return renegades <= 0;
+        public boolean areRenegadesTargeted() {
+            return renegades >= 0;
         }
 
         public String printAffected() {
             StringJoiner sj = new StringJoiner(", ")
                     .setEmptyValue("nobody");
-            if (!this.areNpcUnaffected()) {
+            if (this.areNPCsTargeted()) {
                 sj.add("NPCs");
             }
-            if (!this.isCasterUnaffected()) {
+            if (this.isCasterTargeted()) {
                 sj.add("the caster");
             }
-            if (!this.areAlliesUnaffected()) {
+            if (this.areAlliesTargeted()) {
                 sj.add("the caster's allies");
             }
-            if (!this.areEnemiesUnaffected()) {
+            if (this.areEnemiesTargeted()) {
                 sj.add("the caster's enemies");
             }
-            if (!this.areRenegadesUnaffected()) {
+            if (this.areRenegadesTargeted()) {
                 sj.add("renegades");
             }
             return " Upon casting: " + sj.toString() + " will be affected.";
@@ -152,19 +152,19 @@ public class CreatureAOESpellEntry extends SpellEntry {
         public String printUnffected() {
             StringJoiner sj = new StringJoiner(", ")
                     .setEmptyValue("nobody");
-            if (this.areNpcUnaffected()) {
+            if (!this.areNPCsTargeted()) {
                 sj.add("NPCs");
             }
-            if (this.isCasterUnaffected()) {
+            if (!this.isCasterTargeted()) {
                 sj.add("the caster");
             }
-            if (this.areAlliesUnaffected()) {
+            if (!this.areAlliesTargeted()) {
                 sj.add("the caster's allies");
             }
-            if (this.areEnemiesUnaffected()) {
+            if (!this.areEnemiesTargeted()) {
                 sj.add("the caster's enemies");
             }
-            if (this.areRenegadesUnaffected()) {
+            if (!this.areRenegadesTargeted()) {
                 sj.add("renegades");
             }
             return " Upon casting: " + sj.toString() + " will be not be affected.";
@@ -173,18 +173,18 @@ public class CreatureAOESpellEntry extends SpellEntry {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
-            sb.append("NPCs are ").append(npc).append(this.areNpcUnaffected() ? "UNaffected" : "affected")
+            sb.append("NPCs are ").append(npc).append(!this.areNPCsTargeted() ? "UNaffected" : "affected")
                     .append("\r\n");
-            sb.append("The caster is ").append(caster).append(this.isCasterUnaffected() ? "UNaffected" : "affected")
+            sb.append("The caster is ").append(caster).append(!this.isCasterTargeted() ? "UNaffected" : "affected")
                     .append("\r\n");
             sb.append("The caster's allies are ").append(allies)
-                    .append(this.areAlliesUnaffected() ? "UNaffected" : "affected")
+                    .append(!this.areAlliesTargeted() ? "UNaffected" : "affected")
                     .append("\r\n");
             sb.append("The caster's enemies are ").append(enemies)
-                    .append(this.areEnemiesUnaffected() ? "UNaffected" : "affected")
+                    .append(!this.areEnemiesTargeted() ? "UNaffected" : "affected")
                     .append("\r\n");
             sb.append("Renegades are ").append(renegades)
-                    .append(this.areRenegadesUnaffected() ? "UNaffected" : "affected")
+                    .append(!this.areRenegadesTargeted() ? "UNaffected" : "affected")
                     .append("\r\n");
 
             return sb.toString();
