@@ -41,6 +41,7 @@ import com.lhf.messages.in.UnequipMessage;
 import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.EquipOutMessage;
 import com.lhf.messages.out.EquipOutMessage.EquipResultType;
+import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.NotPossessedMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SeeOutMessage;
@@ -552,6 +553,9 @@ public abstract class Creature
     @Override
     public SeeOutMessage produceMessage() {
         SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        for (CreatureEffect effect : this.effects) {
+            seeOutMessage.addSeen(SeeCategory.EFFECTS, effect);
+        }
         return seeOutMessage;
     }
 
