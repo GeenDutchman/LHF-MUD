@@ -286,18 +286,20 @@ public abstract class Creature
         return this.attributeBlock;
     }
 
-    public int getHighestAttributeBonus(EnumSet<Attributes> attrs) {
+    public Attributes getHighestAttributeBonus(EnumSet<Attributes> attrs) {
         int highestMod = Integer.MIN_VALUE;
+        Attributes found = null;
         if (attrs == null || attrs.size() == 0) {
-            return highestMod;
+            return found;
         }
         for (Attributes attr : attrs) {
-            int found = this.attributeBlock.getMod(attr);
-            if (found > highestMod) {
-                highestMod = found;
+            int retrieved = this.attributeBlock.getMod(attr);
+            if (retrieved > highestMod) {
+                highestMod = retrieved;
+                found = attr;
             }
         }
-        return highestMod;
+        return found;
     }
 
     public HashSet<EquipmentTypes> getProficiencies() {
