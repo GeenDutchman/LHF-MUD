@@ -1,5 +1,8 @@
 package com.lhf.game;
 
+import java.util.EnumSet;
+import java.util.StringJoiner;
+
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
 
@@ -15,12 +18,12 @@ public class EffectResistance {
     }
 
     // These are for the doer of the effect
-    private final Attributes actorAttr;
+    private final EnumSet<Attributes> actorAttrs;
     private final Stats actorStat;
     private final Integer actorDC;
 
     // these are for the target of the effect
-    private final Attributes targetAttr;
+    private final EnumSet<Attributes> targetAttrs;
     private final Stats targetStat;
     private final Integer targetDC;
 
@@ -34,10 +37,28 @@ public class EffectResistance {
      * @param targetStat
      */
     public EffectResistance(Attributes actorAttr, Stats targetStat) {
-        this.actorAttr = actorAttr;
+        this.actorAttrs = EnumSet.of(actorAttr);
         this.actorStat = null;
         this.actorDC = null;
-        this.targetAttr = null;
+        this.targetAttrs = null;
+        this.targetStat = targetStat;
+        this.targetDC = null;
+        this.resistAmount = TargetResistAmount.ALL;
+    }
+
+    /**
+     * This is used to pit an actor's highest modded attribute check against a
+     * target's stat,
+     * usually a melee attack like a STR/DEX check vs the target's AC.
+     * 
+     * @param actorAttrs
+     * @param targetStat
+     */
+    public EffectResistance(EnumSet<Attributes> actorAttrs, Stats targetStat) {
+        this.actorAttrs = actorAttrs;
+        this.actorStat = null;
+        this.actorDC = null;
+        this.targetAttrs = null;
         this.targetStat = targetStat;
         this.targetDC = null;
         this.resistAmount = TargetResistAmount.ALL;
@@ -55,10 +76,10 @@ public class EffectResistance {
      * @param resistAmount defaults to resisting all
      */
     public EffectResistance(Attributes actorAttr, Attributes targetAttr, TargetResistAmount resistAmount) {
-        this.actorAttr = actorAttr;
+        this.actorAttrs = EnumSet.of(actorAttr);
         this.actorStat = null;
         this.actorDC = null;
-        this.targetAttr = targetAttr;
+        this.targetAttrs = EnumSet.of(targetAttr);
         this.targetStat = null;
         this.targetDC = null;
         this.resistAmount = resistAmount != null ? resistAmount : TargetResistAmount.ALL;
@@ -74,51 +95,51 @@ public class EffectResistance {
      * @param resistAmount defaults to resisting all
      */
     public EffectResistance(Attributes actorAttr, Integer targetDC, TargetResistAmount resistAmount) {
-        this.actorAttr = actorAttr;
+        this.actorAttrs = EnumSet.of(actorAttr);
         this.actorStat = null;
         this.actorDC = null;
-        this.targetAttr = null;
+        this.targetAttrs = null;
         this.targetStat = null;
         this.targetDC = targetDC;
         this.resistAmount = resistAmount != null ? resistAmount : TargetResistAmount.ALL;
     }
 
     /**
-     * Used by Builders to specify everything about the resistance.
+     * Used by builders to define everything.
      * 
-     * @param actorAttr
+     * @param actorAttrs
      * @param actorStat
      * @param actorDC
-     * @param targetAttr
+     * @param targetAttrs
      * @param targetStat
      * @param targetDC
      * @param resistAmount defaults to resisting all
      */
-    public EffectResistance(Attributes actorAttr, Stats actorStat, Integer actorDC, Attributes targetAttr,
-            Stats targetStat, Integer targetDC, TargetResistAmount resistAmount) {
-        this.actorAttr = actorAttr;
+    public EffectResistance(EnumSet<Attributes> actorAttrs, Stats actorStat, Integer actorDC,
+            EnumSet<Attributes> targetAttrs, Stats targetStat, Integer targetDC, TargetResistAmount resistAmount) {
+        this.actorAttrs = actorAttrs;
         this.actorStat = actorStat;
         this.actorDC = actorDC;
-        this.targetAttr = targetAttr;
+        this.targetAttrs = targetAttrs;
         this.targetStat = targetStat;
         this.targetDC = targetDC;
         this.resistAmount = resistAmount != null ? resistAmount : TargetResistAmount.ALL;
-    }
-
-    public Attributes getActorAttr() {
-        return actorAttr;
     }
 
     public Stats getActorStat() {
         return actorStat;
     }
 
-    public Integer getActorDC() {
-        return actorDC;
+    public EnumSet<Attributes> getActorAttrs() {
+        return actorAttrs;
     }
 
-    public Attributes getTargetAttr() {
-        return targetAttr;
+    public EnumSet<Attributes> getTargetAttrs() {
+        return targetAttrs;
+    }
+
+    public Integer getActorDC() {
+        return actorDC;
     }
 
     public Stats getTargetStat() {
@@ -136,8 +157,17 @@ public class EffectResistance {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Resistance to this effect is determined by: ");
-        if (actorAttr != null) {
-            sb.append("The causing party's ").append(actorAttr).append(" check ");
+        if (actorAttrs != null && actorAttrs.size() > 0) {
+            StringJoiner sj = new StringJoiner(", ");
+            for (Attributes attr : actorAttrs) {
+                sj.add(attr.name());
+            }
+            if (actorAttrs.size() > 1) {
+                sb.append("The causing party's check using the highest modifier between ").append(sj.toString())
+                        .append(" ");
+            } else {
+                sb.append("The causing party's ").append(sj.toString()).append(" check ");
+            }
         } else if (actorStat != null) {
             sb.append("The causing party's ").append(actorStat).append(" stat ");
         } else if (actorDC != null) {
@@ -145,8 +175,19 @@ public class EffectResistance {
         } else {
             return " The target automatically succeeds. ";
         }
-        if (targetAttr != null) {
-            sb.append("v.s. the target's ").append(targetAttr).append(" check. ");
+        if (targetAttrs != null && targetAttrs.size() > 0) {
+            StringJoiner sj = new StringJoiner(", ");
+            for (Attributes attr : actorAttrs) {
+                sj.add(attr.name());
+            }
+            sb.append("v.s. ");
+            if (actorAttrs.size() > 1) {
+                sb.append("the target's check using the highest modifier between ").append(sj.toString())
+                        .append(". ");
+            } else {
+                sb.append("the target's ").append(sj.toString()).append(" check. ");
+            }
+            sb.append("v.s. the target's ").append(targetAttrs).append(" check. ");
         } else if (targetStat != null) {
             sb.append("v.s. the target's ").append(targetStat).append(" stat. ");
         } else if (targetDC != null) {
