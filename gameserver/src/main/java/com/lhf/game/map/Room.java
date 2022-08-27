@@ -70,7 +70,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
 
     private Map<CommandMessage, String> buildCommands() {
         StringJoiner sj = new StringJoiner(" ");
-        Map<CommandMessage, String> cmds = new HashMap<>();
+        Map<CommandMessage, String> cmds = new EnumMap<>(CommandMessage.class);
         sj.add("\"say [message]\"").add("Tells everyone in your current room your message").add("\r\n");
         sj.add("\"say [message] to [name]\"")
                 .add("Will tell a specific person somewhere in your current room your message.");
@@ -368,7 +368,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
 
     @Override
     public Map<CommandMessage, String> getCommands() {
-        return this.commands;
+        return Collections.unmodifiableMap(this.commands);
     }
 
     @Override

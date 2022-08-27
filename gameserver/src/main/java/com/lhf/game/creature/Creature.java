@@ -153,7 +153,7 @@ public abstract class Creature
 
     private Map<CommandMessage, String> buildCommands() {
         StringJoiner sj = new StringJoiner(" ");
-        Map<CommandMessage, String> cmds = new HashMap<>();
+        Map<CommandMessage, String> cmds = new EnumMap<>(CommandMessage.class);
         sj.add("\"equip [item]\"").add("Equips the item from your inventory to its default slot").add("\r\n");
         sj.add("\"equip [item] to [slot]\"")
                 .add("Equips the item from your inventory to the specified slot, if such exists.");
@@ -705,7 +705,7 @@ public abstract class Creature
 
     @Override
     public Map<CommandMessage, String> getCommands() {
-        return this.cmds;
+        return Collections.unmodifiableMap(this.cmds);
     }
 
     @Override

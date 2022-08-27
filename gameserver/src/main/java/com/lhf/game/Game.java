@@ -1,7 +1,7 @@
 package com.lhf.game;
 
 import java.io.FileNotFoundException;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -75,7 +75,7 @@ public class Game implements UserListener, MessageHandler {
 
 	@Override
 	public Map<CommandMessage, String> getCommands() {
-		HashMap<CommandMessage, String> helps = new HashMap<>();
+		Map<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
 		helps.put(CommandMessage.PLAYERS, "List the players currently in the game.");
 		return helps;
 	}

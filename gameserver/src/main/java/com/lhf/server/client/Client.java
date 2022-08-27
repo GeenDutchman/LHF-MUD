@@ -1,20 +1,21 @@
 package com.lhf.server.client;
 
 import java.io.IOException;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandBuilder;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.out.BadMessage;
+import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.HelpMessage;
 import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.BadMessage.BadMessageType;
 
 public class Client implements MessageHandler, ClientMessenger {
     protected SendStrategy out;
@@ -97,7 +98,7 @@ public class Client implements MessageHandler, ClientMessenger {
 
     @Override
     public Map<CommandMessage, String> getCommands() {
-        Map<CommandMessage, String> cmdMap = new TreeMap<>();
+        Map<CommandMessage, String> cmdMap = new EnumMap<>(CommandMessage.class);
         cmdMap.put(CommandMessage.HELP, "Tells you the commands that you can use.  They are case insensitive!");
         return cmdMap;
     }

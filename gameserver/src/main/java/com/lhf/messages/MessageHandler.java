@@ -14,7 +14,7 @@ public interface MessageHandler {
         this.setSuccessor(interceptor);
     }
 
-    public abstract EnumMap<CommandMessage, String> getCommands();
+    public abstract Map<CommandMessage, String> getCommands();
 
     public abstract CommandContext addSelfToContext(CommandContext ctx);
 
@@ -24,7 +24,7 @@ public interface MessageHandler {
         }
         ctx = this.addSelfToContext(ctx);
         EnumMap<CommandMessage, String> coalesce = new EnumMap<>(CommandMessage.class);
-        Map<CommandMessage, String> myCommands = new EnumMap<>(this.getCommands());
+        Map<CommandMessage, String> myCommands = this.getCommands();
         if (myCommands != null) {
             coalesce.putAll(myCommands);
         }

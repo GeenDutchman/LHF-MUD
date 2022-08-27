@@ -1,14 +1,6 @@
 package com.lhf.game.battle;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.logging.Logger;
 
 import com.lhf.Examinable;
@@ -53,7 +45,7 @@ public class BattleManager implements MessageHandler, Examinable {
 
     private Map<CommandMessage, String> buildInterceptorCommands() {
         StringJoiner sj = new StringJoiner(" ");
-        Map<CommandMessage, String> cmds = new HashMap<>();
+        Map<CommandMessage, String> cmds = new EnumMap<>(CommandMessage.class);
         sj = new StringJoiner(" "); // clear
         sj.add("\"see\"").add("Will give you some information about the battle.\r\n");
         cmds.put(CommandMessage.SEE, sj.toString());
@@ -82,7 +74,7 @@ public class BattleManager implements MessageHandler, Examinable {
 
     private Map<CommandMessage, String> buildCommands() {
         StringJoiner sj = new StringJoiner(" ");
-        Map<CommandMessage, String> cmds = new HashMap<>();
+        Map<CommandMessage, String> cmds = new EnumMap<>(CommandMessage.class);
         sj.add("\"attack [name]\"").add("Attacks a creature").add("\r\n");
         sj.add("\"attack [name] with [weapon]\"").add("Attack the named creature with a weapon that you have.");
         sj.add("In the unlikely event that either the creature or the weapon's name contains 'with', enclose the name in quotation marks.");
@@ -366,7 +358,7 @@ public class BattleManager implements MessageHandler, Examinable {
         if (this.isHappening) {
             collected.putAll(this.interceptorCmds);
         }
-        return collected;
+        return Collections.unmodifiableMap(collected);
     }
 
     @Override

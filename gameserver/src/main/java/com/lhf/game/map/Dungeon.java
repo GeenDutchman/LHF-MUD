@@ -1,13 +1,14 @@
 package com.lhf.game.map;
 
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.Map.Entry;
 
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
@@ -52,7 +53,7 @@ public class Dungeon implements MessageHandler {
 
     private Map<CommandMessage, String> buildCommands() {
         StringBuilder sb = new StringBuilder();
-        Map<CommandMessage, String> cmds = new HashMap<>();
+        Map<CommandMessage, String> cmds = new EnumMap<>(CommandMessage.class);
         sb.append("\"shout [message]\" ").append("Tells everyone in the dungeon your message!");
         cmds.put(CommandMessage.SHOUT, sb.toString());
         sb.setLength(0);
@@ -298,7 +299,7 @@ public class Dungeon implements MessageHandler {
 
     @Override
     public Map<CommandMessage, String> getCommands() {
-        return this.commands;
+        return Collections.unmodifiableMap(this.commands);
     }
 
     @Override

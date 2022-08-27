@@ -16,7 +16,10 @@ public class CommandContext implements ClientMessenger {
 
     @Override
     public ClientID getClientID() {
-        return this.client.getClientID();
+        if (this.client != null) {
+            return this.client.getClientID();
+        }
+        return null;
     }
 
     public ClientMessenger getClientMessenger() {

@@ -1,7 +1,7 @@
 package com.lhf.server.client.user;
 
+import java.util.EnumMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
@@ -66,7 +66,7 @@ public class User implements MessageHandler, ClientMessenger {
 
     @Override
     public Map<CommandMessage, String> getCommands() {
-        return new TreeMap<>();
+        return new EnumMap<>(CommandMessage.class);
     }
 
     @Override

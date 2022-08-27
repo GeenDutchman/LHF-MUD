@@ -2,8 +2,9 @@ package com.lhf.server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import com.lhf.game.Game;
@@ -38,8 +39,9 @@ public class Server implements ServerInterface, ConnectionListener {
         this.userManager = new UserManager();
         this.userListeners = new ArrayList<>();
         this.clientManager = new ClientManager();
-        this.acceptedCommands = new TreeMap<>();
+        this.acceptedCommands = new EnumMap<>(CommandMessage.class);
         this.acceptedCommands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
+        this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
         this.game = new Game(this, this.userManager);
         this.logger.exiting(this.getClass().toString(), "Constructor");
     }
@@ -125,7 +127,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public Map<CommandMessage, String> gatherHelp(CommandContext ctx) {
+    public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
         return ServerInterface.super.gatherHelp(ctx);
     }
 

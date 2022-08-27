@@ -41,7 +41,7 @@ public class ThirdPower implements MessageHandler {
      * 
      */
     private MessageHandler successor;
-    private HashMap<CommandMessage, String> cmds;
+    private EnumMap<CommandMessage, String> cmds;
     private Spellbook spellbook;
 
     public ThirdPower(MessageHandler successor, Spellbook spellbook) {
@@ -55,16 +55,25 @@ public class ThirdPower implements MessageHandler {
         }
     }
 
-    private HashMap<CommandMessage, String> generateCommands() {
-        HashMap<CommandMessage, String> toGenerate = new HashMap<>();
+    private EnumMap<CommandMessage, String> generateCommands() {
+        EnumMap<CommandMessage, String> toGenerate = new EnumMap<>(CommandMessage.class);
         StringJoiner sj = new StringJoiner(" ");
         sj.add("\"cast [invocation]\"").add("Casts the spell that has the matching invocation.").add("\n");
         sj.add("\"cast [invocation] at [target]\"").add("Some spells need you to name a target.").add("\n");
         sj.add("\"cast [invocation] use [level]\"").add(
                 "Sometimes you want to put more power into your spell, so put a higher level number for the level.")
                 .add("\n");
-        toGenerate.put(CommandMessage.CAST, sj.toString()); // TODO: make this help not even show up for non-casters
+        toGenerate.put(CommandMessage.CAST, sj.toString());
         return toGenerate;
+    }
+
+    @Override
+    public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
+        EnumMap<CommandMessage, String> retrieved = MessageHandler.super.gatherHelp(ctx);
+        if (ctx.getCreature() == null || !(ctx.getCreature().getVocation() instanceof CubeHolder)) {
+            retrieved.remove(CommandMessage.CAST);
+        }
+        return retrieved;
     }
 
     public SortedSet<SpellEntry> filterByExactLevel(int level) {
@@ -274,7 +283,7 @@ public class ThirdPower implements MessageHandler {
 
     @Override
     public Map<CommandMessage, String> getCommands() {
-        return this.cmds;
+        return Collections.unmodifiableMap(this.cmds);
     }
 
 }

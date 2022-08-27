@@ -1,5 +1,6 @@
 package com.lhf.messages;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
@@ -37,26 +38,31 @@ public class MessageHandlerTest {
         when(this.leafNodeOne.getSuccessor()).thenReturn(this.branchNode);
         when(this.leafNodeTwo.getSuccessor()).thenReturn(this.branchNode);
 
+        when(this.rootNode.addSelfToContext(any())).thenReturn(new CommandContext());
+        when(this.branchNode.addSelfToContext(any())).thenReturn(new CommandContext());
+        when(this.leafNodeOne.addSelfToContext(any())).thenReturn(new CommandContext());
+        when(this.leafNodeTwo.addSelfToContext(any())).thenReturn(new CommandContext());
+
         Map<CommandMessage, String> leafNodeOneHelps = new HashMap<>();
         leafNodeOneHelps.put(CommandMessage.HELP, "When you need help");
         leafNodeOneHelps.put(CommandMessage.INVENTORY, "When you need to know what you have");
         when(this.leafNodeOne.getCommands()).thenReturn(leafNodeOneHelps);
-        when(this.leafNodeOne.gatherHelp(null)).thenAnswer(Mockito.CALLS_REAL_METHODS);
+        when(this.leafNodeOne.gatherHelp(any())).thenAnswer(Mockito.CALLS_REAL_METHODS);
 
         Map<CommandMessage, String> leafNodeTwoHelps = new HashMap<>();
         leafNodeTwoHelps.put(CommandMessage.CAST, "If you are a caster");
         when(this.leafNodeTwo.getCommands()).thenReturn(leafNodeTwoHelps);
-        when(this.leafNodeTwo.gatherHelp(null)).thenAnswer(Mockito.CALLS_REAL_METHODS);
+        when(this.leafNodeTwo.gatherHelp(any())).thenAnswer(Mockito.CALLS_REAL_METHODS);
 
         Map<CommandMessage, String> branchNodeHelps = new HashMap<>();
         branchNodeHelps.put(CommandMessage.HELP, "When you get higher help");
         branchNodeHelps.put(CommandMessage.SEE, "I added something!");
         when(this.branchNode.getCommands()).thenReturn(branchNodeHelps);
-        when(this.branchNode.gatherHelp(null)).thenAnswer(Mockito.CALLS_REAL_METHODS);
+        when(this.branchNode.gatherHelp(any())).thenAnswer(Mockito.CALLS_REAL_METHODS);
 
         // root node does nothing
         when(this.rootNode.getCommands()).thenReturn(null);
-        when(this.rootNode.gatherHelp(null)).thenAnswer(Mockito.CALLS_REAL_METHODS);
+        when(this.rootNode.gatherHelp(any())).thenAnswer(Mockito.CALLS_REAL_METHODS);
 
     }
 

@@ -1,6 +1,7 @@
 package com.lhf.game.creature.intelligence;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.Map;
 
 import com.lhf.game.creature.NonPlayerCharacter;
@@ -50,7 +51,7 @@ public class AIComBundle implements MessageHandler {
 
     @Override
     public Map<CommandMessage, String> getCommands() {
-        return null;
+        return new EnumMap<>(CommandMessage.class);
     }
 
     @Override
