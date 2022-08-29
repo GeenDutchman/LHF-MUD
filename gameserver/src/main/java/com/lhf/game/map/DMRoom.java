@@ -10,7 +10,6 @@ import com.lhf.game.creature.Creature;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.out.CannotSpeakToMessage;
