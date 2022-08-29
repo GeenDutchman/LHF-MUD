@@ -384,7 +384,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         Boolean handled = false;
         CommandMessage type = msg.getType();
         ctx = this.addSelfToContext(ctx);
-        if (type != null && this.commands.containsKey(type)) {
+        if (type != null && this.commands.containsKey(type) && ctx.getCreature() != null) {
             if (type == CommandMessage.ATTACK) {
                 handled = this.handleAttack(ctx, msg);
             } else if (type == CommandMessage.SAY) {
