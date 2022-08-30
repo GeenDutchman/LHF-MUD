@@ -5,21 +5,15 @@ import java.util.Objects;
 import com.lhf.messages.OutMessageType;
 import com.lhf.server.interfaces.NotNull;
 
-public abstract class AIHandler {
+public abstract class AIHandler implements AIChunk {
     protected final OutMessageType outMessageType;
-    protected final AIChunk aiChunk;
 
-    public AIHandler(@NotNull OutMessageType outMessageType, @NotNull AIChunk aiChunk) {
+    public AIHandler(@NotNull OutMessageType outMessageType) {
         this.outMessageType = outMessageType;
-        this.aiChunk = aiChunk;
     }
 
     public OutMessageType getOutMessageType() {
         return outMessageType;
-    }
-
-    public AIChunk getAiChunk() {
-        return aiChunk;
     }
 
     @Override

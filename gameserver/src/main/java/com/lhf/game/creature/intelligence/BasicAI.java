@@ -148,7 +148,7 @@ public class BasicAI extends Client {
     }
 
     public void addHandler(@NotNull AIHandler aiHandler) {
-        this.handlers.put(aiHandler.getOutMessageType(), aiHandler.getAiChunk());
+        this.handlers.put(aiHandler.getOutMessageType(), aiHandler);
     }
 
     @Override
