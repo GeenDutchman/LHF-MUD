@@ -9,6 +9,7 @@ import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
+import com.lhf.game.creature.intelligence.handlers.SpeakingHandler;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandMessage;
@@ -94,24 +95,7 @@ public class BasicAI extends Client {
                 return;
             }
         });
-        this.handlers.put(OutMessageType.SPEAKING, (BasicAI bai, OutMessage msg) -> {
-            if (msg.getOutType().equals(OutMessageType.SPEAKING)) {
-                SpeakingMessage sm = (SpeakingMessage) msg;
-                if (!sm.getShouting() && sm.getHearer() != null && sm.getHearer() instanceof NonPlayerCharacter) {
-                    if (sm.getSayer() instanceof Creature && bai.getNpc().getConvoTree() != null) {
-                        Creature sayer = (Creature) sm.getSayer();
-                        ConversationTreeNodeResult result = bai.getNpc().getConvoTree().listen(sayer, sm.getMessage());
-                        if (result != null && result.getBody() != null) {
-                            SayMessage say = (SayMessage) CommandBuilder.fromCommand(CommandMessage.SAY,
-                                    "say \"" + result.getBody() + "\" to " + sayer.getName());
-                            CommandBuilder.addDirect(say, result.getBody());
-                            CommandBuilder.addIndirect(say, "to", sayer.getName());
-                            bai.handleMessage(null, say);
-                        }
-                    }
-                }
-            }
-        });
+        this.addHandler(new SpeakingHandler());
     }
 
     protected void selectNextTarget(Collection<Creature> possTargets) {
