@@ -44,11 +44,11 @@ public class DMRoom extends Room {
     }
 
     public boolean addUser(User user) {
-        if (this.getCreaturesInRoom().size() <= 2) {
+        if (this.getCreaturesInRoom().size() < 2) {
             // shunt
             return this.addNewPlayer(new Player(user));
         }
-        user.setSuccessor(user);
+        user.setSuccessor(this);
         this.sendMessageToAll(new RoomEnteredOutMessage(user));
         return this.users.add(user);
     }
@@ -123,8 +123,9 @@ public class DMRoom extends Room {
                 ArrayList<Creature> found = this.getCreaturesInRoom(seeMessage.getThing());
                 if (found.size() == 1) {
                     ctx.sendMsg(found.get(0).produceMessage().addExtraInfo("They are in the room with you.  "));
+                } else {
+                    ctx.sendMsg(new SeeOutMessage("You couldn't find " + seeMessage.getThing() + " to examine. "));
                 }
-                ctx.sendMsg(new SeeOutMessage("You couldn't find " + seeMessage.getThing() + " to examine. "));
 
             } else {
                 ctx.sendMsg(this.produceMessage());
