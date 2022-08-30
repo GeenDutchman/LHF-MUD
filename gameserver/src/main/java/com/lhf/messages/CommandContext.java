@@ -5,11 +5,12 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.map.Room;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
+import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 
 public class CommandContext implements ClientMessenger {
     protected ClientMessenger client;
-    protected UserID userID;
+    protected User user;
     protected Creature creature;
     protected Room room;
     protected BattleManager bManager;
@@ -45,12 +46,19 @@ public class CommandContext implements ClientMessenger {
         this.client = client;
     }
 
-    public UserID getUserID() {
-        return userID;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserID(UserID userID) {
-        this.userID = userID;
+    public UserID getUserID() {
+        if (user != null) {
+            return user.getUserID();
+        }
+        return null;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public void setRoom(Room room) {

@@ -75,8 +75,8 @@ public class User implements MessageHandler, ClientMessenger {
         if (ctx == null) {
             ctx = new CommandContext();
         }
-        if (ctx.getUserID() == null) {
-            ctx.setUserID(id);
+        if (ctx.getUser() == null) {
+            ctx.setUser(this);
         }
         return ctx;
     }
