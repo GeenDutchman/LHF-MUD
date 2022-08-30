@@ -2,11 +2,13 @@ package com.lhf.game.map;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.Player;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -16,22 +18,36 @@ import com.lhf.messages.out.CannotSpeakToMessage;
 import com.lhf.messages.out.RoomEnteredOutMessage;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SpeakingMessage;
+import com.lhf.messages.out.UserLeftMessage;
 import com.lhf.server.client.user.User;
+import com.lhf.server.interfaces.NotNull;
 
 public class DMRoom extends Room {
     private Set<User> users;
+    private List<Dungeon> dungeons;
 
     DMRoom(String name) {
         super(name);
         this.users = new TreeSet<>();
+        this.dungeons = new ArrayList<>();
     }
 
     DMRoom(String name, String description) {
         super(name, description);
         this.users = new TreeSet<>();
+        this.dungeons = new ArrayList<>();
+    }
+
+    public boolean addDungeon(@NotNull Dungeon dungeon) {
+        dungeon.setSuccessor(this);
+        return this.dungeons.add(dungeon);
     }
 
     public boolean addUser(User user) {
+        if (this.getCreaturesInRoom().size() < 2) {
+            // shunt
+            return this.addNewPlayer(new Player(user));
+        }
         user.setSuccessor(user);
         this.sendMessageToAll(new RoomEnteredOutMessage(user));
         return this.users.add(user);
@@ -54,6 +70,18 @@ public class DMRoom extends Room {
             }
         }
         return null;
+    }
+
+    public boolean addNewPlayer(Player player) {
+        return this.dungeons.get(0).addNewPlayer(player);
+    }
+
+    public void userExitSystem(User user) {
+        for (Dungeon dungeon : this.dungeons) {
+            if (dungeon.removePlayer(user.getUserID())) {
+                dungeon.sendMessageToAll(new UserLeftMessage(user, false));
+            }
+        }
     }
 
     private boolean handleSay(CommandContext ctx, Command msg) {
