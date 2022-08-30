@@ -13,7 +13,7 @@ import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
-public class User implements MessageHandler, ClientMessenger {
+public class User implements MessageHandler, ClientMessenger, Comparable<User> {
     private UserID id;
     private String username;
     private MessageHandler successor;
@@ -112,6 +112,11 @@ public class User implements MessageHandler, ClientMessenger {
     @Override
     public ClientID getClientID() {
         return this.client.getClientID();
+    }
+
+    @Override
+    public int compareTo(User o) {
+        return this.username.compareTo(o.getUsername());
     }
 
 }
