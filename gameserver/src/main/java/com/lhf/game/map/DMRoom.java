@@ -91,7 +91,7 @@ public class DMRoom extends Room {
                 boolean sent = false;
                 for (Creature c : this.getCreaturesInRoom()) {
                     if (c.CheckNameRegex(sayMessage.getTarget(), 3)) {
-                        c.sendMsg(new SpeakingMessage(ctx, sayMessage.getMessage(), c));
+                        c.sendMsg(new SpeakingMessage(ctx.getUser(), sayMessage.getMessage(), c));
                         sent = true;
                         break;
                     }
@@ -99,7 +99,7 @@ public class DMRoom extends Room {
                 if (!sent) {
                     for (User u : this.users) {
                         if (u.getUsername().equalsIgnoreCase(sayMessage.getTarget())) {
-                            u.sendMsg(new SpeakingMessage(ctx, sayMessage.getMessage(), u));
+                            u.sendMsg(new SpeakingMessage(ctx.getUser(), sayMessage.getMessage(), u));
                             sent = true;
                             break;
                         }
@@ -141,7 +141,7 @@ public class DMRoom extends Room {
         CommandMessage type = msg.getType();
         ctx = this.addSelfToContext(ctx);
         if (type != null && this.getCommands().containsKey(type)) {
-            if (ctx.getCreature() == null) {
+            if (ctx.getCreature() == null && ctx.getUser() != null) {
                 if (type == CommandMessage.SAY) {
                     handled = this.handleSay(ctx, msg);
                 } else if (type == CommandMessage.SEE) {
