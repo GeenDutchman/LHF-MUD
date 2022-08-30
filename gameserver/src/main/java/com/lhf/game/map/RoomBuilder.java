@@ -7,6 +7,8 @@ import java.util.Set;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.DungeonMaster;
+import com.lhf.game.creature.conversation.ConversationManager;
+import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.item.Item;
 import com.lhf.messages.MessageHandler;
 
@@ -78,6 +80,14 @@ public class RoomBuilder {
         }
         DungeonMaster dmAda = new DungeonMaster("Ada Lovejax");
         DungeonMaster dmGary = new DungeonMaster("Gary Lovejax");
+
+        // ensure basicAI
+        ConversationManager convoLoader = new ConversationManager();
+        dmAda.setConvoTree(convoLoader, "verbal_default");
+        dmGary.setConvoTree(convoLoader, "verbal_default");
+        dmAda.setController(new BasicAI(dmAda));
+        dmGary.setController(new BasicAI(dmGary));
+
         dmRoom.addCreature(dmAda);
         dmRoom.addCreature(dmGary);
         if (this.creatures != null) {
