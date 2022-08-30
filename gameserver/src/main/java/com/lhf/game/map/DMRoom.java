@@ -44,7 +44,7 @@ public class DMRoom extends Room {
     }
 
     public boolean addUser(User user) {
-        if (this.getCreaturesInRoom().size() < 2) {
+        if (this.getCreaturesInRoom().size() <= 2) {
             // shunt
             return this.addNewPlayer(new Player(user));
         }
