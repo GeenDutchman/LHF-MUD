@@ -5,7 +5,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.TreeSet;
+import java.util.HashSet;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
@@ -28,13 +28,13 @@ public class DMRoom extends Room {
 
     DMRoom(String name) {
         super(name);
-        this.users = new TreeSet<>();
+        this.users = new HashSet<>();
         this.dungeons = new ArrayList<>();
     }
 
     DMRoom(String name, String description) {
         super(name, description);
-        this.users = new TreeSet<>();
+        this.users = new HashSet<>();
         this.dungeons = new ArrayList<>();
     }
 
