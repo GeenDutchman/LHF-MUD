@@ -5,16 +5,16 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import com.lhf.game.creature.Player;
 import com.lhf.game.magic.ThirdPower;
+import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
+import com.lhf.game.map.RoomBuilder;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.out.ListPlayersMessage;
-import com.lhf.messages.out.UserLeftMessage;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
@@ -25,14 +25,20 @@ public class Game implements UserListener, MessageHandler {
 	private MessageHandler successor;
 	private ServerInterface server;
 	private UserManager userManager;
-	private Dungeon dungeon;
 	private Logger logger;
 	private ThirdPower thirdPower;
+	private DMRoom controlRoom;
 
 	public Game(ServerInterface server, UserManager userManager) throws FileNotFoundException {
 		this.logger = Logger.getLogger(this.getClass().getName());
 		this.thirdPower = new ThirdPower(this, null);
-		this.dungeon = DungeonBuilder.buildStaticDungeon(this.thirdPower);
+		Dungeon dungeon = DungeonBuilder.buildStaticDungeon(null);
+		RoomBuilder roomBuilder = RoomBuilder.getInstance();
+		roomBuilder.setDungeon(dungeon);
+		roomBuilder.setName("Control Room");
+		roomBuilder.setDescription("There are a lot of buttons and screens in here.  It looks like a home office.");
+		roomBuilder.setSuccessor(this.thirdPower);
+		this.controlRoom = roomBuilder.buildDmRoom();
 		this.successor = server;
 		this.server = server;
 		this.server.registerCallback(this);
@@ -49,13 +55,11 @@ public class Game implements UserListener, MessageHandler {
 	@Override
 	public void userLeft(UserID id) {
 		this.logger.entering(this.getClass().toString(), "userLeft()", id);
-		this.dungeon.removePlayer(id);
-		this.dungeon.sendMessageToAll(new UserLeftMessage(userManager.getUser(id), false));
+		this.controlRoom.userExitSystem(userManager.getUser(id));
 	}
 
 	public void addNewPlayerToGame(User user) {
-		Player newPlayer = new Player(user);
-		dungeon.addNewPlayer(newPlayer);
+		this.controlRoom.addUser(user);
 	}
 
 	private Boolean handleListPlayersMessage(CommandContext ctx, Command cmd) {

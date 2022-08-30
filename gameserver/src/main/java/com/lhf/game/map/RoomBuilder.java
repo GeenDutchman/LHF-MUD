@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.item.Item;
 import com.lhf.messages.MessageHandler;
 
@@ -58,6 +59,36 @@ public class RoomBuilder {
     public RoomBuilder setSuccessor(MessageHandler successor) {
         this.successor = successor;
         return this;
+    }
+
+    public DMRoom buildDmRoom() {
+        DMRoom dmRoom;
+        if (this.description == null) {
+            dmRoom = new DMRoom(this.name);
+        } else {
+            dmRoom = new DMRoom(this.name, this.description);
+        }
+        if (this.dungeon != null) {
+            dmRoom.addDungeon(this.dungeon);
+        }
+        if (this.items != null) {
+            for (Item i : this.items) {
+                dmRoom.addItem(i);
+            }
+        }
+        DungeonMaster dmAda = new DungeonMaster("Ada Lovejax");
+        DungeonMaster dmGary = new DungeonMaster("Gary Lovejax");
+        dmRoom.addCreature(dmAda);
+        dmRoom.addCreature(dmGary);
+        if (this.creatures != null) {
+            for (Creature c : this.creatures) {
+                dmRoom.addCreature(c);
+            }
+        }
+        if (this.successor != null) {
+            dmRoom.setSuccessor(this.successor);
+        }
+        return dmRoom;
     }
 
     public Room build() {

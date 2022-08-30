@@ -45,6 +45,12 @@ public class Dungeon implements MessageHandler {
     private MessageHandler successor;
     private Map<CommandMessage, String> commands;
 
+    Dungeon() {
+        this.mapping = new TreeMap<>();
+        this.successor = null;
+        this.commands = this.buildCommands();
+    }
+
     Dungeon(MessageHandler successor) {
         this.mapping = new TreeMap<>();
         this.successor = successor;
