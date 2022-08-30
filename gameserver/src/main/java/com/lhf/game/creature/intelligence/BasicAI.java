@@ -24,6 +24,7 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.DoNothingSendStrategy;
+import com.lhf.server.interfaces.NotNull;
 
 public class BasicAI extends Client {
     protected NonPlayerCharacter npc;
@@ -144,6 +145,10 @@ public class BasicAI extends Client {
 
     public void addHandler(OutMessageType type, AIChunk chunk) {
         this.handlers.put(type, chunk);
+    }
+
+    public void addHandler(@NotNull AIHandler aiHandler) {
+        this.handlers.put(aiHandler.getOutMessageType(), aiHandler.getAiChunk());
     }
 
     @Override
