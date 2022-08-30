@@ -2,6 +2,7 @@ package com.lhf.server.client.user;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Objects;
 
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
@@ -78,6 +79,23 @@ public class User implements MessageHandler, ClientMessenger {
             ctx.setUserID(id);
         }
         return ctx;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof User)) {
+            return false;
+        }
+        User other = (User) obj;
+        return Objects.equals(id, other.id) && Objects.equals(username, other.username);
     }
 
     @Override
