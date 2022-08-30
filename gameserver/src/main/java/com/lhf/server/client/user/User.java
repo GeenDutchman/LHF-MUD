@@ -116,6 +116,9 @@ public class User implements MessageHandler, ClientMessenger, Comparable<User> {
 
     @Override
     public int compareTo(User o) {
+        if (this == o) {
+            return 0;
+        }
         return this.username.compareTo(o.getUsername());
     }
 
