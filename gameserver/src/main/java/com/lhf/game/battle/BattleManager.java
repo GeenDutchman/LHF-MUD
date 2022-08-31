@@ -23,6 +23,7 @@ import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.out.*;
+import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 
 public class BattleManager implements MessageHandler, Examinable {
@@ -374,6 +375,10 @@ public class BattleManager implements MessageHandler, Examinable {
         CommandMessage type = msg.getType();
         Boolean handled = false;
         ctx = this.addSelfToContext(ctx);
+        if (ctx.getCreature() == null) {
+            ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.room.gatherHelp(ctx), msg));
+            return true;
+        }
         if (type != null) {
             if (type == CommandMessage.ATTACK) {
                 AttackMessage aMessage = (AttackMessage) msg;
