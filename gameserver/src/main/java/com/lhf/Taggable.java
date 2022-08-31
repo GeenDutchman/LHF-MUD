@@ -1,6 +1,6 @@
 package com.lhf;
 
-public interface Taggable extends Comparable<Taggable> {
+public interface Taggable {
     String getStartTag();
 
     String getEndTag();
@@ -16,8 +16,4 @@ public interface Taggable extends Comparable<Taggable> {
         return extracted;
     }
 
-    @Override
-    default int compareTo(Taggable o) {
-        return this.getColorTaggedName().compareTo(o.getColorTaggedName());
-    }
 }
