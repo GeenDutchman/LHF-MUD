@@ -18,6 +18,7 @@ import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Usable;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -406,6 +407,11 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
                 handled = this.handleSay(ctx, msg);
             } else if (type == CommandMessage.SEE) {
                 handled = this.handleSee(ctx, msg);
+                if (handled) {
+                    return handled;
+                }
+                ctx.sendMsg(this.produceMessage());
+                return true;
             } else if (type == CommandMessage.DROP) {
                 handled = this.handleDrop(ctx, msg);
             } else if (type == CommandMessage.INTERACT) {
@@ -618,7 +624,13 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
                 boolean sent = false;
                 for (Creature p : this.allCreatures) {
                     if (p.checkName(sMessage.getTarget())) {
-                        p.sendMsg(new SpeakingMessage(ctx.getCreature(), sMessage.getMessage(), p));
+                        ClientMessenger sayer = ctx;
+                        if (ctx.getCreature() != null) {
+                            sayer = ctx.getCreature();
+                        } else if (ctx.getUser() != null) {
+                            sayer = ctx.getUser();
+                        }
+                        p.sendMsg(new SpeakingMessage(sayer, sMessage.getMessage(), p));
                         sent = true;
                         break;
                     }

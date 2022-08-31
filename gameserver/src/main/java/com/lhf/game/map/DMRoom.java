@@ -2,21 +2,18 @@ package com.lhf.game.map;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.HashSet;
 
-import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.in.SayMessage;
-import com.lhf.messages.in.SeeMessage;
-import com.lhf.messages.out.CannotSpeakToMessage;
 import com.lhf.messages.out.RoomEnteredOutMessage;
-import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.messages.out.UserLeftMessage;
 import com.lhf.server.client.user.User;
@@ -84,77 +81,36 @@ public class DMRoom extends Room {
         }
     }
 
-    private boolean handleSay(CommandContext ctx, Command msg) {
+    @Override
+    protected Boolean handleSay(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SAY) {
             SayMessage sayMessage = (SayMessage) msg;
             if (sayMessage.getTarget() != null && !sayMessage.getTarget().isBlank()) {
                 boolean sent = false;
-                for (Creature c : this.getCreaturesInRoom()) {
-                    if (c.CheckNameRegex(sayMessage.getTarget(), 3)) {
-                        c.sendMsg(new SpeakingMessage(ctx.getUser(), sayMessage.getMessage(), c));
+                for (User u : this.users) {
+                    if (u.getUsername().equals(sayMessage.getTarget())) {
+                        ClientMessenger sayer = ctx;
+                        if (ctx.getCreature() != null) {
+                            sayer = ctx.getCreature();
+                        } else if (ctx.getUser() != null) {
+                            sayer = ctx.getUser();
+                        }
+                        u.sendMsg(new SpeakingMessage(sayer, sayMessage.getMessage(), u));
                         sent = true;
                         break;
                     }
                 }
-                if (!sent) {
-                    for (User u : this.users) {
-                        if (u.getUsername().equalsIgnoreCase(sayMessage.getTarget())) {
-                            u.sendMsg(new SpeakingMessage(ctx.getUser(), sayMessage.getMessage(), u));
-                            sent = true;
-                            break;
-                        }
-                    }
+                if (sent) {
+                    return sent;
                 }
-                if (!sent) {
-                    ctx.sendMsg(new CannotSpeakToMessage(sayMessage.getTarget(), sayMessage.getTarget()));
-                }
-            } else {
-                this.sendMessageToAll(new SpeakingMessage(ctx.getCreature(), sayMessage.getMessage()));
             }
-            return true;
         }
-        return false;
-    }
-
-    private boolean handleSee(CommandContext ctx, Command msg) {
-        if (msg.getType() == CommandMessage.SEE) {
-            SeeMessage seeMessage = (SeeMessage) msg;
-            if (seeMessage.getThing() != null) {
-                ArrayList<Creature> found = this.getCreaturesInRoom(seeMessage.getThing());
-                if (found.size() == 1) {
-                    ctx.sendMsg(found.get(0).produceMessage().addExtraInfo("They are in the room with you.  "));
-                } else {
-                    ctx.sendMsg(new SeeOutMessage("You couldn't find " + seeMessage.getThing() + " to examine. "));
-                }
-
-            } else {
-                ctx.sendMsg(this.produceMessage());
-            }
-            return true;
-        }
-        return false;
+        return super.handleSay(ctx, msg);
     }
 
     @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
-        boolean handled = false;
-        CommandMessage type = msg.getType();
-        ctx = this.addSelfToContext(ctx);
-        if (type != null && this.getCommands().containsKey(type)) {
-            if (ctx.getCreature() == null && ctx.getUser() != null) {
-                if (type == CommandMessage.SAY) {
-                    handled = this.handleSay(ctx, msg);
-                } else if (type == CommandMessage.SEE) {
-                    handled = this.handleSee(ctx, msg);
-                }
-            } else {
-                return super.handleMessage(ctx, msg);
-            }
-        }
-        if (handled) {
-            return handled;
-        }
-        return super.handleMessage(ctx, msg);
+    protected Boolean handleSee(CommandContext ctx, Command msg) {
+        return super.handleSee(ctx, msg);
     }
 
     @Override
