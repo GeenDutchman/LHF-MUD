@@ -217,6 +217,17 @@ public class ConversationTree implements Serializable {
         this.greetings = new TreeSet<>(greetings);
     }
 
+    public String getAGreeting() {
+        if (this.greetings == null || this.greetings.size() == 0) {
+            return null;
+        }
+        ConversationPattern pattern = this.greetings.first().getRegex();
+        if (pattern == null) {
+            return null;
+        }
+        return pattern.getExample();
+    }
+
     public void setRepeats(Set<ConversationPattern> repeats) {
         this.repeatWords = new TreeSet<>();
         this.repeatWords.addAll(repeats);
