@@ -371,6 +371,20 @@ public class BattleManager implements MessageHandler, Examinable {
     }
 
     @Override
+    public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
+        EnumMap<CommandMessage, String> gathered = MessageHandler.super.gatherHelp(ctx);
+        if (ctx.getCreature() == null) {
+            gathered.remove(CommandMessage.ATTACK);
+            gathered.remove(CommandMessage.DROP);
+            gathered.remove(CommandMessage.INTERACT);
+            gathered.remove(CommandMessage.TAKE);
+            gathered.remove(CommandMessage.CAST);
+            gathered.remove(CommandMessage.USE);
+        }
+        return gathered;
+    }
+
+    @Override
     public boolean handleMessage(CommandContext ctx, Command msg) {
         CommandMessage type = msg.getType();
         Boolean handled = false;

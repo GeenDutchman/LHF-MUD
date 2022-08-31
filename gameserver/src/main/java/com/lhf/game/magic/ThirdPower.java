@@ -18,6 +18,8 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.CastMessage;
+import com.lhf.messages.out.BadMessage;
+import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.CastingMessage;
@@ -265,6 +267,10 @@ public class ThirdPower implements MessageHandler {
     public boolean handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
         if (msg.getType() == CommandMessage.CAST) {
+            if (ctx.getCreature() == null) {
+                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+                return true;
+            }
             Creature attempter = ctx.getCreature();
             if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
                 ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.NOT_CASTER, attempter, true));

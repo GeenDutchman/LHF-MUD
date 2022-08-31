@@ -29,6 +29,7 @@ import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.TakeMessage;
 import com.lhf.messages.in.UseMessage;
 import com.lhf.messages.out.*;
+import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
@@ -380,11 +381,25 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
     }
 
     @Override
+    public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
+        EnumMap<CommandMessage, String> gathered = MessageHandler.super.gatherHelp(ctx);
+        if (ctx.getCreature() == null) {
+            gathered.remove(CommandMessage.ATTACK);
+            gathered.remove(CommandMessage.DROP);
+            gathered.remove(CommandMessage.INTERACT);
+            gathered.remove(CommandMessage.TAKE);
+            gathered.remove(CommandMessage.CAST);
+            gathered.remove(CommandMessage.USE);
+        }
+        return gathered;
+    }
+
+    @Override
     public boolean handleMessage(CommandContext ctx, Command msg) {
         Boolean handled = false;
         CommandMessage type = msg.getType();
         ctx = this.addSelfToContext(ctx);
-        if (type != null && this.commands.containsKey(type) && ctx.getCreature() != null) {
+        if (type != null && this.commands.containsKey(type)) {
             if (type == CommandMessage.ATTACK) {
                 handled = this.handleAttack(ctx, msg);
             } else if (type == CommandMessage.SAY) {
@@ -414,17 +429,28 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
             return false;
         }
         ctx = this.addSelfToContext(ctx);
+        if (ctx.getCreature() == null) {
+            ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+            return true;
+        }
         return this.battleManager.handleMessage(ctx, msg);
     }
 
     protected boolean handleCast(CommandContext ctx, Command msg) {
         ctx.setBattleManager(this.battleManager);
-
+        if (ctx.getCreature() == null) {
+            ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+            return true;
+        }
         return false; // let a successor (ThirdPower) handle it
     }
 
     protected Boolean handleTake(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.TAKE) {
+            if (ctx.getCreature() == null) {
+                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+                return true;
+            }
             TakeMessage tMessage = (TakeMessage) msg;
 
             for (String thing : tMessage.getDirects()) {
@@ -467,6 +493,10 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
 
     protected Boolean handleInteract(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.INTERACT) {
+            if (ctx.getCreature() == null) {
+                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+                return true;
+            }
             InteractMessage intMessage = (InteractMessage) msg;
             String name = intMessage.getObject();
             ArrayList<Item> matches = new ArrayList<>();
@@ -499,6 +529,10 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
 
     protected Boolean handleDrop(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.DROP) {
+            if (ctx.getCreature() == null) {
+                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+                return true;
+            }
             DropMessage dMessage = (DropMessage) msg;
             if (dMessage.getDirects().size() == 0) {
                 ctx.sendMsg(new BadTargetSelectedMessage(BadTargetSelectedMessage.BadTargetOption.NOTARGET, null));
@@ -522,12 +556,57 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
     protected Boolean handleSee(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SEE) {
             SeeMessage sMessage = (SeeMessage) msg;
-            if (sMessage.getThing() != null) {
-                ctx.sendMsg(this.examine(ctx.getCreature(), sMessage.getThing()));
+            if (sMessage.getThing() != null && !sMessage.getThing().isBlank()) {
+                String name = sMessage.getThing();
+                ArrayList<Creature> found = this.getCreaturesInRoom(name);
+                // we should be able to see people in a fight
+                if (found.size() == 1) {
+                    ctx.sendMsg(found.get(0).produceMessage().addExtraInfo("They are in the room with you. "));
+                    return true;
+                }
+
+                if (ctx.getCreature() != null && ctx.getCreature().isInBattle()) {
+                    ctx.sendMsg(new SeeOutMessage("You are in a fight right now, you are too busy to examine that!"));
+                    return true;
+                }
+
+                for (Item ro : items) {
+                    if (ro.CheckNameRegex(name, 3)) {
+                        ctx.sendMsg(new SeeOutMessage(ro));
+                        return true;
+                    }
+                }
+
+                if (ctx.getCreature() != null) {
+                    Creature creature = ctx.getCreature();
+                    for (Item thing : creature.getEquipmentSlots().values()) {
+                        if (thing.CheckNameRegex(name, 3)) {
+                            if (thing instanceof Examinable) {
+                                ctx.sendMsg(thing.produceMessage().addExtraInfo("You have it equipped. "));
+                                return true;
+                            }
+                            ctx.sendMsg(new SeeOutMessage(thing, "You have it equipped. "));
+                            return true;
+                        }
+                    }
+
+                    Optional<Item> maybeThing = creature.getInventory().getItem(name);
+                    if (maybeThing.isPresent()) {
+                        Item thing = maybeThing.get();
+                        if (thing instanceof Examinable) {
+                            ctx.sendMsg(thing.produceMessage().addExtraInfo("You see it in your inventory. "));
+                            return true;
+                        }
+                        ctx.sendMsg(new SeeOutMessage(thing, "You see it in your inventory. "));
+                        return true;
+                    }
+                }
+
+                ctx.sendMsg(new SeeOutMessage("You couldn't find " + name + " to examine. "));
+                return true;
             } else {
-                return false;
+                return false; // let the dungeon handle the see
             }
-            return true;
         }
         return false;
     }
@@ -557,6 +636,10 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
 
     protected Boolean handleUse(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.USE) {
+            if (ctx.getCreature() == null) {
+                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+                return true;
+            }
             UseMessage useMessage = (UseMessage) msg;
             Optional<Item> maybeItem = ctx.getCreature().getItem(useMessage.getUsefulItem());
             if (maybeItem.isEmpty() || !(maybeItem.get() instanceof Usable)) {
@@ -591,44 +674,6 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
             return true;
         }
         return false;
-    }
-
-    protected SeeOutMessage examine(Creature creature, String name) {
-        ArrayList<Creature> found = this.getCreaturesInRoom(name);
-        // we should be able to see people in a fight
-        if (found.size() == 1) {
-            return found.get(0).produceMessage().addExtraInfo("They are in the room with you. ");
-        }
-
-        if (creature.isInBattle()) {
-            return new SeeOutMessage("You are in a fight right now, you are too busy to examine that!");
-        }
-
-        for (Item ro : items) {
-            if (ro.CheckNameRegex(name, 3)) {
-                return new SeeOutMessage(ro);
-            }
-        }
-
-        for (Item thing : creature.getEquipmentSlots().values()) {
-            if (thing.CheckNameRegex(name, 3)) {
-                if (thing instanceof Examinable) {
-                    return thing.produceMessage().addExtraInfo("You have it equipped. ");
-                }
-                return new SeeOutMessage(thing, "You have it equipped. ");
-            }
-        }
-
-        Optional<Item> maybeThing = creature.getInventory().getItem(name);
-        if (maybeThing.isPresent()) {
-            Item thing = maybeThing.get();
-            if (thing instanceof Examinable) {
-                return thing.produceMessage().addExtraInfo("You see it in your inventory. ");
-            }
-            return new SeeOutMessage(thing, "You see it in your inventory. ");
-        }
-
-        return new SeeOutMessage("You couldn't find " + name + " to examine. ");
     }
 
     @Override

@@ -20,6 +20,8 @@ import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.ShoutMessage;
 import com.lhf.messages.out.BadGoMessage;
 import com.lhf.messages.out.BadGoMessage.BadGoType;
+import com.lhf.messages.out.BadMessage;
+import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.ReincarnateMessage;
 import com.lhf.messages.out.SeeOutMessage;
@@ -209,6 +211,10 @@ public class Dungeon implements MessageHandler {
 
     private Boolean handleShout(CommandContext ctx, Command cmd) {
         if (cmd.getType() == CommandMessage.SHOUT) {
+            if (ctx.getCreature() == null) {
+                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), cmd));
+                return true;
+            }
             ShoutMessage shoutMessage = (ShoutMessage) cmd;
             for (RoomAndDirs rAndD : this.mapping.values()) {
                 for (Player p : rAndD.room.getAllPlayersInRoom()) {
@@ -222,6 +228,10 @@ public class Dungeon implements MessageHandler {
 
     private Boolean handleGo(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.GO) {
+            if (ctx.getCreature() == null) {
+                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+                return true;
+            }
             GoMessage goMessage = (GoMessage) msg;
             Directions toGo = goMessage.getDirection();
             if (ctx.getRoom() == null) {
@@ -311,6 +321,19 @@ public class Dungeon implements MessageHandler {
     @Override
     public CommandContext addSelfToContext(CommandContext ctx) {
         return ctx;
+    }
+
+    @Override
+    public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
+        EnumMap<CommandMessage, String> gathered = MessageHandler.super.gatherHelp(ctx);
+        if (ctx.getCreature() == null) {
+            gathered.remove(CommandMessage.SHOUT);
+            gathered.remove(CommandMessage.GO);
+        }
+        if (ctx.getRoom() == null) {
+            gathered.remove(CommandMessage.GO);
+        }
+        return gathered;
     }
 
     @Override
