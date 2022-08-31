@@ -3,7 +3,7 @@ package com.lhf.server.client;
 import java.util.Objects;
 import java.util.UUID;
 
-public class ClientID {
+public class ClientID implements Comparable<ClientID> {
     private UUID uuid;
 
     public ClientID() {
@@ -25,6 +25,11 @@ public class ClientID {
         }
         ClientID other = (ClientID) obj;
         return Objects.equals(uuid, other.uuid);
+    }
+
+    @Override
+    public int compareTo(ClientID o) {
+        return this.uuid.compareTo(o.uuid);
     }
 
 }
