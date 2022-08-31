@@ -23,6 +23,7 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.out.OutMessage;
 
 public class NonPlayerCharacter extends Creature {
@@ -111,12 +112,12 @@ public class NonPlayerCharacter extends Creature {
     }
 
     @Override
-    public void sendMsg(OutMessage msg) {
-        if (this.getController() == null) {
+    public ClientMessenger getController() {
+        if (super.getController() == null) {
             BasicAI lizardbrain = new BasicAI(this);
             this.setController(lizardbrain);
         }
-        super.sendMsg(msg);
+        return super.getController();
     }
 
     @Override

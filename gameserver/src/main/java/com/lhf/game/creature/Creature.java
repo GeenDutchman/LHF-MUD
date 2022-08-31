@@ -678,8 +678,8 @@ public abstract class Creature
 
     @Override
     public void sendMsg(OutMessage msg) {
-        if (this.controller != null) {
-            this.controller.sendMsg(msg);
+        if (this.getController() != null) {
+            this.getController().sendMsg(msg);
             return;
         }
         // Does nothing silently
@@ -687,8 +687,8 @@ public abstract class Creature
 
     @Override
     public ClientID getClientID() {
-        if (this.controller != null) {
-            return this.controller.getClientID();
+        if (this.getController() != null) {
+            return this.getController().getClientID();
         }
         return null;
     }
