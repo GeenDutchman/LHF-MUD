@@ -8,7 +8,7 @@ import com.lhf.messages.OutMessageType;
 
 public class BadMessage extends HelpMessage {
     public enum BadMessageType {
-        UNHANDLED, UNRECOGNIZED, OTHER;
+        UNHANDLED, UNRECOGNIZED, OTHER, CREATURES_ONLY;
     }
 
     private BadMessageType type;
@@ -28,6 +28,11 @@ public class BadMessage extends HelpMessage {
         }
         StringBuilder sb = new StringBuilder();
         switch (this.type) {
+            case CREATURES_ONLY:
+                sb.append("You must be more than just a User to perform the action: ").append(cmd.getType())
+                        .append("\r\n")
+                        .append("Here are the available commands:\r\n");
+                break;
             case UNHANDLED:
                 sb.append("That command \"").append(cmd.getWhole()).append("\" was not handled.\n")
                         .append("Here are the available commands:\r\n");
