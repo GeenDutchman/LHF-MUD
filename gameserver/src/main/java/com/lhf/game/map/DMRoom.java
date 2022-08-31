@@ -7,12 +7,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
 
+import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.Player;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.in.SayMessage;
+import com.lhf.messages.out.BadMessage;
+import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.RoomEnteredOutMessage;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.messages.out.UserLeftMessage;
@@ -117,7 +120,7 @@ public class DMRoom extends Room {
     public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
         ctx = super.addSelfToContext(ctx);
         EnumMap<CommandMessage, String> gathered = super.gatherHelp(ctx);
-        if (ctx.getCreature() == null) {
+        if (ctx.getCreature() == null || !(ctx.getCreature() instanceof DungeonMaster)) {
             StringJoiner sj = new StringJoiner(" ");
             sj.add("\"say [message] to [name]\"")
                     .add("Will tell a specific person somewhere in your current room your message.");
@@ -130,8 +133,42 @@ public class DMRoom extends Room {
                     gathered.remove(cm);
                 }
             }
+            gathered.remove(CommandMessage.CAST);
         }
         return gathered;
+    }
+
+    @Override
+    public boolean handleMessage(CommandContext ctx, Command msg) {
+        if (ctx.getCreature() != null && ctx.getCreature() instanceof DungeonMaster) {
+            return super.handleMessage(ctx, msg);
+        }
+        boolean handled = false;
+        CommandMessage type = msg.getType();
+        ctx = this.addSelfToContext(ctx);
+        if (type == CommandMessage.SAY) {
+            handled = this.handleSay(ctx, msg);
+        } else if (type == CommandMessage.SEE) {
+            handled = this.handleSee(ctx, msg);
+            if (handled) {
+                return handled;
+            }
+            ctx.sendMsg(this.produceMessage());
+            return true;
+        } else if (type == CommandMessage.CAST) {
+            if (ctx.getCreature() == null || !(ctx.getCreature() instanceof DungeonMaster)) {
+                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+                return true;
+            }
+            handled = super.handleCast(ctx, msg);
+        }
+        if (handled) {
+            return handled;
+        }
+        if (this.getSuccessor() != null) {
+            return this.getSuccessor().handleMessage(ctx, msg);
+        }
+        return false;
     }
 
 }
