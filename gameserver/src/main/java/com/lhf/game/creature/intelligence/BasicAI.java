@@ -8,7 +8,7 @@ import java.util.TreeMap;
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.NonPlayerCharacter;
-import com.lhf.game.creature.intelligence.handlers.SpeakingHandler;
+import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandMessage;
@@ -92,7 +92,7 @@ public class BasicAI extends Client {
                 return;
             }
         });
-        this.addHandler(new SpeakingHandler());
+        this.addHandler(new SpokenPromptChunk());
     }
 
     protected void selectNextTarget(Collection<Creature> possTargets) {
