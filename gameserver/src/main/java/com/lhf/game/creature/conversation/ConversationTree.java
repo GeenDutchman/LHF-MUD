@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.Taggable;
 import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
 import com.lhf.server.interfaces.NotNull;
 
@@ -14,7 +14,7 @@ public class ConversationTree implements Serializable {
     private ConversationTreeNode start;
     private SortedMap<UUID, ConversationTreeNode> nodes;
     private SortedMap<UUID, List<ConversationTreeBranch>> branches;
-    private transient Map<Creature, ConversationContext> bookmarks;
+    private transient Map<Taggable, ConversationContext> bookmarks;
     private SortedSet<ConversationTreeBranch> greetings;
     private SortedSet<ConversationPattern> repeatWords;
     private String endOfConvo;
@@ -117,8 +117,8 @@ public class ConversationTree implements Serializable {
         return result;
     }
 
-    protected ConversationTreeNodeResult backtrack(Creature c) {
-        ConversationContext ctx = this.bookmarks.get(c);
+    protected ConversationTreeNodeResult backtrack(Taggable talker) {
+        ConversationContext ctx = this.bookmarks.get(talker);
         ctx.backtrack();
         UUID backNode = ctx.getTrailEnd();
         return this.tagIt(ctx, this.nodes.get(backNode));
@@ -132,8 +132,8 @@ public class ConversationTree implements Serializable {
         return this.nodes;
     }
 
-    protected ConversationTreeNode getCurrentNode(Creature c) {
-        ConversationContext ctx = this.bookmarks.get(c);
+    protected ConversationTreeNode getCurrentNode(Taggable talker) {
+        ConversationContext ctx = this.bookmarks.get(talker);
         UUID nodeID = ctx.getTrailEnd();
         return this.getNode(nodeID);
     }
@@ -142,22 +142,22 @@ public class ConversationTree implements Serializable {
         return this.branches.get(nodeID);
     }
 
-    public ConversationTreeNodeResult listen(Creature c, String message) {
-        if (!this.bookmarks.containsKey(c)) {
+    public ConversationTreeNodeResult listen(Taggable talker, String message) {
+        if (!this.bookmarks.containsKey(talker)) {
             for (ConversationTreeBranch greet : this.greetings) {
                 Matcher matcher = greet.getRegex().matcher(message);
                 if (matcher.find()) {
                     ConversationContext ctx = new ConversationContext();
-                    ctx.put(ConversationContextKey.TALKER_NAME, c.getName());
-                    ctx.put(ConversationContextKey.TALKER_TAGGED_NAME, c.getColorTaggedName());
+                    ctx.put(ConversationContextKey.TALKER_NAME, Taggable.extract(talker));
+                    ctx.put(ConversationContextKey.TALKER_TAGGED_NAME, talker.getColorTaggedName());
                     ctx.addTrail(this.start.getNodeID());
-                    this.bookmarks.put(c, ctx);
+                    this.bookmarks.put(talker, ctx);
                     return this.tagIt(ctx, this.start);
                 }
             }
             return null;
         }
-        ConversationContext ctx = this.bookmarks.get(c);
+        ConversationContext ctx = this.bookmarks.get(talker);
         UUID id = ctx.getTrailEnd();
         int hasBranches = this.branches.containsKey(id) ? this.branches.get(id).size() : 0;
         if (hasBranches > 0) {
@@ -168,7 +168,7 @@ public class ConversationTree implements Serializable {
                         UUID nextID = branch.getNodeID();
                         ConversationTreeNode node = this.nodes.get(nextID);
                         if (node != null) {
-                            this.bookmarks.get(c).addTrail(nextID);
+                            this.bookmarks.get(talker).addTrail(nextID);
                             return this.tagIt(ctx, node);
                         }
                     }
@@ -185,14 +185,14 @@ public class ConversationTree implements Serializable {
         }
 
         if (hasBranches <= 0) {
-            this.bookmarks.get(c).addTrail(this.start.getNodeID());
+            this.bookmarks.get(talker).addTrail(this.start.getNodeID());
             return new ConversationTreeNodeResult(this.endOfConvo);
         }
         return new ConversationTreeNodeResult(this.notRecognized);
     }
 
-    public void forgetBookmark(Creature c) {
-        this.bookmarks.remove(c);
+    public void forgetBookmark(Taggable talker) {
+        this.bookmarks.remove(talker);
     }
 
     public String getEndOfConvo() {
