@@ -124,12 +124,14 @@ public class BasicAI extends Client {
         super.handleMessage(null, aMessage);
     }
 
-    public void addHandler(OutMessageType type, AIChunk chunk) {
+    public BasicAI addHandler(OutMessageType type, AIChunk chunk) {
         this.handlers.put(type, chunk);
+        return this;
     }
 
-    public void addHandler(@NotNull AIHandler aiHandler) {
+    public BasicAI addHandler(@NotNull AIHandler aiHandler) {
         this.handlers.put(aiHandler.getOutMessageType(), aiHandler);
+        return this;
     }
 
     @Override
