@@ -86,8 +86,8 @@ public class RoomBuilder {
         ConversationManager convoLoader = new ConversationManager();
         dmAda.setConvoTree(convoLoader, "verbal_default");
         dmGary.setConvoTree(convoLoader, "verbal_default");
-        dmAda.setController(new BasicAI(dmAda).addHandler(new SpokenPromptChunk()));
-        dmGary.setController(new BasicAI(dmGary).addHandler(new SpokenPromptChunk()));
+        dmAda.setController(new BasicAI(dmAda).addHandler(new SpokenPromptChunk().setAllowUsers()));
+        dmGary.setController(new BasicAI(dmGary).addHandler(new SpokenPromptChunk().setAllowUsers()));
 
         dmRoom.addCreature(dmAda);
         dmRoom.addCreature(dmGary);
