@@ -9,6 +9,7 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.BasicAI;
+import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.item.Item;
 import com.lhf.messages.MessageHandler;
 
@@ -85,8 +86,8 @@ public class RoomBuilder {
         ConversationManager convoLoader = new ConversationManager();
         dmAda.setConvoTree(convoLoader, "verbal_default");
         dmGary.setConvoTree(convoLoader, "verbal_default");
-        dmAda.setController(new BasicAI(dmAda));
-        dmGary.setController(new BasicAI(dmGary));
+        dmAda.setController(new BasicAI(dmAda).addHandler(new SpokenPromptChunk()));
+        dmGary.setController(new BasicAI(dmGary).addHandler(new SpokenPromptChunk()));
 
         dmRoom.addCreature(dmAda);
         dmRoom.addCreature(dmGary);
