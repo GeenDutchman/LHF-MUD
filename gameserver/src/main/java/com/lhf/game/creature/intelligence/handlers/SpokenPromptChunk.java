@@ -3,6 +3,7 @@ package com.lhf.game.creature.intelligence.handlers;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
@@ -16,27 +17,37 @@ import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.ClientID;
+import com.lhf.server.client.user.User;
 
 public class SpokenPromptChunk extends AIHandler {
     private Set<ClientID> prompters;
+    private boolean allowUsers;
 
     public SpokenPromptChunk() {
         super(OutMessageType.SPEAKING);
         this.prompters = new HashSet<>();
+        this.allowUsers = false;
     }
 
-    public void addPrompter(ClientID id) {
+    public SpokenPromptChunk setAllowUsers() {
+        this.allowUsers = true;
+        return this;
+    }
+
+    public SpokenPromptChunk addPrompter(ClientID id) {
         this.prompters.add(id);
+        return this;
     }
 
-    private void basicHandle(BasicAI bai, SpeakingMessage sm, Creature sayer) {
+    private void basicHandle(BasicAI bai, SpeakingMessage sm) {
         if (bai.getNpc().getConvoTree() != null) {
-            ConversationTreeNodeResult result = bai.getNpc().getConvoTree().listen(sayer, sm.getMessage());
+            ConversationTreeNodeResult result = bai.getNpc().getConvoTree().listen(sm.getSayer(), sm.getMessage());
             if (result != null && result.getBody() != null) {
+                String name = Taggable.extract(sm.getSayer());
                 SayMessage say = (SayMessage) CommandBuilder.fromCommand(CommandMessage.SAY,
-                        "say \"" + result.getBody() + "\" to " + sayer.getName());
+                        "say \"" + result.getBody() + "\" to " + name);
                 CommandBuilder.addDirect(say, result.getBody());
-                CommandBuilder.addIndirect(say, "to", sayer.getName());
+                CommandBuilder.addIndirect(say, "to", name);
                 bai.handleMessage(null, say);
             }
             if (result != null && result.getPrompts() != null) {
@@ -56,16 +67,15 @@ public class SpokenPromptChunk extends AIHandler {
         if (msg.getOutType().equals(OutMessageType.SPEAKING)) {
             SpeakingMessage sm = (SpeakingMessage) msg;
             if (!sm.getShouting() && sm.getHearer() != null && sm.getHearer() instanceof NonPlayerCharacter) {
-                if (sm.getSayer() instanceof Creature) {
-                    Creature sayer = (Creature) sm.getSayer();
+                if (sm.getSayer() instanceof Creature || (this.allowUsers && sm.getSayer() instanceof User)) {
                     if (sm.getMessage().startsWith("PROMPT") &&
-                            (this.prompters.contains(sayer.getClientID())
-                                    || sayer.getClientID().equals(bai.getClientID()))) {
+                            (this.prompters.contains(sm.getSayer().getClientID())
+                                    || sm.getSayer().getClientID().equals(bai.getClientID()))) {
                         String prompt = sm.getMessage().replaceFirst("PROMPT", "").trim();
                         Command cmd = CommandBuilder.parse(prompt);
                         bai.handleMessage(null, cmd);
                     } else {
-                        basicHandle(bai, sm, sayer);
+                        basicHandle(bai, sm);
                     }
                 }
             }
