@@ -39,7 +39,7 @@ public interface MessageHandler {
         return coalesce;
     }
 
-    public default Boolean handleMessage(CommandContext ctx, Command msg) {
+    public default boolean handleMessage(CommandContext ctx, Command msg) {
         if (this.getSuccessor() != null) {
             return this.getSuccessor().handleMessage(ctx, msg);
         }

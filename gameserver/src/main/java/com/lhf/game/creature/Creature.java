@@ -717,7 +717,7 @@ public abstract class Creature
     }
 
     @Override
-    public Boolean handleMessage(CommandContext ctx, Command msg) {
+    public boolean handleMessage(CommandContext ctx, Command msg) {
         boolean handled = false;
         ctx = this.addSelfToContext(ctx);
         if (msg.getType() == CommandMessage.EQUIP) {

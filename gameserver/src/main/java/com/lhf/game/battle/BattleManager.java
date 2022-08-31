@@ -370,7 +370,7 @@ public class BattleManager implements MessageHandler, Examinable {
     }
 
     @Override
-    public Boolean handleMessage(CommandContext ctx, Command msg) {
+    public boolean handleMessage(CommandContext ctx, Command msg) {
         CommandMessage type = msg.getType();
         Boolean handled = false;
         ctx = this.addSelfToContext(ctx);

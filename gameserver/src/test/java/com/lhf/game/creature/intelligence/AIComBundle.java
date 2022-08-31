@@ -60,7 +60,7 @@ public class AIComBundle implements MessageHandler {
     }
 
     @Override
-    public Boolean handleMessage(CommandContext ctx, Command msg) {
+    public boolean handleMessage(CommandContext ctx, Command msg) {
         System.out.println(msg.toString());
         this.sent.add(msg);
         return true;

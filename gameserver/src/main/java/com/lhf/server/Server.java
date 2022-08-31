@@ -154,7 +154,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public Boolean handleMessage(CommandContext ctx, Command msg) {
+    public boolean handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
         if (msg.getType() == CommandMessage.EXIT) {
             this.logger.info("client " + ctx.getClientID().toString() + " is exiting");

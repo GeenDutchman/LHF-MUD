@@ -136,7 +136,7 @@ public class DMRoom extends Room {
     }
 
     @Override
-    public Boolean handleMessage(CommandContext ctx, Command msg) {
+    public boolean handleMessage(CommandContext ctx, Command msg) {
         boolean handled = false;
         CommandMessage type = msg.getType();
         ctx = this.addSelfToContext(ctx);

@@ -115,7 +115,7 @@ public class Client implements MessageHandler, ClientMessenger {
     }
 
     @Override
-    public Boolean handleMessage(CommandContext ctx, Command msg) {
+    public boolean handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
         if (msg.getType() == CommandMessage.HELP) {
             return this.handleHelpMessage(null, null);
