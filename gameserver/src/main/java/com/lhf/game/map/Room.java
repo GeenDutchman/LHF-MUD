@@ -409,7 +409,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return MessageHandler.super.handleMessage(ctx, msg);
     }
 
-    private Boolean handleAttack(CommandContext ctx, Command msg) {
+    protected Boolean handleAttack(CommandContext ctx, Command msg) {
         if (msg.getType() != CommandMessage.ATTACK) {
             return false;
         }
@@ -417,13 +417,13 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return this.battleManager.handleMessage(ctx, msg);
     }
 
-    private boolean handleCast(CommandContext ctx, Command msg) {
+    protected boolean handleCast(CommandContext ctx, Command msg) {
         ctx.setBattleManager(this.battleManager);
 
         return false; // let a successor (ThirdPower) handle it
     }
 
-    private Boolean handleTake(CommandContext ctx, Command msg) {
+    protected Boolean handleTake(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.TAKE) {
             TakeMessage tMessage = (TakeMessage) msg;
 
@@ -465,7 +465,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return false;
     }
 
-    private Boolean handleInteract(CommandContext ctx, Command msg) {
+    protected Boolean handleInteract(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.INTERACT) {
             InteractMessage intMessage = (InteractMessage) msg;
             String name = intMessage.getObject();
@@ -497,7 +497,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return false;
     }
 
-    private Boolean handleDrop(CommandContext ctx, Command msg) {
+    protected Boolean handleDrop(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.DROP) {
             DropMessage dMessage = (DropMessage) msg;
             if (dMessage.getDirects().size() == 0) {
@@ -519,7 +519,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
     }
 
     // only used to examine items and creatures in this room
-    private Boolean handleSee(CommandContext ctx, Command msg) {
+    protected Boolean handleSee(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SEE) {
             SeeMessage sMessage = (SeeMessage) msg;
             if (sMessage.getThing() != null) {
@@ -532,7 +532,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return false;
     }
 
-    private Boolean handleSay(CommandContext ctx, Command msg) {
+    protected Boolean handleSay(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SAY) {
             SayMessage sMessage = (SayMessage) msg;
             if (sMessage.getTarget() != null) {
@@ -555,7 +555,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return false;
     }
 
-    private Boolean handleUse(CommandContext ctx, Command msg) {
+    protected Boolean handleUse(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.USE) {
             UseMessage useMessage = (UseMessage) msg;
             Optional<Item> maybeItem = ctx.getCreature().getItem(useMessage.getUsefulItem());
@@ -593,7 +593,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return false;
     }
 
-    private SeeOutMessage examine(Creature creature, String name) {
+    protected SeeOutMessage examine(Creature creature, String name) {
         ArrayList<Creature> found = this.getCreaturesInRoom(name);
         // we should be able to see people in a fight
         if (found.size() == 1) {
