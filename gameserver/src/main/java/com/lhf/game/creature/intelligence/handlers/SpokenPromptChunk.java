@@ -1,4 +1,4 @@
-package com.lhf.game.creature.intelligence;
+package com.lhf.game.creature.intelligence.handlers;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -6,6 +6,8 @@ import java.util.Set;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
+import com.lhf.game.creature.intelligence.AIHandler;
+import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandMessage;
@@ -15,10 +17,11 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.ClientID;
 
-public class SpokenPromptChunk implements AIChunk {
+public class SpokenPromptChunk extends AIHandler {
     private Set<ClientID> prompters;
 
     public SpokenPromptChunk() {
+        super(OutMessageType.SPEAKING);
         this.prompters = new HashSet<>();
     }
 
