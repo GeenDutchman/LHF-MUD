@@ -48,9 +48,12 @@ public class DMRoom extends Room {
             // shunt
             return this.addNewPlayer(new Player(user));
         }
-        user.setSuccessor(this);
-        this.sendMessageToAll(new RoomEnteredOutMessage(user));
-        return this.users.add(user);
+        boolean added = this.users.add(user);
+        if (added) {
+            user.setSuccessor(this);
+            this.sendMessageToAll(new RoomEnteredOutMessage(user));
+        }
+        return added;
     }
 
     public User getUser(String username) {
