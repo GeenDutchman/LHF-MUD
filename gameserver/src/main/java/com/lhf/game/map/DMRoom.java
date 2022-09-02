@@ -17,6 +17,7 @@ import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.out.BadMessage;
 import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.RoomEnteredOutMessage;
+import com.lhf.messages.out.SomeoneLeftRoom;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.messages.out.UserLeftMessage;
 import com.lhf.server.client.user.User;
@@ -69,6 +70,7 @@ public class DMRoom extends Room {
         for (User user : this.users) {
             if (username.equals(user.getUsername())) {
                 this.users.remove(user);
+                this.sendMessageToAll(new SomeoneLeftRoom(user, null));
                 return user;
             }
         }
