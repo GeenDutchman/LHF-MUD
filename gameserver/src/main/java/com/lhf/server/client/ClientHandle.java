@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.messages.out.FatalMessage;
@@ -36,10 +37,9 @@ public class ClientHandle extends Client implements Runnable {
         this.logger.finer("Running ClientHandle");
         String value;
         try {
-            while (!killIt && ((value = in.readLine()) != null)) {
+            while (!this.killIt && ((value = in.readLine()) != null)) {
                 this.ProcessString(value);
             }
-            disconnect(); // clean up after itself
         } catch (IOException e) {
             sendMsg(new FatalMessage());
             e.printStackTrace();
@@ -54,15 +54,22 @@ public class ClientHandle extends Client implements Runnable {
     }
 
     public void kill() {
+        this.logger.info("Disconnecting ClientHandler");
         this.killIt = true;
+        if (connected && socket.isConnected()) {
+            try {
+                socket.close();
+                connected = false;
+            } catch (IOException e) {
+                this.logger.log(Level.WARNING, e.getMessage());
+                e.printStackTrace();
+            }
+        }
     }
 
-    void disconnect() throws IOException {
-        this.logger.info("Disconnecting ClientHandler");
-        if (connected && socket.isConnected()) {
-            socket.close();
-            connected = false;
-        }
+    void disconnect() {
+        this.logger.info("Requesting ClientHandler to stop");
+        this.killIt = true;
     }
 
 }
