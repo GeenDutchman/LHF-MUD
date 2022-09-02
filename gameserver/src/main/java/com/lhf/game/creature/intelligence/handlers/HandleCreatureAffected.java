@@ -30,12 +30,12 @@ public class HandleCreatureAffected extends AIHandler {
 
     @Override
     public void handle(BasicAI bai, OutMessage msg) {
-        if (OutMessageType.CREATURE_AFFECTED.equals(msg.getOutType()) {
+        if (OutMessageType.CREATURE_AFFECTED.equals(msg.getOutType())) {
             CreatureAffectedMessage caMessage = (CreatureAffectedMessage) msg;
             this.handleOuch(bai, caMessage);
             this.handleOtherDeath(bai, caMessage);
         }
-        
+
     }
 
 }
