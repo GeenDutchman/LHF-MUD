@@ -24,7 +24,7 @@ import com.lhf.messages.out.BadMessage;
 import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.ReincarnateMessage;
-import com.lhf.messages.out.RoomLeft;
+import com.lhf.messages.out.SomeoneLeftRoom;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.SpawnMessage;

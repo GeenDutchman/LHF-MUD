@@ -163,7 +163,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
     public Creature removeCreature(Creature c, Directions dir) {
         Creature removed = removeCreature(c);
         if (removed != null) {
-            this.sendMessageToAllExcept(new RoomLeft(removed, dir), c.getName());
+            this.sendMessageToAllExcept(new SomeoneLeftRoom(removed, dir), c.getName());
         }
         return removed;
     }

@@ -2,13 +2,14 @@ package com.lhf.messages.out;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.map.Directions;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.OutMessageType;
 
-public class RoomLeft extends OutMessage {
-    private final Creature creature;
+public class SomeoneLeftRoom extends OutMessage {
+    private final ClientMessenger creature;
     private final Directions whichWay;
 
-    public RoomLeft(Creature creature, Directions whichWay) {
+    public SomeoneLeftRoom(ClientMessenger creature, Directions whichWay) {
         super(OutMessageType.ROOM_EXITED);
         this.creature = creature;
         this.whichWay = whichWay;
@@ -25,7 +26,7 @@ public class RoomLeft extends OutMessage {
         return sb.toString();
     }
 
-    public Creature getCreature() {
+    public ClientMessenger getCreature() {
         return creature;
     }
 
