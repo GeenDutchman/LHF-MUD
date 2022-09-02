@@ -9,6 +9,7 @@ import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.intelligence.handlers.ForgetOnOtherExit;
+import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.CommandBuilder;
@@ -59,17 +60,6 @@ public class BasicAI extends Client {
                 bai.setLastAttacker(null);
             }
         });
-        this.handlers.put(OutMessageType.CREATURE_AFFECTED, (BasicAI bai, OutMessage msg) -> {
-            if (msg.getOutType().equals(OutMessageType.CREATURE_AFFECTED) && bai.getNpc().isInBattle()) {
-                CreatureAffectedMessage caMessage = (CreatureAffectedMessage) msg;
-                if (caMessage.getAffected() != bai.getNpc()) {
-                    return;
-                }
-                if (caMessage.getEffect().isOffensive()) {
-                    bai.setLastAttacker(caMessage.getEffect().creatureResponsible());
-                }
-            }
-        });
         this.handlers.put(OutMessageType.BAD_TARGET_SELECTED, (BasicAI bai, OutMessage msg) -> {
             if (msg.getOutType().equals(OutMessageType.BAD_TARGET_SELECTED)) {
                 bai.setLastAttacker(null); // the message means that this was invalid anyway
@@ -95,6 +85,7 @@ public class BasicAI extends Client {
         });
         this.addHandler(new SpokenPromptChunk());
         this.addHandler(new ForgetOnOtherExit());
+        this.addHandler(new HandleCreatureAffected());
     }
 
     protected void selectNextTarget(Collection<Creature> possTargets) {
