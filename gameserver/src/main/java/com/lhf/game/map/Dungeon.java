@@ -24,6 +24,7 @@ import com.lhf.messages.out.BadMessage;
 import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.ReincarnateMessage;
+import com.lhf.messages.out.RoomLeft;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.SpawnMessage;
@@ -263,9 +264,10 @@ public class Dungeon implements MessageHandler {
                     ctx.sendMsg(new BadGoMessage(BadGoType.DNE, toGo, roomAndDirs.exits.keySet()));
                     return true;
                 }
+
                 ctx.getCreature().setSuccessor(nextRoom);
                 nextRoom.addCreature(ctx.getCreature());
-                presentRoom.removeCreature(ctx.getCreature());
+                presentRoom.removeCreature(ctx.getCreature(), toGo);
                 return true;
             } else {
                 ctx.sendMsg(new BadGoMessage(BadGoType.NO_ROOM, goMessage.getDirection()));

@@ -160,6 +160,14 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return null;
     }
 
+    public Creature removeCreature(Creature c, Directions dir) {
+        Creature removed = removeCreature(c);
+        if (removed != null) {
+            this.sendMessageToAllExcept(new RoomLeft(removed, dir), c.getName());
+        }
+        return removed;
+    }
+
     public void killPlayer(Player p) {
         this.allCreatures.remove(p);
         dungeon.reincarnate(p);
