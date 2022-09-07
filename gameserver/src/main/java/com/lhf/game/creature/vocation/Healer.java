@@ -1,6 +1,6 @@
 package com.lhf.game.creature.vocation;
 
-import java.util.HashSet;
+import java.util.EnumSet;
 
 import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.MultiRollResult;
@@ -9,11 +9,12 @@ import com.lhf.game.magic.CubeHolder;
 
 public class Healer extends Vocation implements CubeHolder {
     public Healer() {
-        super(VocationName.HEALER, Healer.generateProficiencies());
+        super(VocationName.HEALER);
     }
 
-    private static HashSet<EquipmentTypes> generateProficiencies() {
-        HashSet<EquipmentTypes> prof = new HashSet<>();
+    @Override
+    protected EnumSet<EquipmentTypes> generateProficiencies() {
+        EnumSet<EquipmentTypes> prof = EnumSet.noneOf(EquipmentTypes.class);
         // TODO: add proficiencies
         return prof;
     }

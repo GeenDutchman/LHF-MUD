@@ -1,17 +1,18 @@
 package com.lhf.game.creature.vocation;
 
-import java.util.HashSet;
+import java.util.EnumSet;
 
 import com.lhf.game.enums.EquipmentTypes;
 
 public class Fighter extends Vocation {
 
     public Fighter() {
-        super(VocationName.FIGHTER, Fighter.generateProficiencies());
+        super(VocationName.FIGHTER);
     }
 
-    private static HashSet<EquipmentTypes> generateProficiencies() {
-        HashSet<EquipmentTypes> prof = new HashSet<>();
+    @Override
+    protected EnumSet<EquipmentTypes> generateProficiencies() {
+        EnumSet<EquipmentTypes> prof = EnumSet.noneOf(EquipmentTypes.class);
         prof.add(EquipmentTypes.LIGHTARMOR);
         prof.add(EquipmentTypes.MEDIUMARMOR);
         prof.add(EquipmentTypes.SHIELD);

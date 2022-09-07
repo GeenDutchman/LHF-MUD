@@ -1,6 +1,6 @@
 package com.lhf.game.creature.vocation;
 
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Objects;
 
 import com.lhf.Taggable;
@@ -43,17 +43,22 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
     protected int level;
     protected final VocationName name;
-    protected final HashSet<EquipmentTypes> proficiencies;
+    protected final EnumSet<EquipmentTypes> proficiencies;
+
+    protected abstract EnumSet<EquipmentTypes> generateProficiencies();
 
     public Vocation(VocationName name) {
         this.name = name;
-        this.proficiencies = new HashSet<>();
+        this.proficiencies = this.generateProficiencies();
         this.level = 1;
     }
 
-    public Vocation(VocationName name, HashSet<EquipmentTypes> proficiencies) {
+    public Vocation(VocationName name, EnumSet<EquipmentTypes> otherProficiencies) {
         this.name = name;
-        this.proficiencies = proficiencies;
+        this.proficiencies = this.generateProficiencies();
+        if (otherProficiencies != null) {
+            this.proficiencies.addAll(otherProficiencies);
+        }
         this.level = 1;
     }
 
@@ -65,7 +70,7 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
         return name.toString();
     }
 
-    public HashSet<EquipmentTypes> getProficiencies() {
+    public EnumSet<EquipmentTypes> getProficiencies() {
         return proficiencies;
     }
 
