@@ -68,6 +68,8 @@ public class InMessage {
                 return new UseMessage(arguments);
             case PASS:
                 return new PassMessage(arguments);
+            case LEWD:
+                return new LewdInMessage(arguments);
             default:
                 return new HelpInMessage(arguments);
 

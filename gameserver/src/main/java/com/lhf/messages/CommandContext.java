@@ -2,6 +2,7 @@ package com.lhf.messages;
 
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.Room;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
@@ -14,6 +15,7 @@ public class CommandContext implements ClientMessenger {
     protected Creature creature;
     protected Room room;
     protected BattleManager bManager;
+    protected Dungeon dungeon;
 
     @Override
     public ClientID getClientID() {
@@ -75,6 +77,14 @@ public class CommandContext implements ClientMessenger {
 
     public void setBattleManager(BattleManager battleManager) {
         this.bManager = battleManager;
+    }
+
+    public Dungeon getDungeon() {
+        return dungeon;
+    }
+
+    public void setDungeon(Dungeon dungeon) {
+        this.dungeon = dungeon;
     }
 
     @Override
