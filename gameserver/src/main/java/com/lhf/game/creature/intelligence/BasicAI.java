@@ -10,6 +10,7 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.intelligence.handlers.ForgetOnOtherExit;
 import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
+import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.CommandBuilder;
@@ -86,6 +87,7 @@ public class BasicAI extends Client {
         this.addHandler(new SpokenPromptChunk());
         this.addHandler(new ForgetOnOtherExit());
         this.addHandler(new HandleCreatureAffected());
+        this.addHandler(new LewdAIHandler().setPartnersOnly());
     }
 
     protected void selectNextTarget(Collection<Creature> possTargets) {
