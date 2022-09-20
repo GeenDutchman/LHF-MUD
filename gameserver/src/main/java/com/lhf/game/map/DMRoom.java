@@ -9,6 +9,7 @@ import java.util.StringJoiner;
 
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.Player;
+import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -31,12 +32,14 @@ public class DMRoom extends Room {
         super(name);
         this.users = new HashSet<>();
         this.dungeons = new ArrayList<>();
+        this.lewdManager.setLewdProduct(new LewdBabyMaker());
     }
 
     DMRoom(String name, String description) {
         super(name, description);
         this.users = new HashSet<>();
         this.dungeons = new ArrayList<>();
+        this.lewdManager.setLewdProduct(new LewdBabyMaker());
     }
 
     public boolean addDungeon(@NotNull Dungeon dungeon) {

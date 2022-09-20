@@ -5,7 +5,7 @@ import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.lewd.LewdManager.LewdProduct;
 import com.lhf.game.map.Room;
 
-public class LewdBodyMaker implements LewdProduct {
+public class LewdBabyMaker implements LewdProduct {
 
     @Override
     public void onLewd(Room room, VrijPartij party) {
