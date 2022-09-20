@@ -9,6 +9,7 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.BasicAI;
+import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.item.Item;
@@ -89,10 +90,10 @@ public class RoomBuilder {
         dmGary.setConvoTree(convoLoader, "verbal_default");
         dmAda.setController(new BasicAI(dmAda)
                 .addHandler(new SpokenPromptChunk().setAllowUsers())
-                .addHandler(new SpeakOnOtherEntry()));
+                .addHandler(new SpeakOnOtherEntry()).addHandler(new LewdAIHandler(Set.of(dmGary))));
         dmGary.setController(new BasicAI(dmGary)
                 .addHandler(new SpokenPromptChunk().setAllowUsers())
-                .addHandler(new SpeakOnOtherEntry()));
+                .addHandler(new SpeakOnOtherEntry()).addHandler(new LewdAIHandler(Set.of(dmAda))));
 
         dmRoom.addCreature(dmAda);
         dmRoom.addCreature(dmGary);
