@@ -20,12 +20,12 @@ public class DungeonMaster extends NonPlayerCharacter implements PlayerCreatorAd
     private static Statblock makeStatblock() {
         AttributeBlock attributes = new AttributeBlock(100, 100, 100, 100, 100, 100);
         HashMap<Stats, Integer> stats = new HashMap<>();
-        stats.put(Stats.MAXHP, Integer.MAX_VALUE);
-        stats.put(Stats.CURRENTHP, Integer.MAX_VALUE);
-        stats.put(Stats.AC, Integer.MAX_VALUE);
-        stats.put(Stats.PROFICIENCYBONUS, Integer.MAX_VALUE);
-        stats.put(Stats.XPEARNED, Integer.MAX_VALUE);
-        stats.put(Stats.XPWORTH, Integer.MAX_VALUE);
+        stats.put(Stats.MAXHP, Integer.MAX_VALUE / 2);
+        stats.put(Stats.CURRENTHP, Integer.MAX_VALUE / 2);
+        stats.put(Stats.AC, Integer.MAX_VALUE / 2);
+        stats.put(Stats.PROFICIENCYBONUS, Integer.MAX_VALUE / 2);
+        stats.put(Stats.XPEARNED, Integer.MAX_VALUE / 2);
+        stats.put(Stats.XPWORTH, Integer.MAX_VALUE / 2);
         Statblock toMake = new Statblock("DungeonMaster", CreatureFaction.NPC, attributes, stats, new HashSet<>(),
                 new Inventory(), new HashMap<>());
         return toMake;
