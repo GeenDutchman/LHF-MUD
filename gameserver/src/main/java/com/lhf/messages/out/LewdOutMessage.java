@@ -5,7 +5,7 @@ import java.util.StringJoiner;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.lewd.LewdManager.LewdAnswer;
+import com.lhf.game.lewd.LewdAnswer;
 import com.lhf.messages.OutMessageType;
 
 public class LewdOutMessage extends OutMessage {
