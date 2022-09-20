@@ -47,7 +47,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
     private BattleManager battleManager;
     private Set<Creature> allCreatures;
     private Dungeon dungeon;
-    private LewdManager lewdManager;
+    protected LewdManager lewdManager;
 
     private Map<CommandMessage, String> commands;
     private MessageHandler successor;
@@ -151,6 +151,9 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         if (this.battleManager.isCreatureInBattle(c)) {
             this.battleManager.removeCreatureFromBattle(c);
             c.setInBattle(false);
+        }
+        if (this.lewdManager != null) {
+            this.lewdManager.removeCreature(c);
         }
         if (this.allCreatures.contains(c)) {
             this.allCreatures.remove(c);
