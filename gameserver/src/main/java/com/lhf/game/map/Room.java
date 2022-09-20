@@ -18,6 +18,7 @@ import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Usable;
+import com.lhf.game.lewd.LewdManager;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -46,6 +47,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
     private BattleManager battleManager;
     private Set<Creature> allCreatures;
     private Dungeon dungeon;
+    private LewdManager lewdManager;
 
     private Map<CommandMessage, String> commands;
     private MessageHandler successor;
@@ -67,6 +69,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         this.battleManager = new BattleManager(this);
         this.allCreatures = new HashSet<>();
         this.commands = this.buildCommands();
+        this.lewdManager = new LewdManager(this);
         return this;
     }
 
@@ -408,7 +411,9 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         Boolean handled = false;
         CommandMessage type = msg.getType();
         ctx = this.addSelfToContext(ctx);
-        if (type != null && this.commands.containsKey(type)) {
+        if (type != null && (this.commands.containsKey(type)
+                || (this.battleManager != null && this.battleManager.getCommands().containsKey(type))
+                || (this.lewdManager != null && this.lewdManager.getCommands().containsKey(type)))) {
             if (type == CommandMessage.ATTACK) {
                 handled = this.handleAttack(ctx, msg);
             } else if (type == CommandMessage.SAY) {
@@ -430,6 +435,11 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
                 handled = this.handleCast(ctx, msg);
             } else if (type == CommandMessage.USE) {
                 handled = this.handleUse(ctx, msg);
+            } else if (!this.battleManager.isBattleOngoing()
+                    && (type == CommandMessage.LEWD || type == CommandMessage.PASS)) {
+                if (this.lewdManager != null) {
+                    handled = this.lewdManager.handleMessage(ctx, msg);
+                }
             }
         }
         if (handled) {

@@ -14,7 +14,7 @@ public interface MessageHandler {
         this.setSuccessor(interceptor);
     }
 
-    public abstract Map<CommandMessage, String> getCommands();
+    public abstract Map<CommandMessage, String> getCommands(); // TODO: contextful
 
     public abstract CommandContext addSelfToContext(CommandContext ctx);
 

@@ -19,7 +19,7 @@ public class LewdInMessage extends Command {
         if (!super.isValid()) {
             return false;
         }
-        boolean directsValid = this.directs.size() > 0 && this.directs.size() == this.getPartners().size();
+        boolean directsValid = this.directs.size() >= 0 && this.directs.size() == this.getPartners().size();
         if (!directsValid) {
             return directsValid;
         }
