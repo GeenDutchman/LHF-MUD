@@ -14,29 +14,29 @@ public class LewdOutMessage extends OutMessage {
     }
 
     private final LewdOutMessageType type;
-    private final Map<Creature, LewdAnswer> participants;
+    private final Map<Creature, LewdAnswer> party;
     private final Creature creature;
 
     public LewdOutMessage(LewdOutMessageType type, Creature creature) {
         super(OutMessageType.LEWD);
         this.type = type;
-        this.participants = null;
+        this.party = null;
         this.creature = creature;
     }
 
     public LewdOutMessage(LewdOutMessageType type, Creature creature, Map<Creature, LewdAnswer> participants) {
         super(OutMessageType.LEWD);
         this.type = type;
-        this.participants = participants;
+        this.party = participants;
         this.creature = creature;
     }
 
     private String statusString() {
         StringJoiner sj = new StringJoiner(", ");
-        if (this.participants != null && this.participants.size() > 0) {
-            for (Creature creature : this.participants.keySet()) {
+        if (this.party != null && this.party.size() > 0) {
+            for (Creature creature : this.party.keySet()) {
                 sj.add(creature.getColorTaggedName() + ":"
-                        + this.participants.getOrDefault(creature, LewdAnswer.ASKED).name());
+                        + this.party.getOrDefault(creature, LewdAnswer.ASKED).name());
             }
             return sj.toString();
         } else {
@@ -48,9 +48,9 @@ public class LewdOutMessage extends OutMessage {
         StringJoiner sj = new StringJoiner(" and ");
         sj.setEmptyValue(" no one ");
 
-        if (this.participants != null && this.participants.size() > 1) {
-            for (Creature creature : this.participants.keySet()) {
-                if (LewdAnswer.ACCEPTED.equals(this.participants.get(creature))) {
+        if (this.party != null && this.party.size() > 1) {
+            for (Creature creature : this.party.keySet()) {
+                if (LewdAnswer.ACCEPTED.equals(this.party.get(creature))) {
                     sj.add(creature.getColorTaggedName());
                 }
             }
@@ -117,7 +117,7 @@ public class LewdOutMessage extends OutMessage {
     }
 
     public Map<Creature, LewdAnswer> getParticipants() {
-        return participants;
+        return Map.copyOf(party);
     }
 
     public Creature getCreature() {
