@@ -197,6 +197,26 @@ public class ConversationTree implements Serializable {
         this.bookmarks.remove(talker.getClientID());
     }
 
+    public boolean store(ClientMessenger talker, String key, String value) {
+        if (this.bookmarks.containsKey(talker.getClientID())) {
+            this.bookmarks.get(talker.getClientID()).put(key, value);
+            return true;
+        }
+        return false;
+    }
+
+    public Map<String, String> getContextBag(ClientMessenger talker) {
+        ConversationContext ctx = this.bookmarks.get(talker.getClientID());
+        if (ctx != null) {
+            return Collections.unmodifiableMap(ctx);
+        }
+        return ctx;
+    }
+
+    public ConversationContext getContext(ClientMessenger talker) {
+        return this.bookmarks.get(talker.getClientID());
+    }
+
     public String getEndOfConvo() {
         return endOfConvo;
     }
