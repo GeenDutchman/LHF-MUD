@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 
+import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.Player;
+import com.lhf.game.item.Item;
+import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
@@ -16,7 +20,10 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.out.BadMessage;
+import com.lhf.messages.out.BadTargetSelectedMessage;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.BadMessage.BadMessageType;
+import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.RoomEnteredOutMessage;
 import com.lhf.messages.out.SomeoneLeftRoom;
 import com.lhf.messages.out.SpeakingMessage;
@@ -90,6 +97,55 @@ public class DMRoom extends Room {
                 dungeon.sendMessageToAll(new UserLeftMessage(user, false));
             }
         }
+    }
+
+    public OutMessage applyEffect(DMRoomEffect effect) {
+        for (String name : effect.getUsernamesToEnsoul()) {
+            User user = this.getUser(name);
+            if (user == null) {
+                if (effect.creatureResponsible() != null) {
+                    effect.creatureResponsible().sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, name));
+                    continue;
+                }
+            }
+            Optional<Item> maybeCorpse = this.getItem(name);
+            if (maybeCorpse.isEmpty() || !(maybeCorpse.get() instanceof Corpse)) {
+                if (effect.creatureResponsible() != null) {
+                    effect.creatureResponsible().sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, name));
+                    continue;
+                }
+            }
+            Corpse corpse = (Corpse) maybeCorpse.get(); // TODO: actually use the corpse and get vocation
+            Player player = new Player(user);
+            this.removeItem(corpse);
+            this.addCreature(player);
+        }
+        for (String name : effect.getNamesToSendOff()) {
+            List<Creature> creatures = this.getCreaturesInRoom(name);
+            if (creatures.size() == 0) {
+                if (effect.creatureResponsible() != null) {
+                    effect.creatureResponsible()
+                            .sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, name, creatures));
+                    continue;
+                }
+            } else if (creatures.size() > 1) {
+                if (effect.creatureResponsible() != null) {
+                    effect.creatureResponsible()
+                            .sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, name, creatures));
+                    continue;
+                }
+            } else if (!(creatures.get(0) instanceof Player)) {
+                if (effect.creatureResponsible() != null) {
+                    effect.creatureResponsible()
+                            .sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNTARGETABLE, name));
+                    continue;
+                }
+            }
+            Player player = (Player) creatures.get(0);
+            this.removeCreature(player);
+            this.addNewPlayer(player);
+        }
+        return super.applyEffect(effect);
     }
 
     @Override
