@@ -3,13 +3,14 @@ package com.lhf.game.magic;
 import java.util.Set;
 
 import com.lhf.game.creature.vocation.Vocation.VocationName;
-import com.lhf.game.map.RoomEffectSource;
+import com.lhf.game.map.DMRoomEffectSource;
 
 public class DMRoomTargetingSpellEntry extends RoomTargetingSpellEntry {
     protected final boolean ensoulsUsers;
     protected final boolean sendsOffPlayers;
 
-    public DMRoomTargetingSpellEntry(Integer level, String name, String invocation, Set<RoomEffectSource> effectSources,
+    public DMRoomTargetingSpellEntry(Integer level, String name, String invocation,
+            Set<DMRoomEffectSource> effectSources,
             Set<VocationName> allowed, String description, boolean banishesItems, boolean banishesCreatures,
             boolean ensoulsUsers, boolean sendsOffPlayers) {
         super(level, name, invocation, effectSources, allowed, description, banishesItems, banishesCreatures);
@@ -17,7 +18,7 @@ public class DMRoomTargetingSpellEntry extends RoomTargetingSpellEntry {
         this.sendsOffPlayers = sendsOffPlayers;
     }
 
-    public DMRoomTargetingSpellEntry(Integer level, String name, Set<RoomEffectSource> effectSources,
+    public DMRoomTargetingSpellEntry(Integer level, String name, Set<DMRoomEffectSource> effectSources,
             Set<VocationName> allowed, String description, boolean banishesItems, boolean banishesCreatures,
             boolean ensoulsUsers, boolean sendsOffPlayers) {
         super(level, name, effectSources, allowed, description, banishesItems, banishesCreatures);
