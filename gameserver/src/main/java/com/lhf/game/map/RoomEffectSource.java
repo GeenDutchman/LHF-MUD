@@ -22,6 +22,14 @@ public class RoomEffectSource extends EntityEffectSource {
 
     protected Set<Creature> creaturesToBanish;
 
+    public RoomEffectSource(RoomEffectSource other) {
+        super(other.name, other.persistence, other.resistance, other.description);
+        this.itemsToBanish = new ArrayList<>(other.itemsToBanish);
+        this.itemsToSummon = new ArrayList<>(other.itemsToSummon);
+        this.creaturesToBanish = new HashSet<>(other.creaturesToBanish);
+        this.creaturesToSummon = new HashSet<>(other.creaturesToSummon);
+    }
+
     public RoomEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
             String description) {
         super(name, persistence, resistance, description);

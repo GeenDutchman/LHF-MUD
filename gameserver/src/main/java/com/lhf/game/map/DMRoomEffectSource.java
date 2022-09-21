@@ -6,6 +6,7 @@ import java.util.TreeSet;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
+import com.lhf.server.interfaces.NotNull;
 
 public class DMRoomEffectSource extends RoomEffectSource {
 
@@ -17,6 +18,16 @@ public class DMRoomEffectSource extends RoomEffectSource {
         super(name, persistence, resistance, description);
         this.usernamesToEnsoul = new TreeSet<>();
         this.namesToSendOff = new TreeSet<>();
+    }
+
+    public DMRoomEffectSource(@NotNull DMRoomEffectSource other) {
+        super(other.name, other.persistence, other.resistance, other.description);
+        this.usernamesToEnsoul = new TreeSet<>(other.usernamesToEnsoul);
+        this.namesToSendOff = new TreeSet<>(other.namesToSendOff);
+    }
+
+    public DMRoomEffectSource(@NotNull RoomEffectSource sub) {
+        super(sub);
     }
 
     public DMRoomEffectSource addUsernameToEnsoul(String username) {

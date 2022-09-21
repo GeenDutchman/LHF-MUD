@@ -8,8 +8,13 @@ import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.item.Item;
+import com.lhf.server.interfaces.NotNull;
 
 public class RoomEffect extends EntityEffect {
+
+    public RoomEffect(@NotNull RoomEffect other) {
+        super(other.source, other.creatureResponsible, other.generatedBy);
+    }
 
     public RoomEffect(RoomEffectSource source, Creature creatureResponsible, Taggable generatedBy) {
         super(source, creatureResponsible, generatedBy);

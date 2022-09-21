@@ -11,6 +11,10 @@ public class DMRoomEffect extends RoomEffect {
         super(source, creatureResponsible, generatedBy);
     }
 
+    public DMRoomEffect(RoomEffect sub) {
+        super(sub);
+    }
+
     public DMRoomEffectSource getSource() {
         return (DMRoomEffectSource) this.source;
     }
