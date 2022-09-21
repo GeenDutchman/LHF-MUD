@@ -2,10 +2,12 @@ package com.lhf.game.creature.intelligence.handlers;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
@@ -40,8 +42,9 @@ public class SpokenPromptChunk extends AIHandler {
     }
 
     private void basicHandle(BasicAI bai, SpeakingMessage sm) {
-        if (bai.getNpc().getConvoTree() != null) {
-            ConversationTreeNodeResult result = bai.getNpc().getConvoTree().listen(sm.getSayer(), sm.getMessage());
+        ConversationTree tree = bai.getNpc().getConvoTree();
+        if (tree != null) {
+            ConversationTreeNodeResult result = tree.listen(sm.getSayer(), sm.getMessage());
             if (result != null && result.getBody() != null) {
                 String name = Taggable.extract(sm.getSayer());
                 SayMessage say = (SayMessage) CommandBuilder.fromCommand(CommandMessage.SAY,
@@ -52,6 +55,15 @@ public class SpokenPromptChunk extends AIHandler {
             }
             if (result != null && result.getPrompts() != null) {
                 for (String prompt : result.getPrompts()) {
+                    if (prompt.startsWith("STORE")) {
+                        prompt = prompt.replaceFirst("STORE", "").trim();
+                        String[] splits = prompt.split("\\w", 2);
+                        if (splits.length < 2) {
+                            continue;
+                        }
+                        tree.store(sm.getSayer(), splits[0], splits[1]);
+                        continue;
+                    }
                     if (prompt.startsWith("PROMPT")) {
                         prompt = prompt.replaceFirst("PROMPT", "").trim();
                     }
