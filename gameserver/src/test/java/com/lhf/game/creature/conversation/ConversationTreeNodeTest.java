@@ -39,7 +39,7 @@ public class ConversationTreeNodeTest {
     @Test
     void testGetResult() {
         ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
-        node.addPrompt("PROMPT GUID-HERE say cheese to anna");
+        node.addPrompt("PROMPT say cheese to anna");
 
         ConversationTreeNodeResult result = node.getResult();
         Truth.assertThat(result.getBody()).isEqualTo(node.getBody());

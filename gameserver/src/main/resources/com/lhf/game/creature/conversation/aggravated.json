@@ -4,7 +4,7 @@
     "nodeID": "17d1c7a0-ecf9-4c3e-949e-600ba26337e3",
     "body": " ",
     "prompts": [
-      "PROMPT COMMAND ATTACK TALKER_NAME"
+      "PROMPT ATTACK TALKER_NAME"
     ]
   },
   "nodes": {
@@ -12,14 +12,14 @@
       "nodeID": "17d1c7a0-ecf9-4c3e-949e-600ba26337e3",
       "body": " ",
       "prompts": [
-        "PROMPT COMMAND ATTACK TALKER_NAME"
+        "PROMPT ATTACK TALKER_NAME"
       ]
     },
     "63f4869a-4cbb-423b-98a1-57fa71414afd": {
       "nodeID": "63f4869a-4cbb-423b-98a1-57fa71414afd",
       "body": " ",
       "prompts": [
-        "PROMPT COMMAND ATTACK TALKER_NAME"
+        "PROMPT ATTACK TALKER_NAME"
       ]
     }
   },
