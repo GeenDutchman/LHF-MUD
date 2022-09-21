@@ -41,6 +41,11 @@ public class Corpse extends Item implements Container {
     }
 
     @Override
+    public boolean removeItem(Item item) {
+        return false;
+    }
+
+    @Override
     public boolean hasItem(String name) {
         return false;
     }

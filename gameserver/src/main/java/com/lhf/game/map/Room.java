@@ -239,6 +239,11 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return Optional.empty();
     }
 
+    @Override
+    public boolean removeItem(Item item) {
+        return this.items.remove(item);
+    }
+
     public Player getPlayerInRoom(UserID id) {
         for (Creature creature : this.allCreatures) {
             if (creature instanceof Player) {

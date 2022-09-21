@@ -12,5 +12,7 @@ public interface Container extends Examinable {
 
     Optional<Item> removeItem(String name);
 
+    boolean removeItem(Item item);
+
     boolean hasItem(String name);
 }
