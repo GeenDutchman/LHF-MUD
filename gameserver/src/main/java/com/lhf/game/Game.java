@@ -5,6 +5,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import com.lhf.game.creature.Player;
 import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
@@ -58,8 +59,12 @@ public class Game implements UserListener, MessageHandler {
 		this.controlRoom.userExitSystem(userManager.getUser(id));
 	}
 
-	public void addNewPlayerToGame(User user) {
-		this.controlRoom.addUser(user);
+	public void addNewPlayerToGame(User user, String vocationRequest) {
+		if (vocationRequest == null || vocationRequest.length() <= 0) {
+			this.controlRoom.addUser(user);
+			return;
+		}
+		Player player = new Player(user, statblock, vocation)
 	}
 
 	private Boolean handleListPlayersMessage(CommandContext ctx, Command cmd) {

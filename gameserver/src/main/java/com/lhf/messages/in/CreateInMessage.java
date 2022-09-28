@@ -9,12 +9,13 @@ public class CreateInMessage extends Command {
     CreateInMessage(String payload) {
         super(CommandMessage.CREATE, payload, true);
         this.addPreposition("with");
+        this.addPreposition("as");
     }
 
     @Override
     public Boolean isValid() {
         return super.isValid() && this.directs.size() == 1
-                && this.indirects.size() == 1 && this.indirects.containsKey("with");
+                && this.indirects.size() >= 1 && this.indirects.containsKey("with");
     }
 
     public String getUsername() {
@@ -26,6 +27,10 @@ public class CreateInMessage extends Command {
 
     public String getPassword() {
         return this.indirects.getOrDefault("with", null);
+    }
+
+    public String vocationRequest() {
+        return this.indirects.getOrDefault("as", null);
     }
 
     @Override
@@ -44,6 +49,9 @@ public class CreateInMessage extends Command {
             sj.add("provided");
         } else {
             sj.add("not provided");
+        }
+        if (this.vocationRequest() != null) {
+            sj.add("Requested to be: " + this.vocationRequest());
         }
         return sj.toString();
     }

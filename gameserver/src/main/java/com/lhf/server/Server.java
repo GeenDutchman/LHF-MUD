@@ -144,7 +144,7 @@ public class Server implements ServerInterface, ConnectionListener {
         user.setSuccessor(this);
         Client client = this.clientManager.getConnection(ctx.getClientID());
         client.setSuccessor(user);
-        this.game.addNewPlayerToGame(user);
+        this.game.addNewPlayerToGame(user, msg.vocationRequest());
         return true;
     }
 
