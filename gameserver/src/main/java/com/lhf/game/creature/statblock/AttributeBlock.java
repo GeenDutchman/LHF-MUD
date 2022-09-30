@@ -89,7 +89,7 @@ public class AttributeBlock {
         this.charisma = new AttributeBlock.attributeStripe(charisma);
     }
 
-    public Integer getScore(Attributes attr) {
+    public int getScore(Attributes attr) {
         switch (attr) {
             case CHA:
                 return this.charisma.getTotalScore();
@@ -127,7 +127,7 @@ public class AttributeBlock {
         }
     }
 
-    public Integer getScoreBonus(Attributes attr) {
+    public int getScoreBonus(Attributes attr) {
         switch (attr) {
             case CHA:
                 return this.charisma.getScoreBonus();
@@ -165,7 +165,7 @@ public class AttributeBlock {
         }
     }
 
-    public Integer getMod(Attributes attr) {
+    public int getMod(Attributes attr) {
         switch (attr) {
             case CHA:
                 return this.charisma.getMod();
@@ -203,7 +203,7 @@ public class AttributeBlock {
         }
     }
 
-    public Integer getModBonus(Attributes attr) {
+    public int getModBonus(Attributes attr) {
         switch (attr) {
             case CHA:
                 return this.charisma.getModBonus();

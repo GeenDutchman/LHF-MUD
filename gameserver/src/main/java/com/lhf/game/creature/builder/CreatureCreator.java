@@ -2,8 +2,8 @@ package com.lhf.game.creature.builder;
 
 import java.io.Closeable;
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.EnumMap;
+import java.util.EnumSet;
 
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.Player;
@@ -32,13 +32,13 @@ public class CreatureCreator {
 
         public AttributeBlock buildAttributeBlock();
 
-        public HashMap<Stats, Integer> buildStats(AttributeBlock attrs);
+        public EnumMap<Stats, Integer> buildStats(AttributeBlock attrs);
 
-        public HashSet<EquipmentTypes> buildProficiencies();
+        public EnumSet<EquipmentTypes> buildProficiencies();
 
         public Inventory buildInventory();
 
-        public HashMap<EquipmentSlots, Equipable> equipFromInventory(Inventory inventory);
+        public EnumMap<EquipmentSlots, Equipable> equipFromInventory(Inventory inventory);
 
         public Boolean yesOrNo();
 
@@ -72,9 +72,6 @@ public class CreatureCreator {
 
         // name
         built.setCreatureRace(adapter.buildStatblockName());
-
-        // creature faction
-        built.setFaction(adapter.buildFaction());
 
         // attributes
         built.setAttributes(adapter.buildAttributeBlock());

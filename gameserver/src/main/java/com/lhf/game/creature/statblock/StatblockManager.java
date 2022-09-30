@@ -40,7 +40,7 @@ public class StatblockManager {
         GsonBuilder gBuilder = new GsonBuilder().setPrettyPrinting();
         Gson gson = gBuilder.create();
         try (JsonWriter jWriter = gson.newJsonWriter(
-                new FileWriter(this.path.toString() + statblock.creatureRace + ".json"))) {
+                new FileWriter(this.path.toString() + statblock.getCreatureRace() + ".json"))) {
             gson.toJson(statblock, Statblock.class, jWriter);
         } catch (JsonIOException | IOException e) {
             e.printStackTrace();
@@ -49,7 +49,7 @@ public class StatblockManager {
         String rightWritePath = this.path.replaceAll("target(.)classes", "src$1main$1resources");
         System.out.println("Also writing to: " + rightWritePath);
         try (JsonWriter jWriter = gson.newJsonWriter(
-                new FileWriter(rightWritePath.toString() + statblock.creatureRace + ".json"))) {
+                new FileWriter(rightWritePath.toString() + statblock.getCreatureRace() + ".json"))) {
             gson.toJson(statblock, Statblock.class, jWriter);
         } catch (JsonIOException | IOException e) {
             e.printStackTrace();

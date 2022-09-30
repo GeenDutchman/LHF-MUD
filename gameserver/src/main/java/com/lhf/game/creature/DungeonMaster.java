@@ -1,7 +1,7 @@
 package com.lhf.game.creature;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.EnumMap;
+import java.util.EnumSet;
 
 import com.lhf.game.creature.builder.CreatureCreator;
 import com.lhf.game.creature.builder.CreatureCreator.PlayerCreatorAdaptor;
@@ -19,15 +19,15 @@ import com.lhf.server.client.user.User;
 public class DungeonMaster extends NonPlayerCharacter implements PlayerCreatorAdaptor {
     private static Statblock makeStatblock() {
         AttributeBlock attributes = new AttributeBlock(100, 100, 100, 100, 100, 100);
-        HashMap<Stats, Integer> stats = new HashMap<>();
+        EnumMap<Stats, Integer> stats = new EnumMap<>(Stats.class);
         stats.put(Stats.MAXHP, Integer.MAX_VALUE / 2);
         stats.put(Stats.CURRENTHP, Integer.MAX_VALUE / 2);
         stats.put(Stats.AC, Integer.MAX_VALUE / 2);
         stats.put(Stats.PROFICIENCYBONUS, Integer.MAX_VALUE / 2);
         stats.put(Stats.XPEARNED, Integer.MAX_VALUE / 2);
         stats.put(Stats.XPWORTH, Integer.MAX_VALUE / 2);
-        Statblock toMake = new Statblock("DungeonMaster", CreatureFaction.NPC, attributes, stats, new HashSet<>(),
-                new Inventory(), new HashMap<>());
+        Statblock toMake = new Statblock("DungeonMaster", attributes, stats, EnumSet.allOf(EquipmentTypes.class),
+                new Inventory(), new EnumMap<>(EquipmentSlots.class));
         return toMake;
     }
 
@@ -68,13 +68,13 @@ public class DungeonMaster extends NonPlayerCharacter implements PlayerCreatorAd
     }
 
     @Override
-    public HashMap<Stats, Integer> buildStats(AttributeBlock attrs) {
+    public EnumMap<Stats, Integer> buildStats(AttributeBlock attrs) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public HashSet<EquipmentTypes> buildProficiencies() {
+    public EnumSet<EquipmentTypes> buildProficiencies() {
         // TODO Auto-generated method stub
         return null;
     }
@@ -86,7 +86,7 @@ public class DungeonMaster extends NonPlayerCharacter implements PlayerCreatorAd
     }
 
     @Override
-    public HashMap<EquipmentSlots, Equipable> equipFromInventory(Inventory inventory) {
+    public EnumMap<EquipmentSlots, Equipable> equipFromInventory(Inventory inventory) {
         // TODO Auto-generated method stub
         return null;
     }

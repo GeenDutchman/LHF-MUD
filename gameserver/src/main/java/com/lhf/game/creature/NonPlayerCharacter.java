@@ -24,7 +24,6 @@ import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
 import com.lhf.messages.ClientMessenger;
-import com.lhf.messages.out.OutMessage;
 
 public class NonPlayerCharacter extends Creature {
     public static class BlessedFist extends Weapon {
@@ -58,8 +57,7 @@ public class NonPlayerCharacter extends Creature {
     }
 
     public NonPlayerCharacter(String name, Statblock statblock) {
-        super(name, statblock);
-        this.setFaction(CreatureFaction.NPC);
+        super(name, statblock, CreatureFaction.NPC);
     }
 
     @Override

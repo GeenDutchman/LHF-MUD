@@ -2,8 +2,8 @@ package com.lhf.game.creature.builder;
 
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -130,9 +130,9 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public HashMap<Stats, Integer> buildStats(AttributeBlock attrs) {
+    public EnumMap<Stats, Integer> buildStats(AttributeBlock attrs) {
         Boolean valid;
-        HashMap<Stats, Integer> stats = new HashMap<>();
+        EnumMap<Stats, Integer> stats = new EnumMap<>(Stats.class);
         do {
             int max_hp;
             int xp_worth;
@@ -173,10 +173,10 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public HashSet<EquipmentTypes> buildProficiencies() {
+    public EnumSet<EquipmentTypes> buildProficiencies() {
         String proficiency_string;
         EquipmentTypes proficiency;
-        HashSet<EquipmentTypes> proficiencies = new HashSet<>();
+        EnumSet<EquipmentTypes> proficiencies = EnumSet.noneOf(EquipmentTypes.class);
         while (true) {
             System.out.print("Enter one of the proficiencies or 'done' if there are no more to add: ");
             proficiency_string = this.input.nextLine();
@@ -232,9 +232,9 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public HashMap<EquipmentSlots, Equipable> equipFromInventory(Inventory inventory) {
+    public EnumMap<EquipmentSlots, Equipable> equipFromInventory(Inventory inventory) {
         String item_slot_string;
-        HashMap<EquipmentSlots, Equipable> equipmentSlots = new HashMap<>();
+        EnumMap<EquipmentSlots, Equipable> equipmentSlots = new EnumMap<>(EquipmentSlots.class);
         while (true) {
             System.out.print("Given: " + inventory.toStoreString()
                     + " \nIs there anything you would like to equip?(Item Name,slot or done) ");

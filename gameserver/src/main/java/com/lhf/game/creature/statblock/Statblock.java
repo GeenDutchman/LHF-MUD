@@ -1,11 +1,12 @@
 package com.lhf.game.creature.statblock;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Set;
 
-import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.inventory.Inventory;
-import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -13,37 +14,60 @@ import com.lhf.game.item.Equipable;
 
 public class Statblock {
 
+    private String creatureRace;
+
+    private AttributeBlock attributes;
+
+    /** contains CurrentHp, MaxHp, Xp, proficiencyBonus, AC */
+    private Map<Stats, Integer> stats;
+    /**
+     * contains subtypes and items
+     * // an example subtype would be MARTIAL_WEAPONS or HEAVY_ARMOR
+     * // and example item would be lightCrossbow
+     */
+    private Set<EquipmentTypes> proficiencies;
+    /*
+     * TODO: or to add once things are done
+     * Abilities... initial thought was some kind of array
+     */
+
+    // Inventory
+    private Inventory inventory;
+    // Equipment slots
+    private Map<EquipmentSlots, Equipable> equipmentSlots;
+
+    public Statblock() {
+        this.creatureRace = "creature";
+        this.attributes = new AttributeBlock();
+        this.stats = Collections.synchronizedMap(new EnumMap<>(Stats.class));
+        this.proficiencies = Collections.synchronizedSet(EnumSet.noneOf(EquipmentTypes.class));
+        this.inventory = new Inventory();
+        this.equipmentSlots = Collections.synchronizedMap(new EnumMap<>(EquipmentSlots.class));
+    }
+
     public Statblock(String creatureRace) {
         this.creatureRace = creatureRace;
+        this.attributes = new AttributeBlock();
+        this.stats = Collections.synchronizedMap(new EnumMap<>(Stats.class));
+        this.proficiencies = Collections.synchronizedSet(EnumSet.noneOf(EquipmentTypes.class));
+        this.inventory = new Inventory();
+        this.equipmentSlots = Collections.synchronizedMap(new EnumMap<>(EquipmentSlots.class));
     }
 
-    public Statblock(String creatureRace, CreatureFaction faction, AttributeBlock attributes,
-            HashMap<Stats, Integer> stats,
-            HashSet<EquipmentTypes> proficiencies, Inventory inventory,
-            HashMap<EquipmentSlots, Equipable> equipmentSlots) {
+    public Statblock(String creatureRace, AttributeBlock attributes,
+            EnumMap<Stats, Integer> stats,
+            EnumSet<EquipmentTypes> proficiencies, Inventory inventory,
+            EnumMap<EquipmentSlots, Equipable> equipmentSlots) {
         this.creatureRace = creatureRace;
-        this.faction = faction;
         this.attributes = attributes;
-        this.stats = stats;
-        this.proficiencies = proficiencies;
+        this.stats = Collections.synchronizedMap(stats.clone());
+        this.proficiencies = Collections.synchronizedSet(proficiencies.clone());
         this.inventory = inventory;
-        this.equipmentSlots = equipmentSlots;
-    }
-
-    public Statblock(Creature creature) {
-        this.creatureRace = creature.getCreatureRace();
-        this.faction = creature.getFaction();
-        this.attributes = creature.getAttributes();
-        this.stats = creature.getStats();
-        this.proficiencies = creature.getProficiencies();
-        this.inventory = creature.getInventory();
-        this.equipmentSlots = creature.getEquipmentSlots();
-
+        this.equipmentSlots = Collections.synchronizedMap(equipmentSlots.clone());
     }
 
     public Statblock(Statblock other) {
         this.creatureRace = other.getCreatureRace();
-        this.faction = other.getFaction();
         this.attributes = other.getAttributes();
         this.stats = other.getStats();
         this.proficiencies = other.getProficiencies();
@@ -51,34 +75,9 @@ public class Statblock {
         this.equipmentSlots = other.getEquipmentSlots();
     }
 
-    public String creatureRace;
-    // see the enums file
-    public CreatureFaction faction;
-
-    public AttributeBlock attributes;
-    // contains CurrentHp, MaxHp, Xp, proficiencyBonus, AC
-    public HashMap<Stats, Integer> stats;
-    // contains subtypes and items
-    // an example subtype would be MARTIAL_WEAPONS or HEAVY_ARMOR
-    // and example item would be lightCrossbow
-    public HashSet<EquipmentTypes> proficiencies;
-    /*
-     * TODO: or to add once things are done
-     * Abilities... initial thought was some kind of array
-     */
-
-    // Inventory
-    public Inventory inventory;
-    // Equipment slots
-    public HashMap<EquipmentSlots, Equipable> equipmentSlots;
-
-    public Statblock() {
-    }
-
     @Override
     public String toString() {
         return creatureRace + "\n" +
-                faction.toString() + "\n" +
                 attributes.toString() + "\n" +
                 stats.toString() + "\n" +
                 proficiencies.toString() + "\n" +
@@ -91,14 +90,6 @@ public class Statblock {
         this.creatureRace = creatureRace;
     }
 
-    public CreatureFaction getFaction() {
-        return faction;
-    }
-
-    public void setFaction(CreatureFaction faction) {
-        this.faction = faction;
-    }
-
     public AttributeBlock getAttributes() {
         return attributes;
     }
@@ -107,19 +98,19 @@ public class Statblock {
         this.attributes = attributes;
     }
 
-    public HashMap<Stats, Integer> getStats() {
+    public Map<Stats, Integer> getStats() {
         return stats;
     }
 
-    public void setStats(HashMap<Stats, Integer> stats) {
+    public void setStats(EnumMap<Stats, Integer> stats) {
         this.stats = stats;
     }
 
-    public HashSet<EquipmentTypes> getProficiencies() {
+    public Set<EquipmentTypes> getProficiencies() {
         return proficiencies;
     }
 
-    public void setProficiencies(HashSet<EquipmentTypes> proficiencies) {
+    public void setProficiencies(EnumSet<EquipmentTypes> proficiencies) {
         this.proficiencies = proficiencies;
     }
 
@@ -131,11 +122,11 @@ public class Statblock {
         this.inventory = inventory;
     }
 
-    public HashMap<EquipmentSlots, Equipable> getEquipmentSlots() {
+    public Map<EquipmentSlots, Equipable> getEquipmentSlots() {
         return equipmentSlots;
     }
 
-    public void setEquipmentSlots(HashMap<EquipmentSlots, Equipable> equipmentSlots) {
+    public void setEquipmentSlots(EnumMap<EquipmentSlots, Equipable> equipmentSlots) {
         this.equipmentSlots = equipmentSlots;
     }
 

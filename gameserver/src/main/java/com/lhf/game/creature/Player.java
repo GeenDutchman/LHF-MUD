@@ -51,14 +51,12 @@ public class Player extends Creature {
     }
 
     public Player(User user, Statblock statblock, Vocation vocation) {
-        super(user.getUsername(), statblock);
+        super(user.getUsername(), statblock, CreatureFaction.PLAYER);
         this.user = user;
         this.user = user;
         this.user.setSuccessor(this);
         this.setController(this.user.getClient());
         this.setVocation(vocation);
-        this.setFaction(CreatureFaction.PLAYER);
-
     }
 
     @Override

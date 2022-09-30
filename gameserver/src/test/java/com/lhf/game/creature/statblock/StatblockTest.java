@@ -1,6 +1,6 @@
 package com.lhf.game.creature.statblock;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 
 import org.junit.jupiter.api.Test;
 
@@ -8,7 +8,6 @@ import com.google.common.truth.Truth;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.lhf.game.creature.inventory.Inventory;
-import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
@@ -27,9 +26,8 @@ public class StatblockTest {
 
         Statblock s = new Statblock("goober");
         s.setCreatureRace("goober");
-        s.setFaction(CreatureFaction.MONSTER);
         s.setAttributes(new AttributeBlock());
-        HashMap<Stats, Integer> stats = new HashMap<>();
+        EnumMap<Stats, Integer> stats = new EnumMap<>(Stats.class);
         stats.put(Stats.MAXHP, 10);
         stats.put(Stats.AC, 10);
         s.setStats(stats);
@@ -37,7 +35,7 @@ public class StatblockTest {
         Longsword longsword = new Longsword(true);
         inv.addItem(longsword);
         s.setInventory(inv);
-        HashMap<EquipmentSlots, Equipable> equipped = new HashMap<>();
+        EnumMap<EquipmentSlots, Equipable> equipped = new EnumMap<>(EquipmentSlots.class);
         RustyDagger dagger = new RustyDagger(true);
         equipped.put(EquipmentSlots.WEAPON, dagger);
         s.setEquipmentSlots(equipped);

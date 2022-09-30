@@ -71,27 +71,11 @@ public abstract class Creature
 
     private String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
     private CreatureFaction faction; // See shared enum
-    private String creatureRace;
     private Vocation vocation;
     // private MonsterType monsterType; // I dont know if we'll need this
 
     private Set<CreatureEffect> effects;
-    // uses attributes STR, DEX, CON, INT, WIS, CHA
-    private AttributeBlock attributeBlock;
-
-    private HashMap<Stats, Integer> stats; // contains CurrentHp, MaxHp, Xp, proficiencyBonus, AC
-
-    // contains subtypes and items
-    // an example subtype would be MARTIAL_WEAPONS or HEAVY_ARMOR
-    // and example item would be lightCrossbow
-    private HashSet<EquipmentTypes> proficiencies;
-
-    /*
-     * TODO: or to add once things are done also needed in statblock
-     * Abilities... initial thought was some kind of array
-     */
-    private Inventory inventory; // This creature's inventory
-    private HashMap<EquipmentSlots, Equipable> equipmentSlots; // See enum for slots
+    private Statblock statblock;
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
     private transient ClientMessenger controller;
@@ -106,49 +90,22 @@ public abstract class Creature
         this.faction = CreatureFaction.NPC;
         this.vocation = null;
 
-        // Set attributes to default values
-        this.attributeBlock = new AttributeBlock();
         this.effects = new TreeSet<>();
-        // Set default stats (10 HP, 2 proficiency bonus, etc.)
-        this.stats = new HashMap<>();
-        this.stats.put(Stats.MAXHP, 10);
-        this.stats.put(Stats.CURRENTHP, 10);
-        this.stats.put(Stats.AC, 10);
-        this.stats.put(Stats.PROFICIENCYBONUS, 2);
-        this.stats.put(Stats.XPEARNED, 0);
-        this.stats.put(Stats.XPWORTH, 100);
-
-        // Set empty inventory
-        this.inventory = new Inventory();
-
-        // Set empty equip slots
-        this.equipmentSlots = new HashMap<>();
-
-        // Set empty proficiencies
-        this.proficiencies = new HashSet<>();
+        this.statblock = new Statblock(); // default statblock
 
         // We don't start them in battle
         this.inBattle = false;
     }
 
     // Statblock-based constructor
-    public Creature(String name, Statblock statblock) {
+    public Creature(String name, Statblock statblock, CreatureFaction faction) {
         this.cmds = this.buildCommands();
         this.name = name;
-        this.creatureRace = statblock.getCreatureRace();
+        this.statblock = statblock != null ? statblock : new Statblock();
         this.vocation = null;
         this.effects = new TreeSet<>();
-        this.faction = statblock.faction;
-        this.attributeBlock = statblock.attributes;
-        this.stats = statblock.stats;
-        this.proficiencies = statblock.proficiencies;
+        this.faction = faction;
         // add abilities if we get to it
-        this.inventory = statblock.inventory; // uncomment when Inventory class is ready
-        this.equipmentSlots = statblock.equipmentSlots;
-        for (Item item : this.equipmentSlots.values()) {
-            Equipable equipped = (Equipable) item;
-            equipped.onEquippedBy(this);
-        }
     }
 
     private Map<CommandMessage, String> buildCommands() {
@@ -174,7 +131,7 @@ public abstract class Creature
     }
 
     private int getHealth() {
-        return stats.get(Stats.CURRENTHP);
+        return this.statblock.getStats().get(Stats.CURRENTHP);
     }
 
     public boolean isAlive() {
@@ -182,8 +139,8 @@ public abstract class Creature
     }
 
     public void updateHitpoints(int value) {
-        int current = stats.get(Stats.CURRENTHP);
-        int max = stats.get(Stats.MAXHP);
+        int current = this.statblock.getStats().get(Stats.CURRENTHP);
+        int max = this.statblock.getStats().get(Stats.MAXHP);
         current += value;
         if (current <= 0) {
             current = 0;
@@ -192,19 +149,19 @@ public abstract class Creature
         if (current > max) {
             current = max;
         }
-        stats.replace(Stats.CURRENTHP, current);
+        this.statblock.getStats().replace(Stats.CURRENTHP, current);
     }
 
     public void updateAc(int value) {
-        int current = stats.get(Stats.AC);
+        int current = this.statblock.getStats().get(Stats.AC);
         current += value;
-        stats.replace(Stats.AC, current);
+        this.statblock.getStats().replace(Stats.AC, current);
     }
 
     public void updateXp(int value) {
-        int current = stats.get(Stats.XPEARNED);
+        int current = this.statblock.getStats().get(Stats.XPEARNED);
         current += value;
-        stats.replace(Stats.XPEARNED, current);
+        this.statblock.getStats().replace(Stats.XPEARNED, current);
         if (this.canLevelUp(current, current - value)) {
             // this.levelUp();
         }
@@ -217,21 +174,24 @@ public abstract class Creature
     }
 
     public void updateModifier(Attributes modifier, int value) {
-        this.attributeBlock.setModBonus(modifier, this.attributeBlock.getModBonus(modifier) + value);
+        AttributeBlock retrieved = this.statblock.getAttributes();
+        retrieved.setModBonus(modifier, retrieved.getModBonus(modifier) + value);
     }
 
     private void updateAttribute(Attributes attribute, int value) {
-        this.attributeBlock.setScoreBonus(attribute, this.attributeBlock.getScoreBonus(attribute) + value);
+        AttributeBlock retrieved = this.statblock.getAttributes();
+        retrieved.setScoreBonus(attribute, retrieved.getScoreBonus(attribute) + value);
     }
 
     private void updateStat(Stats stat, int value) {
-        this.stats.put(stat, this.stats.get(stat) + value);
+        Map<Stats, Integer> stats = this.statblock.getStats();
+        stats.put(stat, stats.get(stat) + value);
     }
 
     /* start getters */
 
-    public HashMap<Stats, Integer> getStats() {
-        return stats;
+    public Map<Stats, Integer> getStats() {
+        return this.statblock.getStats();
     }
 
     public String getName() {
@@ -284,7 +244,7 @@ public abstract class Creature
     }
 
     public AttributeBlock getAttributes() {
-        return this.attributeBlock;
+        return this.statblock.getAttributes();
     }
 
     public Attributes getHighestAttributeBonus(EnumSet<Attributes> attrs) {
@@ -294,7 +254,7 @@ public abstract class Creature
             return found;
         }
         for (Attributes attr : attrs) {
-            int retrieved = this.attributeBlock.getMod(attr);
+            int retrieved = this.getAttributes().getMod(attr);
             if (retrieved > highestMod) {
                 highestMod = retrieved;
                 found = attr;
@@ -303,12 +263,12 @@ public abstract class Creature
         return found;
     }
 
-    public HashSet<EquipmentTypes> getProficiencies() {
-        return proficiencies;
+    public Set<EquipmentTypes> getProficiencies() {
+        return this.statblock.getProficiencies();
     }
 
-    public HashMap<EquipmentSlots, Equipable> getEquipmentSlots() {
-        return equipmentSlots;
+    public Map<EquipmentSlots, Equipable> getEquipmentSlots() {
+        return this.statblock.getEquipmentSlots();
     }
 
     public boolean isInBattle() {
@@ -438,15 +398,15 @@ public abstract class Creature
     }
 
     private Item getWhatInSlot(EquipmentSlots slot) {
-        return this.equipmentSlots.get(slot);
+        return this.statblock.getEquipmentSlots().get(slot);
     }
 
     public String getCreatureRace() {
-        return creatureRace;
+        return this.statblock.getCreatureRace();
     }
 
     public void setCreatureRace(String creatureRace) {
-        this.creatureRace = creatureRace;
+        this.statblock.setCreatureRace(creatureRace);
     }
 
     public Vocation getVocation() {
@@ -460,34 +420,34 @@ public abstract class Creature
 
     public void setVocation(Vocation job) {
         if (this.vocation != null) {
-            this.proficiencies.removeAll(this.vocation.getProficiencies());
+            this.statblock.getProficiencies().removeAll(this.vocation.getProficiencies());
         }
         if (job == null) {
             this.vocation = null;
         } else {
             this.vocation = job;
-            this.proficiencies.addAll(job.getProficiencies());
+            this.statblock.getProficiencies().addAll(job.getProficiencies());
         }
     }
 
     public void setAttributes(AttributeBlock attributes) {
-        this.attributeBlock = attributes;
+        this.statblock.setAttributes(attributes);
     }
 
-    public void setStats(HashMap<Stats, Integer> stats) {
-        this.stats = stats;
+    public void setStats(EnumMap<Stats, Integer> stats) {
+        this.statblock.setStats(stats);
     }
 
-    public void setProficiencies(HashSet<EquipmentTypes> proficiencies) {
-        this.proficiencies = proficiencies;
+    public void setProficiencies(EnumSet<EquipmentTypes> proficiencies) {
+        this.statblock.setProficiencies(proficiencies);
     }
 
     public void setInventory(Inventory inventory) {
-        this.inventory = inventory;
+        this.statblock.setInventory(inventory);
     }
 
-    public void setEquipmentSlots(HashMap<EquipmentSlots, Equipable> equipmentSlots) {
-        this.equipmentSlots = equipmentSlots;
+    public void setEquipmentSlots(EnumMap<EquipmentSlots, Equipable> equipmentSlots) {
+        this.statblock.setEquipmentSlots(equipmentSlots);
     }
 
     public void setInBattle(boolean inBattle) {
@@ -506,8 +466,8 @@ public abstract class Creature
     public Corpse die() {
         System.out.println(name + "died");
         for (EquipmentSlots slot : EquipmentSlots.values()) {
-            if (equipmentSlots.containsKey(slot)) {
-                unequipItem(slot, equipmentSlots.get(slot).getName());
+            if (this.getEquipmentSlots().containsKey(slot)) {
+                unequipItem(slot, this.getEquipmentSlots().get(slot).getName());
             }
         }
         return new Corpse(name + "'s corpse", true);
@@ -524,27 +484,28 @@ public abstract class Creature
 
     @Override
     public Inventory getInventory() {
-        return this.inventory;
+        return this.statblock.getInventory();
     }
 
     @Override
     public String printInventory() {
-        return this.inventory.getInventoryOutMessage().AddEquipment(this.equipmentSlots).toString();
+        return this.statblock.getInventory().getInventoryOutMessage().AddEquipment(this.getEquipmentSlots()).toString();
     }
 
     @Override
     public String printDescription() {
         StringBuilder sb = new StringBuilder();
         sb.append(new StatusOutMessage(this, false).toString()).append("\r\n");
-        if (this.equipmentSlots.get(EquipmentSlots.HAT) != null) {
-            sb.append("On their head is:").append(this.equipmentSlots.get(EquipmentSlots.HAT).getColorTaggedName());
+        Map<EquipmentSlots, Equipable> equipped = this.statblock.getEquipmentSlots();
+        if (equipped.get(EquipmentSlots.HAT) != null) {
+            sb.append("On their head is:").append(equipped.get(EquipmentSlots.HAT).getColorTaggedName());
         }
-        if (this.equipmentSlots.get(EquipmentSlots.ARMOR) != null) {
-            sb.append("They are wearing:").append(this.equipmentSlots.get(EquipmentSlots.ARMOR).getColorTaggedName());
+        if (equipped.get(EquipmentSlots.ARMOR) != null) {
+            sb.append("They are wearing:").append(equipped.get(EquipmentSlots.ARMOR).getColorTaggedName());
         } else {
-            if (this.equipmentSlots.get(EquipmentSlots.NECKLACE) != null) {
+            if (equipped.get(EquipmentSlots.NECKLACE) != null) {
                 sb.append("Around their neck is:")
-                        .append(this.equipmentSlots.get(EquipmentSlots.NECKLACE).getColorTaggedName());
+                        .append(equipped.get(EquipmentSlots.NECKLACE).getColorTaggedName());
             }
         }
         return sb.toString();
@@ -561,7 +522,7 @@ public abstract class Creature
 
     @Override
     public boolean equipItem(String itemName, EquipmentSlots slot) {
-        Optional<Item> maybeItem = this.inventory.getItem(itemName);
+        Optional<Item> maybeItem = this.getInventory().getItem(itemName);
         if (maybeItem.isPresent()) {
             Item fromInventory = maybeItem.get();
             if (fromInventory instanceof Equipable) {
@@ -571,8 +532,8 @@ public abstract class Creature
                 }
                 if (equipThing.getWhichSlots().contains(slot)) {
                     this.unequipItem(slot, "");
-                    this.inventory.removeItem(equipThing);
-                    this.equipmentSlots.putIfAbsent(slot, equipThing);
+                    this.getInventory().removeItem(equipThing);
+                    this.getEquipmentSlots().putIfAbsent(slot, equipThing);
                     this.sendMsg(new EquipOutMessage(equipThing));
                     equipThing.onEquippedBy(this);
 
@@ -594,12 +555,13 @@ public abstract class Creature
             // if they specified weapon and not slot
             Optional<Item> optItem = getItem(weapon);
             if (optItem.isPresent()) {
-                if (equipmentSlots.containsValue(optItem.get())) {
+                Map<EquipmentSlots, Equipable> equipped = this.getEquipmentSlots();
+                if (equipped.containsValue(optItem.get())) {
                     Equipable equippedThing = (Equipable) optItem.get();
                     for (EquipmentSlots thingSlot : equippedThing.getWhichSlots()) {
-                        if (equippedThing.equals(equipmentSlots.get(thingSlot))) {
-                            this.equipmentSlots.remove(thingSlot);
-                            this.inventory.addItem(equippedThing);
+                        if (equippedThing.equals(equipped.get(thingSlot))) {
+                            equipped.remove(thingSlot);
+                            this.getInventory().addItem(equippedThing);
                             this.sendMsg(new UnequipOutMessage(thingSlot, equippedThing));
                             equippedThing.onUnequippedBy(this);
                             return true;
@@ -615,7 +577,7 @@ public abstract class Creature
         }
         Equipable thing = getEquipmentSlots().remove(slot);
         if (thing != null) {
-            this.inventory.addItem(thing);
+            this.getInventory().addItem(thing);
             this.sendMsg(new UnequipOutMessage(slot, thing));
             thing.onUnequippedBy(this);
             return true;
@@ -626,14 +588,14 @@ public abstract class Creature
 
     @Override
     public Equipable getEquipped(EquipmentSlots slot) {
-        return (Equipable) this.equipmentSlots.get(slot);
+        return (Equipable) this.getEquipmentSlots().get(slot);
     }
 
     @Override
     public Optional<Item> removeItem(String name) {
         Optional<Item> toRemove = InventoryOwner.super.removeItem(name);
         if (toRemove.isEmpty()) {
-            for (Item item : this.equipmentSlots.values()) {
+            for (Item item : this.getEquipmentSlots().values()) {
                 if (item.CheckNameRegex(name, 3)) {
                     toRemove = Optional.of(item);
                     break;
@@ -733,7 +695,7 @@ public abstract class Creature
             ctx.sendMsg(new StatusOutMessage(this, true));
             handled = true;
         } else if (msg.getType() == CommandMessage.INVENTORY) {
-            ctx.sendMsg(this.inventory.getInventoryOutMessage().AddEquipment(this.equipmentSlots));
+            ctx.sendMsg(this.getInventory().getInventoryOutMessage().AddEquipment(this.getEquipmentSlots()));
             handled = true;
         }
 
