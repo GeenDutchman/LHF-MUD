@@ -108,6 +108,17 @@ public abstract class Creature
         // add abilities if we get to it
     }
 
+    // Vocation-based constructor
+    public Creature(String name, Vocation vocation, CreatureFaction faction) {
+        this.cmds = this.buildCommands();
+        this.name = name;
+        this.statblock = vocation != null ? vocation.createNewDefaultStatblock("creature") : new Statblock();
+        this.vocation = vocation;
+        this.effects = new TreeSet<>();
+        this.faction = faction;
+        // add abilities if we get to it
+    }
+
     private Map<CommandMessage, String> buildCommands() {
         StringJoiner sj = new StringJoiner(" ");
         Map<CommandMessage, String> cmds = new EnumMap<>(CommandMessage.class);
@@ -418,16 +429,15 @@ public abstract class Creature
         this.name = name;
     }
 
+    /**
+     * This method sets the creature's vocation. Note that proficiencies, stats,
+     * etc. will not be updated.
+     * This is the penalty for switching vocations.
+     * 
+     * @param job the new vocation
+     */
     public void setVocation(Vocation job) {
-        if (this.vocation != null) {
-            this.statblock.getProficiencies().removeAll(this.vocation.getProficiencies());
-        }
-        if (job == null) {
-            this.vocation = null;
-        } else {
-            this.vocation = job;
-            this.statblock.getProficiencies().addAll(job.getProficiencies());
-        }
+        this.vocation = job;
     }
 
     public void setAttributes(AttributeBlock attributes) {

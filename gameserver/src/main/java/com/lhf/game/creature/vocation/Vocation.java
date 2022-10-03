@@ -1,12 +1,9 @@
 package com.lhf.game.creature.vocation;
 
-import java.util.EnumSet;
 import java.util.Objects;
 
 import com.lhf.Taggable;
 import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.enums.CreatureFaction;
-import com.lhf.game.enums.EquipmentTypes;
 
 public abstract class Vocation implements Taggable, Comparable<Vocation> {
     // TODO: make this a MessageHandler
@@ -90,7 +87,7 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
             return false;
         }
         Vocation other = (Vocation) obj;
-        return Objects.equals(name, other.name) && Objects.equals(proficiencies, other.proficiencies);
+        return Objects.equals(name, other.name);
     }
 
     @Override

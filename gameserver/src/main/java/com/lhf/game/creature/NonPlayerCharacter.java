@@ -12,6 +12,7 @@ import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.Attributes;
@@ -58,6 +59,10 @@ public class NonPlayerCharacter extends Creature {
 
     public NonPlayerCharacter(String name, Statblock statblock) {
         super(name, statblock, CreatureFaction.NPC);
+    }
+
+    public NonPlayerCharacter(String name, Vocation vocation) {
+        super(name, vocation, CreatureFaction.NPC);
     }
 
     @Override
