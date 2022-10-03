@@ -4,6 +4,8 @@ import java.util.EnumSet;
 import java.util.Objects;
 
 import com.lhf.Taggable;
+import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentTypes;
 
 public abstract class Vocation implements Taggable, Comparable<Vocation> {
@@ -43,22 +45,11 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
     protected int level;
     protected final VocationName name;
-    protected final EnumSet<EquipmentTypes> proficiencies;
 
-    protected abstract EnumSet<EquipmentTypes> generateProficiencies();
+    public abstract Statblock createNewDefaultStatblock(String creatureRace);
 
     public Vocation(VocationName name) {
         this.name = name;
-        this.proficiencies = this.generateProficiencies();
-        this.level = 1;
-    }
-
-    public Vocation(VocationName name, EnumSet<EquipmentTypes> otherProficiencies) {
-        this.name = name;
-        this.proficiencies = this.generateProficiencies();
-        if (otherProficiencies != null) {
-            this.proficiencies.addAll(otherProficiencies);
-        }
         this.level = 1;
     }
 
@@ -68,10 +59,6 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
     public String getName() {
         return name.toString();
-    }
-
-    public EnumSet<EquipmentTypes> getProficiencies() {
-        return proficiencies;
     }
 
     @Override
@@ -91,7 +78,7 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, proficiencies);
+        return Objects.hash(name);
     }
 
     @Override
