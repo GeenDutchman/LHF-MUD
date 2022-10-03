@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.vocation.Vocation;
+import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
@@ -60,11 +62,15 @@ public class Game implements UserListener, MessageHandler {
 	}
 
 	public void addNewPlayerToGame(User user, String vocationRequest) {
-		if (vocationRequest == null || vocationRequest.length() <= 0) {
-			this.controlRoom.addUser(user);
-			return;
+		if (vocationRequest != null && vocationRequest.length() > 0) {
+			Vocation selected = VocationFactory.getVocation(vocationRequest);
+			if (selected != null) {
+				Player player = new Player(user, selected);
+				this.controlRoom.addNewPlayer(player);
+				return;
+			}
 		}
-		Player player = new Player(user, statblock, vocation)
+		this.controlRoom.addUser(user);
 	}
 
 	private Boolean handleListPlayersMessage(CommandContext ctx, Command cmd) {
