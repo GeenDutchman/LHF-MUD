@@ -428,11 +428,6 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
                 handled = this.handleSay(ctx, msg);
             } else if (type == CommandMessage.SEE) {
                 handled = this.handleSee(ctx, msg);
-                if (handled) {
-                    return handled;
-                }
-                ctx.sendMsg(this.produceMessage());
-                return true;
             } else if (type == CommandMessage.DROP) {
                 handled = this.handleDrop(ctx, msg);
             } else if (type == CommandMessage.INTERACT) {
@@ -636,8 +631,12 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
 
                 ctx.sendMsg(new SeeOutMessage("You couldn't find " + name + " to examine. "));
                 return true;
+            } else if (this.dungeon != null) {
+                ctx.sendMsg(this.dungeon.seeRoomExits(this));
+                return true;
             } else {
-                return false; // let the dungeon handle the see
+                ctx.sendMsg(this.produceMessage());
+                return true;
             }
         }
         return false;

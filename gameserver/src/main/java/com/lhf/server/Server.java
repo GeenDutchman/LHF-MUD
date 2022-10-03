@@ -158,13 +158,19 @@ public class Server implements ServerInterface, ConnectionListener {
         ctx = this.addSelfToContext(ctx);
         if (msg.getType() == CommandMessage.EXIT) {
             this.logger.info("client " + ctx.getClientID().toString() + " is exiting");
-            this.game.userLeft(ctx.getUserID());
-            User leaving = this.userManager.getUser(ctx.getUserID());
-            this.userManager.removeUser(ctx.getUserID());
             Client ch = this.clientManager.getConnection(ctx.getClientID());
-            if (ch != null) {
-                ch.sendMsg(new UserLeftMessage(leaving, true));
+
+            if (ctx.getUserID() != null) {
+                this.game.userLeft(ctx.getUserID());
+                User leaving = this.userManager.getUser(ctx.getUserID());
+                this.userManager.removeUser(ctx.getUserID());
+                leaving.sendMsg(new UserLeftMessage(leaving, true));
+            } else {
+                if (ch != null) {
+                    ch.sendMsg(new UserLeftMessage(null, true));
+                }
             }
+
             try {
                 this.clientManager.removeClient(ctx.getClientID()); // ch is killed in here
             } catch (IOException e) {

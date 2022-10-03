@@ -26,8 +26,9 @@ public class ServerTest {
             server.startClient(this.client);
         }
 
-        public String create(String name, Boolean expectUnique) {
-            String result = this.handleCommand("create " + name + " with " + name);
+        public String create(String name, String vocation, Boolean expectUnique) {
+            String result = this
+                    .handleCommand("create " + name + " with " + name + (vocation != null ? " as " + vocation : ""));
             Boolean alreadyExists = result.toLowerCase().contains("already exists");
             if (expectUnique) {
                 Truth.assertThat(alreadyExists).isFalse();
@@ -39,7 +40,7 @@ public class ServerTest {
         }
 
         public String create(String name) {
-            return this.create(name, true);
+            return this.create(name, "fighter", true);
         }
 
         public String handleCommand(String command, Boolean expectRecognized, Boolean expectHandled) {
@@ -260,7 +261,7 @@ public class ServerTest {
         this.comm.create("Tester");
         this.comm.handleCommand("create Tester with password", true, false);
         ComBundle twin1 = new ComBundle(this.server);
-        twin1.create(this.comm.name, false); // would have failed making twin
+        twin1.create(this.comm.name, "fighter", false); // would have failed making twin
         Truth.assertThat(twin1.name).isNotEqualTo(this.comm.name);
 
         // // extract creature name from next room
