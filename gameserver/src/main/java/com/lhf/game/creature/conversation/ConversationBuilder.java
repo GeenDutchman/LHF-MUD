@@ -49,8 +49,10 @@ public class ConversationBuilder {
                 System.err.println("Try again!");
                 regex = null;
             }
-        } while (regex == null);
-        System.out.println(pattern.toString());
+        } while (regex == null && pattern == null);
+        if (pattern != null) {
+            System.out.println(pattern.toString());
+        }
         return pattern;
     }
 
