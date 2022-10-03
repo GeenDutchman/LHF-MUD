@@ -19,6 +19,7 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Usable;
 import com.lhf.game.lewd.LewdManager;
+import com.lhf.game.magic.CubeHolder;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -97,6 +98,13 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
                 .add("Uses an item that you have on something or someone else, if applicable.")
                 .add("Like \"use potion on Bob\"");
         cmds.put(CommandMessage.USE, sj.toString());
+        sj = new StringJoiner(" ");
+        sj.add("\"cast [invocation]\"").add("Casts the spell that has the matching invocation.").add("\n");
+        sj.add("\"cast [invocation] at [target]\"").add("Some spells need you to name a target.").add("\n");
+        sj.add("\"cast [invocation] use [level]\"").add(
+                "Sometimes you want to put more power into your spell, so put a higher level number for the level.")
+                .add("\n");
+        cmds.put(CommandMessage.CAST, sj.toString());
         return cmds;
     }
 
@@ -410,6 +418,9 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
             gathered.remove(CommandMessage.TAKE);
             gathered.remove(CommandMessage.CAST);
             gathered.remove(CommandMessage.USE);
+        }
+        if (ctx.getCreature() != null && !(ctx.getCreature().getVocation() instanceof CubeHolder)) {
+            gathered.remove(CommandMessage.CAST);
         }
         return gathered;
     }

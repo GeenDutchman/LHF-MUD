@@ -40,6 +40,11 @@ public class Statblock {
         this.creatureRace = "creature";
         this.attributes = new AttributeBlock();
         this.stats = Collections.synchronizedMap(new EnumMap<>(Stats.class));
+        // Set default stats
+        this.stats.put(Stats.MAXHP, 12);
+        this.stats.put(Stats.CURRENTHP, 12);
+        this.stats.put(Stats.AC, 11);
+        this.stats.put(Stats.XPWORTH, 500);
         this.proficiencies = Collections.synchronizedSet(EnumSet.noneOf(EquipmentTypes.class));
         this.inventory = new Inventory();
         this.equipmentSlots = Collections.synchronizedMap(new EnumMap<>(EquipmentSlots.class));

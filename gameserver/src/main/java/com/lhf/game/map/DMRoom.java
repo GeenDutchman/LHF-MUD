@@ -209,25 +209,27 @@ public class DMRoom extends Room {
         }
         boolean handled = false;
         CommandMessage type = msg.getType();
-        ctx = this.addSelfToContext(ctx);
-        if (type == CommandMessage.SAY) {
-            handled = this.handleSay(ctx, msg);
-        } else if (type == CommandMessage.SEE) {
-            handled = this.handleSee(ctx, msg);
+        if (ctx.getRoom() == null) { // if we aren't already in a room
+            ctx = this.addSelfToContext(ctx);
+            if (type == CommandMessage.SAY) {
+                handled = this.handleSay(ctx, msg);
+            } else if (type == CommandMessage.SEE) {
+                handled = this.handleSee(ctx, msg);
+                if (handled) {
+                    return handled;
+                }
+                ctx.sendMsg(this.produceMessage());
+                return true;
+            } else if (type == CommandMessage.CAST) {
+                if (ctx.getCreature() == null || !(ctx.getCreature() instanceof DungeonMaster)) {
+                    ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+                    return true;
+                }
+                handled = super.handleCast(ctx, msg);
+            }
             if (handled) {
                 return handled;
             }
-            ctx.sendMsg(this.produceMessage());
-            return true;
-        } else if (type == CommandMessage.CAST) {
-            if (ctx.getCreature() == null || !(ctx.getCreature() instanceof DungeonMaster)) {
-                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
-                return true;
-            }
-            handled = super.handleCast(ctx, msg);
-        }
-        if (handled) {
-            return handled;
         }
         if (this.getSuccessor() != null) {
             return this.getSuccessor().handleMessage(ctx, msg);

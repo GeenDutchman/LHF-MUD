@@ -304,13 +304,12 @@ public class ServerTest {
         this.comm.create("Tester");
         String status1 = this.comm.handleCommand("status");
         String inventory1 = this.comm.handleCommand("inventory");
-        int slotindex = inventory1.indexOf("SHIELD");
-        int shieldIndex = inventory1.indexOf("Shield", slotindex);
-        Truth.assertThat(slotindex).isLessThan(shieldIndex);
-        this.comm.handleCommand("unequip shield");
+        Truth.assertThat(inventory1).contains("Shield");
+        Truth.assertThat(inventory1).contains("nothing equipped");
+        this.comm.handleCommand("equip shield");
         Truth.assertThat(this.comm.handleCommand("inventory")).isNotEqualTo(inventory1);
         Truth.assertThat(this.comm.handleCommand("status")).isNotEqualTo(status1);
-        this.comm.handleCommand("equip shield");
+        this.comm.handleCommand("unequip shield");
         Truth.assertThat(this.comm.handleCommand("inventory")).isEqualTo(inventory1);
         Truth.assertThat(this.comm.handleCommand("status")).isEqualTo(status1);
     }
