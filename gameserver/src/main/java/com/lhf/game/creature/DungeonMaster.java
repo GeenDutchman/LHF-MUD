@@ -7,7 +7,7 @@ import com.lhf.game.creature.builder.CreatureCreator;
 import com.lhf.game.creature.builder.CreatureCreator.PlayerCreatorAdaptor;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
-import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.vocation.DMV;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
@@ -17,24 +17,11 @@ import com.lhf.game.item.Equipable;
 import com.lhf.server.client.user.User;
 
 public class DungeonMaster extends NonPlayerCharacter implements PlayerCreatorAdaptor {
-    private static Statblock makeStatblock() {
-        AttributeBlock attributes = new AttributeBlock(100, 100, 100, 100, 100, 100);
-        EnumMap<Stats, Integer> stats = new EnumMap<>(Stats.class);
-        stats.put(Stats.MAXHP, Integer.MAX_VALUE / 2);
-        stats.put(Stats.CURRENTHP, Integer.MAX_VALUE / 2);
-        stats.put(Stats.AC, Integer.MAX_VALUE / 2);
-        stats.put(Stats.PROFICIENCYBONUS, Integer.MAX_VALUE / 2);
-        stats.put(Stats.XPEARNED, Integer.MAX_VALUE / 2);
-        stats.put(Stats.XPWORTH, Integer.MAX_VALUE / 2);
-        Statblock toMake = new Statblock("DungeonMaster", attributes, stats, EnumSet.allOf(EquipmentTypes.class),
-                new Inventory(), new EnumMap<>(EquipmentSlots.class));
-        return toMake;
-    }
 
     CreatureCreator creatureCreator;
 
     public DungeonMaster(String name) {
-        super(name, DungeonMaster.makeStatblock());
+        super(name, new DMV());
     }
 
     @Override

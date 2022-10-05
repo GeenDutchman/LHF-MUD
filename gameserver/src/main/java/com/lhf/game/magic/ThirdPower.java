@@ -49,7 +49,7 @@ public class ThirdPower implements MessageHandler {
     public ThirdPower(MessageHandler successor, Spellbook spellbook) {
         this.successor = successor;
         this.cmds = this.generateCommands();
-        if (spellbook != null) {
+        if (spellbook == null) {
             this.spellbook = new Spellbook();
             this.spellbook.loadFromFile();
         } else {
