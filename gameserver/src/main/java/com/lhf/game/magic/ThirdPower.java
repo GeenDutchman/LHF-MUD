@@ -12,6 +12,7 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
+import com.lhf.game.map.RoomEffect;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -26,6 +27,7 @@ import com.lhf.messages.out.CastingMessage;
 import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.MissMessage;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.RoomAffectedMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 
@@ -150,6 +152,35 @@ public class ThirdPower implements MessageHandler {
         return true;
     }
 
+    private boolean affectRoom(CommandContext ctx, ISpell<RoomEffect> spell) {
+        Creature caster = ctx.getCreature();
+        BattleManager battleManager = ctx.getBattleManager();
+
+        if (spell.isOffensive() && battleManager != null && !battleManager.isBattleOngoing()) {
+            battleManager.startBattle(caster, null);
+        }
+
+        for (RoomEffect effect : spell) {
+            EffectResistance resistance = effect.getResistance();
+            MultiRollResult casterResult = null;
+            MultiRollResult targetResult = null;
+            if (resistance != null) {
+                casterResult = resistance.actorEffort(caster, 0);
+                targetResult = resistance.targetEffort(0);
+            }
+
+            if (resistance == null || targetResult == null
+                    || (casterResult != null && (casterResult.getTotal() > targetResult.getTotal()))) {
+                RoomAffectedMessage ram = ctx.getRoom().applyEffect(effect);
+                this.channelizeMessage(ctx, ram, spell.isOffensive(), caster);
+            } else {
+                MissMessage missMessage = new MissMessage(caster, null, casterResult, targetResult);
+                this.channelizeMessage(ctx, missMessage, spell.isOffensive());
+            }
+        }
+        return true;
+    }
+
     private boolean handleCast(CommandContext ctx, Command msg) {
         CastMessage casting = (CastMessage) msg;
         Creature caster = ctx.getCreature();
@@ -186,7 +217,9 @@ public class ThirdPower implements MessageHandler {
                 possTargets.add(found.get(0));
             }
 
-            CastingMessage castingMessage = entry.Cast(caster, casting.getLevel(), possTargets);
+            int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
+                    : entry.getLevel();
+            CastingMessage castingMessage = entry.Cast(caster, level, possTargets);
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
 
             return this.affectCreatures(ctx, spell, possTargets);
@@ -223,10 +256,28 @@ public class ThirdPower implements MessageHandler {
                 }
             }
 
-            CastingMessage castingMessage = entry.Cast(caster, casting.getLevel(), new ArrayList<>(targets));
+            int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
+                    : entry.getLevel();
+            CastingMessage castingMessage = entry.Cast(caster, level, new ArrayList<>(targets));
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
 
             return this.affectCreatures(ctx, spell, targets);
+        } else if (entry instanceof RoomTargetingSpellEntry) {
+            if (ctx.getRoom() == null) {
+                ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
+                return true;
+            }
+
+            RoomTargetingSpell spell = new RoomTargetingSpell((RoomTargetingSpellEntry) entry, caster);
+
+            // TODO: summons and banish
+
+            int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
+                    : entry.getLevel();
+            CastingMessage castingMessage = entry.Cast(caster, level, null);
+            this.channelizeMessage(ctx, castingMessage, spell.isOffensive());
+
+            return this.affectRoom(ctx, spell);
         } // TODO: other cases
         if (battleManager != null && battleManager.isCreatureInBattle(caster)) {
             battleManager.endTurn(caster);

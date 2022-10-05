@@ -346,7 +346,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return this.produceMessage(false);
     }
 
-    public OutMessage applyEffect(RoomEffect effect) {
+    public RoomAffectedMessage applyEffect(RoomEffect effect) {
         // TODO: make banishing work!
         if (effect.getCreaturesToBanish().size() > 0 || effect.getCreaturesToBanish().size() > 0) {
             throw new UnfinishedStubbingException("We don't have this yet");
@@ -358,7 +358,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         for (Creature creature : effect.getCreaturesToSummon()) {
             this.addCreature(creature);
         }
-        return null; // TODO: return the effects!
+        return new RoomAffectedMessage(this, effect);
     }
 
     public void sendMessageToAll(OutMessage message) {
