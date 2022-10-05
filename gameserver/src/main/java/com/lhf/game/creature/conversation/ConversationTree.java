@@ -116,6 +116,17 @@ public class ConversationTree implements Serializable {
         }
 
         result.setBody(output);
+
+        for (int i = 0; i < result.getPrompts().size(); i++) {
+            String prompt = result.getPrompts().get(i);
+            for (String contextual : ctx.keySet()) {
+                Pattern pattern = Pattern.compile("\\b" + contextual + "\\b");
+                Matcher matcher = pattern.matcher(prompt);
+                prompt = matcher.replaceAll(ctx.getOrDefault(contextual, ""));
+            }
+            result.replacePrompt(i, prompt);
+        }
+
         return result;
     }
 

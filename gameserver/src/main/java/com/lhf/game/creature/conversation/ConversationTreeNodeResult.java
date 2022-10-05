@@ -17,7 +17,7 @@ public class ConversationTreeNodeResult {
     }
 
     public boolean addPrompt(String prompt) {
-        return this.prompts.add(prompt);
+        return this.prompts.add(new String(prompt));
     }
 
     public String getBody() {
@@ -26,6 +26,10 @@ public class ConversationTreeNodeResult {
 
     public List<String> getPrompts() {
         return prompts;
+    }
+
+    public String replacePrompt(int index, String replacement) {
+        return this.prompts.set(index, replacement);
     }
 
     @Override
