@@ -87,7 +87,7 @@ public class RoomBuilder {
         // ensure basicAI
         ConversationManager convoLoader = new ConversationManager();
         dmAda.setConvoTree(convoLoader, "verbal_default");
-        dmGary.setConvoTree(convoLoader, "verbal_default");
+        dmGary.setConvoTree(convoLoader, "gary");
         dmAda.setController(new BasicAI(dmAda)
                 .addHandler(new SpokenPromptChunk().setAllowUsers())
                 .addHandler(new SpeakOnOtherEntry()).addHandler(new LewdAIHandler(Set.of(dmGary))));
