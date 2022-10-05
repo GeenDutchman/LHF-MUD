@@ -56,7 +56,7 @@ public class SpokenPromptChunk extends AIHandler {
                 for (String prompt : result.getPrompts()) {
                     if (prompt.startsWith("STORE")) {
                         prompt = prompt.replaceFirst("STORE", "").trim();
-                        String[] splits = prompt.split("\\w", 2);
+                        String[] splits = prompt.split("\\b+", 2);
                         if (splits.length < 2) {
                             continue;
                         }
