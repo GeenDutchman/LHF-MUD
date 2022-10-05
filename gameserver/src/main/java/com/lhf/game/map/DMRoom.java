@@ -99,6 +99,14 @@ public class DMRoom extends Room {
         }
     }
 
+    @Override
+    public void sendMessageToAll(OutMessage message) {
+        super.sendMessageToAll(message);
+        for (User user : this.users) {
+            user.sendMsg(message);
+        }
+    }
+
     public OutMessage applyEffect(DMRoomEffect effect) {
         for (String name : effect.getUsernamesToEnsoul()) {
             User user = this.getUser(name);
