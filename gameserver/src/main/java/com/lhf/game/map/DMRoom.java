@@ -192,11 +192,6 @@ public class DMRoom extends Room {
                     .add("\"say 'They are taking the hobbits to Isengard' to Aragorn\"")
                     .add("\r\n");
             gathered.put(CommandMessage.SAY, sj.toString());
-            for (CommandMessage cm : super.getCommands().keySet()) {
-                if (!CommandMessage.SAY.equals(cm) || !CommandMessage.SEE.equals(cm)) {
-                    gathered.remove(cm);
-                }
-            }
             gathered.remove(CommandMessage.CAST);
         }
         return gathered;
