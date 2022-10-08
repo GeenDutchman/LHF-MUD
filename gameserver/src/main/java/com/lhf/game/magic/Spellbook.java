@@ -17,6 +17,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.magic.concrete.Ensouling;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
 import com.lhf.game.magic.concrete.ThunderStrike;
@@ -36,6 +37,8 @@ public class Spellbook {
         this.entries.add(thaumaturgy);
         SpellEntry thunderStrike = new ThunderStrike();
         this.entries.add(thunderStrike);
+        SpellEntry ensouling = new Ensouling();
+        this.entries.add(ensouling);
         this.setupPath();
     }
 

@@ -12,6 +12,7 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
+import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.RoomEffect;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
@@ -152,7 +153,7 @@ public class ThirdPower implements MessageHandler {
         return true;
     }
 
-    private boolean affectRoom(CommandContext ctx, ISpell<RoomEffect> spell) {
+    private boolean affectRoom(CommandContext ctx, ISpell<? extends RoomEffect> spell) {
         Creature caster = ctx.getCreature();
         BattleManager battleManager = ctx.getBattleManager();
 
@@ -262,6 +263,25 @@ public class ThirdPower implements MessageHandler {
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
 
             return this.affectCreatures(ctx, spell, targets);
+        } else if (entry instanceof DMRoomTargetingSpellEntry) {
+            if (ctx.getRoom() == null || !(ctx.getRoom() instanceof DMRoom)) {
+                ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
+                return true;
+            }
+
+            DMRoomTargetingSpell spell = new DMRoomTargetingSpell((DMRoomTargetingSpellEntry) entry, caster);
+            if (casting.getByPreposition("at") != null) {
+                spell.addUsernameToEnsoul(casting.getByPreposition("at"));
+            }
+            spell.addUsernameToEnsoul(null)
+            // TODO: summons and banish
+
+            int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
+                    : entry.getLevel();
+            CastingMessage castingMessage = entry.Cast(caster, level, null);
+            this.channelizeMessage(ctx, castingMessage, spell.isOffensive());
+
+            return this.affectRoom(ctx, spell);
         } else if (entry instanceof RoomTargetingSpellEntry) {
             if (ctx.getRoom() == null) {
                 ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));

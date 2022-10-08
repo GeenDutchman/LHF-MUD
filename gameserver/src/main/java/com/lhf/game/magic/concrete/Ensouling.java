@@ -25,7 +25,7 @@ public class Ensouling extends DMRoomTargetingSpellEntry {
     @Override
     public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets) {
         StringBuilder sb = new StringBuilder();
-        if (targets.size() > 0) {
+        if (targets != null && targets.size() > 0) {
             sb.append(caster.getColorTaggedName()).append(" will now ensoul ");
             StringJoiner sj = new StringJoiner(" and ");
             for (Taggable target : targets) {
