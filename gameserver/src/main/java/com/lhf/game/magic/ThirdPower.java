@@ -8,6 +8,8 @@ import com.lhf.game.EffectResistance;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.creature.vocation.Vocation;
+import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
@@ -270,10 +272,19 @@ public class ThirdPower implements MessageHandler {
             }
 
             DMRoomTargetingSpell spell = new DMRoomTargetingSpell((DMRoomTargetingSpellEntry) entry, caster);
-            if (casting.getByPreposition("at") != null) {
-                spell.addUsernameToEnsoul(casting.getByPreposition("at"));
+
+            // this is HORRIBLY HARDCODED
+            String target = casting.getByPreposition("at");
+            if (target != null) {
+                String vocationName = casting.getByPreposition("as");
+                Vocation vocation = VocationFactory.getVocation(vocationName);
+                if (vocation != null || vocationName != null) {
+                    spell.addUsernameToEnsoul(target, vocation);
+                } else {
+                    ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
+                }
             }
-            spell.addUsernameToEnsoul(null)
+
             // TODO: summons and banish
 
             int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
