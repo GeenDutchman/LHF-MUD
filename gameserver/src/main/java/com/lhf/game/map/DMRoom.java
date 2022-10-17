@@ -108,7 +108,7 @@ public class DMRoom extends Room {
     }
 
     public OutMessage applyEffect(DMRoomEffect effect) {
-        for (String name : effect.getUsernamesToEnsoul()) {
+        for (String name : effect.getUsernamesToEnsoul().keySet()) {
             User user = this.getUser(name);
             if (user == null) {
                 if (effect.creatureResponsible() != null) {
@@ -124,7 +124,7 @@ public class DMRoom extends Room {
                 }
             }
             Corpse corpse = (Corpse) maybeCorpse.get(); // TODO: actually use the corpse and get vocation
-            Player player = new Player(user);
+            Player player = new Player(user, effect.getUsernamesToEnsoul().get(name));
             this.removeItem(corpse);
             this.addCreature(player);
         }

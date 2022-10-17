@@ -1,28 +1,31 @@
 package com.lhf.game.map;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
+import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.server.interfaces.NotNull;
 
 public class DMRoomEffectSource extends RoomEffectSource {
 
-    protected Set<String> usernamesToEnsoul;
+    protected Map<String, Vocation> usernamesToEnsoul;
     protected Set<String> namesToSendOff;
 
     public DMRoomEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
             String description) {
         super(name, persistence, resistance, description);
-        this.usernamesToEnsoul = new TreeSet<>();
+        this.usernamesToEnsoul = new TreeMap<>();
         this.namesToSendOff = new TreeSet<>();
     }
 
     public DMRoomEffectSource(@NotNull DMRoomEffectSource other) {
         super(other.name, other.persistence, other.resistance, other.description);
-        this.usernamesToEnsoul = new TreeSet<>(other.usernamesToEnsoul);
+        this.usernamesToEnsoul = new TreeMap<>(other.usernamesToEnsoul);
         this.namesToSendOff = new TreeSet<>(other.namesToSendOff);
     }
 
@@ -30,12 +33,12 @@ public class DMRoomEffectSource extends RoomEffectSource {
         super(sub);
     }
 
-    public DMRoomEffectSource addUsernameToEnsoul(String username) {
-        this.usernamesToEnsoul.add(username);
+    public DMRoomEffectSource addUsernameToEnsoul(String username, Vocation vocation) {
+        this.usernamesToEnsoul.put(username, vocation);
         return this;
     }
 
-    public Set<String> getUsernamesToEnsoul() {
+    public Map<String, Vocation> getUsernamesToEnsoul() {
         return usernamesToEnsoul;
     }
 
@@ -48,8 +51,8 @@ public class DMRoomEffectSource extends RoomEffectSource {
         return namesToSendOff;
     }
 
-    public DMRoomEffectSource addName(String username) {
-        this.usernamesToEnsoul.add(username);
+    public DMRoomEffectSource addName(String username, Vocation vocation) {
+        this.usernamesToEnsoul.put(username, vocation);
         this.namesToSendOff.add(name);
         return this;
     }
@@ -60,8 +63,8 @@ public class DMRoomEffectSource extends RoomEffectSource {
         if (this.usernamesToEnsoul.size() > 0) {
             sb.append("Users it will ensoul: \r\n");
             StringJoiner sj = new StringJoiner(" and ");
-            for (String name : this.usernamesToEnsoul) {
-                sj.add(name);
+            for (String name : this.usernamesToEnsoul.keySet()) {
+                sj.add(name + " as " + this.usernamesToEnsoul.get(name).toString());
             }
             sb.append(sj.toString()).append("\r\n");
         }
