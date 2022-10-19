@@ -26,6 +26,6 @@ public class DMRoomEffect extends RoomEffect {
     }
 
     public Set<String> getNamesToSendOff() {
-        return Collections.unmodifiableSet(this.getNamesToSendOff());
+        return Collections.unmodifiableSet(this.getSource().getNamesToSendOff());
     }
 }
