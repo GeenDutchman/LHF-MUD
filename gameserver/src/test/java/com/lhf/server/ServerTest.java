@@ -130,6 +130,20 @@ public class ServerTest {
     }
 
     @Test
+    void testComplexCharacterCreation() {
+        String message = this.comm.read();
+        Truth.assertThat(message).ignoringCase().contains("create");
+        message = this.comm.create("Tester", null, true);
+        Truth.assertThat(message).ignoringCase().contains("hi");
+        message = this.comm.handleCommand("say hi to gary lovejax");
+        message = this.comm.handleCommand("say ok to gary lovejax");
+        message = this.comm.handleCommand("say mage to gary lovejax");
+        message = this.comm.handleCommand("say thanks to gary lovejax");
+        String room1 = this.comm.handleCommand("see");
+        Truth.assertThat(room1).contains("east");
+    }
+
+    @Test
     void testCreatedExit() {
         this.comm.create("Tester");
         String message = this.comm.handleCommand("exit");

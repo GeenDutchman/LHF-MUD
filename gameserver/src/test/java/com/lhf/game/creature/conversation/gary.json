@@ -1,0 +1,149 @@
+{
+  "treeName": "gary",
+  "start": {
+    "nodeID": "5a47048f-73f7-413e-953f-8d6f9b33b14b",
+    "body": "intro lore placeholder here",
+    "prompts": []
+  },
+  "nodes": {
+    "bb00fbdb-e2c9-4eac-bbd2-07614cdaff43": {
+      "nodeID": "bb00fbdb-e2c9-4eac-bbd2-07614cdaff43",
+      "body": "It is done!",
+      "prompts": [
+        "PROMPT CAST heresabodyandgo at TALKER_NAME as CREATE_VOCATION"
+      ]
+    },
+    "d481500f-848b-4528-9616-efc80ae7f69a": {
+      "nodeID": "d481500f-848b-4528-9616-efc80ae7f69a",
+      "body": "You have selected HEALER",
+      "prompts": [
+        "STORE CREATE_VOCATION HEALER"
+      ]
+    },
+    "ef641ebf-b750-462f-947d-3681b4329501": {
+      "nodeID": "ef641ebf-b750-462f-947d-3681b4329501",
+      "body": "You have selected FIGHTER",
+      "prompts": [
+        "STORE CREATE_VOCATION FIGHTER"
+      ]
+    },
+    "007dc850-e534-4ce6-9292-b8c40ac70727": {
+      "nodeID": "007dc850-e534-4ce6-9292-b8c40ac70727",
+      "body": "Do you want to be a FIGHTER, MAGE, or HEALER?",
+      "prompts": []
+    },
+    "4f17903d-f69e-4e3f-ab2d-7616b9f0fe4c": {
+      "nodeID": "4f17903d-f69e-4e3f-ab2d-7616b9f0fe4c",
+      "body": "You have selected MAGE",
+      "prompts": [
+        "STORE CREATE_VOCATION MAGE"
+      ]
+    },
+    "5a47048f-73f7-413e-953f-8d6f9b33b14b": {
+      "nodeID": "5a47048f-73f7-413e-953f-8d6f9b33b14b",
+      "body": "intro lore placeholder here",
+      "prompts": []
+    }
+  },
+  "branches": {
+    "d481500f-848b-4528-9616-efc80ae7f69a": [
+      {
+        "regex": {
+          "regex": "thank",
+          "flags": 2,
+          "example": "Thank you"
+        },
+        "nodeID": "bb00fbdb-e2c9-4eac-bbd2-07614cdaff43",
+        "blacklist": {}
+      }
+    ],
+    "ef641ebf-b750-462f-947d-3681b4329501": [
+      {
+        "regex": {
+          "regex": "thank",
+          "flags": 2,
+          "example": "Thank you"
+        },
+        "nodeID": "bb00fbdb-e2c9-4eac-bbd2-07614cdaff43",
+        "blacklist": {}
+      }
+    ],
+    "007dc850-e534-4ce6-9292-b8c40ac70727": [
+      {
+        "regex": {
+          "regex": "fighter",
+          "flags": 2,
+          "example": "Fighter"
+        },
+        "nodeID": "ef641ebf-b750-462f-947d-3681b4329501",
+        "blacklist": {}
+      },
+      {
+        "regex": {
+          "regex": "mage",
+          "flags": 2,
+          "example": "Mage"
+        },
+        "nodeID": "4f17903d-f69e-4e3f-ab2d-7616b9f0fe4c",
+        "blacklist": {}
+      },
+      {
+        "regex": {
+          "regex": "healer",
+          "flags": 2,
+          "example": "Healer"
+        },
+        "nodeID": "d481500f-848b-4528-9616-efc80ae7f69a",
+        "blacklist": {}
+      }
+    ],
+    "4f17903d-f69e-4e3f-ab2d-7616b9f0fe4c": [
+      {
+        "regex": {
+          "regex": "thank",
+          "flags": 2,
+          "example": "Thank you"
+        },
+        "nodeID": "bb00fbdb-e2c9-4eac-bbd2-07614cdaff43",
+        "blacklist": {}
+      }
+    ],
+    "5a47048f-73f7-413e-953f-8d6f9b33b14b": [
+      {
+        "regex": {
+          "regex": "ok",
+          "flags": 2,
+          "example": "ok"
+        },
+        "nodeID": "007dc850-e534-4ce6-9292-b8c40ac70727",
+        "blacklist": {}
+      }
+    ]
+  },
+  "greetings": [
+    {
+      "regex": {
+        "regex": "hi",
+        "flags": 2,
+        "example": "this is some lore, but to make a character you need to say \"hi\" to me!"
+      },
+      "nodeID": "5a47048f-73f7-413e-953f-8d6f9b33b14b",
+      "blacklist": {}
+    }
+  ],
+  "repeatWords": [
+    {
+      "regex": "\\brepeat\\b",
+      "flags": 2,
+      "example": "repeat"
+    },
+    {
+      "regex": "\\bagain\\b",
+      "flags": 2,
+      "example": "again"
+    }
+  ],
+  "endOfConvo": "Goodbye",
+  "notRecognized": "What did you say? ...",
+  "tagkeywords": true
+}
