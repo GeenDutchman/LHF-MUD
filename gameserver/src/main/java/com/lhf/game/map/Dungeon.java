@@ -1,15 +1,10 @@
 package com.lhf.game.map;
 
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.UUID;
 
+import com.lhf.game.AffectableEntity;
+import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 import com.lhf.messages.Command;
@@ -30,7 +25,7 @@ import com.lhf.messages.out.SpawnMessage;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.user.UserID;
 
-public class Dungeon implements MessageHandler {
+public class Dungeon implements MessageHandler, AffectableEntity<DungeonEffect> {
     public class RoomAndDirs {
         public final Room room;
         public Map<Directions, Doorway> exits;
@@ -46,17 +41,20 @@ public class Dungeon implements MessageHandler {
     private Room startingRoom = null;
     private MessageHandler successor;
     private Map<CommandMessage, String> commands;
+    private transient TreeSet<DungeonEffect> effects;
 
     Dungeon() {
         this.mapping = new TreeMap<>();
         this.successor = null;
         this.commands = this.buildCommands();
+        this.effects = new TreeSet<>();
     }
 
     Dungeon(MessageHandler successor) {
         this.mapping = new TreeMap<>();
         this.successor = successor;
         this.commands = this.buildCommands();
+        this.effects = new TreeSet<>();
     }
 
     private Map<CommandMessage, String> buildCommands() {
@@ -352,6 +350,22 @@ public class Dungeon implements MessageHandler {
             return performed;
         }
         return MessageHandler.super.handleMessage(ctx, msg);
+    }
+
+    @Override
+    public NavigableSet<DungeonEffect> getMutableEffects() {
+        return this.effects;
+    }
+
+    @Override
+    public boolean isCorrectEffectType(EntityEffect effect) {
+        return effect instanceof DungeonEffect;
+    }
+
+    @Override
+    public OutMessage processEffect(EntityEffect effect, boolean reverse) {
+        // TODO make effects applicable here
+        return null;
     }
 
     public String toMermaid(boolean fence) {

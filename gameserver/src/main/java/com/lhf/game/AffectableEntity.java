@@ -58,7 +58,6 @@ public interface AffectableEntity<Effect extends EntityEffect> {
 
     /**
      * This applies the effect to the AffectableEntity.
-     * Note that each implementation should call this super implementation.
      * 
      * @param effect  the effect to apply
      * @param reverse true if the effect is to be undone
