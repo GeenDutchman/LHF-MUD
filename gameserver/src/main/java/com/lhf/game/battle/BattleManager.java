@@ -299,7 +299,7 @@ public class BattleManager implements MessageHandler, Examinable {
 
                 if (resistance == null || targetResult == null
                         || (attackerResult != null && (attackerResult.getTotal() > targetResult.getTotal()))) {
-                    CreatureAffectedMessage cam = target.applyEffect(effect);
+                    OutMessage cam = target.applyEffect(effect);
                     sendMessageToAllParticipants(cam);
                 } else {
                     sendMessageToAllParticipants(new MissMessage(attacker, target, attackerResult, targetResult));

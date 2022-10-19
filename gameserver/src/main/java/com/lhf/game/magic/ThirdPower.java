@@ -10,8 +10,8 @@ import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.vocation.Vocation;
-import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
@@ -28,7 +28,6 @@ import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.CastingMessage;
-import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.MissMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.RoomAffectedMessage;
@@ -145,7 +144,7 @@ public class ThirdPower implements MessageHandler {
 
                 if (resistance == null || targetResult == null
                         || (casterResult != null && (casterResult.getTotal() > targetResult.getTotal()))) {
-                    CreatureAffectedMessage cam = target.applyEffect(effect);
+                    OutMessage cam = target.applyEffect(effect);
                     this.channelizeMessage(ctx, cam, spell.isOffensive(), caster, target);
                 } else {
                     MissMessage missMessage = new MissMessage(caster, target, casterResult, targetResult);
@@ -323,6 +322,9 @@ public class ThirdPower implements MessageHandler {
 
     private void channelizeMessage(CommandContext ctx, OutMessage message, boolean includeBattle,
             ClientMessenger... directs) {
+        if (message == null) {
+            return;
+        }
         BattleManager bm = ctx.getBattleManager();
         if (includeBattle && bm != null && bm.isBattleOngoing()) {
             bm.sendMessageToAllParticipants(message);

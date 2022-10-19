@@ -3,9 +3,11 @@ package com.lhf.game.creature;
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
+import com.lhf.game.AffectableEntity;
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectResistance;
 import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.EffectResistance;
+import com.lhf.game.EntityEffect;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.Inventory;
@@ -41,16 +43,17 @@ import com.lhf.messages.in.UnequipMessage;
 import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.EquipOutMessage;
 import com.lhf.messages.out.EquipOutMessage.EquipResultType;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.NotPossessedMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.StatusOutMessage;
 import com.lhf.messages.out.UnequipOutMessage;
 import com.lhf.server.client.ClientID;
 
 public abstract class Creature
-        implements InventoryOwner, EquipmentOwner, ClientMessenger, MessageHandler, Comparable<Creature> {
+        implements InventoryOwner, EquipmentOwner, ClientMessenger, MessageHandler, Comparable<Creature>,
+        AffectableEntity<CreatureEffect> {
 
     public class Fist extends Weapon {
 
@@ -74,7 +77,7 @@ public abstract class Creature
     private Vocation vocation;
     // private MonsterType monsterType; // I dont know if we'll need this
 
-    private Set<CreatureEffect> effects;
+    private TreeSet<CreatureEffect> effects;
     private Statblock statblock;
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
@@ -343,69 +346,62 @@ public abstract class Creature
         return new MultiRollResult(adjusted, mrr.getBonuses());
     }
 
-    public CreatureAffectedMessage applyEffect(CreatureEffect effect, boolean reverse) {
-        MultiRollResult mrr = this.adjustDamageByFlavor(effect.getDamageResult(), reverse);
+    @Override
+    public boolean isCorrectEffectType(EntityEffect effect) {
+        return effect instanceof CreatureEffect;
+    }
+
+    @Override
+    public boolean shouldAdd(EntityEffect effect, boolean reverse) {
+        return this.isAlive() && AffectableEntity.super.shouldAdd(effect, reverse);
+    }
+
+    @Override
+    public CreatureAffectedMessage processEffect(EntityEffect effect, boolean reverse) {
+        if (!this.isCorrectEffectType(effect)) {
+            return null;
+        }
+        CreatureEffect creatureEffect = (CreatureEffect) effect;
+        MultiRollResult mrr = this.adjustDamageByFlavor(creatureEffect.getDamageResult(), reverse);
         if (mrr != null) {
-            effect.updateDamageResult(mrr);
+            creatureEffect.updateDamageResult(mrr);
             this.updateHitpoints(mrr.getRoll());
         }
-        for (Stats delta : effect.getStatChanges().keySet()) {
-            int amount = effect.getStatChanges().get(delta);
+        for (Stats delta : creatureEffect.getStatChanges().keySet()) {
+            int amount = creatureEffect.getStatChanges().get(delta);
             if (reverse) {
                 amount = amount * -1;
             }
             this.updateStat(delta, amount);
         }
         if (this.isAlive()) {
-            for (Attributes delta : effect.getAttributeScoreChanges().keySet()) {
-                int amount = effect.getAttributeScoreChanges().get(delta);
+            for (Attributes delta : creatureEffect.getAttributeScoreChanges().keySet()) {
+                int amount = creatureEffect.getAttributeScoreChanges().get(delta);
                 if (reverse) {
                     amount = amount * -1;
                 }
                 this.updateAttribute(delta, amount);
             }
-            for (Attributes delta : effect.getAttributeBonusChanges().keySet()) {
-                int amount = effect.getAttributeBonusChanges().get(delta);
+            for (Attributes delta : creatureEffect.getAttributeBonusChanges().keySet()) {
+                int amount = creatureEffect.getAttributeBonusChanges().get(delta);
                 if (reverse) {
                     amount = amount * -1;
                 }
                 this.updateModifier(delta, amount);
             }
-            if (!reverse && effect.getPersistence().getTickSize() != TickType.INSTANT) {
-                this.effects.add(effect);
-            } else if (reverse && this.effects.contains(effect)) {
-                this.effects.remove(effect);
-            }
             // for now...cannot curse someone with being a renegade
-            if (effect.isRestoreFaction()) {
+            if (creatureEffect.isRestoreFaction()) {
                 this.restoreFaction();
             }
         }
 
-        CreatureAffectedMessage camOut = new CreatureAffectedMessage(this, effect, reverse);
+        CreatureAffectedMessage camOut = new CreatureAffectedMessage(this, creatureEffect, reverse);
         return camOut;
     }
 
-    public CreatureAffectedMessage applyEffect(CreatureEffect effect) {
-        return this.applyEffect(effect, false);
-    }
-
-    public void tick(TickType type) {
-        this.effects.removeIf(effect -> {
-            if (effect.tick(type) == 0) {
-                this.applyEffect(effect, true);
-                return true;
-            }
-            return false;
-        });
-    }
-
-    public void removeEffectByName(String name) {
-        this.effects.removeIf(effect -> effect.getName().equals(name));
-    }
-
-    public boolean hasEffect(String name) {
-        return this.effects.stream().anyMatch(effect -> effect.getName().equals(name));
+    @Override
+    public NavigableSet<CreatureEffect> getMutableEffects() {
+        return this.effects;
     }
 
     private Item getWhatInSlot(EquipmentSlots slot) {
