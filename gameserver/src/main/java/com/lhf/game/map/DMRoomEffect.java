@@ -1,31 +1,41 @@
 package com.lhf.game.map;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation;
 
 public class DMRoomEffect extends RoomEffect {
-    public DMRoomEffect(DMRoomEffectSource source, Creature creatureResponsible, Taggable generatedBy) {
+    private final String ensoulUsername;
+    private final Vocation vocation;
+
+    public DMRoomEffect(DMRoomEffectSource source, Creature creatureResponsible, Taggable generatedBy,
+            String ensoulUsername, Vocation vocation) {
         super(source, creatureResponsible, generatedBy);
+        if (source.isEnsoulsUserAndSend()) {
+            this.ensoulUsername = ensoulUsername;
+            this.vocation = vocation;
+        } else {
+            this.ensoulUsername = null;
+            this.vocation = null;
+        }
     }
 
     public DMRoomEffect(RoomEffect sub) {
         super(sub);
+        this.ensoulUsername = null;
+        this.vocation = null;
     }
 
     public DMRoomEffectSource getSource() {
         return (DMRoomEffectSource) this.source;
     }
 
-    public Map<String, Vocation> getUsernamesToEnsoul() {
-        return Collections.unmodifiableMap(this.getSource().getUsernamesToEnsoul());
+    public String getEnsoulUsername() {
+        return ensoulUsername;
     }
 
-    public Set<String> getNamesToSendOff() {
-        return Collections.unmodifiableSet(this.getSource().getNamesToSendOff());
+    public Vocation getVocation() {
+        return vocation;
     }
+
 }

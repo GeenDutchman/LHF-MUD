@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.StringJoiner;
 
 import com.lhf.game.EntityEffect;
-import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.Player;
 import com.lhf.game.item.Item;
@@ -21,11 +20,11 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.out.BadMessage;
+import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.BadTargetSelectedMessage;
+import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.RoomAffectedMessage;
-import com.lhf.messages.out.BadMessage.BadMessageType;
-import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.RoomEnteredOutMessage;
 import com.lhf.messages.out.SomeoneLeftRoom;
 import com.lhf.messages.out.SpeakingMessage;
@@ -118,50 +117,27 @@ public class DMRoom extends Room {
     public RoomAffectedMessage processEffect(EntityEffect effect, boolean reverse) {
         if (this.isCorrectEffectType(effect)) {
             DMRoomEffect dmRoomEffect = (DMRoomEffect) effect;
-            for (String name : dmRoomEffect.getUsernamesToEnsoul().keySet()) {
+            if (dmRoomEffect.getEnsoulUsername() != null) {
+                String name = dmRoomEffect.getEnsoulUsername();
                 User user = this.getUser(name);
                 if (user == null) {
                     if (dmRoomEffect.creatureResponsible() != null) {
+                        OutMessage whoops = new BadTargetSelectedMessage(BadTargetOption.DNE, name);
                         dmRoomEffect.creatureResponsible()
-                                .sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, name));
-                        continue;
+                                .sendMsg(whoops);
+                        return null;
                     }
                 }
                 Optional<Item> maybeCorpse = this.getItem(name);
                 if (maybeCorpse.isEmpty() || !(maybeCorpse.get() instanceof Corpse)) {
                     if (effect.creatureResponsible() != null) {
                         effect.creatureResponsible().sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, name));
-                        continue;
+                        return null;
                     }
                 }
                 Corpse corpse = (Corpse) maybeCorpse.get(); // TODO: actually use the corpse and get vocation
-                Player player = new Player(user, dmRoomEffect.getUsernamesToEnsoul().get(name));
+                Player player = new Player(user, dmRoomEffect.getVocation());
                 this.removeItem(corpse);
-                this.addCreature(player);
-            }
-            for (String name : dmRoomEffect.getNamesToSendOff()) {
-                List<Creature> creatures = this.getCreaturesInRoom(name);
-                if (creatures.size() == 0) {
-                    if (dmRoomEffect.creatureResponsible() != null) {
-                        dmRoomEffect.creatureResponsible()
-                                .sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, name, creatures));
-                        continue;
-                    }
-                } else if (creatures.size() > 1) {
-                    if (dmRoomEffect.creatureResponsible() != null) {
-                        dmRoomEffect.creatureResponsible()
-                                .sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, name, creatures));
-                        continue;
-                    }
-                } else if (!(creatures.get(0) instanceof Player)) {
-                    if (dmRoomEffect.creatureResponsible() != null) {
-                        dmRoomEffect.creatureResponsible()
-                                .sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNTARGETABLE, name));
-                        continue;
-                    }
-                }
-                Player player = (Player) creatures.get(0);
-                this.removeCreature(player);
                 this.addNewPlayer(player);
             }
         }

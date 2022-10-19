@@ -285,7 +285,11 @@ public class ThirdPower implements MessageHandler {
                     spell.addUsernameToEnsoul(target, vocation);
                 } else {
                     ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
+                    return true;
                 }
+            } else if (taggedTarget == null && spell.getTypedEntry().isEnsoulsUsers()) {
+                ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, target));
+                return true;
             }
 
             // TODO: summons and banish

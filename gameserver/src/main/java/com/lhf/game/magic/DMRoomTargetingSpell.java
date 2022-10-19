@@ -92,15 +92,24 @@ public class DMRoomTargetingSpell extends ISpell<DMRoomEffect> {
     public Set<DMRoomEffect> getEffects() {
         if (this.effects == null) {
             this.effects = new HashSet<>();
-            for (RoomEffect roomEffect : this.inner) {
-                this.effects.add(new DMRoomEffect(roomEffect));
-            }
             for (EntityEffectSource source : this.getEntry().getEffectSources()) {
+                DMRoomEffectSource dmRoomEffectSource;
                 if (source instanceof DMRoomEffectSource) {
-                    this.effects.add(new DMRoomEffect((DMRoomEffectSource) source, this.getCaster(), this));
+                    dmRoomEffectSource = (DMRoomEffectSource) source;
                 } else if (source instanceof RoomEffectSource) {
-                    this.effects.add(new DMRoomEffect(new DMRoomEffectSource((RoomEffectSource) source),
-                            this.getCaster(), this));
+                    dmRoomEffectSource = new DMRoomEffectSource((RoomEffectSource) source);
+                } else {
+                    continue;
+                }
+
+                if (dmRoomEffectSource.isEnsoulsUserAndSend()) {
+                    for (String name : this.usernamesToEnsoul.keySet()) {
+                        this.effects.add(
+                                new DMRoomEffect(dmRoomEffectSource, caster, this, name,
+                                        this.usernamesToEnsoul.get(name)));
+                    }
+                } else {
+                    this.effects.add(new DMRoomEffect(dmRoomEffectSource, caster, this, null, null));
                 }
             }
         }
