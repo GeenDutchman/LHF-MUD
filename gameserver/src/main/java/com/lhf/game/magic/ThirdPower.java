@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.lhf.Taggable;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
@@ -271,10 +272,14 @@ public class ThirdPower implements MessageHandler {
                 return true;
             }
 
+            DMRoom dmRoom = (DMRoom) ctx.getRoom();
+
             DMRoomTargetingSpell spell = new DMRoomTargetingSpell((DMRoomTargetingSpellEntry) entry, caster);
 
             // this is HORRIBLY HARDCODED
             String target = casting.getByPreposition("at");
+            Taggable taggedTarget = dmRoom.getUser(target);
+
             if (target != null) {
                 String vocationName = casting.getByPreposition("as");
                 Vocation vocation = VocationFactory.getVocation(vocationName);
@@ -289,7 +294,7 @@ public class ThirdPower implements MessageHandler {
 
             int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
                     : entry.getLevel();
-            CastingMessage castingMessage = entry.Cast(caster, level, null);
+            CastingMessage castingMessage = entry.Cast(caster, level, List.of(taggedTarget));
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive());
 
             return this.affectRoom(ctx, spell);
