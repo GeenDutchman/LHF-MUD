@@ -66,13 +66,17 @@ public class BasicAI extends Client {
                 bai.setLastAttacker(null); // the message means that this was invalid anyway
                 BadTargetSelectedMessage btsm = (BadTargetSelectedMessage) msg;
                 ArrayList<Creature> creaturesFound = new ArrayList<>();
-                for (Taggable target : btsm.getPossibleTargets()) {
-                    if (target instanceof Creature) {
-                        creaturesFound.add((Creature) target);
+                if (btsm.getPossibleTargets() != null) {
+                    for (Taggable target : btsm.getPossibleTargets()) {
+                        if (target instanceof Creature) {
+                            creaturesFound.add((Creature) target);
+                        }
                     }
                 }
-                bai.selectNextTarget(creaturesFound);
-                bai.basicAttack();
+                if (bai.getNpc() != null && bai.getNpc().isInBattle()) {
+                    bai.selectNextTarget(creaturesFound);
+                    bai.basicAttack();
+                }
             }
         });
         this.handlers.put(OutMessageType.BATTLE_TURN, (BasicAI bai, OutMessage msg) -> {
