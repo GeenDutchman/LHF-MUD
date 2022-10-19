@@ -30,7 +30,6 @@ import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.CastingMessage;
 import com.lhf.messages.out.MissMessage;
 import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.RoomAffectedMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 
@@ -174,7 +173,7 @@ public class ThirdPower implements MessageHandler {
 
             if (resistance == null || targetResult == null
                     || (casterResult != null && (casterResult.getTotal() > targetResult.getTotal()))) {
-                RoomAffectedMessage ram = ctx.getRoom().applyEffect(effect);
+                OutMessage ram = ctx.getRoom().applyEffect(effect);
                 this.channelizeMessage(ctx, ram, spell.isOffensive(), caster);
             } else {
                 MissMessage missMessage = new MissMessage(caster, null, casterResult, targetResult);

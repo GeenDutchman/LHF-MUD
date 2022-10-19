@@ -6,7 +6,9 @@ import java.util.regex.PatternSyntaxException;
 import org.mockito.exceptions.misusing.UnfinishedStubbingException;
 
 import com.lhf.Examinable;
+import com.lhf.game.AffectableEntity;
 import com.lhf.game.Container;
+import com.lhf.game.EntityEffect;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
@@ -40,7 +42,7 @@ import com.lhf.messages.out.TakeOutMessage.TakeOutType;
 import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 import com.lhf.server.client.user.UserID;
 
-public class Room implements Container, MessageHandler, Comparable<Room> {
+public class Room implements Container, MessageHandler, Comparable<Room>, AffectableEntity<RoomEffect> {
     private UUID uuid = UUID.randomUUID();
     private List<Item> items;
     private String description;
@@ -49,6 +51,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
     private Set<Creature> allCreatures;
     private Dungeon dungeon;
     protected LewdManager lewdManager;
+    private transient TreeSet<RoomEffect> effects;
 
     private Map<CommandMessage, String> commands;
     private MessageHandler successor;
@@ -71,6 +74,7 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         this.allCreatures = new HashSet<>();
         this.commands = this.buildCommands();
         this.lewdManager = new LewdManager(this);
+        this.effects = new TreeSet<>();
         return this;
     }
 
@@ -346,19 +350,34 @@ public class Room implements Container, MessageHandler, Comparable<Room> {
         return this.produceMessage(false);
     }
 
-    public RoomAffectedMessage applyEffect(RoomEffect effect) {
+    @Override
+    public boolean isCorrectEffectType(EntityEffect effect) {
+        return effect instanceof RoomEffect;
+    }
+
+    @Override
+    public RoomAffectedMessage processEffect(EntityEffect effect, boolean reverse) {
+        if (!this.isCorrectEffectType(effect)) {
+            return null;
+        }
+        RoomEffect roomEffect = (RoomEffect) effect;
         // TODO: make banishing work!
-        if (effect.getCreaturesToBanish().size() > 0 || effect.getCreaturesToBanish().size() > 0) {
+        if (roomEffect.getCreaturesToBanish().size() > 0 || roomEffect.getCreaturesToBanish().size() > 0) {
             throw new UnfinishedStubbingException("We don't have this yet");
         }
 
-        for (Item item : effect.getItemsToSummon()) {
+        for (Item item : roomEffect.getItemsToSummon()) {
             this.addItem(item);
         }
-        for (Creature creature : effect.getCreaturesToSummon()) {
+        for (Creature creature : roomEffect.getCreaturesToSummon()) {
             this.addCreature(creature);
         }
-        return new RoomAffectedMessage(this, effect);
+        return new RoomAffectedMessage(this, roomEffect);
+    }
+
+    @Override
+    public NavigableSet<RoomEffect> getMutableEffects() {
+        return this.effects;
     }
 
     public void sendMessageToAll(OutMessage message) {
