@@ -22,8 +22,10 @@ public class Bed extends InteractObject {
             MultiRollResult sleepCheck = creature.check(best);
             creature.updateHitpoints(sleepCheck.getTotal());
             // TODO: regain spell energy?
-            return new InteractOutMessage(triggerObject, "You slept and got back " + sleepCheck.getColorTaggedName() + " hit points!");
-        }
+            return new InteractOutMessage(triggerObject,
+                    "You slept and got back " + sleepCheck.getColorTaggedName() + " hit points!");
+        };
+        this.setAction(sleepAction);
     }
 
 }
