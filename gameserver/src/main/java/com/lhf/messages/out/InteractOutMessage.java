@@ -28,6 +28,13 @@ public class InteractOutMessage extends OutMessage {
         this.type = InteractOutMessageType.PERFORMED;
     }
 
+    public InteractOutMessage(Taggable taggable, InteractOutMessageType type, String description) {
+        super(OutMessageType.INTERACT);
+        this.taggable = taggable;
+        this.type = type;
+        this.description = description;
+    }
+
     private String enTag(String body) {
         return "<interaction>" + body + "</interaction>";
     }
