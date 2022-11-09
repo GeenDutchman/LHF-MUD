@@ -30,7 +30,9 @@
     "007dc850-e534-4ce6-9292-b8c40ac70727": {
       "nodeID": "007dc850-e534-4ce6-9292-b8c40ac70727",
       "body": "Do you want to be a FIGHTER, MAGE, or HEALER?",
-      "prompts": []
+      "prompts": [
+        "LEWD Ada Lovejax use TALKER_NAME"
+      ]
     },
     "4f17903d-f69e-4e3f-ab2d-7616b9f0fe4c": {
       "nodeID": "4f17903d-f69e-4e3f-ab2d-7616b9f0fe4c",
