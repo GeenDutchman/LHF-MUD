@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -27,6 +26,8 @@ class VrijPartij {
                 this.party.putIfAbsent(partner, LewdAnswer.ASKED);
             }
         }
+        LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.PROPOSED, initiator, party);
+        this.messageParticipants(lom);
     }
 
     public VrijPartij addName(String name) {
@@ -94,6 +95,8 @@ class VrijPartij {
     protected VrijPartij accept(Creature creature) {
         if (this.party.containsKey(creature)) {
             this.party.put(creature, LewdAnswer.ACCEPTED);
+            LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.ACCEPTED, creature, this.party);
+            this.messageParticipants(lom);
         }
         return this;
     }
@@ -102,9 +105,6 @@ class VrijPartij {
         boolean allDone = true;
         for (Creature participant : party.keySet()) {
             LewdAnswer answer = party.getOrDefault(participant, LewdAnswer.ASKED);
-            if (!LewdAnswer.DENIED.equals(answer)) {
-                participant.sendMsg(new LewdOutMessage(LewdOutMessageType.ACCEPTED, participant, party));
-            }
             if (LewdAnswer.ASKED.equals(answer)) {
                 allDone = false;
             }

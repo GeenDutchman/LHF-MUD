@@ -44,13 +44,33 @@ public class LewdOutMessage extends OutMessage {
         }
     }
 
-    private String participantsString() {
+    private String acceptedNamesString(Creature skip) {
         StringJoiner sj = new StringJoiner(" and ");
         sj.setEmptyValue(" no one ");
 
         if (this.party != null && this.party.size() > 1) {
             for (Creature creature : this.party.keySet()) {
+                if (skip != null && creature == skip) {
+                    continue;
+                }
                 if (LewdAnswer.ACCEPTED.equals(this.party.get(creature))) {
+                    sj.add(creature.getColorTaggedName());
+                }
+            }
+        }
+        return sj.toString();
+    }
+
+    private String notDeniedNamesString(Creature skip) {
+        StringJoiner sj = new StringJoiner(" and ");
+        sj.setEmptyValue(" no one ");
+
+        if (this.party != null && this.party.size() > 1) {
+            for (Creature creature : this.party.keySet()) {
+                if (skip != null && creature == skip) {
+                    continue;
+                }
+                if (!LewdAnswer.DENIED.equals(this.party.get(creature))) {
                     sj.add(creature.getColorTaggedName());
                 }
             }
@@ -81,7 +101,7 @@ public class LewdOutMessage extends OutMessage {
             case PROPOSED:
                 if (this.creature != null) {
                     sb.append(this.creature.getColorTaggedName()).append(" has asked to lewd ")
-                            .append(this.participantsString()).append("! \r\n");
+                            .append(this.notDeniedNamesString(this.creature)).append("! \r\n");
                 } else {
                     sb.append("There is a proposal to be lewd!\r\n");
                 }
@@ -91,7 +111,7 @@ public class LewdOutMessage extends OutMessage {
                 sb.append(this.statusString());
                 break;
             case DUNNIT:
-                sb.append("A blur covers ").append(this.participantsString()).append(" as they do it! ");
+                sb.append("A blur covers ").append(this.acceptedNamesString(null)).append(" as they do it! ");
                 break;
             case NOT_NUDE:
                 sb.append("Your ").append(EquipmentSlots.ARMOR)
