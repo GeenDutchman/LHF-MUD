@@ -9,11 +9,12 @@ public class LewdBabyMaker implements LewdProduct {
 
     @Override
     public void onLewd(Room room, VrijPartij party) {
-        String name = party.getNames();
-        if (name.length() <= 0) {
-            name = NameGenerator.GenerateSuffix(NameGenerator.GenerateGiven());
+        for (String name : party.getNames()) {
+            if (name.length() <= 0) {
+                name = NameGenerator.GenerateSuffix(NameGenerator.GenerateGiven());
+            }
+            Corpse body = new Corpse(name, true);
+            room.addItem(body);
         }
-        Corpse body = new Corpse(name, true);
-        room.addItem(body);
     }
 }

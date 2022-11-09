@@ -3,8 +3,10 @@ package com.lhf.game.lewd;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.enums.EquipmentSlots;
@@ -109,8 +111,7 @@ public class LewdManager {
     }
 
     private boolean handlePopulatedJoin(CommandContext ctx, LewdInMessage lim) {
-        Map<Creature, LewdAnswer> frijPartij = new HashMap<>();
-        frijPartij.putIfAbsent(ctx.getCreature(), LewdAnswer.ACCEPTED);
+        Set<Creature> invited = new HashSet<>();
         for (String possName : lim.getPartners()) {
             List<Creature> possibles = this.room.getCreaturesInRoom(possName);
             if (possibles.size() == 0) {
@@ -120,24 +121,24 @@ public class LewdManager {
                 ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, possName, possibles));
                 return true;
             }
-            frijPartij.putIfAbsent(possibles.get(0), LewdAnswer.ASKED);
+            invited.add(possibles.get(0));
         }
         int index = -1;
         if (this.vrijPartijen.size() == 0) {
-            this.vrijPartijen.add(new VrijPartij(frijPartij));
+            this.vrijPartijen.add(new VrijPartij(ctx.getCreature(), invited));
             index = 0;
         } else {
+            invited.add(ctx.getCreature());
             for (int i = 0; i < this.vrijPartijen.size(); i++) {
                 VrijPartij party = this.vrijPartijen.get(i);
-                if (party.match(frijPartij)) {
-                    party.merge(frijPartij);
+                if (party.match(invited)) {
                     index = i;
                     break;
                 }
             }
             if (index < 0) {
                 index = this.vrijPartijen.size();
-                this.vrijPartijen.add(new VrijPartij(frijPartij));
+                this.vrijPartijen.add(new VrijPartij(ctx.getCreature(), invited));
             }
         }
         return this.handleJoin(ctx, index);

@@ -10,7 +10,7 @@ import com.lhf.messages.OutMessageType;
 
 public class LewdOutMessage extends OutMessage {
     public enum LewdOutMessageType {
-        NOT_NUDE, NO_BODY, ORGY_UNSUPPORTED, STATUS, DENIED, ACCEPTED, PROPOSED, DUNNIT;
+        NOT_NUDE, NO_BODY, ORGY_UNSUPPORTED, SOLO_UNSUPPORTED, STATUS, DENIED, ACCEPTED, PROPOSED, DUNNIT;
     }
 
     private final LewdOutMessageType type;
@@ -102,6 +102,9 @@ public class LewdOutMessage extends OutMessage {
                 break;
             case ORGY_UNSUPPORTED:
                 sb.append("You are trying to lewd too many people! Perhaps you need to be more selective? ");
+                break;
+            case SOLO_UNSUPPORTED:
+                sb.append("Your lewdness is meant to be shared!  Don't go flyin' solo!");
                 break;
             case STATUS:
                 // fallthrough

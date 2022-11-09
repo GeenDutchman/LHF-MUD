@@ -1,9 +1,12 @@
 package com.lhf.game.lewd;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.LewdOutMessage;
@@ -11,15 +14,30 @@ import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
 
 class VrijPartij {
     protected Map<Creature, LewdAnswer> party;
-    protected StringJoiner sb;
+    protected Set<String> names;
 
-    public VrijPartij(Map<Creature, LewdAnswer> frijPartij) {
-        this.party = frijPartij;
-        this.sb = new StringJoiner(" ").setEmptyValue("");
+    public VrijPartij(Creature initiator, Set<Creature> partners) {
+        this.names = new TreeSet<>();
+        this.party = new TreeMap<>();
+        if (initiator != null) {
+            this.party.put(initiator, LewdAnswer.ACCEPTED);
+        }
+        if (partners != null) {
+            for (Creature partner : partners) {
+                this.party.putIfAbsent(partner, LewdAnswer.ASKED);
+            }
+        }
     }
 
-    public String getNames() {
-        return this.sb.toString();
+    public VrijPartij addName(String name) {
+        if (name != null && name.length() > 0) {
+            this.names.add(name);
+        }
+        return this;
+    }
+
+    public Set<String> getNames() {
+        return Collections.unmodifiableSet(this.names);
     }
 
     public Set<Creature> getParticipants(LewdAnswer answer) {
@@ -39,11 +57,6 @@ class VrijPartij {
         return this.getParticipants(LewdAnswer.ACCEPTED);
     }
 
-    public VrijPartij addName(String name) {
-        this.sb.add(name);
-        return this;
-    }
-
     public void messageParticipants(LewdOutMessage lom) {
         if (lom != null) {
             for (Creature participant : party.keySet()) {
@@ -60,11 +73,11 @@ class VrijPartij {
         return this;
     }
 
-    public boolean match(Map<Creature, LewdAnswer> partij) {
+    public boolean match(Set<Creature> partij) {
         if (partij == null) {
             return false;
         }
-        if (partij.size() == this.party.size() && partij.keySet().containsAll(this.party.keySet())) {
+        if (partij.size() == this.party.size() && partij.containsAll(this.party.keySet())) {
             return true;
         }
         return false;
@@ -74,6 +87,10 @@ class VrijPartij {
         return this.party.containsKey(creature);
     }
 
+    public LewdAnswer getAnswer(Creature creature) {
+        return this.party.get(creature);
+    }
+
     protected VrijPartij accept(Creature creature) {
         if (this.party.containsKey(creature)) {
             this.party.put(creature, LewdAnswer.ACCEPTED);
@@ -81,13 +98,12 @@ class VrijPartij {
         return this;
     }
 
-    public boolean acceptAndCheck(Creature creature) {
-        this.accept(creature);
+    public boolean check() {
         boolean allDone = true;
         for (Creature participant : party.keySet()) {
             LewdAnswer answer = party.getOrDefault(participant, LewdAnswer.ASKED);
             if (!LewdAnswer.DENIED.equals(answer)) {
-                participant.sendMsg(new LewdOutMessage(LewdOutMessageType.ACCEPTED, creature, party));
+                participant.sendMsg(new LewdOutMessage(LewdOutMessageType.ACCEPTED, participant, party));
             }
             if (LewdAnswer.ASKED.equals(answer)) {
                 allDone = false;
@@ -100,6 +116,11 @@ class VrijPartij {
         return allDone;
     }
 
+    public boolean acceptAndCheck(Creature creature) {
+        this.accept(creature);
+        return this.check();
+    }
+
     public VrijPartij pass(Creature creature) {
         if (party.containsKey(creature)) {
             party.put(creature, LewdAnswer.DENIED);
@@ -108,6 +129,18 @@ class VrijPartij {
             this.messageParticipants(lom);
         }
         return this;
+    }
+
+    public boolean passAndCheck(Creature creature) {
+        this.pass(creature);
+        return this.check();
+    }
+
+    public int size() {
+        if (this.party == null) {
+            return -1;
+        }
+        return this.party.size();
     }
 
     protected void remove(Creature creature) {
