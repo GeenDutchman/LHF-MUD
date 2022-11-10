@@ -1,6 +1,7 @@
 package com.lhf.game.item.concrete;
 
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Timer;
@@ -14,14 +15,24 @@ import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.interfaces.InteractAction;
+import com.lhf.game.map.Directions;
+import com.lhf.game.map.Room;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
+import com.lhf.messages.in.GoMessage;
+import com.lhf.messages.in.InteractMessage;
+import com.lhf.messages.out.BadGoMessage;
 import com.lhf.messages.out.InteractOutMessage;
+import com.lhf.messages.out.BadGoMessage.BadGoType;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 
 public class Bed extends InteractObject implements MessageHandler {
 
     protected final ScheduledThreadPoolExecutor executor;
     protected Set<BedTime> occupants;
+    protected Room room;
 
     protected class BedTime implements Runnable, Comparable<Bed.BedTime> {
         protected Creature occupant;
@@ -92,8 +103,10 @@ public class Bed extends InteractObject implements MessageHandler {
         }
     }
 
-    public Bed(int capacity) {
+    public Bed(int capacity, Room room) {
         super("Bed", true, true, "It's a bed.");
+
+        this.room = room;
 
         this.executor = new ScheduledThreadPoolExecutor(Integer.max(capacity, 1));
         this.executor.setRemoveOnCancelPolicy(true);
@@ -126,17 +139,76 @@ public class Bed extends InteractObject implements MessageHandler {
         return this.executor.getActiveCount();
     }
 
-    public boolean remove(Creature doneSleeping) {
-        BedTime found = null;
+    protected boolean isInRoom(Creature creature) {
+        return this.room.containsCreature(creature);
+    }
+
+    protected BedTime getBedTime(Creature creature) {
         for (BedTime bedTime : this.occupants) {
-            if (bedTime.occupant == doneSleeping) {
-                found = bedTime;
-                break;
+            if (bedTime.occupant == creature) {
+                return bedTime;
             }
         }
+        return null;
+    }
+
+    public boolean remove(Creature doneSleeping) {
+        BedTime found = this.getBedTime(doneSleeping);
         if (found != null) {
+            found.occupant.sendMsg(new InteractOutMessage(this, "You got out of the bed!"));
             found.cancel();
             return this.occupants.remove(found);
+        }
+        return false;
+    }
+
+    @Override
+    public void setSuccessor(MessageHandler successor) {
+        // We only care about the room
+        if (successor instanceof Room && successor != null) {
+            this.room = (Room) room;
+        }
+    }
+
+    @Override
+    public MessageHandler getSuccessor() {
+        return null; // we're gonna pretend there *is* no successor!
+    }
+
+    @Override
+    public Map<CommandMessage, String> getCommands() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CommandContext addSelfToContext(CommandContext ctx) {
+        return ctx;
+    }
+
+    @Override
+    public boolean handleMessage(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.EXIT) {
+            this.remove(ctx.getCreature());
+            if (this.room != null) {
+                return this.room.handleMessage(ctx, msg);
+            }
+            return MessageHandler.super.handleMessage(ctx, msg);
+        } else if (msg.getType() == CommandMessage.GO) {
+            GoMessage goMessage = (GoMessage) msg;
+            if (Directions.UP.equals(goMessage.getDirection())) {
+                this.remove(ctx.getCreature());
+                return true;
+            } else {
+                ctx.sendMsg(new BadGoMessage(BadGoType.DNE, goMessage.getDirection(), EnumSet.of(Directions.UP)));
+                return true;
+            }
+        } else if (msg.getType() == CommandMessage.INTERACT) {
+            InteractMessage interactMessage = (InteractMessage) msg;
+            if (this.getName() == interactMessage.getObject()) {
+                this.remove(ctx.getCreature());
+                return true;
+            }
         }
         return false;
     }
