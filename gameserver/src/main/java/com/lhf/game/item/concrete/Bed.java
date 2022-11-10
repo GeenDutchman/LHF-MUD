@@ -1,6 +1,7 @@
 package com.lhf.game.item.concrete;
 
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Objects;
@@ -181,8 +182,12 @@ public class Bed extends InteractObject implements MessageHandler {
 
     @Override
     public Map<CommandMessage, String> getCommands() {
-        // TODO Auto-generated method stub
-        return null;
+        EnumMap<CommandMessage, String> commands = new EnumMap<>(CommandMessage.class);
+        commands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
+        commands.put(CommandMessage.GO, "Use the command <command>GO UP</command> to get out of bed. ");
+        commands.put(CommandMessage.INTERACT,
+                "Use the command <command>INTERACT " + this.getName() + "</command> to get out of bed. ");
+        return commands;
     }
 
     @Override
