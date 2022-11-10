@@ -1,10 +1,10 @@
 package com.lhf.game.item.concrete;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.Timer;
 import java.util.TreeSet;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -113,7 +113,7 @@ public class Bed extends InteractObject implements MessageHandler {
         this.executor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
         this.executor.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
 
-        this.occupants = new TreeSet<>();
+        this.occupants = Collections.synchronizedSortedSet(new TreeSet<>());
         InteractAction sleepAction = (creature, triggerObject, args) -> {
             if (creature == null) {
                 return new InteractOutMessage(triggerObject, InteractOutMessageType.CANNOT);
@@ -122,11 +122,15 @@ public class Bed extends InteractObject implements MessageHandler {
                 return new InteractOutMessage(triggerObject, InteractOutMessageType.CANNOT, "The bed is full!");
             }
 
-            BedTime bedTime = new BedTime(creature);
-            bedTime.setFuture(this.executor.scheduleWithFixedDelay(bedTime, 30, 30, TimeUnit.SECONDS));
-            this.occupants.add(bedTime);
+            BedTime bedTime = this.getBedTime(creature);
+            if (bedTime == null) {
+                bedTime = new BedTime(creature);
+                bedTime.setFuture(this.executor.scheduleWithFixedDelay(bedTime, 30, 30, TimeUnit.SECONDS));
+                this.occupants.add(bedTime);
 
-            return new InteractOutMessage(triggerObject, "You got in the bed!");
+                return new InteractOutMessage(triggerObject, "You got in the bed!");
+            }
+            return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR, "You are already in the bed!");
         };
         this.setAction(sleepAction);
     }
