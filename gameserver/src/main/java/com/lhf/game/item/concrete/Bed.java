@@ -32,6 +32,7 @@ import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 public class Bed extends InteractObject implements MessageHandler {
 
     protected final ScheduledThreadPoolExecutor executor;
+    protected final int sleepSeconds;
     protected Set<BedTime> occupants;
     protected Room room;
 
@@ -104,9 +105,9 @@ public class Bed extends InteractObject implements MessageHandler {
         }
     }
 
-    public Bed(int capacity, Room room) {
+    public Bed(Room room, int capacity, int sleepSeconds) {
         super("Bed", true, true, "It's a bed.");
-
+        this.sleepSeconds = Integer.max(sleepSeconds, 1);
         this.room = room;
 
         this.executor = new ScheduledThreadPoolExecutor(Integer.max(capacity, 1));
@@ -126,7 +127,8 @@ public class Bed extends InteractObject implements MessageHandler {
             BedTime bedTime = this.getBedTime(creature);
             if (bedTime == null) {
                 bedTime = new BedTime(creature);
-                bedTime.setFuture(this.executor.scheduleWithFixedDelay(bedTime, 30, 30, TimeUnit.SECONDS));
+                bedTime.setFuture(this.executor.scheduleWithFixedDelay(bedTime, this.sleepSeconds, this.sleepSeconds,
+                        TimeUnit.SECONDS));
                 this.occupants.add(bedTime);
 
                 return new InteractOutMessage(triggerObject, "You got in the bed!");
