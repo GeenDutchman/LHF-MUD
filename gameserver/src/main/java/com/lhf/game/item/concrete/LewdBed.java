@@ -36,7 +36,6 @@ public class LewdBed extends Bed {
         super(room, Integer.max(capacity, 2), sleepSeconds);
         this.vrijPartijen = new ArrayList<>();
         this.lewdProduct = null;
-
     }
 
     public LewdBed setLewdProduct(LewdProduct lewdProduct) {

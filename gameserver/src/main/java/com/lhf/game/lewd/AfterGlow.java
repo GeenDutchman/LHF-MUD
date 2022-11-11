@@ -6,7 +6,7 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.Attributes;
-import com.lhf.game.lewd.LewdManager.LewdProduct;
+import com.lhf.game.item.concrete.LewdBed.LewdProduct;
 import com.lhf.game.map.Room;
 
 public class AfterGlow extends CreatureEffectSource implements LewdProduct {

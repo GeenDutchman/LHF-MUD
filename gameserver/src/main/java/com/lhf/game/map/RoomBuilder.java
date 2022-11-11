@@ -13,6 +13,7 @@ import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.messages.MessageHandler;
 
 public class RoomBuilder {
@@ -97,6 +98,10 @@ public class RoomBuilder {
 
         dmRoom.addCreature(dmAda);
         dmRoom.addCreature(dmGary);
+
+        LewdBed bed = new LewdBed(dmRoom, 2, 30);
+        dmRoom.addItem(bed);
+
         if (this.creatures != null) {
             for (Creature c : this.creatures) {
                 dmRoom.addCreature(c);
