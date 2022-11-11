@@ -147,6 +147,9 @@ public class Bed extends InteractObject implements MessageHandler {
     }
 
     protected boolean isInRoom(Creature creature) {
+        if (this.room == null) {
+            return false;
+        }
         return this.room.containsCreature(creature);
     }
 
