@@ -139,11 +139,11 @@ public class Bed extends InteractObject implements MessageHandler {
     }
 
     public int getCapacity() {
-        return this.occupants.size();
+        return this.executor.getCorePoolSize();
     }
 
     public int getOccupancy() {
-        return this.executor.getActiveCount();
+        return Integer.min(this.executor.getActiveCount(), this.occupants.size());
     }
 
     protected boolean isInRoom(Creature creature) {
