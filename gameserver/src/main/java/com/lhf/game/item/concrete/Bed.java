@@ -124,18 +124,23 @@ public class Bed extends InteractObject implements MessageHandler {
                 return new InteractOutMessage(triggerObject, InteractOutMessageType.CANNOT, "The bed is full!");
             }
 
-            BedTime bedTime = this.getBedTime(creature);
-            if (bedTime == null) {
-                bedTime = new BedTime(creature);
-                bedTime.setFuture(this.executor.scheduleWithFixedDelay(bedTime, this.sleepSeconds, this.sleepSeconds,
-                        TimeUnit.SECONDS));
-                this.occupants.add(bedTime);
-
-                return new InteractOutMessage(triggerObject, "You got in the bed!");
+            if (this.addCreature(creature)) {
+                return new InteractOutMessage(triggerObject, "You are now in the bed!");
             }
             return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR, "You are already in the bed!");
         };
         this.setAction(sleepAction);
+    }
+
+    public boolean addCreature(Creature creature) {
+        BedTime bedTime = this.getBedTime(creature);
+        if (bedTime == null) {
+            bedTime = new BedTime(creature);
+            bedTime.setFuture(this.executor.scheduleWithFixedDelay(bedTime, this.sleepSeconds, this.sleepSeconds,
+                    TimeUnit.SECONDS));
+            return this.occupants.add(bedTime);
+        }
+        return false;
     }
 
     public int getCapacity() {
@@ -143,7 +148,7 @@ public class Bed extends InteractObject implements MessageHandler {
     }
 
     public int getOccupancy() {
-        return Integer.min(this.executor.getActiveCount(), this.occupants.size());
+        return this.occupants.size();
     }
 
     protected boolean isInRoom(Creature creature) {
@@ -167,6 +172,7 @@ public class Bed extends InteractObject implements MessageHandler {
         if (found != null) {
             found.occupant.sendMsg(new InteractOutMessage(this, "You got out of the bed!"));
             found.cancel();
+            found.occupant.setSuccessor(found.successor);
             return this.occupants.remove(found);
         }
         return false;
