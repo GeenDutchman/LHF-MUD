@@ -1,8 +1,6 @@
-package com.lhf.game.lewd;
+package com.lhf.game.item.concrete;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +8,8 @@ import java.util.Set;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.item.InteractObject;
+import com.lhf.game.lewd.VrijPartij;
 import com.lhf.game.map.Room;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -17,29 +17,29 @@ import com.lhf.messages.CommandMessage;
 import com.lhf.messages.in.LewdInMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.out.InteractOutMessage;
+import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.LewdOutMessage;
 import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
-import com.lhf.server.interfaces.NotNull;
+import com.lhf.messages.out.OutMessage;
 
-public class LewdManager {
+public class LewdBed extends Bed {
+
     public interface LewdProduct {
         public void onLewd(Room room, VrijPartij party);
     }
 
-    private List<VrijPartij> vrijPartijen;
-    private Map<CommandMessage, String> commands;
-    private Room room;
-    private LewdProduct lewdProduct;
+    protected List<VrijPartij> vrijPartijen;
+    protected LewdProduct lewdProduct;
 
-    public LewdManager(@NotNull Room room) {
-        this.room = room;
+    public LewdBed(Room room, int capacity, int sleepSeconds) {
+        super(room, Integer.max(capacity, 2), sleepSeconds);
         this.vrijPartijen = new ArrayList<>();
-        this.commands = new EnumMap<>(CommandMessage.class);
-        this.commands.put(CommandMessage.LEWD, "\"lewd [creature]\" lewd another person in the room");
         this.lewdProduct = null;
+
     }
 
-    public LewdManager setLewdProduct(LewdProduct lewdProduct) {
+    public LewdBed setLewdProduct(LewdProduct lewdProduct) {
         this.lewdProduct = lewdProduct;
         return this;
     }
@@ -49,22 +49,6 @@ public class LewdManager {
             party.messageParticipants(new LewdOutMessage(LewdOutMessageType.DENIED, null));
         }
         this.vrijPartijen.clear();
-    }
-
-    public void removeCreature(Creature creature) {
-        for (VrijPartij party : this.vrijPartijen) {
-            party.remove(creature);
-        }
-    }
-
-    public boolean handleMessage(CommandContext ctx, Command msg) {
-        boolean handled = false;
-        if (CommandMessage.LEWD.equals(msg.getType())) {
-            handled = this.handleLewd(ctx, msg);
-        } else if (this.vrijPartijen.size() > 0 && CommandMessage.PASS.equals(msg.getType())) {
-            handled = this.handlePass(ctx, msg);
-        }
-        return handled;
     }
 
     protected boolean handlePass(CommandContext ctx, Command msg) {
@@ -113,7 +97,7 @@ public class LewdManager {
     private boolean handlePopulatedJoin(CommandContext ctx, LewdInMessage lim) {
         Set<Creature> invited = new HashSet<>();
         for (String possName : lim.getPartners()) {
-            List<Creature> possibles = this.room.getCreaturesInRoom(possName);
+            List<Creature> possibles = this.getCreaturesInBed(possName);
             if (possibles.size() == 0) {
                 ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, possName, possibles));
                 return true;
@@ -170,12 +154,58 @@ public class LewdManager {
         }
     }
 
-    public Map<CommandMessage, String> getCommands() {
-        EnumMap<CommandMessage, String> toReturn = new EnumMap<>(this.commands);
-        if (this.vrijPartijen.size() > 0) {
-            toReturn.put(CommandMessage.PASS, "\"pass\" to decline the lewdness");
+    @Override
+    public boolean handleMessage(CommandContext ctx, Command msg) {
+        boolean handled = super.handleMessage(ctx, msg);
+        if (handled) {
+            return handled;
         }
-        return Map.copyOf(toReturn);
+        if (CommandMessage.LEWD.equals(msg.getType())) {
+            handled = this.handleLewd(ctx, msg);
+        } else if (this.vrijPartijen.size() > 0 && CommandMessage.PASS.equals(msg.getType())) {
+            handled = this.handlePass(ctx, msg);
+        }
+        return handled;
+    }
+
+    @Override
+    public boolean remove(Creature doneSleeping) {
+        if (super.remove(doneSleeping)) {
+            for (VrijPartij party : this.vrijPartijen) {
+                party.remove(doneSleeping);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public Map<CommandMessage, String> getCommands() {
+        Map<CommandMessage, String> bedCommands = super.getCommands();
+        bedCommands.put(CommandMessage.LEWD, "\"lewd [creature]\" lewd another person in the bed");
+        if (this.vrijPartijen.size() > 0) {
+            bedCommands.put(CommandMessage.PASS, "\"pass\" to decline the lewdness");
+        }
+        return Map.copyOf(bedCommands);
+    }
+
+    @Override
+    protected OutMessage bedAction(Creature creature, InteractObject triggerObject, Map<String, Object> args) {
+        if (creature == null) {
+            return new InteractOutMessage(triggerObject, InteractOutMessageType.CANNOT);
+        }
+        if (this.getOccupancy() >= this.getCapacity()) {
+            return new InteractOutMessage(triggerObject, InteractOutMessageType.CANNOT, "The bed is full!");
+        }
+
+        if (creature.getEquipped(EquipmentSlots.ARMOR) != null) {
+            return new LewdOutMessage(LewdOutMessageType.NOT_NUDE, creature);
+        }
+
+        if (this.addCreature(creature)) {
+            return new InteractOutMessage(triggerObject, "You are now in the bed!");
+        }
+        return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR, "You are already in the bed!");
     }
 
 }

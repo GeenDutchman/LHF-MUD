@@ -11,7 +11,7 @@ import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.LewdOutMessage;
 import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
 
-class VrijPartij {
+public class VrijPartij {
     protected Map<Creature, LewdAnswer> party;
     protected Set<String> names;
 
@@ -143,7 +143,7 @@ class VrijPartij {
         return this.party.size();
     }
 
-    protected void remove(Creature creature) {
+    public void remove(Creature creature) {
         this.party.remove(creature);
     }
 }

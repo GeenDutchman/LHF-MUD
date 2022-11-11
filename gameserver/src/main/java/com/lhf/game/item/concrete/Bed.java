@@ -1,5 +1,6 @@
 package com.lhf.game.item.concrete;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -25,9 +26,10 @@ import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.InteractMessage;
 import com.lhf.messages.out.BadGoMessage;
-import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.BadGoMessage.BadGoType;
+import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
+import com.lhf.messages.out.OutMessage;
 
 public class Bed extends InteractObject implements MessageHandler {
 
@@ -85,6 +87,10 @@ public class Bed extends InteractObject implements MessageHandler {
 
         @Override
         public void run() {
+            if (!this.getEnclosingInstance().isInRoom(occupant)) {
+                this.future.cancel(false);
+                this.getEnclosingInstance().occupants.remove(this);
+            }
             EnumSet<Attributes> sleepAttrs = EnumSet.of(Attributes.CON, Attributes.INT);
             Attributes best = this.occupant.getHighestAttributeBonus(sleepAttrs);
             MultiRollResult sleepCheck = this.occupant.check(best);
@@ -117,19 +123,23 @@ public class Bed extends InteractObject implements MessageHandler {
 
         this.occupants = Collections.synchronizedSortedSet(new TreeSet<>());
         InteractAction sleepAction = (creature, triggerObject, args) -> {
-            if (creature == null) {
-                return new InteractOutMessage(triggerObject, InteractOutMessageType.CANNOT);
-            }
-            if (this.getOccupancy() >= this.getCapacity()) {
-                return new InteractOutMessage(triggerObject, InteractOutMessageType.CANNOT, "The bed is full!");
-            }
-
-            if (this.addCreature(creature)) {
-                return new InteractOutMessage(triggerObject, "You are now in the bed!");
-            }
-            return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR, "You are already in the bed!");
+            return this.bedAction(creature, triggerObject, args);
         };
         this.setAction(sleepAction);
+    }
+
+    protected OutMessage bedAction(Creature creature, InteractObject triggerObject, Map<String, Object> args) {
+        if (creature == null) {
+            return new InteractOutMessage(triggerObject, InteractOutMessageType.CANNOT);
+        }
+        if (this.getOccupancy() >= this.getCapacity()) {
+            return new InteractOutMessage(triggerObject, InteractOutMessageType.CANNOT, "The bed is full!");
+        }
+
+        if (this.addCreature(creature)) {
+            return new InteractOutMessage(triggerObject, "You are now in the bed!");
+        }
+        return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR, "You are already in the bed!");
     }
 
     public boolean addCreature(Creature creature) {
@@ -149,6 +159,24 @@ public class Bed extends InteractObject implements MessageHandler {
 
     public int getOccupancy() {
         return this.occupants.size();
+    }
+
+    public ArrayList<Creature> getCreaturesInBed(String creatureName) {
+        ArrayList<Creature> match = new ArrayList<>();
+        ArrayList<Creature> closeMatch = new ArrayList<>();
+
+        for (BedTime bedTime : this.occupants) {
+            Creature c = bedTime.occupant;
+            if (c.CheckNameRegex(creatureName, 3)) {
+                match.add(c);
+            }
+            if (c.checkName(creatureName)) {
+                closeMatch.add(c);
+                return closeMatch;
+            }
+        }
+
+        return match;
     }
 
     protected boolean isInRoom(Creature creature) {
