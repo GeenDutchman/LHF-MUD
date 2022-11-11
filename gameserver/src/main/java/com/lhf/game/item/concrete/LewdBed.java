@@ -61,13 +61,13 @@ public class LewdBed extends Bed {
         return true;
     }
 
-    protected boolean handleJoin(CommandContext ctx, int index) {
+    protected boolean handleJoin(Creature joiner, int index) {
         if (index < 0 || index >= this.vrijPartijen.size()) {
-            ctx.sendMsg(new LewdOutMessage(LewdOutMessageType.ORGY_UNSUPPORTED, ctx.getCreature()));
+            joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.ORGY_UNSUPPORTED, joiner));
             return true;
         }
         VrijPartij party = this.vrijPartijen.get(index);
-        if (party.acceptAndCheck(ctx.getCreature())) {
+        if (party.acceptAndCheck(joiner)) {
             if (this.lewdProduct != null) {
                 this.lewdProduct.onLewd(this.room, party);
             }
@@ -77,41 +77,41 @@ public class LewdBed extends Bed {
         return true;
     }
 
-    private boolean handleEmptyJoin(CommandContext ctx, LewdInMessage lim) {
+    private boolean handleEmptyJoin(Creature joiner) {
         int bookmark = -1;
         for (int i = 0; i < this.vrijPartijen.size(); i++) {
             VrijPartij party = this.vrijPartijen.get(i);
-            if (party.isMember(ctx.getCreature())) {
+            if (party.isMember(joiner)) {
                 if (bookmark >= 0) {
-                    ctx.sendMsg(new LewdOutMessage(LewdOutMessageType.ORGY_UNSUPPORTED, ctx.getCreature()));
+                    joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.ORGY_UNSUPPORTED, joiner));
                     return true;
                 } else {
                     bookmark = i;
                 }
             }
         }
-        return this.handleJoin(ctx, bookmark);
+        return this.handleJoin(joiner, bookmark);
     }
 
-    private boolean handlePopulatedJoin(CommandContext ctx, LewdInMessage lim) {
+    private boolean handlePopulatedJoin(Creature joiner, Set<String> possPartners) {
         Set<Creature> invited = new HashSet<>();
-        for (String possName : lim.getPartners()) {
+        for (String possName : possPartners) {
             List<Creature> possibles = this.getCreaturesInBed(possName);
             if (possibles.size() == 0) {
-                ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, possName, possibles));
+                joiner.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, possName, possibles));
                 return true;
             } else if (possibles.size() > 1) {
-                ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, possName, possibles));
+                joiner.sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, possName, possibles));
                 return true;
             }
             invited.add(possibles.get(0));
         }
         int index = -1;
         if (this.vrijPartijen.size() == 0) {
-            this.vrijPartijen.add(new VrijPartij(ctx.getCreature(), invited));
+            this.vrijPartijen.add(new VrijPartij(joiner, invited));
             index = 0;
         } else {
-            invited.add(ctx.getCreature());
+            invited.add(joiner);
             for (int i = 0; i < this.vrijPartijen.size(); i++) {
                 VrijPartij party = this.vrijPartijen.get(i);
                 if (party.match(invited)) {
@@ -121,10 +121,10 @@ public class LewdBed extends Bed {
             }
             if (index < 0) {
                 index = this.vrijPartijen.size();
-                this.vrijPartijen.add(new VrijPartij(ctx.getCreature(), invited));
+                this.vrijPartijen.add(new VrijPartij(joiner, invited));
             }
         }
-        return this.handleJoin(ctx, index);
+        return this.handleJoin(joiner, index);
     }
 
     protected boolean handleLewd(CommandContext ctx, Command msg) {
@@ -147,9 +147,9 @@ public class LewdBed extends Bed {
 
         LewdInMessage lewdInMessage = (LewdInMessage) msg;
         if (lewdInMessage.getPartners().size() > 0) {
-            return this.handlePopulatedJoin(ctx, lewdInMessage);
+            return this.handlePopulatedJoin(ctx.getCreature(), lewdInMessage.getPartners());
         } else {
-            return this.handleEmptyJoin(ctx, lewdInMessage);
+            return this.handleEmptyJoin(ctx.getCreature());
         }
     }
 
