@@ -12,6 +12,7 @@ import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.OutMessageType;
 import com.lhf.messages.out.LewdOutMessage;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
 
 public class LewdAIHandler extends AIHandler {
     private Set<Creature> partners;
@@ -50,19 +51,28 @@ public class LewdAIHandler extends AIHandler {
     public void handle(BasicAI bai, OutMessage msg) {
         if (OutMessageType.LEWD.equals(msg.getOutType())) {
             LewdOutMessage lom = (LewdOutMessage) msg;
-            StringJoiner sj = new StringJoiner(", ");
-            for (Creature partyCreature : lom.getParticipants().keySet()) {
-                if (this.partnersOnly) {
-                    if (!this.partners.contains(partyCreature)) { // if they aren't our partner, then don't
-                        Command cmd = CommandBuilder.parse("pass");
-                        bai.handleMessage(null, cmd);
-                        return;
-                    }
+            if (lom.getType() == LewdOutMessageType.PROPOSED) {
+                if (!lom.getParticipants().containsKey(bai.getNpc())) {
+                    return; // none of our business
                 }
-                sj.add(partyCreature.getName());
+                if (lom.getCreature().equals(bai.getNpc())) {
+                    return; // we're the one who sent it
+                }
+                StringJoiner sj = new StringJoiner(", ");
+                for (Creature partyCreature : lom.getParticipants().keySet()) {
+                    if (this.partnersOnly) {
+                        if (!this.partners.contains(partyCreature) // if they aren't our partner
+                                && partyCreature != bai.getNpc()) { // or us
+                            Command cmd = CommandBuilder.parse("pass"); // then don't!
+                            bai.handleMessage(null, cmd);
+                            return;
+                        }
+                    }
+                    sj.add(partyCreature.getName());
+                }
+                Command cmd = CommandBuilder.parse("lewd " + sj.toString());
+                bai.handleMessage(null, cmd);
             }
-            Command cmd = CommandBuilder.parse("lewd " + sj.toString());
-            bai.handleMessage(null, cmd);
         }
     }
 

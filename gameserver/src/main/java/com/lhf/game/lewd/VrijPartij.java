@@ -26,6 +26,9 @@ public class VrijPartij {
                 this.party.putIfAbsent(partner, LewdAnswer.ASKED);
             }
         }
+    }
+
+    public void propose(Creature initiator) {
         LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.PROPOSED, initiator, party);
         this.messageParticipants(lom);
     }

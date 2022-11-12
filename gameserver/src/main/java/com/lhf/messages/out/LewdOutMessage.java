@@ -10,7 +10,7 @@ import com.lhf.messages.OutMessageType;
 
 public class LewdOutMessage extends OutMessage {
     public enum LewdOutMessageType {
-        NOT_NUDE, NO_BODY, ORGY_UNSUPPORTED, SOLO_UNSUPPORTED, STATUS, DENIED, ACCEPTED, PROPOSED, DUNNIT;
+        NOT_READY, NO_BODY, ORGY_UNSUPPORTED, SOLO_UNSUPPORTED, STATUS, DENIED, ACCEPTED, PROPOSED, DUNNIT;
     }
 
     private final LewdOutMessageType type;
@@ -113,9 +113,9 @@ public class LewdOutMessage extends OutMessage {
             case DUNNIT:
                 sb.append("A blur covers ").append(this.acceptedNamesString(null)).append(" as they do it! ");
                 break;
-            case NOT_NUDE:
+            case NOT_READY:
                 sb.append("Your ").append(EquipmentSlots.ARMOR)
-                        .append(" equipment slot must be empty in order to participate! ");
+                        .append(" equipment slot must be empty in order to participate and you must be in bed and not in a fight! ");
                 break;
             case NO_BODY:
                 sb.append("You need to have a body in order to participate in that! ");
@@ -140,6 +140,9 @@ public class LewdOutMessage extends OutMessage {
     }
 
     public Map<Creature, LewdAnswer> getParticipants() {
+        if (party == null) {
+            return Map.of();
+        }
         return Map.copyOf(party);
     }
 

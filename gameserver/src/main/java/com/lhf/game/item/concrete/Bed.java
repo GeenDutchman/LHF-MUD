@@ -195,6 +195,10 @@ public class Bed extends InteractObject implements MessageHandler {
         return null;
     }
 
+    public boolean isInBed(Creature creature) {
+        return this.getBedTime(creature) != null;
+    }
+
     public boolean remove(Creature doneSleeping) {
         BedTime found = this.getBedTime(doneSleeping);
         if (found != null) {

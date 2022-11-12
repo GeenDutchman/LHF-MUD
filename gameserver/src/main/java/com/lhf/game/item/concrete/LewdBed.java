@@ -62,6 +62,10 @@ public class LewdBed extends Bed {
     }
 
     protected boolean handleJoin(Creature joiner, int index) {
+        if (!this.isInBed(joiner)) {
+            joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, joiner));
+            return true;
+        }
         if (index < 0 || index >= this.vrijPartijen.size()) {
             joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.ORGY_UNSUPPORTED, joiner));
             return true;
@@ -77,54 +81,65 @@ public class LewdBed extends Bed {
         return true;
     }
 
-    private boolean handleEmptyJoin(Creature joiner) {
-        int bookmark = -1;
+    protected boolean handleEmptyJoin(Creature joiner) {
+        if (!this.isInBed(joiner)) {
+            joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, joiner));
+            return true;
+        }
         for (int i = 0; i < this.vrijPartijen.size(); i++) {
             VrijPartij party = this.vrijPartijen.get(i);
             if (party.isMember(joiner)) {
-                if (bookmark >= 0) {
-                    joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.ORGY_UNSUPPORTED, joiner));
-                    return true;
-                } else {
-                    bookmark = i;
-                }
+                return this.handleJoin(joiner, i);
             }
         }
-        return this.handleJoin(joiner, bookmark);
+        joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.SOLO_UNSUPPORTED, joiner));
+        return true;
     }
 
-    private boolean handlePopulatedJoin(Creature joiner, Set<String> possPartners) {
-        Set<Creature> invited = new HashSet<>();
-        for (String possName : possPartners) {
-            List<Creature> possibles = this.getCreaturesInBed(possName);
-            if (possibles.size() == 0) {
-                joiner.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, possName, possibles));
-                return true;
-            } else if (possibles.size() > 1) {
-                joiner.sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, possName, possibles));
-                return true;
-            }
-            invited.add(possibles.get(0));
+    protected boolean handlePopulatedJoin(Creature joiner, Set<String> possPartners) {
+        if (!this.isInBed(joiner)) {
+            joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, joiner));
+            return true;
         }
-        int index = -1;
-        if (this.vrijPartijen.size() == 0) {
-            this.vrijPartijen.add(new VrijPartij(joiner, invited));
-            index = 0;
+        Set<Creature> invited = new HashSet<>();
+        if (possPartners != null) {
+            for (String possName : possPartners) {
+                List<Creature> possibles = this.getCreaturesInBed(possName);
+                if (possibles.size() == 0) {
+                    joiner.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, possName, possibles));
+                    return true;
+                } else if (possibles.size() > 1) {
+                    joiner.sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, possName, possibles));
+                    return true;
+                }
+                invited.add(possibles.get(0));
+            }
+        }
+
+        if (possPartners == null || invited.size() == 0) {
+            return this.handleEmptyJoin(joiner);
+        }
+
+        if (this.vrijPartijen.size() == 0 && invited.size() > 0) {
+            VrijPartij party = new VrijPartij(joiner, invited);
+            this.vrijPartijen.add(party);
+            party.propose(joiner);
+            return this.handleJoin(joiner, 0);
         } else {
             invited.add(joiner);
             for (int i = 0; i < this.vrijPartijen.size(); i++) {
                 VrijPartij party = this.vrijPartijen.get(i);
                 if (party.match(invited)) {
-                    index = i;
-                    break;
+                    return this.handleJoin(joiner, i);
                 }
             }
-            if (index < 0) {
-                index = this.vrijPartijen.size();
-                this.vrijPartijen.add(new VrijPartij(joiner, invited));
-            }
+
+            int index = this.vrijPartijen.size();
+            VrijPartij party = new VrijPartij(joiner, invited);
+            this.vrijPartijen.add(party);
+            party.propose(joiner);
+            return this.handleJoin(joiner, index);
         }
-        return this.handleJoin(joiner, index);
     }
 
     protected boolean handleLewd(CommandContext ctx, Command msg) {
@@ -135,13 +150,18 @@ public class LewdBed extends Bed {
             return false;
         }
 
+        if (!this.isInBed(ctx.getCreature())) {
+            ctx.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, null));
+            return true;
+        }
+
         if (ctx.getCreature().isInBattle()) {
-            ctx.sendMsg(new LewdOutMessage(LewdOutMessageType.DENIED, null));
+            ctx.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, null));
             return true;
         }
 
         if (ctx.getCreature().getEquipped(EquipmentSlots.ARMOR) != null) {
-            ctx.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_NUDE, ctx.getCreature()));
+            ctx.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, ctx.getCreature()));
             return true;
         }
 
@@ -198,7 +218,7 @@ public class LewdBed extends Bed {
         }
 
         if (creature.getEquipped(EquipmentSlots.ARMOR) != null) {
-            return new LewdOutMessage(LewdOutMessageType.NOT_NUDE, creature);
+            return new LewdOutMessage(LewdOutMessageType.NOT_READY, creature);
         }
 
         if (this.addCreature(creature)) {
