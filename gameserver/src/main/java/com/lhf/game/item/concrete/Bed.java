@@ -261,6 +261,11 @@ public class Bed extends InteractObject implements MessageHandler {
                 this.remove(ctx.getCreature());
                 return true;
             }
+        } else if (msg.getType() == CommandMessage.SAY || msg.getType() == CommandMessage.SHOUT) {
+            if (this.room != null) {
+                return this.room.handleMessage(ctx, msg);
+            }
+            return MessageHandler.super.handleMessage(ctx, msg);
         }
         return false;
     }
