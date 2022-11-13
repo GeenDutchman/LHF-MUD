@@ -1,14 +1,17 @@
 package com.lhf.game.item.concrete;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.InteractObject;
+import com.lhf.game.lewd.LewdProduct;
 import com.lhf.game.lewd.VrijPartij;
 import com.lhf.game.map.Room;
 import com.lhf.messages.Command;
@@ -25,16 +28,12 @@ import com.lhf.messages.out.OutMessage;
 
 public class LewdBed extends Bed {
 
-    public interface LewdProduct {
-        public void onLewd(Room room, VrijPartij party);
-    }
-
-    protected List<VrijPartij> vrijPartijen;
+    protected SortedMap<Integer, VrijPartij> vrijPartijen;
     protected LewdProduct lewdProduct;
 
     public LewdBed(Room room, int capacity, int sleepSeconds) {
         super(room, Integer.max(capacity, 2), sleepSeconds);
-        this.vrijPartijen = new ArrayList<>();
+        this.vrijPartijen = Collections.synchronizedNavigableMap(new TreeMap<>());
         this.lewdProduct = null;
     }
 
@@ -44,7 +43,7 @@ public class LewdBed extends Bed {
     }
 
     public void clear() {
-        for (VrijPartij party : this.vrijPartijen) {
+        for (VrijPartij party : this.vrijPartijen.values()) {
             party.messageParticipants(new LewdOutMessage(LewdOutMessageType.DENIED, null));
         }
         this.vrijPartijen.clear();
@@ -54,8 +53,7 @@ public class LewdBed extends Bed {
         if (!CommandMessage.PASS.equals(msg.getType())) {
             return false;
         }
-        for (int i = 0; i < this.vrijPartijen.size(); i++) {
-            VrijPartij party = this.vrijPartijen.get(i);
+        for (VrijPartij party : this.vrijPartijen.values()) {
             party.pass(ctx.getCreature());
         }
         return true;
@@ -66,11 +64,13 @@ public class LewdBed extends Bed {
             joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, joiner));
             return true;
         }
-        if (index < 0 || index >= this.vrijPartijen.size()) {
-            joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.ORGY_UNSUPPORTED, joiner));
+
+        VrijPartij party = this.vrijPartijen.getOrDefault(index, null);
+
+        if (party == null) {
+            joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.MISSED, joiner));
             return true;
         }
-        VrijPartij party = this.vrijPartijen.get(index);
         if (party.acceptAndCheck(joiner)) {
             if (this.lewdProduct != null) {
                 this.lewdProduct.onLewd(this.room, party);
@@ -86,7 +86,7 @@ public class LewdBed extends Bed {
             joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, joiner));
             return true;
         }
-        for (int i = 0; i < this.vrijPartijen.size(); i++) {
+        for (int i : this.vrijPartijen.keySet()) {
             VrijPartij party = this.vrijPartijen.get(i);
             if (party.isMember(joiner)) {
                 return this.handleJoin(joiner, i);
@@ -96,7 +96,7 @@ public class LewdBed extends Bed {
         return true;
     }
 
-    protected boolean handlePopulatedJoin(Creature joiner, Set<String> possPartners) {
+    protected boolean handlePopulatedJoin(Creature joiner, Set<String> possPartners, Set<String> babyNames) {
         if (!this.isInBed(joiner)) {
             joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, joiner));
             return true;
@@ -121,24 +121,23 @@ public class LewdBed extends Bed {
         }
 
         if (this.vrijPartijen.size() == 0 && invited.size() > 0) {
-            VrijPartij party = new VrijPartij(joiner, invited);
-            this.vrijPartijen.add(party);
+            VrijPartij party = new VrijPartij(joiner, invited).addNames(babyNames);
+            this.vrijPartijen.put(party.hashCode(), party);
             party.propose(joiner);
-            return this.handleJoin(joiner, 0);
+            return this.handleJoin(joiner, party.hashCode());
         } else {
             invited.add(joiner);
-            for (int i = 0; i < this.vrijPartijen.size(); i++) {
+            for (int i : this.vrijPartijen.keySet()) {
                 VrijPartij party = this.vrijPartijen.get(i);
                 if (party.match(invited)) {
                     return this.handleJoin(joiner, i);
                 }
             }
 
-            int index = this.vrijPartijen.size();
-            VrijPartij party = new VrijPartij(joiner, invited);
-            this.vrijPartijen.add(party);
+            VrijPartij party = new VrijPartij(joiner, invited).addNames(babyNames);
+            this.vrijPartijen.put(party.hashCode(), party);
             party.propose(joiner);
-            return this.handleJoin(joiner, index);
+            return this.handleJoin(joiner, party.hashCode());
         }
     }
 
@@ -167,7 +166,7 @@ public class LewdBed extends Bed {
 
         LewdInMessage lewdInMessage = (LewdInMessage) msg;
         if (lewdInMessage.getPartners().size() > 0) {
-            return this.handlePopulatedJoin(ctx.getCreature(), lewdInMessage.getPartners());
+            return this.handlePopulatedJoin(ctx.getCreature(), lewdInMessage.getPartners(), lewdInMessage.getNames());
         } else {
             return this.handleEmptyJoin(ctx.getCreature());
         }
@@ -190,7 +189,7 @@ public class LewdBed extends Bed {
     @Override
     public boolean remove(Creature doneSleeping) {
         if (super.remove(doneSleeping)) {
-            for (VrijPartij party : this.vrijPartijen) {
+            for (VrijPartij party : this.vrijPartijen.values()) {
                 party.remove(doneSleeping);
             }
             return true;
@@ -203,7 +202,7 @@ public class LewdBed extends Bed {
         Map<CommandMessage, String> bedCommands = super.getCommands();
         bedCommands.put(CommandMessage.LEWD, "\"lewd [creature]\" lewd another person in the bed");
         if (this.vrijPartijen.size() > 0) {
-            bedCommands.put(CommandMessage.PASS, "\"pass\" to decline the lewdness");
+            bedCommands.put(CommandMessage.PASS, "\"pass\" to decline all the lewdness");
         }
         return Map.copyOf(bedCommands);
     }

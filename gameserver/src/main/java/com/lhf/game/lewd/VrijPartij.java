@@ -1,8 +1,9 @@
 package com.lhf.game.lewd;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.NavigableSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -12,6 +13,7 @@ import com.lhf.messages.out.LewdOutMessage;
 import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
 
 public class VrijPartij {
+    protected final int hash;
     protected Map<Creature, LewdAnswer> party;
     protected Set<String> names;
 
@@ -26,11 +28,36 @@ public class VrijPartij {
                 this.party.putIfAbsent(partner, LewdAnswer.ASKED);
             }
         }
+        this.hash = Objects.hash(party.keySet());
+    }
+
+    @Override
+    public int hashCode() {
+        return this.hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof VrijPartij)) {
+            return false;
+        }
+        VrijPartij other = (VrijPartij) obj;
+        return Objects.equals(party.keySet(), other.party.keySet());
     }
 
     public void propose(Creature initiator) {
         LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.PROPOSED, initiator, party);
         this.messageParticipants(lom);
+    }
+
+    public VrijPartij addNames(Set<String> babyNames) {
+        if (babyNames != null && babyNames.size() > 0) {
+            this.names.addAll(babyNames);
+        }
+        return this;
     }
 
     public VrijPartij addName(String name) {
@@ -44,11 +71,11 @@ public class VrijPartij {
         return Collections.unmodifiableSet(this.names);
     }
 
-    public Set<Creature> getParticipants(LewdAnswer answer) {
+    public NavigableSet<Creature> getParticipants(LewdAnswer answer) {
         if (answer == null) {
             answer = LewdAnswer.ACCEPTED;
         }
-        HashSet<Creature> doers = new HashSet<>();
+        TreeSet<Creature> doers = new TreeSet<>();
         for (Map.Entry<Creature, LewdAnswer> entry : this.party.entrySet()) {
             if (answer.equals(entry.getValue())) {
                 doers.add(entry.getKey());
@@ -57,7 +84,7 @@ public class VrijPartij {
         return doers;
     }
 
-    public Set<Creature> getParticipants() {
+    public NavigableSet<Creature> getParticipants() {
         return this.getParticipants(LewdAnswer.ACCEPTED);
     }
 
@@ -105,15 +132,17 @@ public class VrijPartij {
     }
 
     public boolean check() {
-        boolean allDone = true;
-        for (Creature participant : party.keySet()) {
-            LewdAnswer answer = party.getOrDefault(participant, LewdAnswer.ASKED);
-            if (LewdAnswer.ASKED.equals(answer)) {
-                allDone = false;
-            }
-        }
-        if (allDone) {
+        boolean allDone = this.getParticipants(LewdAnswer.ASKED).size() == 0;
+
+        NavigableSet<Creature> lewdies = this.getParticipants();
+        if (allDone && lewdies.size() > 1) {
             LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.DUNNIT, null, party);
+            this.messageParticipants(lom);
+        } else if (allDone && lewdies.size() > 0) {
+            LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.SOLO_UNSUPPORTED, lewdies.first(), party);
+            this.messageParticipants(lom);
+        } else if (allDone) {
+            LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.DENIED, null, party);
             this.messageParticipants(lom);
         }
         return allDone;

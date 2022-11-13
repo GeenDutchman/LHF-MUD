@@ -3,7 +3,6 @@ package com.lhf.game.lewd;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.lhf.game.item.concrete.LewdBed.LewdProduct;
 import com.lhf.game.map.Room;
 
 public class LewdProductList implements LewdProduct {
