@@ -101,6 +101,8 @@ public class RoomBuilder {
 
         LewdBed bed = new LewdBed(dmRoom, 2, 30);
         dmRoom.addItem(bed);
+        bed.addCreature(dmGary);
+        bed.addCreature(dmAda);
 
         if (this.creatures != null) {
             for (Creature c : this.creatures) {
