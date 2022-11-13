@@ -47,31 +47,47 @@ public class LewdAIHandler extends AIHandler {
         return this;
     }
 
+    public void handleProposal(BasicAI bai, LewdOutMessage lom) {
+        if (!lom.getParticipants().containsKey(bai.getNpc())) {
+            return; // none of our business
+        }
+        if (lom.getCreature().equals(bai.getNpc())) {
+            return; // we're the one who sent it
+        }
+        StringJoiner sj = new StringJoiner(", ");
+        for (Creature partyCreature : lom.getParticipants().keySet()) {
+            if (this.partnersOnly) {
+                if (!this.partners.contains(partyCreature) // if they aren't our partner
+                        && partyCreature != bai.getNpc()) { // or us
+                    Command cmd = CommandBuilder.parse("pass"); // then don't!
+                    bai.handleMessage(null, cmd);
+                    return;
+                }
+            }
+            sj.add(partyCreature.getName());
+        }
+        Command cmd = CommandBuilder.parse("lewd " + sj.toString());
+        bai.handleMessage(null, cmd);
+    }
+
+    public void handleDunnit(BasicAI bai, LewdOutMessage lom) {
+        if (!lom.getParticipants().containsKey(bai.getNpc())) {
+            return; // none of our business
+        }
+
+        Command cmd = CommandBuilder.parse("GO UP");
+        bai.handleMessage(null, cmd);
+    }
+
     @Override
     public void handle(BasicAI bai, OutMessage msg) {
         if (OutMessageType.LEWD.equals(msg.getOutType())) {
             LewdOutMessage lom = (LewdOutMessage) msg;
             if (lom.getType() == LewdOutMessageType.PROPOSED) {
-                if (!lom.getParticipants().containsKey(bai.getNpc())) {
-                    return; // none of our business
-                }
-                if (lom.getCreature().equals(bai.getNpc())) {
-                    return; // we're the one who sent it
-                }
-                StringJoiner sj = new StringJoiner(", ");
-                for (Creature partyCreature : lom.getParticipants().keySet()) {
-                    if (this.partnersOnly) {
-                        if (!this.partners.contains(partyCreature) // if they aren't our partner
-                                && partyCreature != bai.getNpc()) { // or us
-                            Command cmd = CommandBuilder.parse("pass"); // then don't!
-                            bai.handleMessage(null, cmd);
-                            return;
-                        }
-                    }
-                    sj.add(partyCreature.getName());
-                }
-                Command cmd = CommandBuilder.parse("lewd " + sj.toString());
-                bai.handleMessage(null, cmd);
+                this.handleProposal(bai, lom);
+            }
+            if (lom.getType() == LewdOutMessageType.DUNNIT) {
+                this.handleDunnit(bai, lom);
             }
         }
     }
