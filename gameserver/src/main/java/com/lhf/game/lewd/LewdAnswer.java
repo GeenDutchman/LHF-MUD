@@ -1,11 +1,11 @@
 package com.lhf.game.lewd;
 
 public enum LewdAnswer {
-    DENIED, ASKED, ACCEPTED;
+    INCLUDED, ASKED, DENIED, ACCEPTED;
 
     public static LewdAnswer merge(LewdAnswer a, LewdAnswer b) {
         if (a == null && b == null) {
-            return ASKED;
+            return INCLUDED;
         } else if (a == null && b != null) {
             return b;
         } else if (a != null && b == null) {
@@ -16,7 +16,9 @@ public enum LewdAnswer {
             return DENIED;
         } else if (a == ACCEPTED || b == ACCEPTED) {
             return ACCEPTED;
+        } else if (a == ASKED || b == ASKED) {
+            return ASKED;
         }
-        return ASKED;
+        return INCLUDED;
     }
 }

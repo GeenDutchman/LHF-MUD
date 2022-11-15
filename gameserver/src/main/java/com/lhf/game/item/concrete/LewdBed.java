@@ -123,7 +123,7 @@ public class LewdBed extends Bed {
         if (this.vrijPartijen.size() == 0 && invited.size() > 0) {
             VrijPartij party = new VrijPartij(joiner, invited).addNames(babyNames);
             this.vrijPartijen.put(party.hashCode(), party);
-            party.propose(joiner);
+            party.propose();
             return this.handleJoin(joiner, party.hashCode());
         } else {
             invited.add(joiner);
@@ -136,7 +136,7 @@ public class LewdBed extends Bed {
 
             VrijPartij party = new VrijPartij(joiner, invited).addNames(babyNames);
             this.vrijPartijen.put(party.hashCode(), party);
-            party.propose(joiner);
+            party.propose();
             return this.handleJoin(joiner, party.hashCode());
         }
     }

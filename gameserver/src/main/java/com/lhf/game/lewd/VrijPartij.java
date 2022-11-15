@@ -14,21 +14,27 @@ import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
 
 public class VrijPartij {
     protected final int hash;
+    protected final Creature initiator;
     protected Map<Creature, LewdAnswer> party;
     protected Set<String> names;
 
     public VrijPartij(Creature initiator, Set<Creature> partners) {
+        this.initiator = initiator;
         this.names = new TreeSet<>();
-        this.party = new TreeMap<>();
+        this.party = Collections.synchronizedNavigableMap(new TreeMap<>());
         if (initiator != null) {
             this.party.put(initiator, LewdAnswer.ACCEPTED);
         }
         if (partners != null) {
             for (Creature partner : partners) {
-                this.party.putIfAbsent(partner, LewdAnswer.ASKED);
+                this.party.putIfAbsent(partner, LewdAnswer.INCLUDED);
             }
         }
         this.hash = Objects.hash(party.keySet());
+    }
+
+    public Creature getInitiator() {
+        return this.initiator;
     }
 
     @Override
@@ -48,8 +54,8 @@ public class VrijPartij {
         return Objects.equals(party.keySet(), other.party.keySet());
     }
 
-    public void propose(Creature initiator) {
-        LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.PROPOSED, initiator, party);
+    public void propose() {
+        LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.PROPOSED, this.initiator, party);
         this.messageParticipants(lom);
     }
 
@@ -71,7 +77,7 @@ public class VrijPartij {
         return Collections.unmodifiableSet(this.names);
     }
 
-    public NavigableSet<Creature> getParticipants(LewdAnswer answer) {
+    public synchronized NavigableSet<Creature> getParticipants(LewdAnswer answer) {
         if (answer == null) {
             answer = LewdAnswer.ACCEPTED;
         }
@@ -84,16 +90,15 @@ public class VrijPartij {
         return doers;
     }
 
-    public NavigableSet<Creature> getParticipants() {
+    public synchronized NavigableSet<Creature> getParticipants() {
         return this.getParticipants(LewdAnswer.ACCEPTED);
     }
 
-    public void messageParticipants(LewdOutMessage lom) {
+    public synchronized void messageParticipants(LewdOutMessage lom) {
         if (lom != null) {
-            for (Creature participant : party.keySet()) {
-                LewdAnswer answer = party.getOrDefault(participant, LewdAnswer.ASKED);
-                if (!LewdAnswer.DENIED.equals(answer)) {
-                    participant.sendMsg(lom);
+            for (Map.Entry<Creature, LewdAnswer> entry : this.party.entrySet()) {
+                if (!LewdAnswer.DENIED.equals(entry.getValue())) {
+                    entry.getKey().sendMsg(lom);
                 }
             }
         }
@@ -122,7 +127,7 @@ public class VrijPartij {
         return this.party.get(creature);
     }
 
-    protected VrijPartij accept(Creature creature) {
+    protected synchronized VrijPartij accept(Creature creature) {
         if (this.party.containsKey(creature)) {
             this.party.put(creature, LewdAnswer.ACCEPTED);
             LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.ACCEPTED, creature, this.party);
@@ -153,7 +158,7 @@ public class VrijPartij {
         return this.check();
     }
 
-    public VrijPartij pass(Creature creature) {
+    public synchronized VrijPartij pass(Creature creature) {
         if (party.containsKey(creature)) {
             party.put(creature, LewdAnswer.DENIED);
             LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.DENIED, creature, party);
