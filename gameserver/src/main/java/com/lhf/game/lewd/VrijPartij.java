@@ -77,12 +77,16 @@ public class VrijPartij {
         return Collections.unmodifiableSet(this.names);
     }
 
+    public Map<Creature, LewdAnswer> getParty() {
+        return Map.copyOf(this.party);
+    }
+
     public synchronized NavigableSet<Creature> getParticipants(LewdAnswer answer) {
         if (answer == null) {
             answer = LewdAnswer.ACCEPTED;
         }
         TreeSet<Creature> doers = new TreeSet<>();
-        for (Map.Entry<Creature, LewdAnswer> entry : this.party.entrySet()) {
+        for (Map.Entry<Creature, LewdAnswer> entry : this.getParty().entrySet()) {
             if (answer.equals(entry.getValue())) {
                 doers.add(entry.getKey());
             }
@@ -96,7 +100,7 @@ public class VrijPartij {
 
     public synchronized void messageParticipants(LewdOutMessage lom) {
         if (lom != null) {
-            for (Map.Entry<Creature, LewdAnswer> entry : this.party.entrySet()) {
+            for (Map.Entry<Creature, LewdAnswer> entry : this.getParty().entrySet()) {
                 if (!LewdAnswer.DENIED.equals(entry.getValue())) {
                     entry.getKey().sendMsg(lom);
                 }
