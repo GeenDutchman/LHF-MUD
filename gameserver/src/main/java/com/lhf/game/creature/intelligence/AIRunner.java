@@ -77,7 +77,7 @@ public class AIRunner implements Runnable {
     }
 
     public void getAttention(QueuedAI ai) throws InterruptedException {
-        this.aiMap.putIfAbsent(ai.getClientID(), new AIPair<QueuedAI>(ai));
+        this.aiMap.computeIfAbsent(ai.getClientID(), clientId -> new AIPair<QueuedAI>(ai));
         this.getAttention(ai.getClientID());
     }
 
