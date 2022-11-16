@@ -20,7 +20,6 @@ import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.PassMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BattleTurnMessage;
-import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.MissMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.Client;
