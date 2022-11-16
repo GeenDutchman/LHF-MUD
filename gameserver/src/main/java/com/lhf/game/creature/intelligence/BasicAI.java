@@ -26,6 +26,12 @@ import com.lhf.server.client.Client;
 import com.lhf.server.client.DoNothingSendStrategy;
 import com.lhf.server.interfaces.NotNull;
 
+/**
+ * This class is deprecated in favor of the QueuedAI.
+ * 
+ * @deprecated
+ */
+@Deprecated
 public class BasicAI extends Client {
     protected NonPlayerCharacter npc;
     protected Creature lastAttacker;
