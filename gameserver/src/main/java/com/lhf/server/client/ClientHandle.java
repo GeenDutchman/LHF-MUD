@@ -19,7 +19,7 @@ public class ClientHandle extends Client implements Runnable {
     private ConnectionListener connectionListener;
     private BufferedReader in;
 
-    public ClientHandle(Socket socket, ConnectionListener cl) throws IOException {
+    protected ClientHandle(Socket socket, ConnectionListener cl) throws IOException {
         super();
         this.logger = Logger.getLogger(this.getClass().getName());
         this.logger.finest("Creating ClientHandle");
