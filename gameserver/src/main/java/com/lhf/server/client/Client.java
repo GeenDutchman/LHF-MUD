@@ -23,7 +23,7 @@ public class Client implements MessageHandler, ClientMessenger {
     protected Logger logger;
     protected MessageHandler _successor;
 
-    public Client() {
+    protected Client() {
         this.id = new ClientID();
         this.logger = Logger.getLogger(this.getClass().getName());
         this.logger.finest("Creating Client");
