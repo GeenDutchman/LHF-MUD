@@ -3,8 +3,7 @@ package com.lhf.game.creature;
 import java.util.EnumMap;
 import java.util.EnumSet;
 
-import com.lhf.game.creature.builder.CreatureCreator;
-import com.lhf.game.creature.builder.CreatureCreator.PlayerCreatorAdaptor;
+import com.lhf.game.creature.CreatureCreator.PlayerCreatorAdaptor;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.DMV;
@@ -20,7 +19,7 @@ public class DungeonMaster extends NonPlayerCharacter implements PlayerCreatorAd
 
     CreatureCreator creatureCreator;
 
-    public DungeonMaster(String name) {
+    protected DungeonMaster(String name) {
         super(name, new DMV());
     }
 

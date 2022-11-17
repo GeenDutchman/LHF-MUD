@@ -1,13 +1,11 @@
-package com.lhf.game.creature.builder;
+package com.lhf.game.creature;
 
 import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.util.EnumMap;
 import java.util.EnumSet;
 
-import com.lhf.game.creature.Monster;
-import com.lhf.game.creature.NonPlayerCharacter;
-import com.lhf.game.creature.Player;
+import com.lhf.game.creature.builder.CLIAdaptor;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
@@ -127,9 +125,17 @@ public class CreatureCreator {
         return npc;
     }
 
+    public static DungeonMaster makeDM(String name) {
+        DungeonMaster dm = new DungeonMaster(name);
+
+        aiRunner.register(dm);
+
+        return dm;
+    }
+
     public static Player makePlayer(PlayerCreatorAdaptor adapter) {
 
-        Statblock playerStatblock = null;
+        Statblock playerStatblock = CreatureCreator.makeStatblock(adapter);
 
         while (playerStatblock == null) {
             String statblockname = adapter.buildStatblockName();
