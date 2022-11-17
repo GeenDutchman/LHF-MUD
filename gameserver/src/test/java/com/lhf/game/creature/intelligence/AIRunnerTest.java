@@ -15,7 +15,7 @@ public class AIRunnerTest {
     @Test
     void testProcessLeavesSome() throws InterruptedException {
         AIRunner runner = new AIRunner(2);
-        QueuedAI qAi = runner.getQueuedAI(new NonPlayerCharacter());
+        BasicAI qAi = runner.getQueuedAI(new NonPlayerCharacter());
         qAi.sendMsg(new SeeOutMessage("denied once"));
         qAi.sendMsg(new WelcomeMessage());
         qAi.sendMsg(new FatalMessage());

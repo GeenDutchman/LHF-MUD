@@ -17,7 +17,7 @@ public class AIRunner implements Runnable {
     private BlockingQueue<ClientID> attentionQueue;
     private int chew;
 
-    private class AIPair<T extends QueuedAI> {
+    private class AIPair<T extends BasicAI> {
         public T ai;
         public AtomicBoolean queued;
 
@@ -28,7 +28,7 @@ public class AIRunner implements Runnable {
 
     }
 
-    private Map<ClientID, AIPair<QueuedAI>> aiMap;
+    private Map<ClientID, AIPair<BasicAI>> aiMap;
 
     public AIRunner() {
         this.chew = 2;
@@ -51,7 +51,7 @@ public class AIRunner implements Runnable {
 
     protected void process(ClientID id) throws InterruptedException {
         if (id != null) {
-            AIPair<QueuedAI> aiPair = this.aiMap.get(id);
+            AIPair<BasicAI> aiPair = this.aiMap.get(id);
             if (aiPair != null) {
                 aiPair.queued.set(false);
                 while (chew <= 0 && aiPair.ai.peek() != null) {
@@ -68,7 +68,7 @@ public class AIRunner implements Runnable {
     }
 
     public void getAttention(ClientID id) throws InterruptedException {
-        AIPair<QueuedAI> aPair = this.aiMap.get(id);
+        AIPair<BasicAI> aPair = this.aiMap.get(id);
         if (aPair != null && aPair.queued.compareAndSet(false, true)) {
             // if aPair is defined and not queued
             this.attentionQueue.offer(id, 30, TimeUnit.SECONDS);
@@ -76,17 +76,17 @@ public class AIRunner implements Runnable {
         }
     }
 
-    public void getAttention(QueuedAI ai) throws InterruptedException {
-        this.aiMap.computeIfAbsent(ai.getClientID(), clientId -> new AIPair<QueuedAI>(ai));
+    public void getAttention(BasicAI ai) throws InterruptedException {
+        this.aiMap.computeIfAbsent(ai.getClientID(), clientId -> new AIPair<BasicAI>(ai));
         this.getAttention(ai.getClientID());
     }
 
-    public QueuedAI getQueuedAI(NonPlayerCharacter npc) {
-        QueuedAI qAi = new QueuedAI(npc, this);
+    public BasicAI getQueuedAI(NonPlayerCharacter npc) {
+        BasicAI qAi = new BasicAI(npc, this);
         if (this.aiMap == null) {
             this.aiMap = new HashMap<>();
         }
-        this.aiMap.put(qAi.getClientID(), new AIPair<QueuedAI>(qAi));
+        this.aiMap.put(qAi.getClientID(), new AIPair<BasicAI>(qAi));
         return qAi;
     }
 

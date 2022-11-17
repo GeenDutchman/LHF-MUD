@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
@@ -26,24 +29,44 @@ import com.lhf.server.client.Client;
 import com.lhf.server.client.DoNothingSendStrategy;
 import com.lhf.server.interfaces.NotNull;
 
-/**
- * This class is deprecated in favor of the QueuedAI.
- * 
- * @deprecated
- */
-@Deprecated
 public class BasicAI extends Client {
     protected NonPlayerCharacter npc;
     protected Creature lastAttacker;
     protected Map<OutMessageType, AIChunk> handlers;
+    private BlockingQueue<OutMessage> queue;
+    private AIRunner runner;
 
-    public BasicAI(NonPlayerCharacter npc) {
+    public BasicAI(NonPlayerCharacter npc, AIRunner runner) {
         super();
         this.npc = npc;
         this.setSuccessor(npc);
         this.SetOut(new DoNothingSendStrategy());
         this.handlers = new TreeMap<>();
         this.initBasicHandlers();
+        this.runner = runner;
+        this.queue = new ArrayBlockingQueue<>(32, true);
+
+    }
+
+    public OutMessage peek() {
+        return this.queue.peek();
+    }
+
+    public OutMessage poll() {
+        return this.queue.poll();
+    }
+
+    public int size() {
+        return this.queue.size();
+    }
+
+    public void process(OutMessage msg) {
+        if (msg != null) {
+            AIChunk ai = this.handlers.get(msg.getOutType());
+            if (ai != null) {
+                ai.handle(this, msg);
+            }
+        }
     }
 
     private void initBasicHandlers() {
@@ -141,9 +164,14 @@ public class BasicAI extends Client {
     @Override
     public synchronized void sendMsg(OutMessage msg) {
         super.sendMsg(msg);
-        AIChunk ai = this.handlers.get(msg.getOutType());
-        if (ai != null) {
-            ai.handle(this, msg);
+        try {
+            if (this.queue.offer(msg, 30, TimeUnit.SECONDS)) {
+                this.runner.getAttention(this);
+            } else {
+                System.err.println("Unable to queue: " + msg.toString());
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
