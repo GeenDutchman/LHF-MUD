@@ -6,7 +6,9 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 
 import com.lhf.game.creature.Monster;
+import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
@@ -96,6 +98,8 @@ public class CreatureCreator {
         return built;
     }
 
+    private static final AIRunner aiRunner = new AIRunner();
+
     public static Monster makeMonsterFromStatblock(CreatorAdaptor adapter) throws FileNotFoundException {
 
         String statblockname = adapter.buildStatblockName();
@@ -108,8 +112,19 @@ public class CreatureCreator {
 
         String creaturename = adapter.buildCreatureName();
 
-        return new Monster(creaturename, monStatblock);
+        Monster mon = new Monster(creaturename, monStatblock);
 
+        aiRunner.register(mon);
+
+        return mon;
+    }
+
+    public static NonPlayerCharacter makeNPC() {
+        NonPlayerCharacter npc = new NonPlayerCharacter();
+
+        aiRunner.register(npc);
+
+        return npc;
     }
 
     public static Player makePlayer(PlayerCreatorAdaptor adapter) {

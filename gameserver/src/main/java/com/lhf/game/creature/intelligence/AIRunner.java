@@ -49,6 +49,12 @@ public class AIRunner implements Runnable {
         }
     }
 
+    public BasicAI register(NonPlayerCharacter npc) {
+        BasicAI basicAI = new BasicAI(npc, this);
+        this.aiMap.put(basicAI.getClientID(), new AIPair<BasicAI>(basicAI));
+        return basicAI;
+    }
+
     protected void process(ClientID id) throws InterruptedException {
         if (id != null) {
             AIPair<BasicAI> aiPair = this.aiMap.get(id);

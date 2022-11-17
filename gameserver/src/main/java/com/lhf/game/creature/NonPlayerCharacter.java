@@ -10,7 +10,6 @@ import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
-import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.DamageDice;
@@ -24,7 +23,6 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
-import com.lhf.messages.ClientMessenger;
 
 public class NonPlayerCharacter extends Creature {
     public static class BlessedFist extends Weapon {
@@ -112,15 +110,6 @@ public class NonPlayerCharacter extends Creature {
 
     public ConversationTree getConvoTree() {
         return this.convoTree;
-    }
-
-    @Override
-    public ClientMessenger getController() {
-        if (super.getController() == null) {
-            BasicAI lizardbrain = new BasicAI(this);
-            this.setController(lizardbrain);
-        }
-        return super.getController();
     }
 
     @Override

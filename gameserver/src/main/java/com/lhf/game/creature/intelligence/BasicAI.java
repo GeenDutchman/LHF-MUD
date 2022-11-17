@@ -33,19 +33,19 @@ public class BasicAI extends Client {
     protected NonPlayerCharacter npc;
     protected Creature lastAttacker;
     protected Map<OutMessageType, AIChunk> handlers;
-    private BlockingQueue<OutMessage> queue;
-    private AIRunner runner;
+    protected BlockingQueue<OutMessage> queue;
+    protected AIRunner runner;
 
-    public BasicAI(NonPlayerCharacter npc, AIRunner runner) {
+    protected BasicAI(NonPlayerCharacter npc, AIRunner runner) {
         super();
         this.npc = npc;
+        this.npc.setController(this);
         this.setSuccessor(npc);
         this.SetOut(new DoNothingSendStrategy());
         this.handlers = new TreeMap<>();
         this.initBasicHandlers();
         this.runner = runner;
         this.queue = new ArrayBlockingQueue<>(32, true);
-
     }
 
     public OutMessage peek() {
