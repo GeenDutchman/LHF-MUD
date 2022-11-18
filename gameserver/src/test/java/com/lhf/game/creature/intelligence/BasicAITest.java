@@ -1,8 +1,17 @@
 package com.lhf.game.creature.intelligence;
 
+import static org.mockito.Mockito.timeout;
+
 import java.util.ArrayList;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.lhf.Taggable;
@@ -16,7 +25,17 @@ import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.SpeakingMessage;
 
+@ExtendWith(MockitoExtension.class)
 public class BasicAITest {
+
+    @Spy
+    private GroupAIRunner aiRunner = new GroupAIRunner(true);
+
+    @BeforeEach
+    public void setUp() throws Exception {
+        MockitoAnnotations.openMocks(this);
+        AIComBundle.setAIRunner(this.aiRunner);
+    }
 
     @Test
     void testBasicConversation() {
@@ -30,6 +49,9 @@ public class BasicAITest {
         SpeakingMessage sm = new SpeakingMessage(speaker.npc, "hello", listener.npc);
 
         listener.npc.sendMsg(sm);
+
+        Assertions.assertDoesNotThrow(
+                () -> Mockito.verify(this.aiRunner, timeout(7000).atLeastOnce()).process(listener.brain.getClientID()));
 
         Truth.assertThat(listener.sent.size()).isAtLeast(1);
         Truth.assertThat(listener.sent.get(0).toString()).contains(body);

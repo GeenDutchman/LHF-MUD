@@ -6,6 +6,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 
 import com.lhf.game.creature.builder.CLIAdaptor;
+import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
@@ -96,7 +97,7 @@ public class CreatureCreator {
         return built;
     }
 
-    private static final GroupAIRunner aiRunner = new GroupAIRunner();
+    private static final AIRunner aiRunner = new GroupAIRunner(false);
 
     public static Monster makeMonsterFromStatblock(CreatorAdaptor adapter) throws FileNotFoundException {
 

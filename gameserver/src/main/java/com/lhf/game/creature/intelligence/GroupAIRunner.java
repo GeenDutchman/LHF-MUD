@@ -31,17 +31,17 @@ public class GroupAIRunner implements AIRunner {
     private Map<ClientID, AIPair<BasicAI>> aiMap;
     private volatile Thread myThread;
 
-    public GroupAIRunner() {
+    public GroupAIRunner(boolean asThread) {
         this.chew = 2;
-        this.init();
+        this.init(asThread);
     }
 
-    public GroupAIRunner(int chew) {
+    public GroupAIRunner(boolean asThread, int chew) {
         this.chew = chew;
-        this.init();
+        this.init(asThread);
     }
 
-    private void init() {
+    private void init(boolean asThread) {
         if (this.attentionQueue == null) {
             this.attentionQueue = new LinkedBlockingQueue<>();
         }
@@ -49,8 +49,16 @@ public class GroupAIRunner implements AIRunner {
             this.aiMap = new ConcurrentHashMap<>();
         }
         this.stopit = false;
-        this.myThread = new Thread(this);
-        this.myThread.start();
+        if (asThread) {
+            this.start();
+        }
+    }
+
+    public void start() {
+        if (this.myThread == null) {
+            this.myThread = new Thread(this);
+            this.myThread.start();
+        }
     }
 
     @Override

@@ -3,6 +3,9 @@ package com.lhf.game.creature.intelligence;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.NonPlayerCharacter;
@@ -11,10 +14,11 @@ import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.ClientID;
 
+@ExtendWith(MockitoExtension.class)
 public class GroupAIRunnerTest {
     @Test
     void testProcessLeavesSome() throws InterruptedException {
-        GroupAIRunner runner = new GroupAIRunner(2);
+        GroupAIRunner runner = Mockito.spy(new GroupAIRunner(false, 2));
         BasicAI qAi = runner.register(new NonPlayerCharacter());
         qAi.sendMsg(new SeeOutMessage("denied once"));
         qAi.sendMsg(new WelcomeMessage());

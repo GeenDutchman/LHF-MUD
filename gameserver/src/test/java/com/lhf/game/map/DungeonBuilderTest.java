@@ -11,7 +11,7 @@ import com.lhf.game.creature.intelligence.GroupAIRunner;
 public class DungeonBuilderTest {
     @Test
     void testBuildStaticDungeon() throws FileNotFoundException {
-        AIRunner aiRunner = new GroupAIRunner();
+        AIRunner aiRunner = new GroupAIRunner(true);
         Dungeon built = DungeonBuilder.buildStaticDungeon(null, aiRunner);
         String mermaid = built.toMermaid(false);
         System.out.println(mermaid);

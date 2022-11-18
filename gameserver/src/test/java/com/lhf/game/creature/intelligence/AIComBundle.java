@@ -16,8 +16,13 @@ public class AIComBundle implements MessageHandler {
 
     public static AIRunner getAIRunner() {
         if (AIComBundle.aiRunner == null) {
-            AIComBundle.aiRunner = new GroupAIRunner();
+            AIComBundle.aiRunner = new GroupAIRunner(true);
         }
+        return AIComBundle.aiRunner;
+    }
+
+    public static AIRunner setAIRunner(AIRunner aiRunner) {
+        AIComBundle.aiRunner = aiRunner;
         return AIComBundle.aiRunner;
     }
 
