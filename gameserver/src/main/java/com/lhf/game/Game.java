@@ -46,7 +46,7 @@ public class Game implements UserListener, MessageHandler {
 		roomBuilder.setName("Control Room");
 		roomBuilder.setDescription("There are a lot of buttons and screens in here.  It looks like a home office.");
 		roomBuilder.setSuccessor(this.thirdPower);
-		this.controlRoom = roomBuilder.buildDmRoom();
+		this.controlRoom = roomBuilder.buildDmRoom(this.aiRunner);
 		this.successor = server;
 		this.server = server;
 		this.server.registerCallback(this);

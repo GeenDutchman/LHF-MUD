@@ -52,7 +52,7 @@ public class GroupAIRunner implements AIRunner {
         this.isStopped = false;
     }
 
-    public synchronized void register(NonPlayerCharacter npc, AIHandler... handlers) {
+    public synchronized BasicAI register(NonPlayerCharacter npc, AIHandler... handlers) {
         if (npc.getController() == null) {
             BasicAI basicAI = new BasicAI(npc, this);
             this.aiMap.put(basicAI.getClientID(), new AIPair<BasicAI>(basicAI));
@@ -63,7 +63,9 @@ public class GroupAIRunner implements AIRunner {
             for (AIHandler handler : handlers) {
                 basicAI.addHandler(handler);
             }
+            return basicAI;
         }
+        return null;
     }
 
     protected void process(ClientID id) throws InterruptedException {

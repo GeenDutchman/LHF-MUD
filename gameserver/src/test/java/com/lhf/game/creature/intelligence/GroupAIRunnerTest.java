@@ -15,7 +15,7 @@ public class GroupAIRunnerTest {
     @Test
     void testProcessLeavesSome() throws InterruptedException {
         GroupAIRunner runner = new GroupAIRunner(2);
-        BasicAI qAi = runner.getQueuedAI(new NonPlayerCharacter());
+        BasicAI qAi = runner.register(new NonPlayerCharacter());
         qAi.sendMsg(new SeeOutMessage("denied once"));
         qAi.sendMsg(new WelcomeMessage());
         qAi.sendMsg(new FatalMessage());
