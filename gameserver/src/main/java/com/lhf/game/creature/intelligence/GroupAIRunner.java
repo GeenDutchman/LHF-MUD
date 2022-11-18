@@ -52,10 +52,18 @@ public class GroupAIRunner implements AIRunner {
         this.isStopped = false;
     }
 
-    public synchronized BasicAI register(NonPlayerCharacter npc) {
-        BasicAI basicAI = new BasicAI(npc, this);
-        this.aiMap.put(basicAI.getClientID(), new AIPair<BasicAI>(basicAI));
-        return basicAI;
+    public synchronized void register(NonPlayerCharacter npc, AIHandler... handlers) {
+        if (npc.getController() == null) {
+            BasicAI basicAI = new BasicAI(npc, this);
+            this.aiMap.put(basicAI.getClientID(), new AIPair<BasicAI>(basicAI));
+            npc.setController(basicAI);
+        }
+        if (npc.getController() instanceof BasicAI) {
+            BasicAI basicAI = (BasicAI) npc.getController();
+            for (AIHandler handler : handlers) {
+                basicAI.addHandler(handler);
+            }
+        }
     }
 
     protected void process(ClientID id) throws InterruptedException {

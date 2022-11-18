@@ -19,7 +19,7 @@ public class DungeonMaster extends NonPlayerCharacter implements PlayerCreatorAd
 
     CreatureCreator creatureCreator;
 
-    protected DungeonMaster(String name) {
+    public DungeonMaster(String name) {
         super(name, new DMV());
     }
 

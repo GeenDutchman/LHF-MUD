@@ -9,6 +9,7 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.BasicAI;
+import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
@@ -67,7 +68,7 @@ public class RoomBuilder {
         return this;
     }
 
-    public DMRoom buildDmRoom() {
+    public DMRoom buildDmRoom(GroupAIRunner aiRunner) {
         DMRoom dmRoom;
         if (this.description == null) {
             dmRoom = new DMRoom(this.name);
@@ -89,12 +90,11 @@ public class RoomBuilder {
         ConversationManager convoLoader = new ConversationManager();
         dmAda.setConvoTree(convoLoader, "verbal_default");
         dmGary.setConvoTree(convoLoader, "gary");
-        dmAda.setController(new BasicAI(dmAda)
-                .addHandler(new SpokenPromptChunk().setAllowUsers())
-                .addHandler(new SpeakOnOtherEntry()).addHandler(new LewdAIHandler(Set.of(dmGary))));
-        dmGary.setController(new BasicAI(dmGary)
-                .addHandler(new SpokenPromptChunk().setAllowUsers())
-                .addHandler(new SpeakOnOtherEntry()).addHandler(new LewdAIHandler(Set.of(dmAda))));
+
+        aiRunner.register(dmGary, new SpokenPromptChunk().setAllowUsers(), new SpeakOnOtherEntry(),
+                new LewdAIHandler(Set.of(dmAda)));
+        aiRunner.register(dmAda, new SpokenPromptChunk().setAllowUsers(), new SpeakOnOtherEntry(),
+                new LewdAIHandler(Set.of(dmGary)));
 
         dmRoom.addCreature(dmAda);
         dmRoom.addCreature(dmGary);
