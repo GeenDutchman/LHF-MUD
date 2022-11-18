@@ -12,7 +12,14 @@ import com.lhf.messages.MessageHandler;
 import com.lhf.server.client.StringBufferSendStrategy;
 
 public class AIComBundle implements MessageHandler {
-    public static GroupAIRunner aiRunner = new GroupAIRunner();
+    public static AIRunner aiRunner;
+
+    public static AIRunner getAIRunner() {
+        if (AIComBundle.aiRunner == null) {
+            AIComBundle.aiRunner = new GroupAIRunner();
+        }
+        return AIComBundle.aiRunner;
+    }
 
     public NonPlayerCharacter npc;
     public StringBufferSendStrategy sssb;
@@ -21,7 +28,7 @@ public class AIComBundle implements MessageHandler {
 
     public AIComBundle() {
         this.npc = new NonPlayerCharacter();
-        this.brain = AIComBundle.aiRunner.register(this.npc);
+        this.brain = AIComBundle.getAIRunner().register(this.npc);
         this.sssb = new StringBufferSendStrategy();
         brain.SetOut(this.sssb);
         this.npc.setController(this.brain);

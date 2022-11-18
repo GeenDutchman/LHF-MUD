@@ -5,12 +5,13 @@ import java.io.FileNotFoundException;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.truth.Truth;
+import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 
 public class DungeonBuilderTest {
     @Test
     void testBuildStaticDungeon() throws FileNotFoundException {
-        GroupAIRunner aiRunner = new GroupAIRunner();
+        AIRunner aiRunner = new GroupAIRunner();
         Dungeon built = DungeonBuilder.buildStaticDungeon(null, aiRunner);
         String mermaid = built.toMermaid(false);
         System.out.println(mermaid);

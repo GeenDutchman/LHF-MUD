@@ -16,7 +16,6 @@ public class GroupAIRunner implements AIRunner {
     private BlockingQueue<ClientID> attentionQueue;
     private final int chew;
     private volatile boolean stopit;
-    private volatile boolean isStopped;
 
     private class AIPair<T extends BasicAI> {
         public T ai;
@@ -30,6 +29,7 @@ public class GroupAIRunner implements AIRunner {
     }
 
     private Map<ClientID, AIPair<BasicAI>> aiMap;
+    private volatile Thread myThread;
 
     public GroupAIRunner() {
         this.chew = 2;
@@ -49,9 +49,11 @@ public class GroupAIRunner implements AIRunner {
             this.aiMap = new ConcurrentHashMap<>();
         }
         this.stopit = false;
-        this.isStopped = false;
+        this.myThread = new Thread(this);
+        this.myThread.start();
     }
 
+    @Override
     public synchronized BasicAI register(NonPlayerCharacter npc, AIHandler... handlers) {
         if (npc.getController() == null) {
             BasicAI basicAI = new BasicAI(npc, this);
@@ -140,7 +142,7 @@ public class GroupAIRunner implements AIRunner {
 
     @Override
     public boolean isStopped() {
-        return this.isStopped;
+        return !this.myThread.isAlive();
     }
 
 }

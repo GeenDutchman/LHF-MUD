@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.conversation.ConversationManager;
-import com.lhf.game.creature.intelligence.GroupAIRunner;
+import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.HealType;
@@ -129,7 +129,7 @@ public class DungeonBuilder {
         return dungeon;
     }
 
-    public static Dungeon buildStaticDungeon(MessageHandler successor, GroupAIRunner aiRunner)
+    public static Dungeon buildStaticDungeon(MessageHandler successor, AIRunner aiRunner)
             throws FileNotFoundException {
         DungeonBuilder builder = DungeonBuilder.newInstance();
         builder.setSuccessor(successor);
@@ -302,7 +302,7 @@ public class DungeonBuilder {
         return builder.build();
     }
 
-    public static Dungeon buildDynamicDungeon(int seed, GroupAIRunner aiRunner) {
+    public static Dungeon buildDynamicDungeon(int seed, AIRunner aiRunner) {
 
         return null;
     }

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.VocationFactory;
@@ -32,15 +33,13 @@ public class Game implements UserListener, MessageHandler {
 	private Logger logger;
 	private ThirdPower thirdPower;
 	private DMRoom controlRoom;
-	private GroupAIRunner aiRunner;
+	private AIRunner aiRunner;
 
 	public Game(ServerInterface server, UserManager userManager) throws FileNotFoundException {
 		this.logger = Logger.getLogger(this.getClass().getName());
 		this.aiRunner = new GroupAIRunner();
 		this.thirdPower = new ThirdPower(this, null);
 		Dungeon dungeon = DungeonBuilder.buildStaticDungeon(null, this.aiRunner);
-		Thread thread = new Thread(this.aiRunner);
-		thread.start();
 		RoomBuilder roomBuilder = RoomBuilder.getInstance();
 		roomBuilder.setDungeon(dungeon);
 		roomBuilder.setName("Control Room");

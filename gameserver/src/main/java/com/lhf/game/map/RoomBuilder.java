@@ -8,8 +8,7 @@ import java.util.Set;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.conversation.ConversationManager;
-import com.lhf.game.creature.intelligence.BasicAI;
-import com.lhf.game.creature.intelligence.GroupAIRunner;
+import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
@@ -68,7 +67,7 @@ public class RoomBuilder {
         return this;
     }
 
-    public DMRoom buildDmRoom(GroupAIRunner aiRunner) {
+    public DMRoom buildDmRoom(AIRunner aiRunner) {
         DMRoom dmRoom;
         if (this.description == null) {
             dmRoom = new DMRoom(this.name);
