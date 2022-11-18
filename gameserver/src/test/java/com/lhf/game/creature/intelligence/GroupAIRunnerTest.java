@@ -11,10 +11,10 @@ import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.ClientID;
 
-public class AIRunnerTest {
+public class GroupAIRunnerTest {
     @Test
     void testProcessLeavesSome() throws InterruptedException {
-        AIRunner runner = new AIRunner(2);
+        GroupAIRunner runner = new GroupAIRunner(2);
         BasicAI qAi = runner.getQueuedAI(new NonPlayerCharacter());
         qAi.sendMsg(new SeeOutMessage("denied once"));
         qAi.sendMsg(new WelcomeMessage());

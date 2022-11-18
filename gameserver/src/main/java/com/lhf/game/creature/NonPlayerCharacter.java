@@ -51,15 +51,15 @@ public class NonPlayerCharacter extends Creature {
     private ConversationTree convoTree = null;
     public static final String defaultConvoTreeName = "verbal_default";
 
-    protected NonPlayerCharacter() {
+    public NonPlayerCharacter() {
         super();
     }
 
-    protected NonPlayerCharacter(String name, Statblock statblock) {
+    public NonPlayerCharacter(String name, Statblock statblock) {
         super(name, statblock, CreatureFaction.NPC);
     }
 
-    protected NonPlayerCharacter(String name, Vocation vocation) {
+    public NonPlayerCharacter(String name, Vocation vocation) {
         super(name, vocation, CreatureFaction.NPC);
     }
 

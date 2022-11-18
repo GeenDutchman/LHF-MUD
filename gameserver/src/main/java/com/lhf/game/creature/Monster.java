@@ -13,7 +13,7 @@ public class Monster extends NonPlayerCharacter {
 
     private MonsterAI aiType;
 
-    protected Monster() {
+    public Monster() {
         super();
         this.activelyHostile = false;
         this.setSerialNumber();
@@ -21,7 +21,7 @@ public class Monster extends NonPlayerCharacter {
         this.setFaction(CreatureFaction.MONSTER);
     }
 
-    protected Monster(String name, Statblock statblock) {
+    public Monster(String name, Statblock statblock) {
         super(NameGenerator.GenerateSuffix(name), statblock);
         this.activelyHostile = true;
         this.setSerialNumber();

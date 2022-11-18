@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.conversation.ConversationManager;
+import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.HealType;
@@ -128,7 +129,8 @@ public class DungeonBuilder {
         return dungeon;
     }
 
-    public static Dungeon buildStaticDungeon(MessageHandler successor) throws FileNotFoundException {
+    public static Dungeon buildStaticDungeon(MessageHandler successor, GroupAIRunner aiRunner)
+            throws FileNotFoundException {
         DungeonBuilder builder = DungeonBuilder.newInstance();
         builder.setSuccessor(successor);
 
@@ -271,13 +273,16 @@ public class DungeonBuilder {
 
         // Monsters
         Monster g1 = new Monster("goblin", goblin);
+        aiRunner.register(g1);
         g1.setConvoTree(convoLoader, "non_verbal_default");
         historyHall.addCreature(g1);
 
         Monster boss = new Monster("Boss Bear", bugbear);
+        aiRunner.register(boss);
         statueRoom.addCreature(boss);
 
         Monster rightHandMan = new Monster("Right", hobgoblin);
+        aiRunner.register(rightHandMan);
         offeringRoom.addCreature(rightHandMan);
 
         // Set starting room
@@ -297,7 +302,7 @@ public class DungeonBuilder {
         return builder.build();
     }
 
-    public static Dungeon buildDynamicDungeon(int seed) {
+    public static Dungeon buildDynamicDungeon(int seed, GroupAIRunner aiRunner) {
 
         return null;
     }
