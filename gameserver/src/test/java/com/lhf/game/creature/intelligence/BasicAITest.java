@@ -29,12 +29,12 @@ import com.lhf.messages.out.SpeakingMessage;
 public class BasicAITest {
 
     @Spy
-    private GroupAIRunner aiRunner = new GroupAIRunner(true);
+    private GroupAIRunner aiRunner = new GroupAIRunner(false);
 
     @BeforeEach
     public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
-        AIComBundle.setAIRunner(this.aiRunner);
+        AIComBundle.setAIRunner(this.aiRunner.start());
     }
 
     @Test

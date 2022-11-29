@@ -54,11 +54,12 @@ public class GroupAIRunner implements AIRunner {
         }
     }
 
-    public void start() {
+    public GroupAIRunner start() {
         if (this.myThread == null) {
             this.myThread = new Thread(this);
             this.myThread.start();
         }
+        return this;
     }
 
     private BasicAI produceAI(NonPlayerCharacter npc) {
