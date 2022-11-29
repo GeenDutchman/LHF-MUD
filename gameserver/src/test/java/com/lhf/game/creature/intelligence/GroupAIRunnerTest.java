@@ -1,5 +1,7 @@
 package com.lhf.game.creature.intelligence;
 
+import static org.mockito.Mockito.verify;
+
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
@@ -36,5 +38,7 @@ public class GroupAIRunnerTest {
         Truth.assertThat(runner.size()).isEqualTo(0);
         next = runner.getNext(1, TimeUnit.SECONDS);
         Truth.assertThat(next).isNull();
+
+        verify(runner).getAttention(qAi.getClientID());
     }
 }

@@ -165,6 +165,10 @@ public class BasicAI extends Client {
     public synchronized void sendMsg(OutMessage msg) {
         super.sendMsg(msg);
         try {
+            if (this.runner == null) {
+                this.process(msg);
+                return;
+            }
             if (this.queue.offer(msg, 30, TimeUnit.SECONDS)) {
                 this.runner.getAttention(this);
             } else {

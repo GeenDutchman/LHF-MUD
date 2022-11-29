@@ -61,10 +61,14 @@ public class GroupAIRunner implements AIRunner {
         }
     }
 
+    private BasicAI produceAI(NonPlayerCharacter npc) {
+        return new BasicAI(npc, this);
+    }
+
     @Override
     public synchronized BasicAI register(NonPlayerCharacter npc, AIHandler... handlers) {
         if (npc.getController() == null) {
-            BasicAI basicAI = new BasicAI(npc, this);
+            BasicAI basicAI = this.produceAI(npc);
             this.aiMap.put(basicAI.getClientID(), new AIPair<BasicAI>(basicAI));
             npc.setController(basicAI);
         }

@@ -51,7 +51,8 @@ public class BasicAITest {
         listener.npc.sendMsg(sm);
 
         Assertions.assertDoesNotThrow(
-                () -> Mockito.verify(this.aiRunner, timeout(7000).atLeastOnce()).process(listener.brain.getClientID()));
+                () -> Mockito.verify(this.aiRunner, timeout(10000).atLeastOnce())
+                        .process(listener.brain.getClientID()));
 
         Truth.assertThat(listener.sent.size()).isAtLeast(1);
         Truth.assertThat(listener.sent.get(0).toString()).contains(body);
