@@ -24,6 +24,7 @@ import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.SpeakingMessage;
+import com.lhf.messages.out.OutMessage;
 
 @ExtendWith(MockitoExtension.class)
 public class BasicAITest {
@@ -37,6 +38,13 @@ public class BasicAITest {
         AIComBundle.setAIRunner(this.aiRunner.start());
     }
 
+    private void sendMsgAndWait(OutMessage message, AIComBundle bundle) {
+        bundle.npc.sendMsg(message);
+        Assertions.assertDoesNotThrow(
+                () -> Mockito.verify(this.aiRunner, timeout(1000).atLeastOnce())
+                        .process(bundle.brain.getClientID()));
+    }
+
     @Test
     void testBasicConversation() {
         AIComBundle listener = new AIComBundle();
@@ -48,11 +56,7 @@ public class BasicAITest {
 
         SpeakingMessage sm = new SpeakingMessage(speaker.npc, "hello", listener.npc);
 
-        listener.npc.sendMsg(sm);
-
-        Assertions.assertDoesNotThrow(
-                () -> Mockito.verify(this.aiRunner, timeout(10000).atLeastOnce())
-                        .process(listener.brain.getClientID()));
+        sendMsgAndWait(sm, listener);
 
         Truth.assertThat(listener.sent.size()).isAtLeast(1);
         Truth.assertThat(listener.sent.get(0).toString()).contains(body);
@@ -62,11 +66,12 @@ public class BasicAITest {
     void testAttacked() {
         AIComBundle victim = new AIComBundle();
         AIComBundle attacker = new AIComBundle();
+        attacker.npc.setFaction(CreatureFaction.RENEGADE);
 
         Attack attack = attacker.npc.attack(attacker.npc.getWeapon());
         CreatureEffect effect = attack.getEffects().stream().findFirst().get();
         CreatureAffectedMessage adm = new CreatureAffectedMessage(victim.npc, effect);
-        victim.npc.sendMsg(adm);
+        sendMsgAndWait(adm, victim);
 
         Truth.assertThat(victim.sent).isEmpty();
         Truth.assertThat(victim.brain.getLastAttacker()).isNull();
@@ -75,44 +80,54 @@ public class BasicAITest {
 
         Truth.assertThat(effect.getDamageResult().getTotal()).isNotEqualTo(0);
         CreatureAffectedMessage doneAttack = new CreatureAffectedMessage(victim.npc, effect);
-        victim.npc.sendMsg(doneAttack);
+        sendMsgAndWait(doneAttack, victim);
         Truth.assertThat(victim.sent).isEmpty();
         Truth.assertThat(victim.brain.getLastAttacker()).isEqualTo(attacker.npc);
 
     }
 
     @Test
-    void testBadTarget() {
+    void testBadTargetNoTarget() {
         AIComBundle searcher = new AIComBundle();
         searcher.npc.setInBattle(true);
         BadTargetSelectedMessage btsm = new BadTargetSelectedMessage(BadTargetOption.DNE, "bloohoo", new ArrayList<>());
-        searcher.npc.sendMsg(btsm);
+        sendMsgAndWait(btsm, searcher);
         Truth.assertThat(searcher.brain.getLastAttacker()).isNull();
         Truth.assertThat(searcher.sent).isNotEmpty();
         Truth.assertThat(searcher.sent).hasSize(1);
         Truth.assertThat(searcher.sent.get(0).toString()).ignoringCase().contains("pass");
+    }
 
+    @Test
+    void testBadTargetDiffFaction() {
+        AIComBundle searcher = new AIComBundle();
+        searcher.npc.setInBattle(true);
         AIComBundle victim = new AIComBundle();
         victim.npc.setFaction(CreatureFaction.MONSTER);
         ArrayList<Taggable> stuff = new ArrayList<>();
         stuff.add(victim.npc);
-        btsm = new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, "bloohoo jane", stuff);
-        searcher.npc.sendMsg(btsm);
+        BadTargetSelectedMessage btsm = new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, "bloohoo jane", stuff);
+        sendMsgAndWait(btsm, searcher);
         Truth.assertThat(searcher.brain.getLastAttacker()).isNotNull();
         Truth.assertThat(searcher.brain.getLastAttacker()).isEqualTo(victim.npc);
         Truth.assertThat(searcher.sent).isNotEmpty();
-        Truth.assertThat(searcher.sent).hasSize(2);
-        Truth.assertThat(searcher.sent.get(1).toString()).ignoringCase().contains(victim.npc.getName());
+        Truth.assertThat(searcher.sent).hasSize(1);
+        Truth.assertThat(searcher.sent.get(0).toString()).ignoringCase().contains(victim.npc.getName());
+    }
 
+    @Test
+    void testBadTargetSameFaction() {
+        AIComBundle searcher = new AIComBundle();
+        searcher.npc.setInBattle(true);
         AIComBundle samefaction = new AIComBundle();
-        stuff = new ArrayList<>();
+        ArrayList<Taggable> stuff = new ArrayList<>();
         stuff.add(samefaction.npc);
-        btsm = new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, "bloohoo jane", stuff);
-        searcher.npc.sendMsg(btsm);
+        BadTargetSelectedMessage btsm = new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, "bloohoo jane", stuff);
+        sendMsgAndWait(btsm, searcher);
         Truth.assertThat(searcher.brain.getLastAttacker()).isNull();
         Truth.assertThat(searcher.sent).isNotEmpty();
-        Truth.assertThat(searcher.sent).hasSize(3);
-        Truth.assertThat(searcher.sent.get(2).toString()).ignoringCase().contains("pass");
+        Truth.assertThat(searcher.sent).hasSize(1);
+        Truth.assertThat(searcher.sent.get(0).toString()).ignoringCase().contains("pass");
     }
 
 }

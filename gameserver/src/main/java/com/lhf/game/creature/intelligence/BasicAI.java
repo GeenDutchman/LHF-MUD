@@ -22,6 +22,7 @@ import com.lhf.messages.OutMessageType;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.PassMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
+import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.BattleTurnMessage;
 import com.lhf.messages.out.MissMessage;
 import com.lhf.messages.out.OutMessage;
@@ -116,6 +117,17 @@ public class BasicAI extends Client {
                 return;
             }
         });
+        this.handlers.put(OutMessageType.CREATURE_AFFECTED, (BasicAI bai, OutMessage msg) -> {
+            if (msg.getOutType().equals(OutMessageType.CREATURE_AFFECTED) && bai.getNpc().isInBattle()) {
+                CreatureAffectedMessage caMessage = (CreatureAffectedMessage) msg;
+                if (caMessage.getAffected() != bai.getNpc()) {
+                    return;
+                }
+                if (caMessage.getEffect().isOffensive()) {
+                    bai.setLastAttacker(caMessage.getEffect().creatureResponsible());
+                }
+            }
+        });
         this.addHandler(new SpokenPromptChunk());
         this.addHandler(new ForgetOnOtherExit());
         this.addHandler(new HandleCreatureAffected());
@@ -127,12 +139,15 @@ public class BasicAI extends Client {
             return; // no need to reselect if known
         }
         for (Creature creature : possTargets) {
+            if (creature == this.getNpc()) {
+                continue;
+            }
             if (creature.getFaction() == null || CreatureFaction.RENEGADE.equals(creature.getFaction())) {
                 this.setLastAttacker(creature);
             }
             if (this.getLastAttacker() == null) {
                 if (!CreatureFaction.NPC.equals(creature.getFaction())
-                        && creature.getFaction() != this.npc.getFaction()) {
+                        && this.npc.getFaction().competing(creature.getFaction())) {
                     this.setLastAttacker(creature);
                 }
             }
