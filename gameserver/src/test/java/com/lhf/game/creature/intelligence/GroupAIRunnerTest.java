@@ -1,5 +1,6 @@
 package com.lhf.game.creature.intelligence;
 
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.concurrent.TimeUnit;
@@ -39,6 +40,7 @@ public class GroupAIRunnerTest {
         next = runner.getNext(1, TimeUnit.SECONDS);
         Truth.assertThat(next).isNull();
 
-        verify(runner).getAttention(qAi.getClientID());
+        // because chew is 2, getAttention will be called 4 times
+        verify(runner, times(4)).getAttention(qAi.getClientID());
     }
 }
