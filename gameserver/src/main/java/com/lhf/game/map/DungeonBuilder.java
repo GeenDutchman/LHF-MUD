@@ -44,6 +44,7 @@ public class DungeonBuilder {
         }
     }
 
+    private Logger logger;
     private Map<UUID, RoomAndDirs> mapping;
     private Room startingRoom = null;
     private MessageHandler successor;
@@ -54,6 +55,7 @@ public class DungeonBuilder {
     }
 
     private DungeonBuilder() {
+        this.logger = Logger.getLogger(this.getClass().toString());
         this.mapping = new HashMap<>();
         this.orderAdded = new ArrayList<>();
     }
@@ -104,8 +106,9 @@ public class DungeonBuilder {
     }
 
     public Dungeon build() {
+        this.logger.entering(this.getClass().toString(), "build()");
         Dungeon dungeon = new Dungeon(this.successor);
-        System.out.printf("Adding starting room %s\r\n", this.startingRoom.getName());
+        this.logger.config(() -> String.format("Adding starting room %s\r\n", this.startingRoom.getName()));
         dungeon.setStartingRoom(this.startingRoom);
         for (Room existing : this.orderAdded) {
             Map<Directions, Doorway> existingExits = this.mapping.get(existing.getUuid()).exits;
@@ -115,13 +118,14 @@ public class DungeonBuilder {
                 Room nextRoom = this.mapping.get(nextRoomUuid).room;
                 Map<Directions, Doorway> nextExits = this.mapping.get(nextRoomUuid).exits;
                 if (nextExits.containsKey(exitDirection.opposite())) {
-                    System.out.printf("%s go %s to room %s\r\n", nextRoom.getName(),
+                    this.logger.config(() -> String.format("%s go %s to room %s\r\n", nextRoom.getName(),
                             exitDirection.opposite().toString(),
-                            existing.getName());
+                            existing.getName()));
                     dungeon.connectRoom(door.getType(), nextRoom, exitDirection.opposite(), existing);
                 } else {
-                    System.out.printf("hidden %s go %s to room %s, but not back\r\n", existing.getName(),
-                            exitDirection.toString(), nextRoom.getName());
+                    this.logger.config(
+                            () -> String.format("hidden %s go %s to room %s, but not back\r\n", existing.getName(),
+                                    exitDirection.toString(), nextRoom.getName()));
                     dungeon.connectRoomExclusiveOneWay(existing, exitDirection, nextRoom);
                 }
             }
@@ -132,6 +136,10 @@ public class DungeonBuilder {
     public static Dungeon buildStaticDungeon(MessageHandler successor, AIRunner aiRunner)
             throws FileNotFoundException {
         DungeonBuilder builder = DungeonBuilder.newInstance();
+        if (aiRunner == null) {
+            builder.logger.severe("AIRunner NOT provided!");
+        }
+
         builder.setSuccessor(successor);
 
         ConversationManager convoLoader = new ConversationManager();
@@ -273,17 +281,20 @@ public class DungeonBuilder {
 
         // Monsters
         Monster g1 = new Monster("goblin", goblin);
-        aiRunner.register(g1);
         g1.setConvoTree(convoLoader, "non_verbal_default");
         historyHall.addCreature(g1);
 
         Monster boss = new Monster("Boss Bear", bugbear);
-        aiRunner.register(boss);
         statueRoom.addCreature(boss);
 
         Monster rightHandMan = new Monster("Right", hobgoblin);
-        aiRunner.register(rightHandMan);
         offeringRoom.addCreature(rightHandMan);
+
+        if (aiRunner != null) {
+            aiRunner.register(g1);
+            aiRunner.register(boss);
+            aiRunner.register(rightHandMan);
+        }
 
         // Set starting room
         builder.addStartingRoom(entryRoom);

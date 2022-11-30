@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.DungeonMaster;
@@ -17,6 +18,7 @@ import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.messages.MessageHandler;
 
 public class RoomBuilder {
+    private Logger logger;
     private String name;
     private String description;
     private List<Item> items;
@@ -29,6 +31,7 @@ public class RoomBuilder {
     }
 
     private RoomBuilder() {
+        this.logger = Logger.getLogger(this.getClass().toString());
     }
 
     public RoomBuilder setName(String name) {
@@ -68,6 +71,12 @@ public class RoomBuilder {
     }
 
     public DMRoom buildDmRoom(AIRunner aiRunner) {
+        this.logger.entering(this.getClass().toString(), "buildDMRoom()");
+
+        if (aiRunner == null) {
+            this.logger.severe("AIRunner NOT provided!");
+        }
+
         DMRoom dmRoom;
         if (this.description == null) {
             dmRoom = new DMRoom(this.name);
@@ -90,10 +99,14 @@ public class RoomBuilder {
         dmAda.setConvoTree(convoLoader, "verbal_default");
         dmGary.setConvoTree(convoLoader, "gary");
 
-        aiRunner.register(dmGary, new SpokenPromptChunk().setAllowUsers(), new SpeakOnOtherEntry(),
-                new LewdAIHandler(Set.of(dmAda)));
-        aiRunner.register(dmAda, new SpokenPromptChunk().setAllowUsers(), new SpeakOnOtherEntry(),
-                new LewdAIHandler(Set.of(dmGary)));
+        this.logger.config(() -> aiRunner != null ? "AIRunner provided" : "AIRunner NOT provided");
+
+        if (aiRunner != null) {
+            aiRunner.register(dmGary, new SpokenPromptChunk().setAllowUsers(), new SpeakOnOtherEntry(),
+                    new LewdAIHandler(Set.of(dmAda)));
+            aiRunner.register(dmAda, new SpokenPromptChunk().setAllowUsers(), new SpeakOnOtherEntry(),
+                    new LewdAIHandler(Set.of(dmGary)));
+        }
 
         dmRoom.addCreature(dmAda);
         dmRoom.addCreature(dmGary);
@@ -115,6 +128,7 @@ public class RoomBuilder {
     }
 
     public Room build() {
+        this.logger.entering(this.getClass().toString(), "build()");
         Room room;
         if (this.description == null) {
             room = new Room(this.name);

@@ -8,6 +8,8 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -28,8 +30,11 @@ public class Spellbook {
     private SortedSet<SpellEntry> entries;
     private String path;
     private final String[] path_to_spellbook = { ".", "concrete" };
+    private Logger logger;
 
     public Spellbook() {
+        this.logger = Logger.getLogger(this.getClass().toString());
+        this.logger.config("Loading initial small spellset");
         this.entries = new TreeSet<>();
         SpellEntry shockBolt = new ShockBolt();
         this.entries.add(shockBolt);
@@ -79,14 +84,15 @@ public class Spellbook {
 
     @Deprecated(forRemoval = false)
     private boolean saveToFile(boolean loadFirst) throws IOException {
+        this.logger.entering(this.getClass().toString(), "saveToFile()", path_to_spellbook);
         if (loadFirst && !this.loadFromFile()) {
             throw new IOException("Cannot preload spellbook!");
         }
         Gson gson = this.getAdaptedGson();
-        System.out.println("Writing to " + this.path);
+        this.logger.info("Writing to " + this.path);
         try (FileWriter fileWriter = new FileWriter(this.path + "spellbook.json")) {
             String asJson = gson.toJson(this.entries);
-            System.out.println(asJson);
+            this.logger.finer(asJson);
             fileWriter.write(asJson);
         } catch (JsonIOException | IOException e) {
             e.printStackTrace();
@@ -97,19 +103,19 @@ public class Spellbook {
 
     public boolean loadFromFile() {
         Gson gson = this.getAdaptedGson();
-        System.out.println("Reading from " + this.path + "spellbook.json");
+        this.logger.config("Reading from " + this.path + "spellbook.json");
         Integer preSize = this.entries.size();
         try (JsonReader jReader = new JsonReader(new FileReader(this.path + "spellbook.json"))) {
             Type collectionType = new TypeToken<TreeSet<SpellEntry>>() {
             }.getType();
             SortedSet<SpellEntry> retrieved = gson.fromJson(jReader, collectionType);
-            System.out.println(retrieved);
+            this.logger.config(retrieved.toString());
             this.entries.addAll(retrieved);
         } catch (JsonIOException | IOException e) {
             e.printStackTrace();
             return false;
         }
-        System.out.printf("Spellbook size changed by %d\n", this.entries.size() - preSize);
+        this.logger.log(Level.INFO, String.format("Spellbook size changed by %d\n", this.entries.size() - preSize));
         return true;
     }
 

@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.logging.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -21,19 +22,21 @@ import com.lhf.game.item.Takeable;
 import com.lhf.game.item.TakeableDeserializer;
 
 public class StatblockManager {
+    private Logger logger;
     private String[] path_to_monsterStatblocks = { ".", "monsterStatblocks" };
     private String path;
 
     public StatblockManager() {
+        this.logger = Logger.getLogger(this.getClass().toString());
         StringBuilder makePath = new StringBuilder();
         for (String part : path_to_monsterStatblocks) {
             makePath.append(part).append(File.separator);
         }
-        System.out.println("Current Working Directory: " + Paths.get(".").toAbsolutePath().normalize().toString());
+        this.logger.config("Current Working Directory: " + Paths.get(".").toAbsolutePath().normalize().toString());
         // See https://stackoverflow.com/a/3844316
         URL statblockDir = getClass().getResource(makePath.toString());
         this.path = statblockDir.getPath();
-        System.out.println("directory " + this.path);
+        this.logger.config("directory " + this.path);
     }
 
     public Boolean statblockToFile(Statblock statblock) {
@@ -47,7 +50,7 @@ public class StatblockManager {
             return false;
         }
         String rightWritePath = this.path.replaceAll("target(.)classes", "src$1main$1resources");
-        System.out.println("Also writing to: " + rightWritePath);
+        this.logger.info("Also writing to: " + rightWritePath);
         try (JsonWriter jWriter = gson.newJsonWriter(
                 new FileWriter(rightWritePath.toString() + statblock.getCreatureRace() + ".json"))) {
             gson.toJson(statblock, Statblock.class, jWriter);
@@ -65,7 +68,7 @@ public class StatblockManager {
         gBuilder.registerTypeAdapter(Item.class, new ItemDeserializer<>());
         Gson gson = gBuilder.create();
         String statblockFile = this.path.toString() + name + ".json";
-        System.out.println("Opening file: " + statblockFile);
+        this.logger.info("Opening file: " + statblockFile);
         JsonReader jReader = new JsonReader(new FileReader(statblockFile));
         Statblock statblock = gson.fromJson(jReader, Statblock.class);
         return statblock;
