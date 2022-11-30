@@ -41,11 +41,18 @@ public class AIComBundle implements MessageHandler {
         this.npc.setSuccessor(this);
     }
 
+    protected void print(String buffer, boolean sending) {
+        System.out.println("***********************" + this.npc.getName() + "**********************");
+        for (String part : buffer.split("\n")) {
+            System.out.print(sending ? ">>> " : "<<< ");
+            System.out.println(part);
+        }
+        System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+    }
+
     public String read() {
         String buffer = this.sssb.read();
-        System.out.println("***********************" + this.npc.getName() + "**********************");
-        System.out.println(buffer);
-        System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+        this.print(buffer, false);
         return buffer;
     }
 
@@ -75,7 +82,7 @@ public class AIComBundle implements MessageHandler {
 
     @Override
     public boolean handleMessage(CommandContext ctx, Command msg) {
-        System.out.println(msg.toString());
+        this.print(msg.toString(), true);
         this.sent.add(msg);
         return true;
     }
