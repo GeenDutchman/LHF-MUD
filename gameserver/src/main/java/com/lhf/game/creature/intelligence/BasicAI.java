@@ -66,6 +66,8 @@ public class BasicAI extends Client {
             AIChunk ai = this.handlers.get(msg.getOutType());
             if (ai != null) {
                 ai.handle(this, msg);
+            } else {
+                this.logger.warning(() -> String.format("No handler found for %s", msg.getOutType()));
             }
         }
     }
