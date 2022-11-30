@@ -44,6 +44,7 @@ public class ServerTest {
         }
 
         public String handleCommand(String command, Boolean expectRecognized, Boolean expectHandled) {
+            this.print(command, true);
             this.client.ProcessString(command);
             String response = this.read();
             Boolean notRecognized = response.toLowerCase().contains("was not recognized");
@@ -65,15 +66,26 @@ public class ServerTest {
             return this.handleCommand(command, true, true);
         }
 
-        public String read() {
-            String buffer = this.sssb.read();
+        private String getName() {
             String tempname = String.valueOf(this.hashCode());
             if (this.name != null) {
                 tempname += ' ' + this.name;
             }
-            System.out.println("***********************" + tempname + "**********************");
-            System.out.println(buffer);
+            return tempname;
+        }
+
+        private void print(String buffer, boolean sending) {
+            System.out.println("***********************" + this.getName() + "**********************");
+            for (String part : buffer.split("\n")) {
+                System.out.print(sending ? ">>> " : "<<< ");
+                System.out.println(part);
+            }
             System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+        }
+
+        public String read() {
+            String buffer = this.sssb.read();
+            this.print(buffer, false);
             return buffer;
         }
 
