@@ -208,4 +208,11 @@ public class BasicAI extends Client {
         }
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("BasicAI [npc=").append(npc.getName()).append(", queuesize=").append(queue.size()).append("]");
+        return builder.toString();
+    }
+
 }

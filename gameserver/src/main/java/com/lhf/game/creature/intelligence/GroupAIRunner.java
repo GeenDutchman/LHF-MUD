@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.server.client.ClientID;
@@ -16,6 +17,7 @@ public class GroupAIRunner implements AIRunner {
     private BlockingQueue<ClientID> attentionQueue;
     private final int chew;
     private volatile boolean stopit;
+    private Logger logger;
 
     private class AIPair<T extends BasicAI> {
         public T ai;
@@ -42,6 +44,7 @@ public class GroupAIRunner implements AIRunner {
     }
 
     private void init(boolean asThread) {
+        this.logger = Logger.getLogger(this.getClass().getName());
         if (this.attentionQueue == null) {
             this.attentionQueue = new LinkedBlockingQueue<>();
         }
@@ -51,24 +54,32 @@ public class GroupAIRunner implements AIRunner {
         this.stopit = false;
         if (asThread) {
             this.start();
+        } else {
+            this.logger.info("Not initializing as a thread");
         }
     }
 
     public GroupAIRunner start() {
         if (this.myThread == null) {
+            this.logger.info("Starting a thread");
             this.myThread = new Thread(this);
             this.myThread.start();
+        } else {
+            this.logger.info("Already started as a thread");
         }
         return this;
     }
 
     private BasicAI produceAI(NonPlayerCharacter npc) {
+        this.logger.fine("Producing an AI for " + npc.getName());
         return new BasicAI(npc, this);
     }
 
     @Override
     public synchronized BasicAI register(NonPlayerCharacter npc, AIHandler... handlers) {
+        this.logger.entering(this.getClass().toString(), "register()", npc.getName());
         if (npc.getController() == null) {
+            this.logger.fine("NPC " + npc.getName() + " does not have a controller");
             BasicAI basicAI = this.produceAI(npc);
             this.aiMap.put(basicAI.getClientID(), new AIPair<BasicAI>(basicAI));
             npc.setController(basicAI);
@@ -87,6 +98,7 @@ public class GroupAIRunner implements AIRunner {
         if (id != null) {
             AIPair<BasicAI> aiPair = this.aiMap.get(id);
             if (aiPair != null) {
+                this.logger.finest("Processing for " + aiPair.ai.toString());
                 aiPair.queued.set(false);
                 while (this.getChew() <= 0 && aiPair.ai.peek() != null) {
                     aiPair.ai.process(aiPair.ai.poll());
@@ -112,6 +124,7 @@ public class GroupAIRunner implements AIRunner {
 
     @Override
     public synchronized void getAttention(BasicAI ai) throws InterruptedException {
+        this.logger.entering(this.getClass().toString(), "getAttention(BasicAI)", ai.toString());
         this.aiMap.computeIfAbsent(ai.getClientID(), clientId -> new AIPair<BasicAI>(ai));
         this.getAttention(ai.getClientID());
     }
@@ -126,6 +139,7 @@ public class GroupAIRunner implements AIRunner {
 
     @Override
     public void run() {
+        this.logger.entering(this.getClass().toString(), "run()", "running");
         while (!this.stopit) {
             try {
                 ClientID id = this.getNext(2, TimeUnit.MINUTES);
@@ -150,6 +164,7 @@ public class GroupAIRunner implements AIRunner {
 
     @Override
     public void stopIt() {
+        this.logger.info("Signalling to stop");
         this.stopit = true;
     }
 
