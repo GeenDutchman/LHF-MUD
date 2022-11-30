@@ -107,6 +107,7 @@ public class GroupAIRunner implements AIRunner {
                     aiPair.ai.process(aiPair.ai.poll());
                 }
                 if (aiPair.ai.size() > 0) {
+                    this.logger.finest(() -> String.format("%s still has messages enqueued", aiPair.ai.toString()));
                     this.getAttention(id);
                 }
             }
