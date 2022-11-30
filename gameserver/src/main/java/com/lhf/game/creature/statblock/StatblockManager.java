@@ -27,7 +27,7 @@ public class StatblockManager {
     private String path;
 
     public StatblockManager() {
-        this.logger = Logger.getLogger(this.getClass().toString());
+        this.logger = Logger.getLogger(this.getClass().getName());
         StringBuilder makePath = new StringBuilder();
         for (String part : path_to_monsterStatblocks) {
             makePath.append(part).append(File.separator);

@@ -55,7 +55,7 @@ public class DungeonBuilder {
     }
 
     private DungeonBuilder() {
-        this.logger = Logger.getLogger(this.getClass().toString());
+        this.logger = Logger.getLogger(this.getClass().getName());
         this.mapping = new HashMap<>();
         this.orderAdded = new ArrayList<>();
     }

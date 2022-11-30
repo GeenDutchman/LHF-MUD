@@ -31,7 +31,7 @@ public class RoomBuilder {
     }
 
     private RoomBuilder() {
-        this.logger = Logger.getLogger(this.getClass().toString());
+        this.logger = Logger.getLogger(this.getClass().getName());
     }
 
     public RoomBuilder setName(String name) {

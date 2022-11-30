@@ -21,7 +21,7 @@ public class ConversationManager {
     private String path;
 
     public ConversationManager() {
-        this.logger = Logger.getLogger(this.getClass().toString());
+        this.logger = Logger.getLogger(this.getClass().getName());
         StringBuilder makePath = new StringBuilder();
         for (String part : path_to_conversations) {
             makePath.append(part).append(File.separator);

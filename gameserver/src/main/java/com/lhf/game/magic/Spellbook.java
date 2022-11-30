@@ -33,7 +33,7 @@ public class Spellbook {
     private Logger logger;
 
     public Spellbook() {
-        this.logger = Logger.getLogger(this.getClass().toString());
+        this.logger = Logger.getLogger(this.getClass().getName());
         this.logger.config("Loading initial small spellset");
         this.entries = new TreeSet<>();
         SpellEntry shockBolt = new ShockBolt();
