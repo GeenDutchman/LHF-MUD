@@ -32,7 +32,7 @@ public class CommandWordTest {
         testcases.add(new testcase(CommandMessage.ATTACK, true).addToken("ATTACK", true));
         testcases.add(new testcase(CommandMessage.ATTACK, true).addToken("attack", true));
         testcases.add(new testcase(CommandMessage.ATTACK, true).addToken("Attack", true));
-        testcases.add(new testcase(null, false).addToken(this.getClass().toString(), false));
+        testcases.add(new testcase(null, false).addToken(this.getClass().getName(), false));
         testcases.add(new testcase(CommandMessage.SAY, false).addToken("SAY", true).addToken("SHOUT", false));
         testcases.add(new testcase(CommandMessage.SAY, false).addToken("SAY", true).addToken(this.getClass().getName(),
                 false));

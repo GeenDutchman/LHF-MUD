@@ -106,7 +106,7 @@ public class DungeonBuilder {
     }
 
     public Dungeon build() {
-        this.logger.entering(this.getClass().toString(), "build()");
+        this.logger.entering(this.getClass().getName(), "build()");
         Dungeon dungeon = new Dungeon(this.successor);
         this.logger.config(() -> String.format("Adding starting room %s\r\n", this.startingRoom.getName()));
         dungeon.setStartingRoom(this.startingRoom);

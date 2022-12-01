@@ -43,7 +43,7 @@ public class Server implements ServerInterface, ConnectionListener {
         this.acceptedCommands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
         this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
         this.game = new Game(this, this.userManager);
-        this.logger.exiting(this.getClass().toString(), "Constructor");
+        this.logger.exiting(this.getClass().getName(), "Constructor");
     }
 
     public Client startClient(Client client) {
@@ -93,7 +93,7 @@ public class Server implements ServerInterface, ConnectionListener {
      */
     @Override
     public void userLeft(ClientID id) {
-        logger.entering(this.getClass().toString(), "userLeft()", id);
+        logger.entering(this.getClass().getName(), "userLeft()", id);
         clientManager.getUserForClient(id).ifPresent(userID -> {
             for (UserListener listener : userListeners) {
                 listener.userLeft(userID);
@@ -104,7 +104,7 @@ public class Server implements ServerInterface, ConnectionListener {
 
     @Override
     public void connectionTerminated(ClientID id) {
-        logger.entering(this.getClass().toString(), "connectionTerminated()", id);
+        logger.entering(this.getClass().getName(), "connectionTerminated()", id);
         userLeft(id);
         removeClient(id);
     }

@@ -55,13 +55,13 @@ public class Game implements UserListener, MessageHandler {
 
 	@Override
 	public void userConnected(UserID id) {
-		this.logger.entering(this.getClass().toString(), "userConnected()", id);
+		this.logger.entering(this.getClass().getName(), "userConnected()", id);
 		// this.dungeon.sendMessageToAllExcept(new NewInMessage(), id);
 	}
 
 	@Override
 	public void userLeft(UserID id) {
-		this.logger.entering(this.getClass().toString(), "userLeft()", id);
+		this.logger.entering(this.getClass().getName(), "userLeft()", id);
 		this.controlRoom.userExitSystem(userManager.getUser(id));
 	}
 

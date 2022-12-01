@@ -61,7 +61,7 @@ public class Client implements MessageHandler, ClientMessenger {
 
     @Override
     public synchronized void sendMsg(OutMessage msg) {
-        this.logger.entering(this.getClass().toString(), "sendMsg()", msg);
+        this.logger.entering(this.getClass().getName(), "sendMsg()", msg);
         if (this.out == null) {
             this.SetOut(new PrintWriterSendStrategy(System.out));
         }

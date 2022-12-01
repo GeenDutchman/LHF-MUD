@@ -28,6 +28,10 @@ public class GroupAIRunner implements AIRunner {
             this.queued = new AtomicBoolean(false);
         }
 
+        @Override
+        public String toString() {
+            return this.ai.toString() + this.queued.toString();
+        }
     }
 
     private Map<ClientID, AIPair<BasicAI>> aiMap;
@@ -77,7 +81,7 @@ public class GroupAIRunner implements AIRunner {
 
     @Override
     public synchronized BasicAI register(NonPlayerCharacter npc, AIHandler... handlers) {
-        this.logger.entering(this.getClass().toString(), "register()", npc.getName());
+        this.logger.entering(this.getClass().getName(), "register()", npc.getName());
         if (npc.getController() == null) {
             this.logger.fine("NPC " + npc.getName() + " does not have a controller");
             BasicAI basicAI = this.produceAI(npc);
@@ -120,12 +124,13 @@ public class GroupAIRunner implements AIRunner {
             // if aPair is defined and not queued
             this.attentionQueue.offer(id, 30, TimeUnit.SECONDS);
             aPair.queued.set(true);
+            this.logger.finest(() -> String.format("Attention gotten for ai %s", aPair.ai.toString()));
         }
     }
 
     @Override
     public synchronized void getAttention(BasicAI ai) throws InterruptedException {
-        this.logger.entering(this.getClass().toString(), "getAttention(BasicAI)", ai.toString());
+        this.logger.entering(this.getClass().getName(), "getAttention(BasicAI)", ai.toString());
         this.aiMap.computeIfAbsent(ai.getClientID(), clientId -> new AIPair<BasicAI>(ai));
         this.getAttention(ai.getClientID());
     }
@@ -140,7 +145,7 @@ public class GroupAIRunner implements AIRunner {
 
     @Override
     public void run() {
-        this.logger.entering(this.getClass().toString(), "run()", "running");
+        this.logger.entering(this.getClass().getName(), "run()", "running");
         while (!this.stopit) {
             try {
                 ClientID id = this.getNext(2, TimeUnit.MINUTES);

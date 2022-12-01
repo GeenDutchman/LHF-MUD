@@ -72,7 +72,7 @@ public class RoomBuilder {
     }
 
     public DMRoom buildDmRoom(AIRunner aiRunner) {
-        this.logger.entering(this.getClass().toString(), "buildDMRoom()");
+        this.logger.entering(this.getClass().getName(), "buildDMRoom()");
 
         if (aiRunner == null) {
             this.logger.severe("AIRunner NOT provided!");
@@ -129,7 +129,7 @@ public class RoomBuilder {
     }
 
     public Room build() {
-        this.logger.entering(this.getClass().toString(), "build()");
+        this.logger.entering(this.getClass().getName(), "build()");
         Room room;
         if (this.description == null) {
             room = new Room(this.name);

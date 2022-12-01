@@ -68,14 +68,14 @@ public class ClientManager {
     }
 
     public void sendMessageToAll(OutMessage msg) {
-        logger.entering(this.getClass().toString(), "sendMessageToAll()", msg);
+        logger.entering(this.getClass().getName(), "sendMessageToAll()", msg);
         for (Client client : this.clientMap.values()) {
             client.sendMsg(msg);
         }
     }
 
     public void sendMessageToAllExcept(OutMessage msg, ClientID id) {
-        logger.entering(this.getClass().toString(), "sendMessageToAllExcept()");
+        logger.entering(this.getClass().getName(), "sendMessageToAllExcept()");
         for (ClientID iterId : this.clientMap.keySet()) {
             if (iterId != id) {
                 this.clientMap.get(iterId).sendMsg(msg);
