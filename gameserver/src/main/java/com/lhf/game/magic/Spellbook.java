@@ -23,6 +23,7 @@ import com.lhf.game.magic.concrete.Ensouling;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
 import com.lhf.game.magic.concrete.ThunderStrike;
+import com.lhf.game.map.DMRoomEffectSource;
 import com.lhf.game.map.DungeonEffectSource;
 import com.lhf.game.map.RoomEffectSource;
 
@@ -62,15 +63,18 @@ public class Spellbook {
                 .registerSubtype(CreatureTargetingSpellEntry.class, CreatureTargetingSpellEntry.class.getName())
                 .registerSubtype(CreatureAOESpellEntry.class, CreatureAOESpellEntry.class.getName())
                 .registerSubtype(RoomTargetingSpellEntry.class, RoomTargetingSpellEntry.class.getName())
+                .registerSubtype(DMRoomTargetingSpellEntry.class, DMRoomTargetingSpellEntry.class.getName())
                 .registerSubtype(DungeonTargetingSpellEntry.class, DungeonTargetingSpellEntry.class.getName())
                 .registerSubtype(ShockBolt.class, ShockBolt.class.getName())
                 .registerSubtype(ThunderStrike.class, ThunderStrike.class.getName())
                 .registerSubtype(Thaumaturgy.class, Thaumaturgy.class.getName())
+                .registerSubtype(Ensouling.class, Ensouling.class.getName())
                 .recognizeSubtypes();
         RuntimeTypeAdapterFactory<EntityEffectSource> effectSourceAdapter = RuntimeTypeAdapterFactory
                 .of(EntityEffectSource.class, "className", true)
                 .registerSubtype(CreatureEffectSource.class, CreatureEffectSource.class.getName())
                 .registerSubtype(RoomEffectSource.class, RoomEffectSource.class.getName())
+                .registerSubtype(DMRoomEffectSource.class, DMRoomEffectSource.class.getName())
                 .registerSubtype(DungeonEffectSource.class, DungeonEffectSource.class.getName())
                 .recognizeSubtypes();
         GsonBuilder gb = new GsonBuilder().registerTypeAdapterFactory(spellEntryAdapter)
