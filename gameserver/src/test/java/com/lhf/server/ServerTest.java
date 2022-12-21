@@ -7,35 +7,48 @@ import java.io.IOException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mockito;
 
 import com.google.common.truth.Truth;
+import com.lhf.messages.OutMessageType;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.SpeakingMessage;
+import com.lhf.messages.out.UserLeftMessage;
+import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.Client;
-import com.lhf.server.client.StringBufferSendStrategy;
+import com.lhf.server.client.SendStrategy;
 
 public class ServerTest {
 
     private class ComBundle {
         public Client client;
-        public StringBufferSendStrategy sssb;
+        public SendStrategy sssb;
         public String name;
+        @Captor
+        public ArgumentCaptor<OutMessage> outCaptor;
 
         public ComBundle(Server server) throws IOException {
             this.client = server.clientManager.newClient(server);
-            this.sssb = new StringBufferSendStrategy();
+            this.sssb = Mockito.mock(SendStrategy.class);
+            Mockito.doAnswer(invocation -> {
+                Object object = invocation.getArgument(0);
+                System.out.print(object.getClass().getName());
+                System.out.print(' ');
+                System.out.print(Mockito.mockingDetails(this.sssb).getInvocations().size());
+                this.print(object.toString(), false);
+                return null;
+            }).when(this.sssb).send(Mockito.any(OutMessage.class));
             this.client.SetOut(this.sssb);
             server.startClient(this.client);
         }
 
         public String create(String name, String vocation, Boolean expectUnique) {
             String result = this
-                    .handleCommand("create " + name + " with " + name + (vocation != null ? " as " + vocation : ""));
-            Boolean alreadyExists = result.toLowerCase().contains("already exists");
-            if (expectUnique) {
-                Truth.assertThat(alreadyExists).isFalse();
-                this.name = name;
-            } else {
-                Truth.assertThat(alreadyExists).isTrue();
-            }
+                    .handleCommand("create " + name + " with " + name + (vocation != null ? " as " + vocation : ""),
+                            expectUnique ? OutMessageType.SEE : OutMessageType.DUPLICATE_USER);
+            this.name = name;
             return result;
         }
 
@@ -43,27 +56,22 @@ public class ServerTest {
             return this.create(name, "fighter", true);
         }
 
-        public String handleCommand(String command, Boolean expectRecognized, Boolean expectHandled) {
+        public String handleCommand(String command, OutMessageType outMessageType) {
             this.print(command, true);
+            this.outCaptor = ArgumentCaptor.forClass(OutMessage.class);
             this.client.ProcessString(command);
-            String response = this.read();
-            Boolean notRecognized = response.toLowerCase().contains("was not recognized");
-            if (expectRecognized) {
-                Truth.assertThat(notRecognized).isFalse();
-            } else {
-                Truth.assertThat(notRecognized).isTrue();
-            }
-            Boolean notHandled = response.toLowerCase().contains("was not handled");
-            if (expectHandled) {
-                Truth.assertThat(notHandled).isFalse();
-            } else {
-                Truth.assertThat(notHandled).isTrue();
+            Mockito.verify(this.sssb, Mockito.atLeastOnce()).send(this.outCaptor.capture());
+            OutMessage outMessage = outCaptor.getValue();
+            Truth.assertThat(outMessage).isNotNull();
+            String response = outMessage.toString();
+            if (outMessageType != null) {
+                Truth.assertThat(outMessage.getOutType()).isEqualTo(outMessageType);
             }
             return response;
         }
 
         public String handleCommand(String command) {
-            return this.handleCommand(command, true, true);
+            return this.handleCommand(command, null);
         }
 
         private String getName() {
@@ -83,15 +91,6 @@ public class ServerTest {
             System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
         }
 
-        public String read() {
-            String buffer = this.sssb.read();
-            this.print(buffer, false);
-            return buffer;
-        }
-
-        public void clear() {
-            this.sssb.clear();
-        }
     }
 
     protected Server server;
@@ -109,24 +108,21 @@ public class ServerTest {
 
     @Test
     void testServerInitialMessage() {
-        String message = this.comm.read();
-        Truth.assertThat(message).ignoringCase().contains("Welcome");
+        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeMessage.class));
     }
 
     @Test
     void testFreshExit() {
-        this.comm.read();
         String message = this.comm.handleCommand("exit");
         Truth.assertThat(message).ignoringCase().contains("goodbye");
+        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(UserLeftMessage.class));
     }
 
     @Test
     void testExitFinality() {
-
-        this.comm.read();
-        String message = this.comm.handleCommand("exit");
+        String message = this.comm.handleCommand("exit", OutMessageType.USER_LEFT);
         Truth.assertThat(message).ignoringCase().contains("goodbye");
-        this.comm.handleCommand("see", true, false);
+        this.comm.handleCommand("see", OutMessageType.BAD_MESSAGE);
         Assertions.assertThrows(NullPointerException.class, () -> {
             this.comm.handleCommand("create Tester with Tester");
         });
@@ -134,18 +130,16 @@ public class ServerTest {
 
     @Test
     void testCharacterCreation() {
-        String message = this.comm.read();
-        Truth.assertThat(message).ignoringCase().contains("create");
-        message = this.comm.create("Tester");
+        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeMessage.class));
+        String message = this.comm.create("Tester");
         Truth.assertThat(message).ignoringCase().contains("room");
         Truth.assertThat(message).contains(this.comm.name);
     }
 
     @Test
     void testComplexCharacterCreation() {
-        String message = this.comm.read();
-        Truth.assertThat(message).ignoringCase().contains("create");
-        message = this.comm.create("Tester", null, true);
+        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeMessage.class));
+        String message = this.comm.create("Tester", null, true);
         Truth.assertThat(message).ignoringCase().contains("hi");
         message = this.comm.handleCommand("say hi to gary lovejax");
         message = this.comm.handleCommand("say ok to gary lovejax");
@@ -171,14 +165,13 @@ public class ServerTest {
 
     @Test
     void testGo() {
-        this.comm.clear();
         this.comm.create("Tester");
-        String room1 = this.comm.handleCommand("see");
+        String room1 = this.comm.handleCommand("see", OutMessageType.SEE);
         Truth.assertThat(room1).contains("east");
-        String room2 = this.comm.handleCommand("go east");
+        String room2 = this.comm.handleCommand("go east", OutMessageType.SEE);
         Truth.assertThat(room2).contains("hall");
         Truth.assertThat(room1).isNotEqualTo(room2);
-        String origRoom = this.comm.handleCommand("go west");
+        String origRoom = this.comm.handleCommand("go west", OutMessageType.SEE);
         Truth.assertThat(room2).isNotEqualTo(origRoom);
         Truth.assertThat(room1).isEqualTo(origRoom);
     }
@@ -187,7 +180,7 @@ public class ServerTest {
     void testDropTake() {
         this.comm.create("Tester");
         this.comm.handleCommand("inventory");
-        this.comm.handleCommand("take longsword", true, false);
+        this.comm.handleCommand("take longsword", OutMessageType.BAD_TARGET_SELECTED);
         this.comm.handleCommand("drop longsword");
         this.comm.handleCommand("drop longsword");
         this.comm.handleCommand("take longsword");
@@ -200,19 +193,18 @@ public class ServerTest {
         dude1.create("dude1");
         ComBundle dude2 = new ComBundle(this.server);
         dude2.create("dude2");
-        this.comm.read();
-        String findEm = this.comm.handleCommand("players");
+        String findEm = this.comm.handleCommand("players", OutMessageType.LIST_PLAYERS);
         Truth.assertThat(findEm).contains(this.comm.name);
         Truth.assertThat(findEm).contains(dude1.name);
         Truth.assertThat(findEm).contains(dude2.name);
-        dude2.handleCommand("go east");
-        findEm = this.comm.handleCommand("players");
+        dude2.handleCommand("go east", OutMessageType.SEE);
+        findEm = this.comm.handleCommand("players", OutMessageType.LIST_PLAYERS);
         Truth.assertThat(findEm).contains(this.comm.name);
         Truth.assertThat(findEm).contains(dude1.name);
         Truth.assertThat(findEm).contains(dude2.name);
-        dude2.handleCommand("exit");
-        Truth.assertThat(this.comm.read()).ignoringCase().contains("left the server");
-        findEm = this.comm.handleCommand("players");
+        dude2.handleCommand("exit", OutMessageType.USER_LEFT);
+        Mockito.verify(this.comm.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.any(UserLeftMessage.class));
+        findEm = this.comm.handleCommand("players", OutMessageType.LIST_PLAYERS);
         Truth.assertThat(findEm).contains(this.comm.name);
         Truth.assertThat(findEm).contains(dude1.name);
         Truth.assertThat(findEm).doesNotContain(dude2.name);
@@ -225,58 +217,74 @@ public class ServerTest {
         listener1.create("Listener1");
         ComBundle listener2 = new ComBundle(this.server);
         listener2.create("Listener2");
-        String room = this.comm.handleCommand("see");
+        String room = this.comm.handleCommand("see", OutMessageType.SEE);
         Truth.assertThat(room).contains(this.comm.name);
         Truth.assertThat(room).contains(listener1.name);
         Truth.assertThat(room).contains(listener2.name);
         this.comm.handleCommand("say this is a unique string");
-        String heard1 = listener1.read();
+        ArgumentCaptor<SpeakingMessage> speakCaptor1 = ArgumentCaptor.forClass(SpeakingMessage.class);
+        Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor1.capture());
+        SpeakingMessage speakingMessage = speakCaptor1.getValue();
+        Truth.assertThat(speakingMessage).isNotNull();
+        String heard1 = speakingMessage.toString();
         Truth.assertThat(heard1).contains(this.comm.name);
         Truth.assertThat(heard1).contains("this is a unique string");
-        String heard2 = listener2.read();
+        ArgumentCaptor<SpeakingMessage> speakCaptor2 = ArgumentCaptor.forClass(SpeakingMessage.class);
+        Mockito.verify(listener2.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor2.capture());
+        String heard2 = speakCaptor2.toString();
         Truth.assertThat(heard2).contains(this.comm.name);
         Truth.assertThat(heard2).contains("this is a unique string");
 
         this.comm.handleCommand("say hey you man to Listener1");
-        heard1 = listener1.read();
+        Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor1.capture());
+        heard1 = speakCaptor1.getValue().toString();
         Truth.assertThat(heard1).contains(this.comm.name);
         Truth.assertThat(heard1).contains("hey you man");
-        heard2 = listener2.read();
+        Mockito.verify(listener2.sssb, Mockito.after(1000).never()).send(speakCaptor2.capture());
+        heard2 = speakCaptor2.getValue().toString(); // latest call should not be it
         Truth.assertThat(heard2).doesNotContain(this.comm.name);
         Truth.assertThat(heard2).doesNotContain("hey you man");
 
         this.comm.handleCommand("shout hello world");
-        heard1 = listener1.read();
+        Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor1.capture());
+        heard1 = speakCaptor1.getValue().toString();
         Truth.assertThat(heard1).contains(this.comm.name);
         Truth.assertThat(heard1).contains("hello world");
-        heard2 = listener2.read();
+        Mockito.verify(listener2.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor2.capture());
+        heard2 = speakCaptor2.toString();
         Truth.assertThat(heard2).contains(this.comm.name);
         Truth.assertThat(heard2).contains("hello world");
 
         // Test from different room
-        listener2.handleCommand("go east");
+        listener2.handleCommand("go east", OutMessageType.SEE);
 
         this.comm.handleCommand("say zaboomafoo");
-        heard1 = listener1.read();
+        Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor1.capture());
+        heard1 = speakCaptor1.getValue().toString();
         Truth.assertThat(heard1).contains(this.comm.name);
         Truth.assertThat(heard1).contains("zaboomafoo");
-        heard2 = listener2.read();
+        Mockito.verify(listener2.sssb, Mockito.after(1000).never()).send(speakCaptor2.capture());
+        heard2 = speakCaptor2.getValue().toString(); // latest call should not be it
         Truth.assertThat(heard2).doesNotContain(this.comm.name);
         Truth.assertThat(heard2).doesNotContain("zaboomafoo");
 
         this.comm.handleCommand("say lil dip sauce to Listener1");
-        heard1 = listener1.read();
+        Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor1.capture());
+        heard1 = speakCaptor1.getValue().toString();
         Truth.assertThat(heard1).contains(this.comm.name);
         Truth.assertThat(heard1).contains("lil dip sauce");
-        heard2 = listener2.read();
+        Mockito.verify(listener2.sssb, Mockito.after(1000).never()).send(speakCaptor2.capture());
+        heard2 = speakCaptor2.getValue().toString(); // latest call should not be it
         Truth.assertThat(heard2).doesNotContain(this.comm.name);
         Truth.assertThat(heard2).doesNotContain("lil dip sauce");
 
         this.comm.handleCommand("shout I like yelling");
-        heard1 = listener1.read();
+        Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor1.capture());
+        heard1 = speakCaptor1.getValue().toString();
         Truth.assertThat(heard1).contains(this.comm.name);
         Truth.assertThat(heard1).contains("I like yelling");
-        heard2 = listener2.read();
+        Mockito.verify(listener2.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor2.capture());
+        heard2 = speakCaptor2.toString();
         Truth.assertThat(heard2).contains(this.comm.name);
         Truth.assertThat(heard2).contains("I like yelling");
 
@@ -285,7 +293,7 @@ public class ServerTest {
     @Test
     void testNameCollision() throws IOException {
         this.comm.create("Tester");
-        this.comm.handleCommand("create Tester with password", true, false);
+        this.comm.handleCommand("create Tester with password", OutMessageType.BAD_MESSAGE);
         ComBundle twin1 = new ComBundle(this.server);
         twin1.create(this.comm.name, "fighter", false); // would have failed making twin
         Truth.assertThat(twin1.name).isNotEqualTo(this.comm.name);
@@ -308,20 +316,27 @@ public class ServerTest {
     @Test
     void testAttack() {
         this.comm.create("Tester");
-        String extract = this.comm.handleCommand("go east");
+        String extract = this.comm.handleCommand("go east", OutMessageType.SEE);
+        Truth.assertThat(extract).ignoringCase().contains("<monster>");
         int creature_index = extract.indexOf("<monster>");
         int endcreature_index = extract.indexOf("</monster>");
         extract = extract.substring(creature_index + "<monster>".length(), endcreature_index);
         System.out.println(extract);
-        String room = this.comm.handleCommand("see");
-        int i = 0;
-        while (room.contains("<monster>" + extract + "</monster>") && i < 15) {
+        String room = this.comm.handleCommand("see", OutMessageType.SEE);
+        for (int i = 0; i < 15; i++) {
             this.comm.handleCommand("attack " + extract);
 
             room = this.comm.handleCommand("see");
-            i += 1;
+
+            if (room.contains("<monster>" + extract + "</monster>")) {
+                Mockito.verify(this.comm.sssb, Mockito.timeout(1000).times(i))
+                        .send(Mockito.argThat(message -> message != null
+                                && message.getOutType() == OutMessageType.BATTLE_TURN
+                                && message.toString().contains("It is your turn to fight!")));
+            } else {
+                break;
+            }
         }
-        Truth.assertThat(i).isLessThan(15);
         Truth.assertThat(room).doesNotContain("<monster>" + extract + "</monster>");
     }
 
@@ -352,21 +367,25 @@ public class ServerTest {
         ComBundle attacker = new ComBundle(this.server);
         attacker.create("Attacker");
 
-        String message = new String();
-        int i = 0;
-        while (!message.contains("reborn") && i < 30) { // until Tester dies
-            i++;
+        OutMessage outMessage = null;
+        for (int i = 0; i < 30 && outMessage == null; i++) {
             attacker.handleCommand("attack Tester");
-            message = this.comm.read();
-            if (message.contains("reborn")) {
+            for (OutMessage outy : this.comm.outCaptor.getAllValues()) {
+                if (outy != null && outy.getOutType() == OutMessageType.REINCARNATION) {
+                    outMessage = outy;
+                }
+            }
+            // message = this.comm.read();
+            if (outMessage != null) {
                 break;
             }
-            message = this.comm.handleCommand("attack Attacker");
-            if (message.contains("reborn")) {
-                break;
+            this.comm.handleCommand("PASS");
+            for (OutMessage outy : this.comm.outCaptor.getAllValues()) {
+                if (outy != null && outy.getOutType() == OutMessageType.REINCARNATION) {
+                    outMessage = outy;
+                }
             }
         }
-        Truth.assertThat(i).isNotEqualTo(30);
         Truth.assertThat(this.comm.handleCommand("inventory")).isEqualTo(inventory);
         Truth.assertThat(this.comm.handleCommand("status")).isEqualTo(status);
     }
@@ -381,10 +400,10 @@ public class ServerTest {
 
         String attack = this.comm.handleCommand("attack " + second.name);
         Truth.assertThat(attack).contains("RENEGADE");
-        String seen = bystander.read();
-        Truth.assertThat(seen).contains("RENEGADE");
-        Truth.assertThat(seen).contains("joined");
-        Truth.assertThat(seen).contains("battle!");
+        Mockito.verify(bystander.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito
+                .argThat(message -> message != null && message.getOutType() == OutMessageType.RENEGADE_ANNOUNCEMENT));
+        Mockito.verify(bystander.sssb, Mockito.timeout(500).atLeastOnce()).send(
+                Mockito.argThat(message -> message != null && message.getOutType() == OutMessageType.JOIN_BATTLE));
     }
 
     @Test
@@ -392,14 +411,15 @@ public class ServerTest {
         this.comm.create("Tester");
         ComBundle victim = new ComBundle(this.server);
         victim.create("victim");
-        victim.read();
+
         String spellResult = this.comm.handleCommand("cast zarmamoo"); // Thaumaturgy
         // because we know it's thaumaturgy
         // TODO: make a test with a caster type
         // Truth.assertThat(spellResult).contains(this.comm.name);
         Truth.assertThat(spellResult).ignoringCase().contains("not a caster");
         // Truth.assertThat(victim.read()).contains(this.comm.name);
-        Truth.assertThat(victim.read()).ignoringCase().contains("nothing spectacular happens");
+        Mockito.verify(victim.sssb, Mockito.timeout(500).atLeastOnce())
+                .send(Mockito.argThat(message -> message != null && message.getOutType() == OutMessageType.FIZZLE));
 
         spellResult = this.comm.handleCommand("cast Astra Horeb at " + victim.name); // attack spell
         // Truth.assertThat(spellResult).ignoringCase().contains("fight");
