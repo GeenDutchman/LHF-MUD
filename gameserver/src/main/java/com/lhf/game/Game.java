@@ -23,6 +23,7 @@ import com.lhf.messages.out.ListPlayersMessage;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
+import com.lhf.server.interfaces.NotNull;
 import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
 
@@ -40,6 +41,24 @@ public class Game implements UserListener, MessageHandler {
 		this.aiRunner = new GroupAIRunner(true);
 		this.thirdPower = new ThirdPower(this, null);
 		Dungeon dungeon = DungeonBuilder.buildStaticDungeon(null, this.aiRunner);
+		RoomBuilder roomBuilder = RoomBuilder.getInstance();
+		roomBuilder.setDungeon(dungeon);
+		roomBuilder.setName("Control Room");
+		roomBuilder.setDescription("There are a lot of buttons and screens in here.  It looks like a home office.");
+		roomBuilder.setSuccessor(this.thirdPower);
+		this.controlRoom = roomBuilder.buildDmRoom(this.aiRunner);
+		this.successor = server;
+		this.server = server;
+		this.server.registerCallback(this);
+		this.userManager = userManager;
+		this.logger.info("Created Game");
+	}
+
+	public Game(ServerInterface server, UserManager userManager, AIRunner aiRunner, @NotNull Dungeon dungeon)
+			throws FileNotFoundException {
+		this.logger = Logger.getLogger(this.getClass().getName());
+		this.aiRunner = aiRunner;
+		this.thirdPower = new ThirdPower(this, null);
 		RoomBuilder roomBuilder = RoomBuilder.getInstance();
 		roomBuilder.setDungeon(dungeon);
 		roomBuilder.setName("Control Room");

@@ -23,6 +23,7 @@ import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
 import com.lhf.server.interfaces.ConnectionListener;
+import com.lhf.server.interfaces.NotNull;
 import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
 
@@ -43,7 +44,19 @@ public class Server implements ServerInterface, ConnectionListener {
         this.acceptedCommands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
         this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
         this.game = new Game(this, this.userManager);
-        this.logger.exiting(this.getClass().getName(), "Constructor");
+        this.logger.exiting(this.getClass().getName(), "NoArgConstructor");
+    }
+
+    public Server(@NotNull UserManager userManager, @NotNull ClientManager clientManager, @NotNull Game game) {
+        this.logger = Logger.getLogger(this.getClass().getName());
+        this.userManager = userManager;
+        this.userListeners = new ArrayList<>();
+        this.clientManager = clientManager;
+        this.acceptedCommands = new EnumMap<>(CommandMessage.class);
+        this.acceptedCommands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
+        this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
+        this.game = game;
+        this.logger.exiting(this.getClass().getName(), "ArgConstructor");
     }
 
     public Client startClient(Client client) {
