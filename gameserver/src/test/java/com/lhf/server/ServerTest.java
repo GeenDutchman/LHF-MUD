@@ -323,7 +323,7 @@ public class ServerTest {
         extract = extract.substring(creature_index + "<monster>".length(), endcreature_index);
         System.out.println(extract);
         String room = this.comm.handleCommand("see", OutMessageType.SEE);
-        for (int i = 0; i < 15; i++) {
+        for (int i = 1; i < 15; i++) {
             this.comm.handleCommand("attack " + extract);
 
             room = this.comm.handleCommand("see");
