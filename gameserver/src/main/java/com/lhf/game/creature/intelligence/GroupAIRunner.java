@@ -18,6 +18,8 @@ public class GroupAIRunner implements AIRunner {
     private final int chew;
     private volatile boolean stopit;
     private Logger logger;
+    private long timeCount;
+    private TimeUnit timeUnit;
 
     private class AIPair<T extends BasicAI> {
         public T ai;
@@ -39,11 +41,22 @@ public class GroupAIRunner implements AIRunner {
 
     public GroupAIRunner(boolean asThread) {
         this.chew = 2;
+        this.timeCount = 2;
+        this.timeUnit = TimeUnit.MINUTES;
         this.init(asThread);
     }
 
     public GroupAIRunner(boolean asThread, int chew) {
         this.chew = chew;
+        this.timeCount = 2;
+        this.timeUnit = TimeUnit.MINUTES;
+        this.init(asThread);
+    }
+
+    public GroupAIRunner(boolean asThread, int chew, long timeCount, TimeUnit timeUnit) {
+        this.chew = chew;
+        this.timeCount = timeCount;
+        this.timeUnit = timeUnit;
         this.init(asThread);
     }
 
@@ -148,10 +161,13 @@ public class GroupAIRunner implements AIRunner {
         this.logger.entering(this.getClass().getName(), "run()", "running");
         while (!this.stopit) {
             try {
-                ClientID id = this.getNext(2, TimeUnit.MINUTES);
+                this.logger.finer(() -> String.format("Polling for the next attention getter for %d %s",
+                        this.getTimeCount(), this.getTimeUnit().toString()));
+                ClientID id = this.getNext(this.getTimeCount(), this.getTimeUnit());
                 if (id != null) {
                     this.process(id);
                 } else {
+                    this.logger.finer("Checking to see if anyone has needs but has not asked for attention");
                     for (ClientID iterId : this.aiMap.keySet()) {
                         this.process(iterId);
                     }
@@ -177,6 +193,22 @@ public class GroupAIRunner implements AIRunner {
     @Override
     public boolean isStopped() {
         return !this.myThread.isAlive();
+    }
+
+    public long getTimeCount() {
+        return timeCount;
+    }
+
+    public void setTimeCount(long timeCount) {
+        this.timeCount = timeCount;
+    }
+
+    public TimeUnit getTimeUnit() {
+        return timeUnit;
+    }
+
+    public void setTimeUnit(TimeUnit timeUnit) {
+        this.timeUnit = timeUnit;
     }
 
 }
