@@ -22,6 +22,66 @@ import com.lhf.server.client.SendStrategy;
 
 public class ServerTest {
 
+    public class MessageMatcher implements ArgumentMatcher<OutMessage> {
+
+        protected OutMessageType type;
+        protected List<String> contained;
+        protected List<String> notContained;
+
+        public MessageMatcher(OutMessageType type, List<String> containedWords, List<String> notContainedWords) {
+            this.type = type;
+            this.contained = containedWords;
+            this.notContained = notContainedWords;
+        }
+
+        public MessageMatcher(OutMessageType type, String contained) {
+            this.type = type;
+            this.contained = List.of(contained);
+            this.notContained = null;
+        }
+
+        public MessageMatcher(OutMessageType type) {
+            this.type = type;
+            this.contained = null;
+            this.notContained = null;
+        }
+
+        public MessageMatcher(String contained) {
+            this.contained = List.of(contained);
+            this.notContained = null;
+            this.type = null;
+        }
+
+        @Override
+        public boolean matches(OutMessage argument) {
+            if (argument == null) {
+                return false;
+            }
+            if (this.type != null && this.type != argument.getOutType()) {
+                return false;
+            }
+            String argumentAsString = argument.toString();
+
+            if (this.contained != null) {
+                for (String words : this.contained) {
+                    if (!argumentAsString.contains(words)) {
+                        return false;
+                    }
+                }
+            }
+
+            if (this.notContained != null) {
+                for (String words : this.notContained) {
+                    if (argumentAsString.contains(words)) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+    }
+
     private class ComBundle {
         public Client client;
         public SendStrategy sssb;
@@ -210,83 +270,89 @@ public class ServerTest {
         Truth.assertThat(findEm).doesNotContain(dude2.name);
     }
 
-    @Test
-    void testSpeaking() throws IOException {
-        this.comm.create("Tester");
-        ComBundle listener1 = new ComBundle(this.server);
-        listener1.create("Listener1");
-        ComBundle listener2 = new ComBundle(this.server);
-        listener2.create("Listener2");
-        String room = this.comm.handleCommand("see", OutMessageType.SEE);
-        Truth.assertThat(room).contains(this.comm.name);
-        Truth.assertThat(room).contains(listener1.name);
-        Truth.assertThat(room).contains(listener2.name);
-        this.comm.handleCommand("say this is a unique string");
-        ArgumentCaptor<SpeakingMessage> speakCaptor1 = ArgumentCaptor.forClass(SpeakingMessage.class);
-        Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor1.capture());
-        SpeakingMessage speakingMessage = speakCaptor1.getValue();
-        Truth.assertThat(speakingMessage).isNotNull();
-        String heard1 = speakingMessage.toString();
-        Truth.assertThat(heard1).contains(this.comm.name);
-        Truth.assertThat(heard1).contains("this is a unique string");
-        ArgumentCaptor<SpeakingMessage> speakCaptor2 = ArgumentCaptor.forClass(SpeakingMessage.class);
-        Mockito.verify(listener2.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor2.capture());
-        String heard2 = speakCaptor2.toString();
-        Truth.assertThat(heard2).contains(this.comm.name);
-        Truth.assertThat(heard2).contains("this is a unique string");
+    @Nested
+    @ExtendWith(MockitoExtension.class)
+    public class SpeakingTests {
 
-        this.comm.handleCommand("say hey you man to Listener1");
-        Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor1.capture());
-        heard1 = speakCaptor1.getValue().toString();
-        Truth.assertThat(heard1).contains(this.comm.name);
-        Truth.assertThat(heard1).contains("hey you man");
-        Mockito.verify(listener2.sssb, Mockito.after(1000).never()).send(speakCaptor2.capture());
-        heard2 = speakCaptor2.getValue().toString(); // latest call should not be it
-        Truth.assertThat(heard2).doesNotContain(this.comm.name);
-        Truth.assertThat(heard2).doesNotContain("hey you man");
+        protected ComBundle listener1;
+        protected ComBundle listener2;
+        protected MessageMatcher matcher;
 
-        this.comm.handleCommand("shout hello world");
-        Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor1.capture());
-        heard1 = speakCaptor1.getValue().toString();
-        Truth.assertThat(heard1).contains(this.comm.name);
-        Truth.assertThat(heard1).contains("hello world");
-        Mockito.verify(listener2.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor2.capture());
-        heard2 = speakCaptor2.toString();
-        Truth.assertThat(heard2).contains(this.comm.name);
-        Truth.assertThat(heard2).contains("hello world");
+        @BeforeEach
+        public void initEach() throws IOException {
+            ServerTest.this.comm.create("Tester");
+            this.listener1 = new ComBundle(ServerTest.this.server);
+            listener1.create("Listener1");
+            this.listener2 = new ComBundle(ServerTest.this.server);
+            listener2.create("Listener2");
+            String room = ServerTest.this.comm.handleCommand("see", OutMessageType.SEE);
+            Truth.assertThat(room).contains(ServerTest.this.comm.name);
+            Truth.assertThat(room).contains(listener1.name);
+            Truth.assertThat(room).contains(listener2.name);
+        }
 
-        // Test from different room
-        listener2.handleCommand("go east", OutMessageType.SEE);
+        @Test
+        void testSpeakToRoom() {
+            this.matcher = new MessageMatcher(OutMessageType.SPEAKING,
+                    List.of(ServerTest.this.comm.name, "this is a unique string"), null);
+            ServerTest.this.comm.handleCommand("say this is a unique string");
+            Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.argThat(this.matcher));
+            Mockito.verify(listener2.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.argThat(this.matcher));
+        }
 
-        this.comm.handleCommand("say zaboomafoo");
-        Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor1.capture());
-        heard1 = speakCaptor1.getValue().toString();
-        Truth.assertThat(heard1).contains(this.comm.name);
-        Truth.assertThat(heard1).contains("zaboomafoo");
-        Mockito.verify(listener2.sssb, Mockito.after(1000).never()).send(speakCaptor2.capture());
-        heard2 = speakCaptor2.getValue().toString(); // latest call should not be it
-        Truth.assertThat(heard2).doesNotContain(this.comm.name);
-        Truth.assertThat(heard2).doesNotContain("zaboomafoo");
+        @Test
+        void testSpeakDirectly() {
+            this.matcher = new MessageMatcher(OutMessageType.SPEAKING,
+                    List.of(ServerTest.this.comm.name, "hey you man"), null);
+            ServerTest.this.comm.handleCommand("say hey you man to Listener1");
+            Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce())
+                    .send(Mockito.argThat(matcher));
+            Mockito.verify(listener2.sssb, Mockito.after(1000).never())
+                    .send(Mockito.argThat(matcher));
+        }
 
-        this.comm.handleCommand("say lil dip sauce to Listener1");
-        Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor1.capture());
-        heard1 = speakCaptor1.getValue().toString();
-        Truth.assertThat(heard1).contains(this.comm.name);
-        Truth.assertThat(heard1).contains("lil dip sauce");
-        Mockito.verify(listener2.sssb, Mockito.after(1000).never()).send(speakCaptor2.capture());
-        heard2 = speakCaptor2.getValue().toString(); // latest call should not be it
-        Truth.assertThat(heard2).doesNotContain(this.comm.name);
-        Truth.assertThat(heard2).doesNotContain("lil dip sauce");
+        @Test
+        void testShoutSameRoom() {
+            ServerTest.this.comm.handleCommand("shout hello world");
+            this.matcher = new MessageMatcher(OutMessageType.SPEAKING,
+                    List.of(ServerTest.this.comm.name, "hello world"), null);
+            Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.argThat(matcher));
+            Mockito.verify(listener2.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.argThat(matcher));
+        }
 
-        this.comm.handleCommand("shout I like yelling");
-        Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor1.capture());
-        heard1 = speakCaptor1.getValue().toString();
-        Truth.assertThat(heard1).contains(this.comm.name);
-        Truth.assertThat(heard1).contains("I like yelling");
-        Mockito.verify(listener2.sssb, Mockito.timeout(1000).atLeastOnce()).send(speakCaptor2.capture());
-        heard2 = speakCaptor2.toString();
-        Truth.assertThat(heard2).contains(this.comm.name);
-        Truth.assertThat(heard2).contains("I like yelling");
+        @Test
+        void testSpeakDifferentRoom() {
+            listener2.handleCommand("go east", OutMessageType.SEE);
+            this.matcher = new MessageMatcher(OutMessageType.SPEAKING,
+                    List.of(ServerTest.this.comm.name, "zaboomafoo"), null);
+            ServerTest.this.comm.handleCommand("say zaboomafoo");
+            Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce())
+                    .send(Mockito.argThat(matcher));
+            Mockito.verify(listener2.sssb, Mockito.after(1000).never()).send(Mockito.argThat(matcher));
+        }
+
+        @Test
+        void testSpeakDirectlyWithDifferentRoom() {
+            listener2.handleCommand("go east", OutMessageType.SEE);
+
+            this.matcher = new MessageMatcher(OutMessageType.SPEAKING,
+                    List.of(ServerTest.this.comm.name, "lil dip sauce"), null);
+            ServerTest.this.comm.handleCommand("say lil dip sauce to Listener1");
+            Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.argThat(this.matcher));
+            Mockito.verify(listener2.sssb, Mockito.after(1000).never()).send(Mockito.argThat(this.matcher));
+
+        }
+
+        @Test
+        void testShoutWithDifferentRoom() {
+            listener2.handleCommand("go east", OutMessageType.SEE);
+
+            this.matcher = new MessageMatcher(OutMessageType.SPEAKING,
+                    List.of(ServerTest.this.comm.name, "I like yelling"), null);
+            ServerTest.this.comm.handleCommand("shout I like yelling");
+            Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.argThat(this.matcher));
+            Mockito.verify(listener2.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.argThat(this.matcher));
+        }
 
     }
 
