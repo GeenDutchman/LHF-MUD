@@ -3,23 +3,42 @@ package com.lhf.server;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.AdditionalMatchers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
+import com.lhf.game.Game;
+import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.creature.intelligence.GroupAIRunner;
+import com.lhf.game.map.DungeonBuilder;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.OutMessageType;
+import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.messages.out.UserLeftMessage;
 import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.Client;
+import com.lhf.server.client.ClientManager;
 import com.lhf.server.client.SendStrategy;
+import com.lhf.server.client.user.UserManager;
+import com.lhf.server.interfaces.ConnectionListener;
 
+@ExtendWith(MockitoExtension.class)
 public class ServerTest {
 
     public class MessageMatcher implements ArgumentMatcher<OutMessage> {
@@ -108,7 +127,12 @@ public class ServerTest {
             String result = this
                     .handleCommand("create " + name + " with " + name + (vocation != null ? " as " + vocation : ""),
                             expectUnique ? OutMessageType.SEE : OutMessageType.DUPLICATE_USER);
-            this.name = name;
+            OutMessage outMessage = this.outCaptor.getValue();
+            if (expectUnique && outMessage != null
+                    && outMessage.getOutType() != OutMessageType.DUPLICATE_USER
+                    && outMessage.getOutType() != OutMessageType.BAD_MESSAGE) {
+                this.name = name;
+            }
             return result;
         }
 
@@ -153,13 +177,21 @@ public class ServerTest {
 
     }
 
+    @InjectMocks
     protected Server server;
     protected ComBundle comm;
+
+    UserManager userManager;
+    ClientManager clientManager;
 
     @BeforeEach
     public void initEach() {
         try {
-            this.server = new Server();
+            this.userManager = new UserManager();
+            this.clientManager = new ClientManager();
+            AIRunner aiRunner = new GroupAIRunner(true, 2, 500, TimeUnit.MILLISECONDS);
+            Game game = new Game(null, this.userManager, aiRunner, DungeonBuilder.buildStaticDungeon(null, aiRunner));
+            this.server = new Server(this.userManager, this.clientManager, game);
             this.comm = new ComBundle(this.server);
         } catch (IOException e) {
             fail(e);
@@ -240,7 +272,7 @@ public class ServerTest {
     void testDropTake() {
         this.comm.create("Tester");
         this.comm.handleCommand("inventory");
-        this.comm.handleCommand("take longsword", OutMessageType.BAD_TARGET_SELECTED);
+        this.comm.handleCommand("take longsword", OutMessageType.BAD_MESSAGE);
         this.comm.handleCommand("drop longsword");
         this.comm.handleCommand("drop longsword");
         this.comm.handleCommand("take longsword");
@@ -389,19 +421,16 @@ public class ServerTest {
         extract = extract.substring(creature_index + "<monster>".length(), endcreature_index);
         System.out.println(extract);
         String room = this.comm.handleCommand("see", OutMessageType.SEE);
-        for (int i = 1; i < 15; i++) {
+        ArgumentMatcher<OutMessage> battleTurn = new MessageMatcher(OutMessageType.BATTLE_TURN,
+                "It is your turn to fight!");
+        ArgumentMatcher<OutMessage> fightOver = new MessageMatcher(OutMessageType.FIGHT_OVER);
+        for (int i = 1; i < 15 && room.contains("<monster>" + extract + "</monster>"); i++) {
             this.comm.handleCommand("attack " + extract);
 
+            Mockito.verify(this.comm.sssb, Mockito.timeout(1000).atLeast(i))
+                    .send((OutMessage) AdditionalMatchers.or(battleTurn, fightOver));
             room = this.comm.handleCommand("see");
 
-            if (room.contains("<monster>" + extract + "</monster>")) {
-                Mockito.verify(this.comm.sssb, Mockito.timeout(1000).times(i))
-                        .send(Mockito.argThat(message -> message != null
-                                && message.getOutType() == OutMessageType.BATTLE_TURN
-                                && message.toString().contains("It is your turn to fight!")));
-            } else {
-                break;
-            }
         }
         Truth.assertThat(room).doesNotContain("<monster>" + extract + "</monster>");
     }
@@ -464,12 +493,13 @@ public class ServerTest {
         ComBundle bystander = new ComBundle(this.server);
         bystander.create("bystander");
 
-        String attack = this.comm.handleCommand("attack " + second.name);
-        Truth.assertThat(attack).contains("RENEGADE");
+        this.comm.handleCommand("attack " + second.name);
+        Mockito.verify(this.comm.sssb)
+                .send(Mockito.argThat(new MessageMatcher(OutMessageType.RENEGADE_ANNOUNCEMENT, "RENEGADE")));
         Mockito.verify(bystander.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito
-                .argThat(message -> message != null && message.getOutType() == OutMessageType.RENEGADE_ANNOUNCEMENT));
+                .argThat(new MessageMatcher(OutMessageType.RENEGADE_ANNOUNCEMENT)));
         Mockito.verify(bystander.sssb, Mockito.timeout(500).atLeastOnce()).send(
-                Mockito.argThat(message -> message != null && message.getOutType() == OutMessageType.JOIN_BATTLE));
+                Mockito.argThat(new MessageMatcher(OutMessageType.JOIN_BATTLE)));
     }
 
     @Test
