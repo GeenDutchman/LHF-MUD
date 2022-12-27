@@ -56,6 +56,9 @@ public class Server implements ServerInterface, ConnectionListener {
         this.acceptedCommands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
         this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
         this.game = game;
+        if (game != null) {
+            game.setServer(this);
+        }
         this.logger.exiting(this.getClass().getName(), "ArgConstructor");
     }
 

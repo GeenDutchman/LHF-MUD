@@ -49,7 +49,9 @@ public class Game implements UserListener, MessageHandler {
 		this.controlRoom = roomBuilder.buildDmRoom(this.aiRunner);
 		this.successor = server;
 		this.server = server;
-		this.server.registerCallback(this);
+		if (this.server != null) {
+			this.server.registerCallback(this);
+		}
 		this.userManager = userManager;
 		this.logger.info("Created Game");
 	}
@@ -67,7 +69,9 @@ public class Game implements UserListener, MessageHandler {
 		this.controlRoom = roomBuilder.buildDmRoom(this.aiRunner);
 		this.successor = server;
 		this.server = server;
-		this.server.registerCallback(this);
+		if (this.server != null) {
+			this.server.registerCallback(this);
+		}
 		this.userManager = userManager;
 		this.logger.info("Created Game");
 	}
@@ -130,6 +134,15 @@ public class Game implements UserListener, MessageHandler {
 			return this.handleListPlayersMessage(ctx, msg);
 		}
 		return MessageHandler.super.handleMessage(ctx, msg);
+	}
+
+	public void setServer(ServerInterface server) {
+		// TODO: unregister from old server?
+		this.server = server;
+		this.setSuccessor(server);
+		if (this.server != null) {
+			this.server.registerCallback(this);
+		}
 	}
 
 }
