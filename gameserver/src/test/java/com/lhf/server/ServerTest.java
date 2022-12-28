@@ -428,7 +428,9 @@ public class ServerTest {
             this.comm.handleCommand("attack " + extract);
 
             Mockito.verify(this.comm.sssb, Mockito.timeout(1000).atLeast(i))
-                    .send((OutMessage) AdditionalMatchers.or(battleTurn, fightOver));
+                    .send(Mockito.argThat((outMessage) -> {
+                        return battleTurn.matches(outMessage) || fightOver.matches(outMessage);
+                    }));
             room = this.comm.handleCommand("see");
 
         }
