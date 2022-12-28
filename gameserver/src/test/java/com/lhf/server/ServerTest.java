@@ -11,12 +11,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.AdditionalMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -25,18 +23,14 @@ import com.lhf.game.Game;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.map.DungeonBuilder;
-import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.OutMessageType;
-import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.messages.out.UserLeftMessage;
 import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.ClientManager;
 import com.lhf.server.client.SendStrategy;
 import com.lhf.server.client.user.UserManager;
-import com.lhf.server.interfaces.ConnectionListener;
 
 @ExtendWith(MockitoExtension.class)
 public class ServerTest {
@@ -189,7 +183,7 @@ public class ServerTest {
         try {
             this.userManager = new UserManager();
             this.clientManager = new ClientManager();
-            AIRunner aiRunner = new GroupAIRunner(true, 2, 500, TimeUnit.MILLISECONDS);
+            AIRunner aiRunner = new GroupAIRunner(true, 2, 250, TimeUnit.MILLISECONDS);
             Game game = new Game(null, this.userManager, aiRunner, DungeonBuilder.buildStaticDungeon(null, aiRunner));
             this.server = new Server(this.userManager, this.clientManager, game);
             this.comm = new ComBundle(this.server);
@@ -231,12 +225,22 @@ public class ServerTest {
     @Test
     void testComplexCharacterCreation() {
         Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeMessage.class));
-        String message = this.comm.create("Tester", null, true);
-        Truth.assertThat(message).ignoringCase().contains("hi");
-        message = this.comm.handleCommand("say hi to gary lovejax");
-        message = this.comm.handleCommand("say ok to gary lovejax");
-        message = this.comm.handleCommand("say mage to gary lovejax");
-        message = this.comm.handleCommand("say thanks to gary lovejax");
+        this.comm.handleCommand("CREATE Tester with Tester", null); // we won't see anything, just be
+                                                                    // greeted
+        Mockito.verify(this.comm.sssb, Mockito.timeout(500))
+                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPEAKING, "to make a character you need")));
+        this.comm.handleCommand("say hi to gary lovejax");
+        Mockito.verify(this.comm.sssb, Mockito.timeout(500))
+                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPEAKING, "intro lore placeholder here")));
+        this.comm.handleCommand("say ok to gary lovejax");
+        Mockito.verify(this.comm.sssb, Mockito.timeout(500))
+                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPEAKING, "MAGE")));
+        this.comm.handleCommand("say mage to gary lovejax");
+        Mockito.verify(this.comm.sssb, Mockito.timeout(500))
+                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPEAKING, "You have selected MAGE")));
+        this.comm.handleCommand("say thanks to gary lovejax");
+        Mockito.verify(this.comm.sssb, Mockito.timeout(500))
+                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SEE)));
         String room1 = this.comm.handleCommand("see");
         Truth.assertThat(room1).contains("east");
     }
