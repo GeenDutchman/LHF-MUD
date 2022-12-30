@@ -30,30 +30,20 @@ import com.lhf.messages.out.UserLeftMessage;
 import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.ClientManager;
+import com.lhf.server.client.ComBundle;
 import com.lhf.server.client.SendStrategy;
 import com.lhf.server.client.user.UserManager;
 
 @ExtendWith(MockitoExtension.class)
 public class ServerTest {
 
-    private class ComBundle {
+    private class ServerClientComBundle extends ComBundle {
         public Client client;
-        public SendStrategy sssb;
         public String name;
-        @Captor
-        public ArgumentCaptor<OutMessage> outCaptor;
 
-        public ComBundle(Server server) throws IOException {
+        public ServerClientComBundle(Server server) throws IOException {
+            super();
             this.client = server.clientManager.newClient(server);
-            this.sssb = Mockito.mock(SendStrategy.class);
-            Mockito.doAnswer(invocation -> {
-                Object object = invocation.getArgument(0);
-                System.out.print(object.getClass().getName());
-                System.out.print(' ');
-                System.out.print(Mockito.mockingDetails(this.sssb).getInvocations().size());
-                this.print(object.toString(), false);
-                return null;
-            }).when(this.sssb).send(Mockito.any(OutMessage.class));
             this.client.SetOut(this.sssb);
             server.startClient(this.client);
         }
@@ -93,28 +83,19 @@ public class ServerTest {
             return this.handleCommand(command, null);
         }
 
-        private String getName() {
-            String tempname = String.valueOf(this.hashCode());
+        @Override
+        protected String getName() {
             if (this.name != null) {
-                tempname += ' ' + this.name;
+                return this.name + ' ' + super.getName();
             }
-            return tempname;
-        }
-
-        private void print(String buffer, boolean sending) {
-            System.out.println("***********************" + this.getName() + "**********************");
-            for (String part : buffer.split("\n")) {
-                System.out.print(sending ? ">>> " : "<<< ");
-                System.out.println(part);
-            }
-            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+            return super.getName();
         }
 
     }
 
     @InjectMocks
     protected Server server;
-    protected ComBundle comm;
+    protected ServerClientComBundle comm;
 
     UserManager userManager;
     ClientManager clientManager;
@@ -127,7 +108,7 @@ public class ServerTest {
             AIRunner aiRunner = new GroupAIRunner(true, 2, 250, TimeUnit.MILLISECONDS);
             Game game = new Game(null, this.userManager, aiRunner, DungeonBuilder.buildStaticDungeon(null, aiRunner));
             this.server = new Server(this.userManager, this.clientManager, game);
-            this.comm = new ComBundle(this.server);
+            this.comm = new ServerClientComBundle(this.server);
         } catch (IOException e) {
             fail(e);
         }
@@ -226,9 +207,9 @@ public class ServerTest {
     @Test
     void testPlayers() throws IOException {
         this.comm.create("Tester");
-        ComBundle dude1 = new ComBundle(this.server);
+        ServerClientComBundle dude1 = new ServerClientComBundle(this.server);
         dude1.create("dude1");
-        ComBundle dude2 = new ComBundle(this.server);
+        ServerClientComBundle dude2 = new ServerClientComBundle(this.server);
         dude2.create("dude2");
         String findEm = this.comm.handleCommand("players", OutMessageType.LIST_PLAYERS);
         Truth.assertThat(findEm).contains(this.comm.name);
@@ -251,16 +232,16 @@ public class ServerTest {
     @ExtendWith(MockitoExtension.class)
     public class SpeakingTests {
 
-        protected ComBundle listener1;
-        protected ComBundle listener2;
+        protected ServerClientComBundle listener1;
+        protected ServerClientComBundle listener2;
         protected MessageMatcher matcher;
 
         @BeforeEach
         public void initEach() throws IOException {
             ServerTest.this.comm.create("Tester");
-            this.listener1 = new ComBundle(ServerTest.this.server);
+            this.listener1 = new ServerClientComBundle(ServerTest.this.server);
             listener1.create("Listener1");
-            this.listener2 = new ComBundle(ServerTest.this.server);
+            this.listener2 = new ServerClientComBundle(ServerTest.this.server);
             listener2.create("Listener2");
             String room = ServerTest.this.comm.handleCommand("see", OutMessageType.SEE);
             Truth.assertThat(room).contains(ServerTest.this.comm.name);
@@ -337,7 +318,7 @@ public class ServerTest {
     void testNameCollision() throws IOException {
         this.comm.create("Tester");
         this.comm.handleCommand("create Tester with password", OutMessageType.BAD_MESSAGE);
-        ComBundle twin1 = new ComBundle(this.server);
+        ServerClientComBundle twin1 = new ServerClientComBundle(this.server);
         twin1.create(this.comm.name, "fighter", false); // would have failed making twin
         Truth.assertThat(twin1.name).isNotEqualTo(this.comm.name);
 
@@ -406,7 +387,7 @@ public class ServerTest {
         this.comm.handleCommand("unequip shield");
         this.comm.handleCommand("unequip weapon");
 
-        ComBundle attacker = new ComBundle(this.server);
+        ServerClientComBundle attacker = new ServerClientComBundle(this.server);
         attacker.create("Attacker");
 
         OutMessage outMessage = null;
@@ -435,9 +416,9 @@ public class ServerTest {
     @Test
     void testReinforcements() throws IOException {
         this.comm.create("Tester");
-        ComBundle second = new ComBundle(this.server);
+        ServerClientComBundle second = new ServerClientComBundle(this.server);
         second.create("second");
-        ComBundle bystander = new ComBundle(this.server);
+        ServerClientComBundle bystander = new ServerClientComBundle(this.server);
         bystander.create("bystander");
 
         this.comm.handleCommand("attack " + second.name);
@@ -452,7 +433,7 @@ public class ServerTest {
     @Test
     void testCasting() throws IOException {
         this.comm.create("Tester");
-        ComBundle victim = new ComBundle(this.server);
+        ServerClientComBundle victim = new ServerClientComBundle(this.server);
         victim.create("victim");
 
         String spellResult = this.comm.handleCommand("cast zarmamoo"); // Thaumaturgy
