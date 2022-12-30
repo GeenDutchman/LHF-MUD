@@ -3,6 +3,7 @@ package com.lhf.game.creature.intelligence;
 import static org.mockito.Mockito.timeout;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,7 @@ import com.lhf.messages.out.OutMessage;
 public class BasicAITest {
 
     @Spy
-    private GroupAIRunner aiRunner = new GroupAIRunner(false);
+    private GroupAIRunner aiRunner = new GroupAIRunner(false, 2, 250, TimeUnit.MILLISECONDS);
 
     @BeforeEach
     public void setUp() throws Exception {

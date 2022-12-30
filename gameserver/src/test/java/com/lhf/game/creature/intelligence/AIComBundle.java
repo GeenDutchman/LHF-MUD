@@ -3,6 +3,7 @@ package com.lhf.game.creature.intelligence;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.messages.Command;
@@ -16,7 +17,7 @@ public class AIComBundle implements MessageHandler {
 
     public static AIRunner getAIRunner() {
         if (AIComBundle.aiRunner == null) {
-            AIComBundle.aiRunner = new GroupAIRunner(true);
+            AIComBundle.aiRunner = new GroupAIRunner(true, 2, 250, TimeUnit.MILLISECONDS);
         }
         return AIComBundle.aiRunner;
     }
