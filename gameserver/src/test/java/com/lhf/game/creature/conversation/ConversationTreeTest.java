@@ -4,7 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.regex.Pattern;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.google.gson.Gson;
@@ -12,10 +16,20 @@ import com.google.gson.GsonBuilder;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
+import com.lhf.server.client.ClientID;
 
+@ExtendWith(MockitoExtension.class)
 public class ConversationTreeTest {
 
         private String basicEmpty = "I have nothing to say to you right now.";
+        private Creature talker;
+        private ClientID talkerID;
+
+        @BeforeEach
+        void init() {
+                this.talker = Mockito.mock(NonPlayerCharacter.class);
+                this.talkerID = new ClientID();
+        }
 
         @Test
         void testListenNoStartNode() {
@@ -26,16 +40,22 @@ public class ConversationTreeTest {
 
         @Test
         void testIgnoreUngreeted() {
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
+
                 ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
                 ConversationTree tree = new ConversationTree(node);
-                Creature talker = new NonPlayerCharacter();
                 ConversationTreeNodeResult response = tree.listen(talker, "unrecongized words like zaosdff");
                 Truth.assertThat(response).isNull();
         }
 
         @Test
         void testOneTrackConversation() {
-                Creature talker = new NonPlayerCharacter();
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
+                Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
+                Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
+                Mockito.when(this.talker.getColorTaggedName()).thenCallRealMethod();
+
                 ConversationTreeNode start = new ConversationTreeNode(basicEmpty);
                 ConversationTree tree = new ConversationTree(start);
                 String secondBody = "Yes I am!";
@@ -51,7 +71,12 @@ public class ConversationTreeTest {
 
         @Test
         void testTwoTrackConversation() {
-                Creature talker = new NonPlayerCharacter();
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
+                Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
+                Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
+                Mockito.when(this.talker.getColorTaggedName()).thenCallRealMethod();
+
                 ConversationTreeNode start = new ConversationTreeNode(basicEmpty);
                 ConversationTree tree = new ConversationTree(start);
                 String secondBody = "Yes I am!";
@@ -75,7 +100,12 @@ public class ConversationTreeTest {
 
         @Test
         void testConvoRollover() {
-                Creature talker = new NonPlayerCharacter();
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
+                Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
+                Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
+                Mockito.when(this.talker.getColorTaggedName()).thenCallRealMethod();
+
                 ConversationTreeNode start = new ConversationTreeNode(basicEmpty);
                 ConversationTree tree = new ConversationTree(start);
                 String secondBody = "Yes I am!";
@@ -107,7 +137,12 @@ public class ConversationTreeTest {
 
         @Test
         void testRememberSpot() {
-                Creature talker = new NonPlayerCharacter();
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
+                Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
+                Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
+                Mockito.when(this.talker.getColorTaggedName()).thenCallRealMethod();
+
                 ConversationTreeNode start = new ConversationTreeNode(basicEmpty);
                 ConversationTree tree = new ConversationTree(start);
                 String secondBody = "Yes I am!";
@@ -138,7 +173,12 @@ public class ConversationTreeTest {
 
         @Test
         void testRepeatNode() {
-                Creature talker = new NonPlayerCharacter();
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
+                Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
+                Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
+                Mockito.when(this.talker.getColorTaggedName()).thenCallRealMethod();
+
                 ConversationTreeNode start = new ConversationTreeNode(basicEmpty);
                 ConversationTree tree = new ConversationTree(start);
                 String secondBody = "Yes I am!";
@@ -161,7 +201,12 @@ public class ConversationTreeTest {
 
         @Test
         void testHightlightNext() {
-                Creature talker = new NonPlayerCharacter();
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
+                Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
+                Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
+                Mockito.when(this.talker.getColorTaggedName()).thenCallRealMethod();
+
                 String body1 = "Hello there new young traveller!";
                 ConversationTreeNode start = new ConversationTreeNode(body1);
                 ConversationTree tree = new ConversationTree(start);
@@ -178,7 +223,12 @@ public class ConversationTreeTest {
 
         @Test
         void testGreetBack() {
-                Creature talker = new NonPlayerCharacter();
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
+                Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
+                Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
+                Mockito.when(this.talker.getColorTaggedName()).thenCallRealMethod();
+
                 ConversationTreeNode start = new ConversationTreeNode(
                                 "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
                 ConversationTree tree = new ConversationTree(start);
@@ -189,12 +239,21 @@ public class ConversationTreeTest {
 
         @Test
         void testForbidBranch() {
-                Creature welcome = new NonPlayerCharacter();
-                Creature unwelcome = new NonPlayerCharacter();
-                while (welcome.getName().equals(unwelcome.getName())) {
-                        unwelcome.setName(unwelcome.getName() + "x");
-                }
-                Truth.assertThat(unwelcome.getName()).isNotEqualTo(welcome.getName());
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
+                Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
+                Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
+                Mockito.when(this.talker.getColorTaggedName()).thenCallRealMethod();
+
+                Creature unwelcome = Mockito.mock(NonPlayerCharacter.class);
+                ClientID id = new ClientID();
+                Mockito.when(unwelcome.getClientID()).thenReturn(id);
+                Mockito.when(unwelcome.getName()).thenReturn("Unwelcome Bob");
+                Mockito.when(unwelcome.getStartTag()).thenReturn("<npc>");
+                Mockito.when(unwelcome.getEndTag()).thenReturn("</npc>");
+                Mockito.when(unwelcome.getColorTaggedName()).thenCallRealMethod();
+
+                Truth.assertThat(unwelcome.getName()).isNotEqualTo(talker.getName());
 
                 ConversationTreeNode start = new ConversationTreeNode(
                                 "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
@@ -215,15 +274,15 @@ public class ConversationTreeTest {
                                 new ConversationPattern(unwelcome.getName(), "\\b" + unwelcome.getName() + "\\b"));
 
                 // welcome
-                ConversationTreeNodeResult response = tree.listen(welcome, "hello there!");
+                ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
                 Truth.assertThat(response.getBody()).ignoringCase().contains("<convo>welcome</convo>");
                 Truth.assertThat(response.getBody()).ignoringCase().contains("<convo>unwelcome</convo>");
 
-                response = tree.listen(welcome, "I think I'm welcome");
+                response = tree.listen(talker, "I think I'm welcome");
                 Truth.assertThat(response.getBody()).isEqualTo(oneWay.getBody());
-                response = tree.listen(welcome, "But I'll start over");
+                response = tree.listen(talker, "But I'll start over");
                 Truth.assertThat(response.getBody()).contains(tree.getEndOfConvo());
-                response = tree.listen(welcome, "Am I unwelcome?");
+                response = tree.listen(talker, "Am I unwelcome?");
                 Truth.assertThat(response.getBody()).isEqualTo(otherWay.getBody());
 
                 // unwelcome
@@ -240,12 +299,21 @@ public class ConversationTreeTest {
 
         @Test
         void testDualTriggerForbiddance() {
-                Creature welcome = new NonPlayerCharacter();
-                Creature unwelcome = new NonPlayerCharacter();
-                while (welcome.getName().equals(unwelcome.getName())) {
-                        unwelcome.setName(unwelcome.getName() + "x");
-                }
-                Truth.assertThat(unwelcome.getName()).isNotEqualTo(welcome.getName());
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
+                Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
+                Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
+                Mockito.when(this.talker.getColorTaggedName()).thenCallRealMethod();
+
+                Creature unwelcome = Mockito.mock(NonPlayerCharacter.class);
+                ClientID id = new ClientID();
+                Mockito.when(unwelcome.getClientID()).thenReturn(id);
+                Mockito.when(unwelcome.getName()).thenReturn("Unwelcome Bob");
+                Mockito.when(unwelcome.getStartTag()).thenReturn("<npc>");
+                Mockito.when(unwelcome.getEndTag()).thenReturn("</npc>");
+                Mockito.when(unwelcome.getColorTaggedName()).thenCallRealMethod();
+
+                Truth.assertThat(unwelcome.getName()).isNotEqualTo(talker.getName());
 
                 ConversationTreeNode start = new ConversationTreeNode(
                                 "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
@@ -266,9 +334,9 @@ public class ConversationTreeTest {
                                                 "\\b" + Pattern.quote(unwelcome.getName()) + "\\b"));
 
                 // welcome
-                ConversationTreeNodeResult response = tree.listen(welcome, "hello there!");
+                ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
                 Truth.assertThat(response.getBody()).ignoringCase().contains("<convo>both</convo>");
-                response = tree.listen(welcome, "You test both?");
+                response = tree.listen(talker, "You test both?");
                 Truth.assertThat(response.getBody()).isEqualTo(oneWay.getBody());
 
                 // unwelcome
