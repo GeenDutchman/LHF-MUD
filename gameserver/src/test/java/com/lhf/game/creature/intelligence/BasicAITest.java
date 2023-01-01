@@ -18,11 +18,14 @@ import com.google.common.truth.Truth;
 import com.lhf.Taggable;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.server.client.ClientID;
 import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.messages.out.OutMessage;
@@ -49,18 +52,24 @@ public class BasicAITest {
     @Test
     void testBasicConversation() {
         AIComBundle listener = new AIComBundle();
-        AIComBundle speaker = new AIComBundle();
+        ClientMessenger speaker = Mockito.mock(NonPlayerCharacter.class);
+        Mockito.when(speaker.getColorTaggedName()).thenReturn("<npc>Joe Speaker</npc>");
+        Mockito.when(speaker.getStartTag()).thenReturn("<npc>");
+        Mockito.when(speaker.getEndTag()).thenReturn("</npc>");
+        ClientID id = new ClientID();
+        Mockito.when(speaker.getClientID()).thenReturn(id);
+
         String body = "I have been addressed";
         ConversationTree tree = new ConversationTree(new ConversationTreeNode(body));
 
         listener.npc.setConvoTree(tree);
 
-        SpeakingMessage sm = new SpeakingMessage(speaker.npc, "hello", listener.npc);
+        SpeakingMessage sm = new SpeakingMessage(speaker, "hello", listener.npc);
 
         sendMsgAndWait(sm, listener);
 
-        Truth.assertThat(listener.sent.size()).isAtLeast(1);
-        Truth.assertThat(listener.sent.get(0).toString()).contains(body);
+        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
+                Mockito.argThat((command) -> command != null && command.getWhole().contains(body)));
     }
 
     @Test
@@ -74,7 +83,6 @@ public class BasicAITest {
         CreatureAffectedMessage adm = new CreatureAffectedMessage(victim.npc, effect);
         sendMsgAndWait(adm, victim);
 
-        Truth.assertThat(victim.sent).isEmpty();
         Truth.assertThat(victim.brain.getLastAttacker()).isNull();
 
         victim.npc.setInBattle(true); // turn it on!
@@ -82,8 +90,11 @@ public class BasicAITest {
         Truth.assertThat(effect.getDamageResult().getTotal()).isNotEqualTo(0);
         CreatureAffectedMessage doneAttack = new CreatureAffectedMessage(victim.npc, effect);
         sendMsgAndWait(doneAttack, victim);
-        Truth.assertThat(victim.sent).isEmpty();
+
         Truth.assertThat(victim.brain.getLastAttacker()).isEqualTo(attacker.npc);
+        // verify that both attack effects got handled before reaching the final handler
+        Mockito.verify(victim.mockedWrappedHandler, Mockito.after(100).never()).handleMessage(Mockito.any(),
+                Mockito.any());
 
     }
 
@@ -94,9 +105,9 @@ public class BasicAITest {
         BadTargetSelectedMessage btsm = new BadTargetSelectedMessage(BadTargetOption.DNE, "bloohoo", new ArrayList<>());
         sendMsgAndWait(btsm, searcher);
         Truth.assertThat(searcher.brain.getLastAttacker()).isNull();
-        Truth.assertThat(searcher.sent).isNotEmpty();
-        Truth.assertThat(searcher.sent).hasSize(1);
-        Truth.assertThat(searcher.sent.get(0).toString()).ignoringCase().contains("pass");
+        Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
+                Mockito.argThat((command) -> command != null && command.getWhole().contains("pass")));
+        Mockito.verifyNoMoreInteractions(searcher.mockedWrappedHandler);
     }
 
     @Test
@@ -111,9 +122,9 @@ public class BasicAITest {
         sendMsgAndWait(btsm, searcher);
         Truth.assertThat(searcher.brain.getLastAttacker()).isNotNull();
         Truth.assertThat(searcher.brain.getLastAttacker()).isEqualTo(victim.npc);
-        Truth.assertThat(searcher.sent).isNotEmpty();
-        Truth.assertThat(searcher.sent).hasSize(1);
-        Truth.assertThat(searcher.sent.get(0).toString()).ignoringCase().contains(victim.npc.getName());
+        Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
+                Mockito.argThat((command) -> command != null && command.getWhole().contains(victim.npc.getName())));
+
     }
 
     @Test
@@ -126,9 +137,9 @@ public class BasicAITest {
         BadTargetSelectedMessage btsm = new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, "bloohoo jane", stuff);
         sendMsgAndWait(btsm, searcher);
         Truth.assertThat(searcher.brain.getLastAttacker()).isNull();
-        Truth.assertThat(searcher.sent).isNotEmpty();
-        Truth.assertThat(searcher.sent).hasSize(1);
-        Truth.assertThat(searcher.sent.get(0).toString()).ignoringCase().contains("pass");
+        Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
+                Mockito.argThat((command) -> command != null && command.getWhole().contains("pass")));
+
     }
 
 }

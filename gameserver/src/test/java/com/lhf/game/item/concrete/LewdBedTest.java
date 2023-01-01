@@ -3,6 +3,7 @@ package com.lhf.game.item.concrete;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.intelligence.AIComBundle;
@@ -10,6 +11,8 @@ import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomBuilder;
+import com.lhf.messages.MessageMatcher;
+import com.lhf.messages.OutMessageType;
 
 public class LewdBedTest {
 
@@ -25,10 +28,13 @@ public class LewdBedTest {
         bed.addCreature(first.npc);
 
         Truth.assertThat(bed.handleEmptyJoin(first.npc)).isTrue();
-        Truth.assertThat(first.read()).contains("meant to be shared");
+
+        MessageMatcher matcher = new MessageMatcher(OutMessageType.LEWD, "meant to be shared");
+        Mockito.verify(first.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
 
         Truth.assertThat(bed.handlePopulatedJoin(first.npc, null, null)).isTrue();
-        Truth.assertThat(first.read()).contains("meant to be shared");
+        Mockito.verify(first.sssb, Mockito.timeout(1000).times(2)).send(Mockito.argThat(matcher));
+
     }
 
     @Test
@@ -46,12 +52,12 @@ public class LewdBedTest {
         bed.addCreature(first.npc);
         bed.addCreature(second.npc);
 
-        first.read();
-        second.read();
-
         Truth.assertThat(bed.handlePopulatedJoin(first.npc, Set.of(second.npc.getName()), null)).isTrue();
-        Truth.assertThat(first.read()).contains("as they do it");
-        Truth.assertThat(second.read()).contains("as they do it");
+
+        MessageMatcher matcher = new MessageMatcher(OutMessageType.LEWD, "as they do it");
+        Mockito.verify(first.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
+        Mockito.verify(second.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
+
     }
 
     @Test
@@ -66,15 +72,15 @@ public class LewdBedTest {
         bed.addCreature(first.npc);
         bed.addCreature(second.npc);
 
-        first.read();
-        second.read();
-
         Truth.assertThat(bed.handlePopulatedJoin(first.npc, Set.of(second.npc.getName()), null)).isTrue();
-        String readFirst = first.read();
-        String readSecond = second.read();
-        Truth.assertThat(readFirst).ignoringCase().contains("does not wish");
-        Truth.assertThat(readSecond).ignoringCase().contains("does not wish");
-        Truth.assertThat(readFirst).ignoringCase().contains("meant to be shared");
+
+        MessageMatcher matcher = new MessageMatcher(OutMessageType.LEWD, "does not wish");
+
+        Mockito.verify(first.sssb, Mockito.timeout(1000)).send(Mockito.argThat(matcher));
+        Mockito.verify(second.sssb, Mockito.timeout(1000)).send(Mockito.argThat(matcher));
+        Mockito.verify(first.sssb, Mockito.timeout(1000))
+                .send(Mockito.argThat(new MessageMatcher(OutMessageType.LEWD, "meant to be shared")));
+
     }
 
     @Test
@@ -92,17 +98,15 @@ public class LewdBedTest {
         bed.addCreature(first.npc);
         bed.addCreature(second.npc);
 
-        first.read();
-        second.read();
-
         String babyname = "veryuniquename";
 
         Truth.assertThat(room.getItem(babyname).isPresent()).isFalse();
 
         Truth.assertThat(bed.handlePopulatedJoin(first.npc, Set.of(second.npc.getName()), Set.of(babyname)))
                 .isTrue();
-        Truth.assertThat(first.read()).contains("as they do it");
-        Truth.assertThat(second.read()).contains("as they do it");
+        MessageMatcher matcher = new MessageMatcher(OutMessageType.LEWD, "as they do it");
+        Mockito.verify(first.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
+        Mockito.verify(second.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
 
         Truth.assertThat(room.getItem(babyname).isPresent()).isTrue();
     }

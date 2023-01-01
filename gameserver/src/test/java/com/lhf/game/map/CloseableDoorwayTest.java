@@ -1,11 +1,16 @@
 package com.lhf.game.map;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 import com.lhf.game.map.Dungeon.RoomAndDirs;
+import com.lhf.messages.MessageMatcher;
+import com.lhf.messages.OutMessageType;
 
 public class CloseableDoorwayTest {
     @Test
@@ -29,37 +34,33 @@ public class CloseableDoorwayTest {
 
         AIComBundle bundle = new AIComBundle();
         roomA.addCreature(bundle.npc);
-        String seen = bundle.read();
-        Truth.assertThat(seen).contains(roomA.getName());
-        Truth.assertThat(seen).ignoringCase().contains(Directions.WEST.toString());
-        bundle.clear();
+        Mockito.verify(bundle.sssb, Mockito.timeout(1000)).send(Mockito.argThat(
+                new MessageMatcher(OutMessageType.SEE,
+                        List.of(roomA.getName(), Directions.WEST.toString().toLowerCase()), null)));
 
         bundle.brain.ProcessString("go west");
-        seen = bundle.read();
-        Truth.assertThat(seen).ignoringCase().contains("blocked");
-        bundle.clear();
+        Mockito.verify(bundle.sssb, Mockito.timeout(1000))
+                .send(Mockito.argThat(new MessageMatcher(OutMessageType.BAD_GO, "blocked")));
 
         doorway.open();
         Truth.assertThat(doorway.isOpen()).isTrue();
 
         bundle.brain.ProcessString("go west");
-        seen = bundle.read();
-        Truth.assertThat(seen).contains(roomB.getName());
-        Truth.assertThat(seen).ignoringCase().contains(Directions.EAST.toString());
-        bundle.clear();
+        Mockito.verify(bundle.sssb, Mockito.timeout(1000))
+                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SEE,
+                        List.of(roomB.getName(), Directions.EAST.toString().toLowerCase()), null)));
 
         bundle.brain.ProcessString("go east");
-        seen = bundle.read();
-        Truth.assertThat(seen).contains(roomA.getName());
-        Truth.assertThat(seen).ignoringCase().contains(Directions.WEST.toString());
-        bundle.clear();
+        Mockito.verify(bundle.sssb, Mockito.timeout(1000).times(2))
+                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SEE,
+                        List.of(roomA.getName(), Directions.WEST.toString().toLowerCase()), null)));
 
         doorway.close();
         Truth.assertThat(doorway.isOpen()).isFalse();
 
         bundle.brain.ProcessString("go west");
-        seen = bundle.read();
-        Truth.assertThat(seen).ignoringCase().contains("blocked");
-        bundle.clear();
+        Mockito.verify(bundle.sssb, Mockito.timeout(1000))
+                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SEE,
+                        List.of(roomB.getName(), Directions.EAST.toString().toLowerCase()), null)));
     }
 }

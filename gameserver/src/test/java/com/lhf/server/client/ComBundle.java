@@ -13,7 +13,7 @@ public abstract class ComBundle {
 
     public ComBundle() {
         this.sssb = Mockito.mock(SendStrategy.class);
-        Mockito.doAnswer(invocation -> {
+        Mockito.lenient().doAnswer(invocation -> {
             Object object = invocation.getArgument(0);
             System.out.print(object.getClass().getName() + ' ');
             System.out.print(Mockito.mockingDetails(this.sssb).getInvocations().size());

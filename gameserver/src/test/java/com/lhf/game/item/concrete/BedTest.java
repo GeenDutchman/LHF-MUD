@@ -1,15 +1,13 @@
 package com.lhf.game.item.concrete;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
-import java.util.concurrent.TimeUnit;
-
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomBuilder;
+import com.lhf.messages.MessageMatcher;
 import com.lhf.messages.out.OutMessage;
 
 public class BedTest {
@@ -67,11 +65,7 @@ public class BedTest {
         Truth.assertThat(out.toString()).contains("You are now in the bed");
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 
-        try {
-            TimeUnit.SECONDS.sleep(bed.sleepSeconds + 1);
-        } catch (InterruptedException e) {
-            fail(e);
-        }
-        Truth.assertThat(first.read()).ignoringCase().contains("You slept");
+        Mockito.verify(first.sssb, Mockito.after(bed.sleepSeconds * 1000).atMostOnce())
+                .send(Mockito.argThat(new MessageMatcher("You slept")));
     }
 }

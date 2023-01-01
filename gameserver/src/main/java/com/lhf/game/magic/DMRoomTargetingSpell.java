@@ -14,7 +14,6 @@ import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.item.Item;
 import com.lhf.game.map.DMRoomEffect;
 import com.lhf.game.map.DMRoomEffectSource;
-import com.lhf.game.map.RoomEffect;
 import com.lhf.game.map.RoomEffectSource;
 
 public class DMRoomTargetingSpell extends ISpell<DMRoomEffect> {

@@ -41,9 +41,6 @@ public class VrijPartijTest {
         Truth.assertThat(participants).hasSize(0);
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(0);
-
-        first.read();
-        second.read();
     }
 
     @Test
@@ -94,10 +91,6 @@ public class VrijPartijTest {
         Truth.assertThat(participants).hasSize(0);
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(0);
-
-        first.read();
-        second.read();
-        third.read();
     }
 
     @Test
@@ -151,9 +144,5 @@ public class VrijPartijTest {
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(1);
         Truth.assertThat(participants).contains(third.npc);
-
-        first.read();
-        second.read();
-        third.read();
     }
 }

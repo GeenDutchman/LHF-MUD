@@ -1,11 +1,13 @@
 package com.lhf.game.creature.intelligence.handlers;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.creature.intelligence.AIComBundle;
+import com.lhf.messages.MessageMatcher;
 import com.lhf.messages.OutMessageType;
 import com.lhf.messages.out.SpeakingMessage;
 
@@ -27,9 +29,11 @@ public class SpokenPromptChunkTest {
         SpeakingMessage sm = new SpeakingMessage(speaker.npc, "hello", listener.npc);
         listener.npc.sendMsg(sm);
 
-        Truth.assertThat(listener.sent.size()).isAtLeast(2);
-        Truth.assertThat(listener.sent.get(0).toString()).contains(body);
-        Truth.assertThat(listener.sent.get(1).toString()).contains(sayMessage);
+        Mockito.verify(listener.sssb, Mockito.timeout(1000)).send(sm);
+        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
+                Mockito.argThat((command) -> command != null && command.getWhole().contains(body)));
+        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
+                Mockito.argThat((command) -> command != null && command.getWhole().contains(sayMessage)));
 
     }
 
@@ -45,8 +49,8 @@ public class SpokenPromptChunkTest {
         SpeakingMessage sm = new SpeakingMessage(speaker.npc, "PROMPT SEE " + prompt, listener.npc);
         listener.npc.sendMsg(sm);
 
-        Truth.assertThat(listener.sent.size()).isAtLeast(1);
-        Truth.assertThat(listener.sent.get(0).toString()).contains(prompt);
+        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
+                Mockito.argThat((command) -> command != null && command.getWhole().contains(prompt)));
 
     }
 
@@ -61,7 +65,7 @@ public class SpokenPromptChunkTest {
         SpeakingMessage sm = new SpeakingMessage(speaker.npc, "PROMPT SEE " + prompt, listener.npc);
         listener.npc.sendMsg(sm);
 
-        Truth.assertThat(listener.sent.size()).isEqualTo(0);
+        Mockito.verifyNoInteractions(listener.mockedWrappedHandler);
 
     }
 }

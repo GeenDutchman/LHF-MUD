@@ -1,9 +1,13 @@
 package com.lhf.game.map;
 
-import org.junit.jupiter.api.Test;
+import java.util.List;
 
-import com.google.common.truth.Truth;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
 import com.lhf.game.creature.intelligence.AIComBundle;
+import com.lhf.messages.MessageMatcher;
+import com.lhf.messages.OutMessageType;
 
 public class DoorwayTest {
     @Test
@@ -19,21 +23,21 @@ public class DoorwayTest {
 
         AIComBundle bundle = new AIComBundle();
         roomA.addCreature(bundle.npc);
-        String seen = bundle.read();
-        Truth.assertThat(seen).contains(roomA.getName());
-        Truth.assertThat(seen).ignoringCase().contains(Directions.WEST.toString());
-        bundle.clear();
+
+        MessageMatcher hasWest = new MessageMatcher(OutMessageType.SEE,
+                List.of(roomA.getName(), Directions.WEST.toString().toLowerCase()), null);
+
+        Mockito.verify(bundle.sssb, Mockito.timeout(1000))
+                .send(Mockito.argThat(hasWest));
 
         bundle.brain.ProcessString("go west");
-        seen = bundle.read();
-        Truth.assertThat(seen).contains(roomB.getName());
-        Truth.assertThat(seen).ignoringCase().contains(Directions.EAST.toString());
-        bundle.clear();
+        Mockito.verify(bundle.sssb, Mockito.timeout(1000)).send(Mockito.argThat(
+                new MessageMatcher(OutMessageType.SEE,
+                        List.of(roomB.getName(), Directions.EAST.toString().toLowerCase()), null)));
 
         bundle.brain.ProcessString("go east");
-        seen = bundle.read();
-        Truth.assertThat(seen).contains(roomA.getName());
-        Truth.assertThat(seen).ignoringCase().contains(Directions.WEST.toString());
+        Mockito.verify(bundle.sssb, Mockito.timeout(1000).times(2))
+                .send(Mockito.argThat(hasWest));
 
     }
 }

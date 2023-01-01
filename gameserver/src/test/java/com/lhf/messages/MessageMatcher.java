@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.mockito.ArgumentMatcher;
 
-import com.lhf.messages.OutMessageType;
 import com.lhf.messages.out.OutMessage;
 
 public class MessageMatcher implements ArgumentMatcher<OutMessage> {

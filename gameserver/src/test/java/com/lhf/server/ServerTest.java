@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,7 +30,6 @@ import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.ClientManager;
 import com.lhf.server.client.ComBundle;
-import com.lhf.server.client.SendStrategy;
 import com.lhf.server.client.user.UserManager;
 
 @ExtendWith(MockitoExtension.class)
