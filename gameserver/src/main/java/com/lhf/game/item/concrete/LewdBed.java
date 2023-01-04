@@ -2,6 +2,7 @@ package com.lhf.game.item.concrete;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,8 +54,12 @@ public class LewdBed extends Bed {
         if (!CommandMessage.PASS.equals(msg.getType())) {
             return false;
         }
-        for (VrijPartij party : this.vrijPartijen.values()) {
-            party.pass(ctx.getCreature());
+        Iterator<VrijPartij> it = this.vrijPartijen.values().iterator();
+        while (it.hasNext()) {
+            VrijPartij party = it.next();
+            if (party.passAndCheck(ctx.getCreature())) {
+                it.remove();
+            }
         }
         return true;
     }

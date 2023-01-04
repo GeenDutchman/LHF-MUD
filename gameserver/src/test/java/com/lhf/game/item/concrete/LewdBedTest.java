@@ -3,7 +3,9 @@ package com.lhf.game.item.concrete;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.intelligence.AIComBundle;
@@ -14,6 +16,7 @@ import com.lhf.game.map.RoomBuilder;
 import com.lhf.messages.MessageMatcher;
 import com.lhf.messages.OutMessageType;
 
+@ExtendWith(MockitoExtension.class)
 public class LewdBedTest {
 
     protected RoomBuilder builder = RoomBuilder.getInstance();
@@ -54,7 +57,10 @@ public class LewdBedTest {
 
         Truth.assertThat(bed.handlePopulatedJoin(first.npc, Set.of(second.npc.getName()), null)).isTrue();
 
-        MessageMatcher matcher = new MessageMatcher(OutMessageType.LEWD, "as they do it");
+        MessageMatcher matcher = new MessageMatcher(OutMessageType.LEWD, "is excited to join");
+        Mockito.verify(first.sssb, Mockito.timeout(1000).times(2)).send(Mockito.argThat(matcher));
+        Mockito.verify(second.sssb, Mockito.timeout(1000).times(2)).send(Mockito.argThat(matcher));
+        matcher = new MessageMatcher(OutMessageType.LEWD, "as they do it");
         Mockito.verify(first.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
         Mockito.verify(second.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
 
@@ -78,7 +84,7 @@ public class LewdBedTest {
 
         Mockito.verify(first.sssb, Mockito.timeout(1000)).send(Mockito.argThat(matcher));
         Mockito.verify(second.sssb, Mockito.timeout(1000)).send(Mockito.argThat(matcher));
-        Mockito.verify(first.sssb, Mockito.timeout(1000))
+        Mockito.verify(first.sssb, Mockito.timeout(1000).atLeastOnce())
                 .send(Mockito.argThat(new MessageMatcher(OutMessageType.LEWD, "meant to be shared")));
 
     }
