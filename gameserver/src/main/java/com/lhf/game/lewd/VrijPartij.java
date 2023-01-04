@@ -12,6 +12,16 @@ import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.LewdOutMessage;
 import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
 
+/**
+ * The steps are to set everyone to INCLUDED except
+ * the Initiator, who has `ACCEPTED`
+ * already.
+ * Then the proposal is sent out, and everyone (except the Initiator) is
+ * `ASKED`.
+ * Is is then on the others to respond with either `ACCEPTED` or `DENIED`.
+ * 
+ * @see com.lhf.game.lewd.LewdAnswer
+ */
 public class VrijPartij {
     protected final int hash;
     protected final Creature initiator;
@@ -57,6 +67,9 @@ public class VrijPartij {
     public void propose() {
         LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.PROPOSED, this.initiator, party);
         this.messageParticipants(lom);
+        this.party.replaceAll((creature, answer) -> {
+            return LewdAnswer.merge(answer, LewdAnswer.ASKED);
+        });
     }
 
     public VrijPartij addNames(Set<String> babyNames) {
@@ -141,7 +154,8 @@ public class VrijPartij {
     }
 
     public boolean check() {
-        boolean allDone = this.getParticipants(LewdAnswer.ASKED).size() == 0;
+        boolean allDone = this.getParticipants(LewdAnswer.ASKED).size() == 0
+                && this.getParticipants(LewdAnswer.INCLUDED).size() == 0;
 
         NavigableSet<Creature> lewdies = this.getParticipants();
         if (allDone && lewdies.size() > 1) {
