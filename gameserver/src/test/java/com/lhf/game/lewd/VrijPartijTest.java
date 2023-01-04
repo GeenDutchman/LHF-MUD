@@ -4,17 +4,20 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.messages.OutMessageType;
 import com.lhf.messages.out.LewdOutMessage;
-import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
+import com.lhf.messages.out.OutMessage;
 
+@ExtendWith(MockitoExtension.class)
 public class VrijPartijTest {
     @Test
     void testAccept() {
