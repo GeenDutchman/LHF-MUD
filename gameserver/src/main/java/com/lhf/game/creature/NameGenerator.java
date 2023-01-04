@@ -6,7 +6,7 @@ import java.util.List;
 import com.lhf.game.dice.DiceRoller;
 import com.lhf.game.dice.DieType;
 
-public class NameGenerator {
+public class NameGenerator { // TODO: make a namespace
     private static List<String> givensnames = Arrays.asList("Serlio", "Mangaka", "Toohru", "Zappy", "Pleenpleen",
             "Jacuz", "Narly", "Biggy", "Naaaman", "Rekt", "Poofy", "Hurg", "Nurg", "Lekker",
             "Trumble", "Arianna", "Taylor", "Daddy", "Shaman", "Sarre", "Ninina", "Jalpina", "Lost", "Zoomy", "Mister");
