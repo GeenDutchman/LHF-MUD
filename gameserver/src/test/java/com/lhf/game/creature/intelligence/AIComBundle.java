@@ -47,6 +47,11 @@ public class AIComBundle extends ComBundle implements MessageHandler {
     }
 
     @Override
+    protected String getName() {
+        return super.getName() + ' ' + this.npc.getName();
+    }
+
+    @Override
     public void setSuccessor(MessageHandler successor) {
         // no -op
     }
