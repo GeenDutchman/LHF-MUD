@@ -433,10 +433,11 @@ public class ServerTest {
         this.comm.create("Tester");
         ServerClientComBundle victim = new ServerClientComBundle(this.server);
         victim.create("victim");
+        ServerClientComBundle caster = new ServerClientComBundle(this.server);
+        caster.create("Caster", "MAGE", true);
 
         String spellResult = this.comm.handleCommand("cast zarmamoo"); // Thaumaturgy
         // because we know it's thaumaturgy
-        // TODO: make a test with a caster type
         // Truth.assertThat(spellResult).contains(this.comm.name);
         Truth.assertThat(spellResult).ignoringCase().contains("not a caster");
         // Truth.assertThat(victim.read()).contains(this.comm.name);
@@ -446,5 +447,10 @@ public class ServerTest {
         spellResult = this.comm.handleCommand("cast Astra Horeb at " + victim.name); // attack spell
         // Truth.assertThat(spellResult).ignoringCase().contains("fight");
         Truth.assertThat(spellResult).ignoringCase().contains("not a caster");
+
+        spellResult = caster.handleCommand("cast zarmamoo");
+        Truth.assertThat(spellResult).ignoringCase().contains("used");
+        Truth.assertThat(spellResult).ignoringCase().contains("Thaumaturgy");
+
     }
 }

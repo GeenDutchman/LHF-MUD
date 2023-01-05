@@ -18,6 +18,7 @@ public class StatusOutMessage extends OutMessage {
     private final Integer maxHealth;
     private final Integer armorClass;
     private final AttributeBlock attributes;
+    private final String vocationName;
 
     public StatusOutMessage(Creature creature, boolean full) {
         super(OutMessageType.STATUS);
@@ -28,6 +29,7 @@ public class StatusOutMessage extends OutMessage {
         this.faction = creature.getFaction();
         this.healthBucket = HealthBuckets.calcualte(creature.getStats().get(Stats.CURRENTHP),
                 creature.getStats().get(Stats.MAXHP));
+        this.vocationName = creature.getVocation() != null ? creature.getVocation().getColorTaggedName() : null;
         if (this.full) {
             this.currentHealth = creature.getStats().get(Stats.CURRENTHP);
             this.maxHealth = creature.getStats().get(Stats.MAXHP);
@@ -47,6 +49,9 @@ public class StatusOutMessage extends OutMessage {
         sb.append("Name:").append(this.colorTaggedName).append("\r\n");
         sb.append("Race:").append(this.race).append("\r\n");
         sb.append("Faction:").append(this.faction.toString()).append("\r\n");
+        if (this.vocationName != null) {
+            sb.append("Vocation:").append(this.vocationName).append("\r\n");
+        }
         sb.append("Health: ").append(this.healthBucket.getColorTaggedName());
         if (this.full && this.currentHealth != null && this.maxHealth != null) {
             sb.append(" (").append(this.currentHealth).append("/").append(this.maxHealth).append(")");

@@ -20,7 +20,7 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
             return null;
         }
 
-        public static boolean isDamageFlavor(String value) {
+        public static boolean isVocationName(String value) {
             return VocationName.getVocationName(value) != null;
         }
 

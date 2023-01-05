@@ -41,15 +41,15 @@ public class GroupAIRunner implements AIRunner {
 
     public GroupAIRunner(boolean asThread) {
         this.chew = 2;
-        this.timeCount = 2;
-        this.timeUnit = TimeUnit.MINUTES;
+        this.timeCount = 5000;
+        this.timeUnit = TimeUnit.MILLISECONDS;
         this.init(asThread);
     }
 
     public GroupAIRunner(boolean asThread, int chew) {
         this.chew = chew;
-        this.timeCount = 2;
-        this.timeUnit = TimeUnit.MINUTES;
+        this.timeCount = 5000;
+        this.timeUnit = TimeUnit.MILLISECONDS;
         this.init(asThread);
     }
 
