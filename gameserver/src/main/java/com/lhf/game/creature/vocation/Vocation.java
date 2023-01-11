@@ -6,7 +6,7 @@ import com.lhf.Taggable;
 import com.lhf.game.creature.statblock.Statblock;
 
 public abstract class Vocation implements Taggable, Comparable<Vocation> {
-    // TODO: make this a MessageHandler
+    // TODO: redesign Vocation vs VocationName (decorator pattern?)
 
     public enum VocationName implements Taggable {
         FIGHTER, MAGE, DUNGEON_MASTER, HEALER;
@@ -22,6 +22,10 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
         public static boolean isVocationName(String value) {
             return VocationName.getVocationName(value) != null;
+        }
+
+        public boolean isCubeHolder() {
+            return this != FIGHTER;
         }
 
         @Override
@@ -56,6 +60,10 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
     public String getName() {
         return name.toString();
+    }
+
+    public VocationName getVocationName() {
+        return this.name;
     }
 
     @Override
