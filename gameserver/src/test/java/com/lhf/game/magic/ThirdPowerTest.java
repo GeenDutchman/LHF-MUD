@@ -1,7 +1,7 @@
 package com.lhf.game.magic;
 
 import java.util.Arrays;
-import java.util.Optional;
+import java.util.NavigableSet;
 import java.util.SortedSet;
 
 import org.junit.jupiter.api.Test;
@@ -15,11 +15,12 @@ public class ThirdPowerTest {
     @Test
     void testFilterByExactInvocation() {
         ThirdPower thirdPower = new ThirdPower(null, new Spellbook());
-        Optional<SpellEntry> optEntry = thirdPower.filterByExactInvocation("bogux invocation");
+        NavigableSet<SpellEntry> optEntry = thirdPower.filterByExactInvocation("bogux invocation");
         Truth.assertThat(optEntry.isEmpty()).isTrue();
         optEntry = thirdPower.filterByExactInvocation("zarmamoo");
-        Truth.assertThat(optEntry.isPresent()).isTrue();
-        Truth.assertThat(optEntry.get()).isEqualTo(new Thaumaturgy());
+        Truth.assertThat(optEntry.isEmpty()).isFalse();
+        Truth.assertThat(optEntry).hasSize(1);
+        Truth.assertThat(optEntry.first()).isEqualTo(new Thaumaturgy());
     }
 
     @Test
@@ -39,20 +40,21 @@ public class ThirdPowerTest {
     @Test
     void testFilterByExactName() {
         ThirdPower thirdPower = new ThirdPower(null, new Spellbook());
-        Optional<SpellEntry> found = thirdPower.filterByExactName("fakexname");
+        NavigableSet<SpellEntry> found = thirdPower.filterByExactName("fakexname");
         Truth.assertThat(found.isEmpty()).isTrue();
         found = thirdPower.filterByExactName("Thaumaturgy");
-        Truth.assertThat(found.isPresent()).isTrue();
-        Truth.assertThat(found.get()).isEqualTo(new Thaumaturgy());
+        Truth.assertThat(found.isEmpty()).isFalse();
+        Truth.assertThat(found).hasSize(1);
+        Truth.assertThat(found.first()).isEqualTo(new Thaumaturgy());
     }
 
     @Test
     void testFilterByVocationName() {
         ThirdPower thirdPower = new ThirdPower(null, new Spellbook());
         SortedSet<SpellEntry> found = thirdPower.filterByVocationName(null);
-        Truth.assertThat(found).hasSize(2);
+        Truth.assertThat(found).hasSize(0);
         found = thirdPower.filterByVocationName(VocationName.FIGHTER);
-        Truth.assertThat(found.size()).isAtLeast(1);
+        Truth.assertThat(found).hasSize(0);
         found = thirdPower.filterByVocationName(VocationName.MAGE);
         Truth.assertThat(found.size()).isAtLeast(1);
         Truth.assertThat(found).contains(new ThunderStrike());

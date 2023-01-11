@@ -453,4 +453,18 @@ public class ServerTest {
         Truth.assertThat(spellResult).ignoringCase().contains("Thaumaturgy");
 
     }
+
+    @Test
+    void testSpellbook() throws IOException {
+        this.comm.create("Notmage");
+        ServerClientComBundle mage = new ServerClientComBundle(this.server);
+        mage.create("mage", "MAGE", true);
+
+        this.comm.handleCommand("spellbook");
+        Mockito.verify(this.comm.sssb, Mockito.timeout(500))
+                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPELL_ENTRY, "No spells found")));
+        mage.handleCommand("spellbook");
+        Mockito.verify(mage.sssb, Mockito.timeout(500)).send(
+                Mockito.argThat(new MessageMatcher(OutMessageType.SPELL_ENTRY, "Thaumaturgy")));
+    }
 }

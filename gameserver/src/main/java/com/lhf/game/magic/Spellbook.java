@@ -6,7 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collections;
-import java.util.SortedSet;
+import java.util.NavigableSet;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,7 +28,7 @@ import com.lhf.game.map.DungeonEffectSource;
 import com.lhf.game.map.RoomEffectSource;
 
 public class Spellbook {
-    private SortedSet<SpellEntry> entries;
+    private NavigableSet<SpellEntry> entries;
     private String path;
     private final String[] path_to_spellbook = { ".", "concrete" };
     private Logger logger;
@@ -112,7 +112,7 @@ public class Spellbook {
         try (JsonReader jReader = new JsonReader(new FileReader(this.path + "spellbook.json"))) {
             Type collectionType = new TypeToken<TreeSet<SpellEntry>>() {
             }.getType();
-            SortedSet<SpellEntry> retrieved = gson.fromJson(jReader, collectionType);
+            NavigableSet<SpellEntry> retrieved = gson.fromJson(jReader, collectionType);
             this.logger.config(retrieved.toString());
             this.entries.addAll(retrieved);
         } catch (JsonIOException | IOException e) {
@@ -123,8 +123,8 @@ public class Spellbook {
         return true;
     }
 
-    public SortedSet<SpellEntry> getEntries() {
-        return Collections.unmodifiableSortedSet(entries);
+    public NavigableSet<SpellEntry> getEntries() {
+        return Collections.unmodifiableNavigableSet(entries);
     }
 
     public boolean addEntry(SpellEntry entry) {

@@ -70,6 +70,8 @@ public class InMessage {
                 return new PassMessage(arguments);
             case LEWD:
                 return new LewdInMessage(arguments);
+            case SPELLBOOK:
+                return new SpellbookMessage(arguments);
             default:
                 return new HelpInMessage(arguments);
 
