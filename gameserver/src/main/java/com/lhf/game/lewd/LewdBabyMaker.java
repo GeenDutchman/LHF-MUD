@@ -13,7 +13,7 @@ public class LewdBabyMaker implements LewdProduct {
         }
         for (String name : party.getNames()) {
             if (name.length() <= 0) {
-                name = NameGenerator.GenerateSuffix(NameGenerator.GenerateGiven());
+                name = NameGenerator.Generate(null);
             }
             Corpse body = new Corpse(name, true);
             room.addItem(body);

@@ -89,7 +89,7 @@ public abstract class Creature
     public Creature() {
         this.cmds = this.buildCommands();
         // Instantiate creature with no name and type Monster
-        this.name = NameGenerator.GenerateSuffix(NameGenerator.GenerateGiven());
+        this.name = NameGenerator.Generate(null);
         this.faction = CreatureFaction.NPC;
         this.vocation = null;
 

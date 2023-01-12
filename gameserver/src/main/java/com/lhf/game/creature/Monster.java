@@ -22,7 +22,7 @@ public class Monster extends NonPlayerCharacter {
     }
 
     public Monster(String name, Statblock statblock) {
-        super(NameGenerator.GenerateSuffix(name), statblock);
+        super(NameGenerator.Generate(name), statblock);
         this.activelyHostile = true;
         this.setSerialNumber();
         this.aiType = MonsterAI.RETALIATORY;
