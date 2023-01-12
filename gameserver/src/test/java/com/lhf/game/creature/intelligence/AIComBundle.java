@@ -1,6 +1,5 @@
 package com.lhf.game.creature.intelligence;
 
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;

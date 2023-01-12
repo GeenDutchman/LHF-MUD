@@ -351,7 +351,12 @@ public class ThirdPower implements MessageHandler {
     private boolean handleSpellbook(CommandContext ctx, Command msg) {
         SpellbookMessage spellbookMessage = (SpellbookMessage) msg;
         Creature caster = ctx.getCreature();
-        NavigableSet<SpellEntry> entries = this.filterByVocationAndLevels(caster.getVocation().getVocationName(),
+        EnumSet<Filters> filters = EnumSet.of(Filters.VOCATION_NAME, Filters.LEVELS);
+        if (spellbookMessage.getSpellName() != null) {
+            filters.add(Filters.SPELL_NAME);
+        }
+        NavigableSet<SpellEntry> entries = this.filter(filters, caster.getVocation().getVocationName(),
+                spellbookMessage.getSpellName(), null,
                 IntStream.rangeClosed(0, caster.getVocation().getLevel()).boxed().collect(Collectors.toList()));
         ctx.sendMsg(new SpellEntryMessage(entries));
         return true;
