@@ -1,10 +1,17 @@
 package com.lhf.game.battle;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.logging.Logger;
 
 import com.lhf.Examinable;
-import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
@@ -28,7 +35,7 @@ import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 
 public class BattleManager implements MessageHandler, Examinable {
 
-    private Deque<Creature> participants;
+    private Initiative participants;
     private Room room;
     private boolean isHappening;
     private MessageHandler successor;
@@ -36,7 +43,7 @@ public class BattleManager implements MessageHandler, Examinable {
     private Map<CommandMessage, String> cmds;
 
     public BattleManager(Room room) {
-        participants = new ArrayDeque<>();
+        participants = new FIFOInitiative();
         this.room = room;
         isHappening = false;
         this.successor = this.room;
@@ -91,29 +98,32 @@ public class BattleManager implements MessageHandler, Examinable {
 
     public void addCreatureToBattle(Creature c) {
         if (!c.isInBattle() && !this.isCreatureInBattle(c)) {
-            participants.addLast(c);
-            c.setInBattle(true);
-            c.setSuccessor(this);
-            this.room.sendMessageToAllExcept(new JoinBattleMessage(c, this.isBattleOngoing(), false), c.getName());
-            c.sendMsg(new JoinBattleMessage(c, this.isBattleOngoing(), true));
+            if (participants.addCreature(c)) {
+                c.setInBattle(true);
+                c.setSuccessor(this);
+                this.room.sendMessageToAllExcept(new JoinBattleMessage(c, this.isBattleOngoing(), false), c.getName());
+                c.sendMsg(new JoinBattleMessage(c, this.isBattleOngoing(), true));
+            }
         }
     }
 
     public void removeCreatureFromBattle(Creature c) {
-        participants.remove(c);
-        c.setInBattle(false);
-        c.setSuccessor(this.successor);
-        if (!this.checkCompetingFactionsPresent()) {
-            endBattle();
+        if (participants.removeCreature(c)) {
+            c.setInBattle(false);
+            c.setSuccessor(this.successor);
+            if (!this.checkCompetingFactionsPresent()) {
+                endBattle();
+            }
         }
     }
 
     private boolean checkCompetingFactionsPresent() {
-        if (this.participants.size() <= 1) {
+        Collection<Creature> battlers = this.participants.getParticipants();
+        if (battlers == null || battlers.size() <= 1) {
             return false;
         }
         HashMap<CreatureFaction, Integer> factionCounts = new HashMap<>();
-        for (Creature creature : participants) {
+        for (Creature creature : battlers) {
             CreatureFaction thatone = creature.getFaction();
             if (factionCounts.containsKey(thatone)) {
                 factionCounts.put(thatone, factionCounts.get(thatone) + 1);
@@ -134,7 +144,7 @@ public class BattleManager implements MessageHandler, Examinable {
     }
 
     public boolean isCreatureInBattle(Creature c) {
-        return participants.contains(c);
+        return participants.hasCreature(c);
     }
 
     public boolean isBattleOngoing() {
@@ -150,26 +160,19 @@ public class BattleManager implements MessageHandler, Examinable {
             }
         }
         this.room.sendMessageToAll(new StartFightMessage(instigator, false));
-        for (Creature creature : participants) {
-            creature.sendMsg(new StartFightMessage(instigator, true));
-        }
+        this.participants.announce(new StartFightMessage(instigator, true));
         // if someone started a fight, no need to prompt them for their turn
     }
 
     public void endBattle() {
-        for (Creature creature : participants) {
-            creature.sendMsg(new FightOverMessage(true));
-            creature.setInBattle(false);
-            creature.tick(TickType.BATTLE);
-        }
-        participants.clear();
+        this.participants.announce(new FightOverMessage(true));
+        this.participants.stop();
         this.room.sendMessageToAll(new FightOverMessage(false));
         isHappening = false;
     }
 
     private void nextTurn() {
-        Creature current = participants.removeFirst();
-        participants.addLast(current);
+        this.participants.nextTurn();
         startTurn();
     }
 
@@ -201,7 +204,7 @@ public class BattleManager implements MessageHandler, Examinable {
 
     private void clearDead() {
         List<Creature> dead = new ArrayList<>();
-        for (Creature c : participants) {
+        for (Creature c : this.participants.getParticipants()) {
             if (!c.isAlive()) {
                 dead.add(c);
             }
@@ -261,7 +264,7 @@ public class BattleManager implements MessageHandler, Examinable {
 
     /**
      * If the battle has no participants, it is your turn.
-     * Otherwise, if it is not the attemter's turn, then warn them and add them to
+     * Otherwise, if it is not the attempter's turn, then warn them and add them to
      * to fight!
      * 
      * @param attempter tries to see if it is their turn
@@ -310,13 +313,11 @@ public class BattleManager implements MessageHandler, Examinable {
     }
 
     private Creature getCurrent() {
-        return this.participants.peekFirst();
+        return this.participants.getCurrent();
     }
 
     public void sendMessageToAllParticipants(OutMessage message) {
-        for (Creature c : participants) {
-            c.sendMsg(message);
-        }
+        this.participants.announce(message);
     }
 
     public String toString() {
@@ -325,22 +326,12 @@ public class BattleManager implements MessageHandler, Examinable {
 
     @Override
     public SeeOutMessage produceMessage() {
-        SeeOutMessage seeMessage = new SeeOutMessage(this, "Current: " + this.getCurrent().getColorTaggedName());
-        for (Creature c : participants) {
-            seeMessage.addSeen("Participants", c);
-        }
-        return seeMessage;
+        return this.participants.produceMessage();
     }
 
     @Override
     public String printDescription() {
-        StringBuilder sb = new StringBuilder();
-        if (this.isBattleOngoing()) {
-            sb.append("The battle is on! ");
-        } else {
-            sb.append("There is no fight right now. ");
-        }
-        return sb.toString();
+        return this.participants.printDescription();
     }
 
     @Override
