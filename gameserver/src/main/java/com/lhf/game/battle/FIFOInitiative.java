@@ -3,6 +3,7 @@ package com.lhf.game.battle;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
@@ -12,7 +13,7 @@ public class FIFOInitiative implements Initiative {
     private Deque<Creature> participants;
 
     public FIFOInitiative() {
-        this.participants = new ArrayDeque<>();
+        this.participants = new ConcurrentLinkedDeque<>();
     }
 
     @Override
