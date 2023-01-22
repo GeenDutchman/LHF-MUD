@@ -1,24 +1,24 @@
 package com.lhf.game.battle;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.StringJoiner;
+import java.util.*;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 import com.lhf.Examinable;
+import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
+import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.Player;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
@@ -32,8 +32,11 @@ import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.out.*;
 import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.server.interfaces.NotNull;
 
-public class BattleManager implements MessageHandler, Examinable {
+public class BattleManager implements MessageHandler, Examinable, Runnable {
+
+    private CyclicBarrier turnBarrier;
 
     private Initiative participants;
     private Room room;
@@ -49,6 +52,45 @@ public class BattleManager implements MessageHandler, Examinable {
         this.successor = this.room;
         this.interceptorCmds = this.buildInterceptorCommands();
         this.cmds = this.buildCommands();
+        this.turnBarrier = new CyclicBarrier(2);
+    }
+
+    public void run() {
+        if (this.turnBarrier.isBroken()) {
+            this.turnBarrier = new CyclicBarrier(2);
+        }
+        while (this.isHappening) {
+            this.startTurn();
+            for (int poke = 0; poke <= this.getMaxPokesPerAction(); poke++) {
+                try {
+                    this.turnBarrier.await(1, TimeUnit.MINUTES);
+                } catch (InterruptedException | BrokenBarrierException e) {
+                    e.printStackTrace();
+                    this.endBattle();
+                    return;
+                } catch (TimeoutException e) {
+                    this.remindCurrent(poke);
+                }
+            }
+        }
+    }
+
+    private int getMaxPokesPerAction() {
+        return 2;
+    }
+
+    private void remindCurrent(int pokeCount) {
+        Creature current = this.getCurrent();
+        if (current != null) {
+            if (pokeCount != getMaxPokesPerAction()) {
+                current.sendMsg(new BattleTurnMessage(current, true, true));
+            } else {
+                Set<CreatureEffect> penalty = this.calculateWastePenalty(current);
+                for (CreatureEffect effect : penalty) {
+                    this.sendMessageToAllParticipants(current.applyEffect(effect));
+                }
+            }
+        }
     }
 
     private Map<CommandMessage, String> buildInterceptorCommands() {
@@ -252,14 +294,25 @@ public class BattleManager implements MessageHandler, Examinable {
         return false;
     }
 
-    // TODO: for threading and waiting
-    private int calculateWastePenalty(Creature waster) {
-        int penalty = -1;
-        if (waster.getVocation() != null) {
-            int wasterLevel = waster.getVocation().getLevel();
-            penalty += wasterLevel > 0 ? -1 * wasterLevel : wasterLevel;
-        }
-        return penalty;
+    /**
+     * Calculates a penalty for if player does not respond.
+     * Scales to the level of the player.
+     * 
+     * @param waster
+     * @return Set<CreatureEffect>
+     */
+    private Set<CreatureEffect> calculateWastePenalty(Creature waster) {
+        // int penalty = -1;
+        // if (waster.getVocation() != null) {
+        // int wasterLevel = waster.getVocation().getLevel();
+        // penalty += wasterLevel > 0 ? -1 * wasterLevel : wasterLevel;
+        // }
+        // CreatureEffectSource source = new CreatureEffectSource("Turn Waste Penalty",
+        // new EffectPersistence(TickType.INSTANT), null, "A consequence for wasting a
+        // turn", false)
+        // .addStatChange(Stats.CURRENTHP, penalty).addStatChange(Stats.MAXHP, penalty /
+        // 2);
+        return Set.of();
     }
 
     /**
@@ -422,10 +475,6 @@ public class BattleManager implements MessageHandler, Examinable {
 
     private boolean handlePass(CommandContext ctx, Command msg) {
         if (this.checkTurn(ctx.getCreature())) {
-            // int penalty = this.calculateWastePenalty(ctx.getCreature());
-            // sendMessageToAllParticipants(new BattleTurnMessage(ctx.getCreature(), true,
-            // penalty));
-            // ctx.getCreature().updateHitpoints(penalty);
             this.endTurn();
         }
         return true;
@@ -460,6 +509,33 @@ public class BattleManager implements MessageHandler, Examinable {
         return MessageHandler.super.handleMessage(ctx, msg);
     }
 
+    /**
+     * Gets a designated weapon for a creature, either by name, or by default.
+     * If a name is provided, but is not found or the item found is not a weapon,
+     * then return NULL.
+     * 
+     * @param attacker   The creature who is attacking
+     * @param weaponName The name of a weapon
+     * @return a weapon or NULL if the item found is not a weapon or is not found
+     */
+    private Weapon getDesignatedWeapon(Creature attacker, String weaponName) {
+        if (weaponName != null && weaponName.length() > 0) {
+            Optional<Item> inventoryItem = ctx.getCreature().getItem(weaponName);
+            if (inventoryItem.isEmpty()) {
+                attacker.sendMsg(new NotPossessedMessage(Weapon.class.getSimpleName(), weaponName));
+                return null;
+            } else if (!(inventoryItem.get() instanceof Weapon)) {
+                attacker.sendMsg(
+                        new NotPossessedMessage(Weapon.class.getSimpleName(), weaponName, inventoryItem.get()));
+                return null;
+            } else {
+                return (Weapon) inventoryItem.get();
+            }
+        } else {
+            return attacker.getWeapon();
+        }
+    }
+
     private Boolean handleAttack(CommandContext ctx, AttackMessage aMessage) {
         System.out.println(ctx.getCreature().toString() + " attempts attacking " + aMessage.getTargets());
 
@@ -470,32 +546,19 @@ public class BattleManager implements MessageHandler, Examinable {
             return true;
         }
 
-        String weaponName = aMessage.getWeapon();
-        Weapon weapon;
-        if (weaponName != null && weaponName.length() > 0) {
-            Optional<Item> inventoryItem = ctx.getCreature().getItem(weaponName);
-            if (inventoryItem.isEmpty()) {
-                attacker.sendMsg(new NotPossessedMessage(Weapon.class.getSimpleName(), weaponName));
-                return true;
-            } else if (!(inventoryItem.get() instanceof Weapon)) {
-                attacker.sendMsg(
-                        new NotPossessedMessage(Weapon.class.getSimpleName(), weaponName, inventoryItem.get()));
-                return true;
-            } else {
-                weapon = (Weapon) inventoryItem.get();
-            }
-        } else {
-            weapon = attacker.getWeapon();
+        if (aMessage.getNumTargets() == 0) {
+            ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, null));
+            return true;
+        }
+
+        Weapon weapon = this.getDesignatedWeapon(attacker, aMessage.getWeapon());
+        if (weapon == null) {
+            return true;
         }
 
         int numAllowedTargets = 1;
         if (attacker.getVocation() != null && attacker.getVocation().getName().equals("Fighter")) {
-            numAllowedTargets += attacker.getVocation().getLevel() / 5;
-        }
-
-        if (aMessage.getNumTargets() == 0) {
-            ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, null));
-            return true;
+            numAllowedTargets += attacker.getVocation().getLevel() / 5; // TODO: move this to fighter
         }
 
         if (aMessage.getNumTargets() > numAllowedTargets) {
@@ -533,7 +596,18 @@ public class BattleManager implements MessageHandler, Examinable {
         return true;
     }
 
-    public void callReinforcements(Creature attackingCreature, Creature targetCreature) {
+    /**
+     * Calls for reinforcements for the targetCreature.
+     * If the targetCreature is a renegade or has no faction, it cannot call for
+     * reinforcements.
+     * If the targetCreature *does* call reinforcements, then the attackingCreature
+     * gets to
+     * call for reinforcements as well.
+     * 
+     * @param attackingCreature
+     * @param targetCreature
+     */
+    public void callReinforcements(@NotNull Creature attackingCreature, @NotNull Creature targetCreature) {
         if (targetCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(targetCreature.getFaction())) {
             targetCreature.sendMsg(new ReinforcementsCall(targetCreature, true));
             return;
