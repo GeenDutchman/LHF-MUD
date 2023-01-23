@@ -542,8 +542,7 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
      * 
      * @param attacker Creature who selected the targets
      * @param names    names of the targets
-     * @return null if there was a problem, otherwise a List<Creature> with size >=
-     *         1
+     * @return null if there was a problem, otherwise List<Creature> with size >= 1
      */
     private List<Creature> collectTargetsFromRoom(Creature attacker, List<String> names) {
         List<Creature> targets = new ArrayList<>();
@@ -588,11 +587,6 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
             return true;
         }
 
-        Weapon weapon = this.getDesignatedWeapon(attacker, aMessage.getWeapon());
-        if (weapon == null) {
-            return true;
-        }
-
         int numAllowedTargets = 1;
         if (attacker.getVocation() != null && attacker.getVocation().getName().equals("Fighter")) {
             numAllowedTargets += attacker.getVocation().getLevel() / 5; // TODO: move this to fighter
@@ -606,6 +600,11 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
 
         List<Creature> targets = this.collectTargetsFromRoom(attacker, aMessage.getTargets());
         if (targets == null || targets.size() == 0) {
+            return true;
+        }
+
+        Weapon weapon = this.getDesignatedWeapon(attacker, aMessage.getWeapon());
+        if (weapon == null) {
             return true;
         }
 
