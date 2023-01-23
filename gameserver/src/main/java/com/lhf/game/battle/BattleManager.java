@@ -1,24 +1,19 @@
 package com.lhf.game.battle;
 
 import java.util.*;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 import com.lhf.Examinable;
-import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
-import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
-import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.Player;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
@@ -36,11 +31,13 @@ import com.lhf.server.interfaces.NotNull;
 
 public class BattleManager implements MessageHandler, Examinable, Runnable {
 
-    private CyclicBarrier turnBarrier;
-
+    private Semaphore turnBarrier;
+    private final int turnBarrierWaitCount;
+    private final TimeUnit turnBarrierWaitUnit;
+    private Thread selfThread;
     private Initiative participants;
     private Room room;
-    private boolean isHappening;
+    private AtomicBoolean isHappening;
     private MessageHandler successor;
     private Map<CommandMessage, String> interceptorCmds;
     private Map<CommandMessage, String> cmds;
@@ -48,31 +45,66 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
     public BattleManager(Room room) {
         participants = new FIFOInitiative();
         this.room = room;
-        isHappening = false;
         this.successor = this.room;
+        this.turnBarrierWaitCount = 1;
+        this.turnBarrierWaitUnit = TimeUnit.MINUTES;
+        this.init();
+    }
+
+    public BattleManager(Room room, int turnWaitCount, TimeUnit turnWaitUnit) {
+        participants = new FIFOInitiative();
+        this.room = room;
+        this.successor = this.room;
+        this.turnBarrierWaitCount = turnWaitCount;
+        this.turnBarrierWaitUnit = turnWaitUnit;
+        this.init();
+    }
+
+    public BattleManager(Room room, Initiative initiative, int turnWaitCount, TimeUnit turnWaitUnit) {
+        participants = initiative == null ? new FIFOInitiative() : initiative;
+        this.room = room;
+        this.successor = this.room;
+        this.turnBarrierWaitCount = turnWaitCount;
+        this.turnBarrierWaitUnit = turnWaitUnit;
+        this.init();
+    }
+
+    private void init() {
+        isHappening = new AtomicBoolean(false);
         this.interceptorCmds = this.buildInterceptorCommands();
         this.cmds = this.buildCommands();
-        this.turnBarrier = new CyclicBarrier(2);
+        this.turnBarrier = new Semaphore(0);
+        this.selfThread = null;
     }
 
     public void run() {
-        if (this.turnBarrier.isBroken()) {
-            this.turnBarrier = new CyclicBarrier(2);
-        }
-        while (this.isHappening) {
+        this.participants.start();
+        while (this.isBattleOngoing()) {
+            this.nextTurn();
             this.startTurn();
             for (int poke = 0; poke <= this.getMaxPokesPerAction(); poke++) {
                 try {
-                    this.turnBarrier.await(1, TimeUnit.MINUTES);
-                } catch (InterruptedException | BrokenBarrierException e) {
+                    if (this.turnBarrier.tryAcquire(this.getTurnWaitCount(), this.getTurnWaitUnit())) {
+                        break;
+                    } else {
+                        this.remindCurrent(poke);
+                    }
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                     this.endBattle();
                     return;
-                } catch (TimeoutException e) {
-                    this.remindCurrent(poke);
                 }
             }
+            this.clearDead();
         }
+    }
+
+    private int getTurnWaitCount() {
+        return this.turnBarrierWaitCount;
+    }
+
+    private TimeUnit getTurnWaitUnit() {
+        return this.turnBarrierWaitUnit;
     }
 
     private int getMaxPokesPerAction() {
@@ -82,7 +114,7 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
     private void remindCurrent(int pokeCount) {
         Creature current = this.getCurrent();
         if (current != null) {
-            if (pokeCount != getMaxPokesPerAction()) {
+            if (pokeCount < getMaxPokesPerAction()) {
                 current.sendMsg(new BattleTurnMessage(current, true, true));
             } else {
                 Set<CreatureEffect> penalty = this.calculateWastePenalty(current);
@@ -190,27 +222,30 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
     }
 
     public boolean isBattleOngoing() {
-        return isHappening;
+        return isHappening.get();
     }
 
     public void startBattle(Creature instigator, Collection<Creature> victims) {
-        isHappening = true;
-        this.addCreatureToBattle(instigator);
-        if (victims != null) {
-            for (Creature c : victims) {
-                this.addCreatureToBattle(c);
+        if (this.isHappening.compareAndSet(false, true)) {
+            this.addCreatureToBattle(instigator);
+            if (victims != null) {
+                for (Creature c : victims) {
+                    this.addCreatureToBattle(c);
+                }
             }
+            this.room.sendMessageToAll(new StartFightMessage(instigator, false));
+            this.participants.announce(new StartFightMessage(instigator, true));
+            // if someone started a fight, no need to prompt them for their turn
+            this.selfThread = new Thread(this);
+            this.selfThread.run();
         }
-        this.room.sendMessageToAll(new StartFightMessage(instigator, false));
-        this.participants.announce(new StartFightMessage(instigator, true));
-        // if someone started a fight, no need to prompt them for their turn
     }
 
     public void endBattle() {
         this.participants.announce(new FightOverMessage(true));
         this.participants.stop();
         this.room.sendMessageToAll(new FightOverMessage(false));
-        isHappening = false;
+        this.isHappening.set(false);
     }
 
     private void nextTurn() {
@@ -238,10 +273,7 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
     }
 
     private void endTurn() {
-        clearDead();
-        if (isBattleOngoing()) {
-            nextTurn();
-        }
+        this.turnBarrier.release();
     }
 
     private void clearDead() {
@@ -325,7 +357,8 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
      */
     public boolean checkTurn(Creature attempter) {
         // if we have a current and you are not it, then you cannot act
-        if (this.getCurrent() != null && attempter != this.getCurrent()) {
+        Creature current = this.getCurrent();
+        if (current != null && attempter != current) {
             // give out of turn message
             attempter.sendMsg(new BattleTurnMessage(attempter, false, true));
             // even if it's not their turn, make sure they are in it
@@ -400,7 +433,7 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
     @Override
     public Map<CommandMessage, String> getCommands() {
         Map<CommandMessage, String> collected = this.cmds;
-        if (this.isHappening) {
+        if (this.isHappening.get()) {
             collected.putAll(this.interceptorCmds);
         }
         return Collections.unmodifiableMap(collected);
@@ -441,7 +474,8 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
             if (type == CommandMessage.ATTACK) {
                 AttackMessage aMessage = (AttackMessage) msg;
                 handled = handleAttack(ctx, aMessage);
-            } else if (this.isHappening && ctx.getCreature().isInBattle() && this.interceptorCmds.containsKey(type)) {
+            } else if (this.isHappening.get() && ctx.getCreature().isInBattle()
+                    && this.interceptorCmds.containsKey(type)) {
                 if (type == CommandMessage.SEE) {
                     handled = this.handleSee(ctx, msg);
                 } else if (type == CommandMessage.GO) {

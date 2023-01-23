@@ -1,6 +1,7 @@
 package com.lhf.game.map;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.PatternSyntaxException;
 
 import org.mockito.exceptions.misusing.UnfinishedStubbingException;
@@ -68,7 +69,7 @@ public class Room implements Container, MessageHandler, Comparable<Room>, Affect
 
     private Room init() {
         this.items = new ArrayList<>();
-        this.battleManager = new BattleManager(this);
+        this.battleManager = new BattleManager(this, 1, TimeUnit.MINUTES);
         this.allCreatures = new HashSet<>();
         this.commands = this.buildCommands();
         this.effects = new TreeSet<>();
