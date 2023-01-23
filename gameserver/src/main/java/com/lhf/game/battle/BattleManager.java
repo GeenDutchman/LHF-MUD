@@ -520,7 +520,7 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
      */
     private Weapon getDesignatedWeapon(Creature attacker, String weaponName) {
         if (weaponName != null && weaponName.length() > 0) {
-            Optional<Item> inventoryItem = ctx.getCreature().getItem(weaponName);
+            Optional<Item> inventoryItem = attacker.getItem(weaponName);
             if (inventoryItem.isEmpty()) {
                 attacker.sendMsg(new NotPossessedMessage(Weapon.class.getSimpleName(), weaponName));
                 return null;
@@ -534,6 +534,43 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
         } else {
             return attacker.getWeapon();
         }
+    }
+
+    /**
+     * Collect the targeted creatures from the room.
+     * Returns null if there was a problem collecting targets.
+     * 
+     * @param attacker Creature who selected the targets
+     * @param names    names of the targets
+     * @return null if there was a problem, otherwise a List<Creature> with size >=
+     *         1
+     */
+    private List<Creature> collectTargetsFromRoom(Creature attacker, List<String> names) {
+        List<Creature> targets = new ArrayList<>();
+        if (names == null || names.size() == 0) {
+            attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, null));
+            return null;
+        }
+        for (String targetName : names) {
+            List<Creature> possTargets = this.room.getCreaturesInRoom(targetName);
+            if (possTargets.size() == 1) {
+                Creature targeted = possTargets.get(0);
+                if (targeted.equals(attacker)) {
+                    attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.SELF, null));
+                    return null;
+                }
+                targets.add(targeted);
+            } else {
+                if (possTargets.size() == 0) {
+                    attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, targetName, possTargets));
+                } else {
+                    attacker.sendMsg(
+                            new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, targetName, possTargets));
+                }
+                return null;
+            }
+        }
+        return targets;
     }
 
     private Boolean handleAttack(CommandContext ctx, AttackMessage aMessage) {
@@ -567,25 +604,9 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
             return true;
         }
 
-        List<Creature> targets = new ArrayList<>();
-        for (String targetName : aMessage.getTargets()) {
-            List<Creature> possTargets = this.room.getCreaturesInRoom(targetName);
-            if (possTargets.size() == 1) {
-                Creature targeted = possTargets.get(0);
-                if (targeted.equals(attacker)) {
-                    attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.SELF, null));
-                    return true;
-                }
-                targets.add(targeted);
-            } else {
-                if (possTargets.size() == 0) {
-                    ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, targetName, possTargets));
-                } else {
-                    ctx.sendMsg(
-                            new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, targetName, possTargets));
-                }
-                return true;
-            }
+        List<Creature> targets = this.collectTargetsFromRoom(attacker, aMessage.getTargets());
+        if (targets == null || targets.size() == 0) {
+            return true;
         }
 
         if (!this.isBattleOngoing()) {
