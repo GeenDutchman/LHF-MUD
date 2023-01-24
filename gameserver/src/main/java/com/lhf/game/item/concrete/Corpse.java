@@ -1,14 +1,15 @@
 package com.lhf.game.item.concrete;
 
+import java.util.Collection;
 import java.util.Optional;
 
-import com.lhf.game.Container;
+import com.lhf.game.ItemContainer;
 import com.lhf.game.item.Item;
 import com.lhf.messages.out.SeeOutMessage;
 
 // TODO: actually use this
 
-public class Corpse extends Item implements Container {
+public class Corpse extends Item implements ItemContainer {
     public Corpse(String name, boolean isVisible) {
         super(name, isVisible);
     }
@@ -48,6 +49,11 @@ public class Corpse extends Item implements Container {
     @Override
     public boolean hasItem(String name) {
         return false;
+    }
+
+    @Override
+    public Collection<Item> getItems() {
+        return null;
     }
 
 }

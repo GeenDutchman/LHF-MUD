@@ -8,7 +8,7 @@ import org.mockito.exceptions.misusing.UnfinishedStubbingException;
 
 import com.lhf.Examinable;
 import com.lhf.game.AffectableEntity;
-import com.lhf.game.Container;
+import com.lhf.game.ItemContainer;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.battle.BattleManager;
@@ -42,7 +42,7 @@ import com.lhf.messages.out.TakeOutMessage.TakeOutType;
 import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 import com.lhf.server.client.user.UserID;
 
-public class Room implements Container, MessageHandler, Comparable<Room>, AffectableEntity<RoomEffect> {
+public class Room implements ItemContainer, MessageHandler, Comparable<Room>, AffectableEntity<RoomEffect> {
     private UUID uuid = UUID.randomUUID();
     private List<Item> items;
     private String description;
@@ -187,6 +187,12 @@ public class Room implements Container, MessageHandler, Comparable<Room>, Affect
         dungeon.reincarnate(p);
     }
 
+    @Override
+    public Collection<Item> getItems() {
+        return Collections.unmodifiableList(this.items);
+    }
+
+    @Override
     public boolean addItem(Item obj) {
         if (items.contains(obj)) {
             return false;
@@ -207,24 +213,15 @@ public class Room implements Container, MessageHandler, Comparable<Room>, Affect
         return true;
     }
 
+    /**
+     * Checks to see if we have the exact name of the item.
+     */
+    @Override
     public boolean hasItem(String itemName) {
-        for (Item item : items) {
-            if (item.checkName(itemName)) {
-                return true;
-            }
-        }
-        return false;
+        return this.items.stream().anyMatch(item -> item != null && item.checkName(itemName));
     }
 
-    public Optional<Item> getItem(String itemName) {
-        for (Item item : items) {
-            if (item.checkName(itemName)) {
-                return Optional.of(item);
-            }
-        }
-        return Optional.empty();
-    }
-
+    @Override
     public Optional<Item> removeItem(String name) {
         Item firstfound = null;
         int takeables = 0;

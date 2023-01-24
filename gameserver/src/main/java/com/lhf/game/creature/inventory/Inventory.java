@@ -1,6 +1,6 @@
 package com.lhf.game.creature.inventory;
 
-import com.lhf.game.Container;
+import com.lhf.game.ItemContainer;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.out.InventoryOutMessage;
@@ -8,11 +8,13 @@ import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class Inventory implements Container {
+public class Inventory implements ItemContainer {
     private List<Takeable> items;
 
     public Inventory() {
@@ -20,36 +22,22 @@ public class Inventory implements Container {
     }
 
     @Override
+    public Collection<Item> getItems() {
+        return Collections.unmodifiableList(this.items);
+    }
+
+    @Override
     public String getName() {
         return "Inventory";
     }
 
+    @Override
     public boolean addItem(Item i) {
         if (i instanceof Takeable) {
             this.items.add((Takeable) i);
             return true;
         }
         return false;
-    }
-
-    public boolean hasItem(Takeable i) {
-        return this.items.contains(i);
-    }
-
-    public boolean hasItem(String itemName) {
-        return this.items.stream().anyMatch(item -> item.CheckNameRegex(itemName, 3));
-    }
-
-    public Optional<Item> getItem(String itemName) {
-        Optional<Takeable> takeOpt = this.items.stream().filter(item -> item.CheckNameRegex(itemName, 3)).findAny();
-        if (takeOpt.isPresent()) {
-            return Optional.of((Item) takeOpt.get());
-        }
-        return Optional.empty();
-    }
-
-    public boolean isEmpty() {
-        return this.items.isEmpty();
     }
 
     @Override
@@ -73,10 +61,12 @@ public class Inventory implements Container {
         return names;
     }
 
+    @Override
     public boolean removeItem(Item item) {
         return this.items.remove(item);
     }
 
+    @Override
     public Optional<Item> removeItem(String name) {
         for (Item exact : this.items) {
             if (exact.CheckNameRegex(name, 3)) {
@@ -100,4 +90,5 @@ public class Inventory implements Container {
         }
         return seeOutMessage;
     }
+
 }
