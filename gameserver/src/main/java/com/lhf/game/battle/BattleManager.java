@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
-import com.lhf.Examinable;
+import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
@@ -27,9 +27,10 @@ import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.out.*;
 import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
 
-public class BattleManager implements MessageHandler, Examinable, Runnable {
+public class BattleManager implements CreatureContainer, MessageHandler, Runnable {
 
     private Semaphore turnBarrier;
     private final int turnBarrierWaitCount;
@@ -119,7 +120,7 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
             } else {
                 Set<CreatureEffect> penalty = this.calculateWastePenalty(current);
                 for (CreatureEffect effect : penalty) {
-                    this.sendMessageToAllParticipants(current.applyEffect(effect));
+                    this.announce(current.applyEffect(effect));
                 }
             }
         }
@@ -170,29 +171,77 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
         return "Battle";
     }
 
-    public void addCreatureToBattle(Creature c) {
-        if (!c.isInBattle() && !this.isCreatureInBattle(c)) {
+    @Override
+    public boolean addPlayer(Player player) {
+        return this.addCreature(player);
+    }
+
+    @Override
+    public Collection<Creature> getCreatures() {
+        return this.participants.getCreatures();
+    }
+
+    @Override
+    public Optional<Creature> removeCreature(String name) {
+        Optional<Creature> found = this.participants.getCreature(name);
+        if (found.isPresent()) {
+            this.removeCreature(found.get());
+        }
+        return found;
+    }
+
+    @Override
+    public Optional<Player> removePlayer(String name) {
+        Optional<Player> found = this.participants.getPlayer(name);
+        if (found.isPresent()) {
+            this.removeCreature(found.get());
+        }
+        return found;
+    }
+
+    @Override
+    public Optional<Player> removePlayer(UserID id) {
+        Optional<Player> found = this.participants.getPlayer(id);
+        if (found.isPresent()) {
+            this.removeCreature(found.get());
+        }
+        return found;
+    }
+
+    @Override
+    public boolean removePlayer(Player player) {
+        return this.removeCreature(player);
+    }
+
+    @Override
+    public boolean addCreature(Creature c) {
+        if (!c.isInBattle() && !this.hasCreature(c)) {
             if (participants.addCreature(c)) {
                 c.setInBattle(true);
                 c.setSuccessor(this);
-                this.room.sendMessageToAllExcept(new JoinBattleMessage(c, this.isBattleOngoing(), false), c.getName());
+                this.room.announce(new JoinBattleMessage(c, this.isBattleOngoing(), false), c.getName());
                 c.sendMsg(new JoinBattleMessage(c, this.isBattleOngoing(), true));
+                return true;
             }
         }
+        return false;
     }
 
-    public void removeCreatureFromBattle(Creature c) {
+    @Override
+    public boolean removeCreature(Creature c) {
         if (participants.removeCreature(c)) {
             c.setInBattle(false);
             c.setSuccessor(this.successor);
             if (!this.checkCompetingFactionsPresent()) {
                 endBattle();
             }
+            return true;
         }
+        return false;
     }
 
     private boolean checkCompetingFactionsPresent() {
-        Collection<Creature> battlers = this.participants.getParticipants();
+        Collection<Creature> battlers = this.participants.getCreatures();
         if (battlers == null || battlers.size() <= 1) {
             return false;
         }
@@ -217,23 +266,19 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
         return false;
     }
 
-    public boolean isCreatureInBattle(Creature c) {
-        return participants.hasCreature(c);
-    }
-
     public boolean isBattleOngoing() {
         return isHappening.get();
     }
 
     public void startBattle(Creature instigator, Collection<Creature> victims) {
         if (this.isHappening.compareAndSet(false, true)) {
-            this.addCreatureToBattle(instigator);
+            this.addCreature(instigator);
             if (victims != null) {
                 for (Creature c : victims) {
-                    this.addCreatureToBattle(c);
+                    this.addCreature(c);
                 }
             }
-            this.room.sendMessageToAll(new StartFightMessage(instigator, false));
+            this.room.announce(new StartFightMessage(instigator, false));
             this.participants.announce(new StartFightMessage(instigator, true));
             // if someone started a fight, no need to prompt them for their turn
             this.selfThread = new Thread(this);
@@ -244,7 +289,7 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
     public void endBattle() {
         this.participants.announce(new FightOverMessage(true));
         this.participants.stop();
-        this.room.sendMessageToAll(new FightOverMessage(false));
+        this.room.announce(new FightOverMessage(false));
         this.isHappening.set(false);
     }
 
@@ -278,13 +323,13 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
 
     private void clearDead() {
         List<Creature> dead = new ArrayList<>();
-        for (Creature c : this.participants.getParticipants()) {
+        for (Creature c : this.participants.getCreatures()) {
             if (!c.isAlive()) {
                 dead.add(c);
             }
         }
         for (Creature c : dead) {
-            removeCreatureFromBattle(c);
+            removeCreature(c);
             Corpse corpse = c.die();
             room.addItem(corpse);
 
@@ -304,7 +349,7 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
 
     private void promptCreatureToAct(Creature current) {
         // send message to creature that it is their turn
-        this.sendMessageToAllParticipants(new BattleTurnMessage(current, true, false));
+        this.announce(new BattleTurnMessage(current, true, false));
         current.sendMsg(new BattleTurnMessage(current, true, true));
     }
 
@@ -312,7 +357,7 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
         if (!CreatureFaction.RENEGADE.equals(turned.getFaction())) {
             turned.setFaction(CreatureFaction.RENEGADE);
             turned.sendMsg(new RenegadeAnnouncement());
-            room.sendMessageToAllExcept(new RenegadeAnnouncement(turned), turned.getName());
+            room.announce(new RenegadeAnnouncement(turned), turned.getName());
         }
     }
 
@@ -362,7 +407,7 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
             // give out of turn message
             attempter.sendMsg(new BattleTurnMessage(attempter, false, true));
             // even if it's not their turn, make sure they are in it
-            this.addCreatureToBattle(attempter);
+            this.addCreature(attempter);
             return false;
         }
         return true;
@@ -371,8 +416,8 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
     private void applyAttacks(Creature attacker, Weapon weapon, Collection<Creature> targets) {
         for (Creature target : targets) {
             this.checkAndHandleTurnRenegade(attacker, target);
-            if (!this.isCreatureInBattle(target)) {
-                this.addCreatureToBattle(target);
+            if (!this.hasCreature(target)) {
+                this.addCreature(target);
                 this.callReinforcements(attacker, target);
             }
             Attack a = attacker.attack(weapon);
@@ -389,9 +434,9 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
                 if (resistance == null || targetResult == null
                         || (attackerResult != null && (attackerResult.getTotal() > targetResult.getTotal()))) {
                     OutMessage cam = target.applyEffect(effect);
-                    sendMessageToAllParticipants(cam);
+                    announce(cam);
                 } else {
-                    sendMessageToAllParticipants(new MissMessage(attacker, target, attackerResult, targetResult));
+                    announce(new MissMessage(attacker, target, attackerResult, targetResult));
                 }
             }
 
@@ -402,7 +447,7 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
         return this.participants.getCurrent();
     }
 
-    public void sendMessageToAllParticipants(OutMessage message) {
+    public void announce(OutMessage message) {
         this.participants.announce(message);
     }
 
@@ -533,11 +578,11 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
             MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
             if (result.getRoll() < check) {
                 ctx.sendMsg(new FleeMessage(ctx.getCreature(), true, result, false));
-                this.room.sendMessageToAllExcept(new FleeMessage(ctx.getCreature(), false, result, false),
+                this.room.announce(new FleeMessage(ctx.getCreature(), false, result, false),
                         ctx.getCreature().getName());
                 return true;
             }
-            this.room.sendMessageToAllExcept(new FleeMessage(ctx.getCreature(), false, result, true),
+            this.room.announce(new FleeMessage(ctx.getCreature(), false, result, true),
                     ctx.getCreature().getName());
         }
         return MessageHandler.super.handleMessage(ctx, msg);
@@ -585,7 +630,7 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
             return null;
         }
         for (String targetName : names) {
-            List<Creature> possTargets = this.room.getCreaturesInRoom(targetName);
+            List<Creature> possTargets = new ArrayList<>(this.room.getCreaturesLike(targetName));
             if (possTargets.size() == 1) {
                 Creature targeted = possTargets.get(0);
                 if (targeted.equals(attacker)) {
@@ -667,10 +712,10 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
             return;
         }
         int count = this.participants.size();
-        this.room.sendMessageToAll(new ReinforcementsCall(targetCreature, false));
-        for (Creature c : this.room.getCreaturesInRoom()) {
-            if (targetCreature.getFaction().equals(c.getFaction()) && !this.isCreatureInBattle(c)) {
-                this.addCreatureToBattle(c);
+        this.room.announce(new ReinforcementsCall(targetCreature, false));
+        for (Creature c : this.room.getCreatures()) {
+            if (targetCreature.getFaction().equals(c.getFaction()) && !this.hasCreature(c)) {
+                this.addCreature(c);
             }
         }
         if (attackingCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(attackingCreature.getFaction())) {
@@ -678,10 +723,10 @@ public class BattleManager implements MessageHandler, Examinable, Runnable {
             return;
         }
         if (this.participants.size() > count && !CreatureFaction.NPC.equals(targetCreature.getFaction())) {
-            this.room.sendMessageToAll(new ReinforcementsCall(attackingCreature, false));
-            for (Creature c : this.room.getCreaturesInRoom()) {
-                if (attackingCreature.getFaction().equals(c.getFaction()) && !this.isCreatureInBattle(c)) {
-                    this.addCreatureToBattle(c);
+            this.room.announce(new ReinforcementsCall(attackingCreature, false));
+            for (Creature c : this.room.getCreatures()) {
+                if (attackingCreature.getFaction().equals(c.getFaction()) && !this.hasCreature(c)) {
+                    this.addCreature(c);
                 }
             }
         }

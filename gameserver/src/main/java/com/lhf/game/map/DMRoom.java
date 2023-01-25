@@ -1,13 +1,16 @@
 package com.lhf.game.map;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 
+import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.Player;
@@ -53,14 +56,15 @@ public class DMRoom extends Room {
     }
 
     public boolean addUser(User user) {
-        if (this.getCreaturesInRoom().size() < 2) {
+        if (this.filterCreatures(EnumSet.of(CreatureContainer.Filters.TYPE), null, null, null, null,
+                DungeonMaster.class, null).size() < 2) {
             // shunt
             return this.addNewPlayer(new Player(user));
         }
         boolean added = this.users.add(user);
         if (added) {
             user.setSuccessor(this);
-            this.sendMessageToAll(new RoomEnteredOutMessage(user));
+            this.announce(new RoomEnteredOutMessage(user));
         }
         return added;
     }
@@ -78,7 +82,7 @@ public class DMRoom extends Room {
         for (User user : this.users) {
             if (username.equals(user.getUsername())) {
                 this.users.remove(user);
-                this.sendMessageToAll(new SomeoneLeftRoom(user, null));
+                this.announce(new SomeoneLeftRoom(user, null));
                 return user;
             }
         }
@@ -86,23 +90,27 @@ public class DMRoom extends Room {
     }
 
     public boolean addNewPlayer(Player player) {
-        return this.dungeons.get(0).addNewPlayer(player);
+        return this.dungeons.get(0).addPlayer(player);
     }
 
     public void userExitSystem(User user) {
         for (Dungeon dungeon : this.dungeons) {
-            if (dungeon.removePlayer(user.getUserID())) {
-                dungeon.sendMessageToAll(new UserLeftMessage(user, false));
+            if (dungeon.removePlayer(user.getUserID()).isPresent()) {
+                dungeon.announce(new UserLeftMessage(user, false));
             }
         }
     }
 
     @Override
-    public void sendMessageToAll(OutMessage message) {
-        super.sendMessageToAll(message);
+    public boolean announce(OutMessage message, String... deafened) {
+        super.announce(message, deafened);
+        List<String> deafenedNames = Arrays.asList(deafened);
         for (User user : this.users) {
-            user.sendMsg(message);
+            if (!deafenedNames.contains(user.getUsername())) {
+                user.sendMsg(message);
+            }
         }
+        return true;
     }
 
     @Override

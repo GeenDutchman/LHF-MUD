@@ -4,7 +4,9 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import com.lhf.game.AffectableEntity;
+import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
+import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 import com.lhf.messages.Command;
@@ -25,7 +27,7 @@ import com.lhf.messages.out.SpawnMessage;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.user.UserID;
 
-public class Dungeon implements MessageHandler, AffectableEntity<DungeonEffect> {
+public class Dungeon implements CreatureContainer, MessageHandler, AffectableEntity<DungeonEffect> {
     public class RoomAndDirs {
         public final Room room;
         public Map<Directions, Doorway> exits;
@@ -69,27 +71,140 @@ public class Dungeon implements MessageHandler, AffectableEntity<DungeonEffect> 
         return cmds;
     }
 
-    public boolean addNewPlayer(Player p) {
-        this.startingRoom.sendMessageToAll(new SpawnMessage(p.getColorTaggedName()));
-        p.setSuccessor(this);
-        return startingRoom.addPlayer(p);
+    @Override
+    public Collection<Creature> getCreatures() {
+        Set<Creature> creatures = new TreeSet<>();
+        if (this.startingRoom != null) {
+            creatures.addAll(this.startingRoom.getCreatures());
+        }
+        for (RoomAndDirs rAndD : this.mapping.values()) {
+            if (rAndD.room != null) {
+                creatures.addAll(rAndD.room.getCreatures());
+            }
+        }
+        return Collections.unmodifiableSet(creatures);
     }
 
-    public boolean removePlayer(UserID id) {
-        Room room = getPlayerRoom(id);
+    @Override
+    public boolean addPlayer(Player player) {
+        this.startingRoom.announce(new SpawnMessage(player.getColorTaggedName()));
+        player.setSuccessor(this);
+        return startingRoom.addPlayer(player);
+    }
+
+    @Override
+    public Optional<Player> removePlayer(UserID id) {
+        Room room = this.getPlayerRoom(id);
         if (room == null) {
-            return true;
+            return Optional.empty();
         }
         return room.removePlayer(id);
     }
 
-    public boolean removePlayer(Player p) {
-        return this.removePlayer(p.getId());
+    @Override
+    public boolean removePlayer(Player player) {
+        return this.removePlayer(player.getId()).isPresent();
+    }
+
+    public Room getPlayerRoom(UserID id) {
+        for (RoomAndDirs rAndD : this.mapping.values()) {
+            Optional<Player> found = rAndD.room.getPlayer(id);
+            if (found.isPresent()) {
+                return rAndD.room;
+            }
+        }
+        return null;
+    }
+
+    public Room getCreatureRoom(Creature creature) {
+        for (RoomAndDirs rAndD : this.mapping.values()) {
+            if (rAndD.room.hasCreature(creature)) {
+                return rAndD.room;
+            }
+        }
+        return null;
+    }
+
+    public Room getCreatureRoom(String name) {
+        for (RoomAndDirs rAndD : this.mapping.values()) {
+            if (rAndD.room.hasCreature(name, null)) {
+                return rAndD.room;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Optional<Player> getPlayer(UserID id) {
+        for (RoomAndDirs rAndD : this.mapping.values()) {
+            Optional<Player> found = rAndD.room.getPlayer(id);
+            if (found.isPresent()) {
+                return found;
+            }
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean addCreature(Creature creature) {
+        this.startingRoom.announce(new SpawnMessage(creature.getColorTaggedName()));
+        creature.setSuccessor(this);
+        return startingRoom.addCreature(creature);
+    }
+
+    public boolean addCreature(Creature creature, UUID roomUUID) {
+        if (this.mapping.containsKey(roomUUID)) {
+            RoomAndDirs roomAndDirs = this.mapping.get(roomUUID);
+            roomAndDirs.room.announce(new SpawnMessage(creature.getColorTaggedName()));
+            creature.setSuccessor(this);
+            return roomAndDirs.room.addCreature(creature);
+        }
+        return false;
+    }
+
+    @Override
+    public Optional<Creature> removeCreature(String name) {
+        Room room = this.getCreatureRoom(name);
+        if (room == null) {
+            return Optional.empty();
+        }
+        return room.removeCreature(name);
+    }
+
+    @Override
+    public boolean removeCreature(Creature creature) {
+        Room room = this.getCreatureRoom(creature);
+        if (room == null) {
+            return false;
+        }
+        return room.removeCreature(creature);
+    }
+
+    @Override
+    public Optional<Player> removePlayer(String name) {
+        for (RoomAndDirs rAndD : this.mapping.values()) {
+            Optional<Player> found = rAndD.room.removePlayer(name);
+            if (found.isPresent()) {
+                return found;
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Set<UserID> getPlayersInRoom(UserID id) {
+        Collection<Creature> players = Objects.requireNonNull(getPlayerRoom(id)).getPlayers();
+        Set<UserID> ids = new TreeSet<>();
+        players.forEach(player -> {
+            if (player instanceof Player) {
+                ids.add(((Player) player).getId());
+            }
+        });
+        return ids;
     }
 
     void reincarnate(Player p) {
         Player p2 = new Player(p.getUser());
-        addNewPlayer(p2);
+        addPlayer(p2);
         p.sendMsg(new ReincarnateMessage(p.getColorTaggedName()));
         p2.sendMsg(new SeeOutMessage(startingRoom));
     }
@@ -144,67 +259,12 @@ public class Dungeon implements MessageHandler, AffectableEntity<DungeonEffect> 
         return secretDirs.exits.put(toExistingRoom, onewayDoor) == null;
     }
 
-    public Room getPlayerRoom(UserID id) {
-        for (RoomAndDirs rAndD : this.mapping.values()) {
-            Player p = rAndD.room.getPlayerInRoom(id);
-            if (p != null) {
-                return rAndD.room;
-            }
-        }
-        return null;
-    }
-
-    public Player getPlayerById(UserID id) {
-        for (RoomAndDirs rAndD : this.mapping.values()) {
-            Player p = rAndD.room.getPlayerInRoom(id);
-            if (p != null) {
-                return p;
-            }
-        }
-        return null;
-    }
-
-    public Set<UserID> getPlayersInRoom(UserID id) {
-        Set<Player> players = Objects.requireNonNull(getPlayerRoom(id)).getAllPlayersInRoom();
-        Set<UserID> ids = new HashSet<>();
-        for (Player p : players) {
-            ids.add(p.getId());
-        }
-        return ids;
-    }
-
-    public void sendMessageToAllInRoom(Room room, OutMessage msg) {
+    public void announceToAllInRoom(Room room, OutMessage msg, String... deafened) {
         if (room == null) {
-            this.startingRoom.sendMessageToAll(msg);
+            this.startingRoom.announce(msg, deafened);
             return;
         }
-        room.sendMessageToAll(msg);
-    }
-
-    public void sendMessageToAllInRoomExcept(Room room, OutMessage msg, String... exactNames) {
-        if (room == null) {
-            this.startingRoom.sendMessageToAllExcept(msg, exactNames);
-            return;
-        }
-        room.sendMessageToAllExcept(msg, exactNames);
-    }
-
-    public void sendMessageToAll(OutMessage msg) {
-        if (!this.mapping.containsKey(this.startingRoom.getUuid())) {
-            this.sendMessageToAllInRoom(this.startingRoom, msg);
-        }
-        for (RoomAndDirs rAndD : this.mapping.values()) {
-            this.sendMessageToAllInRoom(rAndD.room, msg);
-        }
-    }
-
-    public void sendMessageToAllExcept(OutMessage msg, String... exactNames) {
-        if (!this.mapping.containsKey(this.startingRoom.getUuid())) {
-            this.sendMessageToAllInRoomExcept(this.startingRoom, msg, exactNames);
-        }
-        for (RoomAndDirs rAndD : this.mapping.values()) {
-            this.sendMessageToAllInRoomExcept(rAndD.room, msg, exactNames);
-        }
+        room.announce(msg, deafened);
     }
 
     private Boolean handleShout(CommandContext ctx, Command cmd) {
@@ -214,11 +274,8 @@ public class Dungeon implements MessageHandler, AffectableEntity<DungeonEffect> 
                 return true;
             }
             ShoutMessage shoutMessage = (ShoutMessage) cmd;
-            for (RoomAndDirs rAndD : this.mapping.values()) {
-                for (Player p : rAndD.room.getAllPlayersInRoom()) {
-                    p.sendMsg(new SpeakingMessage(ctx.getCreature(), true, shoutMessage.getMessage()));
-                }
-            }
+            this.announceDirect(new SpeakingMessage(ctx.getCreature(), true, shoutMessage.getMessage()),
+                    this.getPlayers());
             return true;
         }
         return false;
@@ -366,6 +423,22 @@ public class Dungeon implements MessageHandler, AffectableEntity<DungeonEffect> 
     public OutMessage processEffect(EntityEffect effect, boolean reverse) {
         // TODO make effects applicable here
         return null;
+    }
+
+    @Override
+    public String getName() {
+        // TODO: do dungeons need names?
+        return "Ibaif";
+    }
+
+    @Override
+    public String printDescription() {
+        return String.format("This Dungeon is called %s and it has %d rooms!", this.getName(), this.mapping.size());
+    }
+
+    @Override
+    public SeeOutMessage produceMessage() {
+        return new SeeOutMessage(this);
     }
 
     public String toMermaid(boolean fence) {

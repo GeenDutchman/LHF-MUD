@@ -1,13 +1,16 @@
 package com.lhf.game.battle;
 
-import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.logging.Logger;
 
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.Player;
 import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.server.client.user.UserID;
 
 public class FIFOInitiative implements Initiative {
     private Deque<Creature> participants;
@@ -34,7 +37,7 @@ public class FIFOInitiative implements Initiative {
 
     @Override
     public SeeOutMessage produceMessage() {
-        Collection<Creature> battlers = this.getParticipants();
+        Collection<Creature> battlers = this.getCreatures();
         SeeOutMessage seeMessage;
         if (battlers == null || battlers.size() == 0) {
             seeMessage = new SeeOutMessage(this);
@@ -49,7 +52,7 @@ public class FIFOInitiative implements Initiative {
     }
 
     @Override
-    public Collection<Creature> getParticipants() {
+    public Collection<Creature> getCreatures() {
         return this.participants;
     }
 
@@ -78,14 +81,51 @@ public class FIFOInitiative implements Initiative {
     }
 
     @Override
-    public void start() {
-        // TODO Auto-generated method stub
+    public boolean addPlayer(Player player) {
+        return this.addCreature(player);
+    }
 
+    @Override
+    public Optional<Creature> removeCreature(String name) {
+        Optional<Creature> found = this.getCreature(name);
+        if (found.isPresent()) {
+            this.removeCreature(found.get());
+        }
+        return found;
+    }
+
+    @Override
+    public Optional<Player> removePlayer(String name) {
+        Optional<Player> found = this.getPlayer(name);
+        if (found.isPresent()) {
+            this.removeCreature(found.get());
+        }
+        return found;
+    }
+
+    @Override
+    public Optional<Player> removePlayer(UserID id) {
+        Optional<Player> found = this.getPlayer(id);
+        if (found.isPresent()) {
+            this.removeCreature(found.get());
+        }
+        return found;
+    }
+
+    @Override
+    public boolean removePlayer(Player player) {
+        return this.removeCreature(player);
+    }
+
+    @Override
+    public void start() {
+        Logger.getLogger(this.getClass().getName()).finest(() -> "Starting initiative!");
     }
 
     @Override
     public void stop() {
-        for (Creature creature : this.getParticipants()) {
+        Logger.getLogger(this.getClass().getName()).finest(() -> "Stopping initiative!");
+        for (Creature creature : this.getCreatures()) {
             this.removeCreature(creature);
         }
     }

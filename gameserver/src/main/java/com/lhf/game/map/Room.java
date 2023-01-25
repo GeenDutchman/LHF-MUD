@@ -8,9 +8,10 @@ import org.mockito.exceptions.misusing.UnfinishedStubbingException;
 
 import com.lhf.Examinable;
 import com.lhf.game.AffectableEntity;
-import com.lhf.game.ItemContainer;
-import com.lhf.game.EntityEffect;
+import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.EntityEffect;
+import com.lhf.game.ItemContainer;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Monster;
@@ -42,7 +43,8 @@ import com.lhf.messages.out.TakeOutMessage.TakeOutType;
 import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 import com.lhf.server.client.user.UserID;
 
-public class Room implements ItemContainer, MessageHandler, Comparable<Room>, AffectableEntity<RoomEffect> {
+public class Room
+        implements ItemContainer, CreatureContainer, MessageHandler, Comparable<Room>, AffectableEntity<RoomEffect> {
     private UUID uuid = UUID.randomUUID();
     private List<Item> items;
     private String description;
@@ -119,11 +121,12 @@ public class Room implements ItemContainer, MessageHandler, Comparable<Room>, Af
         return uuid;
     }
 
-    boolean addPlayer(Player p) {
-        return this.addCreature(p);
+    @Override
+    public Set<Creature> getCreatures() {
+        return Collections.unmodifiableSet(this.allCreatures);
     }
 
-    // TODO: AUDIT public access
+    @Override
     public boolean addCreature(Creature c) {
         c.setSuccessor(this);
         boolean added = this.allCreatures.add(c);
@@ -133,7 +136,7 @@ public class Room implements ItemContainer, MessageHandler, Comparable<Room>, Af
             } else {
                 c.sendMsg(this.produceMessage());
             }
-            this.sendMessageToAllExcept(new RoomEnteredOutMessage(c), c.getName());
+            this.announce(new RoomEnteredOutMessage(c), c.getName());
             if (this.allCreatures.size() > 1 && !this.commands.containsKey(CommandMessage.ATTACK)) {
                 StringJoiner sj = new StringJoiner(" ");
                 sj.add("\"attack [name]\"").add("Attacks a creature").add("\r\n");
@@ -143,23 +146,24 @@ public class Room implements ItemContainer, MessageHandler, Comparable<Room>, Af
             }
         }
         if (this.battleManager.isBattleOngoing() && !CreatureFaction.NPC.equals(c.getFaction())) {
-            this.battleManager.addCreatureToBattle(c);
+            this.battleManager.addCreature(c);
         }
         return added;
     }
 
-    public boolean containsCreature(Creature c) {
-        return this.allCreatures.contains(c);
+    @Override
+    public Optional<Creature> removeCreature(String name) {
+        Optional<Creature> found = this.getCreature(name);
+        if (found.isPresent()) {
+            this.removeCreature(found.get());
+        }
+        return found;
     }
 
-    public boolean removePlayer(UserID id) {
-        Player toRemove = getPlayerInRoom(id);
-        return this.removeCreature(toRemove) != null;
-    }
-
-    public Creature removeCreature(Creature c) {
-        if (this.battleManager.isCreatureInBattle(c)) {
-            this.battleManager.removeCreatureFromBattle(c);
+    @Override
+    public boolean removeCreature(Creature c) {
+        if (this.battleManager.hasCreature(c)) {
+            this.battleManager.removeCreature(c);
             c.setInBattle(false);
         }
 
@@ -169,21 +173,52 @@ public class Room implements ItemContainer, MessageHandler, Comparable<Room>, Af
             if (this.allCreatures.size() < 2) {
                 this.commands.remove(CommandMessage.ATTACK);
             }
-            return c;
+            return true;
         }
-        return null;
+        return false;
     }
 
     public Creature removeCreature(Creature c, Directions dir) {
-        Creature removed = removeCreature(c);
-        if (removed != null) {
-            this.sendMessageToAllExcept(new SomeoneLeftRoom(removed, dir), c.getName());
+        boolean removed = removeCreature(c);
+        if (removed) {
+            this.announce(new SomeoneLeftRoom(c, dir), null, List.of(c.getName()));
         }
-        return removed;
+        return c;
+    }
+
+    @Override
+    public boolean addPlayer(Player p) {
+        return this.addCreature(p);
+    }
+
+    @Override
+    public Optional<Player> removePlayer(String name) {
+        Optional<Player> found = this.getPlayer(name);
+        if (found.isPresent()) {
+            this.removeCreature(found.get());
+        }
+        return found;
+    }
+
+    @Override
+    public Optional<Player> removePlayer(UserID id) {
+        Optional<Player> toRemove = getPlayer(id);
+        if (toRemove.isPresent()) {
+            this.removeCreature(toRemove.get());
+        }
+        return toRemove;
+    }
+
+    @Override
+    public boolean removePlayer(Player player) {
+        return this.removeCreature(player);
     }
 
     public void killPlayer(Player p) {
         this.allCreatures.remove(p);
+        if (this.allCreatures.size() < 2) {
+            this.commands.remove(CommandMessage.ATTACK);
+        }
         dungeon.reincarnate(p);
     }
 
@@ -247,53 +282,6 @@ public class Room implements ItemContainer, MessageHandler, Comparable<Room>, Af
     @Override
     public boolean removeItem(Item item) {
         return this.items.remove(item);
-    }
-
-    public Player getPlayerInRoom(UserID id) {
-        for (Creature creature : this.allCreatures) {
-            if (creature instanceof Player) {
-                Player p = (Player) creature;
-                if (p.getId().equals(id)) {
-                    return p;
-                }
-            }
-        }
-        return null;
-    }
-
-    public ArrayList<Creature> getCreaturesInRoom() {
-        ArrayList<Creature> creatures = new ArrayList<>();
-        for (Creature c : this.allCreatures) {
-            creatures.add(c);
-        }
-        return creatures;
-    }
-
-    public ArrayList<Creature> getCreaturesInRoom(String creatureName) {
-        ArrayList<Creature> match = new ArrayList<>();
-        ArrayList<Creature> closeMatch = new ArrayList<>();
-
-        for (Creature c : this.allCreatures) {
-            if (c.CheckNameRegex(creatureName, 3)) {
-                match.add(c);
-            }
-            if (c.checkName(creatureName)) {
-                closeMatch.add(c);
-                return closeMatch;
-            }
-        }
-
-        return match;
-    }
-
-    Set<Player> getAllPlayersInRoom() {
-        Set<Player> players = new HashSet<>();
-        for (Creature c : this.allCreatures) {
-            if (c instanceof Player) {
-                players.add((Player) c);
-            }
-        }
-        return players;
     }
 
     @Override
@@ -371,22 +359,6 @@ public class Room implements ItemContainer, MessageHandler, Comparable<Room>, Af
     @Override
     public NavigableSet<RoomEffect> getMutableEffects() {
         return this.effects;
-    }
-
-    public void sendMessageToAll(OutMessage message) {
-        for (Creature c : this.allCreatures) {
-            c.sendMsg(message);
-        }
-    }
-
-    public void sendMessageToAllExcept(OutMessage message, String... exactNames) {
-        Set<String> preciseNames = new HashSet<>(Arrays.asList(exactNames));
-        for (Creature c : this.allCreatures) {
-            if (preciseNames.contains(c.getName())) {
-                continue;
-            }
-            c.sendMsg(message);
-        }
     }
 
     void setDungeon(Dungeon dungeon) {
@@ -602,10 +574,11 @@ public class Room implements ItemContainer, MessageHandler, Comparable<Room>, Af
             SeeMessage sMessage = (SeeMessage) msg;
             if (sMessage.getThing() != null && !sMessage.getThing().isBlank()) {
                 String name = sMessage.getThing();
-                ArrayList<Creature> found = this.getCreaturesInRoom(name);
+                Collection<Creature> found = this.getCreaturesLike(name);
                 // we should be able to see people in a fight
                 if (found.size() == 1) {
-                    ctx.sendMsg(found.get(0).produceMessage().addExtraInfo("They are in the room with you. "));
+                    ArrayList<Creature> foundList = new ArrayList<Creature>(found);
+                    ctx.sendMsg(foundList.get(0).produceMessage().addExtraInfo("They are in the room with you. "));
                     return true;
                 }
 
@@ -664,24 +637,23 @@ public class Room implements ItemContainer, MessageHandler, Comparable<Room>, Af
             SayMessage sMessage = (SayMessage) msg;
             if (sMessage.getTarget() != null) {
                 boolean sent = false;
-                for (Creature p : this.allCreatures) {
-                    if (p.checkName(sMessage.getTarget())) {
-                        ClientMessenger sayer = ctx;
-                        if (ctx.getCreature() != null) {
-                            sayer = ctx.getCreature();
-                        } else if (ctx.getUser() != null) {
-                            sayer = ctx.getUser();
-                        }
-                        p.sendMsg(new SpeakingMessage(sayer, sMessage.getMessage(), p));
-                        sent = true;
-                        break;
+                Optional<Creature> optTarget = this.getCreature(sMessage.getTarget());
+                if (optTarget.isPresent()) {
+                    ClientMessenger sayer = ctx;
+                    if (ctx.getCreature() != null) {
+                        sayer = ctx.getCreature();
+                    } else if (ctx.getUser() != null) {
+                        sayer = ctx.getUser();
                     }
+                    Creature target = optTarget.get();
+                    target.sendMsg(new SpeakingMessage(sayer, sMessage.getMessage(), target));
+                    sent = true;
                 }
                 if (!sent) {
                     ctx.sendMsg(new CannotSpeakToMessage(sMessage.getTarget(), null));
                 }
             } else {
-                this.sendMessageToAll(new SpeakingMessage(ctx.getCreature(), sMessage.getMessage()));
+                this.announce(new SpeakingMessage(ctx.getCreature(), sMessage.getMessage()));
             }
             return true;
         }
@@ -705,9 +677,10 @@ public class Room implements ItemContainer, MessageHandler, Comparable<Room>, Af
                 usable.doUseAction(ctx, ctx.getCreature());
                 return true;
             }
-            List<Creature> maybeCreature = this.getCreaturesInRoom(useMessage.getTarget());
+            Collection<Creature> maybeCreature = this.getCreaturesLike(useMessage.getTarget());
             if (maybeCreature.size() == 1) {
-                usable.doUseAction(ctx, maybeCreature.get(0));
+                List<Creature> creatureList = new ArrayList<>(maybeCreature);
+                usable.doUseAction(ctx, creatureList.get(0));
                 return true;
             } else if (maybeCreature.size() > 1) {
                 ctx.sendMsg(

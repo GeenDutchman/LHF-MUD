@@ -149,8 +149,8 @@ public class ThirdPower implements MessageHandler {
         for (Creature target : targets) {
             if (spell.isOffensive() && battleManager != null) {
                 battleManager.checkAndHandleTurnRenegade(caster, target);
-                if (!battleManager.isCreatureInBattle(target)) {
-                    battleManager.addCreatureToBattle(target);
+                if (!battleManager.hasCreature(target)) {
+                    battleManager.addCreature(target);
                     battleManager.callReinforcements(caster, target);
                 }
             }
@@ -215,7 +215,7 @@ public class ThirdPower implements MessageHandler {
         if (foundByInvocation.isEmpty()) {
             ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.MISPRONOUNCE, caster, true));
             if (ctx.getRoom() != null) {
-                ctx.getRoom().sendMessageToAll(new SpellFizzleMessage(SpellFizzleType.MISPRONOUNCE, caster, false));
+                ctx.getRoom().announce(new SpellFizzleMessage(SpellFizzleType.MISPRONOUNCE, caster, false));
             }
             return true;
         }
@@ -235,7 +235,7 @@ public class ThirdPower implements MessageHandler {
 
             List<Creature> possTargets = new ArrayList<>();
             for (String targetName : casting.getTargets()) {
-                List<Creature> found = ctx.getRoom().getCreaturesInRoom(targetName);
+                List<Creature> found = new ArrayList<>(ctx.getRoom().getCreaturesLike(targetName));
                 if (found.size() > 1 || found.size() == 0) {
                     ctx.sendMsg(new BadTargetSelectedMessage(
                             found.size() > 1 ? BadTargetOption.UNCLEAR : BadTargetOption.NOTARGET, targetName, found));
@@ -263,7 +263,7 @@ public class ThirdPower implements MessageHandler {
             CreatureAOESpell spell = new CreatureAOESpell(aoeEntry, caster, upcasted);
 
             Set<Creature> targets = new HashSet<>();
-            for (Creature possTarget : ctx.getRoom().getCreaturesInRoom()) {
+            for (Creature possTarget : ctx.getRoom().getCreatures()) {
                 if (possTarget.equals(caster)) {
                     if (upcasted.isCasterTargeted()) {
                         targets.add(caster);
@@ -342,7 +342,7 @@ public class ThirdPower implements MessageHandler {
 
             return this.affectRoom(ctx, spell);
         } // TODO: other cases
-        if (battleManager != null && battleManager.isCreatureInBattle(caster)) {
+        if (battleManager != null && battleManager.hasCreature(caster)) {
             battleManager.endTurn(caster);
         }
         return true;
@@ -369,9 +369,9 @@ public class ThirdPower implements MessageHandler {
         }
         BattleManager bm = ctx.getBattleManager();
         if (includeBattle && bm != null && bm.isBattleOngoing()) {
-            bm.sendMessageToAllParticipants(message);
+            bm.announce(message);
         } else if (ctx.getRoom() != null) {
-            ctx.getRoom().sendMessageToAll(message);
+            ctx.getRoom().announce(message);
         } else if (directs != null) {
             for (ClientMessenger direct : directs) {
                 direct.sendMsg(message);
@@ -406,7 +406,7 @@ public class ThirdPower implements MessageHandler {
             if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
                 ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.NOT_CASTER, attempter, true));
                 if (ctx.getRoom() != null) {
-                    ctx.getRoom().sendMessageToAllExcept(
+                    ctx.getRoom().announce(
                             new SpellFizzleMessage(SpellFizzleType.NOT_CASTER, attempter, false),
                             attempter.getName());
                 }

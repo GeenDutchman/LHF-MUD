@@ -35,19 +35,19 @@ public class HealPotion extends Usable {
                 bce = this.setHealing(bce);
                 if (ctx.getBattleManager() != null) {
                     BattleManager bm = ctx.getBattleManager();
-                    if (bm.isCreatureInBattle(target) && !bm.isCreatureInBattle(ctx.getCreature())) {
+                    if (bm.hasCreature(target) && !bm.hasCreature(ctx.getCreature())) {
                         // give out of turn message
                         ctx.sendMsg(new BattleTurnMessage(ctx.getCreature(), false, true));
-                        bm.addCreatureToBattle(ctx.getCreature());
+                        bm.addCreature(ctx.getCreature());
                         return false;
                     }
                     ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
                     OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
-                    bm.sendMessageToAllParticipants(results);
+                    bm.announce(results);
                 } else if (ctx.getRoom() != null) {
                     ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
                     OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
-                    ctx.getRoom().sendMessageToAll(results);
+                    ctx.getRoom().announce(results);
                 } else {
                     ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
                     OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));

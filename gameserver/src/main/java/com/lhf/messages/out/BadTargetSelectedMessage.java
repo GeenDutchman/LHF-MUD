@@ -1,6 +1,6 @@
 package com.lhf.messages.out;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
@@ -13,7 +13,7 @@ public class BadTargetSelectedMessage extends OutMessage {
 
     private BadTargetOption bde;
     private String badTarget;
-    private List<? extends Taggable> possibleTargets;
+    private Collection<? extends Taggable> possibleTargets;
 
     public BadTargetSelectedMessage(BadTargetOption bde, String badTarget) {
         super(OutMessageType.BAD_TARGET_SELECTED);
@@ -21,7 +21,8 @@ public class BadTargetSelectedMessage extends OutMessage {
         this.badTarget = badTarget;
     }
 
-    public BadTargetSelectedMessage(BadTargetOption bde, String badTarget, List<? extends Taggable> possibleTargets) {
+    public BadTargetSelectedMessage(BadTargetOption bde, String badTarget,
+            Collection<? extends Taggable> possibleTargets) {
         super(OutMessageType.BAD_TARGET_SELECTED);
         this.bde = bde;
         this.badTarget = badTarget;
@@ -56,17 +57,6 @@ public class BadTargetSelectedMessage extends OutMessage {
             case TOO_MANY:
                 if (this.possibleTargets != null && this.possibleTargets.size() > 0) {
                     sj.add(Integer.toString(this.possibleTargets.size())).add("is too many targets.");
-                    if (this.badTarget != null && !this.badTarget.isBlank()) {
-                        String extracted;
-                        for (int i = 0; i < this.possibleTargets.size(); i++) {
-                            Taggable taggable = this.possibleTargets.get(i);
-                            extracted = Taggable.extract(taggable);
-                            if (this.badTarget.equals(extracted)) {
-                                sj.add("You can select up to").add(Integer.toString(i)).add(".");
-                                break;
-                            }
-                        }
-                    }
                 } else {
                     sj.add("You cannot select that many targets");
                 }
@@ -100,7 +90,7 @@ public class BadTargetSelectedMessage extends OutMessage {
         return badTarget;
     }
 
-    public List<? extends Taggable> getPossibleTargets() {
+    public Collection<? extends Taggable> getPossibleTargets() {
         return possibleTargets;
     }
 }

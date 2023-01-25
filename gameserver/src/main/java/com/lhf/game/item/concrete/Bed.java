@@ -183,7 +183,7 @@ public class Bed extends InteractObject implements MessageHandler {
         if (this.room == null) {
             return false;
         }
-        return this.room.containsCreature(creature);
+        return this.room.hasCreature(creature);
     }
 
     protected BedTime getBedTime(Creature creature) {
