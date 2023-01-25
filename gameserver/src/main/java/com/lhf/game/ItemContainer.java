@@ -30,7 +30,7 @@ public interface ItemContainer extends Examinable {
         CLASS_NAME, OBJECT_NAME, TYPE, VISIBILITY;
     }
 
-    public default Collection<Item> filter(EnumSet<Filters> filters, String className, String objectName,
+    public default Collection<Item> filterItems(EnumSet<Filters> filters, String className, String objectName,
             Integer objNameRegexLen, Class<? extends Item> clazz, Boolean isVisible) {
         Collection<Item> retrieved = this.getItems();
         Supplier<Collection<Item>> sortSupplier = () -> new ArrayList<Item>();
@@ -48,11 +48,11 @@ public interface ItemContainer extends Examinable {
     }
 
     public default Optional<Item> getItem(String name) {
-        return this.filter(EnumSet.of(Filters.OBJECT_NAME), null, name, 3, null, null).stream().findAny();
+        return this.filterItems(EnumSet.of(Filters.OBJECT_NAME), null, name, 3, null, null).stream().findAny();
     }
 
     public default boolean hasItem(String name, Integer minimumLength) {
-        return this.filter(EnumSet.of(Filters.OBJECT_NAME), null, name, minimumLength, null, null).size() > 0;
+        return this.filterItems(EnumSet.of(Filters.OBJECT_NAME), null, name, minimumLength, null, null).size() > 0;
     }
 
     public default boolean hasItem(String name) {
