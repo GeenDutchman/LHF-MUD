@@ -12,6 +12,7 @@ import java.util.StringJoiner;
 
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
+import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.Player;
 import com.lhf.game.item.Item;
@@ -38,14 +39,14 @@ public class DMRoom extends Room {
     private Set<User> users;
     private List<Dungeon> dungeons;
 
-    DMRoom(String name) {
-        super(name);
+    DMRoom(String name, BattleManager.Builder battleManagerBuilder) {
+        super(name, battleManagerBuilder);
         this.users = new HashSet<>();
         this.dungeons = new ArrayList<>();
     }
 
-    DMRoom(String name, String description) {
-        super(name, description);
+    DMRoom(String name, BattleManager.Builder battleManagerBuilder, String description) {
+        super(name, battleManagerBuilder, description);
         this.users = new HashSet<>();
         this.dungeons = new ArrayList<>();
     }

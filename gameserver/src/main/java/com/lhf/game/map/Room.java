@@ -57,21 +57,21 @@ public class Room
     private Map<CommandMessage, String> commands;
     private MessageHandler successor;
 
-    Room(String name) {
+    Room(String name, BattleManager.Builder battleManagerBuilder) {
         this.name = name;
         this.description = name;
-        this.init();
+        this.init(battleManagerBuilder);
     }
 
-    Room(String name, String description) {
+    Room(String name, BattleManager.Builder battleManagerBuilder, String description) {
         this.name = name;
         this.description = description;
-        this.init();
+        this.init(battleManagerBuilder);
     }
 
-    private Room init() {
+    private Room init(BattleManager.Builder battleManagerBuilder) {
         this.items = new ArrayList<>();
-        this.battleManager = new BattleManager(this, 1, TimeUnit.MINUTES);
+        this.battleManager = battleManagerBuilder.Build(this);
         this.allCreatures = new HashSet<>();
         this.commands = this.buildCommands();
         this.effects = new TreeSet<>();

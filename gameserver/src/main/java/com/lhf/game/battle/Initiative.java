@@ -7,6 +7,10 @@ import com.lhf.game.creature.Creature;
 
 interface Initiative extends CreatureContainer {
 
+    public interface Builder {
+        public abstract Initiative Build();
+    }
+
     public Creature getCurrent();
 
     public default int size() {

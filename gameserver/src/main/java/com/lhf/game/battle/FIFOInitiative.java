@@ -13,6 +13,23 @@ import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.server.client.user.UserID;
 
 public class FIFOInitiative implements Initiative {
+
+    public static class Builder implements Initiative.Builder {
+
+        private Builder() {
+        }
+
+        public static Builder getInstance() {
+            return new Builder();
+        }
+
+        @Override
+        public Initiative Build() {
+            return new FIFOInitiative();
+        }
+
+    }
+
     private Deque<Creature> participants;
 
     public FIFOInitiative() {

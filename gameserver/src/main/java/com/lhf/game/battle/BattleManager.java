@@ -42,31 +42,49 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
     private MessageHandler successor;
     private Map<CommandMessage, String> interceptorCmds;
     private Map<CommandMessage, String> cmds;
+    private Logger battleLogger;
 
-    public BattleManager(Room room) {
-        participants = new FIFOInitiative();
-        this.room = room;
-        this.successor = this.room;
-        this.turnBarrierWaitCount = 1;
-        this.turnBarrierWaitUnit = TimeUnit.MINUTES;
-        this.init();
+    public static class Builder {
+        private int waitCount;
+        private TimeUnit waitUnit;
+        private Initiative.Builder initiativeBuilder;
+
+        public static Builder getInstance() {
+            return new Builder();
+        }
+
+        private Builder() {
+            this.waitCount = 1;
+            this.waitUnit = TimeUnit.MINUTES;
+            this.initiativeBuilder = FIFOInitiative.Builder.getInstance();
+        }
+
+        public Builder setWaitCount(int count) {
+            this.waitCount = count <= 0 ? 1 : count;
+            return this;
+        }
+
+        public Builder setUnit(TimeUnit unit) {
+            this.waitUnit = unit != null ? unit : TimeUnit.MINUTES;
+            return this;
+        }
+
+        public Builder setInitiativeBuilder(Initiative.Builder builder) {
+            this.initiativeBuilder = builder != null ? builder : FIFOInitiative.Builder.getInstance();
+            return this;
+        }
+
+        public BattleManager Build(Room room) {
+            return new BattleManager(room, this);
+        }
     }
 
-    public BattleManager(Room room, int turnWaitCount, TimeUnit turnWaitUnit) {
-        participants = new FIFOInitiative();
+    public BattleManager(Room room, Builder builder) {
+        this.participants = builder.initiativeBuilder.Build();
         this.room = room;
         this.successor = this.room;
-        this.turnBarrierWaitCount = turnWaitCount;
-        this.turnBarrierWaitUnit = turnWaitUnit;
-        this.init();
-    }
-
-    public BattleManager(Room room, Initiative initiative, int turnWaitCount, TimeUnit turnWaitUnit) {
-        participants = initiative == null ? new FIFOInitiative() : initiative;
-        this.room = room;
-        this.successor = this.room;
-        this.turnBarrierWaitCount = turnWaitCount;
-        this.turnBarrierWaitUnit = turnWaitUnit;
+        this.turnBarrierWaitCount = builder.waitCount;
+        this.turnBarrierWaitUnit = builder.waitUnit;
         this.init();
     }
 
@@ -76,19 +94,26 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
         this.cmds = this.buildCommands();
         this.turnBarrier = new Semaphore(0);
         this.selfThread = null;
+        this.battleLogger = Logger.getLogger(this.getClass().getName());
     }
 
     public void run() {
+        Logger threadLogger = Logger.getLogger(this.battleLogger.getName() + ".thread");
+        threadLogger.info("Running");
         this.participants.start();
         while (this.isBattleOngoing()) {
-            this.nextTurn();
-            this.startTurn();
+            Creature current = this.startTurn(threadLogger);
             for (int poke = 0; poke <= this.getMaxPokesPerAction(); poke++) {
                 try {
+                    threadLogger.finest(String.format("Waiting %d at turnBarrier for %s for %d %s", poke,
+                            current.getName(), this.getTurnWaitCount(), this.getTurnWaitUnit()));
                     if (this.turnBarrier.tryAcquire(this.getTurnWaitCount(), this.getTurnWaitUnit())) {
+                        threadLogger.finest("Barrier passed");
                         break;
                     } else {
-                        this.remindCurrent(poke);
+                        threadLogger.warning(
+                                String.format("Failed to acquire (%d) barrier for %s", poke, current.getName()));
+                        this.remindCurrent(threadLogger, poke, current);
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -97,7 +122,9 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
                 }
             }
             this.clearDead();
+            this.nextTurn(threadLogger);
         }
+        threadLogger.exiting(this.getClass().getName(), "run()");
     }
 
     private int getTurnWaitCount() {
@@ -112,17 +139,20 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
         return 2;
     }
 
-    private void remindCurrent(int pokeCount) {
-        Creature current = this.getCurrent();
+    private void remindCurrent(Logger logger, int pokeCount, Creature current) {
         if (current != null) {
             if (pokeCount < getMaxPokesPerAction()) {
+                logger.finer(() -> String.format("Poking %s", current.getName()));
                 current.sendMsg(new BattleTurnMessage(current, true, true));
             } else {
+                logger.warning(() -> String.format("Last poke for %s", current.getName()));
                 Set<CreatureEffect> penalty = this.calculateWastePenalty(current);
                 for (CreatureEffect effect : penalty) {
                     this.announce(current.applyEffect(effect));
                 }
             }
+        } else {
+            logger.severe("No current creature!");
         }
     }
 
@@ -241,8 +271,10 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
     }
 
     private boolean checkCompetingFactionsPresent() {
+        this.battleLogger.fine(() -> "checking for competing factions");
         Collection<Creature> battlers = this.participants.getCreatures();
         if (battlers == null || battlers.size() <= 1) {
+            this.battleLogger.finer(() -> "No or too few battlers");
             return false;
         }
         HashMap<CreatureFaction, Integer> factionCounts = new HashMap<>();
@@ -254,6 +286,16 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
                 factionCounts.put(thatone, 1);
             }
         }
+        this.battleLogger.finer(() -> {
+            StringJoiner sj = new StringJoiner(" ").setEmptyValue("No factions found");
+            if (factionCounts.size() > 0) {
+                sj.add("Factions found:");
+                for (Map.Entry<CreatureFaction, Integer> entry : factionCounts.entrySet()) {
+                    sj.add(String.format("%s %d", entry.getKey(), entry.getValue()));
+                }
+            }
+            return sj.toString();
+        });
         if (factionCounts.containsKey(CreatureFaction.RENEGADE)) {
             return true;
         }
@@ -267,11 +309,12 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
     }
 
     public boolean isBattleOngoing() {
-        return isHappening.get();
+        return isHappening.get() && this.checkCompetingFactionsPresent();
     }
 
     public void startBattle(Creature instigator, Collection<Creature> victims) {
         if (this.isHappening.compareAndSet(false, true)) {
+            this.battleLogger.finer(() -> String.format("%s starts a fight", instigator.getName()));
             this.addCreature(instigator);
             if (victims != null) {
                 for (Creature c : victims) {
@@ -281,44 +324,50 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
             this.room.announce(new StartFightMessage(instigator, false));
             this.participants.announce(new StartFightMessage(instigator, true));
             // if someone started a fight, no need to prompt them for their turn
+            this.battleLogger.info("Starting thread");
             this.selfThread = new Thread(this);
             this.selfThread.run();
+        } else {
+            this.battleLogger
+                    .warning(() -> String.format("%s tried to start an already started fight", instigator.getName()));
         }
     }
 
     public void endBattle() {
+        this.battleLogger.info("Ending battle");
         this.participants.announce(new FightOverMessage(true));
         this.participants.stop();
         this.room.announce(new FightOverMessage(false));
         this.isHappening.set(false);
     }
 
-    private void nextTurn() {
-        this.participants.nextTurn();
-        startTurn();
+    private Creature nextTurn(Logger logger) {
+        logger.fine("Cycling next turn");
+        return this.participants.nextTurn();
     }
 
-    private void startTurn() {
+    private Creature startTurn(Logger logger) {
         Creature current = getCurrent();
         if (current != null) {
+            logger.finest(() -> String.format("Starting turn for %s", current.getName()));
             promptCreatureToAct(current);
         } else {
             // Bad juju
-            Logger logger = Logger.getLogger(BattleManager.class.getPackageName());
             logger.severe("Trying to perform a turn for something that can't do it\r\n");
         }
+        return current;
     }
 
     public boolean endTurn(Creature ender) {
         if (this.checkTurn(ender)) {
-            this.endTurn();
+            this.battleLogger.finest(() -> String.format("%s has ended their turn", ender.getName()));
+            this.turnBarrier.release();
             return true;
+        } else {
+            this.battleLogger.warning(() -> String.format("%s tried to end their turn, but it wasn't theirs to end",
+                    ender != null ? ender.getName() : "Someone unknown"));
+            return false;
         }
-        return false;
-    }
-
-    private void endTurn() {
-        this.turnBarrier.release();
     }
 
     private void clearDead() {
@@ -401,6 +450,10 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
      * @return true if it is their turn, false otherwise
      */
     public boolean checkTurn(Creature attempter) {
+        // If you don't exist, you don't have a turn
+        if (attempter == null) {
+            return false;
+        }
         // if we have a current and you are not it, then you cannot act
         Creature current = this.getCurrent();
         if (current != null && attempter != current) {
@@ -410,6 +463,7 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
             this.addCreature(attempter);
             return false;
         }
+        this.battleLogger.fine(() -> String.format("Current is NULL, so %s can go!", attempter.getName()));
         return true;
     }
 
@@ -444,7 +498,10 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
     }
 
     private Creature getCurrent() {
-        return this.participants.getCurrent();
+        Creature current = this.participants.getCurrent();
+        this.battleLogger.finest(
+                () -> String.format("Getting current creature (%s)", current != null ? current.getName() : "NULL"));
+        return current;
     }
 
     public void announce(OutMessage message) {
@@ -553,8 +610,9 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
     }
 
     private boolean handlePass(CommandContext ctx, Command msg) {
-        if (this.checkTurn(ctx.getCreature())) {
-            this.endTurn();
+        Creature creature = ctx.getCreature();
+        if (this.checkTurn(creature)) {
+            this.endTurn(creature);
         }
         return true;
     }
@@ -652,7 +710,7 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
     }
 
     private Boolean handleAttack(CommandContext ctx, AttackMessage aMessage) {
-        System.out.println(ctx.getCreature().toString() + " attempts attacking " + aMessage.getTargets());
+        this.battleLogger.info(ctx.getCreature().getName() + " attempts attacking " + aMessage.getTargets());
 
         Creature attacker = ctx.getCreature();
 
@@ -691,7 +749,7 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
             this.startBattle(attacker, targets);
         }
         this.applyAttacks(attacker, weapon, targets);
-        endTurn();
+        endTurn(attacker);
         return true;
     }
 
