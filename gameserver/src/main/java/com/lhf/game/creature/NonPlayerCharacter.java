@@ -10,8 +10,6 @@ import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.Attributes;
@@ -51,16 +49,44 @@ public class NonPlayerCharacter extends Creature {
     private ConversationTree convoTree = null;
     public static final String defaultConvoTreeName = "verbal_default";
 
-    public NonPlayerCharacter() {
-        super();
+    public static class NPCBuilder extends Creature.CreatureBuilder {
+        private ConversationTree conversationTree = null;
+
+        protected NPCBuilder() {
+            super();
+            this.setFaction(CreatureFaction.NPC);
+        }
+
+        public static NPCBuilder getInstance() {
+            return new NPCBuilder();
+        }
+
+        public NPCBuilder setConversationTree(ConversationTree tree) {
+            this.conversationTree = tree;
+            return this;
+        }
+
+        public ConversationTree getConversationTree() {
+            return this.conversationTree;
+        }
+
+        public NPCBuilder useDefaultConversation(ConversationManager convoManager) throws FileNotFoundException {
+            if (convoManager != null) {
+                this.conversationTree = convoManager.convoTreeFromFile(NonPlayerCharacter.defaultConvoTreeName);
+            }
+            return this;
+        }
+
+        @Override
+        public NonPlayerCharacter build() {
+            return new NonPlayerCharacter(this);
+        }
+
     }
 
-    public NonPlayerCharacter(String name, Statblock statblock) {
-        super(name, statblock, CreatureFaction.NPC);
-    }
-
-    public NonPlayerCharacter(String name, Vocation vocation) {
-        super(name, vocation, CreatureFaction.NPC);
+    public NonPlayerCharacter(NPCBuilder builder) {
+        super(builder);
+        this.convoTree = builder.getConversationTree();
     }
 
     @Override

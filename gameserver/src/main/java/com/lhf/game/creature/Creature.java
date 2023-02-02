@@ -85,41 +85,98 @@ public abstract class Creature
     private transient MessageHandler successor;
     private Map<CommandMessage, String> cmds;
 
+    public abstract static class CreatureBuilder {
+        private String name;
+        private CreatureFaction faction;
+        private Vocation vocation;
+        private Statblock statblock;
+        private ClientMessenger controller;
+        private MessageHandler successor;
+
+        protected CreatureBuilder() {
+            this.name = NameGenerator.Generate(null);
+            this.faction = CreatureFaction.NPC;
+            this.vocation = null;
+            this.statblock = new Statblock();
+            this.controller = null;
+            this.successor = null;
+        }
+
+        public CreatureBuilder setName(String name) {
+            this.name = name != null && !name.isBlank() ? name : NameGenerator.Generate(null);
+            return this;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+
+        public CreatureBuilder setFaction(CreatureFaction faction) {
+            this.faction = faction != null ? faction : CreatureFaction.RENEGADE;
+            return this;
+        }
+
+        public CreatureFaction getFaction() {
+            return this.faction;
+        }
+
+        public CreatureBuilder setVocation(Vocation vocation) {
+            this.vocation = vocation;
+            return this;
+        }
+
+        public Vocation getVocation() {
+            return this.vocation;
+        }
+
+        public CreatureBuilder setStatblock(Statblock statblock) {
+            this.statblock = statblock;
+            return this;
+        }
+
+        public Statblock getStatblock() {
+            if (this.statblock == null && this.vocation != null) {
+                this.statblock = this.vocation.createNewDefaultStatblock("creature");
+            } else if (this.statblock == null) {
+                this.statblock = new Statblock();
+            }
+            return this.statblock;
+        }
+
+        public CreatureBuilder setController(ClientMessenger controller) {
+            this.controller = controller;
+            return this;
+        }
+
+        public ClientMessenger getController() {
+            return this.controller;
+        }
+
+        public CreatureBuilder setSuccessor(MessageHandler successor) {
+            this.successor = successor;
+            return this;
+        }
+
+        public MessageHandler getSuccessor() {
+            return this.successor;
+        }
+
+        public abstract Creature build();
+    }
+
     // Default constructor
-    public Creature() {
+    public Creature(Creature.CreatureBuilder builder) {
         this.cmds = this.buildCommands();
         // Instantiate creature with no name and type Monster
-        this.name = NameGenerator.Generate(null);
-        this.faction = CreatureFaction.NPC;
-        this.vocation = null;
+        this.name = builder.getName();
+        this.faction = builder.getFaction();
+        this.vocation = builder.getVocation();
 
         this.effects = new TreeSet<>();
-        this.statblock = new Statblock(); // default statblock
+        this.statblock = builder.getStatblock();
 
         // We don't start them in battle
         this.inBattle = false;
-    }
-
-    // Statblock-based constructor
-    public Creature(String name, Statblock statblock, CreatureFaction faction) {
-        this.cmds = this.buildCommands();
-        this.name = name;
-        this.statblock = statblock != null ? statblock : new Statblock();
-        this.vocation = null;
-        this.effects = new TreeSet<>();
-        this.faction = faction;
-        // add abilities if we get to it
-    }
-
-    // Vocation-based constructor
-    public Creature(String name, Vocation vocation, CreatureFaction faction) {
-        this.cmds = this.buildCommands();
-        this.name = name;
-        this.statblock = vocation != null ? vocation.createNewDefaultStatblock("creature") : new Statblock();
-        this.vocation = vocation;
-        this.effects = new TreeSet<>();
-        this.faction = faction;
-        // add abilities if we get to it
     }
 
     private Map<CommandMessage, String> buildCommands() {

@@ -4,10 +4,19 @@ import com.lhf.game.creature.vocation.DMV;
 
 public class DungeonMaster extends NonPlayerCharacter {
 
-    CreatureCreator creatureCreator;
+    public static class DungeonMasterBuilder extends NonPlayerCharacter.NPCBuilder {
+        private DungeonMasterBuilder() {
+            super();
+            this.setVocation(new DMV());
+        }
 
-    public DungeonMaster(String name) {
-        super(name, new DMV());
+        public static DungeonMasterBuilder getInstance() {
+            return new DungeonMasterBuilder();
+        }
+    }
+
+    public DungeonMaster(DungeonMasterBuilder builder) {
+        super(builder);
     }
 
 }

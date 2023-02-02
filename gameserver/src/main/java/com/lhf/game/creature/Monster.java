@@ -1,31 +1,76 @@
 package com.lhf.game.creature;
 
+import java.io.FileNotFoundException;
 import java.util.Objects;
 
+import com.lhf.game.creature.conversation.ConversationBuilder;
+import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.MonsterAI;
 
 public class Monster extends NonPlayerCharacter {
+    public static final String defaultConvoTreeName = "non_verbal_default";
+    private final long monsterNumber;
     private boolean activelyHostile;
-    private static long serialNumber = 0;
-    private long monsterNumber;
 
     private MonsterAI aiType;
 
-    public Monster() {
-        super();
-        this.activelyHostile = false;
-        this.setSerialNumber();
-        this.aiType = MonsterAI.RANDOM;
-        this.setFaction(CreatureFaction.MONSTER);
+    public static class MonsterBuilder extends NPCBuilder {
+        private boolean activelyHostile;
+        private static long serialNumber = 0;
+        private long monsterNumber = 0;
+
+        protected MonsterBuilder() {
+            super();
+            this.setFaction(CreatureFaction.MONSTER);
+        }
+
+        public static MonsterBuilder getInstance() {
+            return new MonsterBuilder();
+        }
+
+        @Override
+        public MonsterBuilder useDefaultConversation(ConversationManager convoManager) throws FileNotFoundException {
+            if (convoManager != null) {
+                this.setConversationTree(convoManager.convoTreeFromFile(Monster.defaultConvoTreeName));
+            }
+            return this;
+        }
+
+        public MonsterBuilder setHostility(boolean activelyHostile) {
+            this.activelyHostile = activelyHostile;
+            return this;
+        }
+
+        public boolean getHostility() {
+            return this.activelyHostile;
+        }
+
+        private synchronized void nextSerial() {
+            MonsterBuilder.serialNumber++;
+            this.monsterNumber = MonsterBuilder.serialNumber;
+        }
+
+        public long getMonsterNumber() {
+            if (this.monsterNumber == 0) {
+                this.nextSerial();
+            }
+            return this.monsterNumber;
+        }
+
+        @Override
+        public Monster build() {
+            this.nextSerial();
+            return new Monster(this);
+        }
     }
 
-    public Monster(String name, Statblock statblock) {
-        super(NameGenerator.Generate(name), statblock);
-        this.activelyHostile = true;
-        this.setSerialNumber();
-        this.aiType = MonsterAI.RETALIATORY;
+    public Monster(MonsterBuilder builder) {
+        super(builder);
+        this.activelyHostile = builder.getHostility();
+        this.monsterNumber = builder.getMonsterNumber();
+        this.aiType = MonsterAI.RANDOM;
         this.setFaction(CreatureFaction.MONSTER);
     }
 
@@ -40,11 +85,6 @@ public class Monster extends NonPlayerCharacter {
 
     public void setActivelyHostile(boolean setting) {
         this.activelyHostile = setting;
-    }
-
-    private void setSerialNumber() {
-        this.monsterNumber = Monster.serialNumber;
-        Monster.serialNumber++;
     }
 
     public boolean isActivelyHostile() {
