@@ -1,8 +1,5 @@
 package com.lhf.game.creature;
 
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.vocation.Fighter;
-import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
@@ -10,26 +7,40 @@ import com.lhf.server.client.user.UserID;
 public class Player extends Creature {
     private User user;
 
-    public Player(User user) {
-        super(user.getUsername(), new Fighter(), CreatureFaction.PLAYER);
-        this.user = user;
-        this.user.setSuccessor(this);
-        this.setController(this.user.getClient());
+    public static class PlayerBuilder extends Creature.CreatureBuilder {
+        private User user;
+
+        private PlayerBuilder(User user) {
+            super();
+            this.setFaction(CreatureFaction.PLAYER);
+            this.user = user;
+            this.setController(user.getClient());
+        }
+
+        public PlayerBuilder getInstance(User user) {
+            return new PlayerBuilder(user);
+        }
+
+        public User getUser() {
+            return user;
+        }
+
+        public PlayerBuilder setUser(User user) {
+            this.user = user;
+            return this;
+        }
+
+        @Override
+        public Player build() {
+            return new Player(this);
+        }
+
     }
 
-    public Player(User user, Vocation vocation) {
-        super(user.getUsername(), vocation, CreatureFaction.PLAYER);
-        this.user = user;
+    public Player(PlayerBuilder builder) {
+        super(builder);
+        this.user = builder.getUser();
         this.user.setSuccessor(this);
-        this.setController(this.user.getClient());
-    }
-
-    public Player(User user, Statblock statblock, Vocation vocation) {
-        super(user.getUsername(), statblock, CreatureFaction.PLAYER);
-        this.user = user;
-        this.user.setSuccessor(this);
-        this.setController(this.user.getClient());
-        this.setVocation(vocation);
     }
 
     @Override
