@@ -1,6 +1,7 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -10,6 +11,8 @@ import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
+import com.lhf.game.creature.intelligence.AIHandler;
+import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.Attributes;
@@ -51,14 +54,18 @@ public class NonPlayerCharacter extends Creature {
 
     public static class NPCBuilder extends Creature.CreatureBuilder {
         private ConversationTree conversationTree = null;
+        private AIRunner aiRunner;
+        private List<AIHandler> aiHandlers;
 
-        protected NPCBuilder() {
+        protected NPCBuilder(AIRunner aiRunner) {
             super();
             this.setFaction(CreatureFaction.NPC);
+            this.aiRunner = aiRunner;
+            this.aiHandlers = new ArrayList<>();
         }
 
-        public static NPCBuilder getInstance() {
-            return new NPCBuilder();
+        public static NPCBuilder getInstance(AIRunner aiRunner) {
+            return new NPCBuilder(aiRunner);
         }
 
         public NPCBuilder setConversationTree(ConversationTree tree) {
@@ -77,9 +84,45 @@ public class NonPlayerCharacter extends Creature {
             return this;
         }
 
+        public AIRunner getAiRunner() {
+            return aiRunner;
+        }
+
+        public NPCBuilder setAiRunner(AIRunner aiRunner) {
+            this.aiRunner = aiRunner;
+            return this;
+        }
+
+        public NPCBuilder addAIHandler(AIHandler handler) {
+            if (handler != null) {
+                this.aiHandlers.add(handler);
+            }
+            return this;
+        }
+
+        public List<AIHandler> getAIHandlers() {
+            return this.aiHandlers;
+        }
+
+        public AIHandler[] getAiHandlersAsArray() {
+            return this.aiHandlers.toArray(new AIHandler[this.aiHandlers.size()]);
+        }
+
+        public NPCBuilder clearAIHandlers() {
+            this.aiHandlers.clear();
+            return this;
+        }
+
+        protected NonPlayerCharacter register(NonPlayerCharacter npc) {
+            if (this.aiRunner != null) {
+                this.aiRunner.register(npc, this.getAiHandlersAsArray());
+            }
+            return npc;
+        }
+
         @Override
         public NonPlayerCharacter build() {
-            return new NonPlayerCharacter(this);
+            return this.register(new NonPlayerCharacter(this));
         }
 
     }

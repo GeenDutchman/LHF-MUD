@@ -3,9 +3,8 @@ package com.lhf.game.creature;
 import java.io.FileNotFoundException;
 import java.util.Objects;
 
-import com.lhf.game.creature.conversation.ConversationBuilder;
 import com.lhf.game.creature.conversation.ConversationManager;
-import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.MonsterAI;
 
@@ -21,13 +20,13 @@ public class Monster extends NonPlayerCharacter {
         private static long serialNumber = 0;
         private long monsterNumber = 0;
 
-        protected MonsterBuilder() {
-            super();
+        protected MonsterBuilder(AIRunner aiRunner) {
+            super(aiRunner);
             this.setFaction(CreatureFaction.MONSTER);
         }
 
-        public static MonsterBuilder getInstance() {
-            return new MonsterBuilder();
+        public static MonsterBuilder getInstance(AIRunner aiRunner) {
+            return new MonsterBuilder(aiRunner);
         }
 
         @Override
@@ -59,10 +58,17 @@ public class Monster extends NonPlayerCharacter {
             return this.monsterNumber;
         }
 
+        protected Monster register(Monster npc) {
+            if (this.getAiRunner() != null) {
+                this.getAiRunner().register(npc, this.getAiHandlersAsArray());
+            }
+            return npc;
+        }
+
         @Override
         public Monster build() {
             this.nextSerial();
-            return new Monster(this);
+            return this.register(new Monster(this));
         }
     }
 
