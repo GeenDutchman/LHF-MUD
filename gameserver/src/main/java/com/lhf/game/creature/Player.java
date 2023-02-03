@@ -17,7 +17,7 @@ public class Player extends Creature {
             this.setController(user.getClient());
         }
 
-        public PlayerBuilder getInstance(User user) {
+        public static PlayerBuilder getInstance(User user) {
             return new PlayerBuilder(user);
         }
 
