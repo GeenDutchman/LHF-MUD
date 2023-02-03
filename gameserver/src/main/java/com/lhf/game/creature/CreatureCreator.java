@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.util.EnumMap;
 import java.util.EnumSet;
 
+import com.lhf.game.creature.Monster.MonsterBuilder;
+import com.lhf.game.creature.NonPlayerCharacter.NPCBuilder;
 import com.lhf.game.creature.builder.CLIAdaptor;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
@@ -109,48 +111,48 @@ public class CreatureCreator {
             return null;
         }
 
-        String creaturename = adapter.buildCreatureName();
+        MonsterBuilder builder = MonsterBuilder.getInstance(CreatureCreator.aiRunner);
 
-        Monster mon = new Monster(creaturename, monStatblock);
+        builder.setName(adapter.buildCreatureName());
 
-        aiRunner.register(mon);
+        builder.setStatblock(monStatblock);
 
-        return mon;
+        return builder.build();
     }
 
     public static NonPlayerCharacter makeNPC() {
-        NonPlayerCharacter npc = new NonPlayerCharacter();
+        NonPlayerCharacter.NPCBuilder builder = NPCBuilder.getInstance(CreatureCreator.aiRunner);
 
-        aiRunner.register(npc);
-
-        return npc;
+        return builder.build();
     }
 
     public static DungeonMaster makeDM(String name) {
-        DungeonMaster dm = new DungeonMaster(name);
+        DungeonMaster.DungeonMasterBuilder builder = DungeonMaster.DungeonMasterBuilder
+                .getInstance(CreatureCreator.aiRunner);
 
-        aiRunner.register(dm);
+        builder.setName(name);
 
-        return dm;
+        return builder.build();
     }
 
     public static Player makePlayer(PlayerCreatorAdaptor adapter) {
+        Player.PlayerBuilder builder = Player.PlayerBuilder.getInstance(adapter.buildUser());
 
-        Statblock playerStatblock = CreatureCreator.makeStatblock(adapter);
+        builder.setStatblock(CreatureCreator.makeStatblock(adapter));
 
-        while (playerStatblock == null) {
+        while (builder.getStatblock() == null) {
             String statblockname = adapter.buildStatblockName();
             try {
-                playerStatblock = CreatureCreator.readStatblock(statblockname);
+                builder.setStatblock(CreatureCreator.readStatblock(statblockname));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
                 adapter.stepSucceeded(false);
             }
         }
 
-        Vocation vocation = adapter.buildVocation();
+        builder.setVocation(adapter.buildVocation());
 
-        Player p = new Player(adapter.buildUser(), playerStatblock, vocation);
+        Player p = builder.build();
 
         return p;
 
