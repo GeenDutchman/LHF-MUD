@@ -3,7 +3,7 @@ package com.lhf.game.lewd;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.lhf.game.map.Room;
+import com.lhf.game.map.Area;
 
 public class LewdProductList implements LewdProduct {
     protected List<LewdProduct> products;
@@ -24,7 +24,7 @@ public class LewdProductList implements LewdProduct {
         return this;
     }
 
-    public void onLewd(Room room, VrijPartij party) {
+    public void onLewd(Area room, VrijPartij party) {
         for (LewdProduct product : this.products) {
             if (product == null || product == this) {
                 continue;

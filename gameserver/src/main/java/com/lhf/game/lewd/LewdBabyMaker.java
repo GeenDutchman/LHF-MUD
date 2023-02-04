@@ -2,12 +2,12 @@ package com.lhf.game.lewd;
 
 import com.lhf.game.creature.NameGenerator;
 import com.lhf.game.item.concrete.Corpse;
-import com.lhf.game.map.Room;
+import com.lhf.game.map.Area;
 
 public class LewdBabyMaker implements LewdProduct {
 
     @Override
-    public void onLewd(Room room, VrijPartij party) {
+    public void onLewd(Area room, VrijPartij party) {
         if (room == null || party == null) {
             return;
         }

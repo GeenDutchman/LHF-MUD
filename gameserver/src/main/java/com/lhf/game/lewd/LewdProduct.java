@@ -1,7 +1,7 @@
 package com.lhf.game.lewd;
 
-import com.lhf.game.map.Room;
+import com.lhf.game.map.Area;
 
 public interface LewdProduct {
-    public void onLewd(Room room, VrijPartij party);
+    public void onLewd(Area room, VrijPartij party);
 }
