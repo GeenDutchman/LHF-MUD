@@ -85,7 +85,31 @@ public abstract class Creature
     private transient MessageHandler successor;
     private Map<CommandMessage, String> cmds;
 
-    public abstract static class CreatureBuilder {
+    public interface Builder {
+        public abstract String getName();
+
+        public abstract Builder setName(String name);
+
+        public abstract Vocation getVocation();
+
+        public abstract Builder setVocation(Vocation vocation);
+
+        public abstract Statblock getStatblock();
+
+        public abstract Builder setStatblock(Statblock statblock);
+
+        public abstract ClientMessenger getController();
+
+        public abstract Builder setController(ClientMessenger controller);
+
+        public abstract MessageHandler getSuccessor();
+
+        public abstract Builder setSuccessor(MessageHandler successor);
+
+        public abstract Creature build();
+    }
+
+    public abstract static class CreatureBuilder implements Builder {
         private String name;
         private CreatureFaction faction;
         private Vocation vocation;
@@ -161,7 +185,6 @@ public abstract class Creature
             return this.successor;
         }
 
-        public abstract Creature build();
     }
 
     // Default constructor

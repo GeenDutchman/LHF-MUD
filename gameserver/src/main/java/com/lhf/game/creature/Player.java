@@ -11,7 +11,6 @@ public class Player extends Creature {
         private User user;
 
         private PlayerBuilder(User user) {
-            super();
             this.setFaction(CreatureFaction.PLAYER);
             this.user = user;
             this.setController(user.getClient());
