@@ -15,7 +15,7 @@ public class Monster extends NonPlayerCharacter {
 
     private MonsterAI aiType;
 
-    public static class MonsterBuilder extends NonPlayerCharacter.Builder<MonsterBuilder> {
+    public static class MonsterBuilder extends NonPlayerCharacter.NPCBuilder<MonsterBuilder> {
         private boolean activelyHostile;
         private static long serialNumber = 0;
         private long monsterNumber = 0;

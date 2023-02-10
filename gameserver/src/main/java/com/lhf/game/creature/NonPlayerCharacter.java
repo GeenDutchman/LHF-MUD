@@ -52,12 +52,12 @@ public class NonPlayerCharacter extends Creature {
     private ConversationTree convoTree = null;
     public static final String defaultConvoTreeName = "verbal_default";
 
-    protected static class Builder<T extends Builder<T>> extends Creature.CreatureBuilder<T> {
+    protected static class NPCBuilder<T extends NPCBuilder<T>> extends Creature.CreatureBuilder<T> {
         private ConversationTree conversationTree = null;
         private AIRunner aiRunner;
         private List<AIHandler> aiHandlers;
 
-        protected Builder(AIRunner aiRunner) {
+        protected NPCBuilder(AIRunner aiRunner) {
             super();
             this.setFaction(CreatureFaction.NPC);
             this.aiRunner = aiRunner;
@@ -128,7 +128,7 @@ public class NonPlayerCharacter extends Creature {
 
     }
 
-    public NonPlayerCharacter(Builder<?> builder) {
+    public NonPlayerCharacter(NPCBuilder<?> builder) {
         super(builder);
         this.convoTree = builder.getConversationTree();
     }
