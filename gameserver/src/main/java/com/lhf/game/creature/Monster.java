@@ -15,7 +15,7 @@ public class Monster extends NonPlayerCharacter {
 
     private MonsterAI aiType;
 
-    public static class MonsterBuilder extends NPCBuilder {
+    public static class MonsterBuilder extends NonPlayerCharacter.Builder<MonsterBuilder> {
         private boolean activelyHostile;
         private static long serialNumber = 0;
         private long monsterNumber = 0;
@@ -25,8 +25,13 @@ public class Monster extends NonPlayerCharacter {
             this.setFaction(CreatureFaction.MONSTER);
         }
 
+        @Override
+        protected MonsterBuilder getThis() {
+            return this;
+        }
+
         public static MonsterBuilder getInstance(AIRunner aiRunner) {
-            return new MonsterBuilder(aiRunner);
+            return new MonsterBuilder(aiRunner).getThis();
         }
 
         @Override
@@ -34,12 +39,12 @@ public class Monster extends NonPlayerCharacter {
             if (convoManager != null) {
                 this.setConversationTree(convoManager.convoTreeFromFile(Monster.defaultConvoTreeName));
             }
-            return this;
+            return this.getThis();
         }
 
         public MonsterBuilder setHostility(boolean activelyHostile) {
             this.activelyHostile = activelyHostile;
-            return this;
+            return this.getThis();
         }
 
         public boolean getHostility() {

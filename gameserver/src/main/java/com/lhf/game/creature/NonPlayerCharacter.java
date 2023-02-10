@@ -52,52 +52,53 @@ public class NonPlayerCharacter extends Creature {
     private ConversationTree convoTree = null;
     public static final String defaultConvoTreeName = "verbal_default";
 
-    public static class NPCBuilder extends Creature.CreatureBuilder {
+    protected static class Builder<T extends Builder<T>> extends Creature.CreatureBuilder<T> {
         private ConversationTree conversationTree = null;
         private AIRunner aiRunner;
         private List<AIHandler> aiHandlers;
 
-        protected NPCBuilder(AIRunner aiRunner) {
+        protected Builder(AIRunner aiRunner) {
             super();
             this.setFaction(CreatureFaction.NPC);
             this.aiRunner = aiRunner;
             this.aiHandlers = new ArrayList<>();
         }
 
-        public static NPCBuilder getInstance(AIRunner aiRunner) {
-            return new NPCBuilder(aiRunner);
+        @Override
+        protected T getThis() {
+            return this.thisObject;
         }
 
-        public NPCBuilder setConversationTree(ConversationTree tree) {
+        public T setConversationTree(ConversationTree tree) {
             this.conversationTree = tree;
-            return this;
+            return this.getThis();
         }
 
         public ConversationTree getConversationTree() {
             return this.conversationTree;
         }
 
-        public NPCBuilder useDefaultConversation(ConversationManager convoManager) throws FileNotFoundException {
+        public T useDefaultConversation(ConversationManager convoManager) throws FileNotFoundException {
             if (convoManager != null) {
                 this.conversationTree = convoManager.convoTreeFromFile(NonPlayerCharacter.defaultConvoTreeName);
             }
-            return this;
+            return this.getThis();
         }
 
         public AIRunner getAiRunner() {
             return aiRunner;
         }
 
-        public NPCBuilder setAiRunner(AIRunner aiRunner) {
+        public T setAiRunner(AIRunner aiRunner) {
             this.aiRunner = aiRunner;
-            return this;
+            return this.getThis();
         }
 
-        public NPCBuilder addAIHandler(AIHandler handler) {
+        public T addAIHandler(AIHandler handler) {
             if (handler != null) {
                 this.aiHandlers.add(handler);
             }
-            return this;
+            return this.getThis();
         }
 
         public List<AIHandler> getAIHandlers() {
@@ -108,9 +109,9 @@ public class NonPlayerCharacter extends Creature {
             return this.aiHandlers.toArray(new AIHandler[this.aiHandlers.size()]);
         }
 
-        public NPCBuilder clearAIHandlers() {
+        public T clearAIHandlers() {
             this.aiHandlers.clear();
-            return this;
+            return this.getThis();
         }
 
         protected NonPlayerCharacter register(NonPlayerCharacter npc) {
@@ -127,7 +128,7 @@ public class NonPlayerCharacter extends Creature {
 
     }
 
-    public NonPlayerCharacter(NPCBuilder builder) {
+    public NonPlayerCharacter(Builder<?> builder) {
         super(builder);
         this.convoTree = builder.getConversationTree();
     }

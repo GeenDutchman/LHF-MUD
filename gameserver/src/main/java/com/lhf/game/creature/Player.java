@@ -7,17 +7,23 @@ import com.lhf.server.client.user.UserID;
 public class Player extends Creature {
     private User user;
 
-    public static class PlayerBuilder extends Creature.CreatureBuilder {
+    public static class PlayerBuilder extends Creature.CreatureBuilder<PlayerBuilder> {
         private User user;
 
         private PlayerBuilder(User user) {
             this.setFaction(CreatureFaction.PLAYER);
             this.user = user;
             this.setController(user.getClient());
+            this.setName(this.user.getUsername());
         }
 
         public static PlayerBuilder getInstance(User user) {
             return new PlayerBuilder(user);
+        }
+
+        @Override
+        protected PlayerBuilder getThis() {
+            return this;
         }
 
         public User getUser() {
@@ -33,7 +39,6 @@ public class Player extends Creature {
         public Player build() {
             return new Player(this);
         }
-
     }
 
     public Player(PlayerBuilder builder) {

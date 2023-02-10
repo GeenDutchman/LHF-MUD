@@ -85,31 +85,8 @@ public abstract class Creature
     private transient MessageHandler successor;
     private Map<CommandMessage, String> cmds;
 
-    public interface Builder {
-        public abstract String getName();
-
-        public abstract Builder setName(String name);
-
-        public abstract Vocation getVocation();
-
-        public abstract Builder setVocation(Vocation vocation);
-
-        public abstract Statblock getStatblock();
-
-        public abstract Builder setStatblock(Statblock statblock);
-
-        public abstract ClientMessenger getController();
-
-        public abstract Builder setController(ClientMessenger controller);
-
-        public abstract MessageHandler getSuccessor();
-
-        public abstract Builder setSuccessor(MessageHandler successor);
-
-        public abstract Creature build();
-    }
-
-    public abstract static class CreatureBuilder implements Builder {
+    public abstract static class CreatureBuilder<T extends CreatureBuilder<T>> {
+        protected T thisObject;
         private String name;
         private CreatureFaction faction;
         private Vocation vocation;
@@ -124,38 +101,43 @@ public abstract class Creature
             this.statblock = new Statblock();
             this.controller = null;
             this.successor = null;
+            this.thisObject = getThis();
         }
 
-        public CreatureBuilder setName(String name) {
+        // used for the generics and safe casts
+        // https://stackoverflow.com/questions/17164375/subclassing-a-java-builder-class
+        protected abstract T getThis();
+
+        public T setName(String name) {
             this.name = name != null && !name.isBlank() ? name : NameGenerator.Generate(null);
-            return this;
+            return this.getThis();
         }
 
         public String getName() {
             return this.name;
         }
 
-        public CreatureBuilder setFaction(CreatureFaction faction) {
+        public T setFaction(CreatureFaction faction) {
             this.faction = faction != null ? faction : CreatureFaction.RENEGADE;
-            return this;
+            return this.getThis();
         }
 
         public CreatureFaction getFaction() {
             return this.faction;
         }
 
-        public CreatureBuilder setVocation(Vocation vocation) {
+        public T setVocation(Vocation vocation) {
             this.vocation = vocation;
-            return this;
+            return this.getThis();
         }
 
         public Vocation getVocation() {
             return this.vocation;
         }
 
-        public CreatureBuilder setStatblock(Statblock statblock) {
+        public T setStatblock(Statblock statblock) {
             this.statblock = statblock;
-            return this;
+            return this.getThis();
         }
 
         public Statblock getStatblock() {
@@ -167,28 +149,30 @@ public abstract class Creature
             return this.statblock;
         }
 
-        public CreatureBuilder setController(ClientMessenger controller) {
+        public T setController(ClientMessenger controller) {
             this.controller = controller;
-            return this;
+            return this.getThis();
         }
 
         public ClientMessenger getController() {
             return this.controller;
         }
 
-        public CreatureBuilder setSuccessor(MessageHandler successor) {
+        public T setSuccessor(MessageHandler successor) {
             this.successor = successor;
-            return this;
+            return this.getThis();
         }
 
         public MessageHandler getSuccessor() {
             return this.successor;
         }
 
+        public abstract Creature build();
+
     }
 
     // Default constructor
-    public Creature(Creature.CreatureBuilder builder) {
+    protected Creature(Creature.CreatureBuilder<?> builder) {
         this.cmds = this.buildCommands();
         // Instantiate creature with no name and type Monster
         this.name = builder.getName();
