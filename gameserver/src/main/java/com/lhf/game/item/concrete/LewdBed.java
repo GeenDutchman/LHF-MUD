@@ -14,7 +14,7 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.lewd.LewdProduct;
 import com.lhf.game.lewd.VrijPartij;
-import com.lhf.game.map.Room;
+import com.lhf.game.map.Area;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -32,10 +32,52 @@ public class LewdBed extends Bed {
     protected SortedMap<Integer, VrijPartij> vrijPartijen;
     protected LewdProduct lewdProduct;
 
-    public LewdBed(Room room, int capacity, int sleepSeconds) {
-        super(room, Integer.max(capacity, 2), sleepSeconds);
+    public static class Builder {
+        private Bed.Builder subBuilder;
+        private LewdProduct lewdProduct;
+
+        private Builder() {
+            this.lewdProduct = null;
+        }
+
+        public static Builder getInstance() {
+            return new Builder();
+        }
+
+        public Builder setName(String name) {
+            this.subBuilder = subBuilder.setName(name);
+            return this;
+        }
+
+        public Builder setSleepSeconds(int sleepSecs) {
+            this.subBuilder = subBuilder.setSleepSeconds(sleepSecs);
+            return this;
+        }
+
+        public Builder setCapacity(int cap) {
+            this.subBuilder = subBuilder.setCapacity(cap);
+            return this;
+        }
+
+        public Builder addOccupant(Creature occupant) {
+            this.subBuilder = subBuilder.addOccupant(occupant);
+            return this;
+        }
+
+        public Builder setLewdProduct(LewdProduct product) {
+            this.lewdProduct = product;
+            return this;
+        }
+
+        public LewdBed build(Area room) {
+            return new LewdBed(room, this);
+        }
+    }
+
+    public LewdBed(Area room, Builder builder) {
+        super(room, builder.subBuilder);
         this.vrijPartijen = Collections.synchronizedNavigableMap(new TreeMap<>());
-        this.lewdProduct = null;
+        this.lewdProduct = builder.lewdProduct;
     }
 
     public LewdBed setLewdProduct(LewdProduct lewdProduct) {
@@ -109,7 +151,7 @@ public class LewdBed extends Bed {
         Set<Creature> invited = new HashSet<>();
         if (possPartners != null) {
             for (String possName : possPartners) {
-                List<Creature> possibles = this.getCreaturesInBed(possName);
+                List<Creature> possibles = this.getCreaturesLike(possName);
                 if (possibles.size() == 0) {
                     joiner.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, possName, possibles));
                     return true;
@@ -192,8 +234,8 @@ public class LewdBed extends Bed {
     }
 
     @Override
-    public boolean remove(Creature doneSleeping) {
-        if (super.remove(doneSleeping)) {
+    public boolean removeCreature(Creature doneSleeping) {
+        if (super.removeCreature(doneSleeping)) {
             for (VrijPartij party : this.vrijPartijen.values()) {
                 party.remove(doneSleeping);
             }

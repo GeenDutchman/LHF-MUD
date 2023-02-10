@@ -1,24 +1,19 @@
 package com.lhf.game.item.concrete;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.lhf.game.CreatureContainerMessageHandler;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.Player;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.interfaces.InteractAction;
+import com.lhf.game.map.Area;
 import com.lhf.game.map.Directions;
-import com.lhf.game.map.Room;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -30,13 +25,14 @@ import com.lhf.messages.out.BadGoMessage.BadGoType;
 import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.server.client.user.UserID;
 
-public class Bed extends InteractObject implements MessageHandler {
+public class Bed extends InteractObject implements CreatureContainerMessageHandler {
 
     protected final ScheduledThreadPoolExecutor executor;
     protected final int sleepSeconds;
     protected Set<BedTime> occupants;
-    protected Room room;
+    protected CreatureContainerMessageHandler room;
 
     protected class BedTime implements Runnable, Comparable<Bed.BedTime> {
         protected Creature occupant;
@@ -111,12 +107,63 @@ public class Bed extends InteractObject implements MessageHandler {
         }
     }
 
-    public Bed(Room room, int capacity, int sleepSeconds) {
-        super("Bed", true, true, "It's a bed.");
-        this.sleepSeconds = Integer.max(sleepSeconds, 1);
+    public static class Builder {
+        private String name;
+        private int sleepSeconds;
+        private int capacity;
+        private Set<Creature> occupants;
+
+        private Builder() {
+            this.name = "Bed";
+            this.sleepSeconds = 1;
+            this.capacity = 1;
+            this.occupants = new TreeSet<>();
+        }
+
+        public static Builder getInstance() {
+            return new Builder();
+        }
+
+        public Builder setName(String name) {
+            this.name = name != null && !name.isBlank() ? name : "Bed";
+            return this;
+        }
+
+        public Builder setSleepSeconds(int sleepSecs) {
+            this.sleepSeconds = Integer.max(sleepSecs, 1);
+            return this;
+        }
+
+        public Builder setCapacity(int cap) {
+            this.capacity = Integer.max(cap, 1);
+            return this;
+        }
+
+        public Builder addOccupant(Creature occupant) {
+            if (occupant != null) {
+                if (this.occupants == null) {
+                    this.occupants = new TreeSet<>();
+                }
+                this.occupants.add(occupant);
+            }
+            return this;
+        }
+
+        public Bed build(Area room) {
+            Bed madeBed = new Bed(room, this);
+            for (Creature occupant : this.occupants) {
+                madeBed.addCreature(occupant);
+            }
+            return madeBed;
+        }
+    }
+
+    public Bed(Area room, Builder builder) {
+        super(builder.name, true, true, "It's a bed.");
+        this.sleepSeconds = builder.sleepSeconds;
         this.room = room;
 
-        this.executor = new ScheduledThreadPoolExecutor(Integer.max(capacity, 1));
+        this.executor = new ScheduledThreadPoolExecutor(Integer.max(builder.capacity, 1));
         this.executor.setRemoveOnCancelPolicy(true);
         this.executor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
         this.executor.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
@@ -142,6 +189,7 @@ public class Bed extends InteractObject implements MessageHandler {
         return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR, "You are already in the bed!");
     }
 
+    @Override
     public boolean addCreature(Creature creature) {
         BedTime bedTime = this.getBedTime(creature);
         if (bedTime == null) {
@@ -161,7 +209,73 @@ public class Bed extends InteractObject implements MessageHandler {
         return this.occupants.size();
     }
 
-    public ArrayList<Creature> getCreaturesInBed(String creatureName) {
+    @Override
+    public boolean addPlayer(Player player) {
+        return this.addCreature(player);
+    }
+
+    @Override
+    public Collection<Creature> getCreatures() {
+        Set<Creature> creatures = new TreeSet<>();
+        for (BedTime bedTime : this.occupants) {
+            creatures.add(bedTime.occupant);
+        }
+        return Collections.unmodifiableSet(creatures);
+    }
+
+    @Override
+    public boolean onCreatureDeath(Creature creature) {
+        boolean removed = this.removeCreature(creature);
+        removed = this.room.onCreatureDeath(creature) || removed;
+        return removed;
+    }
+
+    @Override
+    public Optional<Creature> removeCreature(String name) {
+        Optional<Creature> found = this.getCreature(name);
+        if (found.isPresent()) {
+            this.removeCreature(found.get());
+        }
+        return found;
+    }
+
+    @Override
+    public boolean removeCreature(Creature doneSleeping) {
+        BedTime found = this.getBedTime(doneSleeping);
+        if (found != null) {
+            found.occupant.sendMsg(new InteractOutMessage(this, "You got out of the bed!"));
+            found.cancel();
+            found.occupant.setSuccessor(found.successor);
+            return this.occupants.remove(found);
+        }
+        return false;
+    }
+
+    @Override
+    public Optional<Player> removePlayer(String name) {
+        Optional<Player> found = this.getPlayer(name);
+        if (found.isPresent()) {
+            this.removeCreature(found.get());
+        }
+        return found;
+    }
+
+    @Override
+    public Optional<Player> removePlayer(UserID id) {
+        Optional<Player> toRemove = this.getPlayer(id);
+        if (toRemove.isPresent()) {
+            this.removeCreature(toRemove.get());
+        }
+        return toRemove;
+    }
+
+    @Override
+    public boolean removePlayer(Player player) {
+        return this.removeCreature(player);
+    }
+
+    @Override
+    public ArrayList<Creature> getCreaturesLike(String creatureName) {
         ArrayList<Creature> match = new ArrayList<>();
         ArrayList<Creature> closeMatch = new ArrayList<>();
 
@@ -199,22 +313,11 @@ public class Bed extends InteractObject implements MessageHandler {
         return this.getBedTime(creature) != null;
     }
 
-    public boolean remove(Creature doneSleeping) {
-        BedTime found = this.getBedTime(doneSleeping);
-        if (found != null) {
-            found.occupant.sendMsg(new InteractOutMessage(this, "You got out of the bed!"));
-            found.cancel();
-            found.occupant.setSuccessor(found.successor);
-            return this.occupants.remove(found);
-        }
-        return false;
-    }
-
     @Override
     public void setSuccessor(MessageHandler successor) {
         // We only care about the room
-        if (successor instanceof Room && successor != null) {
-            this.room = (Room) room;
+        if (successor instanceof Area && successor != null) {
+            this.room = (Area) successor;
         }
     }
 
@@ -241,15 +344,15 @@ public class Bed extends InteractObject implements MessageHandler {
     @Override
     public boolean handleMessage(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.EXIT) {
-            this.remove(ctx.getCreature());
+            this.removeCreature(ctx.getCreature());
             if (this.room != null) {
                 return this.room.handleMessage(ctx, msg);
             }
-            return MessageHandler.super.handleMessage(ctx, msg);
+            return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
         } else if (msg.getType() == CommandMessage.GO) {
             GoMessage goMessage = (GoMessage) msg;
             if (Directions.UP.equals(goMessage.getDirection())) {
-                this.remove(ctx.getCreature());
+                this.removeCreature(ctx.getCreature());
                 return true;
             } else {
                 ctx.sendMsg(new BadGoMessage(BadGoType.DNE, goMessage.getDirection(), EnumSet.of(Directions.UP)));
@@ -258,14 +361,14 @@ public class Bed extends InteractObject implements MessageHandler {
         } else if (msg.getType() == CommandMessage.INTERACT) {
             InteractMessage interactMessage = (InteractMessage) msg;
             if (this.getName() == interactMessage.getObject()) {
-                this.remove(ctx.getCreature());
+                this.removeCreature(ctx.getCreature());
                 return true;
             }
         } else if (msg.getType() == CommandMessage.SAY || msg.getType() == CommandMessage.SHOUT) {
             if (this.room != null) {
                 return this.room.handleMessage(ctx, msg);
             }
-            return MessageHandler.super.handleMessage(ctx, msg);
+            return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
         }
         return false;
     }
