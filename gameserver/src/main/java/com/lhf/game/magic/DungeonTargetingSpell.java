@@ -10,7 +10,6 @@ import com.lhf.game.map.Directions;
 import com.lhf.game.map.DungeonEffect;
 import com.lhf.game.map.DungeonEffectSource;
 import com.lhf.game.map.Room;
-import com.lhf.game.map.RoomBuilder;
 
 public class DungeonTargetingSpell extends ISpell<DungeonEffect> {
     protected Set<DungeonEffect> effects;
@@ -53,7 +52,7 @@ public class DungeonTargetingSpell extends ISpell<DungeonEffect> {
 
     public Room getRoomToAdd() {
         if (this.createdRoom == null) {
-            RoomBuilder rb = RoomBuilder.getInstance();
+            Room.RoomBuilder rb = Room.RoomBuilder.getInstance();
             rb.setName(this.getRoomName());
             rb.setDescription(this.getRoomDescription());
             this.createdRoom = rb.build();
