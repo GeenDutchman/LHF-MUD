@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.Monster;
+import com.lhf.game.creature.NameGenerator;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.Statblock;
@@ -29,25 +30,36 @@ import com.lhf.game.item.concrete.equipment.Shortsword;
 import com.lhf.game.item.concrete.equipment.Whimsystick;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
+import com.lhf.game.map.Land.AreaDirectionalLinks;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 
-public class DungeonBuilder {
-    private class RoomAndDirs {
-        public final Room room;
+public class DungeonBuilder implements Land.LandBuilder {
+    private class RoomAndDirs implements Land.AreaDirectionalLinks {
+        public final Area room;
         public Map<Directions, Doorway> exits;
 
-        RoomAndDirs(Room room) {
+        RoomAndDirs(Area room) {
             this.room = room;
             this.exits = new TreeMap<>();
+        }
+
+        @Override
+        public Area getArea() {
+            return this.room;
+        }
+
+        @Override
+        public Map<Directions, Doorway> getExits() {
+            return this.exits;
         }
     }
 
     private Logger logger;
-    private Map<UUID, RoomAndDirs> mapping;
+    private Map<UUID, Land.AreaDirectionalLinks> mapping;
     private Room startingRoom = null;
-    private MessageHandler successor;
+    private MessageHandler successor = null;
     private List<Room> orderAdded;
 
     public static DungeonBuilder newInstance() {
@@ -76,12 +88,12 @@ public class DungeonBuilder {
         assert this.mapping.containsKey(existing.getUuid()) : existing.getName() + " not yet added";
         Directions toNewRoom = toExistingRoom.opposite();
         this.mapping.putIfAbsent(toAdd.getUuid(), new RoomAndDirs(toAdd));
-        Map<Directions, Doorway> toAddExits = this.mapping.get(toAdd.getUuid()).exits;
+        Map<Directions, Doorway> toAddExits = this.mapping.get(toAdd.getUuid()).getExits();
         assert !toAddExits.containsKey(toExistingRoom)
                 : toAdd.getName() + " already has direction " + toExistingRoom.toString();
         Doorway doorway = DoorwayFactory.createDoorway(type, toAdd, toExistingRoom, existing);
         toAddExits.put(toExistingRoom, doorway);
-        Map<Directions, Doorway> existingExits = this.mapping.get(existing.getUuid()).exits;
+        Map<Directions, Doorway> existingExits = this.mapping.get(existing.getUuid()).getExits();
         assert !existingExits.containsKey(toNewRoom)
                 : existing.getName() + " already has direction " + toNewRoom.toString();
         existingExits.put(toNewRoom, doorway);
@@ -96,7 +108,7 @@ public class DungeonBuilder {
     public DungeonBuilder connectRoomOneWay(Room secretRoom, Directions toExistingRoom, Room existing) {
         assert this.mapping.containsKey(existing.getUuid()) : existing.getName() + " not yet added";
         this.mapping.putIfAbsent(secretRoom.getUuid(), new RoomAndDirs(secretRoom));
-        Map<Directions, Doorway> secretExits = this.mapping.get(secretRoom.getUuid()).exits;
+        Map<Directions, Doorway> secretExits = this.mapping.get(secretRoom.getUuid()).getExits();
         assert !secretExits.containsKey(toExistingRoom)
                 : secretRoom.getName() + " already has direction " + toExistingRoom.toString();
         Doorway oneWayDoor = DoorwayFactory.createDoorway(DoorwayType.ONE_WAY, secretRoom, toExistingRoom, existing);
@@ -105,31 +117,10 @@ public class DungeonBuilder {
         return this;
     }
 
+    @Override
     public Dungeon build() {
         this.logger.entering(this.getClass().getName(), "build()");
-        Dungeon dungeon = new Dungeon(this.successor);
-        this.logger.config(() -> String.format("Adding starting room %s\r\n", this.startingRoom.getName()));
-        dungeon.setStartingRoom(this.startingRoom);
-        for (Room existing : this.orderAdded) {
-            Map<Directions, Doorway> existingExits = this.mapping.get(existing.getUuid()).exits;
-            for (Directions exitDirection : existingExits.keySet()) {
-                Doorway door = existingExits.get(exitDirection);
-                UUID nextRoomUuid = door.getRoomAccross(existing.getUuid());
-                Room nextRoom = this.mapping.get(nextRoomUuid).room;
-                Map<Directions, Doorway> nextExits = this.mapping.get(nextRoomUuid).exits;
-                if (nextExits.containsKey(exitDirection.opposite())) {
-                    this.logger.config(() -> String.format("%s go %s to room %s\r\n", nextRoom.getName(),
-                            exitDirection.opposite().toString(),
-                            existing.getName()));
-                    dungeon.connectRoom(door.getType(), nextRoom, exitDirection.opposite(), existing);
-                } else {
-                    this.logger.config(
-                            () -> String.format("hidden %s go %s to room %s, but not back\r\n", existing.getName(),
-                                    exitDirection.toString(), nextRoom.getName()));
-                    dungeon.connectRoomExclusiveOneWay(existing, exitDirection, nextRoom);
-                }
-            }
-        }
+        Dungeon dungeon = new Dungeon(this);
         return dungeon;
     }
 
@@ -149,14 +140,15 @@ public class DungeonBuilder {
         Statblock hobgoblin = loader.statblockFromfile("hobgoblin");
 
         // Entry Room RM1
-        Room entryRoom = new Room("Entry Room", "This is the entry room.");
+        Room.RoomBuilder entryRoomBuilder = Room.RoomBuilder.getInstance();
+        entryRoomBuilder.setName("Entry Room").setDescription("This is the entry room.");
+
         Note addNote = new Note("interact note", true, "This note is to test the switch action.");
 
         // Switch test start
         Switch testSwitch = new Switch("test switch", true, false, "This looks like a test switch.");
         // Set items the action is going to use
         testSwitch.setItem("note", addNote);
-        testSwitch.setItem("room", entryRoom);
         // Create action as anonymous function
         InteractAction testAction = (creature, triggerObject, args) -> {
             // You can do anything you imagine inside, just with casting overhead (for now)
@@ -179,58 +171,66 @@ public class DungeonBuilder {
         // Set Action
         testSwitch.setAction(testAction);
         // Switch test end
-        entryRoom.addItem(testSwitch);
+        entryRoomBuilder.addItem(testSwitch);
+        Room entryRoom = entryRoomBuilder.build();
+        testSwitch.setItem("room", entryRoom); // TODO: find a better way for context aware items
 
         // History Hall RM2
-        Room historyHall = new Room("History Hall", "This is the history hall.");
+        Room.RoomBuilder historyHallBuilder = Room.RoomBuilder.getInstance();
+        historyHallBuilder.setName("History Hall").setDescription("This is the history hall.");
         Note loreNote = new Note("ominous lore", true,
                 "You read the page and it says 'This page intentionally left blank.'");
-        historyHall.addItem(loreNote);
+        historyHallBuilder.addItem(loreNote);
 
         RustyDagger dagger = new RustyDagger(true);
 
-        historyHall.addItem(dagger);
+        historyHallBuilder.addItem(dagger);
         // Test dispenser start - could be used for other items
         Dispenser dispenser = new Dispenser("note dispenser", true, false,
                 "It looks like a mailbox with a big lever.  Something probably comes out of that slot.");
         Note generatedNote = new Note("note", true, "This is a autogenerated note.");
-        dispenser.setItem("room", historyHall);
         dispenser.setItem("disp", dispenser);
         dispenser.setItem("item", generatedNote);
         dispenser.setItem("message", "A note fell out of the dispenser.");
         InteractAction testAction2 = new DispenserAction();
         dispenser.setAction(testAction2);
         // Test dispenser end
-        historyHall.addItem(dispenser);
+        historyHallBuilder.addItem(dispenser);
+        Room historyHall = historyHallBuilder.build();
+        dispenser.setItem("room", historyHall);
 
         // RM3
-        Room offeringRoom = new Room("Offering Room", "This is the offering room.");
+        Room.RoomBuilder offeringRoomBuilder = Room.RoomBuilder.getInstance().setName("Offering Room")
+                .setDescription("This is the offering room.");
+        Room offeringRoom = offeringRoomBuilder.build();
 
         // RM4
-        Room trappedHall = new Room("Trapped Room", "This is the trapped room.");
+        Room.RoomBuilder trappedHallBuilder = Room.RoomBuilder.getInstance().setName("Trapped Room")
+                .setDescription("This is the trapped room.");
         HealPotion h1 = new HealPotion(true);
-        trappedHall.addItem(h1);
+        trappedHallBuilder.addItem(h1);
+        Room trappedHall = trappedHallBuilder.build();
 
-        // RM5
-        Room statueRoom = new Room("Statue Room", "This is the statue room.");
-
-        Note bossNote = new Note("note from boss", true, "The tutorial boss is on vacation right now.");
-        statueRoom.addItem(bossNote);
-
-        Room secretRoom = new Room("Secret Room", "This is the secret room!");
+        Room.RoomBuilder secretRoomBuilder = Room.RoomBuilder.getInstance().setName("Secret Room")
+                .setDescription("This is the secret room!");
 
         MantleOfDeath mantle = new MantleOfDeath(false);
         ReaperScythe scythe = new ReaperScythe(false);
 
         HealPotion healPotion = new HealPotion(true);
-        secretRoom.addItem(healPotion);
-        secretRoom.addItem(mantle);
-        secretRoom.addItem(scythe);
+        secretRoomBuilder.addItem(healPotion);
+        secretRoomBuilder.addItem(mantle);
+        secretRoomBuilder.addItem(scythe);
+        Room secretRoom = secretRoomBuilder.build();
+
+        // RM5
+        Room.RoomBuilder statueRoomBuilder = Room.RoomBuilder.getInstance().setName("Statue Room")
+                .setDescription("This is the statue room.");
+        Note bossNote = new Note("note from boss", true, "The tutorial boss is on vacation right now.");
+        statueRoomBuilder.addItem(bossNote);
 
         Switch statue = new Switch("golden statue", true, true,
                 "The statue has a start to a riddle, but it looks like it hasn't been finished yet.");
-        statue.setItem("room1", statueRoom);
-        statue.setItem("room2", secretRoom);
         InteractAction statueAction = (player, triggerObject, args) -> {
             Object o1 = args.get("room1");
             if (!(o1 instanceof Room)) {
@@ -252,49 +252,53 @@ public class DungeonBuilder {
                     "The statue glows and you black out for a second. You find yourself in another room.");
         };
         statue.setAction(statueAction);
-        statueRoom.addItem(statue);
+        statueRoomBuilder.addItem(statue);
+
+        Room statueRoom = statueRoomBuilder.build();
+        statue.setItem("room1", statueRoom);
+        statue.setItem("room2", secretRoom);
 
         // RM6 The armory
-        Room armory = new Room("Armory", "An armory");
+        Room.RoomBuilder armoryBuilder = Room.RoomBuilder.getInstance().setName("Armory").setDescription("An armory");
         CarnivorousArmor mimic = new CarnivorousArmor(true);
         ChainMail mail = new ChainMail(true);
         Whimsystick stick = new Whimsystick(true);
         Shortsword shortsword = new Shortsword(true);
         HealPotion potion = new HealPotion(true);
-        armory.addItem(mimic);
-        armory.addItem(mail);
-        armory.addItem(stick);
-        armory.addItem(shortsword);
-        armory.addItem(potion);
+        armoryBuilder.addItem(mimic);
+        armoryBuilder.addItem(mail);
+        armoryBuilder.addItem(stick);
+        armoryBuilder.addItem(shortsword);
+        armoryBuilder.addItem(potion);
+        Room armory = armoryBuilder.build();
 
         // RM7
-        Room passage = new Room("Passageway", "An old, curvy and dusty passageway");
+        Room passage = Room.RoomBuilder.getInstance().setName("Passageway")
+                .setDescription("An old, curvy and dusty passageway").build();
         // RM8
-        Room treasury = new Room("Vault", "A looted vault room");
+        Room.RoomBuilder treasuryBuilder = Room.RoomBuilder.getInstance().setName("Vault")
+                .setDescription("A looted vault room.");
         HealPotion regular = new HealPotion(true);
         HealPotion greater = new HealPotion(HealType.Greater);
         HealPotion critical = new HealPotion(HealType.Critical);
 
-        treasury.addItem(regular);
-        treasury.addItem(greater);
-        treasury.addItem(critical);
+        treasuryBuilder.addItem(regular);
+        treasuryBuilder.addItem(greater);
+        treasuryBuilder.addItem(critical);
+        Room treasury = treasuryBuilder.build();
 
         // Monsters
-        Monster g1 = new Monster("goblin", goblin);
-        g1.setConvoTree(convoLoader, "non_verbal_default");
-        historyHall.addCreature(g1);
+        Monster.MonsterBuilder g1 = Monster.getMonsterBuilder(aiRunner).setName(NameGenerator.Generate("goblin"))
+                .setStatblock(goblin);
+        g1.setConversationTree(convoLoader, "non_verbal_default");
+        historyHall.addCreature(g1.build());
 
-        Monster boss = new Monster("Boss Bear", bugbear);
-        statueRoom.addCreature(boss);
+        Monster.MonsterBuilder boss = Monster.getMonsterBuilder(aiRunner).setName("Boss Bear").setStatblock(bugbear);
+        statueRoom.addCreature(boss.build());
 
-        Monster rightHandMan = new Monster("Right", hobgoblin);
-        offeringRoom.addCreature(rightHandMan);
-
-        if (aiRunner != null) {
-            aiRunner.register(g1);
-            aiRunner.register(boss);
-            aiRunner.register(rightHandMan);
-        }
+        Monster.MonsterBuilder rightHandMan = Monster.getMonsterBuilder(aiRunner)
+                .setName(NameGenerator.Generate("Right")).setStatblock(hobgoblin);
+        offeringRoom.addCreature(rightHandMan.build());
 
         // Set starting room
         builder.addStartingRoom(entryRoom);
@@ -316,5 +320,20 @@ public class DungeonBuilder {
     public static Dungeon buildDynamicDungeon(int seed, AIRunner aiRunner) {
 
         return null;
+    }
+
+    @Override
+    public Area getStartingArea() {
+        return this.startingRoom;
+    }
+
+    @Override
+    public Map<UUID, AreaDirectionalLinks> getAtlas() {
+        return this.mapping;
+    }
+
+    @Override
+    public MessageHandler getSuccessor() {
+        return this.successor;
     }
 }

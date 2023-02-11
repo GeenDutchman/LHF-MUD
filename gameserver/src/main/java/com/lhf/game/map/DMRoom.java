@@ -1,26 +1,27 @@
 package com.lhf.game.map;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.StringJoiner;
+import java.io.FileNotFoundException;
+import java.util.*;
 
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
-import com.lhf.game.battle.BattleManager;
+import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.conversation.ConversationManager;
+import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
+import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
+import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
+import com.lhf.game.item.concrete.LewdBed;
+import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.out.BadMessage;
 import com.lhf.messages.out.BadMessage.BadMessageType;
@@ -39,16 +40,136 @@ public class DMRoom extends Room {
     private Set<User> users;
     private List<Dungeon> dungeons;
 
-    DMRoom(String name, BattleManager.Builder battleManagerBuilder) {
-        super(name, battleManagerBuilder);
-        this.users = new HashSet<>();
-        this.dungeons = new ArrayList<>();
+    public static class DMRoomBuilder implements Area.AreaBuilder {
+        private Room.RoomBuilder delegate;
+        private List<Dungeon> dungeons;
+
+        private DMRoomBuilder() {
+            this.delegate = Room.RoomBuilder.getInstance();
+            this.dungeons = new ArrayList<>();
+        }
+
+        public static DMRoomBuilder getInstance() {
+            return new DMRoomBuilder();
+        }
+
+        public DMRoomBuilder setName(String name) {
+            this.delegate = delegate.setName(name);
+            return this;
+        }
+
+        public DMRoomBuilder setDescription(String description) {
+            this.delegate = delegate.setDescription(description);
+            return this;
+        }
+
+        public DMRoomBuilder addItem(Item item) {
+            this.delegate = delegate.addItem(item);
+            return this;
+        }
+
+        public DMRoomBuilder addCreature(Creature creature) {
+            this.delegate = delegate.addCreature(creature);
+            return this;
+        }
+
+        public DMRoomBuilder addDungeonMaster(DungeonMaster dm) {
+            this.delegate = delegate.addCreature(dm);
+            return this;
+        }
+
+        public DMRoomBuilder setDungeon(Dungeon dungeon) {
+            this.delegate = delegate.setDungeon(dungeon);
+            return this;
+        }
+
+        public DMRoomBuilder addDungeon(Dungeon dungeon) {
+            if (this.dungeons == null) {
+                this.dungeons = new ArrayList<>();
+            }
+            if (dungeon != null) {
+                this.dungeons.add(dungeon);
+            }
+            return this;
+        }
+
+        public DMRoomBuilder setSuccessor(MessageHandler successor) {
+            this.delegate = delegate.setSuccessor(successor);
+            return this;
+        }
+
+        @Override
+        public Collection<Creature> getCreatures() {
+            return this.delegate.getCreatures();
+        }
+
+        @Override
+        public String getDescription() {
+            return this.delegate.getDescription();
+        }
+
+        @Override
+        public Collection<Item> getItems() {
+            return this.delegate.getItems();
+        }
+
+        @Override
+        public Land getLand() {
+            return this.delegate.getLand();
+        }
+
+        @Override
+        public String getName() {
+            return this.delegate.getName();
+        }
+
+        @Override
+        public MessageHandler getSuccessor() {
+            return this.delegate.getSuccessor();
+        }
+
+        public DMRoom build() {
+            return new DMRoom(this);
+        }
+
+        public static DMRoom buildDefault(AIRunner aiRunner, ConversationManager convoLoader)
+                throws FileNotFoundException {
+            DMRoomBuilder builder = DMRoomBuilder.getInstance();
+            builder.setName("Control Room")
+                    .setDescription("There are a lot of buttons and screens in here.  It looks like a home office.");
+
+            DungeonMaster.DungeonMasterBuilder dmBuilder = DungeonMaster.DungeonMasterBuilder.getInstance(aiRunner);
+            if (convoLoader != null) {
+                dmBuilder.setConversationTree(convoLoader.convoTreeFromFile("verbal_default"));
+            }
+            LewdAIHandler lewdAIHandler = new LewdAIHandler().setPartnersOnly();
+            dmBuilder.addAIHandler(lewdAIHandler);
+            dmBuilder.addAIHandler(new SpokenPromptChunk().setAllowUsers());
+            dmBuilder.addAIHandler(new SpeakOnOtherEntry());
+            dmBuilder.setName("Ada Lovejax");
+            DungeonMaster dmAda = dmBuilder.build();
+            if (convoLoader != null) {
+                dmBuilder.setConversationTree(convoLoader.convoTreeFromFile("gary"));
+            }
+            dmBuilder.setName("Gary Lovejax");
+            DungeonMaster dmGary = dmBuilder.build();
+            lewdAIHandler.addPartner(dmGary).addPartner(dmAda);
+
+            builder.addCreature(dmAda).addCreature(dmGary);
+
+            LewdBed.Builder bedBuilder = LewdBed.Builder.getInstance().setCapacity(2)
+                    .setLewdProduct(new LewdBabyMaker()).addOccupant(dmGary).addOccupant(dmAda);
+            LewdBed bed = bedBuilder.build(null); // TODO: figure out this room
+            builder.addItem(bed);
+
+            return builder.build();
+        }
     }
 
-    DMRoom(String name, BattleManager.Builder battleManagerBuilder, String description) {
-        super(name, battleManagerBuilder, description);
+    DMRoom(DMRoomBuilder builder) {
+        super(builder.delegate);
+        this.dungeons = builder.dungeons;
         this.users = new HashSet<>();
-        this.dungeons = new ArrayList<>();
     }
 
     public boolean addDungeon(@NotNull Dungeon dungeon) {
@@ -60,7 +181,7 @@ public class DMRoom extends Room {
         if (this.filterCreatures(EnumSet.of(CreatureContainer.Filters.TYPE), null, null, null, null,
                 DungeonMaster.class, null).size() < 2) {
             // shunt
-            return this.addNewPlayer(new Player(user));
+            return this.addNewPlayer(Player.PlayerBuilder.getInstance(user).build());
         }
         boolean added = this.users.add(user);
         if (added) {
@@ -142,7 +263,7 @@ public class DMRoom extends Room {
                     }
                 }
                 Corpse corpse = (Corpse) maybeCorpse.get(); // TODO: actually use the corpse and get vocation
-                Player player = new Player(user, dmRoomEffect.getVocation());
+                Player player = Player.PlayerBuilder.getInstance(user).setVocation(dmRoomEffect.getVocation()).build();
                 this.removeItem(corpse);
                 this.addNewPlayer(player);
             }

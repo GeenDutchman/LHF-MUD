@@ -1,7 +1,7 @@
 package com.lhf.game.map;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import java.util.regex.PatternSyntaxException;
 
 import org.mockito.exceptions.misusing.UnfinishedStubbingException;
@@ -22,6 +22,7 @@ import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Usable;
+import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.magic.CubeHolder;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
@@ -43,39 +44,128 @@ import com.lhf.messages.out.TakeOutMessage.TakeOutType;
 import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 import com.lhf.server.client.user.UserID;
 
-public class Room
-        implements ItemContainer, CreatureContainer, MessageHandler, Comparable<Room>, AffectableEntity<RoomEffect> {
+public class Room implements Area {
     private UUID uuid = UUID.randomUUID();
     private List<Item> items;
     private String description;
     private String name;
     private BattleManager battleManager;
     private Set<Creature> allCreatures;
-    private Dungeon dungeon;
+    private Land dungeon;
     private transient TreeSet<RoomEffect> effects;
 
     private Map<CommandMessage, String> commands;
     private MessageHandler successor;
 
-    Room(String name, BattleManager.Builder battleManagerBuilder) {
-        this.name = name;
-        this.description = name;
-        this.init(battleManagerBuilder);
+    public static class RoomBuilder implements Area.AreaBuilder {
+        private Logger logger;
+        private String name;
+        private String description;
+        private List<Item> items;
+        private Set<Creature> creatures;
+        private Land dungeon;
+        private MessageHandler successor;
+        private BattleManager.Builder battleManagerBuilder;
+
+        private RoomBuilder() {
+            this.logger = Logger.getLogger(this.getClass().getName());
+            this.name = "A Room";
+            this.description = "An area that Creatures and Items can be in";
+            this.items = new ArrayList<>();
+            this.creatures = new HashSet<>();
+            this.battleManagerBuilder = BattleManager.Builder.getInstance();
+        }
+
+        public static RoomBuilder getInstance() {
+            return new RoomBuilder();
+        }
+
+        public RoomBuilder setName(String name) {
+            this.name = name != null ? name : "A Room";
+            return this;
+        }
+
+        public RoomBuilder setDescription(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public RoomBuilder addItem(Item item) {
+            if (this.items == null) {
+                this.items = new ArrayList<>();
+            }
+            if (item != null) {
+                this.items.add(item);
+            }
+            return this;
+        }
+
+        public RoomBuilder addCreature(Creature creature) {
+            if (this.creatures == null) {
+                this.creatures = new HashSet<>();
+            }
+            if (creature != null) {
+                this.creatures.add(creature);
+            }
+            return this;
+        }
+
+        public RoomBuilder setDungeon(Land dungeon) {
+            this.dungeon = dungeon;
+            return this;
+        }
+
+        public RoomBuilder setSuccessor(MessageHandler successor) {
+            this.successor = successor;
+            return this;
+        }
+
+        @Override
+        public Collection<Creature> getCreatures() {
+            return this.getCreatures();
+        }
+
+        @Override
+        public String getDescription() {
+            return this.description;
+        }
+
+        @Override
+        public Land getLand() {
+            return this.dungeon;
+        }
+
+        @Override
+        public Collection<Item> getItems() {
+            return this.items;
+        }
+
+        @Override
+        public String getName() {
+            return this.name;
+        }
+
+        @Override
+        public MessageHandler getSuccessor() {
+            return this.successor;
+        }
+
+        @Override
+        public Room build() {
+            this.logger.info(() -> String.format("Building room '%s'", this.name));
+            return new Room(this);
+        }
     }
 
-    Room(String name, BattleManager.Builder battleManagerBuilder, String description) {
-        this.name = name;
-        this.description = description;
-        this.init(battleManagerBuilder);
-    }
-
-    private Room init(BattleManager.Builder battleManagerBuilder) {
-        this.items = new ArrayList<>();
-        this.battleManager = battleManagerBuilder.Build(this);
-        this.allCreatures = new HashSet<>();
-        this.commands = this.buildCommands();
-        this.effects = new TreeSet<>();
-        return this;
+    Room(RoomBuilder builder) {
+        this.name = builder.getName();
+        this.description = builder.getDescription() != null ? builder.getDescription() : builder.getName();
+        this.items = new ArrayList<>(builder.getItems());
+        this.allCreatures = new TreeSet<>(builder.getCreatures());
+        this.dungeon = builder.getLand();
+        this.successor = builder.getSuccessor();
+        this.battleManager = builder.battleManagerBuilder.Build(this);
+        this.buildCommands();
     }
 
     private Map<CommandMessage, String> buildCommands() {
@@ -117,8 +207,14 @@ public class Room
         return this.name;
     }
 
+    @Override
     public UUID getUuid() {
         return uuid;
+    }
+
+    @Override
+    public Land getLand() {
+        return this.dungeon;
     }
 
     @Override
@@ -131,11 +227,7 @@ public class Room
         c.setSuccessor(this);
         boolean added = this.allCreatures.add(c);
         if (added) {
-            if (this.dungeon != null) {
-                c.sendMsg(this.dungeon.seeRoomExits(this));
-            } else {
-                c.sendMsg(this.produceMessage());
-            }
+            c.sendMsg(this.produceMessage());
             this.announce(new RoomEnteredOutMessage(c), c.getName());
             if (this.allCreatures.size() > 1 && !this.commands.containsKey(CommandMessage.ATTACK)) {
                 StringJoiner sj = new StringJoiner(" ");
@@ -178,6 +270,7 @@ public class Room
         return false;
     }
 
+    @Override
     public Creature removeCreature(Creature c, Directions dir) {
         boolean removed = removeCreature(c);
         if (removed) {
@@ -214,12 +307,20 @@ public class Room
         return this.removeCreature(player);
     }
 
-    public void killPlayer(Player p) {
-        this.allCreatures.remove(p);
-        if (this.allCreatures.size() < 2) {
-            this.commands.remove(CommandMessage.ATTACK);
+    @Override
+    public boolean onCreatureDeath(Creature creature) {
+        boolean removed = this.removeCreature(creature);
+        if (removed) {
+            Corpse corpse = creature.die();
+            this.addItem(corpse);
+            for (String i : creature.getInventory().getItemList()) {
+                Item drop = creature.removeItem(i).get();
+                this.addItem(drop);
+            }
         }
-        dungeon.reincarnate(p);
+        removed = this.dungeon.onCreatureDeath(creature) || removed;
+
+        return removed;
     }
 
     @Override
@@ -286,7 +387,7 @@ public class Room
 
     @Override
     public String toString() {
-        SeeOutMessage seeOutMessage = this.produceMessage(true);
+        SeeOutMessage seeOutMessage = this.produceMessage(true, true);
         return seeOutMessage.toString();
     }
 
@@ -295,40 +396,14 @@ public class Room
         return "<description>" + this.description + "</description>";
     }
 
-    public SeeOutMessage produceMessage(boolean invisibleAlso) {
-        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
-        for (Creature c : this.allCreatures) {
-            if (c instanceof Player) {
-                seeOutMessage.addSeen(SeeCategory.PLAYER, c);
-            } else if (c instanceof Monster) {
-                seeOutMessage.addSeen(SeeCategory.MONSTER, c);
-            } else if (c instanceof NonPlayerCharacter) {
-                seeOutMessage.addSeen(SeeCategory.NPC, c);
-            } else {
-                seeOutMessage.addSeen(SeeCategory.CREATURE, c);
-            }
-        }
-        for (Item item : this.items) {
-            if (!item.checkVisibility() && !invisibleAlso) {
-                continue;
-            }
-            if (item instanceof Takeable) {
-                seeOutMessage.addSeen(item.checkVisibility() ? SeeCategory.TAKEABLE : SeeCategory.INVISIBLE_TAKEABLE,
-                        item);
-            } else {
-                seeOutMessage.addSeen(item.checkVisibility() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
-                        item);
-            }
-        }
+    @Override
+    public SeeOutMessage produceMessage(boolean seeInvisible, boolean seeDirections) {
+        SeeOutMessage seeOutMessage = Area.super.produceMessage(seeInvisible, seeDirections);
+
         if (this.battleManager.isBattleOngoing()) {
             seeOutMessage.addExtraInfo("There is a battle going on!");
         }
         return seeOutMessage;
-    }
-
-    @Override
-    public SeeOutMessage produceMessage() {
-        return this.produceMessage(false);
     }
 
     @Override
@@ -394,7 +469,7 @@ public class Room
 
     @Override
     public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
-        EnumMap<CommandMessage, String> gathered = MessageHandler.super.gatherHelp(ctx);
+        EnumMap<CommandMessage, String> gathered = Area.super.gatherHelp(ctx);
         if (ctx.getCreature() == null) {
             gathered.remove(CommandMessage.ATTACK);
             gathered.remove(CommandMessage.DROP);
@@ -437,7 +512,7 @@ public class Room
         if (handled) {
             return handled;
         }
-        return MessageHandler.super.handleMessage(ctx, msg);
+        return Area.super.handleMessage(ctx, msg);
     }
 
     protected Boolean handleAttack(CommandContext ctx, Command msg) {
@@ -621,9 +696,6 @@ public class Room
 
                 ctx.sendMsg(new SeeOutMessage("You couldn't find " + name + " to examine. "));
                 return true;
-            } else if (this.dungeon != null) {
-                ctx.sendMsg(this.dungeon.seeRoomExits(this));
-                return true;
             } else {
                 ctx.sendMsg(this.produceMessage());
                 return true;
@@ -718,14 +790,6 @@ public class Room
         }
         Room other = (Room) obj;
         return Objects.equals(name, other.name) && Objects.equals(uuid, other.uuid);
-    }
-
-    @Override
-    public int compareTo(Room o) {
-        if (this.equals(o)) {
-            return 0;
-        }
-        return this.uuid.compareTo(o.getUuid());
     }
 
 }

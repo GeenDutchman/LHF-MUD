@@ -3,6 +3,7 @@ package com.lhf.game.map;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.map.Room.RoomBuilder;
 
 public class DungeonEffect extends EntityEffect {
     protected String createdRoomName;

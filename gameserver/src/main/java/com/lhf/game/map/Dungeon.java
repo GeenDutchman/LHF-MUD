@@ -3,8 +3,6 @@ package com.lhf.game.map;
 import java.util.*;
 import java.util.Map.Entry;
 
-import com.lhf.game.AffectableEntity;
-import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
@@ -27,36 +25,50 @@ import com.lhf.messages.out.SpawnMessage;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.user.UserID;
 
-public class Dungeon implements CreatureContainer, MessageHandler, AffectableEntity<DungeonEffect> {
-    public class RoomAndDirs {
-        public final Room room;
+public class Dungeon implements Land {
+    public class AreaAndDirs implements Land.AreaDirectionalLinks {
+        public final Area room;
         public Map<Directions, Doorway> exits;
 
         // package private
-        RoomAndDirs(Room room) {
+        AreaAndDirs(Area room) {
             this.room = room;
             this.exits = new TreeMap<>();
         }
+
+        @Override
+        public Area getArea() {
+            return this.room;
+        }
+
+        @Override
+        public Map<Directions, Doorway> getExits() {
+            return this.exits;
+        }
     }
 
-    private Map<UUID, RoomAndDirs> mapping;
-    private Room startingRoom = null;
+    private Map<UUID, Land.AreaDirectionalLinks> mapping;
+    private Area startingRoom = null;
     private MessageHandler successor;
     private Map<CommandMessage, String> commands;
     private transient TreeSet<DungeonEffect> effects;
 
-    Dungeon() {
-        this.mapping = new TreeMap<>();
-        this.successor = null;
+    Dungeon(Land.LandBuilder builder) {
+        this.startingRoom = builder.getStartingArea();
+        this.mapping = builder.getAtlas();
+        this.successor = builder.getSuccessor();
         this.commands = this.buildCommands();
         this.effects = new TreeSet<>();
     }
 
-    Dungeon(MessageHandler successor) {
-        this.mapping = new TreeMap<>();
-        this.successor = successor;
-        this.commands = this.buildCommands();
-        this.effects = new TreeSet<>();
+    @Override
+    public Map<UUID, Land.AreaDirectionalLinks> getAtlas() {
+        return this.mapping;
+    }
+
+    @Override
+    public Area getStartingArea() {
+        return this.startingRoom;
     }
 
     private Map<CommandMessage, String> buildCommands() {
@@ -72,20 +84,6 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
     }
 
     @Override
-    public Collection<Creature> getCreatures() {
-        Set<Creature> creatures = new TreeSet<>();
-        if (this.startingRoom != null) {
-            creatures.addAll(this.startingRoom.getCreatures());
-        }
-        for (RoomAndDirs rAndD : this.mapping.values()) {
-            if (rAndD.room != null) {
-                creatures.addAll(rAndD.room.getCreatures());
-            }
-        }
-        return Collections.unmodifiableSet(creatures);
-    }
-
-    @Override
     public boolean addPlayer(Player player) {
         this.startingRoom.announce(new SpawnMessage(player.getColorTaggedName()));
         player.setSuccessor(this);
@@ -94,7 +92,7 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
 
     @Override
     public Optional<Player> removePlayer(UserID id) {
-        Room room = this.getPlayerRoom(id);
+        Area room = this.getPlayerArea(id);
         if (room == null) {
             return Optional.empty();
         }
@@ -106,38 +104,10 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
         return this.removePlayer(player.getId()).isPresent();
     }
 
-    public Room getPlayerRoom(UserID id) {
-        for (RoomAndDirs rAndD : this.mapping.values()) {
-            Optional<Player> found = rAndD.room.getPlayer(id);
-            if (found.isPresent()) {
-                return rAndD.room;
-            }
-        }
-        return null;
-    }
-
-    public Room getCreatureRoom(Creature creature) {
-        for (RoomAndDirs rAndD : this.mapping.values()) {
-            if (rAndD.room.hasCreature(creature)) {
-                return rAndD.room;
-            }
-        }
-        return null;
-    }
-
-    public Room getCreatureRoom(String name) {
-        for (RoomAndDirs rAndD : this.mapping.values()) {
-            if (rAndD.room.hasCreature(name, null)) {
-                return rAndD.room;
-            }
-        }
-        return null;
-    }
-
     @Override
     public Optional<Player> getPlayer(UserID id) {
-        for (RoomAndDirs rAndD : this.mapping.values()) {
-            Optional<Player> found = rAndD.room.getPlayer(id);
+        for (AreaDirectionalLinks rAndD : this.mapping.values()) {
+            Optional<Player> found = rAndD.getArea().getPlayer(id);
             if (found.isPresent()) {
                 return found;
             }
@@ -154,17 +124,17 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
 
     public boolean addCreature(Creature creature, UUID roomUUID) {
         if (this.mapping.containsKey(roomUUID)) {
-            RoomAndDirs roomAndDirs = this.mapping.get(roomUUID);
-            roomAndDirs.room.announce(new SpawnMessage(creature.getColorTaggedName()));
+            AreaDirectionalLinks roomAndDirs = this.mapping.get(roomUUID);
+            roomAndDirs.getArea().announce(new SpawnMessage(creature.getColorTaggedName()));
             creature.setSuccessor(this);
-            return roomAndDirs.room.addCreature(creature);
+            return roomAndDirs.getArea().addCreature(creature);
         }
         return false;
     }
 
     @Override
     public Optional<Creature> removeCreature(String name) {
-        Room room = this.getCreatureRoom(name);
+        Area room = this.getCreatureArea(name);
         if (room == null) {
             return Optional.empty();
         }
@@ -173,7 +143,7 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
 
     @Override
     public boolean removeCreature(Creature creature) {
-        Room room = this.getCreatureRoom(creature);
+        Area room = this.getCreatureArea(creature);
         if (room == null) {
             return false;
         }
@@ -182,8 +152,8 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
 
     @Override
     public Optional<Player> removePlayer(String name) {
-        for (RoomAndDirs rAndD : this.mapping.values()) {
-            Optional<Player> found = rAndD.room.removePlayer(name);
+        for (AreaDirectionalLinks rAndD : this.mapping.values()) {
+            Optional<Player> found = rAndD.getArea().removePlayer(name);
             if (found.isPresent()) {
                 return found;
             }
@@ -192,7 +162,7 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
     }
 
     public Set<UserID> getPlayersInRoom(UserID id) {
-        Collection<Creature> players = Objects.requireNonNull(getPlayerRoom(id)).getPlayers();
+        Collection<Creature> players = Objects.requireNonNull(getPlayerArea(id)).getPlayers();
         Set<UserID> ids = new TreeSet<>();
         players.forEach(player -> {
             if (player instanceof Player) {
@@ -202,16 +172,25 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
         return ids;
     }
 
-    void reincarnate(Player p) {
-        Player p2 = new Player(p.getUser());
-        addPlayer(p2);
-        p.sendMsg(new ReincarnateMessage(p.getColorTaggedName()));
-        p2.sendMsg(new SeeOutMessage(startingRoom));
+    @Override
+    public boolean onCreatureDeath(Creature creature) {
+        if (this.removeCreature(creature)) {
+            if (creature != null && creature instanceof Player) {
+                Player asPlayer = (Player) creature;
+                Player nextLife = Player.PlayerBuilder.getInstance(asPlayer.getUser()).build();
+                this.addPlayer(nextLife);
+                creature.sendMsg(new ReincarnateMessage(creature.getColorTaggedName()));
+                nextLife.sendMsg(new SeeOutMessage(startingRoom));
+
+            }
+            return true;
+        }
+        return false;
     }
 
     void setStartingRoom(Room r) {
         this.startingRoom = r;
-        this.mapping.putIfAbsent(r.getUuid(), new RoomAndDirs(r));
+        this.mapping.putIfAbsent(r.getUuid(), new AreaAndDirs(r));
         r.setDungeon(this);
         r.setSuccessor(this);
     }
@@ -222,11 +201,11 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
         }
         toAdd.setDungeon(this);
         toAdd.setSuccessor(this);
-        this.mapping.putIfAbsent(toAdd.getUuid(), new RoomAndDirs(toAdd));
+        this.mapping.putIfAbsent(toAdd.getUuid(), new AreaAndDirs(toAdd));
         return true;
     }
 
-    public RoomAndDirs getRoomExits(Room room) {
+    public AreaDirectionalLinks getRoomExits(Room room) {
         return this.mapping.get(room.getUuid());
     }
 
@@ -235,28 +214,28 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
             return false;
         }
         Doorway doorway = DoorwayFactory.createDoorway(type, toAdd, toExistingRoom, existing);
-        RoomAndDirs addedDirs = this.mapping.get(toAdd.getUuid());
-        if (addedDirs.exits.containsKey(toExistingRoom)) {
+        AreaDirectionalLinks addedDirs = this.mapping.get(toAdd.getUuid());
+        if (addedDirs.getExits().containsKey(toExistingRoom)) {
             return false;
         }
-        RoomAndDirs existingDirs = this.mapping.get(existing.getUuid());
-        if (existingDirs.exits.containsKey(toExistingRoom.opposite())) {
+        AreaDirectionalLinks existingDirs = this.mapping.get(existing.getUuid());
+        if (existingDirs.getExits().containsKey(toExistingRoom.opposite())) {
             return false;
         }
-        return addedDirs.exits.put(toExistingRoom, doorway) == null &&
-                existingDirs.exits.put(toExistingRoom.opposite(), doorway) == null;
+        return addedDirs.getExits().put(toExistingRoom, doorway) == null &&
+                existingDirs.getExits().put(toExistingRoom.opposite(), doorway) == null;
     }
 
     boolean connectRoomExclusiveOneWay(Room secretRoom, Directions toExistingRoom, Room existing) {
         if (!this.basicAddRoom(existing, secretRoom)) {
             return false;
         }
-        RoomAndDirs secretDirs = this.mapping.get(secretRoom.getUuid());
-        if (secretDirs.exits.containsKey(toExistingRoom)) {
+        AreaDirectionalLinks secretDirs = this.mapping.get(secretRoom.getUuid());
+        if (secretDirs.getExits().containsKey(toExistingRoom)) {
             return false;
         }
         Doorway onewayDoor = DoorwayFactory.createDoorway(DoorwayType.ONE_WAY, secretRoom, toExistingRoom, existing);
-        return secretDirs.exits.put(toExistingRoom, onewayDoor) == null;
+        return secretDirs.getExits().put(toExistingRoom, onewayDoor) == null;
     }
 
     public void announceToAllInRoom(Room room, OutMessage msg, String... deafened) {
@@ -295,27 +274,28 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
             }
             Room presentRoom = ctx.getRoom();
             if (this.mapping.containsKey(presentRoom.getUuid())) {
-                RoomAndDirs roomAndDirs = this.mapping.get(presentRoom.getUuid());
-                if (roomAndDirs.exits == null || roomAndDirs.exits.size() == 0
-                        || !roomAndDirs.exits.containsKey(toGo)
-                        || roomAndDirs.exits.get(toGo) == null) {
+                AreaDirectionalLinks roomAndDirs = this.mapping.get(presentRoom.getUuid());
+                Map<Directions, Doorway> exits = roomAndDirs.getExits();
+                if (exits == null || exits.size() == 0
+                        || !exits.containsKey(toGo)
+                        || exits.get(toGo) == null) {
                     ctx.sendMsg(new BadGoMessage(BadGoType.DNE, toGo));
                     return true;
                 }
-                Doorway doorway = roomAndDirs.exits.get(toGo);
+                Doorway doorway = exits.get(toGo);
                 if (!doorway.canTraverse(ctx.getCreature(), toGo)) {
-                    ctx.sendMsg(new BadGoMessage(BadGoType.BLOCKED, toGo, roomAndDirs.exits.keySet()));
+                    ctx.sendMsg(new BadGoMessage(BadGoType.BLOCKED, toGo, exits.keySet()));
                     return true;
                 }
                 UUID nextRoomUuid = doorway.getRoomAccross(presentRoom.getUuid());
-                RoomAndDirs nextRandD = this.mapping.get(nextRoomUuid);
+                AreaDirectionalLinks nextRandD = this.mapping.get(nextRoomUuid);
                 if (nextRoomUuid == null || nextRandD == null) {
-                    ctx.sendMsg(new BadGoMessage(BadGoType.DNE, toGo, roomAndDirs.exits.keySet()));
+                    ctx.sendMsg(new BadGoMessage(BadGoType.DNE, toGo, exits.keySet()));
                     return true;
                 }
-                Room nextRoom = nextRandD.room;
+                Area nextRoom = nextRandD.getArea();
                 if (nextRoom == null) {
-                    ctx.sendMsg(new BadGoMessage(BadGoType.DNE, toGo, roomAndDirs.exits.keySet()));
+                    ctx.sendMsg(new BadGoMessage(BadGoType.DNE, toGo, exits.keySet()));
                     return true;
                 }
 
@@ -331,30 +311,14 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
         return false;
     }
 
-    public SeeOutMessage seeRoomExits(Room room) {
-        if (room == null) {
-            return new SeeOutMessage("You are not in a room, so you can't see much.");
-        }
-        SeeOutMessage roomSeen = room.produceMessage();
-        if (this.mapping.containsKey(room.getUuid())) {
-            RoomAndDirs rAndD = this.mapping.get(room.getUuid());
-            if (rAndD.exits != null) {
-                for (Directions dir : rAndD.exits.keySet()) {
-                    roomSeen.addSeen(SeeCategory.DIRECTION, dir);
-                }
-            }
-        } else {
-            roomSeen.addExtraInfo("But this room is not in a proper dungeon.");
-        }
-        return roomSeen;
-    }
-
     private Boolean handleSee(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SEE) {
             Room presentRoom = ctx.getRoom();
-            SeeOutMessage roomSeen = this.seeRoomExits(presentRoom);
-            ctx.sendMsg(roomSeen);
-            return true;
+            if (presentRoom != null) {
+                SeeOutMessage roomSeen = presentRoom.produceMessage();
+                ctx.sendMsg(roomSeen);
+                return true;
+            }
         }
         return false;
     }
@@ -381,7 +345,7 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
 
     @Override
     public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
-        EnumMap<CommandMessage, String> gathered = MessageHandler.super.gatherHelp(ctx);
+        EnumMap<CommandMessage, String> gathered = Land.super.gatherHelp(ctx);
         if (ctx.getCreature() == null) {
             gathered.remove(CommandMessage.SHOUT);
             gathered.remove(CommandMessage.GO);
@@ -406,7 +370,7 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
         if (performed) {
             return performed;
         }
-        return MessageHandler.super.handleMessage(ctx, msg);
+        return Land.super.handleMessage(ctx, msg);
     }
 
     @Override
@@ -448,11 +412,11 @@ public class Dungeon implements CreatureContainer, MessageHandler, AffectableEnt
             sb.append("```mermaid").append("\r\n");
         }
         sb.append("flowchart LR").append("\r\n");
-        for (RoomAndDirs roomAndDirs : this.mapping.values()) {
-            Room room = roomAndDirs.room;
+        for (AreaDirectionalLinks roomAndDirs : this.mapping.values()) {
+            Area room = roomAndDirs.getArea();
             String editUUID = room.getUuid().toString();
             sb.append("    ").append(editUUID).append("[").append(room.getName()).append("]\r\n");
-            for (Entry<Directions, Doorway> exits : roomAndDirs.exits.entrySet()) {
+            for (Entry<Directions, Doorway> exits : roomAndDirs.getExits().entrySet()) {
                 String otherUUID = exits.getValue().getRoomAccross(room.getUuid()).toString();
                 edges.append("    ").append(editUUID).append("-->|").append(exits.getKey().toString()).append("|")
                         .append(otherUUID).append("\r\n");
