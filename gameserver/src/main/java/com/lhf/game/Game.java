@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.vocation.Vocation;
@@ -14,7 +15,6 @@ import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
-import com.lhf.game.map.RoomBuilder;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -41,12 +41,9 @@ public class Game implements UserListener, MessageHandler {
 		this.aiRunner = new GroupAIRunner(true);
 		this.thirdPower = new ThirdPower(this, null);
 		Dungeon dungeon = DungeonBuilder.buildStaticDungeon(null, this.aiRunner);
-		RoomBuilder roomBuilder = RoomBuilder.getInstance();
-		roomBuilder.setDungeon(dungeon);
-		roomBuilder.setName("Control Room");
-		roomBuilder.setDescription("There are a lot of buttons and screens in here.  It looks like a home office.");
-		roomBuilder.setSuccessor(this.thirdPower);
-		this.controlRoom = roomBuilder.buildDmRoom(this.aiRunner);
+		this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(aiRunner, new ConversationManager());
+		this.controlRoom.addDungeon(dungeon);
+		this.controlRoom.setSuccessor(this.thirdPower);
 		this.successor = server;
 		this.server = server;
 		if (this.server != null) {
@@ -61,12 +58,9 @@ public class Game implements UserListener, MessageHandler {
 		this.logger = Logger.getLogger(this.getClass().getName());
 		this.aiRunner = aiRunner;
 		this.thirdPower = new ThirdPower(this, null);
-		RoomBuilder roomBuilder = RoomBuilder.getInstance();
-		roomBuilder.setDungeon(dungeon);
-		roomBuilder.setName("Control Room");
-		roomBuilder.setDescription("There are a lot of buttons and screens in here.  It looks like a home office.");
-		roomBuilder.setSuccessor(this.thirdPower);
-		this.controlRoom = roomBuilder.buildDmRoom(this.aiRunner);
+		this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(aiRunner, new ConversationManager());
+		this.controlRoom.addDungeon(dungeon);
+		this.controlRoom.setSuccessor(this.thirdPower);
 		this.successor = server;
 		this.server = server;
 		if (this.server != null) {
@@ -92,7 +86,9 @@ public class Game implements UserListener, MessageHandler {
 		if (vocationRequest != null && vocationRequest.length() > 0) {
 			Vocation selected = VocationFactory.getVocation(vocationRequest);
 			if (selected != null) {
-				Player player = new Player(user, selected);
+				Player.PlayerBuilder builder = Player.PlayerBuilder.getInstance(user);
+				builder.setVocation(selected);
+				Player player = builder.build();
 				this.controlRoom.addNewPlayer(player);
 				return;
 			}

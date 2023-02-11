@@ -98,6 +98,11 @@ public class FIFOInitiative implements Initiative {
     }
 
     @Override
+    public boolean onCreatureDeath(Creature creature) {
+        return this.removeCreature(creature);
+    }
+
+    @Override
     public boolean addPlayer(Player player) {
         return this.addCreature(player);
     }
