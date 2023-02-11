@@ -21,7 +21,7 @@ public class RingOfSeeing extends Equipable {
                 return true;
             } else if (object instanceof Room) {
                 Room seenRoom = (Room) object;
-                ctx.sendMsg(seenRoom.produceMessage(true));
+                ctx.sendMsg(seenRoom.produceMessage(true, true));
                 return true;
             }
             ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, null,
