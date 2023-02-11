@@ -26,6 +26,8 @@ public interface CreatureContainer extends Examinable {
      */
     public abstract Collection<Creature> getCreatures();
 
+    public abstract boolean onCreatureDeath(Creature creature);
+
     public abstract boolean addCreature(Creature creature);
 
     public abstract Optional<Creature> removeCreature(String name);
