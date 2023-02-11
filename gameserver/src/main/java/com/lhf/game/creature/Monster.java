@@ -15,23 +15,23 @@ public class Monster extends NonPlayerCharacter {
 
     private MonsterAI aiType;
 
-    public static class MonsterBuilder extends NonPlayerCharacter.NPCBuilder<MonsterBuilder> {
+    public static class MonsterBuilder extends NonPlayerCharacter.AbstractNPCBuilder<MonsterBuilder> {
         private boolean activelyHostile;
         private static long serialNumber = 0;
         private long monsterNumber = 0;
 
-        protected MonsterBuilder(AIRunner aiRunner) {
+        private MonsterBuilder(AIRunner aiRunner) {
             super(aiRunner);
             this.setFaction(CreatureFaction.MONSTER);
+        }
+
+        public static MonsterBuilder getInstance(AIRunner aiRunner) {
+            return new MonsterBuilder(aiRunner);
         }
 
         @Override
         protected MonsterBuilder getThis() {
             return this;
-        }
-
-        public static MonsterBuilder getInstance(AIRunner aiRunner) {
-            return new MonsterBuilder(aiRunner).getThis();
         }
 
         @Override
@@ -83,6 +83,10 @@ public class Monster extends NonPlayerCharacter {
         this.monsterNumber = builder.getMonsterNumber();
         this.aiType = MonsterAI.RANDOM;
         this.setFaction(CreatureFaction.MONSTER);
+    }
+
+    public static MonsterBuilder getMonsterBuilder(AIRunner aiRunner) {
+        return new MonsterBuilder(aiRunner);
     }
 
     @Override

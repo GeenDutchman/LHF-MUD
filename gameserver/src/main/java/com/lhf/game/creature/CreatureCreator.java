@@ -6,7 +6,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 
 import com.lhf.game.creature.Monster.MonsterBuilder;
-import com.lhf.game.creature.NonPlayerCharacter.NPCBuilder;
+import com.lhf.game.creature.NonPlayerCharacter.AbstractNPCBuilder;
 import com.lhf.game.creature.builder.CLIAdaptor;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
@@ -121,7 +121,7 @@ public class CreatureCreator {
     }
 
     public static NonPlayerCharacter makeNPC() {
-        NonPlayerCharacter.NPCBuilder builder = NPCBuilder.getInstance(CreatureCreator.aiRunner);
+        NonPlayerCharacter.NPCBuilder builder = NonPlayerCharacter.getNPCBuilder(aiRunner);
 
         return builder.build();
     }

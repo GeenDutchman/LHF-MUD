@@ -47,6 +47,10 @@ public class Player extends Creature {
         this.user.setSuccessor(this);
     }
 
+    public static PlayerBuilder getPlayerBuilder(User user) {
+        return new PlayerBuilder(user);
+    }
+
     @Override
     public void restoreFaction() {
         this.setFaction(CreatureFaction.PLAYER);
