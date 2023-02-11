@@ -75,6 +75,20 @@ public class NonPlayerCharacter extends Creature {
             return this.getThis();
         }
 
+        public T setConversationTree(ConversationManager manager, String name) {
+            if (name != null && manager != null) {
+                try {
+                    this.conversationTree = manager.convoTreeFromFile(name);
+                } catch (FileNotFoundException e) {
+                    System.err.println("Cannot load that convo file");
+                    e.printStackTrace();
+                }
+            } else {
+                this.conversationTree = null;
+            }
+            return this.getThis();
+        }
+
         public ConversationTree getConversationTree() {
             return this.conversationTree;
         }
