@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
-import com.lhf.game.CreatureContainer;
+import com.lhf.game.CreatureContainerMessageHandler;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
@@ -16,8 +16,7 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
-import com.lhf.game.item.concrete.Corpse;
-import com.lhf.game.map.Room;
+import com.lhf.game.map.Area;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -30,14 +29,14 @@ import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
 
-public class BattleManager implements CreatureContainer, MessageHandler, Runnable {
+public class BattleManager implements CreatureContainerMessageHandler, Runnable {
 
     private Semaphore turnBarrier;
     private final int turnBarrierWaitCount;
     private final TimeUnit turnBarrierWaitUnit;
     private Thread selfThread;
     private Initiative participants;
-    private Room room;
+    private Area room;
     private AtomicBoolean isHappening;
     private MessageHandler successor;
     private Map<CommandMessage, String> interceptorCmds;
@@ -74,12 +73,12 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
             return this;
         }
 
-        public BattleManager Build(Room room) {
+        public BattleManager Build(Area room) {
             return new BattleManager(room, this);
         }
     }
 
-    public BattleManager(Room room, Builder builder) {
+    public BattleManager(Area room, Builder builder) {
         this.participants = builder.initiativeBuilder.Build();
         this.room = room;
         this.successor = this.room;
@@ -370,6 +369,13 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
         }
     }
 
+    @Override
+    public boolean onCreatureDeath(Creature creature) {
+        boolean removed = this.removeCreature(creature);
+        removed = this.room.onCreatureDeath(creature) || removed;
+        return removed;
+    }
+
     private void clearDead() {
         List<Creature> dead = new ArrayList<>();
         for (Creature c : this.participants.getCreatures()) {
@@ -378,21 +384,7 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
             }
         }
         for (Creature c : dead) {
-            removeCreature(c);
-            Corpse corpse = c.die();
-            room.addItem(corpse);
-
-            for (String i : c.getInventory().getItemList()) {
-                Item drop = c.removeItem(i).get();
-                room.addItem(drop);
-            }
-
-            if (c instanceof Player) {
-                Player p = (Player) c;
-                room.killPlayer(p);
-            } else {
-                room.removeCreature(c);
-            }
+            this.onCreatureDeath(c);
         }
     }
 
@@ -551,7 +543,7 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
 
     @Override
     public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
-        EnumMap<CommandMessage, String> gathered = MessageHandler.super.gatherHelp(ctx);
+        EnumMap<CommandMessage, String> gathered = CreatureContainerMessageHandler.super.gatherHelp(ctx);
         if (ctx.getCreature() == null) {
             gathered.remove(CommandMessage.ATTACK);
             gathered.remove(CommandMessage.DROP);
@@ -598,7 +590,7 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
                 return handled;
             }
         }
-        return MessageHandler.super.handleMessage(ctx, msg);
+        return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
     }
 
     private boolean handleUse(CommandContext ctx, Command msg) {
@@ -643,7 +635,7 @@ public class BattleManager implements CreatureContainer, MessageHandler, Runnabl
             this.room.announce(new FleeMessage(ctx.getCreature(), false, result, true),
                     ctx.getCreature().getName());
         }
-        return MessageHandler.super.handleMessage(ctx, msg);
+        return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
     }
 
     /**
