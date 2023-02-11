@@ -7,5 +7,7 @@ public interface Examinable {
 
     String printDescription();
 
-    SeeOutMessage produceMessage();
+    default SeeOutMessage produceMessage() {
+        return new SeeOutMessage(this);
+    }
 }
