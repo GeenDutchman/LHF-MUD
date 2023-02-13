@@ -141,7 +141,7 @@ public abstract class Creature
         }
 
         public Statblock getStatblock() {
-            if (this.statblock == null && this.vocation != null) {
+            if (this.vocation != null) {
                 this.statblock = this.vocation.createNewDefaultStatblock("creature");
             } else if (this.statblock == null) {
                 this.statblock = new Statblock();
@@ -181,6 +181,8 @@ public abstract class Creature
 
         this.effects = new TreeSet<>();
         this.statblock = builder.getStatblock();
+        this.controller = builder.getController();
+        this.successor = builder.getSuccessor();
 
         // We don't start them in battle
         this.inBattle = false;

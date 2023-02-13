@@ -20,7 +20,6 @@ import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.ReincarnateMessage;
 import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.SpawnMessage;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.user.UserID;
@@ -57,6 +56,13 @@ public class Dungeon implements Land {
         this.startingRoom = builder.getStartingArea();
         this.mapping = builder.getAtlas();
         this.successor = builder.getSuccessor();
+        for (AreaDirectionalLinks links : this.mapping.values()) {
+            Area area = links.getArea();
+            if (area != null) {
+                area.setLand(this);
+                area.setSuccessor(this);
+            }
+        }
         this.commands = this.buildCommands();
         this.effects = new TreeSet<>();
     }
@@ -203,10 +209,6 @@ public class Dungeon implements Land {
         toAdd.setSuccessor(this);
         this.mapping.putIfAbsent(toAdd.getUuid(), new AreaAndDirs(toAdd));
         return true;
-    }
-
-    public AreaDirectionalLinks getRoomExits(Room room) {
-        return this.mapping.get(room.getUuid());
     }
 
     boolean connectRoom(DoorwayType type, Room toAdd, Directions toExistingRoom, Room existing) {

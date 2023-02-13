@@ -91,6 +91,8 @@ public class BasicAITest {
         CreatureAffectedMessage doneAttack = new CreatureAffectedMessage(victim.npc, effect);
         sendMsgAndWait(doneAttack, victim);
 
+        Mockito.verify(victim.sssb, Mockito.timeout(1000)).send(doneAttack);
+
         Truth.assertThat(victim.brain.getLastAttacker()).isEqualTo(attacker.npc);
         // verify that both attack effects got handled before reaching the final handler
         Mockito.verify(victim.mockedWrappedHandler, Mockito.after(100).never()).handleMessage(Mockito.any(),

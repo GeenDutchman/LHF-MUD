@@ -2,6 +2,7 @@ package com.lhf.game.magic;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -56,8 +57,10 @@ public class ThirdPower implements MessageHandler {
     private MessageHandler successor;
     private EnumMap<CommandMessage, String> cmds;
     private Spellbook spellbook;
+    private Logger logger;
 
     public ThirdPower(MessageHandler successor, Spellbook spellbook) {
+        this.logger = Logger.getLogger(this.getClass().getName());
         this.successor = successor;
         this.cmds = this.generateCommands();
         if (spellbook == null) {
@@ -182,9 +185,11 @@ public class ThirdPower implements MessageHandler {
         BattleManager battleManager = ctx.getBattleManager();
 
         if (spell.isOffensive() && battleManager != null && !battleManager.isBattleOngoing()) {
+            this.logger.info("This spell was offensive and started a battle");
             battleManager.startBattle(caster, null);
         }
 
+        this.logger.fine("Applying individual effects");
         for (RoomEffect effect : spell) {
             EffectResistance resistance = effect.getResistance();
             MultiRollResult casterResult = null;
@@ -210,9 +215,13 @@ public class ThirdPower implements MessageHandler {
         CastMessage casting = (CastMessage) msg;
         Creature caster = ctx.getCreature();
         Vocation casterVocation = caster.getVocation();
+        this.logger.info(() -> String.format("Handling cast of '%s' by '%s' who is a '%s'", casting.getInvocation(),
+                caster.getName(), casterVocation));
         NavigableSet<SpellEntry> foundByInvocation = this.filter(EnumSet.of(Filters.INVOCATION, Filters.VOCATION_NAME),
                 casterVocation != null ? casterVocation.getVocationName() : null, null, casting.getInvocation(), null);
         if (foundByInvocation.isEmpty()) {
+            this.logger.info(() -> String.format("Invocation by '%s' -> '%s' not found", caster.getName(),
+                    casting.getInvocation()));
             ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.MISPRONOUNCE, caster, true));
             if (ctx.getRoom() != null) {
                 ctx.getRoom().announce(new SpellFizzleMessage(SpellFizzleType.MISPRONOUNCE, caster, false));
@@ -220,6 +229,8 @@ public class ThirdPower implements MessageHandler {
             return true;
         }
         SpellEntry entry = foundByInvocation.first();
+        this.logger.info(() -> String.format("Invocation by '%s' -> '%s' found: '%s'", caster.getName(),
+                casting.getInvocation(), entry.getName()));
         BattleManager battleManager = ctx.getBattleManager();
         if (battleManager != null && battleManager.isBattleOngoing()) {
             if (!battleManager.checkTurn(caster)) {
@@ -237,13 +248,16 @@ public class ThirdPower implements MessageHandler {
             for (String targetName : casting.getTargets()) {
                 List<Creature> found = new ArrayList<>(ctx.getRoom().getCreaturesLike(targetName));
                 if (found.size() > 1 || found.size() == 0) {
+                    this.logger.fine(() -> String.format("Searching for '%s' got '%s'", targetName, found));
                     ctx.sendMsg(new BadTargetSelectedMessage(
                             found.size() > 1 ? BadTargetOption.UNCLEAR : BadTargetOption.NOTARGET, targetName, found));
                     return true;
                 }
-                possTargets.add(found.get(0));
+                this.logger.fine(() -> String.format("Target '%s' found and added",
+                        targetName));
             }
 
+            this.logger.fine("Casting creature targeting spell");
             int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
                     : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, possTargets);
@@ -283,6 +297,7 @@ public class ThirdPower implements MessageHandler {
                 }
             }
 
+            this.logger.fine("Casting AOE creature targeting spell");
             int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
                     : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, new ArrayList<>(targets));
@@ -294,16 +309,31 @@ public class ThirdPower implements MessageHandler {
                 ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
                 return true;
             }
+            this.logger.info(() -> String.format("Caster '%s' is affecting a DMRoom with spell '%s'", caster.getName(),
+                    entry.getName()));
 
             DMRoom dmRoom = (DMRoom) ctx.getRoom();
 
             DMRoomTargetingSpell spell = new DMRoomTargetingSpell((DMRoomTargetingSpellEntry) entry, caster);
 
-            // this is HORRIBLY HARDCODED
-            String target = casting.getByPreposition("at");
-            Taggable taggedTarget = dmRoom.getUser(target);
+            List<Taggable> taggedTargets = new ArrayList<>();
 
-            if (target != null) {
+            if (spell != null && spell.getTypedEntry().isEnsoulsUsers()) {
+                String target = casting.getByPreposition("at");
+                if (target == null) {
+                    this.logger.fine("No target found!");
+                    ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, target));
+                    return true;
+                }
+                Taggable foundUser = dmRoom.getUser(target);
+                if (foundUser == null) {
+                    this.logger.fine(() -> String.format("User '%s' is not in the DMRoom", target));
+                    ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
+                    return true;
+                }
+                taggedTargets.add(foundUser);
+                this.logger.fine(
+                        () -> String.format("Caster '%s' is targeting '%s' in the DMRoom", caster.getName(), target));
                 String vocationName = casting.getByPreposition("as");
                 Vocation vocation = VocationFactory.getVocation(vocationName);
                 if (vocation != null || vocationName != null) {
@@ -312,16 +342,14 @@ public class ThirdPower implements MessageHandler {
                     ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
                     return true;
                 }
-            } else if (taggedTarget == null && spell.getTypedEntry().isEnsoulsUsers()) {
-                ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, target));
-                return true;
             }
 
             // TODO: summons and banish
 
+            this.logger.fine("Casting DMRoom targeting spell");
             int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
                     : entry.getLevel();
-            CastingMessage castingMessage = entry.Cast(caster, level, List.of(taggedTarget));
+            CastingMessage castingMessage = entry.Cast(caster, level, taggedTargets);
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive());
 
             return this.affectRoom(ctx, spell);
@@ -335,6 +363,7 @@ public class ThirdPower implements MessageHandler {
 
             // TODO: summons and banish
 
+            this.logger.fine("Casting Room targeting spell");
             int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
                     : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, null);

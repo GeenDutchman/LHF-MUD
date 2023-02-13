@@ -12,7 +12,7 @@ import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.game.map.Room;
-import com.lhf.game.map.RoomBuilder;
+import com.lhf.game.map.Room.RoomBuilder;
 import com.lhf.messages.MessageMatcher;
 import com.lhf.messages.OutMessageType;
 
@@ -25,7 +25,7 @@ public class LewdBedTest {
     void testSolo() {
         AIComBundle first = new AIComBundle();
         Room room = this.builder.setName("Solo").addCreature(first.npc).build();
-        LewdBed bed = new LewdBed(room, 1, 30);
+        LewdBed bed = new LewdBed(room, LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30));
         room.addItem(bed);
 
         bed.addCreature(first.npc);
@@ -49,7 +49,7 @@ public class LewdBedTest {
         second.brain.addHandler(new LewdAIHandler(Set.of(first.npc)));
 
         Room room = this.builder.setName("Pair").addCreature(first.npc).addCreature(second.npc).build();
-        LewdBed bed = new LewdBed(room, 1, 30);
+        LewdBed bed = new LewdBed(room, LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30));
         room.addItem(bed);
 
         bed.addCreature(first.npc);
@@ -72,7 +72,7 @@ public class LewdBedTest {
         AIComBundle second = new AIComBundle();
 
         Room room = this.builder.setName("Spurned").addCreature(first.npc).addCreature(second.npc).build();
-        LewdBed bed = new LewdBed(room, 1, 30);
+        LewdBed bed = new LewdBed(room, LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30));
         room.addItem(bed);
 
         bed.addCreature(first.npc);
@@ -98,11 +98,12 @@ public class LewdBedTest {
         second.brain.addHandler(new LewdAIHandler(Set.of(first.npc)));
 
         Room room = this.builder.setName("Spurned").addCreature(first.npc).addCreature(second.npc).build();
-        LewdBed bed = new LewdBed(room, 1, 30).setLewdProduct(new LewdBabyMaker());
+        LewdBed bed = new LewdBed(room,
+                LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30).setLewdProduct(new LewdBabyMaker()));
         room.addItem(bed);
 
-        bed.addCreature(first.npc);
-        bed.addCreature(second.npc);
+        Truth.assertThat(bed.addCreature(first.npc)).isTrue();
+        Truth.assertThat(bed.addCreature(second.npc)).isTrue();
 
         String babyname = "veryuniquename";
 
@@ -115,5 +116,6 @@ public class LewdBedTest {
         Mockito.verify(second.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
 
         Truth.assertThat(room.getItem(babyname).isPresent()).isTrue();
+        Truth.assertThat(room.getItem(babyname).get()).isInstanceOf(Corpse.class);
     }
 }

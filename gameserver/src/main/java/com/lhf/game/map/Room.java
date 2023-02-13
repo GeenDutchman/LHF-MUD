@@ -7,15 +7,10 @@ import java.util.regex.PatternSyntaxException;
 import org.mockito.exceptions.misusing.UnfinishedStubbingException;
 
 import com.lhf.Examinable;
-import com.lhf.game.AffectableEntity;
-import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EntityEffect;
-import com.lhf.game.ItemContainer;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
-import com.lhf.game.creature.Monster;
-import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.Player;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.InteractObject;
@@ -39,7 +34,6 @@ import com.lhf.messages.out.*;
 import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.TakeOutMessage.TakeOutType;
 import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 import com.lhf.server.client.user.UserID;
@@ -122,7 +116,7 @@ public class Room implements Area {
 
         @Override
         public Collection<Creature> getCreatures() {
-            return this.getCreatures();
+            return this.creatures;
         }
 
         @Override
@@ -150,6 +144,40 @@ public class Room implements Area {
             return this.successor;
         }
 
+        protected Map<CommandMessage, String> buildCommands() {
+            StringJoiner sj = new StringJoiner(" ");
+            Map<CommandMessage, String> cmds = new EnumMap<>(CommandMessage.class);
+            sj.add("\"say [message]\"").add("Tells everyone in your current room your message").add("\r\n");
+            sj.add("\"say [message] to [name]\"")
+                    .add("Will tell a specific person somewhere in your current room your message.");
+            sj.add("If your message contains the word 'to', put your message in quotes like")
+                    .add("\"say 'They are taking the hobbits to Isengard' to Aragorn\"")
+                    .add("\r\n");
+            cmds.put(CommandMessage.SAY, sj.toString());
+            sj = new StringJoiner(" "); // clear
+            sj.add("\"see\"").add("Will give you some information about your surroundings.\r\n");
+            sj.add("\"see [name]\"").add("May tell you more about the object with that name.");
+            cmds.put(CommandMessage.SEE, sj.toString());
+            sj = new StringJoiner(" ");
+            sj.add("\"drop [itemname]\"").add("Drop an item that you have.").add("Like \"drop longsword\"");
+            cmds.put(CommandMessage.DROP, sj.toString());
+            sj = new StringJoiner(" ");
+            sj.add("\"use [itemname]\"").add("Uses an item that you have on yourself, if applicable.")
+                    .add("Like \"use potion\"").add("\r\n");
+            sj.add("\"use [itemname] on [otherthing]\"")
+                    .add("Uses an item that you have on something or someone else, if applicable.")
+                    .add("Like \"use potion on Bob\"");
+            cmds.put(CommandMessage.USE, sj.toString());
+            sj = new StringJoiner(" ");
+            sj.add("\"cast [invocation]\"").add("Casts the spell that has the matching invocation.").add("\n");
+            sj.add("\"cast [invocation] at [target]\"").add("Some spells need you to name a target.").add("\n");
+            sj.add("\"cast [invocation] use [level]\"").add(
+                    "Sometimes you want to put more power into your spell, so put a higher level number for the level.")
+                    .add("\n");
+            cmds.put(CommandMessage.CAST, sj.toString());
+            return cmds;
+        }
+
         @Override
         public Room build() {
             this.logger.info(() -> String.format("Building room '%s'", this.name));
@@ -162,44 +190,13 @@ public class Room implements Area {
         this.description = builder.getDescription() != null ? builder.getDescription() : builder.getName();
         this.items = new ArrayList<>(builder.getItems());
         this.allCreatures = new TreeSet<>(builder.getCreatures());
+        for (Creature c : this.allCreatures) {
+            c.setSuccessor(this);
+        }
         this.dungeon = builder.getLand();
         this.successor = builder.getSuccessor();
         this.battleManager = builder.battleManagerBuilder.Build(this);
-        this.buildCommands();
-    }
-
-    private Map<CommandMessage, String> buildCommands() {
-        StringJoiner sj = new StringJoiner(" ");
-        Map<CommandMessage, String> cmds = new EnumMap<>(CommandMessage.class);
-        sj.add("\"say [message]\"").add("Tells everyone in your current room your message").add("\r\n");
-        sj.add("\"say [message] to [name]\"")
-                .add("Will tell a specific person somewhere in your current room your message.");
-        sj.add("If your message contains the word 'to', put your message in quotes like")
-                .add("\"say 'They are taking the hobbits to Isengard' to Aragorn\"")
-                .add("\r\n");
-        cmds.put(CommandMessage.SAY, sj.toString());
-        sj = new StringJoiner(" "); // clear
-        sj.add("\"see\"").add("Will give you some information about your surroundings.\r\n");
-        sj.add("\"see [name]\"").add("May tell you more about the object with that name.");
-        cmds.put(CommandMessage.SEE, sj.toString());
-        sj = new StringJoiner(" ");
-        sj.add("\"drop [itemname]\"").add("Drop an item that you have.").add("Like \"drop longsword\"");
-        cmds.put(CommandMessage.DROP, sj.toString());
-        sj = new StringJoiner(" ");
-        sj.add("\"use [itemname]\"").add("Uses an item that you have on yourself, if applicable.")
-                .add("Like \"use potion\"").add("\r\n");
-        sj.add("\"use [itemname] on [otherthing]\"")
-                .add("Uses an item that you have on something or someone else, if applicable.")
-                .add("Like \"use potion on Bob\"");
-        cmds.put(CommandMessage.USE, sj.toString());
-        sj = new StringJoiner(" ");
-        sj.add("\"cast [invocation]\"").add("Casts the spell that has the matching invocation.").add("\n");
-        sj.add("\"cast [invocation] at [target]\"").add("Some spells need you to name a target.").add("\n");
-        sj.add("\"cast [invocation] use [level]\"").add(
-                "Sometimes you want to put more power into your spell, so put a higher level number for the level.")
-                .add("\n");
-        cmds.put(CommandMessage.CAST, sj.toString());
-        return cmds;
+        this.commands = builder.buildCommands();
     }
 
     @Override
@@ -215,6 +212,11 @@ public class Room implements Area {
     @Override
     public Land getLand() {
         return this.dungeon;
+    }
+
+    @Override
+    public void setLand(Land land) {
+        this.dungeon = land;
     }
 
     @Override

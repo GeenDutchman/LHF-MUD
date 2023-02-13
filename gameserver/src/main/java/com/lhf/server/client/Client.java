@@ -27,7 +27,8 @@ public class Client implements MessageHandler, ClientMessenger {
         this.id = new ClientID();
         this.logger = Logger
                 .getLogger(String.format("%s.%d", this.getClass().getName(), this.getClientID().hashCode()));
-        this.logger.finest("Creating Client");
+        this.logger.finest(
+                () -> String.format("Creating client %s.%d", this.getClass().getName(), this.getClientID().hashCode()));
         this._successor = null;
         this.out = null;
     }

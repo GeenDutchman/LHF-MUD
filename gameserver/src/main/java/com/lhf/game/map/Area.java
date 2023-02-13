@@ -43,6 +43,8 @@ public interface Area
 
     public abstract Land getLand();
 
+    public abstract void setLand(Land land);
+
     @Override
     default SeeOutMessage produceMessage() {
         return this.produceMessage(false, true);

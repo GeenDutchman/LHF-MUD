@@ -40,7 +40,7 @@ public class Game implements UserListener, MessageHandler {
 		this.logger = Logger.getLogger(this.getClass().getName());
 		this.aiRunner = new GroupAIRunner(true);
 		this.thirdPower = new ThirdPower(this, null);
-		Dungeon dungeon = DungeonBuilder.buildStaticDungeon(null, this.aiRunner);
+		Dungeon dungeon = DungeonBuilder.buildStaticDungeon(this.thirdPower, this.aiRunner);
 		this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(aiRunner, new ConversationManager());
 		this.controlRoom.addDungeon(dungeon);
 		this.controlRoom.setSuccessor(this.thirdPower);
@@ -88,6 +88,7 @@ public class Game implements UserListener, MessageHandler {
 			if (selected != null) {
 				Player.PlayerBuilder builder = Player.PlayerBuilder.getInstance(user);
 				builder.setVocation(selected);
+				builder.setController(user);
 				Player player = builder.build();
 				this.controlRoom.addNewPlayer(player);
 				return;

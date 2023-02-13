@@ -38,7 +38,7 @@ public class AIComBundle extends ComBundle implements MessageHandler {
         super();
         this.mockedWrappedHandler = Mockito.mock(MessageHandler.class);
 
-        this.npc = new NonPlayerCharacter();
+        this.npc = NonPlayerCharacter.getNPCBuilder(AIComBundle.getAIRunner()).build();
         this.brain = AIComBundle.getAIRunner().register(this.npc);
         brain.SetOut(this.sssb);
         this.npc.setController(this.brain);

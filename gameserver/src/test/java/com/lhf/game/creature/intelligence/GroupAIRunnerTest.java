@@ -22,7 +22,7 @@ public class GroupAIRunnerTest {
     @Test
     void testProcessLeavesSome() throws InterruptedException {
         GroupAIRunner runner = Mockito.spy(new GroupAIRunner(false, 2));
-        BasicAI qAi = runner.register(new NonPlayerCharacter());
+        BasicAI qAi = runner.register(NonPlayerCharacter.getNPCBuilder(runner).build());
         qAi.sendMsg(new SeeOutMessage("denied once"));
         qAi.sendMsg(new WelcomeMessage());
         qAi.sendMsg(new FatalMessage());

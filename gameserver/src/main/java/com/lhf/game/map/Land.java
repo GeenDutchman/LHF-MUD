@@ -1,5 +1,7 @@
 package com.lhf.game.map;
 
+import static org.mockito.ArgumentMatchers.nullable;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -37,12 +39,20 @@ public interface Land extends CreatureContainer, MessageHandler, AffectableEntit
 
     public abstract Area getStartingArea();
 
-    public default Map<Directions, Doorway> getAreaExits(Area area) {
+    public default AreaDirectionalLinks getAreaDirectionalLinks(Area area) {
         Map<UUID, AreaDirectionalLinks> atlas = this.getAtlas();
         if (atlas == null || atlas.size() == 0 || !atlas.containsKey(area.getUuid())) {
             return null;
         }
-        return atlas.get(area.getUuid()).getExits();
+        return atlas.get(area.getUuid());
+    }
+
+    public default Map<Directions, Doorway> getAreaExits(Area area) {
+        AreaDirectionalLinks links = this.getAreaDirectionalLinks(area);
+        if (links == null) {
+            return null;
+        }
+        return links.getExits();
     }
 
     public default Area getCreatureArea(Creature creature) {

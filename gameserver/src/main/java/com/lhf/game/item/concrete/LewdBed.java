@@ -37,6 +37,7 @@ public class LewdBed extends Bed {
         private LewdProduct lewdProduct;
 
         private Builder() {
+            this.subBuilder = Bed.Builder.getInstance();
             this.lewdProduct = null;
         }
 
