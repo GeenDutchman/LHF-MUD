@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
 import com.lhf.game.CreatureContainerMessageHandler;
@@ -29,15 +30,12 @@ import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
 
-public class BattleManager implements CreatureContainerMessageHandler, Runnable {
-
-    private Semaphore turnBarrier;
+public class BattleManager implements CreatureContainerMessageHandler {
     private final int turnBarrierWaitCount;
     private final TimeUnit turnBarrierWaitUnit;
-    private Thread selfThread;
+    private AtomicReference<BattleManagerThread> battleThread;
     private Initiative participants;
     private Area room;
-    private AtomicBoolean isHappening;
     private MessageHandler successor;
     private Map<CommandMessage, String> interceptorCmds;
     private Map<CommandMessage, String> cmds;
@@ -78,6 +76,82 @@ public class BattleManager implements CreatureContainerMessageHandler, Runnable 
         }
     }
 
+    private class BattleManagerThread extends Thread {
+        protected AtomicBoolean isRunning;
+        protected Logger threadLogger;
+        private Semaphore turnBarrier;
+
+        protected BattleManagerThread() {
+            this.isRunning = new AtomicBoolean(false);
+            this.threadLogger = Logger.getLogger(this.getClass().getName());
+            this.turnBarrier = new Semaphore(0);
+        }
+
+        public void run() {
+            this.threadLogger.info("Running");
+            BattleManager.this.participants.start();
+            this.isRunning.set(true);
+            while (this.isRunning.get()) {
+                Creature current = BattleManager.this.startTurn(threadLogger);
+                for (int poke = 0; poke <= BattleManager.this.getMaxPokesPerAction(); poke++) {
+                    try {
+                        threadLogger.finest(String.format("Waiting %d at turnBarrier for %s for %d %s", poke,
+                                current.getName(), BattleManager.this.getTurnWaitCount(),
+                                BattleManager.this.getTurnWaitUnit()));
+                        if (this.turnBarrier.tryAcquire(BattleManager.this.getTurnWaitCount(),
+                                BattleManager.this.getTurnWaitUnit())) {
+                            threadLogger.finest("Barrier passed");
+                            break;
+                        } else {
+                            threadLogger.warning(
+                                    String.format("Failed to acquire (%d) barrier for %s", poke, current.getName()));
+                            BattleManager.this.remindCurrent(threadLogger, poke, current);
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        BattleManager.this.endBattle();
+                        this.threadLogger.exiting(this.getClass().getName(), "run");
+                        return;
+                    }
+                }
+                BattleManager.this.clearDead();
+                if (!BattleManager.this.checkCompetingFactionsPresent()) {
+                    this.threadLogger.info(() -> String.format("No compteting factions found"));
+                    this.isRunning.set(false);
+                    threadLogger.exiting(this.getClass().getName(), "run()");
+                    return;
+                }
+                BattleManager.this.nextTurn(threadLogger);
+            }
+            threadLogger.exiting(this.getClass().getName(), "run()");
+        }
+
+        public boolean endTurn(Creature ender) {
+            if (ender == null) {
+                this.threadLogger.warning(() -> "A null creature cannot end their turn!");
+                return false;
+            }
+            if (BattleManager.this.checkTurn(ender)) {
+                this.threadLogger.finest(() -> String.format("%s has ended their turn", ender.getName()));
+                this.turnBarrier.release();
+                return true;
+            } else {
+                this.threadLogger.warning(() -> String.format("%s tried to end their turn, but it wasn't theirs to end",
+                        ender != null ? ender.getName() : "Someone unknown"));
+                return false;
+            }
+        }
+
+        public boolean getIsRunning() {
+            return this.isRunning.get() && this.isAlive();
+        }
+
+        protected void killIt() {
+            this.isRunning.set(false);
+        }
+
+    }
+
     public BattleManager(Area room, Builder builder) {
         this.participants = builder.initiativeBuilder.Build();
         this.room = room;
@@ -88,42 +162,10 @@ public class BattleManager implements CreatureContainerMessageHandler, Runnable 
     }
 
     private void init() {
-        isHappening = new AtomicBoolean(false);
         this.interceptorCmds = this.buildInterceptorCommands();
         this.cmds = this.buildCommands();
-        this.turnBarrier = new Semaphore(0);
-        this.selfThread = null;
+        this.battleThread = new AtomicReference<BattleManager.BattleManagerThread>(null);
         this.battleLogger = Logger.getLogger(this.getClass().getName());
-    }
-
-    public void run() {
-        Logger threadLogger = Logger.getLogger(this.battleLogger.getName() + ".thread");
-        threadLogger.info("Running");
-        this.participants.start();
-        while (this.isBattleOngoing()) {
-            Creature current = this.startTurn(threadLogger);
-            for (int poke = 0; poke <= this.getMaxPokesPerAction(); poke++) {
-                try {
-                    threadLogger.finest(String.format("Waiting %d at turnBarrier for %s for %d %s", poke,
-                            current.getName(), this.getTurnWaitCount(), this.getTurnWaitUnit()));
-                    if (this.turnBarrier.tryAcquire(this.getTurnWaitCount(), this.getTurnWaitUnit())) {
-                        threadLogger.finest("Barrier passed");
-                        break;
-                    } else {
-                        threadLogger.warning(
-                                String.format("Failed to acquire (%d) barrier for %s", poke, current.getName()));
-                        this.remindCurrent(threadLogger, poke, current);
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    this.endBattle();
-                    return;
-                }
-            }
-            this.clearDead();
-            this.nextTurn(threadLogger);
-        }
-        threadLogger.exiting(this.getClass().getName(), "run()");
     }
 
     private int getTurnWaitCount() {
@@ -197,7 +239,7 @@ public class BattleManager implements CreatureContainerMessageHandler, Runnable 
 
     @Override
     public String getName() {
-        return "Battle";
+        return this.room != null ? this.room.getName() + " Battle" : "Battle";
     }
 
     @Override
@@ -248,7 +290,12 @@ public class BattleManager implements CreatureContainerMessageHandler, Runnable 
             if (participants.addCreature(c)) {
                 c.setInBattle(true);
                 c.setSuccessor(this);
-                this.room.announce(new JoinBattleMessage(c, this.isBattleOngoing(), false), c.getName());
+                JoinBattleMessage joinedMessage = new JoinBattleMessage(c, this.isBattleOngoing(), false);
+                if (this.room != null) {
+                    this.room.announce(joinedMessage, c.getName());
+                } else {
+                    this.announce(joinedMessage, c.getName());
+                }
                 c.sendMsg(new JoinBattleMessage(c, this.isBattleOngoing(), true));
                 return true;
             }
@@ -308,11 +355,13 @@ public class BattleManager implements CreatureContainerMessageHandler, Runnable 
     }
 
     public boolean isBattleOngoing() {
-        return isHappening.get() && this.checkCompetingFactionsPresent();
+        BattleManagerThread thread = this.battleThread.get();
+        return thread != null && thread.getIsRunning() && this.checkCompetingFactionsPresent();
     }
 
-    public void startBattle(Creature instigator, Collection<Creature> victims) {
-        if (this.isHappening.compareAndSet(false, true)) {
+    public synchronized void startBattle(Creature instigator, Collection<Creature> victims) {
+        BattleManagerThread curThread = this.battleThread.get();
+        if (this.battleThread.get() == null || !curThread.getIsRunning()) {
             this.battleLogger.finer(() -> String.format("%s starts a fight", instigator.getName()));
             this.addCreature(instigator);
             if (victims != null) {
@@ -320,15 +369,19 @@ public class BattleManager implements CreatureContainerMessageHandler, Runnable 
                     this.addCreature(c);
                 }
             }
-            this.room.announce(new StartFightMessage(instigator, false));
+            if (this.room != null) {
+                this.room.announce(new StartFightMessage(instigator, false));
+            }
             this.participants.announce(new StartFightMessage(instigator, true));
             // if someone started a fight, no need to prompt them for their turn
+            BattleManagerThread thread = new BattleManagerThread();
             this.battleLogger.info("Starting thread");
-            this.selfThread = new Thread(this);
-            this.selfThread.run();
+            thread.start();
+            this.battleThread.set(thread);
         } else {
             this.battleLogger
-                    .warning(() -> String.format("%s tried to start an already started fight", instigator.getName()));
+                    .warning(() -> String.format("%s tried to start an already started fight",
+                            instigator.getName()));
         }
     }
 
@@ -336,8 +389,13 @@ public class BattleManager implements CreatureContainerMessageHandler, Runnable 
         this.battleLogger.info("Ending battle");
         this.participants.announce(new FightOverMessage(true));
         this.participants.stop();
-        this.room.announce(new FightOverMessage(false));
-        this.isHappening.set(false);
+        if (this.room != null) {
+            this.room.announce(new FightOverMessage(false));
+        }
+        BattleManagerThread thread = this.battleThread.get();
+        if (thread != null) {
+            thread.killIt();
+        }
     }
 
     private Creature nextTurn(Logger logger) {
@@ -358,21 +416,24 @@ public class BattleManager implements CreatureContainerMessageHandler, Runnable 
     }
 
     public boolean endTurn(Creature ender) {
-        if (this.checkTurn(ender)) {
-            this.battleLogger.finest(() -> String.format("%s has ended their turn", ender.getName()));
-            this.turnBarrier.release();
-            return true;
-        } else {
-            this.battleLogger.warning(() -> String.format("%s tried to end their turn, but it wasn't theirs to end",
-                    ender != null ? ender.getName() : "Someone unknown"));
+        if (ender == null) {
+            this.battleLogger.warning(() -> "A null creature cannot end their turn!");
             return false;
         }
+        BattleManagerThread thread = this.battleThread.get();
+        if (thread != null) {
+            return thread.endTurn(ender);
+        }
+        this.battleLogger.warning(() -> "There is no current battle");
+        return false;
     }
 
     @Override
     public boolean onCreatureDeath(Creature creature) {
         boolean removed = this.removeCreature(creature);
-        removed = this.room.onCreatureDeath(creature) || removed;
+        if (this.room != null) {
+            removed = this.room.onCreatureDeath(creature) || removed;
+        }
         return removed;
     }
 
@@ -398,7 +459,12 @@ public class BattleManager implements CreatureContainerMessageHandler, Runnable 
         if (!CreatureFaction.RENEGADE.equals(turned.getFaction())) {
             turned.setFaction(CreatureFaction.RENEGADE);
             turned.sendMsg(new RenegadeAnnouncement());
-            room.announce(new RenegadeAnnouncement(turned), turned.getName());
+            RenegadeAnnouncement announcement = new RenegadeAnnouncement(turned);
+            if (this.room != null) {
+                room.announce(announcement, turned.getName());
+            } else {
+                this.announce(announcement, turned.getName());
+            }
         }
     }
 
@@ -527,7 +593,7 @@ public class BattleManager implements CreatureContainerMessageHandler, Runnable 
     @Override
     public Map<CommandMessage, String> getCommands() {
         Map<CommandMessage, String> collected = this.cmds;
-        if (this.isHappening.get()) {
+        if (this.isBattleOngoing()) {
             collected.putAll(this.interceptorCmds);
         }
         return Collections.unmodifiableMap(collected);
@@ -561,14 +627,15 @@ public class BattleManager implements CreatureContainerMessageHandler, Runnable 
         Boolean handled = false;
         ctx = this.addSelfToContext(ctx);
         if (ctx.getCreature() == null) {
-            ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.room.gatherHelp(ctx), msg));
+            ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY,
+                    this.room != null ? this.room.gatherHelp(ctx) : this.gatherHelp(ctx), msg));
             return true;
         }
         if (type != null) {
             if (type == CommandMessage.ATTACK) {
                 AttackMessage aMessage = (AttackMessage) msg;
                 handled = handleAttack(ctx, aMessage);
-            } else if (this.isHappening.get() && ctx.getCreature().isInBattle()
+            } else if (this.isBattleOngoing() && ctx.getCreature().isInBattle()
                     && this.interceptorCmds.containsKey(type)) {
                 if (type == CommandMessage.SEE) {
                     handled = this.handleSee(ctx, msg);
@@ -614,7 +681,10 @@ public class BattleManager implements CreatureContainerMessageHandler, Runnable 
             SeeMessage seeMessage = (SeeMessage) msg;
             if (seeMessage.getThing() != null) {
                 ctx.setBattleManager(this);
-                return this.room.handleMessage(ctx, msg);
+                if (this.room != null) {
+                    return this.room.handleMessage(ctx, msg);
+                }
+                return false;
             }
             ctx.sendMsg(this.produceMessage());
             return true;
@@ -628,12 +698,20 @@ public class BattleManager implements CreatureContainerMessageHandler, Runnable 
             MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
             if (result.getRoll() < check) {
                 ctx.sendMsg(new FleeMessage(ctx.getCreature(), true, result, false));
-                this.room.announce(new FleeMessage(ctx.getCreature(), false, result, false),
-                        ctx.getCreature().getName());
+                FleeMessage fleeAnnouncement = new FleeMessage(ctx.getCreature(), false, result, false);
+                if (this.room != null) {
+                    this.room.announce(fleeAnnouncement, ctx.getCreature().getName());
+                } else {
+                    this.announce(fleeAnnouncement, ctx.getCreature().getName());
+                }
                 return true;
             }
-            this.room.announce(new FleeMessage(ctx.getCreature(), false, result, true),
-                    ctx.getCreature().getName());
+            FleeMessage fleeMessage = new FleeMessage(ctx.getCreature(), false, result, true);
+            if (this.room != null) {
+                this.room.announce(fleeMessage, ctx.getCreature().getName());
+            } else {
+                this.announce(fleeMessage, ctx.getCreature().getName());
+            }
         }
         return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
     }
@@ -759,6 +837,9 @@ public class BattleManager implements CreatureContainerMessageHandler, Runnable 
     public void callReinforcements(@NotNull Creature attackingCreature, @NotNull Creature targetCreature) {
         if (targetCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(targetCreature.getFaction())) {
             targetCreature.sendMsg(new ReinforcementsCall(targetCreature, true));
+            return;
+        }
+        if (this.room == null) {
             return;
         }
         int count = this.participants.size();
