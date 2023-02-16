@@ -8,6 +8,8 @@ import com.lhf.game.creature.Creature;
 interface Initiative extends CreatureContainer {
 
     public interface Builder {
+        public abstract boolean addCreature(Creature joiner);
+
         public abstract Initiative Build();
     }
 
@@ -28,5 +30,9 @@ interface Initiative extends CreatureContainer {
     public void stop();
 
     public Creature nextTurn();
+
+    public int getRoundCount();
+
+    public int getTurnCount();
 
 }

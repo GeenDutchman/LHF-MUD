@@ -2,7 +2,9 @@ package com.lhf.game.battle;
 
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.logging.Logger;
 
@@ -16,7 +18,10 @@ public class FIFOInitiative implements Initiative {
 
     public static class Builder implements Initiative.Builder {
 
+        protected Set<Creature> creatures;
+
         private Builder() {
+            this.creatures = new HashSet<>();
         }
 
         public static Builder getInstance() {
@@ -25,15 +30,27 @@ public class FIFOInitiative implements Initiative {
 
         @Override
         public Initiative Build() {
-            return new FIFOInitiative();
+            return new FIFOInitiative(this);
+        }
+
+        @Override
+        public boolean addCreature(Creature joiner) {
+            return this.creatures.add(joiner);
         }
 
     }
 
     private Deque<Creature> participants;
+    private int roundCount;
+    private int turnCount;
 
-    public FIFOInitiative() {
+    public FIFOInitiative(FIFOInitiative.Builder builder) {
         this.participants = new ConcurrentLinkedDeque<>();
+        for (Creature included : builder.creatures) {
+            this.addCreature(included);
+        }
+        this.roundCount = -1;
+        this.turnCount = -1;
     }
 
     @Override
@@ -46,6 +63,12 @@ public class FIFOInitiative implements Initiative {
         StringBuilder sb = new StringBuilder();
         if (this.isRunning()) {
             sb.append("The battle is on! ");
+            if (this.getRoundCount() > 0) {
+                sb.append(String.format(" It is Round: %d. ", this.getRoundCount()));
+            }
+            if (this.getTurnCount() > 0) {
+                sb.append(String.format(" It is the %d turn in the Round. ", this.getTurnCount()));
+            }
         } else {
             sb.append("There is no fight right now. ");
         }
@@ -74,7 +97,7 @@ public class FIFOInitiative implements Initiative {
     }
 
     @Override
-    public Creature getCurrent() {
+    public synchronized Creature getCurrent() {
         return this.participants.peekFirst();
     }
 
@@ -142,6 +165,8 @@ public class FIFOInitiative implements Initiative {
     @Override
     public void start() {
         Logger.getLogger(this.getClass().getName()).finest(() -> "Starting initiative!");
+        this.roundCount = 1;
+        this.turnCount = 1;
     }
 
     @Override
@@ -150,15 +175,32 @@ public class FIFOInitiative implements Initiative {
         for (Creature creature : this.getCreatures()) {
             this.removeCreature(creature);
         }
+        this.roundCount = -1;
+        this.turnCount = -1;
     }
 
     @Override
-    public Creature nextTurn() {
+    public synchronized Creature nextTurn() {
         Creature current = this.participants.pollFirst();
         if (current != null) {
             this.participants.offerLast(current);
         }
+        this.turnCount++;
+        if (this.turnCount >= this.participants.size()) {
+            this.roundCount++;
+            this.turnCount = 1;
+        }
         return this.getCurrent();
+    }
+
+    @Override
+    public int getRoundCount() {
+        return this.roundCount;
+    }
+
+    @Override
+    public int getTurnCount() {
+        return this.turnCount;
     }
 
 }
