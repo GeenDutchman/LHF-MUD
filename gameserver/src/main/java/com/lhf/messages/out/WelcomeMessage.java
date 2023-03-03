@@ -5,8 +5,36 @@ import java.util.StringJoiner;
 import com.lhf.messages.OutMessageType;
 
 public class WelcomeMessage extends OutMessage {
-    public WelcomeMessage() {
-        super(OutMessageType.WELCOME);
+
+    protected static abstract class AbstractBuilder<T extends AbstractBuilder<T>> extends OutMessage.Builder<T> {
+
+        protected AbstractBuilder(OutMessageType type) {
+            super(type);
+        }
+
+        protected AbstractBuilder() {
+            super(OutMessageType.WELCOME);
+        }
+    }
+
+    public static class Builder extends AbstractBuilder<Builder> {
+
+        protected Builder() {
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public OutMessage Build() {
+            return new WelcomeMessage(this);
+        }
+    }
+
+    public WelcomeMessage(AbstractBuilder<?> builder) {
+        super(builder);
     }
 
     public String toString() {
@@ -20,5 +48,10 @@ public class WelcomeMessage extends OutMessage {
         sj.add("<command>exit</command>");
 
         return sj.toString();
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 }

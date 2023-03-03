@@ -5,34 +5,85 @@ import com.lhf.game.dice.MultiRollResult;
 import com.lhf.messages.OutMessageType;
 
 public class FleeMessage extends OutMessage {
-    private Creature runner;
-    private boolean runnerAddressed;
-    private MultiRollResult roll;
-    private boolean fled;
+    private final Creature runner;
+    private final MultiRollResult roll;
+    private final boolean fled;
 
-    public FleeMessage(Creature runner, boolean runnerAddressed, MultiRollResult roll, boolean fled) {
-        super(OutMessageType.FLEE);
-        this.runner = runner;
-        this.runnerAddressed = runnerAddressed;
-        this.roll = roll;
-        this.fled = fled;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private Creature runner;
+        private MultiRollResult roll;
+        private boolean fled;
+
+        protected Builder() {
+            super(OutMessageType.FLEE);
+        }
+
+        public Creature getRunner() {
+            return runner;
+        }
+
+        public Builder setRunner(Creature runner) {
+            this.runner = runner;
+            return this;
+        }
+
+        public MultiRollResult getRoll() {
+            return roll;
+        }
+
+        public Builder setRoll(MultiRollResult roll) {
+            this.roll = roll;
+            return this;
+        }
+
+        public boolean isFled() {
+            return fled;
+        }
+
+        public Builder setFled(boolean fled) {
+            this.fled = fled;
+            return this;
+        }
+
+        @Override
+        public OutMessage Build() {
+            return new FleeMessage(this);
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+    }
+
+    public FleeMessage(Builder builder) {
+        super(builder);
+        this.runner = builder.getRunner();
+        this.roll = builder.getRoll();
+        this.fled = builder.isFled();
     }
 
     @Override
     public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.addressCreature(this.runner));
         if (this.fled) {
-            if (this.runnerAddressed) {
-                return "You successfully " + this.roll.getColorTaggedName() + " fled the battle!";
-            } else {
-                return this.runner.getColorTaggedName() + " flees " + this.roll.getColorTaggedName() + " the battle!";
-            }
+            sb.append(" successfully fled from the battle");
         } else {
-            if (this.runnerAddressed) {
-                return "You were not " + roll.getColorTaggedName() + " able to flee.";
-            } else {
-                return this.runner.getColorTaggedName() + " attempted " + roll.getColorTaggedName() + " to flee!";
-            }
+            sb.append(" attempted fleeing from the battle, but failed");
         }
+        if (!this.isBroadcast() && this.roll != null) {
+            sb.append(" ").append(this.roll.getColorTaggedName());
+        }
+        sb.append("!");
+
+        return sb.toString();
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 
     public Creature getRunner() {

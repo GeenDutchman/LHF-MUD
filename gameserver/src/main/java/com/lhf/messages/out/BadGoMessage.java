@@ -115,4 +115,9 @@ public class BadGoMessage extends OutMessage {
         return available;
     }
 
+    @Override
+    public String print() {
+        return this.toString();
+    }
+
 }

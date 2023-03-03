@@ -13,44 +13,118 @@ public class EquipOutMessage extends OutMessage {
         SUCCESS, BADSLOT, NOTEQUIPBLE;
     }
 
-    private EquipResultType type;
-    private Item item;
-    private String attemptedItemName;
-    private EquipmentSlots attemptedSlot;
+    private final EquipResultType subType;
+    private final Item item;
+    private final String attemptedItemName;
+    private final EquipmentSlots attemptedSlot;
 
-    public EquipOutMessage(Item equipped) {
-        super(OutMessageType.EQUIP);
-        this.type = EquipResultType.SUCCESS;
-        this.item = equipped;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private EquipResultType subType;
+        private Item item;
+        private String attemptedItemName;
+        private EquipmentSlots attemptedSlot;
+
+        protected Builder() {
+            super(OutMessageType.EQUIP);
+        }
+
+        public EquipResultType getSubType() {
+            return subType;
+        }
+
+        public Builder setSubType(EquipResultType type) {
+            this.subType = type;
+            return this;
+        }
+
+        public Item getItem() {
+            return item;
+        }
+
+        public Builder setItem(Item item) {
+            this.item = item;
+            return this;
+        }
+
+        public String getAttemptedItemName() {
+            return attemptedItemName;
+        }
+
+        public Builder setAttemptedItemName(String attemptedItemName) {
+            this.attemptedItemName = attemptedItemName;
+            return this;
+        }
+
+        public EquipmentSlots getAttemptedSlot() {
+            return attemptedSlot;
+        }
+
+        public Builder setAttemptedSlot(EquipmentSlots attemptedSlot) {
+            this.attemptedSlot = attemptedSlot;
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public OutMessage Build() {
+            return new EquipOutMessage(this);
+        }
+
     }
 
-    public EquipOutMessage(EquipResultType type, Item item, String attemptedName, EquipmentSlots attemptedSlot) {
-        super(OutMessageType.EQUIP);
-        this.type = type;
-        this.item = item;
-        this.attemptedItemName = attemptedName;
-        this.attemptedSlot = attemptedSlot;
+    public EquipOutMessage(Builder builder) {
+        super(builder);
+        this.subType = builder.getSubType();
+        this.item = builder.getItem();
+        this.attemptedItemName = builder.getAttemptedItemName();
+        this.attemptedSlot = builder.getAttemptedSlot();
+    }
+
+    private String printItemName(String defaultItemName) {
+        if (this.item != null) {
+            return this.item.getColorTaggedName();
+        } else if (this.attemptedItemName != null && !this.attemptedItemName.isBlank()) {
+            return "'" + this.attemptedItemName + "'";
+        } else if (defaultItemName != null && !defaultItemName.isBlank()) {
+            return defaultItemName;
+        } else {
+            return "item";
+        }
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        switch (this.type) {
+        if (this.isBroadcast()) {
+            sb.append("Someone ");
+            if (this.getSubType() == EquipResultType.SUCCESS) {
+                sb.append("equipped ");
+            } else {
+                sb.append("attempted to equip ");
+            }
+            sb.append("an item.");
+            return sb.toString();
+        }
+        switch (this.subType) {
             case SUCCESS:
-                sb.append("You successfully equipped your ").append(this.item.getColorTaggedName());
+                sb.append("You successfully equipped your ").append(this.printItemName(null));
                 if (this.attemptedSlot != null) {
-                    sb.append(" to your ").append(this.attemptedSlot.getColorTaggedName()).append(" equiment slot.");
+                    sb.append(" to your ").append(this.attemptedSlot.getColorTaggedName()).append(" equiment slot");
                 }
+                sb.append(".");
                 break;
             case BADSLOT:
-                sb.append(this.attemptedSlot.getColorTaggedName()).append(" is not an appropriate slot for equipping ");
-                if (this.item != null) {
-                    sb.append(this.item.getColorTaggedName());
-                } else if (this.attemptedItemName != null) {
-                    sb.append("'").append(this.attemptedItemName).append("'");
+                if (this.attemptedSlot != null) {
+                    sb.append(this.attemptedSlot.getColorTaggedName())
                 } else {
-                    sb.append("that");
+                    sb.append("That slot");
                 }
+                sb.append(" is not an appropriate slot for equipping ");
+                sb.append(this.printItemName("that item"));
                 sb.append(".");
                 if (this.item != null && this.getCorrectSlots().size() > 0) {
                     sb.append("You can equip it to: ");
@@ -72,8 +146,11 @@ public class EquipOutMessage extends OutMessage {
                 sb.append(" is not equippable!");
                 break;
             default:
+            sb.append("You searched to equip ");
                 if (this.attemptedItemName != null && this.attemptedItemName.length() > 0) {
-                    sb.append("You searched to equip '").append(this.attemptedItemName).append("' ");
+                    sb.append("'").append(this.attemptedItemName).append("' ");
+                } else {
+                    sb.append("an item ");
                 }
                 if (this.attemptedSlot != null) {
                     sb.append("to your ").append(this.attemptedSlot.getColorTaggedName()).append(" equipment slot ");
@@ -99,8 +176,13 @@ public class EquipOutMessage extends OutMessage {
         return sb.toString();
     }
 
-    public EquipResultType getType() {
-        return type;
+    @Override
+    public String print() {
+        return this.toString();
+    }
+
+    public EquipResultType getSubType() {
+        return subType;
     }
 
     public Item getItem() {

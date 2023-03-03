@@ -12,6 +12,8 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
     protected List<RollResult> rolls;
     protected List<Integer> bonuses;
 
+    // TODO: this needs some final, immutable view
+
     public MultiRollResult(RollResult first) {
         this.rolls = new ArrayList<>();
         this.rolls.add(first);
