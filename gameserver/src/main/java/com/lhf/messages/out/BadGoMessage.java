@@ -1,6 +1,7 @@
 package com.lhf.messages.out;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.StringJoiner;
 
 import com.lhf.game.map.Directions;
@@ -11,22 +12,63 @@ public class BadGoMessage extends OutMessage {
         DNE, BLOCKED, NO_ROOM;
     }
 
-    private BadGoType type;
-    private Directions attempted;
-    private Collection<Directions> available;
+    private final BadGoType subType;
+    private final Directions attempted;
+    private final Collection<Directions> available;
 
-    public BadGoMessage(BadGoType type, Directions attempted) {
-        super(OutMessageType.BAD_GO);
-        this.type = type;
-        this.attempted = attempted;
-        this.available = null;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private BadGoType subType;
+        private Directions attempted;
+        private Collection<Directions> available;
+
+        protected Builder(BadGoType type) {
+            super(OutMessageType.BAD_GO);
+            this.subType = type;
+        }
+
+        public BadGoType getSubType() {
+            return subType;
+        }
+
+        public Builder setSubType(BadGoType type) {
+            this.subType = type;
+            return this;
+        }
+
+        public Directions getAttempted() {
+            return attempted;
+        }
+
+        public Builder setAttempted(Directions attempted) {
+            this.attempted = attempted;
+            return this;
+        }
+
+        public Collection<Directions> getAvailable() {
+            return Collections.unmodifiableCollection(available);
+        }
+
+        public void setAvailable(Collection<Directions> available) {
+            this.available = available;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public OutMessage Build() {
+            return new BadGoMessage(this);
+        }
+
     }
 
-    public BadGoMessage(BadGoType type, Directions attempted, Collection<Directions> available) {
-        super(OutMessageType.BAD_GO);
-        this.type = type;
-        this.attempted = attempted;
-        this.available = available;
+    protected BadGoMessage(Builder builder) {
+        super(builder);
+        this.subType = builder.getSubType();
+        this.attempted = builder.getAttempted();
+        this.available = builder.getAvailable();
     }
 
     @Override
@@ -39,21 +81,21 @@ public class BadGoMessage extends OutMessage {
             sb.append("that way");
         }
         sb.append(". ");
-        if (this.type == BadGoType.DNE || this.attempted == null) {
+        if (this.subType == BadGoType.DNE || this.attempted == null) {
             sb.append("That way is a wall. ");
-        } else if (this.type == BadGoType.BLOCKED) {
+        } else if (this.subType == BadGoType.BLOCKED) {
             sb.append("Your path is blocked ");
-        } else if (this.type == BadGoType.NO_ROOM) {
+        } else if (this.subType == BadGoType.NO_ROOM) {
             sb.append("You are not in a room. ");
         }
         if (this.available != null && this.available.size() > 0) {
-            if (this.available.size() == 1 && this.attempted != null && this.type == BadGoType.BLOCKED) {
+            if (this.available.size() == 1 && this.attempted != null && this.subType == BadGoType.BLOCKED) {
                 sb.append("No other directions are available.  Try finding a way to unblock it. ");
             } else {
                 sb.append("You could try to go one of:");
                 StringJoiner sj = new StringJoiner(", ");
                 for (Directions s : this.available) {
-                    if (!(this.type == BadGoType.BLOCKED && s.equals(this.attempted))) {
+                    if (!(this.subType == BadGoType.BLOCKED && s.equals(this.attempted))) {
                         sj.add(s.getColorTaggedName());
                     }
                 }

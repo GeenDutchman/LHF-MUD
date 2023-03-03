@@ -11,22 +11,63 @@ import com.lhf.game.enums.Stats;
 import com.lhf.messages.OutMessageType;
 
 public class CreatureAffectedMessage extends OutMessage {
-    private Creature affected;
-    private CreatureEffect effect;
-    private boolean reversed;
+    private final Creature affected;
+    private final CreatureEffect effect;
+    private final boolean reversed;
 
-    public CreatureAffectedMessage(Creature affected, CreatureEffect effect) {
-        super(OutMessageType.CREATURE_AFFECTED);
-        this.affected = affected;
-        this.effect = effect;
-        this.reversed = false;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private Creature affected;
+        private CreatureEffect effect;
+        private boolean reversed;
+
+        protected Builder() {
+            super(OutMessageType.CREATURE_AFFECTED);
+        }
+
+        public Creature getAffected() {
+            return affected;
+        }
+
+        public Builder setAffected(Creature affected) {
+            this.affected = affected;
+            return this;
+        }
+
+        public CreatureEffect getEffect() {
+            return effect;
+        }
+
+        public Builder setEffect(CreatureEffect effect) {
+            this.effect = effect;
+            return this;
+        }
+
+        public boolean isReversed() {
+            return reversed;
+        }
+
+        public Builder setReversed(boolean reversed) {
+            this.reversed = reversed;
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public OutMessage Build() {
+            return new CreatureAffectedMessage(this);
+        }
+
     }
 
-    public CreatureAffectedMessage(Creature affected, CreatureEffect effect, boolean reversed) {
-        super(OutMessageType.CREATURE_AFFECTED);
-        this.affected = affected;
-        this.effect = effect;
-        this.reversed = reversed;
+    public CreatureAffectedMessage(Builder builder) {
+        super(builder);
+        this.affected = builder.getAffected();
+        this.effect = builder.getEffect();
+        this.reversed = builder.isReversed();
     }
 
     public boolean isResultedInDeath() {
@@ -50,18 +91,25 @@ public class CreatureAffectedMessage extends OutMessage {
         StringJoiner sj = new StringJoiner(" ");
         if (this.effect.creatureResponsible() != null) {
             sj.add(this.effect.creatureResponsible().getColorTaggedName()).add("used");
-            sj.add(this.effect.getGeneratedBy().getColorTaggedName()).add("!");
+            sj.add(this.effect.getGeneratedBy().getColorTaggedName()).add("on");
         } else {
-            sj.add(this.effect.getGeneratedBy().getColorTaggedName()).add("affected")
-                    .add(this.affected.getColorTaggedName()).add("!");
+            sj.add(this.effect.getGeneratedBy().getColorTaggedName()).add("affected");
         }
+        sj.add(this.addressCreature(this.affected) + "!");
         sj.add("\r\n");
         if (this.reversed) {
             sj.add("But the effects have EXPIRED, and will now REVERSE!").add("\r\n");
         }
         MultiRollResult damageResults = this.effect.getDamageResult();
         if (damageResults != null) {
-            sj.add(this.affected.getColorTaggedName() + "'s").add("health will change by");
+            if (!this.isBroadcast()) {
+                sj.add("Your");
+            } else if (this.affected != null) {
+                sj.add(this.affected.getColorTaggedName() + "'s");
+            } else {
+                sj.add("Their");
+            }
+            sj.add("health will change by");
             sj.add(damageResults.getColorTaggedName()); // already reversed, if applicable
             sj.add("\r\n");
         }
@@ -106,6 +154,11 @@ public class CreatureAffectedMessage extends OutMessage {
             sj.add(this.affected.getColorTaggedName() + "'s").add("faction will be restored!");
         }
         return sj.toString();
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 
 }

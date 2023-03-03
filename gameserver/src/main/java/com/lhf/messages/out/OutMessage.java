@@ -1,5 +1,6 @@
 package com.lhf.messages.out;
 
+import com.lhf.game.creature.Creature;
 import com.lhf.messages.OutMessageType;
 
 public abstract class OutMessage {
@@ -57,6 +58,26 @@ public abstract class OutMessage {
 
     public boolean isBroadcast() {
         return this.broadcast;
+    }
+
+    protected String addressCreature(Creature creature) {
+        if (!this.isBroadcast()) {
+            return "you";
+        } else if (creature != null) {
+            return creature.getColorTaggedName();
+        } else {
+            return "someone";
+        }
+    }
+
+    protected String possesiveCreature(Creature creature) {
+        if (!this.isBroadcast()) {
+            return "your";
+        } else if (creature != null) {
+            return creature.getColorTaggedName() + "'s";
+        } else {
+            return "their";
+        }
     }
 
     // Called to render as a human-readable string

@@ -1,6 +1,7 @@
 package com.lhf.messages.out;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
@@ -11,22 +12,63 @@ public class BadTargetSelectedMessage extends OutMessage {
         SELF, NOTARGET, DNE, UNCLEAR, TOO_MANY, UNTARGETABLE;
     }
 
-    private BadTargetOption bde;
-    private String badTarget;
-    private Collection<? extends Taggable> possibleTargets;
+    private final BadTargetOption bde;
+    private final String badTarget;
+    private final Collection<? extends Taggable> possibleTargets;
 
-    public BadTargetSelectedMessage(BadTargetOption bde, String badTarget) {
-        super(OutMessageType.BAD_TARGET_SELECTED);
-        this.bde = bde;
-        this.badTarget = badTarget;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private BadTargetOption bde;
+        private String badTarget;
+        private Collection<? extends Taggable> possibleTargets;
+
+        protected Builder(BadTargetOption bde) {
+            super(OutMessageType.BAD_TARGET_SELECTED);
+        }
+
+        public BadTargetOption getBde() {
+            return bde;
+        }
+
+        public Builder setBde(BadTargetOption bde) {
+            this.bde = bde;
+            return this;
+        }
+
+        public String getBadTarget() {
+            return badTarget;
+        }
+
+        public Builder setBadTarget(String badTarget) {
+            this.badTarget = badTarget;
+            return this;
+        }
+
+        public Collection<? extends Taggable> getPossibleTargets() {
+            return Collections.unmodifiableCollection(possibleTargets);
+        }
+
+        public Builder setPossibleTargets(Collection<? extends Taggable> possibleTargets) {
+            this.possibleTargets = possibleTargets;
+            return this;
+        }
+
+        @Override
+        public OutMessage Build() {
+            return new BadTargetSelectedMessage(this);
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
     }
 
-    public BadTargetSelectedMessage(BadTargetOption bde, String badTarget,
-            Collection<? extends Taggable> possibleTargets) {
-        super(OutMessageType.BAD_TARGET_SELECTED);
-        this.bde = bde;
-        this.badTarget = badTarget;
-        this.possibleTargets = possibleTargets;
+    public BadTargetSelectedMessage(Builder builder) {
+        super(builder);
+        this.bde = builder.getBde();
+        this.badTarget = builder.getBadTarget();
+        this.possibleTargets = builder.getPossibleTargets();
     }
 
     @Override
@@ -92,5 +134,10 @@ public class BadTargetSelectedMessage extends OutMessage {
 
     public Collection<? extends Taggable> getPossibleTargets() {
         return possibleTargets;
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 }
