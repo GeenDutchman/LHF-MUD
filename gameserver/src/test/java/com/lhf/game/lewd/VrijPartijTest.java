@@ -50,7 +50,7 @@ public class VrijPartijTest {
             }
             try {
                 LewdOutMessage lom = (LewdOutMessage) message;
-                return LewdOutMessageType.PROPOSED.equals(lom.getType()) && first.npc.equals(lom.getCreature());
+                return LewdOutMessageType.PROPOSED.equals(lom.getSubType()) && first.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
@@ -83,7 +83,7 @@ public class VrijPartijTest {
             }
             try {
                 LewdOutMessage lom = (LewdOutMessage) message;
-                return LewdOutMessageType.ACCEPTED.equals(lom.getType()) && second.npc.equals(lom.getCreature());
+                return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && second.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
@@ -137,7 +137,7 @@ public class VrijPartijTest {
             }
             try {
                 LewdOutMessage lom = (LewdOutMessage) message;
-                return LewdOutMessageType.ACCEPTED.equals(lom.getType()) && second.npc.equals(lom.getCreature());
+                return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && second.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
@@ -169,7 +169,7 @@ public class VrijPartijTest {
             }
             try {
                 LewdOutMessage lom = (LewdOutMessage) message;
-                return LewdOutMessageType.ACCEPTED.equals(lom.getType()) && third.npc.equals(lom.getCreature());
+                return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && third.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
@@ -181,7 +181,7 @@ public class VrijPartijTest {
             }
             try {
                 LewdOutMessage lom = (LewdOutMessage) message;
-                return LewdOutMessageType.DUNNIT.equals(lom.getType()) && lom.getCreature() == null;
+                return LewdOutMessageType.DUNNIT.equals(lom.getSubType()) && lom.getCreature() == null;
             } catch (ClassCastException e) {
                 return false;
             }
@@ -236,7 +236,7 @@ public class VrijPartijTest {
             }
             try {
                 LewdOutMessage lom = (LewdOutMessage) message;
-                return LewdOutMessageType.PROPOSED.equals(lom.getType()) && first.npc.equals(lom.getCreature());
+                return LewdOutMessageType.PROPOSED.equals(lom.getSubType()) && first.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
@@ -260,7 +260,7 @@ public class VrijPartijTest {
             }
             try {
                 LewdOutMessage lom = (LewdOutMessage) message;
-                return LewdOutMessageType.ACCEPTED.equals(lom.getType()) && second.npc.equals(lom.getCreature());
+                return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && second.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
@@ -289,7 +289,7 @@ public class VrijPartijTest {
             }
             try {
                 LewdOutMessage lom = (LewdOutMessage) message;
-                return LewdOutMessageType.DENIED.equals(lom.getType()) && third.npc.equals(lom.getCreature());
+                return LewdOutMessageType.DENIED.equals(lom.getSubType()) && third.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
@@ -307,7 +307,7 @@ public class VrijPartijTest {
             }
             try {
                 LewdOutMessage lom = (LewdOutMessage) message;
-                return LewdOutMessageType.DUNNIT.equals(lom.getType()) && lom.getCreature() == null;
+                return LewdOutMessageType.DUNNIT.equals(lom.getSubType()) && lom.getCreature() == null;
             } catch (ClassCastException e) {
                 return false;
             }

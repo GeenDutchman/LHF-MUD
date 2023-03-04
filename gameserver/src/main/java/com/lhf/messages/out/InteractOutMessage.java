@@ -61,7 +61,7 @@ public class InteractOutMessage extends OutMessage {
         }
 
         @Override
-        public OutMessage Build() {
+        public InteractOutMessage Build() {
             return new InteractOutMessage(this);
         }
 

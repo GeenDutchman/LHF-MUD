@@ -46,7 +46,7 @@ public class FleeMessage extends OutMessage {
         }
 
         @Override
-        public OutMessage Build() {
+        public FleeMessage Build() {
             return new FleeMessage(this);
         }
 

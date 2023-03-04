@@ -1,5 +1,6 @@
 package com.lhf.messages.out;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.StringJoiner;
 
@@ -13,22 +14,66 @@ public class LewdOutMessage extends OutMessage {
         NOT_READY, NO_BODY, ORGY_UNSUPPORTED, SOLO_UNSUPPORTED, STATUS, DENIED, ACCEPTED, PROPOSED, DUNNIT, MISSED;
     }
 
-    private final LewdOutMessageType type;
+    private final LewdOutMessageType subType;
     private final Map<Creature, LewdAnswer> party;
     private final Creature creature;
 
-    public LewdOutMessage(LewdOutMessageType type, Creature creature) {
-        super(OutMessageType.LEWD);
-        this.type = type;
-        this.party = null;
-        this.creature = creature;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private LewdOutMessageType subType;
+        private Map<Creature, LewdAnswer> party;
+        private Creature creature;
+
+        protected Builder() {
+            super(OutMessageType.LEWD);
+        }
+
+        public LewdOutMessageType getSubType() {
+            return subType;
+        }
+
+        public Builder setSubType(LewdOutMessageType subType) {
+            this.subType = subType;
+            return this;
+        }
+
+        public Map<Creature, LewdAnswer> getParty() {
+            if (this.party == null) {
+                return Map.of();
+            }
+            return Collections.unmodifiableMap(party);
+        }
+
+        public Builder setParty(Map<Creature, LewdAnswer> party) {
+            this.party = party;
+            return this;
+        }
+
+        public Creature getCreature() {
+            return creature;
+        }
+
+        public Builder setCreature(Creature creature) {
+            this.creature = creature;
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public LewdOutMessage Build() {
+            return new LewdOutMessage(this);
+        }
+
     }
 
-    public LewdOutMessage(LewdOutMessageType type, Creature creature, Map<Creature, LewdAnswer> participants) {
-        super(OutMessageType.LEWD);
-        this.type = type;
-        this.party = participants;
-        this.creature = creature;
+    public LewdOutMessage(Builder builder) {
+        super(builder);
+        this.subType = builder.getSubType();
+        this.party = builder.getParty();
+        this.creature = builder.getCreature();
     }
 
     private String statusString() {
@@ -81,7 +126,7 @@ public class LewdOutMessage extends OutMessage {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        switch (this.type) {
+        switch (this.subType) {
             case DENIED:
                 if (this.creature != null) {
                     sb.append(this.creature.getColorTaggedName()).append(" does not wish to do it. ");
@@ -138,8 +183,8 @@ public class LewdOutMessage extends OutMessage {
         return sb.toString();
     }
 
-    public LewdOutMessageType getType() {
-        return type;
+    public LewdOutMessageType getSubType() {
+        return subType;
     }
 
     public Map<Creature, LewdAnswer> getParticipants() {

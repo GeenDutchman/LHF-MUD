@@ -1,6 +1,7 @@
 package com.lhf.messages.out;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.StringJoiner;
 
@@ -11,17 +12,51 @@ import com.lhf.game.item.Takeable;
 import com.lhf.messages.OutMessageType;
 
 public class InventoryOutMessage extends OutMessage {
-    private Collection<Takeable> items;
-    private Map<EquipmentSlots, Equipable> equipment;
+    private final Collection<Takeable> items;
+    private final Map<EquipmentSlots, Equipable> equipment;
 
-    public InventoryOutMessage(Collection<Takeable> items) {
-        super(OutMessageType.INVENTORY);
-        this.items = items;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private Collection<Takeable> items;
+        private Map<EquipmentSlots, Equipable> equipment;
+
+        protected Builder() {
+            super(OutMessageType.INVENTORY);
+        }
+
+        public Collection<Takeable> getItems() {
+            return Collections.unmodifiableCollection(items);
+        }
+
+        public Builder setItems(Collection<Takeable> items) {
+            this.items = items;
+            return this;
+        }
+
+        public Map<EquipmentSlots, Equipable> getEquipment() {
+            return Collections.unmodifiableMap(equipment);
+        }
+
+        public Builder setEquipment(Map<EquipmentSlots, Equipable> equipment) {
+            this.equipment = equipment;
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public InventoryOutMessage Build() {
+            return new InventoryOutMessage(this);
+        }
+
     }
 
-    public InventoryOutMessage AddEquipment(Map<EquipmentSlots, Equipable> equipment) {
-        this.equipment = equipment;
-        return this;
+    public InventoryOutMessage(Builder builder) {
+        super(builder);
+        this.items = builder.getItems();
+        this.equipment = builder.getEquipment();
     }
 
     @Override
@@ -30,8 +65,10 @@ public class InventoryOutMessage extends OutMessage {
         sb.append("INVENTORY: ").append("\n");
         StringJoiner sj = new StringJoiner(", ");
         sj.setEmptyValue("You have nothing in your inventory");
-        for (Takeable item : this.items) {
-            sj.add(item.getColorTaggedName());
+        if (this.items != null) {
+            for (Takeable item : this.items) {
+                sj.add(item.getColorTaggedName());
+            }
         }
         sb.append(sj.toString()).append("\n");
         sj = new StringJoiner(", ");
@@ -58,6 +95,11 @@ public class InventoryOutMessage extends OutMessage {
 
     public Map<EquipmentSlots, Equipable> getEquipment() {
         return equipment;
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 
 }

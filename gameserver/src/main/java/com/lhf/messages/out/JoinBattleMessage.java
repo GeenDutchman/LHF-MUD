@@ -6,25 +6,57 @@ import com.lhf.game.creature.Creature;
 import com.lhf.messages.OutMessageType;
 
 public class JoinBattleMessage extends OutMessage {
-    private Creature joiner;
-    private boolean ongoing;
-    private boolean addressJoiner;
+    private final Creature joiner;
+    private final boolean ongoing;
 
-    public JoinBattleMessage(Creature joiner, boolean ongoing, boolean addressJoiner) {
-        super(OutMessageType.JOIN_BATTLE);
-        this.joiner = joiner;
-        this.ongoing = ongoing;
-        this.addressJoiner = addressJoiner;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private Creature joiner;
+        private boolean ongoing;
+
+        protected Builder() {
+            super(OutMessageType.JOIN_BATTLE);
+        }
+
+        public Creature getJoiner() {
+            return joiner;
+        }
+
+        public Builder setJoiner(Creature joiner) {
+            this.joiner = joiner;
+            return this;
+        }
+
+        public boolean isOngoing() {
+            return ongoing;
+        }
+
+        public Builder setOngoing(boolean ongoing) {
+            this.ongoing = ongoing;
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public JoinBattleMessage Build() {
+            return new JoinBattleMessage(this);
+        }
+
+    }
+
+    public JoinBattleMessage(Builder builder) {
+        super(builder);
+        this.joiner = builder.getJoiner();
+        this.ongoing = builder.isOngoing();
     }
 
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
-        if (this.addressJoiner) {
-            sj.add("You have");
-        } else {
-            sj.add(this.joiner.getColorTaggedName()).add("has");
-        }
+        sj.add(this.addressCreature(this.joiner));
         sj.add("joined the");
         if (this.ongoing) {
             sj.add("ongoing");
@@ -39,6 +71,11 @@ public class JoinBattleMessage extends OutMessage {
 
     public boolean isOngoing() {
         return ongoing;
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 
 }

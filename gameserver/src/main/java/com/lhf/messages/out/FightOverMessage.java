@@ -15,7 +15,7 @@ public class FightOverMessage extends OutMessage {
         }
 
         @Override
-        public OutMessage Build() {
+        public FightOverMessage Build() {
             return new FightOverMessage(this);
         }
 

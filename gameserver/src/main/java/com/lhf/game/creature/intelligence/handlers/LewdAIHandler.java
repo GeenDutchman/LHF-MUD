@@ -83,10 +83,10 @@ public class LewdAIHandler extends AIHandler {
     public void handle(BasicAI bai, OutMessage msg) {
         if (OutMessageType.LEWD.equals(msg.getOutType())) {
             LewdOutMessage lom = (LewdOutMessage) msg;
-            if (lom.getType() == LewdOutMessageType.PROPOSED) {
+            if (lom.getSubType() == LewdOutMessageType.PROPOSED) {
                 this.handleProposal(bai, lom);
             }
-            if (lom.getType() == LewdOutMessageType.DUNNIT) {
+            if (lom.getSubType() == LewdOutMessageType.DUNNIT) {
                 this.handleDunnit(bai, lom);
             }
         }

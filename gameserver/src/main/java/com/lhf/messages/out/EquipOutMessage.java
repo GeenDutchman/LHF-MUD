@@ -70,7 +70,7 @@ public class EquipOutMessage extends OutMessage {
         }
 
         @Override
-        public OutMessage Build() {
+        public EquipOutMessage Build() {
             return new EquipOutMessage(this);
         }
 
@@ -119,7 +119,7 @@ public class EquipOutMessage extends OutMessage {
                 break;
             case BADSLOT:
                 if (this.attemptedSlot != null) {
-                    sb.append(this.attemptedSlot.getColorTaggedName())
+                    sb.append(this.attemptedSlot.getColorTaggedName());
                 } else {
                     sb.append("That slot");
                 }
@@ -146,7 +146,7 @@ public class EquipOutMessage extends OutMessage {
                 sb.append(" is not equippable!");
                 break;
             default:
-            sb.append("You searched to equip ");
+                sb.append("You searched to equip ");
                 if (this.attemptedItemName != null && this.attemptedItemName.length() > 0) {
                     sb.append("'").append(this.attemptedItemName).append("' ");
                 } else {

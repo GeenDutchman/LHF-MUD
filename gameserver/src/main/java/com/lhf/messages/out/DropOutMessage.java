@@ -28,7 +28,7 @@ public class DropOutMessage extends OutMessage {
         }
 
         @Override
-        public OutMessage Build() {
+        public DropOutMessage Build() {
             return new DropOutMessage(this);
         }
 

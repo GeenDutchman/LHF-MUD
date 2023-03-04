@@ -28,7 +28,7 @@ public class FatalMessage extends OutMessage {
         }
 
         @Override
-        public OutMessage Build() {
+        public FatalMessage Build() {
             return new FatalMessage(this);
         }
 
@@ -53,6 +53,11 @@ public class FatalMessage extends OutMessage {
 
     public String getExtraInfo() {
         return extraInfo;
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 
 }

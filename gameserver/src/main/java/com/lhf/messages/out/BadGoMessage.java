@@ -58,7 +58,7 @@ public class BadGoMessage extends OutMessage {
         }
 
         @Override
-        public OutMessage Build() {
+        public BadGoMessage Build() {
             return new BadGoMessage(this);
         }
 

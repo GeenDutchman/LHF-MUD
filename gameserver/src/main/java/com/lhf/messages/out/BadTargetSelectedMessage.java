@@ -53,7 +53,7 @@ public class BadTargetSelectedMessage extends OutMessage {
         }
 
         @Override
-        public OutMessage Build() {
+        public BadTargetSelectedMessage Build() {
             return new BadTargetSelectedMessage(this);
         }
 

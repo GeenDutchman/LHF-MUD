@@ -57,7 +57,7 @@ public class CreatureAffectedMessage extends OutMessage {
         }
 
         @Override
-        public OutMessage Build() {
+        public CreatureAffectedMessage Build() {
             return new CreatureAffectedMessage(this);
         }
 

@@ -28,7 +28,7 @@ public class WelcomeMessage extends OutMessage {
         }
 
         @Override
-        public OutMessage Build() {
+        public WelcomeMessage Build() {
             return new WelcomeMessage(this);
         }
     }
