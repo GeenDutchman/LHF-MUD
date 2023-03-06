@@ -56,7 +56,7 @@ public class JoinBattleMessage extends OutMessage {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
-        sj.add(this.addressCreature(this.joiner));
+        sj.add(this.addressCreature(this.joiner, true));
         sj.add("joined the");
         if (this.ongoing) {
             sj.add("ongoing");

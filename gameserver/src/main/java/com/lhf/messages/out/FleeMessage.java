@@ -67,7 +67,7 @@ public class FleeMessage extends OutMessage {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(this.addressCreature(this.runner));
+        sb.append(this.addressCreature(this.runner, true));
         if (this.fled) {
             sb.append(" successfully fled from the battle");
         } else {

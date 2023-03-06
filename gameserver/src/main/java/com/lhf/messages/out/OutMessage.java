@@ -60,23 +60,23 @@ public abstract class OutMessage {
         return this.broadcast;
     }
 
-    protected String addressCreature(Creature creature) {
+    protected String addressCreature(Creature creature, boolean capitalize) {
         if (!this.isBroadcast()) {
-            return "you";
+            return capitalize ? "You" : "you";
         } else if (creature != null) {
             return creature.getColorTaggedName();
         } else {
-            return "someone";
+            return capitalize ? "Someone" : "someone";
         }
     }
 
-    protected String possesiveCreature(Creature creature) {
+    protected String possesiveCreature(Creature creature, boolean capitalize) {
         if (!this.isBroadcast()) {
-            return "your";
+            return capitalize ? "Your" : "your";
         } else if (creature != null) {
             return creature.getColorTaggedName() + "'s";
         } else {
-            return "their";
+            return capitalize ? "Their" : "their";
         }
     }
 

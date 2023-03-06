@@ -5,13 +5,54 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.OutMessageType;
 
 public class ReinforcementsCall extends OutMessage {
-    private Creature caller;
-    private boolean callerAddressed;
+    private final Creature caller;
+    private final boolean callerAddressed;
 
-    public ReinforcementsCall(Creature caller, boolean callerAddressed) {
-        super(OutMessageType.REINFORCEMENTS_CALL);
-        this.caller = caller;
-        this.callerAddressed = callerAddressed;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private Creature caller;
+        private boolean callerAddressed;
+
+        protected Builder() {
+            super(OutMessageType.REINFORCEMENTS_CALL);
+        }
+
+        public Creature getCaller() {
+            return caller;
+        }
+
+        public Builder setCaller(Creature caller) {
+            this.caller = caller;
+            return this;
+        }
+
+        public boolean isCallerAddressed() {
+            return callerAddressed;
+        }
+
+        public Builder setCallerAddressed(boolean callerAddressed) {
+            this.callerAddressed = callerAddressed;
+            if (this.callerAddressed == true) {
+                this.setNotBroadcast();
+            }
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public ReinforcementsCall Build() {
+            return new ReinforcementsCall(this);
+        }
+
+    }
+
+    public ReinforcementsCall(Builder builder) {
+        super(builder);
+        this.caller = builder.getCaller();
+        this.callerAddressed = builder.isCallerAddressed();
     }
 
     @Override
@@ -28,6 +69,11 @@ public class ReinforcementsCall extends OutMessage {
 
     public Creature getCaller() {
         return caller;
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 
 }

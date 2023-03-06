@@ -95,7 +95,7 @@ public class CreatureAffectedMessage extends OutMessage {
         } else {
             sj.add(this.effect.getGeneratedBy().getColorTaggedName()).add("affected");
         }
-        sj.add(this.addressCreature(this.affected) + "!");
+        sj.add(this.addressCreature(this.affected, false) + "!");
         sj.add("\r\n");
         if (this.reversed) {
             sj.add("But the effects have EXPIRED, and will now REVERSE!").add("\r\n");
