@@ -198,4 +198,9 @@ public class LewdOutMessage extends OutMessage {
         return creature;
     }
 
+    @Override
+    public String print() {
+        return this.toString();
+    }
+
 }

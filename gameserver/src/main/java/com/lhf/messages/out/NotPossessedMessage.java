@@ -4,28 +4,88 @@ import com.lhf.Taggable;
 import com.lhf.messages.OutMessageType;
 
 public class NotPossessedMessage extends OutMessage {
-    private String type;
-    private String itemName;
-    private Taggable found;
+    private final String itemType;
+    private final String itemName;
+    private final Taggable found;
 
-    public NotPossessedMessage(String type, String itemName) {
-        super(OutMessageType.NOT_POSSESSED);
-        this.type = type;
-        this.itemName = itemName;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private String itemType;
+        private String itemName;
+        private Taggable found;
+
+        protected Builder() {
+            super(OutMessageType.NOT_POSSESSED);
+        }
+
+        public String getItemType() {
+            return itemType;
+        }
+
+        public Builder setItemType(String type) {
+            this.itemType = type;
+            return this;
+        }
+
+        public String getItemName() {
+            return itemName;
+        }
+
+        public Builder setItemName(String itemName) {
+            this.itemName = itemName;
+            return this;
+        }
+
+        public Taggable getFound() {
+            return found;
+        }
+
+        public Builder setFound(Taggable found) {
+            this.found = found;
+            return this;
+        }
+
+        @Override
+        public NotPossessedMessage Build() {
+            return new NotPossessedMessage(this);
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
     }
 
-    public NotPossessedMessage(String type, String itemName, Taggable found) {
-        super(OutMessageType.NOT_POSSESSED);
-        this.type = type;
-        this.itemName = itemName;
-        this.found = found;
+    public NotPossessedMessage(Builder builder) {
+        super(builder);
+        this.itemType = builder.getItemType();
+        this.itemName = builder.getItemName();
+        this.found = builder.getFound();
+    }
+
+    public String getItemType() {
+        return itemType;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public Taggable getFound() {
+        return found;
     }
 
     @Override
     public String toString() {
         if (this.found == null) {
-            return "You do not have that " + this.type.toString() + " named '" + this.itemName.toString() + "'";
+            return "You do not have that " + this.itemType.toString() + " named '" + this.itemName.toString() + "'";
         }
-        return this.found.getColorTaggedName() + " is not a " + this.type.toString();
+        return this.found.getColorTaggedName() + " is not a " + this.itemType.toString();
     }
+
+    @Override
+    public String print() {
+        return this.toString();
+    }
+
 }
