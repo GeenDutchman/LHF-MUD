@@ -69,6 +69,10 @@ public class BattleTurnMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public BattleTurnMessage(Builder builder) {
         super(builder);
         this.myTurn = builder.getCurrentCreature();

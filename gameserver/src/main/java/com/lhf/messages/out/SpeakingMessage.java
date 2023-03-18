@@ -67,6 +67,10 @@ public class SpeakingMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public SpeakingMessage(Builder builder) {
         super(builder);
         this.sayer = builder.getSayer();

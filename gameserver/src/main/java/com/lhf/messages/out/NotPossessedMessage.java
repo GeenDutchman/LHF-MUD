@@ -56,6 +56,10 @@ public class NotPossessedMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public NotPossessedMessage(Builder builder) {
         super(builder);
         this.itemType = builder.getItemType();

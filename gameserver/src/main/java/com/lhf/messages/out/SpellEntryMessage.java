@@ -47,6 +47,10 @@ public class SpellEntryMessage extends OutMessage {
         }
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public SpellEntryMessage(Builder builder) {
         super(builder);
         this.entries = builder.getEntries();

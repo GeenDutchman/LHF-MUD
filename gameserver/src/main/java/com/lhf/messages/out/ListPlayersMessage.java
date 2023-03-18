@@ -45,6 +45,10 @@ public class ListPlayersMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public ListPlayersMessage(Builder builder) {
         super(builder);
         this.playerNames = builder.getPlayerNames();

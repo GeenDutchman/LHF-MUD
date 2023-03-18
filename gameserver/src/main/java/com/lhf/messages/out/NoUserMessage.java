@@ -19,6 +19,10 @@ public class NoUserMessage extends OutMessage {
         }
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public NoUserMessage(Builder builder) {
         super(builder);
     }

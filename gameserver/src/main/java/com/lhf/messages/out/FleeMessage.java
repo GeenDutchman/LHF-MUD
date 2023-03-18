@@ -57,6 +57,10 @@ public class FleeMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public FleeMessage(Builder builder) {
         super(builder);
         this.runner = builder.getRunner();

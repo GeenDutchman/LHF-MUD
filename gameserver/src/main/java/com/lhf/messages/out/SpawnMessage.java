@@ -33,9 +33,13 @@ public class SpawnMessage extends OutMessage {
         }
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public SpawnMessage(Builder builder) {
         super(builder);
-        this.username = builder.getUsername()newUserName;
+        this.username = builder.getUsername();
     }
 
     @Override

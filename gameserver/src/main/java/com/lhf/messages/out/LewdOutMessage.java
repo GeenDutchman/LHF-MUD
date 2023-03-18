@@ -69,6 +69,10 @@ public class LewdOutMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public LewdOutMessage(Builder builder) {
         super(builder);
         this.subType = builder.getSubType();

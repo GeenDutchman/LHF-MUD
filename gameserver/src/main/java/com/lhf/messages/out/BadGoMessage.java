@@ -21,6 +21,10 @@ public class BadGoMessage extends OutMessage {
         private Directions attempted;
         private Collection<Directions> available;
 
+        protected Builder() {
+            super(OutMessageType.BAD_GO);
+        }
+
         protected Builder(BadGoType type) {
             super(OutMessageType.BAD_GO);
             this.subType = type;
@@ -62,6 +66,10 @@ public class BadGoMessage extends OutMessage {
             return new BadGoMessage(this);
         }
 
+    }
+
+    public static Builder getBuilder() {
+        return new Builder();
     }
 
     protected BadGoMessage(Builder builder) {

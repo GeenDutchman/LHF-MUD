@@ -47,6 +47,10 @@ public class BattleTurnWastedMessage extends OutMessage {
         }
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public BattleTurnWastedMessage(Builder builder) {
         super(builder);
         this.wastedPenalty = builder.getWastedPenalty();

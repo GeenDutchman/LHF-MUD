@@ -72,6 +72,10 @@ public class MissMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public MissMessage(Builder builder) {
         super(builder);
         this.attacker = builder.getAttacker();

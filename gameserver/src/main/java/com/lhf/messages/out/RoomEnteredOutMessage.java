@@ -34,6 +34,10 @@ public class RoomEnteredOutMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public RoomEnteredOutMessage(Builder builder) {
         super(builder);
         this.newbie = builder.getNewbie();

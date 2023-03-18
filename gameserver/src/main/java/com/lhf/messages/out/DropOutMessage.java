@@ -34,6 +34,10 @@ public class DropOutMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public DropOutMessage(Builder builder) {
         super(builder);
         this.item = builder.getItem();

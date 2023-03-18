@@ -33,6 +33,10 @@ public class StartFightMessage extends OutMessage {
         }
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public StartFightMessage(Builder builder) {
         super(builder);
         this.instigator = builder.getInstigator();
@@ -48,6 +52,11 @@ public class StartFightMessage extends OutMessage {
 
     public Creature getInstigator() {
         return instigator;
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 
 }

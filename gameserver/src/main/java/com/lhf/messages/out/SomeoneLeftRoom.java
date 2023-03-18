@@ -46,6 +46,10 @@ public class SomeoneLeftRoom extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public SomeoneLeftRoom(Builder builder) {
         super(builder);
         this.leaveTaker = builder.getLeaveTaker();

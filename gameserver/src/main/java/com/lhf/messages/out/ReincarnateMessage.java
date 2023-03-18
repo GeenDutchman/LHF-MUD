@@ -41,6 +41,10 @@ public class ReincarnateMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public ReincarnateMessage(Builder builder) {
         super(builder);
         this.taggedName = builder.getTaggedName();

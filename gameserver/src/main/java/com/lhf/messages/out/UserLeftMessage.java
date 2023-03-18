@@ -33,6 +33,10 @@ public class UserLeftMessage extends OutMessage {
         }
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public UserLeftMessage(Builder builder) {
         super(builder);
         this.user = builder.getUser();

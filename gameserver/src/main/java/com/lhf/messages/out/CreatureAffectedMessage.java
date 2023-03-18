@@ -63,6 +63,10 @@ public class CreatureAffectedMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public CreatureAffectedMessage(Builder builder) {
         super(builder);
         this.affected = builder.getAffected();

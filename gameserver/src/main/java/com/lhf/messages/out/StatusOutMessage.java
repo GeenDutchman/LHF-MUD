@@ -174,6 +174,10 @@ public class StatusOutMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public StatusOutMessage(Builder builder) {
         super(builder);
         this.full = builder.isFull();

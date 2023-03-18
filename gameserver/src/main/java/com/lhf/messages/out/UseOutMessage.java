@@ -86,6 +86,10 @@ public class UseOutMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public UseOutMessage(Builder builder) {
         super(builder);
         this.subType = builder.getSubType();

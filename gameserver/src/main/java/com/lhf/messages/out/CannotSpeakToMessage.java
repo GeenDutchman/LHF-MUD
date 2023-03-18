@@ -55,6 +55,10 @@ public class CannotSpeakToMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public CannotSpeakToMessage(Builder builder) {
         super(builder);
         this.creatureName = builder.getCreatureName();

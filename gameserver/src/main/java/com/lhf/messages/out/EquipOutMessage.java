@@ -76,6 +76,10 @@ public class EquipOutMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public EquipOutMessage(Builder builder) {
         super(builder);
         this.subType = builder.getSubType();

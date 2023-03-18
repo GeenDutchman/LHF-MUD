@@ -15,6 +15,10 @@ public class BadMessage extends HelpMessage {
         private String commandEntered;
         private CommandMessage commandType;
 
+        protected Builder() {
+            super(OutMessageType.BAD_MESSAGE);
+        }
+
         protected Builder(BadMessageType subType, Command badCommand) {
             super(OutMessageType.BAD_MESSAGE);
             this.subType = subType;
@@ -59,6 +63,10 @@ public class BadMessage extends HelpMessage {
     private final BadMessageType type;
     private final String cmd;
     private final CommandMessage commandType;
+
+    public static Builder getBuilder() {
+        return new Builder();
+    }
 
     protected BadMessage(Builder builder) {
         super(builder);

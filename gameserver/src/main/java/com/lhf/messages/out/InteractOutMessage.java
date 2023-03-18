@@ -67,6 +67,10 @@ public class InteractOutMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public InteractOutMessage(Builder builder) {
         super(builder);
         this.taggable = builder.getTaggable();

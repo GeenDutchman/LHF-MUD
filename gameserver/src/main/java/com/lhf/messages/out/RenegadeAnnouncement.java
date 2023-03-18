@@ -35,6 +35,10 @@ public class RenegadeAnnouncement extends OutMessage {
 
     }
 
+    public static Builder getBuilder(Creature turned) {
+        return new Builder(turned);
+    }
+
     public RenegadeAnnouncement(Builder builder) {
         super(builder);
         this.turned = builder.getTurned();

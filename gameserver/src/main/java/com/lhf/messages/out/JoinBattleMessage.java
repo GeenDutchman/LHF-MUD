@@ -47,6 +47,10 @@ public class JoinBattleMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public JoinBattleMessage(Builder builder) {
         super(builder);
         this.joiner = builder.getJoiner();

@@ -49,6 +49,10 @@ public class ReinforcementsCall extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public ReinforcementsCall(Builder builder) {
         super(builder);
         this.caller = builder.getCaller();

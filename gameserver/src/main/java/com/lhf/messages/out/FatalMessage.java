@@ -34,6 +34,10 @@ public class FatalMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     // no nonsense constructor
     public FatalMessage() {
         super(new Builder());

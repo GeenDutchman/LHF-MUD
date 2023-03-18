@@ -5,7 +5,7 @@ import com.lhf.messages.OutMessageType;
 public class FightOverMessage extends OutMessage {
     public static class Builder extends OutMessage.Builder<Builder> {
 
-        protected Builder(OutMessageType type) {
+        protected Builder() {
             super(OutMessageType.FIGHT_OVER);
         }
 
@@ -19,6 +19,10 @@ public class FightOverMessage extends OutMessage {
             return new FightOverMessage(this);
         }
 
+    }
+
+    public static Builder getBuilder() {
+        return new Builder();
     }
 
     public FightOverMessage(Builder builder) {

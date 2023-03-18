@@ -21,7 +21,7 @@ public class BadTargetSelectedMessage extends OutMessage {
         private String badTarget;
         private Collection<? extends Taggable> possibleTargets;
 
-        protected Builder(BadTargetOption bde) {
+        protected Builder() {
             super(OutMessageType.BAD_TARGET_SELECTED);
         }
 
@@ -62,6 +62,10 @@ public class BadTargetSelectedMessage extends OutMessage {
             return this;
         }
 
+    }
+
+    public static Builder getBuilder() {
+        return new Builder();
     }
 
     public BadTargetSelectedMessage(Builder builder) {

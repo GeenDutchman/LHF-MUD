@@ -51,6 +51,10 @@ public class SpellFizzleMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public SpellFizzleMessage(Builder builder) {
         super(builder);
         this.subType = builder.getSubType();

@@ -78,6 +78,10 @@ public class HelpMessage extends OutMessage {
     private final Map<CommandMessage, String> helps;
     private final CommandMessage singleHelp;
 
+    public static Builder getHelpBuilder() {
+        return new Builder();
+    }
+
     protected HelpMessage(AbstractBuilder<?> builder) {
         super(builder);
         this.helps = builder.getConcreteHelps();

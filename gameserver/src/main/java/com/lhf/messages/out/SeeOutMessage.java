@@ -118,6 +118,10 @@ public class SeeOutMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public SeeOutMessage(Builder builder) {
         super(builder);
         this.examinable = builder.getExaminable();

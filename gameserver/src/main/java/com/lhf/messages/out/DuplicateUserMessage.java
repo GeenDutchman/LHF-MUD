@@ -21,6 +21,10 @@ public class DuplicateUserMessage extends WelcomeMessage {
         }
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public DuplicateUserMessage(Builder builder) {
         super(builder);
     }

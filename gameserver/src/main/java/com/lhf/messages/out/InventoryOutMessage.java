@@ -53,6 +53,10 @@ public class InventoryOutMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public InventoryOutMessage(Builder builder) {
         super(builder);
         this.items = builder.getItems();

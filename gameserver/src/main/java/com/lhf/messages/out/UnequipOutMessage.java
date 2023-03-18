@@ -57,6 +57,10 @@ public class UnequipOutMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public UnequipOutMessage(Builder builder) {
         super(builder);
         this.item = builder.getItem();

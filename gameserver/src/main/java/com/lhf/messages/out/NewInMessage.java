@@ -19,6 +19,10 @@ public class NewInMessage extends OutMessage {
         }
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public NewInMessage(Builder builder) {
         super(builder);
     }

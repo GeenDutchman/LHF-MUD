@@ -61,6 +61,10 @@ public class RoomAffectedMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public RoomAffectedMessage(Builder builder) {
         super(builder);
         this.room = builder.getRoom();

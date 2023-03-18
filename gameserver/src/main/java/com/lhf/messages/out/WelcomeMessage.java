@@ -33,6 +33,10 @@ public class WelcomeMessage extends OutMessage {
         }
     }
 
+    public static Builder getWelcomeBuilder() {
+        return new Builder();
+    }
+
     public WelcomeMessage(AbstractBuilder<?> builder) {
         super(builder);
     }

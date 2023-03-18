@@ -57,6 +57,10 @@ public class CastingMessage extends OutMessage {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public CastingMessage(Builder builder) {
         super(builder);
         this.caster = builder.getCaster();
