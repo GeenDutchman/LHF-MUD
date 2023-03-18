@@ -28,6 +28,10 @@ public class UserManager {
         for (User user : users) {
             usernames.add(user.getUsername());
         }
+        usernames.add("Someone");
+        usernames.add("someone");
+        usernames.add("You");
+        usernames.add("you");
         return usernames;
     }
 

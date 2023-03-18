@@ -14,7 +14,7 @@ public class CreateInMessage extends Command {
 
     @Override
     public Boolean isValid() {
-        return super.isValid() && this.directs.size() == 1
+        return super.isValid() && this.directs.size() == 1 && !this.directs.get(0).trim().isBlank()
                 && this.indirects.size() >= 1 && this.indirects.containsKey("with");
     }
 
@@ -22,7 +22,7 @@ public class CreateInMessage extends Command {
         if (this.directs.size() < 1) {
             return null;
         }
-        return this.directs.get(0);
+        return this.directs.get(0).trim();
     }
 
     public String getPassword() {
