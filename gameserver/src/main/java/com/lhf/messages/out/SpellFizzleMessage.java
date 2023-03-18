@@ -10,26 +10,66 @@ public class SpellFizzleMessage extends OutMessage {
         NOT_CASTER, BAD_POWER, NOT_SPELL, MISPRONOUNCE, OTHER;
     }
 
-    private SpellFizzleType type;
-    private Creature attempter;
-    private boolean addressAttempter;
+    private final SpellFizzleType subType;
+    private final Creature attempter;
 
-    public SpellFizzleMessage(SpellFizzleType type, Creature attempter, boolean addressAttempter) {
-        super(OutMessageType.FIZZLE);
-        this.type = type;
-        this.attempter = attempter;
-        this.addressAttempter = addressAttempter;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private SpellFizzleType subType;
+        private Creature attempter;
+
+        protected Builder() {
+            super(OutMessageType.FIZZLE);
+        }
+
+        public SpellFizzleType getSubType() {
+            return subType;
+        }
+
+        public Builder setSubType(SpellFizzleType subType) {
+            this.subType = subType;
+            return this;
+        }
+
+        public Creature getAttempter() {
+            return attempter;
+        }
+
+        public Builder setAttempter(Creature attempter) {
+            this.attempter = attempter;
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public SpellFizzleMessage Build() {
+            return new SpellFizzleMessage(this);
+        }
+
+    }
+
+    public SpellFizzleMessage(Builder builder) {
+        super(builder);
+        this.subType = builder.getSubType();
+        this.attempter = builder.getAttempter();
     }
 
     @Override
     public String toString() {
-        if (!this.addressAttempter) {
+        if (this.isBroadcast()) {
             StringJoiner sj = new StringJoiner(" ");
-            sj.add(this.attempter.getColorTaggedName());
-            sj.add("mumbles and tries to cast a spell...nothing spectacular happens.");
+            if (this.attempter != null) {
+                sj.add(this.attempter.getColorTaggedName());
+            } else {
+                sj.add("Someone");
+            }
+            sj.add(" mumbles and tries to cast a spell...nothing spectacular happens.");
             return sj.toString();
         }
-        switch (this.type) {
+        switch (this.subType) {
             case NOT_CASTER:
                 return "You are not a caster type, so you cannot cast spells.";
             case BAD_POWER:
@@ -44,12 +84,17 @@ public class SpellFizzleMessage extends OutMessage {
         }
     }
 
-    public SpellFizzleType getType() {
-        return type;
+    public SpellFizzleType getSubType() {
+        return subType;
     }
 
     public Creature getAttempter() {
         return attempter;
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 
 }

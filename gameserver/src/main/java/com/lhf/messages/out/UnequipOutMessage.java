@@ -5,20 +5,63 @@ import com.lhf.game.item.Item;
 import com.lhf.messages.OutMessageType;
 
 public class UnequipOutMessage extends OutMessage {
-    private Item item;
-    private EquipmentSlots slot;
-    private String attemptedName;
+    private final Item item;
+    private final EquipmentSlots slot;
+    private final String attemptedName;
 
-    public UnequipOutMessage(EquipmentSlots slot, Item item) {
-        super(OutMessageType.UNEQUIP);
-        this.item = item;
-        this.slot = slot;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private Item item;
+        private EquipmentSlots slot;
+        private String attemptedName;
+
+        protected Builder() {
+            super(OutMessageType.UNEQUIP);
+        }
+
+        public Item getItem() {
+            return item;
+        }
+
+        public Builder setItem(Item item) {
+            this.item = item;
+            return this;
+        }
+
+        public EquipmentSlots getSlot() {
+            return slot;
+        }
+
+        public Builder setSlot(EquipmentSlots slot) {
+            this.slot = slot;
+            return this;
+        }
+
+        public String getAttemptedName() {
+            return attemptedName;
+        }
+
+        public Builder setAttemptedName(String attemptedName) {
+            this.attemptedName = attemptedName;
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public UnequipOutMessage Build() {
+            return new UnequipOutMessage(this);
+        }
+
     }
 
-    public UnequipOutMessage(EquipmentSlots slot, String attemptedName) {
-        super(OutMessageType.UNEQUIP);
-        this.slot = slot;
-        this.attemptedName = attemptedName;
+    public UnequipOutMessage(Builder builder) {
+        super(builder);
+        this.item = builder.getItem();
+        this.slot = builder.getSlot();
+        this.attemptedName = builder.getAttemptedName();
     }
 
     @Override
@@ -57,5 +100,10 @@ public class UnequipOutMessage extends OutMessage {
 
     public String getAttemptedName() {
         return attemptedName;
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 }

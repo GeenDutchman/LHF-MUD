@@ -4,18 +4,43 @@ import com.lhf.game.creature.Creature;
 import com.lhf.messages.OutMessageType;
 
 public class StartFightMessage extends OutMessage {
-    private Creature instigator;
-    private boolean singleAddress;
+    private final Creature instigator;
 
-    public StartFightMessage(Creature instigator, boolean singleAddress) {
-        super(OutMessageType.START_FIGHT);
-        this.instigator = instigator;
-        this.singleAddress = singleAddress;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private Creature instigator;
+
+        protected Builder() {
+            super(OutMessageType.START_FIGHT);
+        }
+
+        public Creature getInstigator() {
+            return instigator;
+        }
+
+        public Builder setInstigator(Creature instigator) {
+            this.instigator = instigator;
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public OutMessage Build() {
+            return new StartFightMessage(this);
+        }
+    }
+
+    public StartFightMessage(Builder builder) {
+        super(builder);
+        this.instigator = builder.getInstigator();
     }
 
     @Override
     public String toString() {
-        if (this.singleAddress) {
+        if (!this.isBroadcast()) {
             return "You are in the fight!";
         }
         return this.instigator.getColorTaggedName() + " started a fight!";

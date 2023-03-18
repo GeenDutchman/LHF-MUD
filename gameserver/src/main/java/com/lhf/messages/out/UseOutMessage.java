@@ -12,32 +12,91 @@ public class UseOutMessage extends OutMessage {
         OK, USED_UP, NO_USES, REQUIRE_EQUIPPED;
     }
 
-    private UseOutMessageOption uomo;
-    private Creature itemUser;
-    private Usable usable;
-    private Taggable target;
-    private String message;
+    private final UseOutMessageOption subType;
+    private final Creature itemUser;
+    private final Usable usable;
+    private final Taggable target;
+    private final String message;
 
-    public UseOutMessage(UseOutMessageOption uomo, Creature itemUser, Usable usable, Taggable target) {
-        super(OutMessageType.USE);
-        this.uomo = uomo;
-        this.itemUser = itemUser;
-        this.usable = usable;
-        this.target = target;
-        this.message = null;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private UseOutMessageOption subType;
+        private Creature itemUser;
+        private Usable usable;
+        private Taggable target;
+        private String message;
+
+        protected Builder() {
+            super(OutMessageType.USE);
+        }
+
+        public UseOutMessageOption getSubType() {
+            return subType;
+        }
+
+        public Builder setSubType(UseOutMessageOption subType) {
+            this.subType = subType;
+            return this;
+        }
+
+        public Creature getItemUser() {
+            return itemUser;
+        }
+
+        public Builder setItemUser(Creature itemUser) {
+            this.itemUser = itemUser;
+            return this;
+        }
+
+        public Usable getUsable() {
+            return usable;
+        }
+
+        public Builder setUsable(Usable usable) {
+            this.usable = usable;
+            return this;
+        }
+
+        public Taggable getTarget() {
+            return target;
+        }
+
+        public Builder setTarget(Taggable target) {
+            this.target = target;
+            return this;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public Builder setMessage(String message) {
+            this.message = message;
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public UseOutMessage Build() {
+            return new UseOutMessage(this);
+        }
+
     }
 
-    public UseOutMessage(UseOutMessageOption uomo, Creature itemUser, Usable usable, Taggable target, String message) {
-        super(OutMessageType.USE);
-        this.uomo = uomo;
-        this.itemUser = itemUser;
-        this.usable = usable;
-        this.target = target;
-        this.message = message;
+    public UseOutMessage(Builder builder) {
+        super(builder);
+        this.subType = builder.getSubType();
+        this.itemUser = builder.getItemUser();
+        this.usable = builder.getUsable();
+        this.target = builder.getTarget();
+        this.message = builder.getMessage();
     }
 
-    public UseOutMessageOption getUomo() {
-        return uomo;
+    public UseOutMessageOption getSubType() {
+        return subType;
     }
 
     public Creature getItemUser() {
@@ -59,7 +118,7 @@ public class UseOutMessage extends OutMessage {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
-        switch (this.uomo) {
+        switch (this.subType) {
             case NO_USES:
                 sj.add("You cannot use this").add(this.usable.getColorTaggedName()).add("like that!");
             case USED_UP:
@@ -75,5 +134,10 @@ public class UseOutMessage extends OutMessage {
             sj.add(this.getMessage());
         }
         return sj.toString();
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 }

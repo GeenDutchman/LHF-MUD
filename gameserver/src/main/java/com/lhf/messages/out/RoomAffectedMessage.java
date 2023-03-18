@@ -13,18 +13,59 @@ public class RoomAffectedMessage extends OutMessage {
     private final RoomEffect effect;
     private final boolean reversed;
 
-    public RoomAffectedMessage(Room affected, RoomEffect effect) {
-        super(OutMessageType.ROOM_AFFECTED);
-        this.room = affected;
-        this.effect = effect;
-        this.reversed = false;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private Room room;
+        private RoomEffect effect;
+        private boolean reversed;
+
+        protected Builder() {
+            super(OutMessageType.ROOM_AFFECTED);
+        }
+
+        public Room getRoom() {
+            return room;
+        }
+
+        public Builder setRoom(Room room) {
+            this.room = room;
+            return this;
+        }
+
+        public RoomEffect getEffect() {
+            return effect;
+        }
+
+        public Builder setEffect(RoomEffect effect) {
+            this.effect = effect;
+            return this;
+        }
+
+        public boolean isReversed() {
+            return reversed;
+        }
+
+        public Builder setReversed(boolean reversed) {
+            this.reversed = reversed;
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public RoomAffectedMessage Build() {
+            return new RoomAffectedMessage(this);
+        }
+
     }
 
-    public RoomAffectedMessage(Room affected, RoomEffect effect, boolean reversed) {
-        super(OutMessageType.ROOM_AFFECTED);
-        this.room = affected;
-        this.effect = effect;
-        this.reversed = reversed;
+    public RoomAffectedMessage(Builder builder) {
+        super(builder);
+        this.room = builder.getRoom();
+        this.effect = builder.getEffect();
+        this.reversed = builder.isReversed();
     }
 
     public Room getAffectedRoom() {
@@ -44,10 +85,14 @@ public class RoomAffectedMessage extends OutMessage {
         StringJoiner sj = new StringJoiner(" ");
         if (this.effect.creatureResponsible() != null) {
             sj.add(this.effect.creatureResponsible().getColorTaggedName()).add("used");
-            sj.add(this.effect.getGeneratedBy().getColorTaggedName()).add("!");
+            sj.add(this.effect.getGeneratedBy().getColorTaggedName()).add("on");
         } else {
-            sj.add(this.effect.getGeneratedBy().getColorTaggedName()).add("affected the room")
-                    .add(this.room.getName()).add("!");
+            sj.add(this.effect.getGeneratedBy().getColorTaggedName()).add("affected");
+        }
+        if (this.room != null) {
+            sj.add("the room '").add(this.room.getName() + "'!");
+        } else {
+            sj.add("a room!");
         }
         sj.add("\r\n");
         if (this.reversed) {
@@ -91,5 +136,10 @@ public class RoomAffectedMessage extends OutMessage {
         }
 
         return sj.toString();
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 }

@@ -4,17 +4,42 @@ import com.lhf.messages.OutMessageType;
 import com.lhf.server.client.user.User;
 
 public class UserLeftMessage extends OutMessage {
-    private User user;
-    private boolean addressUser;
+    private final User user;
 
-    public UserLeftMessage(User user, boolean addressUser) {
-        super(OutMessageType.USER_LEFT);
-        this.user = user;
-        this.addressUser = addressUser;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private User user;
+
+        protected Builder() {
+            super(OutMessageType.USER_LEFT);
+        }
+
+        public User getUser() {
+            return user;
+        }
+
+        public Builder setUser(User user) {
+            this.user = user;
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public UserLeftMessage Build() {
+            return new UserLeftMessage(this);
+        }
+    }
+
+    public UserLeftMessage(Builder builder) {
+        super(builder);
+        this.user = builder.getUser();
     }
 
     public String toString() {
-        if (!this.addressUser) {
+        if (this.isBroadcast()) {
             if (this.user != null) {
                 return user.getUsername() + " has left the server\r\n";
             }
@@ -27,7 +52,9 @@ public class UserLeftMessage extends OutMessage {
         return user;
     }
 
-    public boolean isAddressUser() {
-        return addressUser;
+    @Override
+    public String print() {
+        return this.toString();
     }
+
 }

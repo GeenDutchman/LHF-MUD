@@ -3,7 +3,7 @@ package com.lhf.messages.out;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.NavigableMap;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 
@@ -33,61 +33,98 @@ public class SeeOutMessage extends OutMessage {
         }
     }
 
-    private Examinable examinable;
-    private Map<String, List<Taggable>> seenCategorized;
-    private List<EntityEffectSource> effects;
-    private StringJoiner extraInfo;
-    private String deniedReason;
+    private final Examinable examinable;
+    private final NavigableMap<String, List<Taggable>> seenCategorized;
+    private final List<EntityEffectSource> effects;
+    private final String extraInfo;
+    private final String deniedReason;
 
-    public SeeOutMessage(Examinable examinable) {
-        super(OutMessageType.SEE);
-        this.examinable = examinable;
-        this.extraInfo = new StringJoiner("\r\n").setEmptyValue("");
-        this.deniedReason = null;
-        this.seenCategorized = new TreeMap<>();
-        this.effects = new ArrayList<>();
-    }
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private Examinable examinable;
+        private NavigableMap<String, List<Taggable>> seenCategorized;
+        private List<EntityEffectSource> effects;
+        private StringJoiner extraInfo;
+        private String deniedReason;
 
-    public SeeOutMessage(Examinable examinable, String extraInfo) {
-        super(OutMessageType.SEE);
-        this.examinable = examinable;
-        this.extraInfo = new StringJoiner("\r\n").add(extraInfo.trim());
-        this.deniedReason = null;
-        this.seenCategorized = new TreeMap<>();
-        this.effects = new ArrayList<>();
-    }
-
-    public SeeOutMessage(String deniedReason) {
-        super(OutMessageType.SEE);
-        this.deniedReason = deniedReason.trim();
-        this.examinable = null;
-        this.extraInfo = new StringJoiner("\r\n").setEmptyValue("");
-        this.seenCategorized = new TreeMap<>();
-        this.effects = new ArrayList<>();
-    }
-
-    public SeeOutMessage addExtraInfo(String extraInfo) {
-        this.extraInfo.add(extraInfo);
-        return this;
-    }
-
-    public SeeOutMessage addSeen(String category, Taggable thing) {
-        if (this.seenCategorized == null) {
+        protected Builder() {
+            super(OutMessageType.SEE);
+            this.extraInfo = new StringJoiner("\r\n").setEmptyValue("");
             this.seenCategorized = new TreeMap<>();
         }
-        this.seenCategorized.putIfAbsent(category, new ArrayList<>());
-        this.seenCategorized.get(category).add(thing);
-        return this;
+
+        public Builder setExaminable(Examinable examinable) {
+            this.examinable = examinable;
+            return this;
+        }
+
+        public Builder addExtraInfo(String extraInfo) {
+            this.extraInfo.add(extraInfo);
+            return this;
+        }
+
+        public Builder addSeen(String category, Taggable thing) {
+            if (this.seenCategorized == null) {
+                this.seenCategorized = new TreeMap<>();
+            }
+            this.seenCategorized.putIfAbsent(category, new ArrayList<>());
+            this.seenCategorized.get(category).add(thing);
+            return this;
+        }
+
+        public Builder addSeen(SeeCategory category, Taggable thing) {
+            this.addSeen(category.name(), thing);
+            return this;
+        }
+
+        public Builder addEffector(EntityEffectSource effect) {
+            this.effects.add(effect);
+            return this;
+        }
+
+        public Builder setDeniedReason(String deniedReason) {
+            this.deniedReason = deniedReason;
+            return this;
+        }
+
+        public Examinable getExaminable() {
+            return examinable;
+        }
+
+        public NavigableMap<String, List<Taggable>> getSeenCategorized() {
+            return Collections.unmodifiableNavigableMap(seenCategorized);
+        }
+
+        public List<EntityEffectSource> getEffects() {
+            return Collections.unmodifiableList(effects);
+        }
+
+        public String getExtraInfo() {
+            return extraInfo.toString();
+        }
+
+        public String getDeniedReason() {
+            return deniedReason;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public SeeOutMessage Build() {
+            return new SeeOutMessage(this);
+        }
+
     }
 
-    public SeeOutMessage addSeen(SeeCategory category, Taggable thing) {
-        this.addSeen(category.name(), thing);
-        return this;
-    }
-
-    public SeeOutMessage addEffector(EntityEffectSource effect) {
-        this.effects.add(effect);
-        return this;
+    public SeeOutMessage(Builder builder) {
+        super(builder);
+        this.examinable = builder.getExaminable();
+        this.extraInfo = builder.getExtraInfo();
+        this.deniedReason = builder.getDeniedReason();
+        this.seenCategorized = builder.getSeenCategorized();
+        this.effects = builder.getEffects();
     }
 
     private StringJoiner listTaggables(StringJoiner sj) {
@@ -168,7 +205,6 @@ public class SeeOutMessage extends OutMessage {
     }
 
     private String listEffectors() {
-        // TODO: poor man's way, not parseable
         StringJoiner sj = new StringJoiner("\r\n");
         if (this.effects != null && this.effects.size() > 0) {
             sj.add("Effects that you can see:");
@@ -211,18 +247,23 @@ public class SeeOutMessage extends OutMessage {
     }
 
     public List<Taggable> getTaggedCategory(String category) {
-        return this.seenCategorized.get(category);
+        return Collections.unmodifiableList(this.seenCategorized.get(category));
     }
 
     public List<Taggable> getTaggedCategory(SeeCategory category) {
-        return this.getTaggedCategory(category.name());
+        return Collections.unmodifiableList(this.getTaggedCategory(category.name()));
     }
 
     public boolean isDenied() {
-        return this.deniedReason != null;
+        return this.deniedReason != null || this.deniedReason.length() != 0;
     }
 
     public List<EntityEffectSource> getEffects() {
         return Collections.unmodifiableList(effects);
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 }

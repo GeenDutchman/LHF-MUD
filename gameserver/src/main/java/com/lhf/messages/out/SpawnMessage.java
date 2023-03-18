@@ -4,15 +4,52 @@ import com.lhf.messages.OutMessageType;
 
 public class SpawnMessage extends OutMessage {
 
-    private String username;
+    private final String username;
 
-    public SpawnMessage(String newUserName) {
-        super(OutMessageType.SPAWN);
-        this.username = newUserName;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private String username;
+
+        protected Builder() {
+            super(OutMessageType.SPAWN);
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public Builder setUsername(String username) {
+            this.username = username;
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public SpawnMessage Build() {
+            return new SpawnMessage(this);
+        }
+    }
+
+    public SpawnMessage(Builder builder) {
+        super(builder);
+        this.username = builder.getUsername()newUserName;
     }
 
     @Override
     public String toString() {
-        return "<description>" + username + " has spawned in this room." + "</description>";
+        return "<description>" + (username != null ? username : "Someone") + " has spawned in this room."
+                + "</description>";
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 }

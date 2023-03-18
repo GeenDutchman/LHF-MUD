@@ -9,22 +9,51 @@ import com.lhf.game.magic.SpellEntry;
 import com.lhf.messages.OutMessageType;
 
 public class SpellEntryMessage extends OutMessage {
-    private NavigableSet<SpellEntry> entries;
+    private final NavigableSet<SpellEntry> entries;
 
-    public SpellEntryMessage(SpellEntry entry) {
-        super(OutMessageType.SPELL_ENTRY);
-        NavigableSet<SpellEntry> protoEntries = new TreeSet<>();
-        protoEntries.add(entry);
-        this.entries = Collections.unmodifiableNavigableSet(protoEntries);
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private NavigableSet<SpellEntry> entries;
+
+        protected Builder() {
+            super(OutMessageType.SPELL_ENTRY);
+            this.entries = new TreeSet<>();
+        }
+
+        public Builder addEntry(SpellEntry entry) {
+            if (this.entries == null) {
+                this.entries = new TreeSet<>();
+            }
+            this.entries.add(entry);
+            return this;
+        }
+
+        public NavigableSet<SpellEntry> getEntries() {
+            return Collections.unmodifiableNavigableSet(entries);
+        }
+
+        public Builder setEntries(NavigableSet<SpellEntry> entries) {
+            this.entries = entries;
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public SpellEntryMessage Build() {
+            return new SpellEntryMessage(this);
+        }
     }
 
-    public SpellEntryMessage(NavigableSet<SpellEntry> providedEntries) {
-        super(OutMessageType.SPELL_ENTRY);
-        this.entries = Collections.unmodifiableNavigableSet(providedEntries);
+    public SpellEntryMessage(Builder builder) {
+        super(builder);
+        this.entries = builder.getEntries();
     }
 
     public NavigableSet<SpellEntry> getEntries() {
-        return this.entries;
+        return Collections.unmodifiableNavigableSet(this.entries);
     }
 
     @Override
@@ -36,4 +65,10 @@ public class SpellEntryMessage extends OutMessage {
         }
         return sj.toString();
     }
+
+    @Override
+    public String print() {
+        return this.toString();
+    }
+
 }

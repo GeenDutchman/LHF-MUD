@@ -10,59 +10,128 @@ public class TakeOutMessage extends OutMessage {
         FOUND_TAKEN, NOT_FOUND, SHORT, INVALID, GREEDY, NOT_TAKEABLE, UNCLEVER;
     }
 
-    private String attemptedName;
-    private Item item;
-    private TakeOutType type;
+    private final String attemptedName;
+    private final Item item;
+    private final TakeOutType subType;
 
-    public TakeOutMessage(String attemptedName, TakeOutType type) {
-        super(OutMessageType.TAKE);
-        this.item = null;
-        this.attemptedName = attemptedName;
-        this.type = type;
+    public static class Builder extends OutMessage.Builder<Builder> {
+        private String attemptedName;
+        private Item item;
+        private TakeOutType subType;
+
+        protected Builder() {
+            super(OutMessageType.TAKE);
+        }
+
+        public String getAttemptedName() {
+            return attemptedName;
+        }
+
+        public Builder setAttemptedName(String attemptedName) {
+            this.attemptedName = attemptedName;
+            return this;
+        }
+
+        public Item getItem() {
+            return item;
+        }
+
+        public Builder setItem(Item item) {
+            this.item = item;
+            return this;
+        }
+
+        public TakeOutType getSubType() {
+            return subType;
+        }
+
+        public Builder setSubType(TakeOutType subType) {
+            this.subType = subType;
+            return this;
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public TakeOutMessage Build() {
+            return new TakeOutMessage(this);
+        }
+
     }
 
-    public TakeOutMessage(String attemptedName, Item item) {
-        super(OutMessageType.TAKE);
-        this.type = TakeOutType.FOUND_TAKEN;
-        this.attemptedName = attemptedName;
-        this.item = item;
-    }
-
-    public TakeOutMessage(String attemptedName, Item item, TakeOutType type) {
-        super(OutMessageType.TAKE);
-        this.attemptedName = attemptedName;
-        this.item = item;
-        this.type = type;
+    public TakeOutMessage(Builder builder) {
+        super(builder);
+        this.item = builder.getItem();
+        this.attemptedName = builder.getAttemptedName();
+        this.subType = builder.getSubType();
     }
 
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
-        switch (this.type) {
+        switch (this.subType) {
             case FOUND_TAKEN:
-                sj.add(this.item.getColorTaggedName()).add("successfully taken\n");
+                if (this.item != null) {
+                    sj.add(this.item.getColorTaggedName());
+                } else {
+                    sj.add("Item");
+                }
+                sj.add("successfully taken\n");
                 return sj.toString();
             case NOT_FOUND:
-                sj.add("Could not find that item '").add(this.attemptedName).add("' in this room.\n");
+                sj.add("Could not find that item");
+                if (this.attemptedName != null) {
+                    sj.add("'" + this.attemptedName + "'");
+                }
+                sj.add("in this room.\n");
                 return sj.toString();
             case SHORT:
-                sj.add("You'll need to be more specific than '").add(this.attemptedName).add("'!\n");
+                sj.add("You'll need to be more specific than");
+                if (this.attemptedName != null) {
+                    sj.add("'" + this.attemptedName + "'");
+                } else {
+                    sj.add("that");
+                }
+                sj.add("!\n");
                 return sj.toString();
             case INVALID:
-                sj.add("I don't think '").add(this.attemptedName).add("' is a valid name\n");
+                sj.add("I don't think");
+                if (this.attemptedName != null) {
+                    sj.add("'" + this.attemptedName + "'");
+                } else {
+                    sj.add("that");
+                }
+                sj.add("is a valid name\n");
                 return sj.toString();
             case GREEDY:
-                sj.add("Aren't you being a bit greedy there by trying to grab '").add(this.attemptedName)
-                        .add("'?\n");
+                sj.add("Aren't you being a bit greedy there by trying to grab");
+                if (this.attemptedName != null) {
+                    sj.add("'" + this.attemptedName + "'");
+                } else {
+                    sj.add("that");
+                }
+                sj.add("?\n");
                 return sj.toString();
             case NOT_TAKEABLE:
-                sj.add(
-                        "That's strange--it's stuck in its place. You can't take the ")
-                        .add(this.item.getColorTaggedName())
-                        .add("\n");
+                sj.add("That's strange--it's stuck in its place. You can't take the");
+                if (this.item != null) {
+                    sj.add(this.item.getColorTaggedName());
+                } else {
+                    sj.add("item");
+                }
+                sj.add("\n");
                 return sj.toString();
             case UNCLEVER:
-                sj.add("Are you trying to be too clever with '").add(this.attemptedName).add("'?\n");
+                sj.add("Are you trying to be too clever with");
+                if (this.attemptedName != null) {
+                    sj.add("'" + this.attemptedName + "'");
+                } else {
+                    sj.add("that");
+                }
+                sj.add("?\n");
                 return sj.toString();
 
             default:
@@ -85,7 +154,12 @@ public class TakeOutMessage extends OutMessage {
         return this.item;
     }
 
-    public TakeOutType getType() {
-        return this.type;
+    public TakeOutType getSubType() {
+        return this.subType;
+    }
+
+    @Override
+    public String print() {
+        return this.toString();
     }
 }
