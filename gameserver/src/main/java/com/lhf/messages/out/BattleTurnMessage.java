@@ -4,6 +4,7 @@ import java.util.StringJoiner;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.messages.OutMessageType;
+import com.lhf.game.battle.Initiative;
 
 public class BattleTurnMessage extends OutMessage {
     private final Creature myTurn;
@@ -19,6 +20,15 @@ public class BattleTurnMessage extends OutMessage {
 
         protected Builder() {
             super(OutMessageType.BATTLE_TURN);
+        }
+
+        public Builder fromInitiative(Initiative initiative) {
+            if (initiative != null) {
+                this.currentCreature = initiative.getCurrent();
+                this.roundCount = initiative.getRoundCount();
+                this.turnCount = initiative.getTurnCount();
+            }
+            return this;
         }
 
         public Builder setCurrentCreature(Creature turn) {
@@ -86,6 +96,10 @@ public class BattleTurnMessage extends OutMessage {
 
         StringJoiner sj = new StringJoiner(" ").setEmptyValue("This is a turn notification");
 
+        if (!this.yesTurn) {
+            sj.add("It is NOT your turn to fight!");
+        }
+
         if (this.roundCount > 0) {
             sj.add("It is round").add(Integer.toString(this.roundCount));
             if (this.turnCount > 0) {
@@ -98,7 +112,7 @@ public class BattleTurnMessage extends OutMessage {
             if (this.myTurn != null) {
                 sj.add(this.myTurn.getColorTaggedName());
             } else {
-                sj.add("Someone here");
+                sj.add("Someone else here");
             }
             sj.add("now has a turn to fight! ");
         } else {

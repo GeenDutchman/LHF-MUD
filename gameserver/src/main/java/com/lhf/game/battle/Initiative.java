@@ -5,7 +5,7 @@ import java.util.Collection;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.creature.Creature;
 
-interface Initiative extends CreatureContainer {
+public interface Initiative extends CreatureContainer {
 
     public interface Builder {
         public abstract boolean addCreature(Creature joiner);

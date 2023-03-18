@@ -184,7 +184,9 @@ public class BattleManager implements CreatureContainerMessageHandler {
         if (current != null) {
             if (pokeCount < getMaxPokesPerAction()) {
                 logger.finer(() -> String.format("Poking %s", current.getName()));
-                current.sendMsg(new BattleTurnMessage(current, true, true));
+                current.sendMsg(BattleTurnMessage.getBuilder().setCurrentCreature(current).setYesTurn(true)
+                        .setRoundCount(this.participants.getRoundCount()).setTurnCount(this.participants.getTurnCount())
+                        .Build());
             } else {
                 logger.warning(() -> String.format("Last poke for %s", current.getName()));
                 Set<CreatureEffect> penalty = this.calculateWastePenalty(current);
@@ -290,13 +292,15 @@ public class BattleManager implements CreatureContainerMessageHandler {
             if (participants.addCreature(c)) {
                 c.setInBattle(true);
                 c.setSuccessor(this);
-                JoinBattleMessage joinedMessage = new JoinBattleMessage(c, this.isBattleOngoing(), false);
+                JoinBattleMessage.Builder joinedMessage = JoinBattleMessage.getBuilder().setJoiner(c)
+                        .setOngoing(isBattleOngoing()).setBroacast();// new JoinBattleMessage(c, this.isBattleOngoing(),
+                                                                     // false);
                 if (this.room != null) {
-                    this.room.announce(joinedMessage, c.getName());
+                    this.room.announce(joinedMessage.Build(), c.getName());
                 } else {
-                    this.announce(joinedMessage, c.getName());
+                    this.announce(joinedMessage.Build(), c.getName());
                 }
-                c.sendMsg(new JoinBattleMessage(c, this.isBattleOngoing(), true));
+                c.sendMsg(joinedMessage.setNotBroadcast().Build());
                 return true;
             }
         }
@@ -369,10 +373,12 @@ public class BattleManager implements CreatureContainerMessageHandler {
                     this.addCreature(c);
                 }
             }
+            StartFightMessage.Builder startMessage = StartFightMessage.getBuilder().setInstigator(instigator)
+                    .setBroacast();
             if (this.room != null) {
-                this.room.announce(new StartFightMessage(instigator, false));
+                this.room.announce(startMessage.Build());
             }
-            this.participants.announce(new StartFightMessage(instigator, true));
+            this.participants.announce(startMessage.setNotBroadcast().Build());
             // if someone started a fight, no need to prompt them for their turn
             BattleManagerThread thread = new BattleManagerThread();
             this.battleLogger.info("Starting thread");
@@ -387,10 +393,11 @@ public class BattleManager implements CreatureContainerMessageHandler {
 
     public void endBattle() {
         this.battleLogger.info("Ending battle");
-        this.participants.announce(new FightOverMessage(true));
+        FightOverMessage.Builder foverBuilder = FightOverMessage.getBuilder().setNotBroadcast();
+        this.participants.announce(foverBuilder.Build());
         this.participants.stop();
         if (this.room != null) {
-            this.room.announce(new FightOverMessage(false));
+            this.room.announce(foverBuilder.setBroacast().Build());
         }
         BattleManagerThread thread = this.battleThread.get();
         if (thread != null) {
@@ -451,19 +458,22 @@ public class BattleManager implements CreatureContainerMessageHandler {
 
     private void promptCreatureToAct(Creature current) {
         // send message to creature that it is their turn
-        this.announce(new BattleTurnMessage(current, true, false));
-        current.sendMsg(new BattleTurnMessage(current, true, true));
+        BattleTurnMessage.Builder builder = BattleTurnMessage.getBuilder().setCurrentCreature(current).setYesTurn(true)
+                .setRoundCount(this.participants.getRoundCount()).setTurnCount(this.participants.getTurnCount());
+        this.announce(builder.setBroacast().Build());
+        current.sendMsg(builder.setNotBroadcast().Build());
     }
 
     public void handleTurnRenegade(Creature turned) {
         if (!CreatureFaction.RENEGADE.equals(turned.getFaction())) {
             turned.setFaction(CreatureFaction.RENEGADE);
-            turned.sendMsg(new RenegadeAnnouncement());
-            RenegadeAnnouncement announcement = new RenegadeAnnouncement(turned);
+            RenegadeAnnouncement.Builder builder = RenegadeAnnouncement.getBuilder(turned);
+            turned.sendMsg(builder.setNotBroadcast().Build());
+            builder.setNotBroadcast();
             if (this.room != null) {
-                room.announce(announcement, turned.getName());
+                room.announce(builder.Build(), turned.getName());
             } else {
-                this.announce(announcement, turned.getName());
+                this.announce(builder.Build(), turned.getName());
             }
         }
     }
@@ -516,7 +526,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
         Creature current = this.getCurrent();
         if (current != null && attempter != current) {
             // give out of turn message
-            attempter.sendMsg(new BattleTurnMessage(attempter, false, true));
+            attempter.sendMsg(BattleTurnMessage.getBuilder().setYesTurn(false).fromInitiative(participants).Build());
             // even if it's not their turn, make sure they are in it
             this.addCreature(attempter);
             return false;
@@ -548,7 +558,8 @@ public class BattleManager implements CreatureContainerMessageHandler {
                     OutMessage cam = target.applyEffect(effect);
                     announce(cam);
                 } else {
-                    announce(new MissMessage(attacker, target, attackerResult, targetResult));
+                    announce(MissMessage.getBuilder().setAttacker(attacker).setTarget(target).setOffense(attackerResult)
+                            .setDefense(targetResult).Build());
                 }
             }
 
@@ -627,8 +638,9 @@ public class BattleManager implements CreatureContainerMessageHandler {
         Boolean handled = false;
         ctx = this.addSelfToContext(ctx);
         if (ctx.getCreature() == null) {
-            ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY,
-                    this.room != null ? this.room.gatherHelp(ctx) : this.gatherHelp(ctx), msg));
+            ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                    .setHelps(this.room != null ? this.room.gatherHelp(ctx) : this.gatherHelp(ctx)).setCommand(msg)
+                    .Build());
             return true;
         }
         if (type != null) {
@@ -642,10 +654,12 @@ public class BattleManager implements CreatureContainerMessageHandler {
                 } else if (type == CommandMessage.GO) {
                     handled = this.handleGo(ctx, msg);
                 } else if (type == CommandMessage.INTERACT) {
-                    ctx.sendMsg(new HelpMessage(this.gatherHelp(ctx), type));
+                    ctx.sendMsg(
+                            HelpMessage.getHelpBuilder().setHelps(this.gatherHelp(ctx)).setSingleHelp(type).Build());
                     handled = true;
                 } else if (type == CommandMessage.TAKE) {
-                    ctx.sendMsg(new HelpMessage(this.gatherHelp(ctx), type));
+                    ctx.sendMsg(
+                            HelpMessage.getHelpBuilder().setHelps(this.gatherHelp(ctx)).setSingleHelp(type).Build());
                     handled = true;
                 } else if (type == CommandMessage.PASS) {
                     handled = this.handlePass(ctx, msg);
@@ -696,21 +710,21 @@ public class BattleManager implements CreatureContainerMessageHandler {
         if (msg.getType() == CommandMessage.GO) {
             Integer check = 10 + this.participants.size();
             MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
+            FleeMessage.Builder builder = FleeMessage.getBuilder().setRunner(ctx.getCreature()).setRoll(result);
             if (result.getRoll() < check) {
-                ctx.sendMsg(new FleeMessage(ctx.getCreature(), true, result, false));
-                FleeMessage fleeAnnouncement = new FleeMessage(ctx.getCreature(), false, result, false);
+                ctx.sendMsg(builder.setFled(false).setNotBroadcast().Build());
                 if (this.room != null) {
-                    this.room.announce(fleeAnnouncement, ctx.getCreature().getName());
+                    this.room.announce(builder.setBroacast().Build(), ctx.getCreature().getName());
                 } else {
-                    this.announce(fleeAnnouncement, ctx.getCreature().getName());
+                    this.announce(builder.setBroacast().Build(), ctx.getCreature().getName());
                 }
                 return true;
             }
-            FleeMessage fleeMessage = new FleeMessage(ctx.getCreature(), false, result, true);
+            builder.setFled(true).setBroacast();
             if (this.room != null) {
-                this.room.announce(fleeMessage, ctx.getCreature().getName());
+                this.room.announce(builder.Build(), ctx.getCreature().getName());
             } else {
-                this.announce(fleeMessage, ctx.getCreature().getName());
+                this.announce(builder.Build(), ctx.getCreature().getName());
             }
         }
         return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
@@ -728,12 +742,13 @@ public class BattleManager implements CreatureContainerMessageHandler {
     private Weapon getDesignatedWeapon(Creature attacker, String weaponName) {
         if (weaponName != null && weaponName.length() > 0) {
             Optional<Item> inventoryItem = attacker.getItem(weaponName);
+            NotPossessedMessage.Builder builder = NotPossessedMessage.getBuilder().setNotBroadcast()
+                    .setItemName(weaponName).setItemType(Weapon.class.getSimpleName());
             if (inventoryItem.isEmpty()) {
-                attacker.sendMsg(new NotPossessedMessage(Weapon.class.getSimpleName(), weaponName));
+                attacker.sendMsg(builder.Build());
                 return null;
             } else if (!(inventoryItem.get() instanceof Weapon)) {
-                attacker.sendMsg(
-                        new NotPossessedMessage(Weapon.class.getSimpleName(), weaponName, inventoryItem.get()));
+                attacker.sendMsg(builder.setFound(inventoryItem.get()).Build());
                 return null;
             } else {
                 return (Weapon) inventoryItem.get();
@@ -753,25 +768,27 @@ public class BattleManager implements CreatureContainerMessageHandler {
      */
     private List<Creature> collectTargetsFromRoom(Creature attacker, List<String> names) {
         List<Creature> targets = new ArrayList<>();
+        BadTargetSelectedMessage.Builder btMessBuilder = BadTargetSelectedMessage.getBuilder().setNotBroadcast();
         if (names == null || names.size() == 0) {
-            attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, null));
+            attacker.sendMsg(btMessBuilder.setBde(BadTargetOption.NOTARGET).Build());
             return null;
         }
         for (String targetName : names) {
+            btMessBuilder.setBadTarget(targetName);
             List<Creature> possTargets = new ArrayList<>(this.room.getCreaturesLike(targetName));
             if (possTargets.size() == 1) {
                 Creature targeted = possTargets.get(0);
                 if (targeted.equals(attacker)) {
-                    attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.SELF, null));
+                    attacker.sendMsg(btMessBuilder.setBde(BadTargetOption.SELF).Build());
                     return null;
                 }
                 targets.add(targeted);
             } else {
+                btMessBuilder.setPossibleTargets(possTargets);
                 if (possTargets.size() == 0) {
-                    attacker.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, targetName, possTargets));
+                    attacker.sendMsg(btMessBuilder.setBde(BadTargetOption.DNE).Build());
                 } else {
-                    attacker.sendMsg(
-                            new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, targetName, possTargets));
+                    attacker.sendMsg(btMessBuilder.setBde(BadTargetOption.UNCLEAR).Build());
                 }
                 return null;
             }
@@ -789,8 +806,10 @@ public class BattleManager implements CreatureContainerMessageHandler {
             return true;
         }
 
+        BadTargetSelectedMessage.Builder btMessBuilder = BadTargetSelectedMessage.getBuilder().setNotBroadcast();
+
         if (aMessage.getNumTargets() == 0) {
-            ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, null));
+            ctx.sendMsg(btMessBuilder.setBde(BadTargetOption.NOTARGET).Build());
             return true;
         }
 
@@ -801,7 +820,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
 
         if (aMessage.getNumTargets() > numAllowedTargets) {
             String badTarget = aMessage.getTargets().get(numAllowedTargets + 1);
-            ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.TOO_MANY, badTarget));
+            ctx.sendMsg(btMessBuilder.setBadTarget(badTarget).setBde(BadTargetOption.TOO_MANY).Build());
             return true;
         }
 
@@ -835,26 +854,29 @@ public class BattleManager implements CreatureContainerMessageHandler {
      * @param targetCreature
      */
     public void callReinforcements(@NotNull Creature attackingCreature, @NotNull Creature targetCreature) {
+        ReinforcementsCall.Builder reBuilder = ReinforcementsCall.getBuilder();
         if (targetCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(targetCreature.getFaction())) {
-            targetCreature.sendMsg(new ReinforcementsCall(targetCreature, true));
+            targetCreature
+                    .sendMsg(reBuilder.setNotBroadcast().setCaller(targetCreature).setCallerAddressed(true).Build());
             return;
         }
         if (this.room == null) {
             return;
         }
         int count = this.participants.size();
-        this.room.announce(new ReinforcementsCall(targetCreature, false));
+        this.room.announce(reBuilder.setCaller(targetCreature).setBroacast().Build());
         for (Creature c : this.room.getCreatures()) {
             if (targetCreature.getFaction().equals(c.getFaction()) && !this.hasCreature(c)) {
                 this.addCreature(c);
             }
         }
         if (attackingCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(attackingCreature.getFaction())) {
-            attackingCreature.sendMsg(new ReinforcementsCall(attackingCreature, true));
+            attackingCreature
+                    .sendMsg(reBuilder.setCallerAddressed(true).setNotBroadcast().setCaller(attackingCreature).Build());
             return;
         }
         if (this.participants.size() > count && !CreatureFaction.NPC.equals(targetCreature.getFaction())) {
-            this.room.announce(new ReinforcementsCall(attackingCreature, false));
+            this.room.announce(reBuilder.setBroacast().setCaller(attackingCreature).Build());
             for (Creature c : this.room.getCreatures()) {
                 if (attackingCreature.getFaction().equals(c.getFaction()) && !this.hasCreature(c)) {
                     this.addCreature(c);

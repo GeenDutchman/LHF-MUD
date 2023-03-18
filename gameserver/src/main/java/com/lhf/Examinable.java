@@ -8,6 +8,6 @@ public interface Examinable {
     String printDescription();
 
     default SeeOutMessage produceMessage() {
-        return new SeeOutMessage(this);
+        return SeeOutMessage.getBuilder().setExaminable(this).Build();
     }
 }

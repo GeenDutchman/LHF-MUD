@@ -16,10 +16,10 @@ public abstract class OutMessage {
             this.thisObject = this.getThis();
         }
 
-        public T setType(OutMessageType type) {
-            this.type = type;
-            return this.getThis();
-        }
+        // public T setType(OutMessageType type) {
+        // this.type = type;
+        // return this.getThis();
+        // }
 
         public OutMessageType getType() {
             return this.type;
