@@ -91,11 +91,11 @@ public class Inventory implements ItemContainer {
 
     @Override
     public SeeOutMessage produceMessage() {
-        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
         for (Takeable thing : this.items) {
             seeOutMessage.addSeen(SeeCategory.TAKEABLE, thing);
         }
-        return seeOutMessage;
+        return seeOutMessage.Build();
     }
 
 }

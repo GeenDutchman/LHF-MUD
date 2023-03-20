@@ -52,8 +52,9 @@ public class BadGoMessage extends OutMessage {
             return Collections.unmodifiableCollection(available);
         }
 
-        public void setAvailable(Collection<Directions> available) {
+        public Builder setAvailable(Collection<Directions> available) {
             this.available = available;
+            return this;
         }
 
         @Override

@@ -92,9 +92,10 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
             MultiRollResult sleepCheck = this.occupant.check(best);
             this.occupant.updateHitpoints(sleepCheck.getTotal());
             // TODO: regain spell energy?
-            InteractOutMessage iom = new InteractOutMessage(Bed.this,
-                    "You slept and got back " + sleepCheck.getColorTaggedName() + " hit points!");
-            this.occupant.sendMsg(iom);
+            InteractOutMessage.Builder iom = InteractOutMessage.getBuilder().setPerformed()
+                    .setDescription("You slept and got back " + sleepCheck.getColorTaggedName() + " hit points!")
+                    .setTaggable(Bed.this);
+            this.occupant.sendMsg(iom.Build());
         }
 
         private Bed getEnclosingInstance() {
@@ -177,16 +178,20 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
 
     protected OutMessage bedAction(Creature creature, InteractObject triggerObject, Map<String, Object> args) {
         if (creature == null) {
-            return new InteractOutMessage(triggerObject, InteractOutMessageType.CANNOT);
+            return InteractOutMessage.getBuilder().setTaggable(triggerObject).setSubType(InteractOutMessageType.CANNOT)
+                    .Build();
         }
         if (this.getOccupancy() >= this.getCapacity()) {
-            return new InteractOutMessage(triggerObject, InteractOutMessageType.CANNOT, "The bed is full!");
+            return InteractOutMessage.getBuilder().setTaggable(triggerObject).setSubType(InteractOutMessageType.CANNOT)
+                    .setDescription("The bed is full!").Build();
         }
 
         if (this.addCreature(creature)) {
-            return new InteractOutMessage(triggerObject, "You are now in the bed!");
+            return InteractOutMessage.getBuilder().setTaggable(triggerObject)
+                    .setSubType(InteractOutMessageType.PERFORMED).setDescription("You are now in the bed!").Build();
         }
-        return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR, "You are already in the bed!");
+        return InteractOutMessage.getBuilder().setTaggable(triggerObject).setSubType(InteractOutMessageType.ERROR)
+                .setDescription("You are already in the bed!").Build();
     }
 
     @Override
@@ -243,7 +248,8 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
     public boolean removeCreature(Creature doneSleeping) {
         BedTime found = this.getBedTime(doneSleeping);
         if (found != null) {
-            found.occupant.sendMsg(new InteractOutMessage(this, "You got out of the bed!"));
+            found.occupant.sendMsg(InteractOutMessage.getBuilder().setTaggable(this)
+                    .setDescription("You got out of the bed!").setPerformed().Build());
             found.cancel();
             found.occupant.setSuccessor(found.successor);
             return this.occupants.remove(found);
@@ -355,7 +361,8 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
                 this.removeCreature(ctx.getCreature());
                 return true;
             } else {
-                ctx.sendMsg(new BadGoMessage(BadGoType.DNE, goMessage.getDirection(), EnumSet.of(Directions.UP)));
+                ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(goMessage.getDirection())
+                        .setAvailable(EnumSet.of(Directions.UP)).Build());
                 return true;
             }
         } else if (msg.getType() == CommandMessage.INTERACT) {

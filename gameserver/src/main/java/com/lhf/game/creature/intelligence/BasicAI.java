@@ -113,7 +113,8 @@ public class BasicAI extends Client {
         this.handlers.put(OutMessageType.BATTLE_TURN, (BasicAI bai, OutMessage msg) -> {
             if (msg.getOutType().equals(OutMessageType.BATTLE_TURN)) {
                 BattleTurnMessage btm = (BattleTurnMessage) msg;
-                if (!btm.isWasted() && btm.isAddressTurner() && btm.isYesTurn()) {
+                if (bai.getNpc() != null && bai.getNpc().equals(btm.getMyTurn()) && !btm.isBroadcast()
+                        && btm.isYesTurn()) {
                     bai.basicAttack();
                 }
                 return;

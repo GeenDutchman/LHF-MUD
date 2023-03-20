@@ -46,10 +46,16 @@ public abstract class OutMessage {
 
     private final OutMessageType type;
     private final boolean broadcast;
+    private final Builder<?> builder;
 
     public OutMessage(Builder<?> builder) {
         this.type = builder.getType();
         this.broadcast = builder.isBroadcast();
+        this.builder = builder;
+    }
+
+    public Builder<?> copyBuilder() {
+        return this.builder;
     }
 
     public OutMessageType getOutType() {

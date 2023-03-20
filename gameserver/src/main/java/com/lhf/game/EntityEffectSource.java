@@ -49,7 +49,7 @@ public abstract class EntityEffectSource implements Taggable, Examinable {
 
     @Override
     public SeeOutMessage produceMessage() {
-        return new SeeOutMessage(this);
+        return SeeOutMessage.getBuilder().setExaminable(this).Build();
     }
 
     @Override

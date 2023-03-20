@@ -98,7 +98,7 @@ public class Game implements UserListener, MessageHandler {
 	}
 
 	private Boolean handleListPlayersMessage(CommandContext ctx, Command cmd) {
-		ctx.sendMsg(new ListPlayersMessage(this.userManager.getAllUsernames()));
+		ctx.sendMsg(ListPlayersMessage.getBuilder().setPlayerNames(this.userManager.getAllUsernames()));
 		return true;
 	}
 

@@ -14,6 +14,7 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
 import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SeeOutMessage.Builder;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 public class CreatureEffectSource extends EntityEffectSource {
@@ -82,11 +83,11 @@ public class CreatureEffectSource extends EntityEffectSource {
 
     @Override
     public SeeOutMessage produceMessage() {
-        SeeOutMessage seeOutMessage = super.produceMessage();
+        SeeOutMessage.Builder seeOutMessage = (Builder) super.produceMessage().copyBuilder();
         for (DamageDice dd : this.damages) {
             seeOutMessage.addSeen(SeeCategory.DAMAGES, dd);
         }
-        return seeOutMessage;
+        return seeOutMessage.Build();
     }
 
     @Override
