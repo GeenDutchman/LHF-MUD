@@ -78,17 +78,15 @@ public class FIFOInitiative implements Initiative {
     @Override
     public SeeOutMessage produceMessage() {
         Collection<Creature> battlers = this.getCreatures();
-        SeeOutMessage seeMessage;
-        if (battlers == null || battlers.size() == 0) {
-            seeMessage = new SeeOutMessage(this);
-        } else {
-            seeMessage = new SeeOutMessage(this, "Current: " + this.getCurrent().getColorTaggedName());
+        SeeOutMessage.Builder seeMessage = SeeOutMessage.getBuilder().setExaminable(this);
+        if (battlers != null && battlers.size() > 0) {
+            seeMessage.addExtraInfo("Current: " + this.getCurrent().getColorTaggedName());
             for (Creature c : battlers) {
                 seeMessage.addSeen("Participants", c);
             }
         }
 
-        return seeMessage;
+        return seeMessage.Build();
     }
 
     @Override

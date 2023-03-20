@@ -47,6 +47,7 @@ import com.lhf.messages.out.NotPossessedMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
+import com.lhf.messages.out.UnequipOutMessage.UnequipResultType;
 import com.lhf.messages.out.StatusOutMessage;
 import com.lhf.messages.out.UnequipOutMessage;
 import com.lhf.server.client.ClientID;
@@ -461,7 +462,8 @@ public abstract class Creature
             }
         }
 
-        CreatureAffectedMessage camOut = new CreatureAffectedMessage(this, creatureEffect, reverse);
+        CreatureAffectedMessage camOut = CreatureAffectedMessage.getBuilder().setAffected(this)
+                .setEffect(creatureEffect).setReversed(reverse).Build();
         return camOut;
     }
 
@@ -561,13 +563,14 @@ public abstract class Creature
 
     @Override
     public String printInventory() {
-        return this.statblock.getInventory().getInventoryOutMessage().AddEquipment(this.getEquipmentSlots()).toString();
+        return this.statblock.getInventory().getInventoryOutMessage(this.getEquipmentSlots()).toString();
     }
 
     @Override
     public String printDescription() {
         StringBuilder sb = new StringBuilder();
-        sb.append(new StatusOutMessage(this, false).toString()).append("\r\n");
+        String statusString = StatusOutMessage.getBuilder().setFromCreature(this, false).Build().toString();
+        sb.append(statusString).append("\r\n");
         Map<EquipmentSlots, Equipable> equipped = this.statblock.getEquipmentSlots();
         if (equipped.get(EquipmentSlots.HAT) != null) {
             sb.append("On their head is:").append(equipped.get(EquipmentSlots.HAT).getColorTaggedName());
@@ -585,48 +588,56 @@ public abstract class Creature
 
     @Override
     public SeeOutMessage produceMessage() {
-        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
         for (CreatureEffect effect : this.effects) {
             seeOutMessage.addSeen(SeeCategory.EFFECTS, effect);
         }
-        return seeOutMessage;
+        return seeOutMessage.Build();
     }
 
     @Override
     public boolean equipItem(String itemName, EquipmentSlots slot) {
         Optional<Item> maybeItem = this.getInventory().getItem(itemName);
+        EquipOutMessage.Builder equipMessage = EquipOutMessage.getBuilder().setAttemptedItemName(itemName)
+                .setNotBroadcast().setAttemptedSlot(slot);
         if (maybeItem.isPresent()) {
             Item fromInventory = maybeItem.get();
+            equipMessage.setItem(fromInventory);
             if (fromInventory instanceof Equipable) {
                 Equipable equipThing = (Equipable) fromInventory;
                 if (slot == null) {
                     slot = equipThing.getWhichSlots().get(0);
+                    equipMessage.setAttemptedSlot(slot);
                 }
                 if (equipThing.getWhichSlots().contains(slot)) {
                     this.unequipItem(slot, "");
                     this.getInventory().removeItem(equipThing);
                     this.getEquipmentSlots().putIfAbsent(slot, equipThing);
-                    this.sendMsg(new EquipOutMessage(equipThing));
+                    this.sendMsg(equipMessage.setSubType(EquipResultType.SUCCESS).Build());
                     equipThing.onEquippedBy(this);
 
                     return true;
                 }
-                this.sendMsg(new EquipOutMessage(EquipResultType.BADSLOT, equipThing, itemName, slot));
+                this.sendMsg(equipMessage.setSubType(EquipResultType.BADSLOT).Build());
                 return true;
             }
-            this.sendMsg(new EquipOutMessage(EquipResultType.NOTEQUIPBLE, fromInventory, itemName, slot));
+            this.sendMsg(equipMessage.setSubType(EquipResultType.NOTEQUIPBLE));
             return true;
         }
-        this.sendMsg(new NotPossessedMessage(Item.class.getSimpleName(), itemName));
+        this.sendMsg(NotPossessedMessage.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
+                .setItemName(itemName).Build());
         return true;
     }
 
     @Override
     public boolean unequipItem(EquipmentSlots slot, String weapon) {
+        UnequipOutMessage.Builder unequipMessage = UnequipOutMessage.getBuilder().setNotBroadcast().setSlot(slot)
+                .setAttemptedName(weapon);
         if (slot == null) {
             // if they specified weapon and not slot
             Optional<Item> optItem = getItem(weapon);
             if (optItem.isPresent()) {
+                unequipMessage.setItem(optItem.get());
                 Map<EquipmentSlots, Equipable> equipped = this.getEquipmentSlots();
                 if (equipped.containsValue(optItem.get())) {
                     Equipable equippedThing = (Equipable) optItem.get();
@@ -634,27 +645,30 @@ public abstract class Creature
                         if (equippedThing.equals(equipped.get(thingSlot))) {
                             equipped.remove(thingSlot);
                             this.getInventory().addItem(equippedThing);
-                            this.sendMsg(new UnequipOutMessage(thingSlot, equippedThing));
+                            this.sendMsg(unequipMessage.setSubType(UnequipResultType.SUCCESS).Build());
                             equippedThing.onUnequippedBy(this);
                             return true;
                         }
                     }
                 }
-                this.sendMsg(new UnequipOutMessage(null, optItem.get()));
+                this.sendMsg(unequipMessage.setSubType(UnequipResultType.ITEM_NOT_EQUIPPED).Build());
                 return false;
             }
 
-            this.sendMsg(new NotPossessedMessage(Item.class.getSimpleName(), weapon));
+            this.sendMsg(NotPossessedMessage.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
+                    .setItemName(weapon));
             return false;
         }
         Equipable thing = getEquipmentSlots().remove(slot);
         if (thing != null) {
+            unequipMessage.setItem(thing).setSubType(UnequipResultType.SUCCESS);
             this.getInventory().addItem(thing);
-            this.sendMsg(new UnequipOutMessage(slot, thing));
+            this.sendMsg(unequipMessage.Build());
             thing.onUnequippedBy(this);
             return true;
         }
-        this.sendMsg(new UnequipOutMessage(slot, thing)); // thing is null
+        this.sendMsg(unequipMessage.setItem(null).setSubType(UnequipResultType.ITEM_NOT_FOUND).Build()); // thing is
+                                                                                                         // null
         return false;
     }
 
@@ -764,10 +778,10 @@ public abstract class Creature
                     uneqmsg.getUnequipWhat());
             handled = true;
         } else if (msg.getType() == CommandMessage.STATUS) {
-            ctx.sendMsg(new StatusOutMessage(this, true));
+            ctx.sendMsg(StatusOutMessage.getBuilder().setNotBroadcast().setFromCreature(this, true).Build());
             handled = true;
         } else if (msg.getType() == CommandMessage.INVENTORY) {
-            ctx.sendMsg(this.getInventory().getInventoryOutMessage().AddEquipment(this.getEquipmentSlots()));
+            ctx.sendMsg(this.getInventory().getInventoryOutMessage(this.getEquipmentSlots()));
             handled = true;
         }
 

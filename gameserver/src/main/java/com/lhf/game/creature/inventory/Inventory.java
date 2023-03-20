@@ -1,18 +1,21 @@
 package com.lhf.game.creature.inventory;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.lhf.game.ItemContainer;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.out.InventoryOutMessage;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class Inventory implements ItemContainer {
     private List<Takeable> items;
@@ -46,7 +49,11 @@ public class Inventory implements ItemContainer {
     }
 
     public InventoryOutMessage getInventoryOutMessage() {
-        return new InventoryOutMessage(this.items);
+        return this.getInventoryOutMessage(null);
+    }
+
+    public InventoryOutMessage getInventoryOutMessage(Map<EquipmentSlots, Equipable> equipment) {
+        return InventoryOutMessage.getBuilder().setItems(this.items).setEquipment(equipment).Build();
     }
 
     public String toStoreString() {

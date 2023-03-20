@@ -5,11 +5,17 @@ import com.lhf.game.item.Item;
 import com.lhf.messages.OutMessageType;
 
 public class UnequipOutMessage extends OutMessage {
+    public enum UnequipResultType {
+        SUCCESS, ITEM_NOT_EQUIPPED, ITEM_NOT_FOUND;
+    }
+
+    private final UnequipResultType subType;
     private final Item item;
     private final EquipmentSlots slot;
     private final String attemptedName;
 
     public static class Builder extends OutMessage.Builder<Builder> {
+        private UnequipResultType subType;
         private Item item;
         private EquipmentSlots slot;
         private String attemptedName;
@@ -45,6 +51,15 @@ public class UnequipOutMessage extends OutMessage {
             return this;
         }
 
+        public UnequipResultType getSubType() {
+            return subType;
+        }
+
+        public Builder setSubType(UnequipResultType subType) {
+            this.subType = subType;
+            return this;
+        }
+
         @Override
         public Builder getThis() {
             return this;
@@ -63,35 +78,60 @@ public class UnequipOutMessage extends OutMessage {
 
     public UnequipOutMessage(Builder builder) {
         super(builder);
+        this.subType = builder.getSubType();
         this.item = builder.getItem();
         this.slot = builder.getSlot();
         this.attemptedName = builder.getAttemptedName();
     }
 
+    private String describeItem() {
+        if (this.item != null) {
+            return this.item.getColorTaggedName();
+        } else if (this.attemptedName != null && !this.attemptedName.isBlank()) {
+            return this.attemptedName;
+        } else {
+            return "item";
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        if (this.slot != null) {
-            if (this.item != null) {
-                sb.append("You have unequipped your ").append(this.item.getColorTaggedName());
-                sb.append(" from your ").append(this.slot.getColorTaggedName()).append(" equimpent slot");
-            } else if (this.attemptedName != null) {
-                sb.append("Your equipment slot ").append(this.slot.getColorTaggedName())
-                        .append(" does not contain any '").append(this.attemptedName).append("'");
+        if (this.isBroadcast()) {
+            sb.append("Someone ");
+            if (this.subType == UnequipResultType.SUCCESS) {
+                sb.append("has unequipped");
             } else {
-                sb.append("Your equipment slot ").append(this.slot.getColorTaggedName()).append(" is empty");
+                sb.append("attempted to unequip");
             }
-        } else {
-            if (this.attemptedName != null) {
-                sb.append("'").append(this.attemptedName).append("' is not something that you can unequip right now");
-            } else if (this.item != null) {
-                sb.append("While ").append(this.item.getColorTaggedName())
-                        .append(" is in your inventory, it is not equipped");
-            } else {
-                sb.append("There's been a problem trying to unequip something here...");
-            }
+            sb.append("an item.");
+            return sb.toString();
         }
-        return sb.append(".").toString();
+        switch (this.subType) {
+            case SUCCESS:
+                sb.append("You have unequipped your ").append(this.describeItem());
+                break;
+            case ITEM_NOT_EQUIPPED:
+                sb.append("Your ").append(this.describeItem()).append(" is not equipped");
+                break;
+            case ITEM_NOT_FOUND:
+                sb.append("That ").append(this.describeItem()).append(" was not found");
+                break;
+            default:
+                sb.append("You tried to unequip an item ");
+                if (this.attemptedName != null && !this.attemptedName.isBlank()) {
+                    sb.append("with the name of ").append(this.attemptedName);
+                }
+                if (this.item != null) {
+                    sb.append("and an item ").append(this.item.getColorTaggedName()).append(" was found");
+                }
+                break;
+        }
+        if (this.slot != null) {
+            sb.append(" in your ").append(this.slot.getColorTaggedName()).append(" equipment slot");
+        }
+        sb.append(".");
+        return sb.toString();
     }
 
     public Item getItem() {
