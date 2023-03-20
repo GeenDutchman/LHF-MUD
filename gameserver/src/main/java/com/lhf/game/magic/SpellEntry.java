@@ -199,6 +199,6 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
 
     @Override
     public SeeOutMessage produceMessage() {
-        return new SeeOutMessage(this);
+        return SeeOutMessage.getBuilder().setExaminable(this).Build();
     }
 }

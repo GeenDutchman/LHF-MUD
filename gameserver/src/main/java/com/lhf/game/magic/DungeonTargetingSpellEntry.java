@@ -2,6 +2,7 @@ package com.lhf.game.magic;
 
 import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
 
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
@@ -26,7 +27,13 @@ public class DungeonTargetingSpellEntry extends SpellEntry {
 
     @Override
     public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets) {
-        return new CastingMessage(caster, this, null);
+        StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("nothing");
+        if (targets != null) {
+            for (Taggable taggable : targets) {
+                sj.add(taggable.getColorTaggedName());
+            }
+        }
+        return CastingMessage.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sj.toString()).Build();
     }
 
     @Override

@@ -35,7 +35,7 @@ public class Ensouling extends DMRoomTargetingSpellEntry {
             sb.append(sj.toString()).append(".");
         }
 
-        return new CastingMessage(caster, this, sb.toString());
+        return CastingMessage.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sb.toString()).Build();
     }
 
 }

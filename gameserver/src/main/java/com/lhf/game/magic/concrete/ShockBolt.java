@@ -38,7 +38,7 @@ public class ShockBolt extends CreatureTargetingSpellEntry {
             sb.append("A small spark zips from").append(caster.getColorTaggedName())
                     .append("'s finger and flies toward").append(target.getColorTaggedName()).append("!");
         }
-        return new CastingMessage(caster, this, sb.toString());
+        return CastingMessage.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sb.toString()).Build();
     }
 
 }

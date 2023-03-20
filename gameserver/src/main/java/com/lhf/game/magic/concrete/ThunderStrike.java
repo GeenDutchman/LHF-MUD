@@ -41,7 +41,7 @@ public class ThunderStrike extends CreatureTargetingSpellEntry {
             sb.append("A large bolt zaps from ").append(caster.getColorTaggedName())
                     .append("'s hand and thunders toward ").append(target.getColorTaggedName()).append("!");
         }
-        return new CastingMessage(caster, this, sb.toString());
+        return CastingMessage.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sb.toString()).Build();
     }
 
 }

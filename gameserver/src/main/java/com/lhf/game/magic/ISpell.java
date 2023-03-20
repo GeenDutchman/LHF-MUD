@@ -87,7 +87,7 @@ public abstract class ISpell<T extends EntityEffect>
 
     @Override
     public SeeOutMessage produceMessage() {
-        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
+        SeeOutMessage seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this).Build();
         return seeOutMessage;
     }
 

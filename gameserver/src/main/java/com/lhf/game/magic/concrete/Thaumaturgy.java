@@ -48,7 +48,7 @@ public class Thaumaturgy extends RoomTargetingSpellEntry {
         }
         sb.append(caster.getStartTag()).append("/").append("|".repeat(longest)).append("\\")
                 .append(caster.getEndTag()).append("\n");
-        return new CastingMessage(caster, this, sb.toString());
+        return CastingMessage.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sb.toString()).Build();
     }
 
 }
