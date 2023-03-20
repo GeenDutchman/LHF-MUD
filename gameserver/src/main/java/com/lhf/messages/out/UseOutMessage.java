@@ -119,20 +119,24 @@ public class UseOutMessage extends OutMessage {
         return message;
     }
 
+    private String printItem() {
+        return this.usable != null ? this.usable.getColorTaggedName() : "item";
+    }
+
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
         switch (this.subType) {
             case NO_USES:
-                sj.add("You cannot use this").add(this.usable.getColorTaggedName()).add("like that!");
+                sj.add("You cannot use this").add(this.printItem()).add("like that!");
             case USED_UP:
-                sj.add("This").add(this.usable.getColorTaggedName()).add("has been used up.");
+                sj.add("This").add(this.printItem()).add("has been used up.");
             case REQUIRE_EQUIPPED:
-                sj.add("You need to have this").add(this.usable.getColorTaggedName())
+                sj.add("You need to have this").add(this.printItem())
                         .add("equipped in order to use it!");
             case OK:
             default:
-                sj.add("You used").add(this.usable.getColorTaggedName()).add(".");
+                sj.add("You used this").add(this.printItem() + ".");
         }
         if (this.message != null && !this.message.isBlank()) {
             sj.add(this.getMessage());

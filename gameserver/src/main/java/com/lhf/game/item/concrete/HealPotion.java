@@ -24,12 +24,15 @@ public class HealPotion extends Usable {
 
     private void setUp() {
         UseAction useAction = (ctx, object) -> {
+            UseOutMessage.Builder useOutMessage = UseOutMessage.getBuilder().setItemUser(ctx.getCreature())
+                    .setUsable(this);
             if (object == null) {
-                ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES,
-                        ctx.getCreature(), this, null, "That is not a valid target at all!"));
+                ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
+                        .setMessage("That is not a valid target at all!").Build());
                 return true;
             } else if (object instanceof Creature) {
                 Creature target = (Creature) object;
+                useOutMessage.setTarget(target);
                 CreatureEffectSource bce = new CreatureEffectSource(this.healtype.toString() + " healing",
                         new EffectPersistence(TickType.INSTANT), null, "Heals you a little bit", false);
                 bce = this.setHealing(bce);
@@ -37,19 +40,19 @@ public class HealPotion extends Usable {
                     BattleManager bm = ctx.getBattleManager();
                     if (bm.hasCreature(target) && !bm.hasCreature(ctx.getCreature())) {
                         // give out of turn message
-                        ctx.sendMsg(new BattleTurnMessage(ctx.getCreature(), false, true));
+                        ctx.sendMsg(BattleTurnMessage.getBuilder().setYesTurn(false).setNotBroadcast().Build());
                         bm.addCreature(ctx.getCreature());
                         return false;
                     }
-                    ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
+                    ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
                     OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     bm.announce(results);
                 } else if (ctx.getRoom() != null) {
-                    ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
+                    ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
                     OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     ctx.getRoom().announce(results);
                 } else {
-                    ctx.sendMsg(new UseOutMessage(UseOutMessageOption.OK, ctx.getCreature(), this, target));
+                    ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
                     OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     ctx.sendMsg(results);
                     if (ctx.getCreature() != target) {
@@ -58,8 +61,8 @@ public class HealPotion extends Usable {
                 }
                 return true;
             }
-            ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, null,
-                    "You cannot use a " + this.getName() + " on that."));
+            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
+                    .setMessage("You cannot use a " + this.getName() + " on that."));
             return true;
         };
         this.setUseAction(Creature.class.getName(), useAction);

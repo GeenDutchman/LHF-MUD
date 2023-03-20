@@ -14,32 +14,33 @@ import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 public class DispenserAction implements InteractAction {
     @Override
     public OutMessage doAction(Creature creature, InteractObject triggerObject, Map<String, Object> args) {
+        InteractOutMessage.Builder interactOutMessage = InteractOutMessage.getBuilder().setTaggable(triggerObject);
         Object o1 = args.get("room");
         if (!(o1 instanceof Room)) {
             Logger.getLogger(triggerObject.getClassName()).warning("Room not found");
-            return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
+            return interactOutMessage.setSubType(InteractOutMessageType.ERROR).Build();
         }
         Room r = (Room) o1;
         Object o2 = args.get("disp");
         if (!(o2 instanceof Dispenser)) {
             Logger.getLogger(triggerObject.getClassName()).warning("Dispenser not found");
-            return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
+            return interactOutMessage.setSubType(InteractOutMessageType.ERROR).Build();
         }
         Dispenser d = (Dispenser) o2;
         Object o3 = args.get("item");
         if (!(o3 instanceof Item)) {
             Logger.getLogger(triggerObject.getClassName()).warning("Dispensed item not found");
-            return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
+            return interactOutMessage.setSubType(InteractOutMessageType.ERROR).Build();
         }
         Item i = (Item) o3;
         Object o4 = args.get("message");
         if (!(o4 instanceof String)) {
             Logger.getLogger(triggerObject.getClassName()).warning("No message to print");
-            return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
+            return interactOutMessage.setSubType(InteractOutMessageType.ERROR).Build();
         }
         String s = (String) o4;
         r.addItem(i);
         d.incrementCount();
-        return new InteractOutMessage(triggerObject, s);
+        return interactOutMessage.setDescription(s).Build();
     }
 }

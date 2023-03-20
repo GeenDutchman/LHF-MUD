@@ -27,7 +27,7 @@ public class Dispenser extends InteractObject {
 
     @Override
     public SeeOutMessage produceMessage() {
-        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
-        return seeOutMessage;
+        SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
+        return seeOutMessage.Build();
     }
 }

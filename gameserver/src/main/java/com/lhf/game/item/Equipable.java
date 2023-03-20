@@ -57,7 +57,7 @@ public class Equipable extends Usable {
 
     @Override
     public SeeOutMessage produceMessage() {
-        SeeOutMessage seeOutMessage = super.produceMessage();
+        SeeOutMessage.Builder seeOutMessage = (SeeOutMessage.Builder) super.produceMessage().copyBuilder();
         for (CreatureEffectSource effector : this.getEquippingEffects(false)) {
             seeOutMessage.addEffector(effector);
         }
@@ -71,7 +71,7 @@ public class Equipable extends Usable {
                 seeOutMessage.addSeen(SeeCategory.PROFICIENCIES, type);
             }
         }
-        return seeOutMessage;
+        return seeOutMessage.Build();
     }
 
     public void onEquippedBy(Creature equipper) {

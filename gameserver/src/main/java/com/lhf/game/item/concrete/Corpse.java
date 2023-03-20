@@ -27,8 +27,8 @@ public class Corpse extends Item implements ItemContainer {
 
     @Override
     public SeeOutMessage produceMessage() {
-        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
-        return seeOutMessage;
+        SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
+        return seeOutMessage.Build();
     }
 
     @Override

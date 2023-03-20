@@ -49,12 +49,13 @@ public class Usable extends Takeable {
     }
 
     public boolean doUseAction(CommandContext ctx, Object usingOn) {
+        UseOutMessage.Builder useOutMessage = UseOutMessage.getBuilder().setItemUser(ctx.getCreature()).setUsable(this);
         if (methods == null || usingOn == null) {
-            ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, null));
+            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
             return false;
         }
         if (!hasUsesLeft()) {
-            ctx.sendMsg(new UseOutMessage(UseOutMessageOption.USED_UP, ctx.getCreature(), this, null));
+            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.USED_UP).Build());
             return false;
         }
 
@@ -86,7 +87,7 @@ public class Usable extends Takeable {
         }
 
         if (method == null) {
-            ctx.sendMsg(new UseOutMessage(UseOutMessageOption.NO_USES, ctx.getCreature(), this, null));
+            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
             return false;
         }
 
@@ -99,8 +100,8 @@ public class Usable extends Takeable {
 
     @Override
     public SeeOutMessage produceMessage() {
-        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
-        return seeOutMessage;
+        SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
+        return seeOutMessage.Build();
     }
 
 }

@@ -107,8 +107,8 @@ public abstract class Item implements Examinable, Taggable {
 
     @Override
     public SeeOutMessage produceMessage() {
-        SeeOutMessage seeOutMessage = new SeeOutMessage(this);
-        return seeOutMessage;
+        SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
+        return seeOutMessage.Build();
     }
 
 }

@@ -87,8 +87,10 @@ public class LewdBed extends Bed {
     }
 
     public void clear() {
+        LewdOutMessage.Builder deniedMessage = LewdOutMessage.getBuilder().setSubType(LewdOutMessageType.DENIED)
+                .setBroacast();
         for (VrijPartij party : this.vrijPartijen.values()) {
-            party.messageParticipants(new LewdOutMessage(LewdOutMessageType.DENIED, null));
+            party.messageParticipants(deniedMessage.setParty(party.getParty()).Build());
         }
         this.vrijPartijen.clear();
     }
@@ -108,17 +110,19 @@ public class LewdBed extends Bed {
     }
 
     protected boolean handleJoin(Creature joiner, int index) {
+        LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder().setCreature(joiner).setNotBroadcast();
         if (!this.isInBed(joiner)) {
-            joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, joiner));
+            joiner.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).Build());
             return true;
         }
 
         VrijPartij party = this.vrijPartijen.getOrDefault(index, null);
 
         if (party == null) {
-            joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.MISSED, joiner));
+            joiner.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.MISSED).Build());
             return true;
         }
+        lewdOutMessage.setParty(party.getParty());
         if (party.acceptAndCheck(joiner)) {
             if (this.lewdProduct != null) {
                 this.lewdProduct.onLewd(this.room, party);
@@ -130,8 +134,9 @@ public class LewdBed extends Bed {
     }
 
     protected boolean handleEmptyJoin(Creature joiner) {
+        LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder().setCreature(joiner).setNotBroadcast();
         if (!this.isInBed(joiner)) {
-            joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, joiner));
+            joiner.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).Build());
             return true;
         }
         for (int i : this.vrijPartijen.keySet()) {
@@ -140,13 +145,14 @@ public class LewdBed extends Bed {
                 return this.handleJoin(joiner, i);
             }
         }
-        joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.SOLO_UNSUPPORTED, joiner));
+        joiner.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.SOLO_UNSUPPORTED).Build());
         return true;
     }
 
     protected boolean handlePopulatedJoin(Creature joiner, Set<String> possPartners, Set<String> babyNames) {
+        LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder().setCreature(joiner);
         if (!this.isInBed(joiner)) {
-            joiner.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, joiner));
+            joiner.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
             return true;
         }
         Set<Creature> invited = new HashSet<>();
@@ -154,10 +160,12 @@ public class LewdBed extends Bed {
             for (String possName : possPartners) {
                 List<Creature> possibles = this.getCreaturesLike(possName);
                 if (possibles.size() == 0) {
-                    joiner.sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, possName, possibles));
+                    joiner.sendMsg(BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.DNE)
+                            .setBadTarget(possName).setPossibleTargets(possibles).Build());
                     return true;
                 } else if (possibles.size() > 1) {
-                    joiner.sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, possName, possibles));
+                    joiner.sendMsg(BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR)
+                            .setBadTarget(possName).setPossibleTargets(possibles).Build());
                     return true;
                 }
                 invited.add(possibles.get(0));
@@ -190,6 +198,7 @@ public class LewdBed extends Bed {
     }
 
     protected boolean handleLewd(CommandContext ctx, Command msg) {
+        LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder();
         if (msg.getType() != CommandMessage.LEWD) {
             return false;
         }
@@ -198,17 +207,18 @@ public class LewdBed extends Bed {
         }
 
         if (!this.isInBed(ctx.getCreature())) {
-            ctx.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, null));
+            ctx.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
             return true;
         }
+        lewdOutMessage.setCreature(ctx.getCreature());
 
         if (ctx.getCreature().isInBattle()) {
-            ctx.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, null));
+            ctx.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
             return true;
         }
 
         if (ctx.getCreature().getEquipped(EquipmentSlots.ARMOR) != null) {
-            ctx.sendMsg(new LewdOutMessage(LewdOutMessageType.NOT_READY, ctx.getCreature()));
+            ctx.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
             return true;
         }
 
@@ -257,21 +267,25 @@ public class LewdBed extends Bed {
 
     @Override
     protected OutMessage bedAction(Creature creature, InteractObject triggerObject, Map<String, Object> args) {
+        InteractOutMessage.Builder interactOutMessage = InteractOutMessage.getBuilder().setTaggable(triggerObject);
         if (creature == null) {
-            return new InteractOutMessage(triggerObject, InteractOutMessageType.CANNOT);
+            return interactOutMessage.setSubType(InteractOutMessageType.CANNOT).Build();
         }
         if (this.getOccupancy() >= this.getCapacity()) {
-            return new InteractOutMessage(triggerObject, InteractOutMessageType.CANNOT, "The bed is full!");
+            return interactOutMessage.setSubType(InteractOutMessageType.CANNOT).setDescription("The bed is full!")
+                    .Build();
         }
 
         if (creature.getEquipped(EquipmentSlots.ARMOR) != null) {
-            return new LewdOutMessage(LewdOutMessageType.NOT_READY, creature);
+            return LewdOutMessage.getBuilder().setSubType(LewdOutMessageType.NOT_READY).setCreature(creature).Build();
         }
 
         if (this.addCreature(creature)) {
-            return new InteractOutMessage(triggerObject, "You are now in the bed!");
+            return interactOutMessage.setSubType(InteractOutMessageType.PERFORMED)
+                    .setDescription("You are now in the bed!").Build();
         }
-        return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR, "You are already in the bed!");
+        return interactOutMessage.setSubType(InteractOutMessageType.ERROR).setDescription("You are already in the bed!")
+                .Build();
     }
 
 }

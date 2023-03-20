@@ -65,7 +65,8 @@ public class VrijPartij {
     }
 
     public void propose() {
-        LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.PROPOSED, this.initiator, party);
+        LewdOutMessage lom = LewdOutMessage.getBuilder().setSubType(LewdOutMessageType.PROPOSED).setCreature(initiator)
+                .setParty(party).setBroacast().Build();
         this.messageParticipants(lom);
         this.party.replaceAll((creature, answer) -> {
             return LewdAnswer.merge(answer, LewdAnswer.ASKED);
@@ -147,26 +148,26 @@ public class VrijPartij {
     protected synchronized VrijPartij accept(Creature creature) {
         if (this.party.containsKey(creature)) {
             this.party.put(creature, LewdAnswer.ACCEPTED);
-            LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.ACCEPTED, creature, this.party);
+            LewdOutMessage lom = LewdOutMessage.getBuilder().setSubType(LewdOutMessageType.ACCEPTED)
+                    .setCreature(creature).setParty(party).setBroacast().Build();
             this.messageParticipants(lom);
         }
         return this;
     }
 
     public boolean check() {
+        LewdOutMessage.Builder lom = LewdOutMessage.getBuilder().setParty(party).setBroacast();
         boolean allDone = this.getParticipants(LewdAnswer.ASKED).size() == 0
                 && this.getParticipants(LewdAnswer.INCLUDED).size() == 0;
 
         NavigableSet<Creature> lewdies = this.getParticipants();
         if (allDone && lewdies.size() > 1) {
-            LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.DUNNIT, null, party);
-            this.messageParticipants(lom);
+            this.messageParticipants(lom.setSubType(LewdOutMessageType.DUNNIT).Build());
         } else if (allDone && lewdies.size() > 0) {
-            LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.SOLO_UNSUPPORTED, lewdies.first(), party);
-            this.messageParticipants(lom);
+            this.messageParticipants(
+                    lom.setSubType(LewdOutMessageType.SOLO_UNSUPPORTED).setCreature(lewdies.first()).Build());
         } else if (allDone) {
-            LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.DENIED, null, party);
-            this.messageParticipants(lom);
+            this.messageParticipants(lom.setSubType(LewdOutMessageType.DENIED).Build());
         }
         return allDone;
     }
@@ -179,7 +180,8 @@ public class VrijPartij {
     public synchronized VrijPartij pass(Creature creature) {
         if (party.containsKey(creature)) {
             party.put(creature, LewdAnswer.DENIED);
-            LewdOutMessage lom = new LewdOutMessage(LewdOutMessageType.DENIED, creature, party);
+            LewdOutMessage lom = LewdOutMessage.getBuilder().setSubType(LewdOutMessageType.DENIED).setCreature(creature)
+                    .setParty(party).setBroacast().Build();
             creature.sendMsg(lom);
             this.messageParticipants(lom);
         }

@@ -33,10 +33,11 @@ public class InteractObject extends Item {
 
     public OutMessage doUseAction(Creature creature) {
         if (method == null) {
-            return new InteractOutMessage(this, InteractOutMessageType.NO_METHOD);
+            return InteractOutMessage.getBuilder().setTaggable(this).setSubType(InteractOutMessageType.NO_METHOD)
+                    .Build();
         }
         if (!isRepeatable && hasBeenInteracted) {
-            return new InteractOutMessage(this, InteractOutMessageType.USED_UP);
+            return InteractOutMessage.getBuilder().setTaggable(this).setSubType(InteractOutMessageType.USED_UP).Build();
         }
         hasBeenInteracted = true;
         return method.doAction(creature, this, interactItems);
