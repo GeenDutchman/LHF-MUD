@@ -230,7 +230,7 @@ public class Room implements Area {
         boolean added = this.allCreatures.add(c);
         if (added) {
             c.sendMsg(this.produceMessage());
-            this.announce(new RoomEnteredOutMessage(c), c.getName());
+            this.announce(RoomEnteredOutMessage.getBuilder().setNewbie(c).setBroacast().Build(), c.getName());
             if (this.allCreatures.size() > 1 && !this.commands.containsKey(CommandMessage.ATTACK)) {
                 StringJoiner sj = new StringJoiner(" ");
                 sj.add("\"attack [name]\"").add("Attacks a creature").add("\r\n");
@@ -276,7 +276,8 @@ public class Room implements Area {
     public Creature removeCreature(Creature c, Directions dir) {
         boolean removed = removeCreature(c);
         if (removed) {
-            this.announce(new SomeoneLeftRoom(c, dir), null, List.of(c.getName()));
+            this.announce(SomeoneLeftRoom.getBuilder().setLeaveTaker(c).setWhichWay(dir).Build(), null,
+                    List.of(c.getName()));
         }
         return c;
     }
@@ -400,12 +401,13 @@ public class Room implements Area {
 
     @Override
     public SeeOutMessage produceMessage(boolean seeInvisible, boolean seeDirections) {
-        SeeOutMessage seeOutMessage = Area.super.produceMessage(seeInvisible, seeDirections);
+        SeeOutMessage.Builder seeOutMessage = (SeeOutMessage.Builder) Area.super.produceMessage(seeInvisible,
+                seeDirections).copyBuilder();
 
         if (this.battleManager.isBattleOngoing()) {
             seeOutMessage.addExtraInfo("There is a battle going on!");
         }
-        return seeOutMessage;
+        return seeOutMessage.Build();
     }
 
     @Override
@@ -430,7 +432,7 @@ public class Room implements Area {
         for (Creature creature : roomEffect.getCreaturesToSummon()) {
             this.addCreature(creature);
         }
-        return new RoomAffectedMessage(this, roomEffect);
+        return RoomAffectedMessage.getBuilder().setRoom(this).setEffect(roomEffect).Build();
     }
 
     @Override
@@ -523,7 +525,8 @@ public class Room implements Area {
         }
         ctx = this.addSelfToContext(ctx);
         if (ctx.getCreature() == null) {
-            ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+            ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                    .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
             return true;
         }
         return this.battleManager.handleMessage(ctx, msg);
@@ -532,7 +535,8 @@ public class Room implements Area {
     protected boolean handleCast(CommandContext ctx, Command msg) {
         ctx.setBattleManager(this.battleManager);
         if (ctx.getCreature() == null) {
-            ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+            ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                    .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
             return true;
         }
         return false; // let a successor (ThirdPower) handle it
@@ -541,18 +545,22 @@ public class Room implements Area {
     protected Boolean handleTake(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.TAKE) {
             if (ctx.getCreature() == null) {
-                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+                ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                        .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
                 return true;
             }
             TakeMessage tMessage = (TakeMessage) msg;
 
+            TakeOutMessage.Builder takeOutMessage = TakeOutMessage.getBuilder();
+
             for (String thing : tMessage.getDirects()) {
+                takeOutMessage.setAttemptedName(thing);
                 if (thing.length() < 3) {
-                    ctx.sendMsg(new TakeOutMessage(thing, TakeOutType.SHORT));
+                    ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.SHORT).Build());
                     continue;
                 }
                 if (thing.matches("[^ a-zA-Z_-]+") || thing.contains("*")) {
-                    ctx.sendMsg(new TakeOutMessage(thing, TakeOutType.INVALID));
+                    ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.INVALID).Build());
                     continue;
                 }
                 try {
@@ -560,23 +568,24 @@ public class Room implements Area {
                             .findAny();
                     if (maybeItem.isEmpty()) {
                         if (thing.equalsIgnoreCase("all") || thing.equalsIgnoreCase("everything")) {
-                            ctx.sendMsg(new TakeOutMessage(thing, TakeOutType.GREEDY));
+                            ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.GREEDY).Build());
                         } else {
-                            ctx.sendMsg(new TakeOutMessage(thing, TakeOutType.NOT_FOUND));
+                            ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.NOT_FOUND).Build());
                         }
                         continue;
                     }
                     Item item = maybeItem.get();
+                    takeOutMessage.setItem(item);
                     if (item instanceof Takeable) {
                         ctx.getCreature().addItem((Takeable) item);
                         this.items.remove(item);
-                        ctx.sendMsg(new TakeOutMessage(thing, item, TakeOutType.FOUND_TAKEN));
+                        ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.FOUND_TAKEN).Build());
                         continue;
                     }
-                    ctx.sendMsg(new TakeOutMessage(thing, item, TakeOutType.NOT_TAKEABLE));
+                    ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.NOT_TAKEABLE).Build());
                 } catch (PatternSyntaxException pse) {
                     pse.printStackTrace();
-                    ctx.sendMsg(new TakeOutMessage(thing, TakeOutType.UNCLEVER));
+                    ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.UNCLEVER).Build());
                 }
             }
             return true;
@@ -587,7 +596,8 @@ public class Room implements Area {
     protected Boolean handleInteract(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.INTERACT) {
             if (ctx.getCreature() == null) {
-                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+                ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                        .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
                 return true;
             }
             InteractMessage intMessage = (InteractMessage) msg;
@@ -604,7 +614,8 @@ public class Room implements Area {
                     InteractObject ex = (InteractObject) ro;
                     ctx.sendMsg(ex.doUseAction(ctx.getCreature()));
                 } else {
-                    ctx.sendMsg(new InteractOutMessage(ro, InteractOutMessageType.CANNOT));
+                    ctx.sendMsg(InteractOutMessage.getBuilder().setTaggable(ro)
+                            .setSubType(InteractOutMessageType.CANNOT).Build());
                 }
                 return true;
             }
@@ -614,7 +625,8 @@ public class Room implements Area {
                     interactables.add((InteractObject) ro);
                 }
             }
-            ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, name, interactables));
+            ctx.sendMsg(BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR).setBadTarget(name)
+                    .setPossibleTargets(interactables).Build());
             return true;
         }
         return false;

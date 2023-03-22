@@ -91,7 +91,8 @@ public class Dungeon implements Land {
 
     @Override
     public boolean addPlayer(Player player) {
-        this.startingRoom.announce(new SpawnMessage(player.getColorTaggedName()));
+        this.startingRoom
+                .announce(SpawnMessage.getBuilder().setBroacast().setUsername(player.getColorTaggedName()).Build());
         player.setSuccessor(this);
         return startingRoom.addPlayer(player);
     }
@@ -123,7 +124,8 @@ public class Dungeon implements Land {
 
     @Override
     public boolean addCreature(Creature creature) {
-        this.startingRoom.announce(new SpawnMessage(creature.getColorTaggedName()));
+        this.startingRoom
+                .announce(SpawnMessage.getBuilder().setUsername(creature.getColorTaggedName()).setBroacast().Build());
         creature.setSuccessor(this);
         return startingRoom.addCreature(creature);
     }
@@ -131,7 +133,8 @@ public class Dungeon implements Land {
     public boolean addCreature(Creature creature, UUID roomUUID) {
         if (this.mapping.containsKey(roomUUID)) {
             AreaDirectionalLinks roomAndDirs = this.mapping.get(roomUUID);
-            roomAndDirs.getArea().announce(new SpawnMessage(creature.getColorTaggedName()));
+            roomAndDirs.getArea()
+                    .announce(SpawnMessage.getBuilder().setUsername(creature.getColorTaggedName()).Build());
             creature.setSuccessor(this);
             return roomAndDirs.getArea().addCreature(creature);
         }
@@ -185,8 +188,8 @@ public class Dungeon implements Land {
                 Player asPlayer = (Player) creature;
                 Player nextLife = Player.PlayerBuilder.getInstance(asPlayer.getUser()).build();
                 this.addPlayer(nextLife);
-                creature.sendMsg(new ReincarnateMessage(creature.getColorTaggedName()));
-                nextLife.sendMsg(new SeeOutMessage(startingRoom));
+                creature.sendMsg(ReincarnateMessage.getBuilder().setTaggedName(creature).setNotBroadcast().Build());
+                nextLife.sendMsg(SeeOutMessage.getBuilder().setExaminable(startingRoom).Build());
 
             }
             return true;
@@ -251,11 +254,14 @@ public class Dungeon implements Land {
     private Boolean handleShout(CommandContext ctx, Command cmd) {
         if (cmd.getType() == CommandMessage.SHOUT) {
             if (ctx.getCreature() == null) {
-                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), cmd));
+                ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                        .setHelps(this.gatherHelp(ctx)).setCommand(cmd).Build());
                 return true;
             }
             ShoutMessage shoutMessage = (ShoutMessage) cmd;
-            this.announceDirect(new SpeakingMessage(ctx.getCreature(), true, shoutMessage.getMessage()),
+            this.announceDirect(
+                    SpeakingMessage.getBuilder().setSayer(ctx.getCreature()).setShouting(false)
+                            .setMessage(shoutMessage.getMessage()).Build(),
                     this.getPlayers());
             return true;
         }
@@ -265,13 +271,14 @@ public class Dungeon implements Land {
     private Boolean handleGo(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.GO) {
             if (ctx.getCreature() == null) {
-                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+                ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                        .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
                 return true;
             }
             GoMessage goMessage = (GoMessage) msg;
             Directions toGo = goMessage.getDirection();
             if (ctx.getRoom() == null) {
-                ctx.sendMsg(new BadGoMessage(BadGoType.NO_ROOM, toGo));
+                ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(toGo).Build());
                 return true;
             }
             Room presentRoom = ctx.getRoom();
@@ -281,23 +288,26 @@ public class Dungeon implements Land {
                 if (exits == null || exits.size() == 0
                         || !exits.containsKey(toGo)
                         || exits.get(toGo) == null) {
-                    ctx.sendMsg(new BadGoMessage(BadGoType.DNE, toGo));
+                    ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
                     return true;
                 }
                 Doorway doorway = exits.get(toGo);
                 if (!doorway.canTraverse(ctx.getCreature(), toGo)) {
-                    ctx.sendMsg(new BadGoMessage(BadGoType.BLOCKED, toGo, exits.keySet()));
+                    ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo)
+                            .setAvailable(exits.keySet()).Build());
                     return true;
                 }
                 UUID nextRoomUuid = doorway.getRoomAccross(presentRoom.getUuid());
                 AreaDirectionalLinks nextRandD = this.mapping.get(nextRoomUuid);
                 if (nextRoomUuid == null || nextRandD == null) {
-                    ctx.sendMsg(new BadGoMessage(BadGoType.DNE, toGo, exits.keySet()));
+                    ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
+                            .setAvailable(exits.keySet()).Build());
                     return true;
                 }
                 Area nextRoom = nextRandD.getArea();
                 if (nextRoom == null) {
-                    ctx.sendMsg(new BadGoMessage(BadGoType.DNE, toGo, exits.keySet()));
+                    ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
+                            .setAvailable(exits.keySet()).Build());
                     return true;
                 }
 
@@ -306,7 +316,8 @@ public class Dungeon implements Land {
                 presentRoom.removeCreature(ctx.getCreature(), toGo);
                 return true;
             } else {
-                ctx.sendMsg(new BadGoMessage(BadGoType.NO_ROOM, goMessage.getDirection()));
+                ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.NO_ROOM)
+                        .setAttempted(goMessage.getDirection()).Build());
                 return true;
             }
         }
@@ -404,7 +415,7 @@ public class Dungeon implements Land {
 
     @Override
     public SeeOutMessage produceMessage() {
-        return new SeeOutMessage(this);
+        return SeeOutMessage.getBuilder().setExaminable(this).Build();
     }
 
     public String toMermaid(boolean fence) {

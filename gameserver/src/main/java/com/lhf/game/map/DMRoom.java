@@ -186,7 +186,7 @@ public class DMRoom extends Room {
         boolean added = this.users.add(user);
         if (added) {
             user.setSuccessor(this);
-            this.announce(new RoomEnteredOutMessage(user));
+            this.announce(RoomEnteredOutMessage.getBuilder().setNewbie(user).setBroacast().Build());
         }
         return added;
     }
@@ -204,7 +204,7 @@ public class DMRoom extends Room {
         for (User user : this.users) {
             if (username.equals(user.getUsername())) {
                 this.users.remove(user);
-                this.announce(new SomeoneLeftRoom(user, null));
+                this.announce(SomeoneLeftRoom.getBuilder().setLeaveTaker(user).setBroacast().Build());
                 return user;
             }
         }
@@ -218,7 +218,7 @@ public class DMRoom extends Room {
     public void userExitSystem(User user) {
         for (Dungeon dungeon : this.dungeons) {
             if (dungeon.removePlayer(user.getUserID()).isPresent()) {
-                dungeon.announce(new UserLeftMessage(user, false));
+                dungeon.announce(UserLeftMessage.getBuilder().setUser(user).setBroacast().Build());
             }
         }
     }
@@ -249,7 +249,8 @@ public class DMRoom extends Room {
                 User user = this.getUser(name);
                 if (user == null) {
                     if (dmRoomEffect.creatureResponsible() != null) {
-                        OutMessage whoops = new BadTargetSelectedMessage(BadTargetOption.DNE, name);
+                        OutMessage whoops = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.DNE)
+                                .setBadTarget(name).Build();
                         dmRoomEffect.creatureResponsible()
                                 .sendMsg(whoops);
                         return null;
@@ -258,7 +259,8 @@ public class DMRoom extends Room {
                 Optional<Item> maybeCorpse = this.getItem(name);
                 if (maybeCorpse.isEmpty() || !(maybeCorpse.get() instanceof Corpse)) {
                     if (effect.creatureResponsible() != null) {
-                        effect.creatureResponsible().sendMsg(new BadTargetSelectedMessage(BadTargetOption.DNE, name));
+                        effect.creatureResponsible().sendMsg(BadTargetSelectedMessage.getBuilder()
+                                .setBde(BadTargetOption.DNE).setBadTarget(name).Build());
                         return null;
                     }
                 }
@@ -285,7 +287,8 @@ public class DMRoom extends Room {
                         } else if (ctx.getUser() != null) {
                             sayer = ctx.getUser();
                         }
-                        u.sendMsg(new SpeakingMessage(sayer, sayMessage.getMessage(), u));
+                        u.sendMsg(SpeakingMessage.getBuilder().setSayer(sayer).setMessage(sayMessage.getMessage())
+                                .setHearer(u).Build());
                         sent = true;
                         break;
                     }
@@ -340,7 +343,8 @@ public class DMRoom extends Room {
                 return true;
             } else if (type == CommandMessage.CAST) {
                 if (ctx.getCreature() == null || !(ctx.getCreature() instanceof DungeonMaster)) {
-                    ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+                    ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                            .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
                     return true;
                 }
                 handled = super.handleCast(ctx, msg);

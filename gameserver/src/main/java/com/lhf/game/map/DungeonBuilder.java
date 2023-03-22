@@ -153,20 +153,22 @@ public class DungeonBuilder implements Land.LandBuilder {
         InteractAction testAction = (creature, triggerObject, args) -> {
             // You can do anything you imagine inside, just with casting overhead (for now)
             // This can be used for the secret room trigger, since a switch can be hidden
+            InteractOutMessage.Builder interactOutMessage = InteractOutMessage.getBuilder().setTaggable(triggerObject);
             Object o1 = args.get("note");
             if (!(o1 instanceof Note)) {
                 Logger.getLogger(triggerObject.getClassName()).warning("Note not found");
-                return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
+                return interactOutMessage.setSubType(InteractOutMessageType.ERROR).Build();
             }
             Note n = (Note) o1;
             Object o2 = args.get("room");
             if (!(o2 instanceof Room)) {
                 Logger.getLogger(triggerObject.getClassName()).warning("Room not found");
-                return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
+                return interactOutMessage.setSubType(InteractOutMessageType.ERROR).Build();
             }
             Room r = (Room) o2;
             r.addItem(n);
-            return new InteractOutMessage(triggerObject, "Switch activated. A note dropped from the ceiling.");
+            return interactOutMessage.setDescription("Switch activated. A note dropped from the ceiling.")
+                    .setPerformed().Build();
         };
         // Set Action
         testSwitch.setAction(testAction);
@@ -232,24 +234,27 @@ public class DungeonBuilder implements Land.LandBuilder {
         Switch statue = new Switch("golden statue", true, true,
                 "The statue has a start to a riddle, but it looks like it hasn't been finished yet.");
         InteractAction statueAction = (player, triggerObject, args) -> {
+            InteractOutMessage.Builder interactOutMessage = InteractOutMessage.getBuilder().setTaggable(triggerObject);
             Object o1 = args.get("room1");
             if (!(o1 instanceof Room)) {
                 Logger.getLogger(triggerObject.getClassName()).warning("Origin Room not found");
-                return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
+                return interactOutMessage.setSubType(InteractOutMessageType.ERROR).Build();
             }
             Room r1 = (Room) o1;
 
             Object o2 = args.get("room2");
             if (!(o2 instanceof Room)) {
                 Logger.getLogger(triggerObject.getClassName()).warning("Destination Room not found");
-                return new InteractOutMessage(triggerObject, InteractOutMessageType.ERROR);
+                return interactOutMessage.setSubType(InteractOutMessageType.ERROR).Build();
             }
             Room r2 = (Room) o2;
 
             r1.removeCreature(player);
             r2.addCreature(player);
-            return new InteractOutMessage(triggerObject,
-                    "The statue glows and you black out for a second. You find yourself in another room.");
+            return interactOutMessage
+                    .setDescription(
+                            "The statue glows and you black out for a second. You find yourself in another room.")
+                    .Build();
         };
         statue.setAction(statueAction);
         statueRoomBuilder.addItem(statue);

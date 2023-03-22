@@ -172,7 +172,9 @@ public class ThirdPower implements MessageHandler {
                     OutMessage cam = target.applyEffect(effect);
                     this.channelizeMessage(ctx, cam, spell.isOffensive(), caster, target);
                 } else {
-                    MissMessage missMessage = new MissMessage(caster, target, casterResult, targetResult);
+                    MissMessage missMessage = MissMessage.getBuilder().setAttacker(caster).setTarget(target)
+                            .setOffense(casterResult).setDefense(targetResult).Build();
+
                     this.channelizeMessage(ctx, missMessage, spell.isOffensive());
                 }
             }
@@ -204,7 +206,8 @@ public class ThirdPower implements MessageHandler {
                 OutMessage ram = ctx.getRoom().applyEffect(effect);
                 this.channelizeMessage(ctx, ram, spell.isOffensive(), caster);
             } else {
-                MissMessage missMessage = new MissMessage(caster, null, casterResult, targetResult);
+                MissMessage missMessage = MissMessage.getBuilder().setAttacker(caster)
+                        .setOffense(casterResult).setDefense(targetResult).Build();
                 this.channelizeMessage(ctx, missMessage, spell.isOffensive());
             }
         }
@@ -214,6 +217,9 @@ public class ThirdPower implements MessageHandler {
     private boolean handleCast(CommandContext ctx, Command msg) {
         CastMessage casting = (CastMessage) msg;
         Creature caster = ctx.getCreature();
+        SpellFizzleMessage.Builder spellFizzleMessage = SpellFizzleMessage.getBuilder().setAttempter(caster)
+                .setNotBroadcast();
+
         Vocation casterVocation = caster.getVocation();
         this.logger.info(() -> String.format("Handling cast of '%s' by '%s' who is a '%s'", casting.getInvocation(),
                 caster.getName(), casterVocation));
@@ -222,9 +228,9 @@ public class ThirdPower implements MessageHandler {
         if (foundByInvocation.isEmpty()) {
             this.logger.info(() -> String.format("Invocation by '%s' -> '%s' not found", caster.getName(),
                     casting.getInvocation()));
-            ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.MISPRONOUNCE, caster, true));
+            ctx.sendMsg(spellFizzleMessage.setSubType(SpellFizzleType.MISPRONOUNCE).setNotBroadcast().Build());
             if (ctx.getRoom() != null) {
-                ctx.getRoom().announce(new SpellFizzleMessage(SpellFizzleType.MISPRONOUNCE, caster, false));
+                ctx.getRoom().announce(spellFizzleMessage.setBroacast().Build());
             }
             return true;
         }
@@ -239,7 +245,7 @@ public class ThirdPower implements MessageHandler {
         }
         if (entry instanceof CreatureTargetingSpellEntry) {
             if (ctx.getRoom() == null) {
-                ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
+                ctx.sendMsg(spellFizzleMessage.setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
                 return true;
             }
             CreatureTargetingSpell spell = new CreatureTargetingSpell((CreatureTargetingSpellEntry) entry, caster);
@@ -249,8 +255,9 @@ public class ThirdPower implements MessageHandler {
                 List<Creature> found = new ArrayList<>(ctx.getRoom().getCreaturesLike(targetName));
                 if (found.size() > 1 || found.size() == 0) {
                     this.logger.fine(() -> String.format("Searching for '%s' got '%s'", targetName, found));
-                    ctx.sendMsg(new BadTargetSelectedMessage(
-                            found.size() > 1 ? BadTargetOption.UNCLEAR : BadTargetOption.NOTARGET, targetName, found));
+                    ctx.sendMsg(BadTargetSelectedMessage.getBuilder()
+                            .setBde(found.size() > 1 ? BadTargetOption.UNCLEAR : BadTargetOption.NOTARGET)
+                            .setBadTarget(targetName).setPossibleTargets(found).Build());
                     return true;
                 }
                 this.logger.fine(() -> String.format("Target '%s' found and added",
@@ -266,7 +273,7 @@ public class ThirdPower implements MessageHandler {
             return this.affectCreatures(ctx, spell, possTargets);
         } else if (entry instanceof CreatureAOESpellEntry) {
             if (ctx.getRoom() == null) {
-                ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
+                ctx.sendMsg(spellFizzleMessage.setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
                 return true;
             }
 
@@ -306,7 +313,8 @@ public class ThirdPower implements MessageHandler {
             return this.affectCreatures(ctx, spell, targets);
         } else if (entry instanceof DMRoomTargetingSpellEntry) {
             if (ctx.getRoom() == null || !(ctx.getRoom() instanceof DMRoom)) {
-                ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
+                ctx.sendMsg(SpellFizzleMessage.getBuilder().setSubType(SpellFizzleType.OTHER).setAttempter(caster)
+                        .setNotBroadcast().Build());
                 return true;
             }
             this.logger.info(() -> String.format("Caster '%s' is affecting a DMRoom with spell '%s'", caster.getName(),
@@ -322,13 +330,15 @@ public class ThirdPower implements MessageHandler {
                 String target = casting.getByPreposition("at");
                 if (target == null) {
                     this.logger.fine("No target found!");
-                    ctx.sendMsg(new BadTargetSelectedMessage(BadTargetOption.NOTARGET, target));
+                    ctx.sendMsg(BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.NOTARGET)
+                            .setBadTarget(target).Build());
                     return true;
                 }
                 Taggable foundUser = dmRoom.getUser(target);
                 if (foundUser == null) {
                     this.logger.fine(() -> String.format("User '%s' is not in the DMRoom", target));
-                    ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
+                    ctx.sendMsg(SpellFizzleMessage.getBuilder().setSubType(SpellFizzleType.OTHER).setAttempter(caster)
+                            .setNotBroadcast().Build());
                     return true;
                 }
                 taggedTargets.add(foundUser);
@@ -339,7 +349,8 @@ public class ThirdPower implements MessageHandler {
                 if (vocation != null || vocationName != null) {
                     spell.addUsernameToEnsoul(target, vocation);
                 } else {
-                    ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
+                    ctx.sendMsg(SpellFizzleMessage.getBuilder().setSubType(SpellFizzleType.OTHER).setAttempter(caster)
+                            .setNotBroadcast().Build());
                     return true;
                 }
             }
@@ -355,7 +366,8 @@ public class ThirdPower implements MessageHandler {
             return this.affectRoom(ctx, spell);
         } else if (entry instanceof RoomTargetingSpellEntry) {
             if (ctx.getRoom() == null) {
-                ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.OTHER, caster, true));
+                ctx.sendMsg(SpellFizzleMessage.getBuilder().setSubType(SpellFizzleType.OTHER).setAttempter(caster)
+                        .setNotBroadcast().Build());
                 return true;
             }
 
@@ -387,7 +399,7 @@ public class ThirdPower implements MessageHandler {
         NavigableSet<SpellEntry> entries = this.filter(filters, caster.getVocation().getVocationName(),
                 spellbookMessage.getSpellName(), null,
                 IntStream.rangeClosed(0, caster.getVocation().getLevel()).boxed().collect(Collectors.toList()));
-        ctx.sendMsg(new SpellEntryMessage(entries));
+        ctx.sendMsg(SpellEntryMessage.getBuilder().setEntries(entries).Build());
         return true;
     }
 
@@ -428,16 +440,17 @@ public class ThirdPower implements MessageHandler {
         ctx = this.addSelfToContext(ctx);
         if (msg.getType() == CommandMessage.CAST) {
             if (ctx.getCreature() == null) {
-                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+                ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                        .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
                 return true;
             }
             Creature attempter = ctx.getCreature();
             if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
-                ctx.sendMsg(new SpellFizzleMessage(SpellFizzleType.NOT_CASTER, attempter, true));
+                SpellFizzleMessage.Builder spellFizzle = SpellFizzleMessage.getBuilder()
+                        .setSubType(SpellFizzleType.NOT_CASTER).setAttempter(attempter).setNotBroadcast();
+                ctx.sendMsg(spellFizzle.Build());
                 if (ctx.getRoom() != null) {
-                    ctx.getRoom().announce(
-                            new SpellFizzleMessage(SpellFizzleType.NOT_CASTER, attempter, false),
-                            attempter.getName());
+                    ctx.getRoom().announce(spellFizzle.setBroacast().Build());
                 }
             } else {
                 this.handleCast(ctx, msg);
@@ -446,7 +459,8 @@ public class ThirdPower implements MessageHandler {
         }
         if (msg.getType() == CommandMessage.SPELLBOOK) {
             if (ctx.getCreature() == null) {
-                ctx.sendMsg(new BadMessage(BadMessageType.CREATURES_ONLY, this.gatherHelp(ctx), msg));
+                ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                        .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
                 return true;
             }
             return this.handleSpellbook(ctx, msg);

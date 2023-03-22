@@ -51,7 +51,7 @@ public interface Area
     }
 
     default SeeOutMessage produceMessage(boolean seeInvisible, boolean seeDirections) {
-        SeeOutMessage seen = new SeeOutMessage(this);
+        SeeOutMessage.Builder seen = SeeOutMessage.getBuilder().setExaminable(this);
         if (seeDirections) {
             if (this.getLand() == null) {
                 seen.addExtraInfo("There is no apparent way out of here.");
@@ -88,7 +88,7 @@ public interface Area
                         item);
             }
         }
-        return seen;
+        return seen.Build();
     }
 
     @Override
