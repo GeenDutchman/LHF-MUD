@@ -64,7 +64,8 @@ public class BasicAITest {
 
         listener.npc.setConvoTree(tree);
 
-        SpeakingMessage sm = new SpeakingMessage(speaker, "hello", listener.npc);
+        SpeakingMessage sm = SpeakingMessage.getBuilder().setSayer(speaker).setMessage("hello").setHearer(listener.npc)
+                .Build();
 
         sendMsgAndWait(sm, listener);
 

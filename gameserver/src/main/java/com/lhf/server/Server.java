@@ -65,7 +65,7 @@ public class Server implements ServerInterface, ConnectionListener {
     public Client startClient(Client client) {
         this.logger.finer("Sending welcome");
         client.setSuccessor(this);
-        client.sendMsg(new WelcomeMessage());
+        client.sendMsg(WelcomeMessage.getWelcomeBuilder().Build());
         return client;
     }
 
@@ -149,12 +149,12 @@ public class Server implements ServerInterface, ConnectionListener {
 
     private boolean handleCreateMessage(CommandContext ctx, CreateInMessage msg) {
         if (this.userManager.getAllUsernames().contains(msg.getUsername())) {
-            ctx.sendMsg(new DuplicateUserMessage());
+            ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
             return true;
         }
         User user = this.userManager.addUser(msg, ctx.getClientMessenger());
         if (user == null) {
-            ctx.sendMsg(new DuplicateUserMessage());
+            ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
             return true;
         }
         user.setSuccessor(this);
@@ -180,10 +180,10 @@ public class Server implements ServerInterface, ConnectionListener {
                 this.game.userLeft(ctx.getUserID());
                 User leaving = this.userManager.getUser(ctx.getUserID());
                 this.userManager.removeUser(ctx.getUserID());
-                leaving.sendMsg(new UserLeftMessage(leaving, true));
+                leaving.sendMsg(UserLeftMessage.getBuilder().setUser(leaving).setNotBroadcast().Build());
             } else {
                 if (ch != null) {
-                    ch.sendMsg(new UserLeftMessage(null, true));
+                    ch.sendMsg(UserLeftMessage.getBuilder().setNotBroadcast().Build());
                 }
             }
 

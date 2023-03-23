@@ -61,7 +61,7 @@ public class SpeakingMessage extends OutMessage {
         }
 
         @Override
-        public OutMessage Build() {
+        public SpeakingMessage Build() {
             return new SpeakingMessage(this);
         }
 

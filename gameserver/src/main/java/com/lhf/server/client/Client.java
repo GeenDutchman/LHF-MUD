@@ -81,9 +81,11 @@ public class Client implements MessageHandler, ClientMessenger {
         TreeMap<CommandMessage, String> helps = new TreeMap<>(this.gatherHelp(null));
 
         if (badMessageType != null) {
-            this.sendMsg(new BadMessage(badMessageType, helps, msg));
+            this.sendMsg(
+                    BadMessage.getBuilder().setBadMessageType(badMessageType).setHelps(helps).setCommand(msg).Build());
         } else {
-            this.sendMsg(new HelpMessage(helps, msg == null ? null : msg.getType()));
+            this.sendMsg(HelpMessage.getHelpBuilder().setHelps(helps).setSingleHelp(msg == null ? null : msg.getType())
+                    .Build());
         }
         return true;
     }
