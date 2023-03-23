@@ -257,7 +257,7 @@ public class SeeOutMessage extends OutMessage {
     }
 
     public boolean isDenied() {
-        return this.deniedReason != null || this.deniedReason.length() != 0;
+        return this.deniedReason != null && this.deniedReason.length() != 0;
     }
 
     public List<EntityEffectSource> getEffects() {
