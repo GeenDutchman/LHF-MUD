@@ -184,8 +184,8 @@ public class BattleManager implements CreatureContainerMessageHandler {
         if (current != null) {
             if (pokeCount < getMaxPokesPerAction()) {
                 logger.finer(() -> String.format("Poking %s", current.getName()));
-                current.sendMsg(BattleTurnMessage.getBuilder().setCurrentCreature(current).setYesTurn(true)
-                        .setRoundCount(this.participants.getRoundCount()).setTurnCount(this.participants.getTurnCount())
+                current.sendMsg(BattleTurnMessage.getBuilder().setYesTurn(true)
+                        .fromInitiative(participants)
                         .Build());
             } else {
                 logger.warning(() -> String.format("Last poke for %s", current.getName()));
@@ -458,8 +458,9 @@ public class BattleManager implements CreatureContainerMessageHandler {
 
     private void promptCreatureToAct(Creature current) {
         // send message to creature that it is their turn
-        BattleTurnMessage.Builder builder = BattleTurnMessage.getBuilder().setCurrentCreature(current).setYesTurn(true)
-                .setRoundCount(this.participants.getRoundCount()).setTurnCount(this.participants.getTurnCount());
+        BattleTurnMessage.Builder builder = BattleTurnMessage.getBuilder().fromInitiative(participants)
+                .setCurrentCreature(current)
+                .setYesTurn(true);
         this.announce(builder.setBroacast().Build());
         current.sendMsg(builder.setNotBroadcast().Build());
     }

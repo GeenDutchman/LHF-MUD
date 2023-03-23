@@ -115,7 +115,7 @@ public class BattleTurnMessage extends OutMessage {
                 sj.add("Someone else here");
             }
             sj.add("now has a turn to fight! ");
-        } else {
+        } else if (this.yesTurn) {
             sj.add("It is now your turn to fight! ");
         }
 

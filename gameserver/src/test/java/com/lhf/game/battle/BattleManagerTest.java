@@ -21,6 +21,11 @@ public class BattleManagerTest {
         Monster monster = Mockito.mock(Monster.class);
         NonPlayerCharacter npc = Mockito.mock(NonPlayerCharacter.class);
         Area area = Mockito.mock(Area.class);
+
+        Mockito.when(monster.getName()).thenReturn("Monster");
+        // Mockito.when(monster.getColorTaggedName()).thenCallRealMethod();
+        Mockito.when(npc.getName()).thenReturn("NPC");
+        Mockito.when(npc.getColorTaggedName()).thenCallRealMethod();
         // Mockito.when(area.getCreatures()).thenReturn(List.of(monster, npc));
 
         Initiative.Builder initiative = FIFOInitiative.Builder.getInstance();
@@ -30,12 +35,12 @@ public class BattleManagerTest {
         BattleManager battleManager = BattleManager.Builder.getInstance().setInitiativeBuilder(initiative).Build(area);
 
         battleManager.startBattle(monster, List.of(npc));
-        MessageMatcher startBattle = new MessageMatcher(OutMessageType.START_FIGHT);
-        MessageMatcher turnMessage = new MessageMatcher(OutMessageType.BATTLE_TURN);
+        MessageMatcher startBattle = new MessageMatcher(OutMessageType.START_FIGHT).setPrint(true, null);
+        MessageMatcher turnMessage = new MessageMatcher(OutMessageType.BATTLE_TURN).setPrint(true, null);
         Mockito.verify(npc, Mockito.timeout(1000).atLeastOnce()).sendMsg(Mockito.argThat(startBattle));
 
         Mockito.verify(npc, Mockito.timeout(1000).atLeastOnce()).sendMsg(Mockito.argThat(turnMessage));
 
-        Truth.assertThat(false).isTrue();
+        // Truth.assertThat(false).isTrue();
     }
 }
