@@ -2,6 +2,7 @@ package com.lhf.messages.out;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.StringJoiner;
 
 import com.lhf.game.map.Directions;
@@ -19,7 +20,7 @@ public class BadGoMessage extends OutMessage {
     public static class Builder extends OutMessage.Builder<Builder> {
         private BadGoType subType;
         private Directions attempted;
-        private Collection<Directions> available;
+        private Collection<Directions> available = EnumSet.noneOf(Directions.class);
 
         protected Builder() {
             super(OutMessageType.BAD_GO);
@@ -53,7 +54,7 @@ public class BadGoMessage extends OutMessage {
         }
 
         public Builder setAvailable(Collection<Directions> available) {
-            this.available = available;
+            this.available = available != null ? available : EnumSet.noneOf(Directions.class);
             return this;
         }
 

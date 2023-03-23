@@ -10,7 +10,7 @@ public class ListPlayersMessage extends OutMessage {
     private final List<String> playerNames;
 
     public static class Builder extends OutMessage.Builder<Builder> {
-        private List<String> playerNames;
+        private List<String> playerNames = new ArrayList<>();
 
         protected Builder() {
             super(OutMessageType.LIST_PLAYERS);
@@ -21,7 +21,7 @@ public class ListPlayersMessage extends OutMessage {
         }
 
         public Builder setPlayerNames(List<String> names) {
-            this.playerNames = names;
+            this.playerNames = names != null ? names : new ArrayList<>();
             return this;
         }
 
@@ -29,7 +29,9 @@ public class ListPlayersMessage extends OutMessage {
             if (this.playerNames == null) {
                 this.playerNames = new ArrayList<>();
             }
-            this.playerNames.add(name);
+            if (name != null) {
+                this.playerNames.add(name);
+            }
             return this;
         }
 

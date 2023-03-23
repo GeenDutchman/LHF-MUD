@@ -19,7 +19,7 @@ public class BadTargetSelectedMessage extends OutMessage {
     public static class Builder extends OutMessage.Builder<Builder> {
         private BadTargetOption bde;
         private String badTarget;
-        private Collection<? extends Taggable> possibleTargets;
+        private Collection<? extends Taggable> possibleTargets = Collections.emptyList();
 
         protected Builder() {
             super(OutMessageType.BAD_TARGET_SELECTED);
@@ -48,7 +48,7 @@ public class BadTargetSelectedMessage extends OutMessage {
         }
 
         public Builder setPossibleTargets(Collection<? extends Taggable> possibleTargets) {
-            this.possibleTargets = possibleTargets;
+            this.possibleTargets = possibleTargets != null ? possibleTargets : Collections.emptyList();
             return this;
         }
 

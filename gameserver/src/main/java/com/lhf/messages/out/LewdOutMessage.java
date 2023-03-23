@@ -20,7 +20,7 @@ public class LewdOutMessage extends OutMessage {
 
     public static class Builder extends OutMessage.Builder<Builder> {
         private LewdOutMessageType subType;
-        private Map<Creature, LewdAnswer> party;
+        private Map<Creature, LewdAnswer> party = Map.of();
         private Creature creature;
 
         protected Builder() {
@@ -37,14 +37,11 @@ public class LewdOutMessage extends OutMessage {
         }
 
         public Map<Creature, LewdAnswer> getParty() {
-            if (this.party == null) {
-                return Map.of();
-            }
             return Collections.unmodifiableMap(party);
         }
 
         public Builder setParty(Map<Creature, LewdAnswer> party) {
-            this.party = party;
+            this.party = party != null ? party : Map.of();
             return this;
         }
 

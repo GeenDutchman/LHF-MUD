@@ -41,15 +41,13 @@ public class SeeOutMessage extends OutMessage {
 
     public static class Builder extends OutMessage.Builder<Builder> {
         private Examinable examinable;
-        private NavigableMap<String, List<Taggable>> seenCategorized;
-        private List<EntityEffectSource> effects;
-        private StringJoiner extraInfo;
+        private NavigableMap<String, List<Taggable>> seenCategorized = new TreeMap<>();
+        private List<EntityEffectSource> effects = new ArrayList<>();
+        private StringJoiner extraInfo = new StringJoiner("\r\n").setEmptyValue("");
         private String deniedReason;
 
         protected Builder() {
             super(OutMessageType.SEE);
-            this.extraInfo = new StringJoiner("\r\n").setEmptyValue("");
-            this.seenCategorized = new TreeMap<>();
         }
 
         public Builder setExaminable(Examinable examinable) {

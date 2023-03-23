@@ -12,7 +12,7 @@ public class HelpMessage extends OutMessage {
 
     protected static abstract class AbstractBuilder<T extends AbstractBuilder<T>> extends OutMessage.Builder<T> {
 
-        private SortedMap<CommandMessage, String> helps;
+        private SortedMap<CommandMessage, String> helps = new TreeMap<>();
         private CommandMessage singleHelp;
 
         protected AbstractBuilder() {
@@ -25,7 +25,7 @@ public class HelpMessage extends OutMessage {
 
         // this stores a copy of helps;
         public T setHelps(Map<CommandMessage, String> helps) {
-            this.helps = new TreeMap<>(helps);
+            this.helps = helps != null ? new TreeMap<>(helps) : new TreeMap<>();
             return this.getThis();
         }
 

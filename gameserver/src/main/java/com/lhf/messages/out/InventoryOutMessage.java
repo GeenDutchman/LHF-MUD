@@ -2,6 +2,7 @@ package com.lhf.messages.out;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.StringJoiner;
 
@@ -16,8 +17,8 @@ public class InventoryOutMessage extends OutMessage {
     private final Map<EquipmentSlots, Equipable> equipment;
 
     public static class Builder extends OutMessage.Builder<Builder> {
-        private Collection<Takeable> items;
-        private Map<EquipmentSlots, Equipable> equipment;
+        private Collection<Takeable> items = Collections.emptyList();
+        private Map<EquipmentSlots, Equipable> equipment = new EnumMap<>(EquipmentSlots.class);
 
         protected Builder() {
             super(OutMessageType.INVENTORY);
@@ -28,7 +29,7 @@ public class InventoryOutMessage extends OutMessage {
         }
 
         public Builder setItems(Collection<Takeable> items) {
-            this.items = items;
+            this.items = items != null ? items : Collections.emptyList();
             return this;
         }
 
@@ -37,7 +38,7 @@ public class InventoryOutMessage extends OutMessage {
         }
 
         public Builder setEquipment(Map<EquipmentSlots, Equipable> equipment) {
-            this.equipment = equipment;
+            this.equipment = equipment != null ? equipment : new EnumMap<>(EquipmentSlots.class);
             return this;
         }
 

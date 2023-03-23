@@ -12,11 +12,10 @@ public class SpellEntryMessage extends OutMessage {
     private final NavigableSet<SpellEntry> entries;
 
     public static class Builder extends OutMessage.Builder<Builder> {
-        private NavigableSet<SpellEntry> entries;
+        private NavigableSet<SpellEntry> entries = new TreeSet<>();
 
         protected Builder() {
             super(OutMessageType.SPELL_ENTRY);
-            this.entries = new TreeSet<>();
         }
 
         public Builder addEntry(SpellEntry entry) {
@@ -32,7 +31,7 @@ public class SpellEntryMessage extends OutMessage {
         }
 
         public Builder setEntries(NavigableSet<SpellEntry> entries) {
-            this.entries = entries;
+            this.entries = entries != null ? entries : new TreeSet<>();
             return this;
         }
 
