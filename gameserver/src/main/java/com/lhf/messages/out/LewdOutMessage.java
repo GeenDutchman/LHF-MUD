@@ -2,6 +2,7 @@ package com.lhf.messages.out;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 
 import com.lhf.game.creature.Creature;
@@ -17,11 +18,13 @@ public class LewdOutMessage extends OutMessage {
     private final LewdOutMessageType subType;
     private final Map<Creature, LewdAnswer> party;
     private final Creature creature;
+    private final Set<String> babyNames;
 
     public static class Builder extends OutMessage.Builder<Builder> {
         private LewdOutMessageType subType;
         private Map<Creature, LewdAnswer> party = Map.of();
         private Creature creature;
+        private Set<String> babyNames = Set.of();
 
         protected Builder() {
             super(OutMessageType.LEWD);
@@ -54,6 +57,15 @@ public class LewdOutMessage extends OutMessage {
             return this;
         }
 
+        public Set<String> getBabyNames() {
+            return Collections.unmodifiableSet(babyNames);
+        }
+
+        public Builder setBabyNames(Set<String> babyNames) {
+            this.babyNames = babyNames != null ? babyNames : Set.of();
+            return this;
+        }
+
         @Override
         public Builder getThis() {
             return this;
@@ -75,6 +87,7 @@ public class LewdOutMessage extends OutMessage {
         this.subType = builder.getSubType();
         this.party = builder.getParty();
         this.creature = builder.getCreature();
+        this.babyNames = builder.getBabyNames();
     }
 
     private String statusString() {
@@ -197,6 +210,10 @@ public class LewdOutMessage extends OutMessage {
 
     public Creature getCreature() {
         return creature;
+    }
+
+    public Set<String> getBabyNames() {
+        return this.babyNames;
     }
 
     @Override

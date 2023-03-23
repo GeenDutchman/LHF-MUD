@@ -381,12 +381,18 @@ public class ServerTest {
         this.comm.create("Tester");
         String status = this.comm.handleCommand("status");
         String inventory = this.comm.handleCommand("inventory");
+
+        // divest ourselves of everything, just in case
         this.comm.handleCommand("unequip armor");
         this.comm.handleCommand("unequip shield");
         this.comm.handleCommand("unequip weapon");
 
         ServerClientComBundle attacker = new ServerClientComBundle(this.server);
         attacker.create("Attacker");
+        attacker.handleCommand("equip armor");
+        attacker.handleCommand("equip sword");
+        attacker.handleCommand("equip shield");
+        attacker.handleCommand("status");
 
         OutMessage outMessage = null;
         for (int i = 0; i < 30 && outMessage == null; i++) {

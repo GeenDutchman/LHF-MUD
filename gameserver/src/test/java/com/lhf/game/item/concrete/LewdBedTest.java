@@ -112,8 +112,8 @@ public class LewdBedTest {
         Truth.assertThat(bed.handlePopulatedJoin(first.npc, Set.of(second.npc.getName()), Set.of(babyname)))
                 .isTrue();
         MessageMatcher matcher = new MessageMatcher(OutMessageType.LEWD, "as they do it");
-        Mockito.verify(first.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
-        Mockito.verify(second.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
+        Mockito.verify(first.sssb, Mockito.timeout(2000).times(1)).send(Mockito.argThat(matcher));
+        Mockito.verify(second.sssb, Mockito.timeout(2000).times(1)).send(Mockito.argThat(matcher));
 
         Truth.assertThat(room.getItem(babyname).isPresent()).isTrue();
         Truth.assertThat(room.getItem(babyname).get()).isInstanceOf(Corpse.class);

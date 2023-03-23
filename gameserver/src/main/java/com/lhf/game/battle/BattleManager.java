@@ -469,7 +469,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
             turned.setFaction(CreatureFaction.RENEGADE);
             RenegadeAnnouncement.Builder builder = RenegadeAnnouncement.getBuilder(turned);
             turned.sendMsg(builder.setNotBroadcast().Build());
-            builder.setNotBroadcast();
+            builder.setBroacast();
             if (this.room != null) {
                 room.announce(builder.Build(), turned.getName());
             } else {
