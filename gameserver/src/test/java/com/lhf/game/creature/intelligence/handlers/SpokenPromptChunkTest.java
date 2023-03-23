@@ -24,7 +24,8 @@ public class SpokenPromptChunkTest {
         listener.npc.setConvoTree(tree);
 
         AIComBundle speaker = new AIComBundle();
-        SpeakingMessage sm = new SpeakingMessage(speaker.npc, "hello", listener.npc);
+        SpeakingMessage sm = SpeakingMessage.getBuilder().setSayer(speaker.npc).setMessage("hello")
+                .setHearer(listener.npc).Build();
         listener.npc.sendMsg(sm);
 
         Mockito.verify(listener.sssb, Mockito.timeout(1000)).send(sm);
@@ -44,7 +45,8 @@ public class SpokenPromptChunkTest {
         listener.brain.addHandler(OutMessageType.SPEAKING, chunk);
 
         String prompt = "NONOBJECT";
-        SpeakingMessage sm = new SpeakingMessage(speaker.npc, "PROMPT SEE " + prompt, listener.npc);
+        SpeakingMessage sm = SpeakingMessage.getBuilder().setSayer(speaker.npc).setMessage("PROMPT SEE " + prompt)
+                .setHearer(listener.npc).Build();
         listener.npc.sendMsg(sm);
 
         Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
@@ -60,7 +62,8 @@ public class SpokenPromptChunkTest {
         listener.brain.addHandler(OutMessageType.SPEAKING, chunk);
 
         String prompt = "NONOBJECT";
-        SpeakingMessage sm = new SpeakingMessage(speaker.npc, "PROMPT SEE " + prompt, listener.npc);
+        SpeakingMessage sm = SpeakingMessage.getBuilder().setSayer(speaker.npc).setMessage("PROMPT SEE " + prompt)
+                .setHearer(listener.npc).Build();
         listener.npc.sendMsg(sm);
 
         Mockito.verifyNoInteractions(listener.mockedWrappedHandler);

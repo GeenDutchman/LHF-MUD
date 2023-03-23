@@ -81,7 +81,8 @@ public class BasicAITest {
 
         Attack attack = attacker.npc.attack(attacker.npc.getWeapon());
         CreatureEffect effect = attack.getEffects().stream().findFirst().get();
-        CreatureAffectedMessage adm = new CreatureAffectedMessage(victim.npc, effect);
+        CreatureAffectedMessage adm = CreatureAffectedMessage.getBuilder().setAffected(victim.npc).setEffect(effect)
+                .Build();
         sendMsgAndWait(adm, victim);
 
         Truth.assertThat(victim.brain.getLastAttacker()).isNull();
@@ -89,7 +90,8 @@ public class BasicAITest {
         victim.npc.setInBattle(true); // turn it on!
 
         Truth.assertThat(effect.getDamageResult().getTotal()).isNotEqualTo(0);
-        CreatureAffectedMessage doneAttack = new CreatureAffectedMessage(victim.npc, effect);
+        CreatureAffectedMessage doneAttack = CreatureAffectedMessage.getBuilder().setAffected(victim.npc)
+                .setEffect(effect).Build();
         sendMsgAndWait(doneAttack, victim);
 
         Mockito.verify(victim.sssb, Mockito.timeout(1000)).send(doneAttack);
@@ -105,7 +107,8 @@ public class BasicAITest {
     void testBadTargetNoTarget() {
         AIComBundle searcher = new AIComBundle();
         searcher.npc.setInBattle(true);
-        BadTargetSelectedMessage btsm = new BadTargetSelectedMessage(BadTargetOption.DNE, "bloohoo", new ArrayList<>());
+        BadTargetSelectedMessage btsm = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.DNE)
+                .setBadTarget("bloohoo").setPossibleTargets(new ArrayList<>()).Build();
         sendMsgAndWait(btsm, searcher);
         Truth.assertThat(searcher.brain.getLastAttacker()).isNull();
         Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
@@ -121,7 +124,8 @@ public class BasicAITest {
         victim.npc.setFaction(CreatureFaction.MONSTER);
         ArrayList<Taggable> stuff = new ArrayList<>();
         stuff.add(victim.npc);
-        BadTargetSelectedMessage btsm = new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, "bloohoo jane", stuff);
+        BadTargetSelectedMessage btsm = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR)
+                .setBadTarget("bloohoo jane").setPossibleTargets(stuff).Build();
         sendMsgAndWait(btsm, searcher);
         Truth.assertThat(searcher.brain.getLastAttacker()).isNotNull();
         Truth.assertThat(searcher.brain.getLastAttacker()).isEqualTo(victim.npc);
@@ -137,7 +141,8 @@ public class BasicAITest {
         AIComBundle samefaction = new AIComBundle();
         ArrayList<Taggable> stuff = new ArrayList<>();
         stuff.add(samefaction.npc);
-        BadTargetSelectedMessage btsm = new BadTargetSelectedMessage(BadTargetOption.UNCLEAR, "bloohoo jane", stuff);
+        BadTargetSelectedMessage btsm = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR)
+                .setBadTarget("bloohoo jane").setPossibleTargets(stuff).Build();
         sendMsgAndWait(btsm, searcher);
         Truth.assertThat(searcher.brain.getLastAttacker()).isNull();
         Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
