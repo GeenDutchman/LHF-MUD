@@ -1,7 +1,5 @@
 package com.lhf.game.item.concrete.equipment;
 
-import static org.mockito.ArgumentMatchers.booleanThat;
-
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.creature.CreatureEffectSource;

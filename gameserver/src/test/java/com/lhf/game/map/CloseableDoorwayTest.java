@@ -8,7 +8,6 @@ import org.mockito.Mockito;
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
-import com.lhf.game.map.Dungeon.AreaAndDirs;
 import com.lhf.game.map.Land.AreaDirectionalLinks;
 import com.lhf.game.map.Room.RoomBuilder;
 import com.lhf.messages.MessageMatcher;
