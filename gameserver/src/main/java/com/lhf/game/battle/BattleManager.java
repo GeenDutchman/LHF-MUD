@@ -76,7 +76,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
         }
     }
 
-    private class BattleManagerThread extends Thread {
+    protected class BattleManagerThread extends Thread {
         protected AtomicBoolean isRunning;
         protected Logger threadLogger;
         private Semaphore turnBarrier;
@@ -87,6 +87,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
             this.turnBarrier = new Semaphore(0);
         }
 
+        @Override
         public void run() {
             this.threadLogger.info("Running");
             BattleManager.this.participants.start();
@@ -168,15 +169,15 @@ public class BattleManager implements CreatureContainerMessageHandler {
         this.battleLogger = Logger.getLogger(this.getClass().getName());
     }
 
-    private int getTurnWaitCount() {
+    protected int getTurnWaitCount() {
         return this.turnBarrierWaitCount;
     }
 
-    private TimeUnit getTurnWaitUnit() {
+    protected TimeUnit getTurnWaitUnit() {
         return this.turnBarrierWaitUnit;
     }
 
-    private int getMaxPokesPerAction() {
+    protected int getMaxPokesPerAction() {
         return 2;
     }
 
@@ -363,7 +364,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
         return thread != null && thread.getIsRunning() && this.checkCompetingFactionsPresent();
     }
 
-    public synchronized void startBattle(Creature instigator, Collection<Creature> victims) {
+    public synchronized BattleManagerThread startBattle(Creature instigator, Collection<Creature> victims) {
         BattleManagerThread curThread = this.battleThread.get();
         if (this.battleThread.get() == null || !curThread.getIsRunning()) {
             this.battleLogger.finer(() -> String.format("%s starts a fight", instigator.getName()));
@@ -389,6 +390,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
                     .warning(() -> String.format("%s tried to start an already started fight",
                             instigator.getName()));
         }
+        return this.battleThread.get();
     }
 
     public void endBattle() {

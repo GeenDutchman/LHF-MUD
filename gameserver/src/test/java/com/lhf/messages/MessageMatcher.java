@@ -1,5 +1,6 @@
 package com.lhf.messages;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.mockito.ArgumentMatcher;
@@ -38,27 +39,54 @@ public class MessageMatcher implements ArgumentMatcher<OutMessage> {
         this.type = null;
     }
 
-    public MessageMatcher setPrint(boolean toPrint, String sentTo) {
-        this.printIt = toPrint;
-        this.sentTo = sentTo != null && !sentTo.isBlank() ? "sent to:" + sentTo + ":\n" : "";
+    public MessageMatcher ownedCopy(String newOwner) {
+        return new MessageMatcher(this.type, this.contained != null ? new ArrayList<>(this.contained) : null,
+                this.notContained != null ? new ArrayList<>(this.notContained) : null).setOwner(newOwner);
+    }
+
+    public MessageMatcher setOwner(String owner) {
+        this.sentTo = owner != null && !owner.isBlank() ? owner + ">>" : "";
+        this.printIt = this.sentTo != null && !this.sentTo.isBlank() ? true : false;
         return this;
+    }
+
+    public MessageMatcher setPrint(boolean toPrint) {
+        this.printIt = toPrint;
+        return this;
+    }
+
+    private String printArgument(String argumentAsString) {
+        StringBuilder sb = new StringBuilder("vvvvvvvvvvvvvvvvvvvvvvvvvvv " + this.sentTo + "\n");
+        if (this.sentTo != null && !this.sentTo.isBlank()) {
+            sb.append(this.sentTo);
+            if (argumentAsString != null) {
+                sb.append(argumentAsString.replace("\n", "\n" + this.sentTo));
+            } else {
+                sb.append(argumentAsString);
+            }
+        } else {
+            sb.append(argumentAsString);
+        }
+        sb.append("\n").append("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^").append(this.sentTo);
+        return sb.toString();
     }
 
     @Override
     public boolean matches(OutMessage argument) {
         if (argument == null) {
             if (this.printIt) {
-                System.out.println(this.sentTo + "null, no match");
+                System.out.println(this.printArgument(null) + "null, no match");
             }
             return false;
         }
         String argumentAsString = argument.toString();
+        StringBuilder sb = new StringBuilder().append(argument.hashCode()).append(this.printArgument(argumentAsString));
 
         if (this.type != null && this.type != argument.getOutType()) {
             if (this.printIt) {
-                System.out.printf("%s%s\n>expected type %s got type %s, no match\n", this.sentTo, argumentAsString,
-                        this.type.toString(),
-                        argument.getOutType() != null ? argument.getOutType().toString() : "null");
+                sb.append("expected type ").append(this.type).append(" got type ").append(argument.getOutType())
+                        .append(",no match");
+                System.out.println(sb.toString());
             }
             return false;
         }
@@ -67,8 +95,8 @@ public class MessageMatcher implements ArgumentMatcher<OutMessage> {
             for (String words : this.contained) {
                 if (!argumentAsString.contains(words)) {
                     if (this.printIt) {
-                        System.out.printf("%s%s\n>expected words \"%s\", not found, no match\n", this.sentTo,
-                                argumentAsString, words);
+                        sb.append("expected words \"").append(words).append("\" not found, no match");
+                        System.out.println(sb.toString());
                     }
                     return false;
                 }
@@ -79,8 +107,8 @@ public class MessageMatcher implements ArgumentMatcher<OutMessage> {
             for (String words : this.notContained) {
                 if (argumentAsString.contains(words)) {
                     if (this.printIt) {
-                        System.out.printf("%s%s\n>did not expect words \"%s\", but found, no match", this.sentTo,
-                                argumentAsString, words);
+                        sb.append("not expected words \"").append(words).append("\", but found, no match");
+                        System.out.println(sb.toString());
                     }
                     return false;
                 }
@@ -88,7 +116,8 @@ public class MessageMatcher implements ArgumentMatcher<OutMessage> {
         }
 
         if (this.printIt) {
-            System.out.printf("%s%s\n>matched", this.sentTo, argumentAsString);
+            sb.append("matched");
+            System.out.println(sb.toString());
         }
         return true;
     }
