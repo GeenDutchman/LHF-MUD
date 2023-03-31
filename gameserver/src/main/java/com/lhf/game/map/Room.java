@@ -40,6 +40,7 @@ import com.lhf.server.client.user.UserID;
 
 public class Room implements Area {
     private UUID uuid = UUID.randomUUID();
+    protected Logger logger;
     private List<Item> items;
     private String description;
     private String name;
@@ -186,6 +187,7 @@ public class Room implements Area {
     }
 
     Room(RoomBuilder builder) {
+        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.uuid.toString());
         this.name = builder.getName();
         this.description = builder.getDescription() != null ? builder.getDescription() : builder.getName();
         this.items = new ArrayList<>(builder.getItems());
@@ -229,6 +231,7 @@ public class Room implements Area {
         c.setSuccessor(this);
         boolean added = this.allCreatures.add(c);
         if (added) {
+            this.logger.finer(() -> String.format("%s entered the room", c.getName()));
             c.sendMsg(this.produceMessage());
             this.announce(RoomEnteredOutMessage.getBuilder().setNewbie(c).setBroacast().Build(), c.getName());
             if (this.allCreatures.size() > 1 && !this.commands.containsKey(CommandMessage.ATTACK)) {
@@ -314,6 +317,7 @@ public class Room implements Area {
     public boolean onCreatureDeath(Creature creature) {
         boolean removed = this.removeCreature(creature);
         if (removed) {
+            this.logger.finer(() -> String.format("The creature '%s' has died", creature.getName()));
             Corpse corpse = creature.die();
             this.addItem(corpse);
             for (String i : creature.getInventory().getItemList()) {
@@ -412,7 +416,7 @@ public class Room implements Area {
 
     @Override
     public boolean isCorrectEffectType(EntityEffect effect) {
-        return effect instanceof RoomEffect;
+        return effect != null && effect instanceof RoomEffect;
     }
 
     @Override
@@ -420,6 +424,7 @@ public class Room implements Area {
         if (!this.isCorrectEffectType(effect)) {
             return null;
         }
+        this.logger.finer(() -> String.format("Room processing effect '%s'", effect.getName()));
         RoomEffect roomEffect = (RoomEffect) effect;
         // TODO: make banishing work!
         if (roomEffect.getCreaturesToBanish().size() > 0 || roomEffect.getCreaturesToBanish().size() > 0) {

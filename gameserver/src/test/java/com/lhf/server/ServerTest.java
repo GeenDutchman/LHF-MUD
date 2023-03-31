@@ -346,7 +346,7 @@ public class ServerTest {
         System.out.println(extract);
         String room = this.comm.handleCommand("see", OutMessageType.SEE);
         ArgumentMatcher<OutMessage> battleTurn = new MessageMatcher(OutMessageType.BATTLE_TURN,
-                "It is your turn to fight!");
+                "It is now your turn to fight!");
         ArgumentMatcher<OutMessage> fightOver = new MessageMatcher(OutMessageType.FIGHT_OVER);
         for (int i = 1; i < 15 && room.contains("<monster>" + extract + "</monster>"); i++) {
             this.comm.handleCommand("attack " + extract);

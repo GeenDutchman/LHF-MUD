@@ -237,17 +237,19 @@ public class DMRoom extends Room {
 
     @Override
     public boolean isCorrectEffectType(EntityEffect effect) {
-        return effect instanceof DMRoomEffect;
+        return effect != null && effect instanceof DMRoomEffect;
     }
 
     @Override
     public RoomAffectedMessage processEffect(EntityEffect effect, boolean reverse) {
         if (this.isCorrectEffectType(effect)) {
             DMRoomEffect dmRoomEffect = (DMRoomEffect) effect;
+            this.logger.finer(() -> String.format("DMRoom processing effect '%s'", dmRoomEffect.getName()));
             if (dmRoomEffect.getEnsoulUsername() != null) {
                 String name = dmRoomEffect.getEnsoulUsername();
                 User user = this.getUser(name);
                 if (user == null) {
+                    this.logger.finest(() -> String.format("A user by the name of '%s' was not found", name));
                     if (dmRoomEffect.creatureResponsible() != null) {
                         OutMessage whoops = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.DNE)
                                 .setBadTarget(name).Build();
@@ -258,6 +260,7 @@ public class DMRoom extends Room {
                 }
                 Optional<Item> maybeCorpse = this.getItem(name);
                 if (maybeCorpse.isEmpty() || !(maybeCorpse.get() instanceof Corpse)) {
+                    this.logger.finest(() -> String.format("No corpse was found with the name '%s'", name));
                     if (effect.creatureResponsible() != null) {
                         effect.creatureResponsible().sendMsg(BadTargetSelectedMessage.getBuilder()
                                 .setBde(BadTargetOption.DNE).setBadTarget(name).Build());

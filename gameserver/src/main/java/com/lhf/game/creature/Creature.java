@@ -415,7 +415,7 @@ public abstract class Creature
 
     @Override
     public boolean isCorrectEffectType(EntityEffect effect) {
-        return effect instanceof CreatureEffect;
+        return effect != null && effect instanceof CreatureEffect;
     }
 
     @Override
