@@ -484,6 +484,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
     public boolean checkAndHandleTurnRenegade(Creature attacker, Creature target) {
         if (!CreatureFaction.RENEGADE.equals(target.getFaction())
                 && !CreatureFaction.RENEGADE.equals(attacker.getFaction())
+                && attacker.getFaction() != null
                 && attacker.getFaction().equals(target.getFaction())) {
             this.handleTurnRenegade(attacker);
             return true;
