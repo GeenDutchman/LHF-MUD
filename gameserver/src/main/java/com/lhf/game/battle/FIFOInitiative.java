@@ -184,7 +184,7 @@ public class FIFOInitiative implements Initiative {
             this.participants.offerLast(current);
         }
         this.turnCount++;
-        if (this.turnCount >= this.participants.size()) {
+        if (this.turnCount > this.participants.size()) {
             this.roundCount++;
             this.turnCount = 1;
         }
