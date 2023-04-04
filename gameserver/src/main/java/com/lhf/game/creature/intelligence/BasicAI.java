@@ -67,7 +67,8 @@ public class BasicAI extends Client {
             if (ai != null) {
                 ai.handle(this, msg);
             } else {
-                this.logger.warning(() -> String.format("No handler found for %s", msg.getOutType()));
+                this.logger.warning(() -> String.format("%s: No handler found for %s: %s", this.toString(),
+                        msg.getOutType(), msg.print()));
             }
         }
     }

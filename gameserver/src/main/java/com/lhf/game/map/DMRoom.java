@@ -142,7 +142,7 @@ public class DMRoom extends Room {
             if (convoLoader != null) {
                 dmBuilder.setConversationTree(convoLoader.convoTreeFromFile("verbal_default"));
             }
-            LewdAIHandler lewdAIHandler = new LewdAIHandler().setPartnersOnly();
+            LewdAIHandler lewdAIHandler = new LewdAIHandler().setPartnersOnly().setStayInAfter();
             dmBuilder.addAIHandler(lewdAIHandler);
             dmBuilder.addAIHandler(new SpokenPromptChunk().setAllowUsers());
             dmBuilder.addAIHandler(new SpeakOnOtherEntry());
@@ -157,12 +157,15 @@ public class DMRoom extends Room {
 
             builder.addCreature(dmAda).addCreature(dmGary);
 
+            DMRoom built = builder.build();
+
             LewdBed.Builder bedBuilder = LewdBed.Builder.getInstance().setCapacity(2)
                     .setLewdProduct(new LewdBabyMaker()).addOccupant(dmGary).addOccupant(dmAda);
-            LewdBed bed = bedBuilder.build(null); // TODO: figure out this room
-            builder.addItem(bed);
+            LewdBed bed = bedBuilder.build(built); // TODO: figure out this room
 
-            return builder.build();
+            built.addItem(bed);
+
+            return built;
         }
     }
 

@@ -17,17 +17,20 @@ import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
 public class LewdAIHandler extends AIHandler {
     private Set<Creature> partners;
     private boolean partnersOnly;
+    private boolean stayInAfter;
 
     public LewdAIHandler() {
         super(OutMessageType.LEWD);
         this.partners = new HashSet<>();
         this.partnersOnly = false;
+        this.stayInAfter = false;
     }
 
     public LewdAIHandler(Set<Creature> partners) {
         super(OutMessageType.LEWD);
         this.partners = partners;
         this.partnersOnly = true;
+        this.stayInAfter = false;
     }
 
     public LewdAIHandler setPartnersOnly() {
@@ -37,6 +40,16 @@ public class LewdAIHandler extends AIHandler {
 
     public LewdAIHandler setLewdAnyone() {
         this.partnersOnly = false;
+        return this;
+    }
+
+    public LewdAIHandler setGetUpAfter() {
+        this.stayInAfter = false;
+        return this;
+    }
+
+    public LewdAIHandler setStayInAfter() {
+        this.stayInAfter = true;
         return this;
     }
 
@@ -59,6 +72,8 @@ public class LewdAIHandler extends AIHandler {
             if (this.partnersOnly) {
                 if (!this.partners.contains(partyCreature) // if they aren't our partner
                         && partyCreature != bai.getNpc()) { // or us
+                    this.logger.warning(String.format("%s proposed to lewd %s, but they aren't a parnter!",
+                            lom.getCreature().getName(), bai.toString()));
                     Command cmd = CommandBuilder.parse("pass"); // then don't!
                     bai.handleMessage(null, cmd);
                     return;
@@ -66,6 +81,7 @@ public class LewdAIHandler extends AIHandler {
             }
             sj.add(partyCreature.getName());
         }
+        this.logger.finest(String.format("%s agreed to lewd %s", bai.toString(), sj.toString()));
         Command cmd = CommandBuilder.parse("lewd " + sj.toString());
         bai.handleMessage(null, cmd);
     }
@@ -75,14 +91,17 @@ public class LewdAIHandler extends AIHandler {
             return; // none of our business
         }
 
-        Command cmd = CommandBuilder.parse("GO UP");
-        bai.handleMessage(null, cmd);
+        if (!this.stayInAfter) {
+            Command cmd = CommandBuilder.parse("GO UP");
+            bai.handleMessage(null, cmd);
+        }
     }
 
     @Override
     public void handle(BasicAI bai, OutMessage msg) {
         if (OutMessageType.LEWD.equals(msg.getOutType())) {
             LewdOutMessage lom = (LewdOutMessage) msg;
+            this.logger.finest(() -> String.format("%s: processing \"%s\"", bai.toString(), lom.print()));
             if (lom.getSubType() == LewdOutMessageType.PROPOSED) {
                 this.handleProposal(bai, lom);
             }

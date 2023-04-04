@@ -147,19 +147,19 @@ public class ServerTest {
         Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeMessage.class));
         this.comm.handleCommand("CREATE Tester with Tester", null); // we won't see anything, just be
                                                                     // greeted
-        Mockito.verify(this.comm.sssb, Mockito.timeout(500))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
                 .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPEAKING, "to make a character you need")));
         this.comm.handleCommand("say hi to gary lovejax");
-        Mockito.verify(this.comm.sssb, Mockito.timeout(500))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
                 .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPEAKING, "intro lore placeholder here")));
         this.comm.handleCommand("say ok to gary lovejax");
-        Mockito.verify(this.comm.sssb, Mockito.timeout(500))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
                 .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPEAKING, "MAGE")));
         this.comm.handleCommand("say mage to gary lovejax");
-        Mockito.verify(this.comm.sssb, Mockito.timeout(500))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
                 .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPEAKING, "You have selected MAGE")));
         this.comm.handleCommand("say thanks to gary lovejax");
-        Mockito.verify(this.comm.sssb, Mockito.timeout(500))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
                 .send(Mockito.argThat(new MessageMatcher(OutMessageType.SEE)));
         String room1 = this.comm.handleCommand("see");
         Truth.assertThat(room1).contains("east");

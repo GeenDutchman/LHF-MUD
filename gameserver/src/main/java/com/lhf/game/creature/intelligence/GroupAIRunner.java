@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.NonPlayerCharacter;
@@ -62,6 +63,7 @@ public class GroupAIRunner implements AIRunner {
 
     private void init(boolean asThread) {
         this.logger = Logger.getLogger(this.getClass().getName());
+        this.logger.setLevel(Level.OFF);
         if (this.attentionQueue == null) {
             this.attentionQueue = new LinkedBlockingQueue<>();
         }

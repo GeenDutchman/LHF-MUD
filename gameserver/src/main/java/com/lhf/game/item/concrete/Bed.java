@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import com.lhf.game.CreatureContainerMessageHandler;
 import com.lhf.game.creature.Creature;
@@ -28,7 +29,7 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.user.UserID;
 
 public class Bed extends InteractObject implements CreatureContainerMessageHandler {
-
+    protected Logger logger;
     protected final ScheduledThreadPoolExecutor executor;
     protected final int sleepSeconds;
     protected Set<BedTime> occupants;
@@ -116,7 +117,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
 
         private Builder() {
             this.name = "Bed";
-            this.sleepSeconds = 1;
+            this.sleepSeconds = 60;
             this.capacity = 1;
             this.occupants = new TreeSet<>();
         }
@@ -161,6 +162,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
 
     public Bed(Area room, Builder builder) {
         super(builder.name, true, true, "It's a bed.");
+        this.logger = Logger.getLogger(this.getClass().getName());
         this.sleepSeconds = builder.sleepSeconds;
         this.room = room;
 
@@ -170,6 +172,10 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
         this.executor.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
 
         this.occupants = Collections.synchronizedSortedSet(new TreeSet<>());
+        for (Creature alreadyThere : builder.occupants) {
+            this.addCreature(alreadyThere);
+        }
+
         InteractAction sleepAction = (creature, triggerObject, args) -> {
             return this.bedAction(creature, triggerObject, args);
         };
@@ -182,6 +188,8 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
                     .Build();
         }
         if (this.getOccupancy() >= this.getCapacity()) {
+            this.logger.warning(() -> String.format("Over capacity! occupancy: %d capacity: %d", this.getOccupancy(),
+                    this.getCapacity()));
             return InteractOutMessage.getBuilder().setTaggable(triggerObject).setSubType(InteractOutMessageType.CANNOT)
                     .setDescription("The bed is full!").Build();
         }
@@ -201,6 +209,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
             bedTime = new BedTime(creature);
             bedTime.setFuture(this.executor.scheduleWithFixedDelay(bedTime, this.sleepSeconds, this.sleepSeconds,
                     TimeUnit.SECONDS));
+            this.logger.finer(() -> String.format("Creature '%s' getting in bed", creature.getName()));
             return this.occupants.add(bedTime);
         }
         return false;
@@ -252,6 +261,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
                     .setDescription("You got out of the bed!").setPerformed().Build());
             found.cancel();
             found.occupant.setSuccessor(found.successor);
+            this.logger.finer(() -> String.format("%s is done sleeping", doneSleeping.getName()));
             return this.occupants.remove(found);
         }
         return false;

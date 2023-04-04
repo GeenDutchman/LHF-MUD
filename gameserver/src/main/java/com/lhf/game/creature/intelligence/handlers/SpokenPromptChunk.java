@@ -55,6 +55,8 @@ public class SpokenPromptChunk extends AIHandler {
             if (result != null && result.getPrompts() != null) {
                 for (String prompt : result.getPrompts()) {
                     if (prompt.startsWith("STORE")) {
+                        this.logger.fine(
+                                String.format("Result has storage prompt \"%s\" for %s", prompt, bai.toString()));
                         prompt = prompt.replaceFirst("STORE", "").trim();
                         String[] splits = prompt.split("\\b+", 2);
                         if (splits.length < 2) {
@@ -66,10 +68,15 @@ public class SpokenPromptChunk extends AIHandler {
                     if (prompt.startsWith("PROMPT")) {
                         prompt = prompt.replaceFirst("PROMPT", "").trim();
                     }
+                    this.logger.fine(String.format("Result has prompt \"%s\" for %s", prompt, bai.toString()));
                     Command cmd = CommandBuilder.parse(prompt);
-                    bai.handleMessage(null, cmd);
+                    Boolean handled = bai.handleMessage(null, cmd);
+                    this.logger.finer(() -> String.format("%s: prompted command \"%s\" handled: %s", bai.toString(),
+                            cmd.toString(), handled));
                 }
             }
+        } else {
+            this.logger.warning(() -> String.format("no convo tree found for %s", bai.toString()));
         }
     }
 
@@ -83,6 +90,9 @@ public class SpokenPromptChunk extends AIHandler {
                             (this.prompters.contains(sm.getSayer().getClientID())
                                     || sm.getSayer().getClientID().equals(bai.getClientID()))) {
                         String prompt = sm.getMessage().replaceFirst("PROMPT", "").trim();
+                        this.logger.info(String.format("Prompt \"%s\" received from %s for %s", prompt,
+                                sm.getSayer().getColorTaggedName(),
+                                bai.getNpc() != null ? bai.getNpc().getName() : bai.getColorTaggedName()));
                         Command cmd = CommandBuilder.parse(prompt);
                         bai.handleMessage(null, cmd);
                     } else {

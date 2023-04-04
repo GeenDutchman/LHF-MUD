@@ -145,6 +145,7 @@ public class LewdBed extends Bed {
                 return this.handleJoin(joiner, i);
             }
         }
+        this.logger.warning(String.format("%s wanted to do solo play", joiner.getName()));
         joiner.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.SOLO_UNSUPPORTED).Build());
         return true;
     }
@@ -160,10 +161,15 @@ public class LewdBed extends Bed {
             for (String possName : possPartners) {
                 List<Creature> possibles = this.getCreaturesLike(possName);
                 if (possibles.size() == 0) {
+                    this.logger.warning(
+                            String.format("%s wanted to lewd someone named %s, but DNE", joiner.getName(), possName));
                     joiner.sendMsg(BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.DNE)
                             .setBadTarget(possName).setPossibleTargets(possibles).Build());
                     return true;
                 } else if (possibles.size() > 1) {
+                    this.logger.warning(
+                            String.format("%s wanted to lewd someone named %s, but UNCLEAR", joiner.getName(),
+                                    possName));
                     joiner.sendMsg(BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR)
                             .setBadTarget(possName).setPossibleTargets(possibles).Build());
                     return true;
@@ -218,6 +224,8 @@ public class LewdBed extends Bed {
         }
 
         if (ctx.getCreature().getEquipped(EquipmentSlots.ARMOR) != null) {
+            this.logger.warning(
+                    String.format("%s is still wearing armor, but wants to lewd!", ctx.getCreature().getName()));
             ctx.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
             return true;
         }
@@ -272,11 +280,14 @@ public class LewdBed extends Bed {
             return interactOutMessage.setSubType(InteractOutMessageType.CANNOT).Build();
         }
         if (this.getOccupancy() >= this.getCapacity()) {
+            this.logger.warning(() -> String.format("Over capacity! occupancy: %d capacity: %d", this.getOccupancy(),
+                    this.getCapacity()));
             return interactOutMessage.setSubType(InteractOutMessageType.CANNOT).setDescription("The bed is full!")
                     .Build();
         }
 
         if (creature.getEquipped(EquipmentSlots.ARMOR) != null) {
+            this.logger.warning(() -> String.format("%s is still wearing armor!", creature.getName()));
             return LewdOutMessage.getBuilder().setSubType(LewdOutMessageType.NOT_READY).setCreature(creature).Build();
         }
 
