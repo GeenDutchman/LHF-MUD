@@ -40,8 +40,9 @@ public interface MessageHandler {
     }
 
     public default boolean handleMessage(CommandContext ctx, Command msg) {
-        if (this.getSuccessor() != null) {
-            return this.getSuccessor().handleMessage(ctx, msg);
+        MessageHandler retrievedSuccessor = this.getSuccessor();
+        if (retrievedSuccessor != null) {
+            return retrievedSuccessor.handleMessage(ctx, msg);
         }
         return false;
     }
