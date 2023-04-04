@@ -16,6 +16,13 @@ public class ClientID implements Comparable<ClientID> {
     }
 
     @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("ClientID [uuid=").append(uuid).append("]");
+        return builder.toString();
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;

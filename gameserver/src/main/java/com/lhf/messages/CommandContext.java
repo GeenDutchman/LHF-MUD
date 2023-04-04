@@ -98,6 +98,15 @@ public class CommandContext implements ClientMessenger {
     }
 
     @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("CommandContext [client=").append(client).append(", user=").append(user).append(", creature=")
+                .append(creature).append(", room=").append(room).append(", bManager=").append(bManager)
+                .append(", dungeon=").append(dungeon).append("]");
+        return builder.toString();
+    }
+
+    @Override
     public String getColorTaggedName() {
         return this.getStartTag() + "context" + this.getEndTag();
     }

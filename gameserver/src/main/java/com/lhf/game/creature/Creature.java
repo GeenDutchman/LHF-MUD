@@ -27,6 +27,7 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
@@ -213,6 +214,10 @@ public abstract class Creature
 
     private int getHealth() {
         return this.statblock.getStats().get(Stats.CURRENTHP);
+    }
+
+    public final HealthBuckets getHealthBucket() {
+        return HealthBuckets.calcualte(getHealth(), this.statblock.getStats().get(Stats.MAXHP));
     }
 
     public boolean isAlive() {
@@ -795,6 +800,15 @@ public abstract class Creature
     @Override
     public int compareTo(Creature other) {
         return this.getName().compareTo(other.getName());
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Creature [name=").append(name).append(", health=").append(this.getHealthBucket())
+                .append(", faction=").append(faction).append(", vocation=")
+                .append(vocation).append("]");
+        return builder.toString();
     }
 
 }

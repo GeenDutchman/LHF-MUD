@@ -110,4 +110,11 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
         return this.name.compareTo(o.name);
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Vocation [level=").append(level).append(", name=").append(name).append("]");
+        return builder.toString();
+    }
+
 }

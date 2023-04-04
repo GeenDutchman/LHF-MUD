@@ -13,6 +13,13 @@ public class UserID {
         this.username = username;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("UserID [username=").append(username).append("]");
+        return builder.toString();
+    }
+
     public String getUsername() {
         return username;
     }

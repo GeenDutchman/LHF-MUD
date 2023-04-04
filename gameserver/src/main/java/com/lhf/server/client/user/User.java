@@ -122,4 +122,11 @@ public class User implements MessageHandler, ClientMessenger, Comparable<User> {
         return this.username.compareTo(o.getUsername());
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("User [id=").append(id).append(", username=").append(username).append("]");
+        return builder.toString();
+    }
+
 }

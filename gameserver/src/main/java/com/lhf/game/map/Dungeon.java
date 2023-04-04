@@ -443,4 +443,12 @@ public class Dungeon implements Land {
         return sb.toString();
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Dungeon [name=").append(this.getName()).append(", startingRoom=").append(startingRoom)
+                .append(", numRooms=").append(this.mapping != null ? this.mapping.size() : 0).append("]");
+        return builder.toString();
+    }
+
 }

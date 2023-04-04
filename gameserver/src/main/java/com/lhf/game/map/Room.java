@@ -394,8 +394,10 @@ public class Room implements Area {
 
     @Override
     public String toString() {
-        SeeOutMessage seeOutMessage = this.produceMessage(true, true);
-        return seeOutMessage.toString();
+        StringBuilder builder = new StringBuilder();
+        builder.append("Room [name=").append(name).append(", description=").append(description).append(", uuid=")
+                .append(uuid).append("]");
+        return builder.toString();
     }
 
     @Override
@@ -450,7 +452,7 @@ public class Room implements Area {
     }
 
     public String getBattleInfo() {
-        return battleManager.toString();
+        return battleManager.produceMessage().print();
     }
 
     @Override

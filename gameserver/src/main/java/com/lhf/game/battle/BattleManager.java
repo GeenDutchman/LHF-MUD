@@ -581,8 +581,12 @@ public class BattleManager implements CreatureContainerMessageHandler {
         this.participants.announce(message);
     }
 
+    @Override
     public String toString() {
-        return this.produceMessage().toString();
+        StringBuilder builder2 = new StringBuilder();
+        builder2.append("BattleManager [participants=").append(participants).append(", room=").append(room)
+                .append(", ongoing=").append(this.isBattleOngoing()).append("]");
+        return builder2.toString();
     }
 
     @Override

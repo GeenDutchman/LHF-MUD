@@ -201,4 +201,12 @@ public class FIFOInitiative implements Initiative {
         return this.turnCount;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder2 = new StringBuilder();
+        builder2.append("FIFOInitiative [participants=").append(participants).append(", roundCount=").append(roundCount)
+                .append(", turnCount=").append(turnCount).append("]");
+        return builder2.toString();
+    }
+
 }
