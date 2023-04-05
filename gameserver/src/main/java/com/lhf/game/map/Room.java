@@ -47,7 +47,7 @@ public class Room implements Area {
     private String name;
     private BattleManager battleManager;
     private Set<Creature> allCreatures;
-    private Land dungeon;
+    private transient Land dungeon;
     private transient TreeSet<RoomEffect> effects;
 
     private Map<CommandMessage, String> commands;

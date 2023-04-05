@@ -34,7 +34,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
     protected final ScheduledThreadPoolExecutor executor;
     protected final int sleepSeconds;
     protected Set<BedTime> occupants;
-    protected Area room;
+    protected transient Area room;
 
     protected class BedTime implements Runnable, Comparable<Bed.BedTime> {
         protected Creature occupant;

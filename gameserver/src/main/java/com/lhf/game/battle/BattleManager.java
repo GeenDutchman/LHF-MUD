@@ -37,7 +37,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
     private AtomicReference<BattleManagerThread> battleThread;
     private Initiative participants;
     private Area room;
-    private MessageHandler successor;
+    private transient MessageHandler successor;
     private Map<CommandMessage, String> interceptorCmds;
     private Map<CommandMessage, String> cmds;
     private Logger battleLogger;

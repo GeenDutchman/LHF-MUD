@@ -22,7 +22,7 @@ public class Client implements MessageHandler, ClientMessenger {
     protected SendStrategy out;
     protected ClientID id;
     protected Logger logger;
-    protected MessageHandler _successor;
+    protected transient MessageHandler _successor;
 
     protected Client() {
         this.id = new ClientID();

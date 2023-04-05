@@ -55,7 +55,7 @@ public class ThirdPower implements MessageHandler {
      * 
      * 
      */
-    private MessageHandler successor;
+    private transient MessageHandler successor;
     private EnumMap<CommandMessage, String> cmds;
     private Spellbook spellbook;
     private Logger logger;

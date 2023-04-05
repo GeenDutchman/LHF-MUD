@@ -16,7 +16,7 @@ import com.lhf.server.client.ClientID;
 public class User implements MessageHandler, ClientMessenger, Comparable<User> {
     private UserID id;
     private String username;
-    private MessageHandler successor;
+    private transient MessageHandler successor;
 
     // private String password;
     private ClientMessenger client;

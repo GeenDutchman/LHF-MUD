@@ -48,7 +48,7 @@ public class Dungeon implements Land {
 
     private Map<UUID, Land.AreaDirectionalLinks> mapping;
     private Area startingRoom = null;
-    private MessageHandler successor;
+    private transient MessageHandler successor;
     private Map<CommandMessage, String> commands;
     private transient TreeSet<DungeonEffect> effects;
 
