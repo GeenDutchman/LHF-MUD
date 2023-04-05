@@ -3,6 +3,7 @@ package com.lhf.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.server.client.ClientHandle;
@@ -26,18 +27,18 @@ public class SocketServer extends Server implements Runnable {
 
     @Override
     public void run() {
-        this.logger.info("Server Thread start");
+        this.logger.log(Level.INFO, "Server Thread start");
         while (true) {
             try {
                 Socket connection = this.socket.accept();
-                this.logger.finer("Connection made");
+                this.logger.log(Level.FINER, "Connection made");
                 ClientHandle handle = this.clientManager.newClientHandle(connection, this);
                 this.startClient(handle);
-                this.logger.fine("Starting handle");
+                this.logger.log(Level.FINE, "Starting handle");
                 Thread clientThread = new Thread(handle);
                 clientThread.start();
             } catch (IOException e) {
-                logger.info(e.getMessage());
+                logger.log(Level.INFO, e.getMessage());
                 e.printStackTrace();
             }
         }

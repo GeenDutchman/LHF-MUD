@@ -35,7 +35,7 @@ public class Spellbook {
 
     public Spellbook() {
         this.logger = Logger.getLogger(this.getClass().getName());
-        this.logger.config("Loading initial small spellset");
+        this.logger.log(Level.CONFIG, "Loading initial small spellset");
         this.entries = new TreeSet<>();
         SpellEntry shockBolt = new ShockBolt();
         this.entries.add(shockBolt);
@@ -93,10 +93,10 @@ public class Spellbook {
             throw new IOException("Cannot preload spellbook!");
         }
         Gson gson = this.getAdaptedGson();
-        this.logger.info("Writing to " + this.path);
+        this.logger.log(Level.INFO, "Writing to " + this.path);
         try (FileWriter fileWriter = new FileWriter(this.path + "spellbook.json")) {
             String asJson = gson.toJson(this.entries);
-            this.logger.finer(asJson);
+            this.logger.log(Level.FINER, asJson);
             fileWriter.write(asJson);
         } catch (JsonIOException | IOException e) {
             e.printStackTrace();
@@ -107,13 +107,13 @@ public class Spellbook {
 
     public boolean loadFromFile() {
         Gson gson = this.getAdaptedGson();
-        this.logger.config("Reading from " + this.path + "spellbook.json");
+        this.logger.log(Level.CONFIG, "Reading from " + this.path + "spellbook.json");
         Integer preSize = this.entries.size();
         try (JsonReader jReader = new JsonReader(new FileReader(this.path + "spellbook.json"))) {
             Type collectionType = new TypeToken<TreeSet<SpellEntry>>() {
             }.getType();
             NavigableSet<SpellEntry> retrieved = gson.fromJson(jReader, collectionType);
-            this.logger.config(retrieved.toString());
+            this.logger.log(Level.CONFIG, retrieved.toString());
             this.entries.addAll(retrieved);
         } catch (JsonIOException | IOException e) {
             e.printStackTrace();

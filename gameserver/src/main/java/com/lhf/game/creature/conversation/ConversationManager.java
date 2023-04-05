@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.gson.Gson;
@@ -26,11 +27,12 @@ public class ConversationManager {
         for (String part : path_to_conversations) {
             makePath.append(part).append(File.separator);
         }
-        this.logger.config("Current Working Directory: " + Paths.get(".").toAbsolutePath().normalize().toString());
+        this.logger.log(Level.CONFIG,
+                "Current Working Directory: " + Paths.get(".").toAbsolutePath().normalize().toString());
         // See https://stackoverflow.com/a/3844316
         URL convoDir = getClass().getResource(makePath.toString());
         this.path = convoDir.getPath();
-        this.logger.config("directory " + this.path);
+        this.logger.log(Level.CONFIG, "directory " + this.path);
     }
 
     public Boolean convoTreeToFile(ConversationTree tree) {
@@ -38,7 +40,7 @@ public class ConversationManager {
         gb.registerTypeAdapter(ConversationPattern.class, new ConversationPatternSerializer());
         Gson gson = gb.create();
         String rightWritePath = this.path.replaceAll("target(.)classes", "src$1main$1resources");
-        this.logger.info("Writing to: " + rightWritePath);
+        this.logger.log(Level.INFO, "Writing to: " + rightWritePath);
         try (JsonWriter jWriter = gson.newJsonWriter(
                 new FileWriter(rightWritePath.toString() + tree.getTreeName() + ".json"))) {
             gson.toJson(tree, ConversationTree.class, jWriter);
@@ -54,7 +56,7 @@ public class ConversationManager {
         gb.registerTypeAdapter(ConversationPattern.class, new ConversationPatternSerializer());
         Gson gson = gb.create();
         String convoFile = this.path.toString() + name + ".json";
-        this.logger.info("Opening file: " + convoFile);
+        this.logger.log(Level.INFO, "Opening file: " + convoFile);
         JsonReader jReader = new JsonReader(new FileReader(convoFile));
         ConversationTree tree = gson.fromJson(jReader, ConversationTree.class);
         tree.initBookmarks();

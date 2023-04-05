@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.messages.ClientMessenger;
@@ -27,7 +28,7 @@ public class Client implements MessageHandler, ClientMessenger {
         this.id = new ClientID();
         this.logger = Logger
                 .getLogger(String.format("%s.%d", this.getClass().getName(), this.getClientID().hashCode()));
-        this.logger.finest(
+        this.logger.log(Level.FINEST,
                 () -> String.format("Creating client %s.%d", this.getClass().getName(), this.getClientID().hashCode()));
         this._successor = null;
         this.out = null;
@@ -38,24 +39,24 @@ public class Client implements MessageHandler, ClientMessenger {
     }
 
     public void ProcessString(String value) {
-        this.logger.fine("message received: " + value);
+        this.logger.log(Level.FINE, "message received: " + value);
         Command cmd = CommandBuilder.parse(value);
         Boolean accepted = false;
         if (cmd.isValid()) {
-            this.logger.finest("the message received was deemed" + cmd.getClass().toString());
-            this.logger.finer("Post Processing:" + cmd);
+            this.logger.log(Level.FINEST, "the message received was deemed" + cmd.getClass().toString());
+            this.logger.log(Level.FINER, "Post Processing:" + cmd);
             accepted = this.handleMessage(null, cmd);
             if (!accepted) {
-                this.logger.warning("Command not accepted:" + cmd.getWhole());
+                this.logger.log(Level.WARNING, "Command not accepted:" + cmd.getWhole());
                 accepted = this.handleHelpMessage(cmd, BadMessageType.UNHANDLED);
             }
         } else {
             // The message was not recognized
-            this.logger.fine("Message was bad");
+            this.logger.log(Level.FINE, "Message was bad");
             accepted = this.handleHelpMessage(cmd, BadMessageType.UNRECOGNIZED);
         }
         if (!accepted) {
-            this.logger.warning("Command really not accepted/recognized:" + cmd.getWhole());
+            this.logger.log(Level.WARNING, "Command really not accepted/recognized:" + cmd.getWhole());
             this.handleHelpMessage(cmd, BadMessageType.OTHER);
         }
     }

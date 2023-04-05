@@ -3,6 +3,7 @@ package com.lhf.game;
 import java.io.FileNotFoundException;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.Player;
@@ -50,7 +51,7 @@ public class Game implements UserListener, MessageHandler {
 			this.server.registerCallback(this);
 		}
 		this.userManager = userManager;
-		this.logger.info("Created Game");
+		this.logger.log(Level.INFO, "Created Game");
 	}
 
 	public Game(ServerInterface server, UserManager userManager, AIRunner aiRunner, @NotNull Dungeon dungeon)
@@ -67,7 +68,7 @@ public class Game implements UserListener, MessageHandler {
 			this.server.registerCallback(this);
 		}
 		this.userManager = userManager;
-		this.logger.info("Created Game");
+		this.logger.log(Level.INFO, "Created Game");
 	}
 
 	@Override

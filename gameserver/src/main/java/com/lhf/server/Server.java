@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.Game;
@@ -63,7 +64,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     public Client startClient(Client client) {
-        this.logger.finer("Sending welcome");
+        this.logger.log(Level.FINER, "Sending welcome");
         client.setSuccessor(this);
         client.sendMsg(WelcomeMessage.getWelcomeBuilder().Build());
         return client;
@@ -79,7 +80,7 @@ public class Server implements ServerInterface, ConnectionListener {
 
     private void removeClient(ClientID id) {
         try {
-            logger.finer("Removing Client " + id);
+            logger.log(Level.FINER, "Removing Client " + id);
             clientManager.removeClient(id);
         } catch (IOException e) {
             e.printStackTrace();
@@ -88,13 +89,13 @@ public class Server implements ServerInterface, ConnectionListener {
 
     @Override
     public void removeUser(UserID id) {
-        logger.finer("Removing User " + id);
+        logger.log(Level.FINER, "Removing User " + id);
         userManager.removeUser(id);
     }
 
     @Override
     public void userConnected(ClientID id) {
-        logger.info("User connected");
+        logger.log(Level.INFO, "User connected");
         clientManager.getUserForClient(id).ifPresent(userID -> {
             for (UserListener listener : userListeners) {
                 listener.userConnected(userID);
@@ -128,7 +129,7 @@ public class Server implements ServerInterface, ConnectionListener {
     @Override
     public void setSuccessor(MessageHandler successor) {
         // Server is IT, the buck stops here
-        logger.warning("Attempted to put a successor on the Server");
+        logger.log(Level.WARNING, "Attempted to put a successor on the Server");
     }
 
     @Override
@@ -173,7 +174,7 @@ public class Server implements ServerInterface, ConnectionListener {
     public boolean handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
         if (msg.getType() == CommandMessage.EXIT) {
-            this.logger.info("client " + ctx.getClientID().toString() + " is exiting");
+            this.logger.log(Level.INFO, "client " + ctx.getClientID().toString() + " is exiting");
             Client ch = this.clientManager.getConnection(ctx.getClientID());
 
             if (ctx.getUserID() != null) {

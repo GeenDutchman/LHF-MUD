@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.Monster;
@@ -128,7 +129,7 @@ public class DungeonBuilder implements Land.LandBuilder {
             throws FileNotFoundException {
         DungeonBuilder builder = DungeonBuilder.newInstance();
         if (aiRunner == null) {
-            builder.logger.severe("AIRunner NOT provided!");
+            builder.logger.log(Level.SEVERE, "AIRunner NOT provided!");
         }
 
         builder.setSuccessor(successor);

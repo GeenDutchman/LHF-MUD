@@ -3,6 +3,7 @@ package com.lhf.game.creature.intelligence.handlers;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.logging.Level;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.intelligence.AIHandler;
@@ -72,7 +73,7 @@ public class LewdAIHandler extends AIHandler {
             if (this.partnersOnly) {
                 if (!this.partners.contains(partyCreature) // if they aren't our partner
                         && partyCreature != bai.getNpc()) { // or us
-                    this.logger.warning(String.format("%s proposed to lewd %s, but they aren't a parnter!",
+                    this.logger.log(Level.WARNING, String.format("%s proposed to lewd %s, but they aren't a parnter!",
                             lom.getCreature().getName(), bai.toString()));
                     Command cmd = CommandBuilder.parse("pass"); // then don't!
                     bai.handleMessage(null, cmd);
@@ -81,7 +82,7 @@ public class LewdAIHandler extends AIHandler {
             }
             sj.add(partyCreature.getName());
         }
-        this.logger.finest(String.format("%s agreed to lewd %s", bai.toString(), sj.toString()));
+        this.logger.log(Level.FINEST, String.format("%s agreed to lewd %s", bai.toString(), sj.toString()));
         Command cmd = CommandBuilder.parse("lewd " + sj.toString());
         bai.handleMessage(null, cmd);
     }
@@ -101,7 +102,7 @@ public class LewdAIHandler extends AIHandler {
     public void handle(BasicAI bai, OutMessage msg) {
         if (OutMessageType.LEWD.equals(msg.getOutType())) {
             LewdOutMessage lom = (LewdOutMessage) msg;
-            this.logger.finest(() -> String.format("%s: processing \"%s\"", bai.toString(), lom.print()));
+            this.logger.log(Level.FINEST, () -> String.format("%s: processing \"%s\"", bai.toString(), lom.print()));
             if (lom.getSubType() == LewdOutMessageType.PROPOSED) {
                 this.handleProposal(bai, lom);
             }

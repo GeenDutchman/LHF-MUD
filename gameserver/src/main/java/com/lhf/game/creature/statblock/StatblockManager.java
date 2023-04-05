@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.gson.Gson;
@@ -32,11 +33,12 @@ public class StatblockManager {
         for (String part : path_to_monsterStatblocks) {
             makePath.append(part).append(File.separator);
         }
-        this.logger.config("Current Working Directory: " + Paths.get(".").toAbsolutePath().normalize().toString());
+        this.logger.log(Level.CONFIG,
+                "Current Working Directory: " + Paths.get(".").toAbsolutePath().normalize().toString());
         // See https://stackoverflow.com/a/3844316
         URL statblockDir = getClass().getResource(makePath.toString());
         this.path = statblockDir.getPath();
-        this.logger.config("directory " + this.path);
+        this.logger.log(Level.CONFIG, "directory " + this.path);
     }
 
     public Boolean statblockToFile(Statblock statblock) {
@@ -50,7 +52,7 @@ public class StatblockManager {
             return false;
         }
         String rightWritePath = this.path.replaceAll("target(.)classes", "src$1main$1resources");
-        this.logger.info("Also writing to: " + rightWritePath);
+        this.logger.log(Level.INFO, "Also writing to: " + rightWritePath);
         try (JsonWriter jWriter = gson.newJsonWriter(
                 new FileWriter(rightWritePath.toString() + statblock.getCreatureRace() + ".json"))) {
             gson.toJson(statblock, Statblock.class, jWriter);
@@ -68,7 +70,7 @@ public class StatblockManager {
         gBuilder.registerTypeAdapter(Item.class, new ItemDeserializer<>());
         Gson gson = gBuilder.create();
         String statblockFile = this.path.toString() + name + ".json";
-        this.logger.info("Opening file: " + statblockFile);
+        this.logger.log(Level.INFO, "Opening file: " + statblockFile);
         JsonReader jReader = new JsonReader(new FileReader(statblockFile));
         Statblock statblock = gson.fromJson(jReader, Statblock.class);
         return statblock;

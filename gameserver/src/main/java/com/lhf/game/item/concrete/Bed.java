@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.CreatureContainerMessageHandler;
@@ -188,8 +189,9 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
                     .Build();
         }
         if (this.getOccupancy() >= this.getCapacity()) {
-            this.logger.warning(() -> String.format("Over capacity! occupancy: %d capacity: %d", this.getOccupancy(),
-                    this.getCapacity()));
+            this.logger.log(Level.WARNING,
+                    () -> String.format("Over capacity! occupancy: %d capacity: %d", this.getOccupancy(),
+                            this.getCapacity()));
             return InteractOutMessage.getBuilder().setTaggable(triggerObject).setSubType(InteractOutMessageType.CANNOT)
                     .setDescription("The bed is full!").Build();
         }
@@ -209,7 +211,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
             bedTime = new BedTime(creature);
             bedTime.setFuture(this.executor.scheduleWithFixedDelay(bedTime, this.sleepSeconds, this.sleepSeconds,
                     TimeUnit.SECONDS));
-            this.logger.finer(() -> String.format("Creature '%s' getting in bed", creature.getName()));
+            this.logger.log(Level.FINER, () -> String.format("Creature '%s' getting in bed", creature.getName()));
             return this.occupants.add(bedTime);
         }
         return false;
@@ -261,7 +263,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
                     .setDescription("You got out of the bed!").setPerformed().Build());
             found.cancel();
             found.occupant.setSuccessor(found.successor);
-            this.logger.finer(() -> String.format("%s is done sleeping", doneSleeping.getName()));
+            this.logger.log(Level.FINER, () -> String.format("%s is done sleeping", doneSleeping.getName()));
             return this.occupants.remove(found);
         }
         return false;

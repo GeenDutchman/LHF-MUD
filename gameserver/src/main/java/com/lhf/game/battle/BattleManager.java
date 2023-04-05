@@ -5,6 +5,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.CreatureContainerMessageHandler;
@@ -89,22 +90,22 @@ public class BattleManager implements CreatureContainerMessageHandler {
 
         @Override
         public void run() {
-            this.threadLogger.info("Running");
+            this.threadLogger.log(Level.INFO, "Running");
             BattleManager.this.participants.start();
             this.isRunning.set(true);
             while (this.isRunning.get()) {
                 Creature current = BattleManager.this.startTurn(threadLogger);
                 for (int poke = 0; poke <= BattleManager.this.getMaxPokesPerAction(); poke++) {
                     try {
-                        threadLogger.finest(String.format("Waiting %d at turnBarrier for %s for %d %s", poke,
+                        threadLogger.log(Level.FINEST, String.format("Waiting %d at turnBarrier for %s for %d %s", poke,
                                 current.getName(), BattleManager.this.getTurnWaitCount(),
                                 BattleManager.this.getTurnWaitUnit()));
                         if (this.turnBarrier.tryAcquire(BattleManager.this.getTurnWaitCount(),
                                 BattleManager.this.getTurnWaitUnit())) {
-                            threadLogger.finest("Barrier passed");
+                            threadLogger.log(Level.FINEST, "Barrier passed");
                             break;
                         } else {
-                            threadLogger.warning(
+                            threadLogger.log(Level.WARNING,
                                     String.format("Failed to acquire (%d) barrier for %s", poke, current.getName()));
                             BattleManager.this.remindCurrent(threadLogger, poke, current);
                         }
@@ -117,7 +118,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
                 }
                 BattleManager.this.clearDead();
                 if (!BattleManager.this.checkCompetingFactionsPresent()) {
-                    this.threadLogger.info(() -> String.format("No compteting factions found"));
+                    this.threadLogger.log(Level.INFO, () -> String.format("No compteting factions found"));
                     this.isRunning.set(false);
                     threadLogger.exiting(this.getClass().getName(), "run()");
                     return;
@@ -129,16 +130,17 @@ public class BattleManager implements CreatureContainerMessageHandler {
 
         public boolean endTurn(Creature ender) {
             if (ender == null) {
-                this.threadLogger.warning(() -> "A null creature cannot end their turn!");
+                this.threadLogger.log(Level.WARNING, () -> "A null creature cannot end their turn!");
                 return false;
             }
             if (BattleManager.this.checkTurn(ender)) {
-                this.threadLogger.finest(() -> String.format("%s has ended their turn", ender.getName()));
+                this.threadLogger.log(Level.FINEST, () -> String.format("%s has ended their turn", ender.getName()));
                 this.turnBarrier.release();
                 return true;
             } else {
-                this.threadLogger.warning(() -> String.format("%s tried to end their turn, but it wasn't theirs to end",
-                        ender != null ? ender.getName() : "Someone unknown"));
+                this.threadLogger.log(Level.WARNING,
+                        () -> String.format("%s tried to end their turn, but it wasn't theirs to end",
+                                ender != null ? ender.getName() : "Someone unknown"));
                 return false;
             }
         }
@@ -184,19 +186,19 @@ public class BattleManager implements CreatureContainerMessageHandler {
     private void remindCurrent(Logger logger, int pokeCount, Creature current) {
         if (current != null) {
             if (pokeCount < getMaxPokesPerAction()) {
-                logger.finer(() -> String.format("Poking %s", current.getName()));
+                logger.log(Level.FINER, () -> String.format("Poking %s", current.getName()));
                 current.sendMsg(BattleTurnMessage.getBuilder().setYesTurn(true)
                         .fromInitiative(participants)
                         .Build());
             } else {
-                logger.warning(() -> String.format("Last poke for %s", current.getName()));
+                logger.log(Level.WARNING, () -> String.format("Last poke for %s", current.getName()));
                 Set<CreatureEffect> penalty = this.calculateWastePenalty(current);
                 for (CreatureEffect effect : penalty) {
                     this.announce(current.applyEffect(effect));
                 }
             }
         } else {
-            logger.severe("No current creature!");
+            logger.log(Level.SEVERE, "No current creature!");
         }
     }
 
@@ -322,10 +324,10 @@ public class BattleManager implements CreatureContainerMessageHandler {
     }
 
     private boolean checkCompetingFactionsPresent() {
-        this.battleLogger.fine(() -> "checking for competing factions");
+        this.battleLogger.log(Level.FINE, () -> "checking for competing factions");
         Collection<Creature> battlers = this.participants.getCreatures();
         if (battlers == null || battlers.size() <= 1) {
-            this.battleLogger.finer(() -> "No or too few battlers");
+            this.battleLogger.log(Level.FINER, () -> "No or too few battlers");
             return false;
         }
         HashMap<CreatureFaction, Integer> factionCounts = new HashMap<>();
@@ -337,7 +339,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
                 factionCounts.put(thatone, 1);
             }
         }
-        this.battleLogger.finer(() -> {
+        this.battleLogger.log(Level.FINER, () -> {
             StringJoiner sj = new StringJoiner(" ").setEmptyValue("No factions found");
             if (factionCounts.size() > 0) {
                 sj.add("Factions found:");
@@ -367,7 +369,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
     public synchronized BattleManagerThread startBattle(Creature instigator, Collection<Creature> victims) {
         BattleManagerThread curThread = this.battleThread.get();
         if (this.battleThread.get() == null || !curThread.getIsRunning()) {
-            this.battleLogger.finer(() -> String.format("%s starts a fight", instigator.getName()));
+            this.battleLogger.log(Level.FINER, () -> String.format("%s starts a fight", instigator.getName()));
             this.addCreature(instigator);
             if (victims != null) {
                 for (Creature c : victims) {
@@ -382,7 +384,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
             this.participants.announce(startMessage.setNotBroadcast().Build());
             // if someone started a fight, no need to prompt them for their turn
             BattleManagerThread thread = new BattleManagerThread();
-            this.battleLogger.info("Starting thread");
+            this.battleLogger.log(Level.INFO, "Starting thread");
             thread.start();
             this.battleThread.set(thread);
         } else {
@@ -394,7 +396,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
     }
 
     public void endBattle() {
-        this.battleLogger.info("Ending battle");
+        this.battleLogger.log(Level.INFO, "Ending battle");
         FightOverMessage.Builder foverBuilder = FightOverMessage.getBuilder().setNotBroadcast();
         this.participants.announce(foverBuilder.Build());
         this.participants.stop();
@@ -408,32 +410,32 @@ public class BattleManager implements CreatureContainerMessageHandler {
     }
 
     private Creature nextTurn(Logger logger) {
-        logger.fine("Cycling next turn");
+        logger.log(Level.FINE, "Cycling next turn");
         return this.participants.nextTurn();
     }
 
     private Creature startTurn(Logger logger) {
         Creature current = getCurrent();
         if (current != null) {
-            logger.finest(() -> String.format("Starting turn for %s", current.getName()));
+            logger.log(Level.FINEST, () -> String.format("Starting turn for %s", current.getName()));
             promptCreatureToAct(current);
         } else {
             // Bad juju
-            logger.severe("Trying to perform a turn for something that can't do it\r\n");
+            logger.log(Level.SEVERE, "Trying to perform a turn for something that can't do it\r\n");
         }
         return current;
     }
 
     public boolean endTurn(Creature ender) {
         if (ender == null) {
-            this.battleLogger.warning(() -> "A null creature cannot end their turn!");
+            this.battleLogger.log(Level.WARNING, () -> "A null creature cannot end their turn!");
             return false;
         }
         BattleManagerThread thread = this.battleThread.get();
         if (thread != null) {
             return thread.endTurn(ender);
         }
-        this.battleLogger.warning(() -> "There is no current battle");
+        this.battleLogger.log(Level.WARNING, () -> "There is no current battle");
         return false;
     }
 
@@ -535,7 +537,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
             this.addCreature(attempter);
             return false;
         }
-        this.battleLogger.fine(() -> String.format("Current is NULL, so %s can go!", attempter.getName()));
+        this.battleLogger.log(Level.FINE, () -> String.format("Current is NULL, so %s can go!", attempter.getName()));
         return true;
     }
 
@@ -572,7 +574,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
 
     private Creature getCurrent() {
         Creature current = this.participants.getCurrent();
-        this.battleLogger.finest(
+        this.battleLogger.log(Level.FINEST,
                 () -> String.format("Getting current creature (%s)", current != null ? current.getName() : "NULL"));
         return current;
     }
@@ -805,7 +807,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
     }
 
     private Boolean handleAttack(CommandContext ctx, AttackMessage aMessage) {
-        this.battleLogger.info(ctx.getCreature().getName() + " attempts attacking " + aMessage.getTargets());
+        this.battleLogger.log(Level.INFO, ctx.getCreature().getName() + " attempts attacking " + aMessage.getTargets());
 
         Creature attacker = ctx.getCreature();
 

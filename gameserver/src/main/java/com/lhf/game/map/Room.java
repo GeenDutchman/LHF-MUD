@@ -1,6 +1,7 @@
 package com.lhf.game.map;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.PatternSyntaxException;
 
@@ -181,7 +182,7 @@ public class Room implements Area {
 
         @Override
         public Room build() {
-            this.logger.info(() -> String.format("Building room '%s'", this.name));
+            this.logger.log(Level.INFO, () -> String.format("Building room '%s'", this.name));
             return new Room(this);
         }
     }
@@ -231,7 +232,7 @@ public class Room implements Area {
         c.setSuccessor(this);
         boolean added = this.allCreatures.add(c);
         if (added) {
-            this.logger.finer(() -> String.format("%s entered the room", c.getName()));
+            this.logger.log(Level.FINER, () -> String.format("%s entered the room", c.getName()));
             c.sendMsg(this.produceMessage());
             this.announce(RoomEnteredOutMessage.getBuilder().setNewbie(c).setBroacast().Build(), c.getName());
             if (this.allCreatures.size() > 1 && !this.commands.containsKey(CommandMessage.ATTACK)) {
@@ -317,7 +318,7 @@ public class Room implements Area {
     public boolean onCreatureDeath(Creature creature) {
         boolean removed = this.removeCreature(creature);
         if (removed) {
-            this.logger.finer(() -> String.format("The creature '%s' has died", creature.getName()));
+            this.logger.log(Level.FINER, () -> String.format("The creature '%s' has died", creature.getName()));
             Corpse corpse = creature.die();
             this.addItem(corpse);
             for (String i : creature.getInventory().getItemList()) {
@@ -426,7 +427,7 @@ public class Room implements Area {
         if (!this.isCorrectEffectType(effect)) {
             return null;
         }
-        this.logger.finer(() -> String.format("Room processing effect '%s'", effect.getName()));
+        this.logger.log(Level.FINER, () -> String.format("Room processing effect '%s'", effect.getName()));
         RoomEffect roomEffect = (RoomEffect) effect;
         // TODO: make banishing work!
         if (roomEffect.getCreaturesToBanish().size() > 0 || roomEffect.getCreaturesToBanish().size() > 0) {

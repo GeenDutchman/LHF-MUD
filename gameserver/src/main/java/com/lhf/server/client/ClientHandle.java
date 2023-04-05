@@ -22,19 +22,19 @@ public class ClientHandle extends Client implements Runnable {
     protected ClientHandle(Socket socket, ConnectionListener cl) throws IOException {
         super();
         this.logger = Logger.getLogger(this.getClass().getName());
-        this.logger.finest("Creating ClientHandle");
+        this.logger.log(Level.FINEST, "Creating ClientHandle");
         this.socket = socket;
         this.out = new PrintWriterSendStrategy(socket.getOutputStream());
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         connected = true;
         killIt = false;
         this.connectionListener = cl;
-        this.logger.finest("ClientHandle created");
+        this.logger.log(Level.FINEST, "ClientHandle created");
     }
 
     @Override
     public void run() {
-        this.logger.finer("Running ClientHandle");
+        this.logger.log(Level.FINER, "Running ClientHandle");
         String value;
         try {
             while (!this.killIt && ((value = in.readLine()) != null)) {
@@ -54,7 +54,7 @@ public class ClientHandle extends Client implements Runnable {
     }
 
     public void kill() {
-        this.logger.info("Disconnecting ClientHandler");
+        this.logger.log(Level.INFO, "Disconnecting ClientHandler");
         this.killIt = true;
         if (connected && socket.isConnected()) {
             try {
@@ -68,7 +68,7 @@ public class ClientHandle extends Client implements Runnable {
     }
 
     void disconnect() {
-        this.logger.info("Requesting ClientHandler to stop");
+        this.logger.log(Level.INFO, "Requesting ClientHandler to stop");
         this.killIt = true;
     }
 

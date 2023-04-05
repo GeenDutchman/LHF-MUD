@@ -7,6 +7,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
@@ -67,7 +68,7 @@ public class BasicAI extends Client {
             if (ai != null) {
                 ai.handle(this, msg);
             } else {
-                this.logger.warning(() -> String.format("%s: No handler found for %s: %s", this.toString(),
+                this.logger.log(Level.WARNING, () -> String.format("%s: No handler found for %s: %s", this.toString(),
                         msg.getOutType(), msg.print()));
             }
         }

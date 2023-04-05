@@ -74,23 +74,23 @@ public class GroupAIRunner implements AIRunner {
         if (asThread) {
             this.start();
         } else {
-            this.logger.info("Not initializing as a thread");
+            this.logger.log(Level.INFO, "Not initializing as a thread");
         }
     }
 
     public GroupAIRunner start() {
         if (this.myThread == null) {
-            this.logger.info("Starting a thread");
+            this.logger.log(Level.INFO, "Starting a thread");
             this.myThread = new Thread(this);
             this.myThread.start();
         } else {
-            this.logger.info("Already started as a thread");
+            this.logger.log(Level.INFO, "Already started as a thread");
         }
         return this;
     }
 
     private BasicAI produceAI(NonPlayerCharacter npc) {
-        this.logger.fine("Producing an AI for " + npc.getName());
+        this.logger.log(Level.FINE, "Producing an AI for " + npc.getName());
         return new BasicAI(npc, this);
     }
 
@@ -98,7 +98,7 @@ public class GroupAIRunner implements AIRunner {
     public synchronized BasicAI register(NonPlayerCharacter npc, AIHandler... handlers) {
         this.logger.entering(this.getClass().getName(), "register()", npc.getName());
         if (npc.getController() == null) {
-            this.logger.fine("NPC " + npc.getName() + " does not have a controller");
+            this.logger.log(Level.FINE, "NPC " + npc.getName() + " does not have a controller");
             BasicAI basicAI = this.produceAI(npc);
             this.aiMap.put(basicAI.getClientID(), new AIPair<BasicAI>(basicAI));
             npc.setController(basicAI);
@@ -117,7 +117,7 @@ public class GroupAIRunner implements AIRunner {
         if (id != null) {
             AIPair<BasicAI> aiPair = this.aiMap.get(id);
             if (aiPair != null) {
-                this.logger.finest("Processing for " + aiPair.ai.toString());
+                this.logger.log(Level.FINEST, "Processing for " + aiPair.ai.toString());
                 aiPair.queued.set(false);
                 while (this.getChew() <= 0 && aiPair.ai.peek() != null) {
                     aiPair.ai.process(aiPair.ai.poll());
@@ -126,7 +126,8 @@ public class GroupAIRunner implements AIRunner {
                     aiPair.ai.process(aiPair.ai.poll());
                 }
                 if (aiPair.ai.size() > 0) {
-                    this.logger.finest(() -> String.format("%s still has messages enqueued", aiPair.ai.toString()));
+                    this.logger.log(Level.FINEST,
+                            () -> String.format("%s still has messages enqueued", aiPair.ai.toString()));
                     this.getAttention(id);
                 }
             }
@@ -139,7 +140,7 @@ public class GroupAIRunner implements AIRunner {
             // if aPair is defined and not queued
             this.attentionQueue.offer(id, 30, TimeUnit.SECONDS);
             aPair.queued.set(true);
-            this.logger.finest(() -> String.format("Attention gotten for ai %s", aPair.ai.toString()));
+            this.logger.log(Level.FINEST, () -> String.format("Attention gotten for ai %s", aPair.ai.toString()));
         }
     }
 
@@ -163,13 +164,13 @@ public class GroupAIRunner implements AIRunner {
         this.logger.entering(this.getClass().getName(), "run()", "running");
         while (!this.stopit) {
             try {
-                this.logger.finer(() -> String.format("Polling for the next attention getter for %d %s",
+                this.logger.log(Level.FINER, () -> String.format("Polling for the next attention getter for %d %s",
                         this.getTimeCount(), this.getTimeUnit().toString()));
                 ClientID id = this.getNext(this.getTimeCount(), this.getTimeUnit());
                 if (id != null) {
                     this.process(id);
                 } else {
-                    this.logger.finer("Checking to see if anyone has needs but has not asked for attention");
+                    this.logger.log(Level.FINER, "Checking to see if anyone has needs but has not asked for attention");
                     for (ClientID iterId : this.aiMap.keySet()) {
                         this.process(iterId);
                     }
@@ -188,7 +189,7 @@ public class GroupAIRunner implements AIRunner {
 
     @Override
     public void stopIt() {
-        this.logger.info("Signalling to stop");
+        this.logger.log(Level.INFO, "Signalling to stop");
         this.stopit = true;
     }
 

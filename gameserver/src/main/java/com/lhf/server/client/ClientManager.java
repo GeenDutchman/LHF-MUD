@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.messages.CommandMessage;
@@ -56,14 +57,14 @@ public class ClientManager {
     }
 
     public void addUserForClient(@NotNull ClientID clientID, @NotNull UserID userId) {
-        logger.finer("Pairing client " + clientID + " with user " + userId);
+        logger.log(Level.FINER, "Pairing client " + clientID + " with user " + userId);
         userMap.put(clientID, userId);
     }
 
     public Optional<UserID> getUserForClient(ClientID id) {
-        logger.finer("Checking if client " + id + " is here.");
+        logger.log(Level.FINER, "Checking if client " + id + " is here.");
         Optional<UserID> result = Optional.ofNullable((userMap.get(id)));
-        logger.finer("isHere:" + result.isPresent());
+        logger.log(Level.FINER, "isHere:" + result.isPresent());
         return result;
     }
 
