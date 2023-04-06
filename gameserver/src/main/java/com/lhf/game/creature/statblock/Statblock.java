@@ -180,6 +180,9 @@ public class Statblock {
     }
 
     public DamageFlavorReactions getDamageFlavorReactions() {
+        if (this.damageFlavorReactions == null) {
+            this.damageFlavorReactions = new DamageFlavorReactions().standard();
+        }
         return damageFlavorReactions;
     }
 
