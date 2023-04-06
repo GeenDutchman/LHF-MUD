@@ -27,7 +27,7 @@ public class Healer extends Vocation implements CubeHolder {
 
     @Override
     public MultiRollResult spellAttack() {
-        return new MultiRollResult(new DiceD20(1).rollDice()); // TODO: actual attack
+        return new MultiRollResult.Builder().addRollResults(new DiceD20(1).rollDice()).Build(); // TODO: actual attack
     }
 
     @Override

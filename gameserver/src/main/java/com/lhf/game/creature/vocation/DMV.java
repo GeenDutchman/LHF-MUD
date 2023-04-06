@@ -54,7 +54,9 @@ public class DMV extends Vocation implements CubeHolder {
 
     @Override
     public MultiRollResult spellAttack() {
-        return new MultiRollResult(new DiceD20(1).rollDice()).addBonus(Integer.MAX_VALUE / 15); // TODO: actual attack
+        return new MultiRollResult.Builder()
+                .addRollResults(new DiceD20(1).rollDice())
+                .addBonuses(Integer.MAX_VALUE / 15).Build(); // TODO: actual attack
 
     }
 

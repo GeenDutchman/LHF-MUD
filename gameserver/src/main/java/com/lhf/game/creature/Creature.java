@@ -255,7 +255,8 @@ public abstract class Creature
 
     public MultiRollResult check(Attributes attribute) {
         Dice d20 = new DiceD20(1);
-        MultiRollResult result = new MultiRollResult(d20.rollDice(), this.getAttributes().getMod(attribute));
+        MultiRollResult result = new MultiRollResult.Builder().addRollResults(d20.rollDice())
+                .addBonuses(this.getAttributes().getMod(attribute)).Build();
         return result;
     }
 
@@ -387,35 +388,35 @@ public abstract class Creature
         if (mrr == null) {
             return null;
         }
-        ArrayList<RollResult> adjusted = new ArrayList<>();
+        MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
         for (RollResult rr : mrr) {
             if (rr instanceof FlavoredRollResult) {
                 FlavoredRollResult frr = (FlavoredRollResult) rr;
                 switch (frr.getFlavor()) {
                     case HEALING:
                         if (reverse) {
-                            adjusted.add(rr.negative());
+                            mrrBuilder.addRollResults(rr.negative());
                         } else {
-                            adjusted.add(rr);
+                            mrrBuilder.addRollResults(rr);
                         }
                         break;
                     default:
                         if (reverse) {
-                            adjusted.add(rr);
+                            mrrBuilder.addRollResults(rr);
                         } else {
-                            adjusted.add(rr.negative());
+                            mrrBuilder.addRollResults(rr.negative());
                         }
                         break;
                 }
             } else {
                 if (reverse) {
-                    adjusted.add(rr.negative());
+                    mrrBuilder.addRollResults(rr.negative());
                 } else {
-                    adjusted.add(rr);
+                    mrrBuilder.addRollResults(rr);
                 }
             }
         }
-        return new MultiRollResult(adjusted, mrr.getBonuses());
+        return mrrBuilder.addBonuses(mrr.getBonuses()).Build();
     }
 
     @Override
