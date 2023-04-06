@@ -445,14 +445,16 @@ public class ServerTest {
         String spellResult = this.comm.handleCommand("cast zarmamoo"); // Thaumaturgy
         // because we know it's thaumaturgy
         // Truth.assertThat(spellResult).contains(this.comm.name);
-        Truth.assertThat(spellResult).ignoringCase().contains("not a caster");
+        Truth.assertThat(spellResult).ignoringCase()
+                .contains("mumbles and tries to cast a spell...nothing spectacular happens");
         // Truth.assertThat(victim.read()).contains(this.comm.name);
         Mockito.verify(victim.sssb, Mockito.timeout(500).atLeastOnce())
                 .send(Mockito.argThat(message -> message != null && message.getOutType() == OutMessageType.FIZZLE));
 
         spellResult = this.comm.handleCommand("cast Astra Horeb at " + victim.name); // attack spell
         // Truth.assertThat(spellResult).ignoringCase().contains("fight");
-        Truth.assertThat(spellResult).ignoringCase().contains("not a caster");
+        Truth.assertThat(spellResult).ignoringCase()
+                .contains("mumbles and tries to cast a spell...nothing spectacular happens");
 
         spellResult = caster.handleCommand("cast zarmamoo");
         Truth.assertThat(spellResult).ignoringCase().contains("used");

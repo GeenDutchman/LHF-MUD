@@ -29,7 +29,7 @@ import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
 
 public class Game implements UserListener, MessageHandler {
-	private MessageHandler successor;
+	private transient MessageHandler successor;
 	private ServerInterface server;
 	private UserManager userManager;
 	private Logger logger;
