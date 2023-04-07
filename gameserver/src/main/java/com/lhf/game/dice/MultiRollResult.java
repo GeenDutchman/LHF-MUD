@@ -6,14 +6,14 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
-import com.lhf.game.dice.Dice.RollResult;
+import com.lhf.game.dice.Dice.IRollResult;
 
-public class MultiRollResult implements Taggable, Iterable<RollResult> {
-    protected final List<RollResult> rolls;
+public class MultiRollResult implements Taggable, Iterable<IRollResult> {
+    protected final List<IRollResult> rolls;
     protected final List<Integer> bonuses;
 
     public static class Builder {
-        protected List<RollResult> rolls;
+        protected List<IRollResult> rolls;
         protected List<Integer> bonuses;
 
         public Builder() {
@@ -21,8 +21,8 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
             this.bonuses = new ArrayList<>();
         }
 
-        public Builder addRollResults(RollResult... rrs) {
-            for (RollResult rr : rrs) {
+        public Builder addRollResults(IRollResult... rrs) {
+            for (IRollResult rr : rrs) {
                 if (rr != null) {
                     this.rolls.add(rr);
                 }
@@ -39,8 +39,8 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
             return this;
         }
 
-        public Builder addRollResults(Iterable<RollResult> rrs) {
-            for (RollResult rr : rrs) {
+        public Builder addRollResults(Iterable<IRollResult> rrs) {
+            for (IRollResult rr : rrs) {
                 if (rr != null) {
                     this.rolls.add(rr);
                 }
@@ -84,7 +84,7 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
 
     public int getTotal() {
         int sum = 0;
-        for (RollResult rr : this.rolls) {
+        for (IRollResult rr : this.rolls) {
             sum += rr.getRoll();
         }
         for (int bonus : this.bonuses) {
@@ -100,7 +100,7 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
     public String toString() {
         StringJoiner sj = new StringJoiner(" + ");
         int sum = 0;
-        for (RollResult rr : this.rolls) {
+        for (IRollResult rr : this.rolls) {
             sj.add(rr.toString());
             sum += rr.getRoll();
         }
@@ -129,7 +129,7 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
     }
 
     @Override
-    public Iterator<RollResult> iterator() {
+    public Iterator<IRollResult> iterator() {
         return this.rolls.listIterator();
     }
 
