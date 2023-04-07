@@ -31,6 +31,20 @@ public abstract class Dice implements Taggable {
             return new RollResult(this.roll * -1);
         }
 
+        public RollResult twice() {
+            if (this.roll == 0) {
+                return this;
+            }
+            return new RollResult(this.roll * 2);
+        }
+
+        public RollResult half() {
+            if (this.roll == 0) {
+                return this;
+            }
+            return new RollResult(this.roll / 2);
+        }
+
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();

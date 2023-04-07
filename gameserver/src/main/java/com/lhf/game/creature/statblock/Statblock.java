@@ -44,6 +44,23 @@ public class Statblock {
             this.weaknesses.add(DamageFlavor.HEALING);
             return this;
         }
+
+        public Set<DamageFlavor> getWeaknesses() {
+            return Collections.unmodifiableSet(weaknesses);
+        }
+
+        public Set<DamageFlavor> getResistances() {
+            return Collections.unmodifiableSet(resistances);
+        }
+
+        public Set<DamageFlavor> getImmunities() {
+            return Collections.unmodifiableSet(immunities);
+        }
+
+        public Set<DamageFlavor> getHealing() {
+            return Collections.unmodifiableSet(healing);
+        }
+
     }
 
     private String creatureRace;

@@ -14,6 +14,7 @@ import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.statblock.Statblock.DamageFlavorReactions;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DamageDice.FlavoredRollResult;
@@ -391,22 +392,34 @@ public abstract class Creature
         MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
         for (RollResult rr : mrr) {
             if (rr instanceof FlavoredRollResult) {
+                DamageFlavorReactions dfr = this.statblock.getDamageFlavorReactions();
                 FlavoredRollResult frr = (FlavoredRollResult) rr;
-                switch (frr.getFlavor()) {
-                    case HEALING:
-                        if (reverse) {
-                            mrrBuilder.addRollResults(rr.negative());
-                        } else {
-                            mrrBuilder.addRollResults(rr);
-                        }
-                        break;
-                    default:
-                        if (reverse) {
-                            mrrBuilder.addRollResults(rr);
-                        } else {
-                            mrrBuilder.addRollResults(rr.negative());
-                        }
-                        break;
+                if (dfr.getHealing().contains(frr.getFlavor())) {
+                    if (reverse) {
+                        mrrBuilder.addRollResults(frr.negative());
+                    } else {
+                        mrrBuilder.addRollResults(frr);
+                    }
+                } else if (dfr.getImmunities().contains(frr.getFlavor())) {
+                    // do nothing
+                } else if (dfr.getResistances().contains(frr.getFlavor())) {
+                    if (reverse) {
+                        mrrBuilder.addRollResults(frr.half());
+                    } else {
+                        mrrBuilder.addRollResults(frr.negative().half());
+                    }
+                } else if (dfr.getWeaknesses().contains(frr.getFlavor())) {
+                    if (reverse) {
+                        mrrBuilder.addRollResults(frr.twice());
+                    } else {
+                        mrrBuilder.addRollResults(frr.negative().twice());
+                    }
+                } else {
+                    if (reverse) {
+                        mrrBuilder.addRollResults(frr);
+                    } else {
+                        mrrBuilder.addRollResults(frr.negative());
+                    }
                 }
             } else {
                 if (reverse) {
