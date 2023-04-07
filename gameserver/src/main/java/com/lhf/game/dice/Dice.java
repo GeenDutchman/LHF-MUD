@@ -145,7 +145,7 @@ public abstract class Dice implements Taggable {
             StringBuilder sb = new StringBuilder();
             if (this.sub != null) {
                 sb.append(this.sub.toString());
-                sb.append("-->");
+                sb.append(" -->");
             } else {
                 sb.append(Dice.this.toString());
             }

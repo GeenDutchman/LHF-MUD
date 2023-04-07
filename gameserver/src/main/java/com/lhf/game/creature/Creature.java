@@ -390,9 +390,9 @@ public abstract class Creature
             return null;
         }
         MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
+        DamageFlavorReactions dfr = this.statblock.getDamageFlavorReactions();
         for (IRollResult rr : mrr) {
             if (rr instanceof FlavoredRollResult) {
-                DamageFlavorReactions dfr = this.statblock.getDamageFlavorReactions();
                 FlavoredRollResult frr = (FlavoredRollResult) rr;
                 if (dfr.getHealing().contains(frr.getFlavor())) {
                     if (reverse) {
@@ -401,7 +401,7 @@ public abstract class Creature
                         mrrBuilder.addRollResults(frr);
                     }
                 } else if (dfr.getImmunities().contains(frr.getFlavor())) {
-                    // do nothing
+                    mrrBuilder.addRollResults(frr.none());
                 } else if (dfr.getResistances().contains(frr.getFlavor())) {
                     if (reverse) {
                         mrrBuilder.addRollResults(frr.half());
@@ -422,14 +422,21 @@ public abstract class Creature
                     }
                 }
             } else {
-                if (reverse) {
+                if (dfr.getImmunities().size() > 0) {
+                    mrrBuilder.addRollResults(rr.none()); // if they have any immunities, unflavored damge does nothing
+                } else if (reverse) {
                     mrrBuilder.addRollResults(rr.negative());
                 } else {
                     mrrBuilder.addRollResults(rr);
                 }
             }
         }
-        return mrrBuilder.addBonuses(mrr.getBonuses()).Build();
+
+        if (dfr.getImmunities().size() == 0) { // if they have any immunities, unflavored damge does nothing
+            mrrBuilder.addBonuses(mrr.getBonuses());
+        }
+
+        return mrrBuilder.Build();
     }
 
     @Override
@@ -482,7 +489,7 @@ public abstract class Creature
         }
 
         CreatureAffectedMessage camOut = CreatureAffectedMessage.getBuilder().setAffected(this)
-                .setEffect(creatureEffect).setReversed(reverse).Build();
+                .setEffect(creatureEffect).setReversed(reverse).setBroacast().Build();
         return camOut;
     }
 
