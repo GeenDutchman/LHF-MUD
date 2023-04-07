@@ -3,6 +3,7 @@ package com.lhf.game.creature.vocation;
 import java.util.Objects;
 
 import com.lhf.Taggable;
+import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.statblock.Statblock;
 
 public abstract class Vocation implements Taggable, Comparable<Vocation> {
@@ -66,6 +67,10 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
         return this.name;
     }
 
+    public Attack modifyAttack(Attack attack) {
+        return attack;
+    }
+
     @Override
     public String getColorTaggedName() {
         return this.name.getColorTaggedName();
@@ -113,7 +118,7 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("Vocation [level=").append(level).append(", name=").append(name).append("]");
+        builder.append("Vocation [name=").append(name).append(", level=").append(level).append("]");
         return builder.toString();
     }
 

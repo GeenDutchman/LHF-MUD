@@ -365,6 +365,9 @@ public abstract class Creature
 
     public Attack attack(Weapon weapon) {
         Attack a = weapon.generateAttack(this);
+        if (this.getVocation() != null) {
+            a = this.getVocation().modifyAttack(a);
+        }
         return a;
     }
 
