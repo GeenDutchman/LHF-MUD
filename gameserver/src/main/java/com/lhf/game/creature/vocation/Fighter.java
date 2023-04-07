@@ -47,8 +47,8 @@ public class Fighter extends Vocation {
         built.getAttributes().setScore(Attributes.DEX, 12);
         built.getAttributes().setScore(Attributes.CON, 14);
         built.getAttributes().setScore(Attributes.INT, 8);
-        built.getAttributes().setScore(Attributes.WIS, 12);
-        built.getAttributes().setScore(Attributes.CHA, 10);
+        built.getAttributes().setScore(Attributes.WIS, 10);
+        built.getAttributes().setScore(Attributes.CHA, 12);
 
         return built;
     }
