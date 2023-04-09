@@ -97,6 +97,17 @@ public class MultiRollResult implements Taggable, Iterable<IRollResult> {
         return this.getTotal();
     }
 
+    public int getOrigRoll() {
+        int sum = 0;
+        for (IRollResult rr : this.rolls) {
+            sum += rr.getOrigRoll();
+        }
+        for (int bonus : this.bonuses) {
+            sum += bonus;
+        }
+        return sum;
+    }
+
     public String toString() {
         StringJoiner sj = new StringJoiner(" + ");
         int sum = 0;
