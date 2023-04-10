@@ -1,12 +1,14 @@
 package com.lhf.game.dice;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
 import com.lhf.game.dice.Dice.IRollResult;
+import com.lhf.game.enums.DamageFlavor;
 
 public class MultiRollResult implements Taggable, Iterable<IRollResult> {
     protected final List<IRollResult> rolls;
@@ -83,14 +85,7 @@ public class MultiRollResult implements Taggable, Iterable<IRollResult> {
     }
 
     public int getTotal() {
-        int sum = 0;
-        for (IRollResult rr : this.rolls) {
-            sum += rr.getRoll();
-        }
-        for (int bonus : this.bonuses) {
-            sum += bonus;
-        }
-        return sum;
+        return this.getByFlavors(EnumSet.noneOf(DamageFlavor.class), false);
     }
 
     public int getRoll() {
@@ -98,12 +93,25 @@ public class MultiRollResult implements Taggable, Iterable<IRollResult> {
     }
 
     public int getOrigRoll() {
+        return this.getByFlavors(EnumSet.noneOf(DamageFlavor.class), true);
+    }
+
+    public int getByFlavors(EnumSet<DamageFlavor> flavors, boolean origRoll) {
         int sum = 0;
         for (IRollResult rr : this.rolls) {
-            sum += rr.getOrigRoll();
+            if (flavors.size() > 0 && rr instanceof DamageDice) {
+                DamageDice.FlavoredRollResult ddrr = (DamageDice.FlavoredRollResult) rr;
+                if (flavors.contains(ddrr.getFlavor())) {
+                    sum += origRoll ? ddrr.getOrigRoll() : ddrr.getRoll();
+                }
+            } else if (flavors.size() == 0) {
+                sum += origRoll ? rr.getOrigRoll() : rr.getRoll();
+            }
         }
-        for (int bonus : this.bonuses) {
-            sum += bonus;
+        if (flavors.size() == 0) {
+            for (int bonus : this.bonuses) {
+                sum += bonus;
+            }
         }
         return sum;
     }
