@@ -24,6 +24,7 @@ public class HandleCreatureAffected extends AIHandler {
         if (caMessage.isResultedInDeath()) {
             if (bai.getNpc().getConvoTree() != null) {
                 bai.getNpc().getConvoTree().forgetBookmark(caMessage.getAffected());
+                bai.getBattleMemories().remove(caMessage.getAffected().getName());
             }
         }
     }
@@ -32,6 +33,7 @@ public class HandleCreatureAffected extends AIHandler {
     public void handle(BasicAI bai, OutMessage msg) {
         if (OutMessageType.CREATURE_AFFECTED.equals(msg.getOutType())) {
             CreatureAffectedMessage caMessage = (CreatureAffectedMessage) msg;
+            bai.updateBattleMemories(caMessage);
             this.handleOuch(bai, caMessage);
             this.handleOtherDeath(bai, caMessage);
         }

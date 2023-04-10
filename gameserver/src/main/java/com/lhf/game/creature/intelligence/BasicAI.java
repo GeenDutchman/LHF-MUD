@@ -9,6 +9,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
@@ -28,8 +29,10 @@ import com.lhf.messages.in.PassMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BattleTurnMessage;
 import com.lhf.messages.out.CreatureAffectedMessage;
+import com.lhf.messages.out.FleeMessage;
 import com.lhf.messages.out.MissMessage;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.DoNothingSendStrategy;
 import com.lhf.server.interfaces.NotNull;
@@ -41,21 +44,68 @@ public class BasicAI extends Client {
     protected BlockingQueue<OutMessage> queue;
     protected AIRunner runner;
 
-    private class BattleMemories {
+    public class BattleMemories {
         protected class BattleStats {
             protected final String targetName;
-            protected CreatureFaction faction;
-            protected Vocation vocation;
-            protected int maxDamage;
-            protected int aggroDamage;
-            protected int totalDamage;
-            protected int numDamgages;
-            protected int healingPerformed;
+            private CreatureFaction faction;
+            private Vocation vocation;
+            private int maxDamage;
+            private int aggroDamage;
+            private int totalDamage;
+            private int numDamgages;
+            private int healingPerformed;
 
             public BattleStats(String targetName, CreatureFaction faction, Vocation vocation) {
                 this.targetName = targetName;
                 this.faction = faction;
                 this.vocation = vocation;
+            }
+
+            public String getTargetName() {
+                return targetName;
+            }
+
+            public CreatureFaction getFaction() {
+                return faction;
+            }
+
+            public Vocation getVocation() {
+                return vocation;
+            }
+
+            public int getMaxDamage() {
+                return maxDamage;
+            }
+
+            public int getAggroDamage() {
+                return aggroDamage;
+            }
+
+            public int getTotalDamage() {
+                return totalDamage;
+            }
+
+            public int getAverageDamage() {
+                return this.getTotalDamage() / this.getNumDamgages();
+            }
+
+            public int getNumDamgages() {
+                return numDamgages;
+            }
+
+            public int getHealingPerformed() {
+                return healingPerformed;
+            }
+
+            @Override
+            public String toString() {
+                StringBuilder builder = new StringBuilder();
+                builder.append("BattleStats [targetName=").append(targetName).append(", faction=").append(faction)
+                        .append(", vocation=").append(vocation).append(", maxDamage=").append(maxDamage)
+                        .append(", aggroDamage=").append(aggroDamage).append(", totalDamage=").append(totalDamage)
+                        .append(", numDamgages=").append(numDamgages).append(", healingPerformed=")
+                        .append(healingPerformed).append("]");
+                return builder.toString();
             }
 
         }
@@ -103,7 +153,7 @@ public class BasicAI extends Client {
             if (found == null) {
                 return this;
             }
-            found.numDamgages++;
+            found.numDamgages += roll < 0 ? 1 : 0;
             found.totalDamage += roll;
             found.maxDamage = roll > found.maxDamage ? roll : found.maxDamage;
             found.healingPerformed += ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.HEALING),
@@ -126,6 +176,19 @@ public class BasicAI extends Client {
                 }
             }
             return this;
+        }
+
+        public BattleMemories remove(String creatureName) {
+            this.battleStats.remove(creatureName);
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("BattleMemories [lastAttaker=").append(lastAttaker).append(", lastAggroDamage=")
+                    .append(lastAggroDamage).append(", battleStats=").append(battleStats).append("]");
+            return builder.toString();
         }
 
     }
@@ -171,24 +234,34 @@ public class BasicAI extends Client {
         if (this.handlers == null) {
             this.handlers = new TreeMap<>();
         }
-        this.handlers.put(OutMessageType.MISS, (BasicAI bai, OutMessage msg) -> {
-            if (msg.getOutType().equals(OutMessageType.MISS) && bai.getNpc().isInBattle()) {
-                MissMessage missMessage = (MissMessage) msg;
-                if (missMessage.getTarget() != bai.getNpc()) {
-                    return;
-                }
-                if (bai.getLastAttacker() == null) {
-                    bai.setLastAttacker(missMessage.getAttacker());
-                }
-            }
-        });
         this.handlers.put(OutMessageType.FIGHT_OVER, (BasicAI bai, OutMessage msg) -> {
             if (msg.getOutType().equals(OutMessageType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
-                bai.setLastAttacker(null);
+                bai.resetBattleMemories();
+            }
+        });
+        this.handlers.put(OutMessageType.SEE, (BasicAI bai, OutMessage msg) -> {
+            if (msg.getOutType().equals(OutMessageType.SEE) && bai.getNpc().isInBattle()) {
+                SeeOutMessage som = (SeeOutMessage) msg;
+                bai.getBattleMemories()
+                        .initialize(som.getTaggedCategory("Participants").stream()
+                                .filter(possCreature -> possCreature instanceof Creature)
+                                .map(toCreature -> (Creature) toCreature).collect(Collectors.toUnmodifiableList()));
+            }
+        });
+        this.handlers.put(OutMessageType.FLEE, (BasicAI bai, OutMessage msg) -> {
+            if (msg.getOutType().equals(OutMessageType.FLEE)) {
+                FleeMessage flee = (FleeMessage) msg;
+                if (flee.isFled() && flee.getRunner() != null) {
+                    if (flee.getRunner() == bai.getNpc()) {
+                        bai.resetBattleMemories();
+                    } else {
+                        bai.getBattleMemories().remove(flee.getRunner().getName());
+                    }
+                }
             }
         });
         this.handlers.put(OutMessageType.BAD_TARGET_SELECTED, (BasicAI bai, OutMessage msg) -> {
-            if (msg.getOutType().equals(OutMessageType.BAD_TARGET_SELECTED)) {
+            if (msg.getOutType().equals(OutMessageType.BAD_TARGET_SELECTED) && bai.getNpc().isInBattle()) {
                 bai.setLastAttacker(null); // the message means that this was invalid anyway
                 BadTargetSelectedMessage btsm = (BadTargetSelectedMessage) msg;
                 ArrayList<Creature> creaturesFound = new ArrayList<>();
@@ -307,7 +380,6 @@ public class BasicAI extends Client {
     public BattleMemories updateBattleMemories(CreatureAffectedMessage ca) {
         return this.battleMemories.update(ca);
     }
-
 
     @Override
     public String toString() {
