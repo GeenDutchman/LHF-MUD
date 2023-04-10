@@ -2,6 +2,7 @@ package com.lhf.game.creature.intelligence;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -16,15 +17,17 @@ import com.lhf.game.creature.intelligence.handlers.ForgetOnOtherExit;
 import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
+import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.DamageFlavor;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.OutMessageType;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.PassMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.BattleTurnMessage;
+import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.MissMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.Client;
@@ -33,10 +36,99 @@ import com.lhf.server.interfaces.NotNull;
 
 public class BasicAI extends Client {
     protected NonPlayerCharacter npc;
-    protected Creature lastAttacker;
+    protected BattleMemories battleMemories;
     protected Map<OutMessageType, AIChunk> handlers;
     protected BlockingQueue<OutMessage> queue;
     protected AIRunner runner;
+
+    private class BattleMemories {
+        protected class BattleStats {
+            protected final String targetName;
+            protected CreatureFaction faction;
+            protected Vocation vocation;
+            protected int maxDamage;
+            protected int aggroDamage;
+            protected int totalDamage;
+            protected int numDamgages;
+            protected int healingPerformed;
+
+            public BattleStats(String targetName, CreatureFaction faction, Vocation vocation) {
+                this.targetName = targetName;
+                this.faction = faction;
+                this.vocation = vocation;
+            }
+
+        }
+
+        protected Creature lastAttaker;
+        protected int lastAggroDamage;
+        protected Map<String, BattleStats> battleStats;
+
+        public BattleMemories() {
+            this.lastAggroDamage = 0;
+            this.lastAttaker = null;
+            this.battleStats = new TreeMap<>();
+        }
+
+        public BattleMemories reset() {
+            this.battleStats.clear();
+            this.lastAggroDamage = 0;
+            this.lastAttaker = null;
+            return this;
+        }
+
+        public BattleMemories update(CreatureAffectedMessage ca) {
+            if (ca.getEffect() == null) {
+                return this;
+            }
+            Creature responsible = ca.getEffect().creatureResponsible();
+            if (responsible == null) {
+                return this;
+            }
+
+            int origRoll = ca.getEffect().getDamageResult().getOrigRoll();
+            int roll = ca.getEffect().getDamageResult().getRoll();
+
+            if (!this.battleStats.containsKey(responsible.getName())) {
+                this.battleStats.put(responsible.getName(),
+                        new BattleStats(responsible.getName(), responsible.getFaction(), responsible.getVocation()));
+            }
+            if (ca.getAffected() == BasicAI.this.npc && ca.getEffect().isOffensive()) {
+                if (origRoll >= this.lastAggroDamage) {
+                    this.lastAggroDamage = origRoll;
+                    this.lastAttaker = responsible;
+                }
+            }
+            BattleStats found = this.battleStats.get(responsible.getName());
+            if (found == null) {
+                return this;
+            }
+            found.numDamgages++;
+            found.totalDamage += roll;
+            found.maxDamage = roll > found.maxDamage ? roll : found.maxDamage;
+            found.healingPerformed += ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.HEALING),
+                    false);
+            found.aggroDamage = ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.AGGRO), true);
+
+            return this;
+        }
+
+        public BattleMemories initialize(Iterable<Creature> creatures) {
+            for (Creature creature : creatures) {
+                if (creature != null) {
+                    if (!this.battleStats.containsKey(creature.getName())) {
+                        this.battleStats.put(creature.getName(),
+                                new BattleStats(creature.getName(), creature.getFaction(), creature.getVocation()));
+                    } else {
+                        BattleStats found = this.battleStats.get(creature.getName());
+                        found.faction = creature.getFaction(); // update just in case
+                    }
+                }
+            }
+            return this;
+        }
+
+    }
 
     protected BasicAI(NonPlayerCharacter npc, AIRunner runner) {
         super();
@@ -48,6 +140,7 @@ public class BasicAI extends Client {
         this.initBasicHandlers();
         this.runner = runner;
         this.queue = new ArrayBlockingQueue<>(32, true);
+        this.battleMemories = new BattleMemories();
     }
 
     public OutMessage peek() {
@@ -203,15 +296,18 @@ public class BasicAI extends Client {
         return npc;
     }
 
-    public Creature getLastAttacker() {
-        return lastAttacker;
+    public BattleMemories getBattleMemories() {
+        return this.battleMemories;
     }
 
-    public void setLastAttacker(Creature lastAttacker) {
-        if (lastAttacker != this.npc) {
-            this.lastAttacker = lastAttacker;
-        }
+    public BattleMemories resetBattleMemories() {
+        return this.battleMemories.reset();
     }
+
+    public BattleMemories updateBattleMemories(CreatureAffectedMessage ca) {
+        return this.battleMemories.update(ca);
+    }
+
 
     @Override
     public String toString() {
