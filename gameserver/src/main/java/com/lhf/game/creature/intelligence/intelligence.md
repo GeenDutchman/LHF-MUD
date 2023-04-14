@@ -45,16 +45,13 @@ During a fight, the BasicAI does its best to keep track of statistics about the 
 
 It should consider, in order of most dumb enemies to more intelligent, the following actions:
 
- - Attacking Random Pick from Enemies
- - Attacking Who holds the aggro record
- - Fleeing when own health is low (Bucketed)
- - Enemy health (Bucketed)
- - Enemy Vocation
- - Offensive Spells to use agaisnt Enemies
- - Support Spells for self
- - Support Spells for allies
+- Attacking Random Pick from Enemies
+- Attacking Who holds the aggro record
+- Fleeing when own health is low (Bucketed)
+- Enemy health (Bucketed)
+- Enemy Vocation
+- Offensive Spells to use agaisnt Enemies
+- Support Spells for self
+- Support Spells for allies
 
 For each thing that process the battle stats (in parallel) it should return a mapping of command (`InMessage`) to score (`float`).  The score should be in the range of zero to one.  Each of those processors would be associated with a `float` multiplier, also between zero and one. The multiplier will be applied to each score produced by that processor.  These maps are blended, and then a command (or set of commands) is picked from the highest scoreing actions and then executed.  Should that fail, then then attacking a random enemy in melee will be the fallback.
-
-
-
