@@ -55,3 +55,45 @@ It should consider, in order of most dumb enemies to more intelligent, the follo
 - Support Spells for allies
 
 For each thing that process the battle stats (in parallel) it should return a mapping of command (`InMessage`) to score (`float`).  The score should be in the range of zero to one.  Each of those processors would be associated with a `float` multiplier, also between zero and one. The multiplier will be applied to each score produced by that processor.  These maps are blended, and then a command (or set of commands) is picked from the highest scoreing actions and then executed.  Should that fail, then then attacking a random enemy in melee will be the fallback.
+
+So this can be broken into two steps, picking an action, and if need be, picking a target.
+
+Actions:
+
+- Attack
+- Cast
+- Go
+- Pass
+- (additional actions as appropriate)
+
+#### Attack
+
+Attack needs to select a target.  Only creatures listed in `BattleMemories` will be considered. Then those creatures will be filtered down to leave only those in opposing factions (Enemies).  If there are no opposing creatures and the battle is still somehow running, then the controlled creature will have a choice of either "Pass" or "Go".
+
+##### Targeting
+
+Anything recorded in the `BattleMemories` can be used to select an enemy to target.
+The following criteria will be used normally to select an opposing creature to target:
+
+- Randomized
+- Aggro highwater mark
+- Aggro memory record
+- Enemy health (bucketed)
+  - Usually selecting by whoever is weakest
+- Enemy vocation
+  - Usually attack order would go `HEALER`, `MAGE`, and then `FIGHTER`
+
+Using the default weapon for the creature should suffice.
+
+#### Cast
+
+Casting has the difficulty of picking *which* spell to cast, as well as what, if anything, to target with that spell.  A `DUNGEON_MASTER` or `MAGE` will mostly focus on offensive spells.  A `HEALER` would most likely focus on not offensive spells.  
+There is also the special case of AoE spells, in which very little target selection is needed.
+
+##### Offensive
+
+An offensive spell should probably follow the same criteria as [attack targeting](#targeting).
+
+##### Not Offensive
+
+For this, the `BattleMemories` should be filtered by Allies, or at least not Enemies.  The criteria are simpler here: If someone is hurt (for some value of hurt) and healing spells are available, heal them.  Else if no healing spells are available, try using a buff spell on the injured target.  If neither of those is the case, then try for just using a buff spell on someone.  Else, maybe try a summoning spell?
