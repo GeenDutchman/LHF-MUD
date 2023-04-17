@@ -2,6 +2,7 @@ package com.lhf.game.creature.intelligence;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.TreeMap;
@@ -45,7 +46,7 @@ public class BasicAI extends Client {
     protected AIRunner runner;
 
     public class BattleMemories {
-        protected class BattleStats {
+        public class BattleStats {
             protected final String targetName;
             private CreatureFaction faction;
             private Vocation vocation;
@@ -181,6 +182,18 @@ public class BasicAI extends Client {
         public BattleMemories remove(String creatureName) {
             this.battleStats.remove(creatureName);
             return this;
+        }
+
+        public Map<String, BattleStats> getBattleStats() {
+            return Collections.unmodifiableMap(this.battleStats);
+        }
+
+        public Creature getLastAttaker() {
+            return lastAttaker;
+        }
+
+        public int getLastAggroDamage() {
+            return lastAggroDamage;
         }
 
         @Override
