@@ -97,3 +97,21 @@ An offensive spell should probably follow the same criteria as [attack targeting
 ##### Not Offensive
 
 For this, the `BattleMemories` should be filtered by Allies, or at least not Enemies.  The criteria are simpler here: If someone is hurt (for some value of hurt) and healing spells are available, heal them.  Else if no healing spells are available, try using a buff spell on the injured target.  If neither of those is the case, then try for just using a buff spell on someone.  Else, maybe try a summoning spell?
+
+#### Go
+
+Fleeing is discouraged during a battle, both for the Players as for the AIs.  So the available directions are not visible during a fight.  AIs should only attempt to flee at a provided health bucket, and only if they have an appreciable intelligence score.
+
+The code should pick randomly between the 4 most common directions, with a slight chance for the others.  If the creature fails to flee, that is its turn.
+
+#### Pass
+
+Passing should happen only if no enemies are detected, and somehow the battle is still going.
+
+### Peace
+
+When not in battle, most AIs should do nothing except reply to conversation, or wait to be attacked.  In the case of Monsters, there is a choice between attacking Players on entry, vs waiting to be attacked.
+
+Special roving creatures should wait for some random amount of time, and then pick a random direction to travel.
+
+Summoned creatures or creatures in a swarm should have another creature that they will follow.
