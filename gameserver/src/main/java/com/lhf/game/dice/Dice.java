@@ -1,12 +1,16 @@
 package com.lhf.game.dice;
 
+import java.util.Comparator;
+
 import com.lhf.Taggable;
 
-public abstract class Dice implements Taggable {
+public abstract class Dice implements Taggable, Comparable<Dice> {
     protected final int count;
     protected final DieType type;
 
-    public interface IRollResult extends Taggable {
+    public interface IRollResult extends Taggable, Comparable<IRollResult> {
+        public Dice getDice();
+
         public int getRoll();
 
         public int getOrigRoll();
@@ -25,9 +29,51 @@ public abstract class Dice implements Taggable {
         public IRollResult half();
 
         public IRollResult none();
+
+        @Override
+        default int compareTo(IRollResult o) {
+            if (o == null) {
+                throw new NullPointerException("other IRollResult is null");
+            }
+            int dicecompare = this.getDice().compareTo(o.getDice());
+            if (dicecompare != 0) {
+                return dicecompare;
+            }
+            return this.getRoll() - o.getRoll();
+        }
+
+        static Comparator<IRollResult> origRollComparator() {
+            return new Comparator<IRollResult>() {
+                @Override
+                public int compare(IRollResult first, IRollResult second) {
+                    if (first == null || second == null) {
+                        throw new NullPointerException("cannot compare null IRollResult");
+                    }
+                    return first.getOrigRoll() - second.getOrigRoll();
+                }
+            };
+        }
+
+        static Comparator<IRollResult> rollComparator() {
+            return new Comparator<IRollResult>() {
+                @Override
+                public int compare(IRollResult first, IRollResult second) {
+                    if (first == null || second == null) {
+                        throw new NullPointerException("cannot compare null IRollResult");
+                    }
+                    return first.getRoll() - second.getRoll();
+                }
+            };
+        }
+
     }
 
     protected abstract class ARollResult implements IRollResult {
+
+        @Override
+        public Dice getDice() {
+            return Dice.this;
+        }
 
         @Override
         public IRollResult negative() {
@@ -188,6 +234,18 @@ public abstract class Dice implements Taggable {
     @Override
     public String getColorTaggedName() {
         return this.getStartTag() + this.toString() + this.getEndTag();
+    }
+
+    @Override
+    public int compareTo(Dice o) {
+        if (o == null) {
+            throw new NullPointerException("other Dice is null");
+        }
+        int typeCompare = this.type.compareTo(o.type);
+        if (typeCompare != 0) {
+            return typeCompare;
+        }
+        return this.count - o.count;
     }
 
 }

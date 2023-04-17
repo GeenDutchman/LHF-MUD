@@ -99,7 +99,7 @@ public class MultiRollResult implements Taggable, Iterable<IRollResult> {
     public int getByFlavors(EnumSet<DamageFlavor> flavors, boolean origRoll) {
         int sum = 0;
         for (IRollResult rr : this.rolls) {
-            if (flavors.size() > 0 && rr instanceof DamageDice) {
+            if (flavors.size() > 0 && rr instanceof DamageDice.FlavoredRollResult) {
                 DamageDice.FlavoredRollResult ddrr = (DamageDice.FlavoredRollResult) rr;
                 if (flavors.contains(ddrr.getFlavor())) {
                     sum += origRoll ? ddrr.getOrigRoll() : ddrr.getRoll();
