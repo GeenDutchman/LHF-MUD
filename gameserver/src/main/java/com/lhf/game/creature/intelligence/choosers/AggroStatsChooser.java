@@ -10,11 +10,24 @@ import com.lhf.game.creature.intelligence.BasicAI.BattleMemories.BattleStats;
 public class AggroStatsChooser implements TargetChooser {
 
     @Override
-    public SortedMap<String, Integer> chooseTarget(BattleMemories battleMemories) {
-        SortedMap<String, Integer> results = new TreeMap<>();
+    public SortedMap<String, Float> chooseTarget(BattleMemories battleMemories) {
+        SortedMap<String, Float> results = new TreeMap<>();
         Map<String, BattleStats> stats = battleMemories.getBattleStats();
         if (stats != null) {
-            int sum = 0;
+            float max = 0;
+            float min = 0;
+            for (BattleStats stat : stats.values()) {
+                if (stat.getAggroDamage() > max) {
+                    max = stat.getAggroDamage();
+                }
+                if (stat.getAggroDamage() < min) {
+                    min = stat.getAggroDamage();
+                }
+            }
+            for (BattleStats stat : stats.values()) {
+                float calculated = (stat.getAggroDamage() - min) / (max - min);
+                results.put(stat.getTargetName(), calculated);
+            }
         }
         return results;
     }

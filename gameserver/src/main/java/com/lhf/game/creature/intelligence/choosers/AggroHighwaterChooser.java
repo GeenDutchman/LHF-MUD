@@ -3,25 +3,24 @@ package com.lhf.game.creature.intelligence.choosers;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.intelligence.BasicAI.BattleMemories;
 
 public class AggroHighwaterChooser implements TargetChooser {
-    private static final int defaultValue = 90;
+    private static final float defaultValue = (float) 0.90;
 
-    private final int weight;
+    private final float weight;
 
     public AggroHighwaterChooser() {
         this.weight = defaultValue;
     }
 
-    public AggroHighwaterChooser(int selectedWeight) {
+    public AggroHighwaterChooser(float selectedWeight) {
         this.weight = selectedWeight;
     }
 
     @Override
-    public SortedMap<String, Integer> chooseTarget(BattleMemories battleMemories) {
-        SortedMap<String, Integer> results = new TreeMap<>();
+    public SortedMap<String, Float> chooseTarget(BattleMemories battleMemories) {
+        SortedMap<String, Float> results = new TreeMap<>();
         if (battleMemories.getLastAttaker() != null) {
             results.put(battleMemories.getLastAttaker().getName(), this.weight);
         }

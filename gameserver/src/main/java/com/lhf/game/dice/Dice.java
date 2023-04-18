@@ -209,6 +209,14 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
         this.type = type;
     }
 
+    public int getCount() {
+        return count;
+    }
+
+    public DieType getType() {
+        return type;
+    }
+
     abstract protected int roll();
 
     public RollResult rollDice() {

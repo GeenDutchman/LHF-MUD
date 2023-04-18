@@ -25,12 +25,12 @@ public class RandomTargetChooser implements TargetChooser {
     }
 
     @Override
-    public SortedMap<String, Integer> chooseTarget(BattleMemories battleMemories) {
-        SortedMap<String, Integer> results = new TreeMap<>();
+    public SortedMap<String, Float> chooseTarget(BattleMemories battleMemories) {
+        SortedMap<String, Float> results = new TreeMap<>();
         Map<String, BattleStats> stats = battleMemories.getBattleStats();
         if (stats != null) {
             for (BattleStats stat : stats.values()) {
-                results.put(stat.getTargetName(), roller.rollDice().getRoll());
+                results.put(stat.getTargetName(), (float) roller.rollDice().getRoll() / roller.getType().getType());
             }
         }
         return results;
