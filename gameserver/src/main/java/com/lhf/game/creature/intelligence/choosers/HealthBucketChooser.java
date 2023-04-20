@@ -35,13 +35,13 @@ public class HealthBucketChooser implements TargetChooser {
     private Float calculate(BattleStats stat) {
         HealthBuckets retrieved = stat.getBucket();
         if (retrieved == null || HealthBuckets.DEAD.equals(retrieved)) {
-            return 0.0f;
+            return 0.01f;
         }
         if (this.threshold != null) {
             if (this.chooseMoreHurt && retrieved.compareTo(this.threshold) > 0) {
-                return 0.0f;
+                return 0.01f;
             } else if (!this.chooseMoreHurt && retrieved.compareTo(this.threshold) < 0) {
-                return 0.0f;
+                return 0.01f;
             }
         }
         return this.chooseMoreHurt ? 1.0f - retrieved.getValue() : retrieved.getValue();
