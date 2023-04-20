@@ -22,6 +22,7 @@ import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.HealthBuckets;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.OutMessageType;
@@ -50,16 +51,18 @@ public class BasicAI extends Client {
             protected final String targetName;
             private CreatureFaction faction;
             private Vocation vocation;
+            private HealthBuckets bucket;
             private int maxDamage;
             private int aggroDamage;
             private int totalDamage;
             private int numDamgages;
             private int healingPerformed;
 
-            public BattleStats(String targetName, CreatureFaction faction, Vocation vocation) {
+            public BattleStats(String targetName, CreatureFaction faction, Vocation vocation, HealthBuckets bucket) {
                 this.targetName = targetName;
                 this.faction = faction;
                 this.vocation = vocation;
+                this.bucket = bucket;
             }
 
             public String getTargetName() {
@@ -72,6 +75,10 @@ public class BasicAI extends Client {
 
             public Vocation getVocation() {
                 return vocation;
+            }
+
+            public HealthBuckets getBucket() {
+                return bucket;
             }
 
             public int getMaxDamage() {
@@ -102,10 +109,10 @@ public class BasicAI extends Client {
             public String toString() {
                 StringBuilder builder = new StringBuilder();
                 builder.append("BattleStats [targetName=").append(targetName).append(", faction=").append(faction)
-                        .append(", vocation=").append(vocation).append(", maxDamage=").append(maxDamage)
-                        .append(", aggroDamage=").append(aggroDamage).append(", totalDamage=").append(totalDamage)
-                        .append(", numDamgages=").append(numDamgages).append(", healingPerformed=")
-                        .append(healingPerformed).append("]");
+                        .append(", vocation=").append(vocation).append(", bucket=").append(bucket)
+                        .append(", maxDamage=").append(maxDamage).append(", aggroDamage=").append(aggroDamage)
+                        .append(", totalDamage=").append(totalDamage).append(", numDamgages=").append(numDamgages)
+                        .append(", healingPerformed=").append(healingPerformed).append("]");
                 return builder.toString();
             }
 
@@ -142,7 +149,8 @@ public class BasicAI extends Client {
 
             if (!this.battleStats.containsKey(responsible.getName())) {
                 this.battleStats.put(responsible.getName(),
-                        new BattleStats(responsible.getName(), responsible.getFaction(), responsible.getVocation()));
+                        new BattleStats(responsible.getName(), responsible.getFaction(), responsible.getVocation(),
+                                responsible.getHealthBucket()));
             }
             if (ca.getAffected() == BasicAI.this.npc && ca.getEffect().isOffensive()) {
                 if (origRoll >= this.lastAggroDamage) {
@@ -154,6 +162,7 @@ public class BasicAI extends Client {
             if (found == null) {
                 return this;
             }
+            found.bucket = responsible.getHealthBucket();
             found.numDamgages += roll < 0 ? 1 : 0;
             found.totalDamage += roll;
             found.maxDamage = roll > found.maxDamage ? roll : found.maxDamage;
@@ -169,7 +178,8 @@ public class BasicAI extends Client {
                 if (creature != null) {
                     if (!this.battleStats.containsKey(creature.getName())) {
                         this.battleStats.put(creature.getName(),
-                                new BattleStats(creature.getName(), creature.getFaction(), creature.getVocation()));
+                                new BattleStats(creature.getName(), creature.getFaction(), creature.getVocation(),
+                                        creature.getHealthBucket()));
                     } else {
                         BattleStats found = this.battleStats.get(creature.getName());
                         found.faction = creature.getFaction(); // update just in case

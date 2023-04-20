@@ -3,26 +3,37 @@ package com.lhf.game.enums;
 import com.lhf.Taggable;
 
 public enum HealthBuckets implements Taggable {
-    HEALTHY, LIGHTLY_INJURED, INJURED, HEAVILY_INJURED, CRITICALLY_INJURED, NEAR_DEATH, DEAD;
+    DEAD(0f), NEAR_DEATH(0.05f), CRITICALLY_INJURED(0.1f), HEAVILY_INJURED(0.5f), INJURED(0.75f), LIGHTLY_INJURED(0.9f),
+    HEALTHY(1.0f);
+
+    private final float value;
+
+    private HealthBuckets(float value) {
+        this.value = value;
+    }
 
     public static HealthBuckets calcualte(int currentHealth, int totalHealth) {
         Double percent = currentHealth / (double) totalHealth;
 
-        if (percent <= 0) {
+        if (percent <= DEAD.value) {
             return DEAD;
-        } else if (percent <= .05) {
+        } else if (percent <= NEAR_DEATH.value) {
             return NEAR_DEATH;
-        } else if (percent <= .1) {
+        } else if (percent <= CRITICALLY_INJURED.value) {
             return CRITICALLY_INJURED;
-        } else if (percent <= .5) {
+        } else if (percent <= HEAVILY_INJURED.value) {
             return HEAVILY_INJURED;
-        } else if (percent <= .75) {
+        } else if (percent <= INJURED.value) {
             return INJURED;
-        } else if (percent <= .9) {
+        } else if (percent <= LIGHTLY_INJURED.value) {
             return LIGHTLY_INJURED;
         } else {
             return HEALTHY;
         }
+    }
+
+    public float getValue() {
+        return value;
     }
 
     @Override
