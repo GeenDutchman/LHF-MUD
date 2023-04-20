@@ -10,19 +10,25 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
 
 public class HealthBucketChooser implements TargetChooser {
-    private final boolean chooseMoreHurt;
     private final boolean aimEnemies;
+    private final boolean chooseMoreHurt;
     private final HealthBuckets threshold;
 
-    public HealthBucketChooser(boolean aimForMoreHurt, boolean aimAtEnemies) {
-        this.chooseMoreHurt = aimForMoreHurt;
-        this.aimEnemies = aimAtEnemies;
+    public HealthBucketChooser() {
+        this.aimEnemies = true;
+        this.chooseMoreHurt = true;
         this.threshold = null;
     }
 
-    public HealthBucketChooser(boolean chooseMoreHurt, boolean aimEnemies, HealthBuckets threshold) {
-        this.chooseMoreHurt = chooseMoreHurt;
+    public HealthBucketChooser(boolean aimEnemies) {
         this.aimEnemies = aimEnemies;
+        this.chooseMoreHurt = true;
+        this.threshold = null;
+    }
+
+    public HealthBucketChooser(boolean aimEnemies, boolean chooseMoreHurt, HealthBuckets threshold) {
+        this.aimEnemies = aimEnemies;
+        this.chooseMoreHurt = chooseMoreHurt;
         this.threshold = threshold;
     }
 
@@ -30,6 +36,13 @@ public class HealthBucketChooser implements TargetChooser {
         HealthBuckets retrieved = stat.getBucket();
         if (retrieved == null || HealthBuckets.DEAD.equals(retrieved)) {
             return 0.0f;
+        }
+        if (this.threshold != null) {
+            if (this.chooseMoreHurt && retrieved.compareTo(this.threshold) > 0) {
+                return 0.0f;
+            } else if (!this.chooseMoreHurt && retrieved.compareTo(this.threshold) < 0) {
+                return 0.0f;
+            }
         }
         return this.chooseMoreHurt ? 1.0f - retrieved.getValue() : retrieved.getValue();
     }
@@ -40,10 +53,13 @@ public class HealthBucketChooser implements TargetChooser {
         Map<String, BattleStats> stats = battleMemories.getBattleStats();
 
         for (BattleStats stat : stats.values()) {
-            if (this.aimEnemies && (myFaction != null || myFaction.competing(stat.getFaction())) {
-
+            if (this.aimEnemies && (myFaction == null || myFaction.competing(stat.getFaction()))) {
+                results.put(stat.getTargetName(), this.calculate(stat));
+            } else if (!this.aimEnemies && myFaction != null && !myFaction.competing(stat.getFaction())) {
+                results.put(stat.getTargetName(), this.calculate(stat));
             }
         }
+        return results;
     }
 
 }
