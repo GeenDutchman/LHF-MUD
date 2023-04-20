@@ -4,6 +4,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.lhf.game.creature.intelligence.BasicAI.BattleMemories;
+import com.lhf.game.enums.CreatureFaction;
 
 public class AggroHighwaterChooser implements TargetChooser {
     private static final float defaultValue = (float) 0.90;
@@ -19,7 +20,7 @@ public class AggroHighwaterChooser implements TargetChooser {
     }
 
     @Override
-    public SortedMap<String, Float> chooseTarget(BattleMemories battleMemories) {
+    public SortedMap<String, Float> chooseTarget(BattleMemories battleMemories, CreatureFaction myFaction) {
         SortedMap<String, Float> results = new TreeMap<>();
         if (battleMemories.getLastAttaker() != null) {
             results.put(battleMemories.getLastAttaker().getName(), this.weight);
