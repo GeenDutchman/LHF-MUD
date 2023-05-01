@@ -17,7 +17,7 @@ public class AggroHighwaterChooser implements ActionChooser {
     }
 
     public AggroHighwaterChooser(float selectedWeight) {
-        this.weight = selectedWeight > 0.0f ? selectedWeight : 0.01f;
+        this.weight = selectedWeight > 0.0f ? selectedWeight : ActionChooser.MIN_VALUE;
     }
 
     @Override

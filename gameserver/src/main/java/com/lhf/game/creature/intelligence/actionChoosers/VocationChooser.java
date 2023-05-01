@@ -33,7 +33,7 @@ public class VocationChooser implements ActionChooser {
         Map<String, BattleStats> stats = battleMemories.getBattleStats();
         if (stats != null) {
             for (BattleStats stat : stats.values()) {
-                float priority = 0.1f;
+                float priority = ActionChooser.MIN_VALUE;
                 for (int i = 0; i < this.targetOrder.size(); i++) {
                     VocationName name = this.targetOrder.get(i);
                     if (name != null && stat.getVocation() != null

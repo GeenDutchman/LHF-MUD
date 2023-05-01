@@ -1,12 +1,16 @@
 package com.lhf.game.creature.vocation;
 
 import java.util.Objects;
+import java.util.SortedMap;
 
 import com.lhf.Taggable;
 import com.lhf.game.battle.Attack;
+import com.lhf.game.creature.intelligence.ActionChooser;
+import com.lhf.game.creature.intelligence.BasicAI.BattleMemories;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.enums.CreatureFaction;
 
-public abstract class Vocation implements Taggable, Comparable<Vocation> {
+public abstract class Vocation implements Taggable, Comparable<Vocation>, ActionChooser {
     // TODO: redesign Vocation vs VocationName (decorator pattern?)
 
     public enum VocationName implements Taggable {
@@ -69,6 +73,12 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
     public Attack modifyAttack(Attack attack) {
         return attack;
+    }
+
+    @Override
+    public SortedMap<String, Float> chooseTarget(BattleMemories battleMemories, CreatureFaction myFaction) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override

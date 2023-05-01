@@ -31,7 +31,7 @@ public class AggroStatsChooser implements ActionChooser {
             for (BattleStats stat : stats.values()) {
                 if (myFaction == null || myFaction.competing(stat.getFaction())) {
                     float calculated = (stat.getAggroDamage() - min) / (max - min);
-                    results.put(stat.getTargetName(), calculated > 0.0f ? calculated : 0.01f);
+                    results.put(stat.getTargetName(), calculated > 0.0f ? calculated : ActionChooser.MIN_VALUE);
                 }
             }
         }

@@ -36,16 +36,16 @@ public class HealthBucketChooser implements ActionChooser {
     private Float calculate(BattleStats stat) {
         HealthBuckets retrieved = stat.getBucket();
         if (retrieved == null || HealthBuckets.DEAD.equals(retrieved)) {
-            return 0.01f;
+            return ActionChooser.MIN_VALUE;
         }
         if (this.threshold != null) {
             if (this.chooseMoreHurt && retrieved.compareTo(this.threshold) > 0) {
-                return 0.01f;
+                return ActionChooser.MIN_VALUE;
             } else if (!this.chooseMoreHurt && retrieved.compareTo(this.threshold) < 0) {
-                return 0.01f;
+                return ActionChooser.MIN_VALUE;
             }
         }
-        return this.chooseMoreHurt ? 1.0f - retrieved.getValue() : retrieved.getValue();
+        return this.chooseMoreHurt ? ActionChooser.MIN_VALUE - retrieved.getValue() : retrieved.getValue();
     }
 
     @Override
