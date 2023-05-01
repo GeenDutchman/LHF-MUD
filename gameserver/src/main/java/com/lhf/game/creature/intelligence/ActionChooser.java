@@ -1,4 +1,4 @@
-package com.lhf.game.creature.intelligence.choosers;
+package com.lhf.game.creature.intelligence;
 
 import java.util.SortedMap;
 

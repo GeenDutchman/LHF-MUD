@@ -1,9 +1,10 @@
-package com.lhf.game.creature.intelligence.choosers;
+package com.lhf.game.creature.intelligence.targetChoosers;
 
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.lhf.game.creature.intelligence.ActionChooser;
 import com.lhf.game.creature.intelligence.BasicAI.BattleMemories;
 import com.lhf.game.creature.intelligence.BasicAI.BattleMemories.BattleStats;
 import com.lhf.game.dice.Dice;
