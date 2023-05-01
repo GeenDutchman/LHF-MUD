@@ -10,7 +10,7 @@ import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD100;
 import com.lhf.game.enums.CreatureFaction;
 
-public class RandomTargetChooser implements TargetChooser {
+public class RandomTargetChooser implements ActionChooser {
     private final Dice roller;
 
     public RandomTargetChooser() {

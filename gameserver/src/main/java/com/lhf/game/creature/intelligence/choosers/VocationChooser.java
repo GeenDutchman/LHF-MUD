@@ -10,7 +10,7 @@ import com.lhf.game.creature.intelligence.BasicAI.BattleMemories.BattleStats;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 
-public class VocationChooser implements TargetChooser {
+public class VocationChooser implements ActionChooser {
 
     private final List<VocationName> targetOrder;
 

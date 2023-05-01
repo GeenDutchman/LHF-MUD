@@ -8,7 +8,7 @@ import com.lhf.game.creature.intelligence.BasicAI.BattleMemories;
 import com.lhf.game.creature.intelligence.BasicAI.BattleMemories.BattleStats;
 import com.lhf.game.enums.CreatureFaction;
 
-public class AggroStatsChooser implements TargetChooser {
+public class AggroStatsChooser implements ActionChooser {
 
     @Override
     public SortedMap<String, Float> chooseTarget(BattleMemories battleMemories, CreatureFaction myFaction) {

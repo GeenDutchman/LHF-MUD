@@ -6,7 +6,7 @@ import java.util.TreeMap;
 import com.lhf.game.creature.intelligence.BasicAI.BattleMemories;
 import com.lhf.game.enums.CreatureFaction;
 
-public class AggroHighwaterChooser implements TargetChooser {
+public class AggroHighwaterChooser implements ActionChooser {
     private static final float defaultValue = (float) 0.90;
 
     private final float weight;

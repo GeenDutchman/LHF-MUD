@@ -9,7 +9,7 @@ import com.lhf.game.creature.intelligence.BasicAI.BattleMemories.BattleStats;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
 
-public class HealthBucketChooser implements TargetChooser {
+public class HealthBucketChooser implements ActionChooser {
     private final boolean aimEnemies;
     private final boolean chooseMoreHurt;
     private final HealthBuckets threshold;
