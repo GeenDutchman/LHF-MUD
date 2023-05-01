@@ -35,8 +35,10 @@ public class FleeChooser implements ActionChooser {
                 for (Directions dir : Directions.values()) {
                     results.put(dir.toString(), (float) roller.rollDice().getRoll() / roller.getType().getType());
                 }
-                results.replace(Directions.UP.toString(), results.get(Directions.UP.toString()) / 6);
-                results.replace(Directions.DOWN.toString(), results.get(Directions.DOWN.toString()) / 6);
+                results.replace(Directions.UP.toString(),
+                        results.get(Directions.UP.toString()) / Directions.values().length);
+                results.replace(Directions.DOWN.toString(),
+                        results.get(Directions.DOWN.toString()) / Directions.values().length);
 
             }
         }
