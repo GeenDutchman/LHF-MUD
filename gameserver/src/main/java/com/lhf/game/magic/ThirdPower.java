@@ -401,7 +401,7 @@ public class ThirdPower implements MessageHandler {
         }
         NavigableSet<SpellEntry> entries = this.filter(filters, caster.getVocation().getVocationName(),
                 spellbookMessage.getSpellName(), null,
-                IntStream.rangeClosed(0, caster.getVocation().getLevel()).boxed().collect(Collectors.toList()));
+                IntStream.rangeClosed(0, caster.getVocation().getLevel()).boxed().toList());
         ctx.sendMsg(SpellEntryMessage.getBuilder().setEntries(entries).Build());
         return true;
     }
