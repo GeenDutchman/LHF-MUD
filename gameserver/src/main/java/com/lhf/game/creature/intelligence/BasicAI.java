@@ -329,9 +329,11 @@ public class BasicAI extends Client {
     }
 
     public void setLastAttacker(Creature object) {
+        // TODO: ELIMIATE THIS
     }
 
     public Creature getLastAttacker() {
+        // TODO: ELIMINATE THIS
         return null;
     }
 
