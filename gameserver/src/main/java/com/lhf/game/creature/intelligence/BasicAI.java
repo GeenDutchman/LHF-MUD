@@ -328,6 +328,13 @@ public class BasicAI extends Client {
         this.addHandler(new LewdAIHandler().setPartnersOnly());
     }
 
+    public void setLastAttacker(Creature object) {
+    }
+
+    public Creature getLastAttacker() {
+        return null;
+    }
+
     protected void selectNextTarget(Collection<Creature> possTargets) {
         if (this.getLastAttacker() != null) {
             return; // no need to reselect if known
