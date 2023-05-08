@@ -28,4 +28,9 @@ public class DungeonEffectSource extends EntityEffectSource {
         return false;
     }
 
+    @Override
+    public int aiScore() {
+        return 0;
+    }
+
 }
