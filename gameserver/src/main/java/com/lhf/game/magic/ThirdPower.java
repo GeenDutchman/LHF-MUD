@@ -44,7 +44,17 @@ public class ThirdPower implements MessageHandler {
     // summon banish
 
     public enum Filters {
-        VOCATION_NAME, SPELL_NAME, INVOCATION, LEVELS;
+        VOCATION_NAME, SPELL_NAME, INVOCATION, LEVELS, OFFENSE, NONOFFENSE, SCORE;
+
+        public static Filters getFilters(String value) {
+            value = value.trim().replace(" ", "_");
+            for (Filters vfilter : values()) {
+                if (vfilter.toString().equalsIgnoreCase(value)) {
+                    return vfilter;
+                }
+            }
+            return null;
+        }
     }
 
     /*
@@ -103,8 +113,11 @@ public class ThirdPower implements MessageHandler {
 
     public NavigableSet<SpellEntry> filter(EnumSet<Filters> filters,
             VocationName vocationName, String spellName, String invocation, Collection<Integer> levels) {
-        Supplier<TreeSet<SpellEntry>> sortSupplier = () -> new TreeSet<SpellEntry>();
+        Supplier<TreeSet<SpellEntry>> sortSupplier = () -> filters.contains(Filters.SCORE)
+                ? new TreeSet<SpellEntry>((entry1, entry2) -> entry2.aiScore() - entry1.aiScore())
+                : new TreeSet<SpellEntry>();
         return this.spellbook.getEntries().stream()
+                .filter(entry -> entry != null)
                 .filter(entry -> {
                     if (!filters.contains(Filters.VOCATION_NAME)) {
                         return true;
@@ -120,6 +133,8 @@ public class ThirdPower implements MessageHandler {
                 .filter(entry -> !filters.contains(Filters.INVOCATION) || entry.getInvocation().equals(invocation))
                 .filter(entry -> !filters.contains(Filters.LEVELS) ||
                         (levels != null && (levels.size() == 0 || levels.contains(entry.getLevel()))))
+                .filter(entry -> !filters.contains(Filters.OFFENSE) || entry.isOffensive())
+                .filter(entry -> !filters.contains(Filters.NONOFFENSE) || !entry.isOffensive())
                 .collect(Collectors.toCollection(sortSupplier));
     }
 
@@ -398,6 +413,12 @@ public class ThirdPower implements MessageHandler {
         EnumSet<Filters> filters = EnumSet.of(Filters.VOCATION_NAME, Filters.LEVELS);
         if (spellbookMessage.getSpellName() != null) {
             filters.add(Filters.SPELL_NAME);
+        }
+        for (String withFilters : spellbookMessage.getWithFilters()) {
+            Filters found = Filters.getFilters(withFilters);
+            if (found != null) {
+                filters.add(found);
+            }
         }
         NavigableSet<SpellEntry> entries = this.filter(filters, caster.getVocation().getVocationName(),
                 spellbookMessage.getSpellName(), null,
