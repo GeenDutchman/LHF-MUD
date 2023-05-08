@@ -74,6 +74,14 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         return false;
     }
 
+    public int aiScore() {
+        int score = 0;
+        for (EntityEffectSource source : this.effectSources) {
+            score += source.aiScore();
+        }
+        return score;
+    }
+
     public String getClassName() {
         return this.className;
     }
