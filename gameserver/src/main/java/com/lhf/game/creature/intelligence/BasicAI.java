@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -118,20 +119,20 @@ public class BasicAI extends Client {
 
         }
 
-        protected Creature lastAttaker;
+        protected Optional<String> lastAttakerName;
         protected int lastAggroDamage;
         protected Map<String, BattleStats> battleStats;
 
         public BattleMemories() {
             this.lastAggroDamage = 0;
-            this.lastAttaker = null;
+            this.lastAttakerName = Optional.empty();
             this.battleStats = new TreeMap<>();
         }
 
         public BattleMemories reset() {
             this.battleStats.clear();
             this.lastAggroDamage = 0;
-            this.lastAttaker = null;
+            this.lastAttakerName = Optional.empty();
             return this;
         }
 
@@ -155,7 +156,7 @@ public class BasicAI extends Client {
             if (ca.getAffected() == BasicAI.this.npc && ca.getEffect().isOffensive()) {
                 if (origRoll >= this.lastAggroDamage) {
                     this.lastAggroDamage = origRoll;
-                    this.lastAttaker = responsible;
+                    this.lastAttakerName = Optional.of(responsible.getName());
                 }
             }
             BattleStats found = this.battleStats.get(responsible.getName());
@@ -198,8 +199,8 @@ public class BasicAI extends Client {
             return Collections.unmodifiableMap(this.battleStats);
         }
 
-        public Creature getLastAttaker() {
-            return lastAttaker;
+        public Optional<String> getLastAttakerName() {
+            return lastAttakerName;
         }
 
         public int getLastAggroDamage() {
@@ -209,7 +210,7 @@ public class BasicAI extends Client {
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append("BattleMemories [lastAttaker=").append(lastAttaker).append(", lastAggroDamage=")
+            builder.append("BattleMemories [lastAttaker=").append(lastAttakerName).append(", lastAggroDamage=")
                     .append(lastAggroDamage).append(", battleStats=").append(battleStats).append("]");
             return builder.toString();
         }

@@ -23,8 +23,8 @@ public class AggroHighwaterChooser implements ActionChooser {
     @Override
     public SortedMap<String, Float> chooseTarget(BattleMemories battleMemories, CreatureFaction myFaction) {
         SortedMap<String, Float> results = new TreeMap<>();
-        if (battleMemories.getLastAttaker() != null) {
-            results.put(battleMemories.getLastAttaker().getName(), this.weight);
+        if (battleMemories.getLastAttakerName().isPresent()) {
+            results.put(battleMemories.getLastAttakerName().get(), this.weight);
         }
         return results;
     }
