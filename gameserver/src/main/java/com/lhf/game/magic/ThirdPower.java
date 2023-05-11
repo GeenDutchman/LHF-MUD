@@ -1,10 +1,8 @@
 package com.lhf.game.magic;
 
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.lhf.Taggable;
@@ -13,11 +11,11 @@ import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.vocation.Vocation;
-import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
+import com.lhf.game.magic.Spellbook.Filters;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.RoomEffect;
 import com.lhf.messages.ClientMessenger;
@@ -42,20 +40,6 @@ public class ThirdPower implements MessageHandler {
     // buff debuff
     // damage heal
     // summon banish
-
-    public enum Filters {
-        VOCATION_NAME, SPELL_NAME, INVOCATION, LEVELS, OFFENSE, NONOFFENSE, SCORE;
-
-        public static Filters getFilters(String value) {
-            value = value.trim().replace(" ", "_");
-            for (Filters vfilter : values()) {
-                if (vfilter.toString().equalsIgnoreCase(value)) {
-                    return vfilter;
-                }
-            }
-            return null;
-        }
-    }
 
     /*
      * Some spells target creatures
@@ -109,53 +93,6 @@ public class ThirdPower implements MessageHandler {
             retrieved.remove(CommandMessage.SPELLBOOK);
         }
         return retrieved;
-    }
-
-    public NavigableSet<SpellEntry> filter(EnumSet<Filters> filters,
-            VocationName vocationName, String spellName, String invocation, Collection<Integer> levels) {
-        Supplier<TreeSet<SpellEntry>> sortSupplier = () -> filters.contains(Filters.SCORE)
-                ? new TreeSet<SpellEntry>((entry1, entry2) -> entry2.aiScore() - entry1.aiScore())
-                : new TreeSet<SpellEntry>();
-        return this.spellbook.getEntries().stream()
-                .filter(entry -> entry != null)
-                .filter(entry -> {
-                    if (!filters.contains(Filters.VOCATION_NAME)) {
-                        return true;
-                    }
-                    if (vocationName == null || !vocationName.isCubeHolder()) {
-                        return false;
-                    }
-                    return entry.getAllowedVocations().size() == 0 ||
-                            entry.getAllowedVocations().contains(vocationName) ||
-                            VocationName.DUNGEON_MASTER.equals(vocationName);
-                })
-                .filter(entry -> !filters.contains(Filters.SPELL_NAME) || entry.getName().equals(spellName))
-                .filter(entry -> !filters.contains(Filters.INVOCATION) || entry.getInvocation().equals(invocation))
-                .filter(entry -> !filters.contains(Filters.LEVELS) ||
-                        (levels != null && (levels.size() == 0 || levels.contains(entry.getLevel()))))
-                .filter(entry -> !filters.contains(Filters.OFFENSE) || entry.isOffensive())
-                .filter(entry -> !filters.contains(Filters.NONOFFENSE) || !entry.isOffensive())
-                .collect(Collectors.toCollection(sortSupplier));
-    }
-
-    public NavigableSet<SpellEntry> filterByExactLevel(int level) {
-        return this.filter(EnumSet.of(Filters.LEVELS), null, null, null, Set.of(level));
-    }
-
-    public NavigableSet<SpellEntry> filterByVocationName(VocationName vocationName) {
-        return this.filter(EnumSet.of(Filters.VOCATION_NAME), vocationName, null, null, null);
-    }
-
-    public NavigableSet<SpellEntry> filterByVocationAndLevels(VocationName vocationName, Collection<Integer> levels) {
-        return this.filter(EnumSet.of(Filters.VOCATION_NAME, Filters.LEVELS), vocationName, null, null, levels);
-    }
-
-    public NavigableSet<SpellEntry> filterByExactName(String name) {
-        return this.filter(EnumSet.of(Filters.SPELL_NAME), null, name, null, null);
-    }
-
-    public NavigableSet<SpellEntry> filterByExactInvocation(String invocation) {
-        return this.filter(EnumSet.of(Filters.INVOCATION), null, null, invocation, null);
     }
 
     private boolean affectCreatures(CommandContext ctx, ISpell<CreatureEffect> spell, Collection<Creature> targets) {
@@ -240,7 +177,8 @@ public class ThirdPower implements MessageHandler {
         this.logger.log(Level.INFO,
                 () -> String.format("Handling cast of '%s' by '%s' who is a '%s'", casting.getInvocation(),
                         caster.getName(), casterVocation));
-        NavigableSet<SpellEntry> foundByInvocation = this.filter(EnumSet.of(Filters.INVOCATION, Filters.VOCATION_NAME),
+        NavigableSet<SpellEntry> foundByInvocation = this.spellbook.filter(
+                EnumSet.of(Spellbook.Filters.INVOCATION, Spellbook.Filters.VOCATION_NAME),
                 casterVocation != null ? casterVocation.getVocationName() : null, null, casting.getInvocation(), null);
         if (foundByInvocation.isEmpty()) {
             this.logger.log(Level.INFO, () -> String.format("Invocation by '%s' -> '%s' not found", caster.getName(),
@@ -420,7 +358,7 @@ public class ThirdPower implements MessageHandler {
                 filters.add(found);
             }
         }
-        NavigableSet<SpellEntry> entries = this.filter(filters, caster.getVocation().getVocationName(),
+        NavigableSet<SpellEntry> entries = this.spellbook.filter(filters, caster.getVocation().getVocationName(),
                 spellbookMessage.getSpellName(), null,
                 IntStream.rangeClosed(0, caster.getVocation().getLevel()).boxed().toList());
         ctx.sendMsg(SpellEntryMessage.getBuilder().setEntries(entries).Build());

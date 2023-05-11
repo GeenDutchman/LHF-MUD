@@ -5,11 +5,16 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.NavigableSet;
+import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -19,6 +24,8 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.magic.Spellbook.Filters;
 import com.lhf.game.magic.concrete.Ensouling;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
@@ -32,6 +39,20 @@ public class Spellbook {
     private String path;
     private final String[] path_to_spellbook = { ".", "concrete" };
     private Logger logger;
+
+    public enum Filters {
+        VOCATION_NAME, SPELL_NAME, INVOCATION, LEVELS, OFFENSE, NONOFFENSE, SCORE;
+
+        public static Filters getFilters(String value) {
+            value = value.trim().replace(" ", "_");
+            for (Filters vfilter : values()) {
+                if (vfilter.toString().equalsIgnoreCase(value)) {
+                    return vfilter;
+                }
+            }
+            return null;
+        }
+    }
 
     public Spellbook() {
         this.logger = Logger.getLogger(this.getClass().getName());
@@ -129,5 +150,52 @@ public class Spellbook {
 
     public boolean addEntry(SpellEntry entry) {
         return this.entries.add(entry);
+    }
+
+    public NavigableSet<SpellEntry> filter(EnumSet<Filters> filters,
+            VocationName vocationName, String spellName, String invocation, Collection<Integer> levels) {
+        Supplier<TreeSet<SpellEntry>> sortSupplier = () -> filters.contains(Filters.SCORE)
+                ? new TreeSet<SpellEntry>((entry1, entry2) -> entry2.aiScore() - entry1.aiScore())
+                : new TreeSet<SpellEntry>();
+        return this.getEntries().stream()
+                .filter(entry -> entry != null)
+                .filter(entry -> {
+                    if (!filters.contains(Filters.VOCATION_NAME)) {
+                        return true;
+                    }
+                    if (vocationName == null || !vocationName.isCubeHolder()) {
+                        return false;
+                    }
+                    return entry.getAllowedVocations().size() == 0 ||
+                            entry.getAllowedVocations().contains(vocationName) ||
+                            VocationName.DUNGEON_MASTER.equals(vocationName);
+                })
+                .filter(entry -> !filters.contains(Filters.SPELL_NAME) || entry.getName().equals(spellName))
+                .filter(entry -> !filters.contains(Filters.INVOCATION) || entry.getInvocation().equals(invocation))
+                .filter(entry -> !filters.contains(Filters.LEVELS) ||
+                        (levels != null && (levels.size() == 0 || levels.contains(entry.getLevel()))))
+                .filter(entry -> !filters.contains(Filters.OFFENSE) || entry.isOffensive())
+                .filter(entry -> !filters.contains(Filters.NONOFFENSE) || !entry.isOffensive())
+                .collect(Collectors.toCollection(sortSupplier));
+    }
+
+    public NavigableSet<SpellEntry> filterByExactLevel(int level) {
+        return this.filter(EnumSet.of(Filters.LEVELS), null, null, null, Set.of(level));
+    }
+
+    public NavigableSet<SpellEntry> filterByVocationName(VocationName vocationName) {
+        return this.filter(EnumSet.of(Filters.VOCATION_NAME), vocationName, null, null, null);
+    }
+
+    public NavigableSet<SpellEntry> filterByVocationAndLevels(VocationName vocationName, Collection<Integer> levels) {
+        return this.filter(EnumSet.of(Filters.VOCATION_NAME, Filters.LEVELS), vocationName, null, null, levels);
+    }
+
+    public NavigableSet<SpellEntry> filterByExactName(String name) {
+        return this.filter(EnumSet.of(Filters.SPELL_NAME), null, name, null, null);
+    }
+
+    public NavigableSet<SpellEntry> filterByExactInvocation(String invocation) {
+        return this.filter(EnumSet.of(Filters.INVOCATION), null, null, invocation, null);
     }
 }
