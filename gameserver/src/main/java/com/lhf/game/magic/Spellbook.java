@@ -152,7 +152,7 @@ public class Spellbook {
     }
 
     public NavigableSet<SpellEntry> filter(EnumSet<Filters> filters,
-            VocationName vocationName, String spellName, String invocation, Collection<Integer> levels) {
+            VocationName vocationName, String spellName, String invocation, EnumSet<SpellLevel> levels) {
         Supplier<TreeSet<SpellEntry>> sortSupplier = () -> filters.contains(Filters.SCORE)
                 ? new TreeSet<SpellEntry>((entry1, entry2) -> entry2.aiScore() - entry1.aiScore())
                 : new TreeSet<SpellEntry>();
@@ -178,15 +178,15 @@ public class Spellbook {
                 .collect(Collectors.toCollection(sortSupplier));
     }
 
-    public NavigableSet<SpellEntry> filterByExactLevel(int level) {
-        return this.filter(EnumSet.of(Filters.LEVELS), null, null, null, Set.of(level));
+    public NavigableSet<SpellEntry> filterByExactLevel(SpellLevel level) {
+        return this.filter(EnumSet.of(Filters.LEVELS), null, null, null, EnumSet.of(level));
     }
 
     public NavigableSet<SpellEntry> filterByVocationName(VocationName vocationName) {
         return this.filter(EnumSet.of(Filters.VOCATION_NAME), vocationName, null, null, null);
     }
 
-    public NavigableSet<SpellEntry> filterByVocationAndLevels(VocationName vocationName, Collection<Integer> levels) {
+    public NavigableSet<SpellEntry> filterByVocationAndLevels(VocationName vocationName, EnumSet<SpellLevel> levels) {
         return this.filter(EnumSet.of(Filters.VOCATION_NAME, Filters.LEVELS), vocationName, null, null, levels);
     }
 

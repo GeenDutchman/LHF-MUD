@@ -9,6 +9,7 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
+import com.lhf.game.magic.SpellLevel;
 
 public class DMBlessing extends CreatureTargetingSpellEntry {
 
@@ -27,7 +28,8 @@ public class DMBlessing extends CreatureTargetingSpellEntry {
                     .addAttributeScoreChange(Attributes.CON, 20));
 
     public DMBlessing() {
-        super(10, DMBlessing.name, "I bless you", DMBlessing.spellEffects, Set.of(VocationName.DUNGEON_MASTER),
+        super(SpellLevel.TENTH_MAGNITUDE, DMBlessing.name, "I bless you", DMBlessing.spellEffects,
+                Set.of(VocationName.DUNGEON_MASTER),
                 "Blesses the target with extra stats and attributes, and does extra stuff for NPC's.",
                 true);
 

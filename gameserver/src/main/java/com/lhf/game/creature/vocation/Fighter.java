@@ -77,4 +77,16 @@ public class Fighter extends Vocation {
 
     }
 
+    @Override
+    public Vocation onLevel() {
+        // maybe do something
+        return this;
+    }
+
+    @Override
+    public Vocation onRestTick() {
+        // maybe do something
+        return this;
+    }
+
 }

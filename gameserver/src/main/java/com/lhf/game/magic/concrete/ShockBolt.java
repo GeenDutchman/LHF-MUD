@@ -16,6 +16,7 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
+import com.lhf.game.magic.SpellLevel;
 import com.lhf.messages.out.CastingMessage;
 
 public class ShockBolt extends CreatureTargetingSpellEntry {
@@ -26,13 +27,13 @@ public class ShockBolt extends CreatureTargetingSpellEntry {
                     .addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.LIGHTNING)));
 
     public ShockBolt() {
-        super(0, "Shock Bolt", "Astra Horeb", spellEffects,
+        super(SpellLevel.CANTRIP, "Shock Bolt", "Astra Horeb", spellEffects,
                 Set.of(),
                 "A small spark of electricity shocks a creature you choose as a target", true);
     }
 
     @Override
-    public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets) {
+    public CastingMessage Cast(Creature caster, SpellLevel castLevel, List<? extends Taggable> targets) {
         StringBuilder sb = new StringBuilder();
         for (Taggable target : targets) {
             sb.append("A small spark zips from").append(caster.getColorTaggedName())

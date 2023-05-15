@@ -50,6 +50,10 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
     public abstract Statblock createNewDefaultStatblock(String creatureRace);
 
+    public abstract Vocation onLevel();
+
+    public abstract Vocation onRestTick();
+
     protected Vocation(VocationName name) {
         this.name = name;
         this.level = 1;

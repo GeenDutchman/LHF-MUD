@@ -220,8 +220,10 @@ public class ThirdPower implements MessageHandler {
             }
 
             this.logger.log(Level.FINE, "Casting creature targeting spell");
-            int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
-                    : entry.getLevel();
+            SpellLevel level = casting.getLevel() != null
+                    && entry.getLevel().compareTo(SpellLevel.fromInt(casting.getLevel())) <= 0
+                            ? SpellLevel.fromInt(casting.getLevel())
+                            : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, possTargets);
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
 
@@ -233,8 +235,8 @@ public class ThirdPower implements MessageHandler {
             }
 
             CreatureAOESpellEntry aoeEntry = (CreatureAOESpellEntry) entry;
-            int castLevel = casting.getLevel() != null ? casting.getLevel() : entry.getLevel();
-            AutoTargeted upcasted = AutoTargeted.upCast(aoeEntry.getAutoSafe(), castLevel - entry.getLevel(),
+            int castLevel = casting.getLevel() != null ? casting.getLevel() : entry.getLevel().toInt();
+            AutoTargeted upcasted = AutoTargeted.upCast(aoeEntry.getAutoSafe(), castLevel - entry.getLevel().toInt(),
                     entry.isOffensive());
             CreatureAOESpell spell = new CreatureAOESpell(aoeEntry, caster, upcasted);
 
@@ -260,8 +262,10 @@ public class ThirdPower implements MessageHandler {
             }
 
             this.logger.log(Level.FINE, "Casting AOE creature targeting spell");
-            int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
-                    : entry.getLevel();
+            SpellLevel level = casting.getLevel() != null
+                    && entry.getLevel().compareTo(SpellLevel.fromInt(casting.getLevel())) <= 0
+                            ? SpellLevel.fromInt(casting.getLevel())
+                            : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, new ArrayList<>(targets));
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
 
@@ -314,8 +318,10 @@ public class ThirdPower implements MessageHandler {
             // TODO: summons and banish
 
             this.logger.log(Level.FINE, "Casting DMRoom targeting spell");
-            int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
-                    : entry.getLevel();
+            SpellLevel level = casting.getLevel() != null
+                    && entry.getLevel().compareTo(SpellLevel.fromInt(casting.getLevel())) <= 0
+                            ? SpellLevel.fromInt(casting.getLevel())
+                            : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, taggedTargets);
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive());
 
@@ -332,8 +338,10 @@ public class ThirdPower implements MessageHandler {
             // TODO: summons and banish
 
             this.logger.log(Level.FINE, "Casting Room targeting spell");
-            int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
-                    : entry.getLevel();
+            SpellLevel level = casting.getLevel() != null
+                    && entry.getLevel().compareTo(SpellLevel.fromInt(casting.getLevel())) <= 0
+                            ? SpellLevel.fromInt(casting.getLevel())
+                            : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, null);
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive());
 
@@ -360,7 +368,7 @@ public class ThirdPower implements MessageHandler {
         }
         NavigableSet<SpellEntry> entries = this.spellbook.filter(filters, caster.getVocation().getVocationName(),
                 spellbookMessage.getSpellName(), null,
-                IntStream.rangeClosed(0, caster.getVocation().getLevel()).boxed().toList());
+                ((CubeHolder) caster.getVocation()).availableMagnitudes());
         ctx.sendMsg(SpellEntryMessage.getBuilder().setEntries(entries).Build());
         return true;
     }

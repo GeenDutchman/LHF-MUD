@@ -212,13 +212,13 @@ public class CreatureAOESpellEntry extends SpellEntry {
 
     protected final AutoTargeted autoSafe;
 
-    public CreatureAOESpellEntry(Integer level, String name, Set<CreatureEffectSource> effectSources,
+    public CreatureAOESpellEntry(SpellLevel level, String name, Set<CreatureEffectSource> effectSources,
             Set<VocationName> allowed, String description, AutoTargeted safe) {
         super(level, name, effectSources, allowed, description);
         this.autoSafe = safe;
     }
 
-    public CreatureAOESpellEntry(Integer level, String name, String invocation,
+    public CreatureAOESpellEntry(SpellLevel level, String name, String invocation,
             Set<CreatureEffectSource> effectSources,
             Set<VocationName> allowed, String description, AutoTargeted safe) {
         super(level, name, invocation, effectSources, allowed, description);
@@ -230,7 +230,7 @@ public class CreatureAOESpellEntry extends SpellEntry {
     }
 
     @Override
-    public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets) {
+    public CastingMessage Cast(Creature caster, SpellLevel castLevel, List<? extends Taggable> targets) {
         StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("nothing");
         if (targets != null) {
             for (Taggable taggable : targets) {

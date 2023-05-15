@@ -17,6 +17,7 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
+import com.lhf.game.magic.SpellLevel;
 import com.lhf.messages.out.CastingMessage;
 
 public class ThunderStrike extends CreatureTargetingSpellEntry {
@@ -29,13 +30,13 @@ public class ThunderStrike extends CreatureTargetingSpellEntry {
                     .addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.LIGHTNING)));
 
     public ThunderStrike() {
-        super(1, "Thunder Strike", "Bonearge Laarzen", spellEffects, Set.of(VocationName.MAGE),
+        super(SpellLevel.FIRST_MAGNITUDE, "Thunder Strike", "Bonearge Laarzen", spellEffects, Set.of(VocationName.MAGE),
                 "A small but loud bolt of electricity shocks a creature you choose as a target",
                 true);
     }
 
     @Override
-    public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets) {
+    public CastingMessage Cast(Creature caster, SpellLevel castLevel, List<? extends Taggable> targets) {
         StringBuilder sb = new StringBuilder();
         for (Taggable target : targets) {
             sb.append("A large bolt zaps from ").append(caster.getColorTaggedName())
