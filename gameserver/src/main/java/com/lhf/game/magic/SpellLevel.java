@@ -8,7 +8,8 @@ public enum SpellLevel {
 
     public static Optional<SpellLevel> getSpellLevel(String value) {
         for (SpellLevel vname : values()) {
-            if (vname.toString().equals(value) || vname.toString().replace("_", " ").equals(value)) {
+            if (vname.toString().equals(value) || vname.toString().replace("_", " ").equals(value)
+                    || Integer.toString(vname.toInt()).equals(value)) {
                 return Optional.of(vname);
             }
         }

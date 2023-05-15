@@ -1,6 +1,5 @@
 package com.lhf.game.creature.vocation;
 
-import java.util.EnumMap;
 import java.util.EnumSet;
 
 import com.lhf.game.creature.statblock.Statblock;
