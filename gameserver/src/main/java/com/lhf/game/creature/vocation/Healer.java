@@ -28,8 +28,8 @@ public class Healer extends Vocation implements CubeHolder {
             int toUse = Integer.max(0, amount);
             if (toUse <= this.available) {
                 this.available -= toUse;
-                return this;
             }
+            return this;
         }
     }
 
@@ -109,7 +109,7 @@ public class Healer extends Vocation implements CubeHolder {
         } else if (level.toInt() > this.spellPoints.available) {
             return false;
         }
-        this.spellPoints.available -= level.toInt();
+        this.spellPoints.use(level.toInt());
         return true;
     }
 
