@@ -1,6 +1,5 @@
 package com.lhf.game;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -15,10 +14,11 @@ import com.lhf.game.creature.Player;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ClientMessengerHub;
 import com.lhf.server.client.user.UserID;
 
-public interface CreatureContainer extends Examinable {
+public interface CreatureContainer extends Examinable, ClientMessengerHub {
     /**
      * This returns an immutable Collection of Creatures
      * 
@@ -115,39 +115,9 @@ public interface CreatureContainer extends Examinable {
         return this.getCreatures().contains(creature);
     }
 
-    public default boolean announce(OutMessage outMessage, Collection<Creature> deafened,
-            Collection<String> deafenedExactNames) {
-        Collection<Creature> retrieved = this.getCreatures();
-        if (outMessage == null || retrieved == null || retrieved.size() == 0) {
-            return false;
-        }
-        retrieved.stream()
-                .filter(creature -> creature != null)
-                .filter(creature -> deafened == null || !deafened.contains(creature))
-                .filter(creature -> deafenedExactNames == null || !deafenedExactNames.contains(creature.getName()))
-                .forEachOrdered(creature -> creature.sendMsg(outMessage));
-        return true;
-    }
-
-    public default boolean announce(OutMessage outMessage, String... deafened) {
-        return this.announce(outMessage, null, Arrays.asList(deafened));
-    }
-
-    public default boolean announceDirect(OutMessage outMessage, Collection<Creature> recipients) {
-        Collection<Creature> retrieved = this.getCreatures();
-        if (outMessage == null || retrieved == null || retrieved.size() == 0 || recipients == null
-                || recipients.size() == 0) {
-            return false;
-        }
-        retrieved.stream()
-                .filter(creature -> creature != null)
-                .filter(creature -> recipients != null && recipients.contains(creature))
-                .forEachOrdered(creature -> creature.sendMsg(outMessage));
-        return true;
-    }
-
-    public default boolean announceDirect(OutMessage outMessage, Creature... recipients) {
-        return this.announceDirect(outMessage, Arrays.asList(recipients));
+    @Override
+    default Collection<ClientMessenger> getClientMessengers() {
+        return this.getCreatures().stream().map(creature -> (ClientMessenger) creature).toList();
     }
 
 }
