@@ -1,6 +1,5 @@
 package com.lhf.game.creature.vocation;
 
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;

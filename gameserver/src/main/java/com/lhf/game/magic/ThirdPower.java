@@ -3,7 +3,6 @@ package com.lhf.game.magic;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
 
 import com.lhf.Taggable;
 import com.lhf.game.EffectResistance;
@@ -431,6 +430,13 @@ public class ThirdPower implements MessageHandler {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                         .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
+                return true;
+            }
+            Creature attempter = ctx.getCreature();
+            if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
+                SpellEntryMessage.Builder notCaster = SpellEntryMessage.getBuilder().setNotCubeHolder()
+                        .setNotBroadcast();
+                ctx.sendMsg(notCaster.Build());
                 return true;
             }
             return this.handleSpellbook(ctx, msg);

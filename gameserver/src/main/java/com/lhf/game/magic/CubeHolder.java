@@ -1,8 +1,6 @@
 package com.lhf.game.magic;
 
-import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.stream.Collectors;
 
 import com.lhf.Taggable;
 import com.lhf.game.dice.MultiRollResult;

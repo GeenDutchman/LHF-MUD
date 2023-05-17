@@ -40,7 +40,7 @@ public enum SpellLevel {
 
     @Override
     public String toString() {
-        return this.toString().replace("_", " ");
+        return this.name().replace("_", " ");
     }
 
 }
