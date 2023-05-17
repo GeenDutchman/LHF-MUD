@@ -4,7 +4,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class ClientID implements Comparable<ClientID> {
-    private UUID uuid;
+    private final UUID uuid;
 
     public ClientID() {
         uuid = UUID.randomUUID();
