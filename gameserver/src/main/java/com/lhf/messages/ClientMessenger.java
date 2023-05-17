@@ -27,7 +27,7 @@ public interface ClientMessenger extends Taggable {
 
     }
 
-    public default Comparator<ClientMessenger> getComparator() {
+    public static Comparator<ClientMessenger> getComparator() {
         return new ClientMessengerComparator();
     }
 

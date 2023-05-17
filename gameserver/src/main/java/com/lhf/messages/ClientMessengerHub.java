@@ -1,21 +1,29 @@
 package com.lhf.messages;
 
+import java.util.Collection;
 import java.util.Set;
+import java.util.TreeSet;
 
 import com.lhf.messages.out.OutMessage;
 
 public interface ClientMessengerHub {
-    public Set<ClientMessenger> getClientMessengers();
+    public Collection<ClientMessenger> getClientMessengers();
 
     public default boolean announce(OutMessage outMessage, Set<ClientMessenger> deafened) {
-        Set<ClientMessenger> subscribed = this.getClientMessengers();
-        if (outMessage == null || subscribed == null) {
+        Collection<ClientMessenger> subscribedC = this.getClientMessengers();
+        if (outMessage == null || subscribedC == null) {
             return false;
         }
-        subscribed.stream()
+        Set<ClientMessenger> sentSet = new TreeSet<>(ClientMessenger.getComparator());
+
+        subscribedC.stream()
                 .filter(messenger -> messenger != null)
                 .filter(messenger -> deafened == null || !deafened.contains(messenger))
-                .forEachOrdered(messenger -> messenger.sendMsg(outMessage));
+                .forEachOrdered(messenger -> {
+                    if (sentSet.add(messenger)) {
+                        messenger.sendMsg(outMessage);
+                    }
+                });
         return true;
     }
 
