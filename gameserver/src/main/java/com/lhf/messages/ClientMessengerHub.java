@@ -11,10 +11,18 @@ import com.lhf.messages.out.OutMessage;
 public interface ClientMessengerHub {
     public Collection<ClientMessenger> getClientMessengers();
 
+    public Set<OutMessage> getSentMessages();
+
     public default boolean announceDirect(OutMessage outMessage, Collection<ClientMessenger> recipients) {
         if (outMessage == null || recipients == null) {
             return false;
         }
+
+        Set<OutMessage> sentChecker = this.getSentMessages();
+        if (sentChecker != null && sentChecker.contains(outMessage)) {
+            return false;
+        }
+
         Set<ClientMessenger> sentSet = new TreeSet<>(ClientMessenger.getComparator());
 
         recipients.stream()
