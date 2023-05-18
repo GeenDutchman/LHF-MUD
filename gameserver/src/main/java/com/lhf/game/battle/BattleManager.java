@@ -41,7 +41,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
     private Map<CommandMessage, String> interceptorCmds;
     private Map<CommandMessage, String> cmds;
     private Logger battleLogger;
-    private transient Set<OutMessage> sentMessage;
+    private transient Set<UUID> sentMessage;
 
     public static class Builder {
         private int waitCount;
@@ -301,9 +301,9 @@ public class BattleManager implements CreatureContainerMessageHandler {
                         .setOngoing(isBattleOngoing()).setBroacast();// new JoinBattleMessage(c, this.isBattleOngoing(),
                                                                      // false);
                 if (this.room != null) {
-                    this.room.announce(joinedMessage.Build(), c.getName());
+                    this.room.announce(joinedMessage.Build(), c);
                 } else {
-                    this.announce(joinedMessage.Build(), c.getName());
+                    this.announce(joinedMessage.Build(), c);
                 }
                 c.sendMsg(joinedMessage.setNotBroadcast().Build());
                 return true;
@@ -478,9 +478,9 @@ public class BattleManager implements CreatureContainerMessageHandler {
             turned.sendMsg(builder.setNotBroadcast().Build());
             builder.setBroacast();
             if (this.room != null) {
-                room.announce(builder.Build(), turned.getName());
+                room.announce(builder.Build());
             } else {
-                this.announce(builder.Build(), turned.getName());
+                this.announce(builder.Build());
             }
         }
     }
@@ -579,10 +579,6 @@ public class BattleManager implements CreatureContainerMessageHandler {
         this.battleLogger.log(Level.FINEST,
                 () -> String.format("Getting current creature (%s)", current != null ? current.getName() : "NULL"));
         return current;
-    }
-
-    public void announce(OutMessage message) {
-        this.participants.announce(message);
     }
 
     @Override
@@ -726,17 +722,17 @@ public class BattleManager implements CreatureContainerMessageHandler {
             if (result.getRoll() < check) {
                 ctx.sendMsg(builder.setFled(false).setNotBroadcast().Build());
                 if (this.room != null) {
-                    this.room.announce(builder.setBroacast().Build(), ctx.getCreature().getName());
+                    this.room.announce(builder.setBroacast().Build(), ctx.getCreature());
                 } else {
-                    this.announce(builder.setBroacast().Build(), ctx.getCreature().getName());
+                    this.announce(builder.setBroacast().Build(), ctx.getCreature());
                 }
                 return true;
             }
             builder.setFled(true).setBroacast();
             if (this.room != null) {
-                this.room.announce(builder.Build(), ctx.getCreature().getName());
+                this.room.announce(builder.Build(), ctx.getCreature());
             } else {
-                this.announce(builder.Build(), ctx.getCreature().getName());
+                this.announce(builder.Build(), ctx.getCreature());
             }
         }
         return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
@@ -902,7 +898,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
         if (outMessage == null) {
             return true; // yes we "sent" null
         }
-        return !this.sentMessage.add(outMessage);
+        return !this.sentMessage.add(outMessage.getUuid());
     }
 
 }

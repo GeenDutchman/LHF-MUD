@@ -91,6 +91,10 @@ public abstract class OutMessage implements Comparable<OutMessage> {
         }
     }
 
+    public UUID getUuid() {
+        return uuid;
+    }
+
     // Called to render as a human-readable string
     public abstract String print();
 

@@ -51,6 +51,16 @@ public interface ClientMessengerHub {
         return this.announce(builder.Build(), deafened);
     }
 
+    public default boolean announce(OutMessage outMessage, ClientMessenger... deafened) {
+        Set<ClientMessenger> deafCollective = new TreeSet<>(ClientMessenger.getComparator());
+        deafCollective.addAll(Arrays.asList(deafened));
+        return this.announce(outMessage, deafCollective);
+    }
+
+    public default boolean announce(OutMessage.Builder<?> builder, ClientMessenger... deafened) {
+        return this.announce(builder.Build(), deafened);
+    }
+
     public default boolean announce(OutMessage outMessage) {
         return this.announceDirect(outMessage, this.getClientMessengers());
     }

@@ -49,6 +49,7 @@ public class Room implements Area {
     private Set<Creature> allCreatures;
     private transient Land dungeon;
     private transient TreeSet<RoomEffect> effects;
+    private transient Set<UUID> sentMessage;
 
     private Map<CommandMessage, String> commands;
     private MessageHandler successor;
@@ -200,6 +201,7 @@ public class Room implements Area {
         this.successor = builder.getSuccessor();
         this.battleManager = builder.battleManagerBuilder.Build(this);
         this.commands = builder.buildCommands();
+        this.sentMessage = new TreeSet<>();
     }
 
     @Override
@@ -223,6 +225,19 @@ public class Room implements Area {
     }
 
     @Override
+    public Collection<ClientMessenger> getClientMessengers() {
+        return this.getCreatures().stream().map(creature -> (ClientMessenger) creature).toList();
+    }
+
+    @Override
+    public boolean checkMessageSent(OutMessage outMessage) {
+        if (outMessage == null) {
+            return true; // yes we "sent" null
+        }
+        return !this.sentMessage.add(outMessage.getUuid());
+    }
+
+    @Override
     public Set<Creature> getCreatures() {
         return Collections.unmodifiableSet(this.allCreatures);
     }
@@ -234,7 +249,7 @@ public class Room implements Area {
         if (added) {
             this.logger.log(Level.FINER, () -> String.format("%s entered the room", c.getName()));
             c.sendMsg(this.produceMessage());
-            this.announce(RoomEnteredOutMessage.getBuilder().setNewbie(c).setBroacast().Build(), c.getName());
+            this.announce(RoomEnteredOutMessage.getBuilder().setNewbie(c).setBroacast().Build());
             if (this.allCreatures.size() > 1 && !this.commands.containsKey(CommandMessage.ATTACK)) {
                 StringJoiner sj = new StringJoiner(" ");
                 sj.add("\"attack [name]\"").add("Attacks a creature").add("\r\n");
@@ -280,8 +295,7 @@ public class Room implements Area {
     public Creature removeCreature(Creature c, Directions dir) {
         boolean removed = removeCreature(c);
         if (removed) {
-            this.announce(SomeoneLeftRoom.getBuilder().setLeaveTaker(c).setWhichWay(dir).Build(), null,
-                    List.of(c.getName()));
+            this.announce(SomeoneLeftRoom.getBuilder().setLeaveTaker(c).setWhichWay(dir).Build());
         }
         return c;
     }
