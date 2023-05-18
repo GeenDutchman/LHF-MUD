@@ -6,7 +6,7 @@ import java.util.UUID;
 import com.lhf.game.creature.Creature;
 import com.lhf.messages.OutMessageType;
 
-public abstract class OutMessage {
+public abstract class OutMessage implements Comparable<OutMessage> {
 
     public static abstract class Builder<T extends Builder<T>> {
         private OutMessageType type;
@@ -109,6 +109,15 @@ public abstract class OutMessage {
         }
         OutMessage other = (OutMessage) obj;
         return type == other.type && Objects.equals(uuid, other.uuid);
+    }
+
+    @Override
+    public int compareTo(OutMessage arg0) {
+        int runningCompare = this.type.compareTo(arg0.getOutType());
+        if (runningCompare != 0) {
+            return runningCompare;
+        }
+        return this.uuid.compareTo(arg0.uuid);
     }
 
 }
