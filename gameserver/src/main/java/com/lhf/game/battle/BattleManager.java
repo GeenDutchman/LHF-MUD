@@ -41,6 +41,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
     private Map<CommandMessage, String> interceptorCmds;
     private Map<CommandMessage, String> cmds;
     private Logger battleLogger;
+    private transient Set<OutMessage> sentMessage;
 
     public static class Builder {
         private int waitCount;
@@ -161,6 +162,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
         this.successor = this.room;
         this.turnBarrierWaitCount = builder.waitCount;
         this.turnBarrierWaitUnit = builder.waitUnit;
+        this.sentMessage = new TreeSet<>();
         this.init();
     }
 
@@ -893,6 +895,14 @@ public class BattleManager implements CreatureContainerMessageHandler {
                 }
             }
         }
+    }
+
+    @Override
+    public boolean checkMessageSent(OutMessage outMessage) {
+        if (outMessage == null) {
+            return true; // yes we "sent" null
+        }
+        return !this.sentMessage.add(outMessage);
     }
 
 }

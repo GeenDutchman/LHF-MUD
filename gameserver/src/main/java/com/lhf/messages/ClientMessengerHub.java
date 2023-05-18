@@ -11,15 +11,15 @@ import com.lhf.messages.out.OutMessage;
 public interface ClientMessengerHub {
     public Collection<ClientMessenger> getClientMessengers();
 
-    public Set<OutMessage> getSentMessages();
+    /** Returns true if the message has been sent, false if not **/
+    public boolean checkMessageSent(OutMessage outMessage);
 
     public default boolean announceDirect(OutMessage outMessage, Collection<ClientMessenger> recipients) {
         if (outMessage == null || recipients == null) {
             return false;
         }
 
-        Set<OutMessage> sentChecker = this.getSentMessages();
-        if (sentChecker != null && sentChecker.contains(outMessage)) {
+        if (this.checkMessageSent(outMessage)) {
             return false;
         }
 
