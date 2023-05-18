@@ -35,6 +35,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
     protected final int sleepSeconds;
     protected Set<BedTime> occupants;
     protected transient Area room;
+    private transient Set<UUID> sentMessage;
 
     protected class BedTime implements Runnable, Comparable<Bed.BedTime> {
         protected Creature occupant;
@@ -165,6 +166,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
         super(builder.name, true, true, "It's a bed.");
         this.logger = Logger.getLogger(this.getClass().getName());
         this.sleepSeconds = builder.sleepSeconds;
+        this.sentMessage = new TreeSet<>();
         this.room = room;
 
         this.executor = new ScheduledThreadPoolExecutor(Integer.max(builder.capacity, 1));
@@ -329,6 +331,14 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
 
     public boolean isInBed(Creature creature) {
         return this.getBedTime(creature) != null;
+    }
+
+    @Override
+    public boolean checkMessageSent(OutMessage outMessage) {
+        if (outMessage == null) {
+            return true; // yes we "sent" null
+        }
+        return !this.sentMessage.add(outMessage.getUuid());
     }
 
     @Override

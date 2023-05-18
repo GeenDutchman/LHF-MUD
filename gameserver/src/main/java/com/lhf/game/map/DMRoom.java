@@ -228,15 +228,10 @@ public class DMRoom extends Room {
     }
 
     @Override
-    public boolean announce(OutMessage message, String... deafened) {
-        super.announce(message, deafened);
-        List<String> deafenedNames = Arrays.asList(deafened);
-        for (User user : this.users) {
-            if (!deafenedNames.contains(user.getUsername())) {
-                user.sendMsg(message);
-            }
-        }
-        return true;
+    public Collection<ClientMessenger> getClientMessengers() {
+        Collection<ClientMessenger> messengers = super.getClientMessengers();
+        messengers.addAll(this.users);
+        return messengers;
     }
 
     @Override

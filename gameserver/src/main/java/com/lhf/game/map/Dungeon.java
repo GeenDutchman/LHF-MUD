@@ -7,6 +7,7 @@ import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -51,6 +52,7 @@ public class Dungeon implements Land {
     private transient MessageHandler successor;
     private Map<CommandMessage, String> commands;
     private transient TreeSet<DungeonEffect> effects;
+    private transient Set<UUID> sentMessage;
 
     Dungeon(Land.LandBuilder builder) {
         this.startingRoom = builder.getStartingArea();
@@ -65,6 +67,7 @@ public class Dungeon implements Land {
         }
         this.commands = this.buildCommands();
         this.effects = new TreeSet<>();
+        this.sentMessage = new TreeSet<>();
     }
 
     @Override
@@ -87,6 +90,14 @@ public class Dungeon implements Land {
                 .append("Move in the desired direction, if that direction exists.  Like \"go east\"");
         cmds.put(CommandMessage.GO, sb.toString());
         return cmds;
+    }
+
+    @Override
+    public boolean checkMessageSent(OutMessage outMessage) {
+        if (outMessage == null) {
+            return true; // yes we "sent" null
+        }
+        return !this.sentMessage.add(outMessage.getUuid());
     }
 
     @Override
@@ -243,7 +254,7 @@ public class Dungeon implements Land {
         return secretDirs.getExits().put(toExistingRoom, onewayDoor) == null;
     }
 
-    public void announceToAllInRoom(Room room, OutMessage msg, String... deafened) {
+    public void announceToAllInRoom(Room room, OutMessage msg, ClientMessenger... deafened) {
         if (room == null) {
             this.startingRoom.announce(msg, deafened);
             return;
@@ -262,7 +273,8 @@ public class Dungeon implements Land {
             this.announceDirect(
                     SpeakingMessage.getBuilder().setSayer(ctx.getCreature()).setShouting(false)
                             .setMessage(shoutMessage.getMessage()).Build(),
-                    this.getPlayers());
+                    this.getPlayers().stream().filter(player -> player != null).map(player -> (ClientMessenger) player)
+                            .toList());
             return true;
         }
         return false;
