@@ -139,7 +139,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands() {
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
         return this.acceptedCommands;
     }
 
@@ -148,21 +148,21 @@ public class Server implements ServerInterface, ConnectionListener {
         return ServerInterface.super.gatherHelp(ctx);
     }
 
-    private boolean handleCreateMessage(CommandContext ctx, CreateInMessage msg) {
+    private CommandContext.Reply handleCreateMessage(CommandContext ctx, CreateInMessage msg) {
         if (this.userManager.getAllUsernames().contains(msg.getUsername())) {
             ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
-            return true;
+            return ctx.handled();
         }
         User user = this.userManager.addUser(msg, ctx.getClientMessenger());
         if (user == null) {
             ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
-            return true;
+            return ctx.handled();
         }
         user.setSuccessor(this);
         Client client = this.clientManager.getConnection(ctx.getClientID());
         client.setSuccessor(user);
         this.game.addNewPlayerToGame(user, msg.vocationRequest());
-        return true;
+        return ctx.handled();
     }
 
     @Override
@@ -171,7 +171,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
         if (msg.getType() == CommandMessage.EXIT) {
             this.logger.log(Level.INFO, "client " + ctx.getClientID().toString() + " is exiting");
@@ -193,7 +193,7 @@ public class Server implements ServerInterface, ConnectionListener {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return true;
+            return ctx.handled();
         }
         if (ctx.getUserID() == null && msg.getType() == CommandMessage.CREATE) {
             CreateInMessage createMessage = (CreateInMessage) msg;

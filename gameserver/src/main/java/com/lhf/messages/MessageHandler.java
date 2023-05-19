@@ -22,7 +22,7 @@ public interface MessageHandler {
         if (retrievedSuccessor != null) {
             return retrievedSuccessor.handleMessage(ctx, msg);
         }
-        return ctx.makeReply(false);
+        return ctx.failhandle();
     }
 
 }

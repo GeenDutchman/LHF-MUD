@@ -45,10 +45,18 @@ public class CommandContext implements ClientMessenger {
             }
             return Collections.unmodifiableList(CommandContext.this.messages);
         }
+
+        public boolean isHandled() {
+            return handled;
+        }
     }
 
-    public Reply makeReply(boolean handled) {
-        return this.new Reply(handled);
+    public Reply failhandle() {
+        return this.new Reply(false);
+    }
+
+    public Reply handled() {
+        return this.new Reply(true);
     }
 
     public void addMessage(OutMessage message) {
@@ -93,8 +101,11 @@ public class CommandContext implements ClientMessenger {
 
     @Override
     public void sendMsg(OutMessage msg) {
-        if (this.client != null) {
-            this.client.sendMsg(msg);
+        if (msg != null) {
+            this.addMessage(msg);
+            if (this.client != null) {
+                this.client.sendMsg(msg);
+            }
         }
     }
 

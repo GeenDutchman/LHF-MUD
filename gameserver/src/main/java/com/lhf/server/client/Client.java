@@ -78,8 +78,8 @@ public class Client implements MessageHandler, ClientMessenger {
         return this.id;
     }
 
-    private Boolean handleHelpMessage(Command msg, BadMessageType badMessageType) {
-        TreeMap<CommandMessage, String> helps = new TreeMap<>(this.gatherHelp(null));
+    private Boolean handleHelpMessage(Command msg, BadMessageType badMessageType, CommandContext.Reply reply) {
+        Map<CommandMessage, String> helps = reply.getHelps();
 
         if (badMessageType != null) {
             this.sendMsg(
@@ -102,7 +102,7 @@ public class Client implements MessageHandler, ClientMessenger {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands() {
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
         Map<CommandMessage, String> cmdMap = new EnumMap<>(CommandMessage.class);
         cmdMap.put(CommandMessage.HELP, "Tells you the commands that you can use.  They are case insensitive!");
         return cmdMap;
@@ -120,10 +120,11 @@ public class Client implements MessageHandler, ClientMessenger {
     }
 
     @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
-        if (msg.getType() == CommandMessage.HELP) {
-            return this.handleHelpMessage(null, null);
+        CommandContext.Reply reply = MessageHandler.super.handleMessage(ctx, msg);
+        if (msg.getType() == CommandMessage.HELP || !reply.isHandled()) {
+            return this.handleHelpMessage(msg, null, reply);
         }
 
         return MessageHandler.super.handleMessage(ctx, msg);
