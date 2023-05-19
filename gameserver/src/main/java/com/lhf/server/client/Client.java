@@ -3,7 +3,6 @@ package com.lhf.server.client;
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,23 +40,24 @@ public class Client implements MessageHandler, ClientMessenger {
     public void ProcessString(String value) {
         this.logger.log(Level.FINE, "message received: " + value);
         Command cmd = CommandBuilder.parse(value);
-        Boolean accepted = false;
+        CommandContext ctx = new CommandContext();
+        CommandContext.Reply accepted = ctx.failhandle();
         if (cmd.isValid()) {
             this.logger.log(Level.FINEST, "the message received was deemed" + cmd.getClass().toString());
             this.logger.log(Level.FINER, "Post Processing:" + cmd);
-            accepted = this.handleMessage(null, cmd);
-            if (!accepted) {
+            accepted = this.handleMessage(ctx, cmd);
+            if (!accepted.isHandled()) {
                 this.logger.log(Level.WARNING, "Command not accepted:" + cmd.getWhole());
-                accepted = this.handleHelpMessage(cmd, BadMessageType.UNHANDLED);
+                accepted = this.handleHelpMessage(cmd, BadMessageType.UNHANDLED, accepted);
             }
         } else {
             // The message was not recognized
             this.logger.log(Level.FINE, "Message was bad");
-            accepted = this.handleHelpMessage(cmd, BadMessageType.UNRECOGNIZED);
+            accepted = this.handleHelpMessage(cmd, BadMessageType.UNRECOGNIZED, accepted);
         }
-        if (!accepted) {
+        if (!accepted.isHandled()) {
             this.logger.log(Level.WARNING, "Command really not accepted/recognized:" + cmd.getWhole());
-            this.handleHelpMessage(cmd, BadMessageType.OTHER);
+            this.handleHelpMessage(cmd, BadMessageType.OTHER, accepted);
         }
     }
 
@@ -78,7 +78,8 @@ public class Client implements MessageHandler, ClientMessenger {
         return this.id;
     }
 
-    private Boolean handleHelpMessage(Command msg, BadMessageType badMessageType, CommandContext.Reply reply) {
+    private CommandContext.Reply handleHelpMessage(Command msg, BadMessageType badMessageType,
+            CommandContext.Reply reply) {
         Map<CommandMessage, String> helps = reply.getHelps();
 
         if (badMessageType != null) {
@@ -88,7 +89,7 @@ public class Client implements MessageHandler, ClientMessenger {
             this.sendMsg(HelpMessage.getHelpBuilder().setHelps(helps).setSingleHelp(msg == null ? null : msg.getType())
                     .Build());
         }
-        return true;
+        return reply.resolve();
     }
 
     @Override
@@ -124,7 +125,7 @@ public class Client implements MessageHandler, ClientMessenger {
         ctx = this.addSelfToContext(ctx);
         CommandContext.Reply reply = MessageHandler.super.handleMessage(ctx, msg);
         if (msg.getType() == CommandMessage.HELP || !reply.isHandled()) {
-            return this.handleHelpMessage(msg, null, reply);
+            return this.handleHelpMessage(null, null, reply);
         }
 
         return MessageHandler.super.handleMessage(ctx, msg);
