@@ -91,6 +91,10 @@ public class CommandContext implements ClientMessenger {
         return helpsFound;
     }
 
+    public Map<CommandMessage, String> getHelps() {
+        return Collections.unmodifiableMap(helps);
+    }
+
     @Override
     public ClientID getClientID() {
         if (this.client != null) {
