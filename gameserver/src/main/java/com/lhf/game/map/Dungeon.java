@@ -262,36 +262,36 @@ public class Dungeon implements Land {
         room.announce(msg, deafened);
     }
 
-    private Boolean handleShout(CommandContext ctx, Command cmd) {
+    private CommandContext.Reply handleShout(CommandContext ctx, Command cmd) {
         if (cmd.getType() == CommandMessage.SHOUT) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(this.gatherHelp(ctx)).setCommand(cmd).Build());
-                return true;
+                        .setHelps(ctx.getHelps()).setCommand(cmd).Build());
+                return ctx.handled();
             }
             ShoutMessage shoutMessage = (ShoutMessage) cmd;
             this.announceDirect(
-                    SpeakingMessage.getBuilder().setSayer(ctx.getCreature()).setShouting(false)
+                    SpeakingMessage.getBuilder().setSayer(ctx.getCreature()).setShouting(true)
                             .setMessage(shoutMessage.getMessage()).Build(),
                     this.getPlayers().stream().filter(player -> player != null).map(player -> (ClientMessenger) player)
                             .toList());
-            return true;
+            return ctx.handled();
         }
-        return false;
+        return ctx.failhandle();
     }
 
-    private Boolean handleGo(CommandContext ctx, Command msg) {
+    private CommandContext.Reply handleGo(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.GO) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
-                return true;
+                        .setHelps(ctx.getHelps()).setCommand(msg).Build());
+                return ctx.handled();
             }
             GoMessage goMessage = (GoMessage) msg;
             Directions toGo = goMessage.getDirection();
             if (ctx.getRoom() == null) {
                 ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(toGo).Build());
-                return true;
+                return ctx.handled();
             }
             Room presentRoom = ctx.getRoom();
             if (this.mapping.containsKey(presentRoom.getUuid())) {
@@ -301,51 +301,51 @@ public class Dungeon implements Land {
                         || !exits.containsKey(toGo)
                         || exits.get(toGo) == null) {
                     ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
-                    return true;
+                    return ctx.handled();
                 }
                 Doorway doorway = exits.get(toGo);
                 if (!doorway.canTraverse(ctx.getCreature(), toGo)) {
                     ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo)
                             .setAvailable(exits.keySet()).Build());
-                    return true;
+                    return ctx.handled();
                 }
                 UUID nextRoomUuid = doorway.getRoomAccross(presentRoom.getUuid());
                 AreaDirectionalLinks nextRandD = this.mapping.get(nextRoomUuid);
                 if (nextRoomUuid == null || nextRandD == null) {
                     ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
                             .setAvailable(exits.keySet()).Build());
-                    return true;
+                    return ctx.handled();
                 }
                 Area nextRoom = nextRandD.getArea();
                 if (nextRoom == null) {
                     ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
                             .setAvailable(exits.keySet()).Build());
-                    return true;
+                    return ctx.handled();
                 }
 
                 ctx.getCreature().setSuccessor(nextRoom);
                 nextRoom.addCreature(ctx.getCreature());
                 presentRoom.removeCreature(ctx.getCreature(), toGo);
-                return true;
+                return ctx.handled();
             } else {
                 ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.NO_ROOM)
                         .setAttempted(goMessage.getDirection()).Build());
-                return true;
+                return ctx.handled();
             }
         }
-        return false;
+        return ctx.failhandle();
     }
 
-    private Boolean handleSee(CommandContext ctx, Command msg) {
+    private CommandContext.Reply handleSee(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SEE) {
             Room presentRoom = ctx.getRoom();
             if (presentRoom != null) {
                 SeeOutMessage roomSeen = presentRoom.produceMessage();
                 ctx.sendMsg(roomSeen);
-                return true;
+                return ctx.handled();
             }
         }
-        return false;
+        return ctx.failhandle();
     }
 
     @Override
@@ -359,18 +359,13 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands() {
-        return Collections.unmodifiableMap(this.commands);
-    }
-
-    @Override
     public CommandContext addSelfToContext(CommandContext ctx) {
         return ctx;
     }
 
     @Override
-    public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
-        EnumMap<CommandMessage, String> gathered = Land.super.gatherHelp(ctx);
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+        Map<CommandMessage, String> gathered = new EnumMap<>(this.commands);
         if (ctx.getCreature() == null) {
             gathered.remove(CommandMessage.SHOUT);
             gathered.remove(CommandMessage.GO);
@@ -378,22 +373,24 @@ public class Dungeon implements Land {
         if (ctx.getRoom() == null) {
             gathered.remove(CommandMessage.GO);
         }
-        return gathered;
+        return ctx.addHelps(gathered);
     }
 
     @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
-        Boolean performed = false;
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+        CommandContext.Reply performed = ctx.failhandle();
         ctx = this.addSelfToContext(ctx);
-        if (msg.getType() == CommandMessage.SHOUT) {
-            performed = this.handleShout(ctx, msg);
-        } else if (msg.getType() == CommandMessage.GO) {
-            performed = this.handleGo(ctx, msg);
-        } else if (msg.getType() == CommandMessage.SEE) {
-            performed = this.handleSee(ctx, msg);
-        }
-        if (performed) {
-            return performed;
+        if (this.getCommands(ctx).containsKey(msg.getType())) {
+            if (msg.getType() == CommandMessage.SHOUT) {
+                performed = this.handleShout(ctx, msg);
+            } else if (msg.getType() == CommandMessage.GO) {
+                performed = this.handleGo(ctx, msg);
+            } else if (msg.getType() == CommandMessage.SEE) {
+                performed = this.handleSee(ctx, msg);
+            }
+            if (performed.isHandled()) {
+                return performed;
+            }
         }
         return Land.super.handleMessage(ctx, msg);
     }
