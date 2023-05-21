@@ -54,6 +54,14 @@ public class CommandContext implements ClientMessenger {
             this.handled = true;
             return this;
         }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Reply [handled=").append(handled).append("]");
+            return builder.toString();
+        }
+
     }
 
     public Reply failhandle() {

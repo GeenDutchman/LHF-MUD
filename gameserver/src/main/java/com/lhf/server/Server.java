@@ -140,12 +140,7 @@ public class Server implements ServerInterface, ConnectionListener {
 
     @Override
     public Map<CommandMessage, String> getCommands(CommandContext ctx) {
-        return this.acceptedCommands;
-    }
-
-    @Override
-    public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
-        return ServerInterface.super.gatherHelp(ctx);
+        return ctx.addHelps(this.acceptedCommands);
     }
 
     private CommandContext.Reply handleCreateMessage(CommandContext ctx, CreateInMessage msg) {

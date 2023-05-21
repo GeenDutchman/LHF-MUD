@@ -99,7 +99,7 @@ public class User implements MessageHandler, ClientMessenger, Comparable<User> {
     }
 
     @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
         return MessageHandler.super.handleMessage(ctx, msg);
     }

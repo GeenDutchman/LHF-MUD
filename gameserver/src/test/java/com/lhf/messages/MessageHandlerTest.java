@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -46,30 +45,26 @@ public class MessageHandlerTest {
         Map<CommandMessage, String> leafNodeOneHelps = new HashMap<>();
         leafNodeOneHelps.put(CommandMessage.HELP, "When you need help");
         leafNodeOneHelps.put(CommandMessage.INVENTORY, "When you need to know what you have");
-        when(this.leafNodeOne.getCommands()).thenReturn(leafNodeOneHelps);
-        when(this.leafNodeOne.gatherHelp(any())).thenAnswer(Mockito.CALLS_REAL_METHODS);
+        when(this.leafNodeOne.getCommands(any())).thenReturn(leafNodeOneHelps);
 
         Map<CommandMessage, String> leafNodeTwoHelps = new HashMap<>();
         leafNodeTwoHelps.put(CommandMessage.CAST, "If you are a caster");
-        when(this.leafNodeTwo.getCommands()).thenReturn(leafNodeTwoHelps);
-        when(this.leafNodeTwo.gatherHelp(any())).thenAnswer(Mockito.CALLS_REAL_METHODS);
+        when(this.leafNodeTwo.getCommands(any())).thenReturn(leafNodeTwoHelps);
 
         Map<CommandMessage, String> branchNodeHelps = new HashMap<>();
         branchNodeHelps.put(CommandMessage.HELP, "When you get higher help");
         branchNodeHelps.put(CommandMessage.SEE, "I added something!");
-        when(this.branchNode.getCommands()).thenReturn(branchNodeHelps);
-        when(this.branchNode.gatherHelp(any())).thenAnswer(Mockito.CALLS_REAL_METHODS);
+        when(this.branchNode.getCommands(any())).thenReturn(branchNodeHelps);
 
         // root node does nothing
-        when(this.rootNode.getCommands()).thenReturn(null);
-        when(this.rootNode.gatherHelp(any())).thenAnswer(Mockito.CALLS_REAL_METHODS);
+        when(this.rootNode.getCommands(any())).thenReturn(null);
 
     }
 
     @Test
     void testGatherHelp() {
         buildTree();
-        Map<CommandMessage, String> receivedNodeOne = this.leafNodeOne.gatherHelp(null);
+        Map<CommandMessage, String> receivedNodeOne = this.leafNodeOne.getCommands(null);
         System.out.println(receivedNodeOne);
         Truth.assertThat(receivedNodeOne).containsKey(CommandMessage.INVENTORY);
         Truth.assertThat(receivedNodeOne).containsKey(CommandMessage.HELP);
@@ -78,7 +73,7 @@ public class MessageHandlerTest {
         Truth.assertThat(receivedNodeOne).containsKey(CommandMessage.HELP);
         Truth.assertThat(receivedNodeOne.get(CommandMessage.HELP)).doesNotContain("higher");
 
-        Map<CommandMessage, String> rec = this.leafNodeTwo.gatherHelp(null);
+        Map<CommandMessage, String> rec = this.leafNodeTwo.getCommands(null);
         Truth.assertThat(rec).doesNotContainKey(CommandMessage.INVENTORY);
         Truth.assertThat(rec).containsKey(CommandMessage.HELP);
         Truth.assertThat(rec).containsKey(CommandMessage.CAST);

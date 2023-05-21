@@ -26,7 +26,6 @@ import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.out.*;
-import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
