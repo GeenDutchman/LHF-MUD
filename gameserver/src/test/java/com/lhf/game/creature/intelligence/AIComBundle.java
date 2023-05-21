@@ -61,7 +61,7 @@ public class AIComBundle extends ComBundle implements MessageHandler {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands() {
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
         return new EnumMap<>(CommandMessage.class);
     }
 
@@ -71,10 +71,10 @@ public class AIComBundle extends ComBundle implements MessageHandler {
     }
 
     @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         this.print(msg.toString(), true);
         this.mockedWrappedHandler.handleMessage(ctx, msg);
-        return true;
+        return ctx.handled();
     }
 
 }

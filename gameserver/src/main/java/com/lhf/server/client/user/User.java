@@ -66,7 +66,7 @@ public class User implements MessageHandler, ClientMessenger, Comparable<User> {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands() {
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
         return new EnumMap<>(CommandMessage.class);
     }
 
