@@ -781,8 +781,8 @@ public abstract class Creature
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands() {
-        return Collections.unmodifiableMap(this.cmds);
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+        return ctx.addHelps(Collections.unmodifiableMap(this.cmds));
     }
 
     @Override
@@ -794,29 +794,32 @@ public abstract class Creature
     }
 
     @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         boolean handled = false;
+        CommandMessage msgType = msg.getType();
         ctx = this.addSelfToContext(ctx);
-        if (msg.getType() == CommandMessage.EQUIP) {
-            EquipMessage eqmsg = (EquipMessage) msg;
-            this.equipItem(eqmsg.getItemName(), eqmsg.getEquipSlot());
-            handled = true;
-        } else if (msg.getType() == CommandMessage.UNEQUIP) {
-            UnequipMessage uneqmsg = (UnequipMessage) msg;
-            this.unequipItem(EquipmentSlots.getEquipmentSlot(uneqmsg.getUnequipWhat()),
-                    uneqmsg.getUnequipWhat());
-            handled = true;
-        } else if (msg.getType() == CommandMessage.STATUS) {
-            ctx.sendMsg(StatusOutMessage.getBuilder().setNotBroadcast().setFromCreature(this, true).Build());
-            handled = true;
-        } else if (msg.getType() == CommandMessage.INVENTORY) {
-            ctx.sendMsg(this.getInventory().getInventoryOutMessage(this.getEquipmentSlots()));
-            handled = true;
+        if (msgType != null && this.getCommands(ctx).containsKey(msgType)) {
+            if (msgType == CommandMessage.EQUIP) {
+                EquipMessage eqmsg = (EquipMessage) msg;
+                this.equipItem(eqmsg.getItemName(), eqmsg.getEquipSlot());
+                handled = true;
+            } else if (msgType == CommandMessage.UNEQUIP) {
+                UnequipMessage uneqmsg = (UnequipMessage) msg;
+                this.unequipItem(EquipmentSlots.getEquipmentSlot(uneqmsg.getUnequipWhat()),
+                        uneqmsg.getUnequipWhat());
+                handled = true;
+            } else if (msgType == CommandMessage.STATUS) {
+                ctx.sendMsg(StatusOutMessage.getBuilder().setNotBroadcast().setFromCreature(this, true).Build());
+                handled = true;
+            } else if (msgType == CommandMessage.INVENTORY) {
+                ctx.sendMsg(this.getInventory().getInventoryOutMessage(this.getEquipmentSlots()));
+                handled = true;
+            }
         }
 
         if (handled) {
             this.tick(TickType.ACTION);
-            return handled;
+            return ctx.handled();
         }
         return MessageHandler.super.handleMessage(ctx, msg);
     }

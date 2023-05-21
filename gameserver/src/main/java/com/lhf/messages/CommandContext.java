@@ -26,7 +26,7 @@ public class CommandContext implements ClientMessenger {
     protected List<OutMessage> messages = new ArrayList<>();
 
     public class Reply {
-        protected final boolean handled;
+        protected boolean handled;
 
         protected Reply(boolean isHandled) {
             this.handled = isHandled;
@@ -49,6 +49,11 @@ public class CommandContext implements ClientMessenger {
         public boolean isHandled() {
             return handled;
         }
+
+        public Reply resolve() {
+            this.handled = true;
+            return this;
+        }
     }
 
     public Reply failhandle() {
@@ -68,7 +73,13 @@ public class CommandContext implements ClientMessenger {
         }
     }
 
-    public void addHelps(Map<CommandMessage, String> helpsFound) {
+    /**
+     * Adds help data to the context, returns the provided helps found
+     * 
+     * @param helpsFound help data to collect in the context
+     * @return the helpsFound
+     */
+    public Map<CommandMessage, String> addHelps(Map<CommandMessage, String> helpsFound) {
         if (this.helps == null) {
             this.helps = new EnumMap<>(CommandMessage.class);
         }
@@ -77,6 +88,7 @@ public class CommandContext implements ClientMessenger {
                 this.helps.putIfAbsent(entry.getKey(), entry.getValue());
             }
         }
+        return helpsFound;
     }
 
     @Override
