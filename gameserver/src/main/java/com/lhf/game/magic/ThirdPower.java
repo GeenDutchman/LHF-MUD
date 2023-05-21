@@ -84,16 +84,6 @@ public class ThirdPower implements MessageHandler {
         return toGenerate;
     }
 
-    @Override
-    public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
-        EnumMap<CommandMessage, String> retrieved = MessageHandler.super.gatherHelp(ctx);
-        if (ctx.getCreature() == null || !(ctx.getCreature().getVocation() instanceof CubeHolder)) {
-            retrieved.remove(CommandMessage.CAST);
-            retrieved.remove(CommandMessage.SPELLBOOK);
-        }
-        return retrieved;
-    }
-
     private boolean affectCreatures(CommandContext ctx, ISpell<CreatureEffect> spell, Collection<Creature> targets) {
         Creature caster = ctx.getCreature();
         BattleManager battleManager = ctx.getBattleManager();
@@ -352,7 +342,7 @@ public class ThirdPower implements MessageHandler {
         return true;
     }
 
-    private boolean handleSpellbook(CommandContext ctx, Command msg) {
+    private CommandContext.Reply handleSpellbook(CommandContext ctx, Command msg) {
         SpellbookMessage spellbookMessage = (SpellbookMessage) msg;
         Creature caster = ctx.getCreature();
         EnumSet<Filters> filters = EnumSet.of(Filters.VOCATION_NAME, Filters.LEVELS);
@@ -369,7 +359,7 @@ public class ThirdPower implements MessageHandler {
                 spellbookMessage.getSpellName(), null,
                 ((CubeHolder) caster.getVocation()).availableMagnitudes());
         ctx.sendMsg(SpellEntryMessage.getBuilder().setEntries(entries).Build());
-        return true;
+        return ctx.handled();
     }
 
     private void channelizeMessage(CommandContext ctx, OutMessage message, boolean includeBattle,
@@ -405,48 +395,55 @@ public class ThirdPower implements MessageHandler {
     }
 
     @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
-        if (msg.getType() == CommandMessage.CAST) {
-            if (ctx.getCreature() == null) {
-                ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
-                return true;
-            }
-            Creature attempter = ctx.getCreature();
-            if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
-                SpellFizzleMessage.Builder spellFizzle = SpellFizzleMessage.getBuilder()
-                        .setSubType(SpellFizzleType.NOT_CASTER).setAttempter(attempter).setNotBroadcast();
-                ctx.sendMsg(spellFizzle.Build());
-                if (ctx.getRoom() != null) {
-                    ctx.getRoom().announce(spellFizzle.setBroacast().Build());
+        if (this.getCommands(ctx).containsKey(msg.getType())) {
+            if (msg.getType() == CommandMessage.CAST) {
+                if (ctx.getCreature() == null) {
+                    ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                            .setHelps(ctx.getHelps()).setCommand(msg).Build());
+                    return ctx.handled();
                 }
-            } else {
-                this.handleCast(ctx, msg);
+                Creature attempter = ctx.getCreature();
+                if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
+                    SpellFizzleMessage.Builder spellFizzle = SpellFizzleMessage.getBuilder()
+                            .setSubType(SpellFizzleType.NOT_CASTER).setAttempter(attempter).setNotBroadcast();
+                    ctx.sendMsg(spellFizzle.Build());
+                    if (ctx.getRoom() != null) {
+                        ctx.getRoom().announce(spellFizzle.setBroacast().Build());
+                    }
+                } else {
+                    this.handleCast(ctx, msg);
+                }
+                return ctx.handled();
             }
-            return true;
-        }
-        if (msg.getType() == CommandMessage.SPELLBOOK) {
-            if (ctx.getCreature() == null) {
-                ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
-                return true;
+            if (msg.getType() == CommandMessage.SPELLBOOK) {
+                if (ctx.getCreature() == null) {
+                    ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                            .setHelps(ctx.getHelps()).setCommand(msg).Build());
+                    return ctx.handled();
+                }
+                Creature attempter = ctx.getCreature();
+                if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
+                    SpellEntryMessage.Builder notCaster = SpellEntryMessage.getBuilder().setNotCubeHolder()
+                            .setNotBroadcast();
+                    ctx.sendMsg(notCaster.Build());
+                    return ctx.handled();
+                }
+                return this.handleSpellbook(ctx, msg);
             }
-            Creature attempter = ctx.getCreature();
-            if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
-                SpellEntryMessage.Builder notCaster = SpellEntryMessage.getBuilder().setNotCubeHolder()
-                        .setNotBroadcast();
-                ctx.sendMsg(notCaster.Build());
-                return true;
-            }
-            return this.handleSpellbook(ctx, msg);
         }
         return MessageHandler.super.handleMessage(ctx, msg);
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands() {
-        return Collections.unmodifiableMap(this.cmds);
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+        Map<CommandMessage, String> commands = new EnumMap<>(this.cmds);
+        if (ctx.getCreature() == null || !(ctx.getCreature().getVocation() instanceof CubeHolder)) {
+            commands.remove(CommandMessage.CAST);
+            commands.remove(CommandMessage.SPELLBOOK);
+        }
+        return ctx.addHelps(Collections.unmodifiableMap(commands));
     }
 
 }
