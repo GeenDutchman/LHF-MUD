@@ -355,13 +355,15 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands() {
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
         EnumMap<CommandMessage, String> commands = new EnumMap<>(CommandMessage.class);
         commands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
         commands.put(CommandMessage.GO, "Use the command <command>GO UP</command> to get out of bed. ");
-        commands.put(CommandMessage.INTERACT,
-                "Use the command <command>INTERACT " + this.getName() + "</command> to get out of bed. ");
-        return commands;
+        if (ctx.getCreature() != null) {
+            commands.put(CommandMessage.INTERACT,
+                    "Use the command <command>INTERACT " + this.getName() + "</command> to get out of bed. ");
+        }
+        return ctx.addHelps(commands);
     }
 
     @Override
@@ -370,7 +372,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
     }
 
     @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.EXIT) {
             this.removeCreature(ctx.getCreature());
             if (this.room != null) {
@@ -381,17 +383,17 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
             GoMessage goMessage = (GoMessage) msg;
             if (Directions.UP.equals(goMessage.getDirection())) {
                 this.removeCreature(ctx.getCreature());
-                return true;
+                return ctx.handled();
             } else {
                 ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(goMessage.getDirection())
                         .setAvailable(EnumSet.of(Directions.UP)).Build());
-                return true;
+                return ctx.handled();
             }
         } else if (msg.getType() == CommandMessage.INTERACT) {
             InteractMessage interactMessage = (InteractMessage) msg;
             if (this.getName() == interactMessage.getObject()) {
                 this.removeCreature(ctx.getCreature());
-                return true;
+                return ctx.handled();
             }
         } else if (msg.getType() == CommandMessage.SAY || msg.getType() == CommandMessage.SHOUT) {
             if (this.room != null) {
@@ -399,7 +401,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
             }
             return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
         }
-        return false;
+        return ctx.failhandle();
     }
 
 }
