@@ -18,7 +18,7 @@ public interface ServerInterface extends MessageHandler {
     @Override
     default Map<CommandMessage, String> getCommands(CommandContext ctx) {
         EnumMap<CommandMessage, String> gathered = new EnumMap<>(CommandMessage.class);
-        if (ctx.getClientID() != null) {
+        if (ctx.getUser() != null) {
             gathered.remove(CommandMessage.CREATE);
         }
         return ctx.addHelps(gathered);

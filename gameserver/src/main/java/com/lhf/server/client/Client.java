@@ -124,11 +124,13 @@ public class Client implements MessageHandler, ClientMessenger {
     public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
         CommandContext.Reply reply = MessageHandler.super.handleMessage(ctx, msg);
-        if (msg.getType() == CommandMessage.HELP || !reply.isHandled()) {
+        if (msg.getType() == CommandMessage.HELP) {
             return this.handleHelpMessage(null, null, reply);
+        } else if (!reply.isHandled()) {
+            return this.handleHelpMessage(msg, BadMessageType.UNHANDLED, reply);
         }
 
-        return MessageHandler.super.handleMessage(ctx, msg);
+        return reply;
     }
 
     @Override

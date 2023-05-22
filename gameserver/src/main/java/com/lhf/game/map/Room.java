@@ -226,7 +226,9 @@ public class Room implements Area {
 
     @Override
     public Collection<ClientMessenger> getClientMessengers() {
-        return this.getCreatures().stream().map(creature -> (ClientMessenger) creature).toList();
+        return this.getCreatures().stream()
+                .filter(creature -> creature != null)
+                .map(creature -> (ClientMessenger) creature).toList();
     }
 
     @Override
@@ -249,7 +251,7 @@ public class Room implements Area {
         if (added) {
             this.logger.log(Level.FINER, () -> String.format("%s entered the room", c.getName()));
             c.sendMsg(this.produceMessage());
-            this.announce(RoomEnteredOutMessage.getBuilder().setNewbie(c).setBroacast().Build());
+            this.announce(RoomEnteredOutMessage.getBuilder().setNewbie(c).setBroacast().Build(), c);
             if (this.allCreatures.size() > 1 && !this.commands.containsKey(CommandMessage.ATTACK)) {
                 StringJoiner sj = new StringJoiner(" ");
                 sj.add("\"attack [name]\"").add("Attacks a creature").add("\r\n");

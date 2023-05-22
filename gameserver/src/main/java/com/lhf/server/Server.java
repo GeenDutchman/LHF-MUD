@@ -43,6 +43,7 @@ public class Server implements ServerInterface, ConnectionListener {
         this.clientManager = new ClientManager();
         this.acceptedCommands = new EnumMap<>(CommandMessage.class);
         this.acceptedCommands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
+        this.acceptedCommands.put(CommandMessage.CREATE, "Create a character in Ibaif!");
         this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
         this.game = new Game(this, this.userManager);
         this.logger.exiting(this.getClass().getName(), "NoArgConstructor");
@@ -55,6 +56,7 @@ public class Server implements ServerInterface, ConnectionListener {
         this.clientManager = clientManager;
         this.acceptedCommands = new EnumMap<>(CommandMessage.class);
         this.acceptedCommands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
+        this.acceptedCommands.put(CommandMessage.CREATE, "Create a character in Ibaif!");
         this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
         this.game = game;
         if (game != null) {
@@ -140,7 +142,11 @@ public class Server implements ServerInterface, ConnectionListener {
 
     @Override
     public Map<CommandMessage, String> getCommands(CommandContext ctx) {
-        return ctx.addHelps(this.acceptedCommands);
+        Map<CommandMessage, String> pruned = new EnumMap<>(this.acceptedCommands);
+        if (ctx.getUser() != null) {
+            pruned.remove(CommandMessage.CREATE);
+        }
+        return ctx.addHelps(pruned);
     }
 
     private CommandContext.Reply handleCreateMessage(CommandContext ctx, CreateInMessage msg) {
@@ -168,31 +174,33 @@ public class Server implements ServerInterface, ConnectionListener {
     @Override
     public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
-        if (msg.getType() == CommandMessage.EXIT) {
-            this.logger.log(Level.INFO, "client " + ctx.getClientID().toString() + " is exiting");
-            Client ch = this.clientManager.getConnection(ctx.getClientID());
+        if (this.getCommands(ctx).containsKey(msg.getType())) {
+            if (msg.getType() == CommandMessage.EXIT) {
+                this.logger.log(Level.INFO, "client " + ctx.getClientID().toString() + " is exiting");
+                Client ch = this.clientManager.getConnection(ctx.getClientID());
 
-            if (ctx.getUserID() != null) {
-                this.game.userLeft(ctx.getUserID());
-                User leaving = this.userManager.getUser(ctx.getUserID());
-                this.userManager.removeUser(ctx.getUserID());
-                leaving.sendMsg(UserLeftMessage.getBuilder().setUser(leaving).setNotBroadcast().Build());
-            } else {
-                if (ch != null) {
-                    ch.sendMsg(UserLeftMessage.getBuilder().setNotBroadcast().Build());
+                if (ctx.getUserID() != null) {
+                    this.game.userLeft(ctx.getUserID());
+                    User leaving = this.userManager.getUser(ctx.getUserID());
+                    this.userManager.removeUser(ctx.getUserID());
+                    leaving.sendMsg(UserLeftMessage.getBuilder().setUser(leaving).setNotBroadcast().Build());
+                } else {
+                    if (ch != null) {
+                        ch.sendMsg(UserLeftMessage.getBuilder().setNotBroadcast().Build());
+                    }
                 }
-            }
 
-            try {
-                this.clientManager.removeClient(ctx.getClientID()); // ch is killed in here
-            } catch (IOException e) {
-                e.printStackTrace();
+                try {
+                    this.clientManager.removeClient(ctx.getClientID()); // ch is killed in here
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return ctx.handled();
             }
-            return ctx.handled();
-        }
-        if (ctx.getUserID() == null && msg.getType() == CommandMessage.CREATE) {
-            CreateInMessage createMessage = (CreateInMessage) msg;
-            return this.handleCreateMessage(ctx, createMessage);
+            if (ctx.getUserID() == null && msg.getType() == CommandMessage.CREATE) {
+                CreateInMessage createMessage = (CreateInMessage) msg;
+                return this.handleCreateMessage(ctx, createMessage);
+            }
         }
         return ServerInterface.super.handleMessage(ctx, msg);
     }

@@ -229,8 +229,10 @@ public class DMRoom extends Room {
 
     @Override
     public Collection<ClientMessenger> getClientMessengers() {
-        Collection<ClientMessenger> messengers = super.getClientMessengers();
-        messengers.addAll(this.users);
+        Collection<ClientMessenger> messengers = new ArrayList<>(super.getClientMessengers());
+        messengers.addAll(this.users.stream()
+                .filter(userThing -> userThing != null)
+                .map(userThing -> (ClientMessenger) userThing).toList());
         return messengers;
     }
 
@@ -324,7 +326,7 @@ public class DMRoom extends Room {
             gathered.remove(CommandMessage.CAST);
         }
         ctx.addHelps(gathered);
-        Map<CommandMessage, String> superGathered = super.getCommands(ctx);
+        Map<CommandMessage, String> superGathered = new EnumMap<>(super.getCommands(ctx));
         superGathered.putAll(gathered);
         return superGathered;
     }
