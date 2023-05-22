@@ -117,7 +117,9 @@ public interface CreatureContainer extends Examinable, ClientMessengerHub {
 
     @Override
     default Collection<ClientMessenger> getClientMessengers() {
-        return this.getCreatures().stream().map(creature -> (ClientMessenger) creature).toList();
+        return new TreeSet<ClientMessenger>(this.getCreatures().stream()
+                .filter(creature -> creature != null)
+                .map(creature -> (ClientMessenger) creature).toList());
     }
 
 }
