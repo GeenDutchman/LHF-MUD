@@ -3,20 +3,24 @@ package com.lhf.messages.out;
 import java.util.StringJoiner;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.messages.ITickMessage;
 import com.lhf.messages.OutMessageType;
+import com.lhf.game.TickType;
 import com.lhf.game.battle.Initiative;
 
-public class BattleTurnMessage extends OutMessage {
+public class BattleTurnMessage extends OutMessage implements ITickMessage {
     private final Creature myTurn;
     private final boolean yesTurn;
     private final int turnCount;
     private final int roundCount;
+    private final TickType tickType;
 
     public static class Builder extends OutMessage.Builder<Builder> {
         private Creature currentCreature;
         private boolean yesTurn;
         private int turnCount;
         private int roundCount;
+        private TickType tickType;
 
         protected Builder() {
             super(OutMessageType.BATTLE_TURN);
@@ -63,6 +67,15 @@ public class BattleTurnMessage extends OutMessage {
             return this;
         }
 
+        public Builder setTickType(TickType tickType) {
+            this.tickType = tickType;
+            return this;
+        }
+
+        public TickType getTickType() {
+            return this.tickType;
+        }
+
         public int getRoundCount() {
             return roundCount;
         }
@@ -89,6 +102,7 @@ public class BattleTurnMessage extends OutMessage {
         this.yesTurn = builder.isYesTurn();
         this.turnCount = builder.getTurnCount();
         this.roundCount = builder.getRoundCount();
+        this.tickType = builder.getTickType();
     }
 
     @Override
@@ -141,6 +155,11 @@ public class BattleTurnMessage extends OutMessage {
 
     public int getRoundCount() {
         return roundCount;
+    }
+
+    @Override
+    public TickType getTickType() {
+        return tickType;
     }
 
 }

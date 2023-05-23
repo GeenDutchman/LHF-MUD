@@ -1,7 +1,7 @@
 package com.lhf.game;
 
 public enum TickType {
-    INSTANT, ACTION, BATTLE, ROOM, CONDITIONAL;
+    INSTANT, ACTION, TURN, ROUND, BATTLE, ROOM, CONDITIONAL;
 
     public static TickType getTickType(String value) {
         for (TickType type : values()) {
