@@ -3,7 +3,7 @@ package com.lhf.game.magic.concrete;
 import java.util.Set;
 
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.Attributes;

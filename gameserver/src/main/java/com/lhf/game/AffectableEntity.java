@@ -3,7 +3,6 @@ package com.lhf.game;
 import java.util.Collections;
 import java.util.NavigableSet;
 
-import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.messages.out.OutMessage;
 
 /**
@@ -89,10 +88,10 @@ public interface AffectableEntity<Effect extends EntityEffect> {
     /**
      * This is to be called when it's possible for an effect to expire.
      * 
-     * Based on the {@link com.lhf.game.EffectPersistence.TickType TickType} the
+     * Based on the {@link com.lhf.game.TickType TickType} the
      * effect may or may not be removed.
      * 
-     * @see com.lhf.game.EffectPersistence.TickType TickType
+     * @see com.lhf.game.TickType TickType
      * @param type
      */
     default void tick(TickType type) {

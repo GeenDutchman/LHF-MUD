@@ -10,7 +10,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.logging.Logger;
 
-import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.messages.out.OutMessage;

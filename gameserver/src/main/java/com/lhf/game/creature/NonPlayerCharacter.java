@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EffectResistance;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;

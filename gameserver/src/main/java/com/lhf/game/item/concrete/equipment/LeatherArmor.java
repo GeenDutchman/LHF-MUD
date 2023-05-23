@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;

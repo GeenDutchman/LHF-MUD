@@ -6,7 +6,7 @@ import java.util.StringJoiner;
 
 import com.lhf.Taggable;
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.magic.DMRoomTargetingSpellEntry;

@@ -8,8 +8,8 @@ import java.util.regex.PatternSyntaxException;
 import org.mockito.exceptions.misusing.UnfinishedStubbingException;
 
 import com.lhf.Examinable;
-import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EntityEffect;
+import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;

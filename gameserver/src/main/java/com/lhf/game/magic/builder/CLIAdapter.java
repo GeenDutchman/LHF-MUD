@@ -9,8 +9,8 @@ import java.util.StringJoiner;
 import java.util.TreeSet;
 
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EffectResistance.TargetResistAmount;
+import com.lhf.game.TickType;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;

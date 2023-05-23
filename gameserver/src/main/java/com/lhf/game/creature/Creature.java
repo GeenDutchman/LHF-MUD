@@ -5,9 +5,9 @@ import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffect;
+import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.Inventory;

@@ -1,7 +1,7 @@
 package com.lhf.game.item.concrete;
 
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
