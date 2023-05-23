@@ -39,6 +39,7 @@ import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
+import com.lhf.messages.ITickMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.UnequipMessage;
@@ -755,6 +756,9 @@ public abstract class Creature
 
     @Override
     public void sendMsg(OutMessage msg) {
+        if (msg != null && msg instanceof ITickMessage) {
+            this.tick(((ITickMessage) msg).getTickType());
+        }
         if (this.getController() != null) {
             this.getController().sendMsg(msg);
             return;

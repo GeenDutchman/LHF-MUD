@@ -194,14 +194,18 @@ public class FIFOInitiative implements Initiative {
     public synchronized Creature nextTurn() {
         Creature current = this.participants.pollFirst();
         if (current != null) {
+            this.onTurnEnd(current);
             this.participants.offerLast(current);
         }
         this.turnCount++;
         if (this.turnCount > this.participants.size()) {
             this.roundCount++;
+            this.onRoundEnd();
             this.turnCount = 1;
         }
-        return this.getCurrent();
+        Creature nextCreature = this.getCurrent();
+        this.onTurnStart(nextCreature);
+        return nextCreature;
     }
 
     @Override

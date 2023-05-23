@@ -3,7 +3,6 @@ package com.lhf.messages.out;
 import com.lhf.game.TickType;
 import com.lhf.messages.ITickMessage;
 import com.lhf.messages.OutMessageType;
-import com.lhf.server.interfaces.NotNull;
 
 public class TickMessage extends OutMessage implements ITickMessage {
     private final TickType tickType;
@@ -30,7 +29,7 @@ public class TickMessage extends OutMessage implements ITickMessage {
             return tickType;
         }
 
-        public Builder setTickType(@NotNull TickType tickType) {
+        public Builder setTickType(TickType tickType) {
             this.tickType = tickType != null ? tickType : TickType.INSTANT;
             return this;
         }
