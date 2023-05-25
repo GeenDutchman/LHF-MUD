@@ -25,6 +25,7 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.messages.CommandBuilder;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.OutMessageType;
 import com.lhf.messages.in.AttackMessage;
@@ -204,6 +205,10 @@ public class BasicAI extends Client {
 
         public int getLastAggroDamage() {
             return lastAggroDamage;
+        }
+
+        public CommandContext.Reply launchCommand(String command) {
+            return BasicAI.this.ProcessString(command);
         }
 
         @Override
