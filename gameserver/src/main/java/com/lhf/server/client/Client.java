@@ -37,7 +37,7 @@ public class Client implements MessageHandler, ClientMessenger {
         this.out = out;
     }
 
-    public void ProcessString(String value) {
+    public CommandContext.Reply ProcessString(String value) {
         this.logger.log(Level.FINE, "message received: " + value);
         Command cmd = CommandBuilder.parse(value);
         CommandContext ctx = new CommandContext();
@@ -59,6 +59,7 @@ public class Client implements MessageHandler, ClientMessenger {
             this.logger.log(Level.WARNING, "Command really not accepted/recognized:" + cmd.getWhole());
             this.handleHelpMessage(cmd, BadMessageType.OTHER, accepted);
         }
+        return accepted;
     }
 
     @Override
