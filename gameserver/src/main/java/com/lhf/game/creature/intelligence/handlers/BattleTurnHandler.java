@@ -1,5 +1,6 @@
 package com.lhf.game.creature.intelligence.handlers;
 
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -30,7 +31,8 @@ public class BattleTurnHandler extends AIHandler {
 
     @Override
     public void handle(BasicAI bai, OutMessage msg) {
-        if (!this.outMessageType.equals(msg.getOutType())) {
+        bai.ProcessString("SEE");
+        if (!this.outMessageType.equals(msg.getOutType()) || !bai.getNpc().isInBattle()) {
             return;
         }
         BattleTurnMessage btm = (BattleTurnMessage) msg;
@@ -43,12 +45,23 @@ public class BattleTurnHandler extends AIHandler {
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1 + v2,
                             TreeMap::new));
 
-            String target = possTarget.entrySet().stream()
-                    .max((e1, e2) -> e1.getValue() != null ? e1.getValue().compareTo(e2.getValue())
-                            : e2.getValue().compareTo(e1.getValue()))
-                    .get().getKey();
-            CommandContext.Reply reply = bai.ProcessString("attack " + target);
-            this.logger.info(() -> String.format("Attacking target %s has reply: %s", target, reply.toString()));
+            List<Map.Entry<String, Float>> targetList = possTarget.entrySet().stream()
+                    .sorted((e1, e2) -> e1.getValue().compareTo(e2.getValue())).toList();
+
+            this.logger.fine(() -> String.format("Target list: %s", targetList));
+
+            for (Map.Entry<String, Float> targetEntry : targetList) {
+                CommandContext.Reply reply = bai.ProcessString("attack " + targetEntry.getKey());
+                this.logger
+                        .info(() -> String.format("Attacking target %s has reply: %s", targetEntry, reply.toString()));
+                if (reply.getMessages().stream()
+                        .noneMatch(message -> message.getOutType().equals(OutMessageType.BAD_TARGET_SELECTED))) {
+                    return;
+                }
+            }
+
+            this.logger.warning(() -> String.format("Unable to attack anyone, passing: %s", bai.ProcessString("PASS")));
+
         }
     }
 
