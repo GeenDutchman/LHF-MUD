@@ -8,7 +8,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import com.lhf.game.creature.intelligence.ActionChooser;
-import com.lhf.game.creature.intelligence.BasicAI.BattleMemories;
+import com.lhf.game.creature.intelligence.BattleMemories;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.magic.SpellEntry;
 import com.lhf.messages.CommandContext;

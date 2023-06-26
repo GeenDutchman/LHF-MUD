@@ -5,8 +5,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.lhf.game.creature.intelligence.ActionChooser;
-import com.lhf.game.creature.intelligence.BasicAI.BattleMemories;
-import com.lhf.game.creature.intelligence.BasicAI.BattleMemories.BattleStatRecord;
+import com.lhf.game.creature.intelligence.BattleMemories;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD100;
 import com.lhf.game.enums.CreatureFaction;

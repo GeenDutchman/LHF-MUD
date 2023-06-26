@@ -2,7 +2,6 @@ package com.lhf.game.creature.intelligence;
 
 import java.util.SortedMap;
 
-import com.lhf.game.creature.intelligence.BasicAI.BattleMemories;
 import com.lhf.game.enums.CreatureFaction;
 
 public interface ActionChooser extends Comparable<ActionChooser> {

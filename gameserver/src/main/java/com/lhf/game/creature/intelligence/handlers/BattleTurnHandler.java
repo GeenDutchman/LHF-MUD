@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
-import com.lhf.game.creature.intelligence.BasicAI.BattleMemories;
+import com.lhf.game.creature.intelligence.BattleMemories;
 import com.lhf.game.creature.intelligence.actionChoosers.AggroHighwaterChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.AggroStatsChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.RandomTargetChooser;

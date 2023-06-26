@@ -20,7 +20,6 @@ import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.intelligence.AIComBundle;
-import com.lhf.game.creature.intelligence.BasicAI.BattleMemories;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.CreatureFaction;
