@@ -7,9 +7,9 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.lhf.game.battle.BattleStats;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
-import com.lhf.game.creature.intelligence.BattleMemories;
 import com.lhf.game.creature.intelligence.actionChoosers.AggroHighwaterChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.AggroStatsChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.RandomTargetChooser;
@@ -31,7 +31,7 @@ public class BattleTurnHandler extends AIHandler {
         this.aggroHighwaterChooser = new AggroHighwaterChooser();
     }
 
-    public List<Map.Entry<String, Float>> chooseEnemyTarget(BattleMemories battleMemories, CreatureFaction myFaction) {
+    public List<Map.Entry<String, Float>> chooseEnemyTarget(BattleStats battleMemories, CreatureFaction myFaction) {
         SortedMap<String, Float> possTarget = Stream
                 .of(this.randomTargetChooser.chooseTarget(battleMemories, myFaction),
                         this.aggroStatsChooser.chooseTarget(battleMemories, myFaction),

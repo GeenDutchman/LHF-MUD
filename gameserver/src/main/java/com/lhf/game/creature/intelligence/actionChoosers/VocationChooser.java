@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.lhf.game.battle.BattleStats;
 import com.lhf.game.creature.intelligence.ActionChooser;
-import com.lhf.game.creature.intelligence.BattleMemories;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 
@@ -27,7 +27,7 @@ public class VocationChooser implements ActionChooser {
     }
 
     @Override
-    public SortedMap<String, Float> chooseTarget(BattleMemories battleMemories, CreatureFaction myFaction) {
+    public SortedMap<String, Float> chooseTarget(BattleStats battleMemories, CreatureFaction myFaction) {
         SortedMap<String, Float> results = new TreeMap<>();
         Map<String, BattleStatRecord> stats = battleMemories.getBattleStats();
         if (stats != null) {

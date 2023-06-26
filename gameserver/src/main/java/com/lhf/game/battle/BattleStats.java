@@ -1,9 +1,9 @@
-package com.lhf.game.creature.intelligence;
+package com.lhf.game.battle;
 
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.TreeMap;
 
 import com.lhf.game.creature.Creature;
@@ -11,16 +11,13 @@ import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealthBuckets;
-import com.lhf.messages.CommandContext;
 import com.lhf.messages.out.CreatureAffectedMessage;
 
-public class BattleMemories {
+public class BattleStats {
     /**
      *
      */
-    private final BasicAI basicAI;
-
-    public class BattleStatRecord {
+    public static class BattleStatRecord implements Comparable<BattleStatRecord> {
         protected final String targetName;
         private CreatureFaction faction;
         private Vocation vocation;
@@ -90,27 +87,59 @@ public class BattleMemories {
             return builder.toString();
         }
 
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + Objects.hash(targetName);
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof BattleStatRecord)) {
+                return false;
+            }
+            BattleStatRecord other = (BattleStatRecord) obj;
+            return Objects.equals(targetName, other.targetName);
+        }
+
+        @Override
+        public int compareTo(BattleStatRecord arg0) {
+            return this.targetName.compareTo(arg0.targetName);
+        }
+
     }
 
-    protected Optional<String> lastAttakerName;
-    protected int lastAggroDamage;
     protected Map<String, BattleStatRecord> battleStats;
 
-    public BattleMemories(BasicAI basicAI) {
-        this.basicAI = basicAI;
-        this.lastAggroDamage = 0;
-        this.lastAttakerName = Optional.empty();
+    public BattleStats() {
         this.battleStats = new TreeMap<>();
     }
 
-    public BattleMemories reset() {
+    public BattleStats(Map<String, BattleStatRecord> seedStats) {
+        this.battleStats = seedStats != null ? new TreeMap<>(seedStats) : new TreeMap<>();
+    }
+
+    // note that any duplicates will overwrite each other!
+    public BattleStats(Iterable<BattleStatRecord> seedRecords) {
+        this.battleStats = new TreeMap<>();
+        if (seedRecords != null) {
+            for (BattleStatRecord record : seedRecords) {
+                this.battleStats.put(record.targetName, record);
+            }
+        }
+    }
+
+    public BattleStats reset() {
         this.battleStats.clear();
-        this.lastAggroDamage = 0;
-        this.lastAttakerName = Optional.empty();
         return this;
     }
 
-    public BattleMemories update(CreatureAffectedMessage ca) {
+    public BattleStats update(CreatureAffectedMessage ca) {
         if (ca.getEffect() == null) {
             return this;
         }
@@ -119,21 +148,16 @@ public class BattleMemories {
             return this;
         }
 
-        int origRoll = ca.getEffect().getDamageResult().getOrigRoll();
+        // int origRoll = ca.getEffect().getDamageResult().getOrigRoll();
         int roll = ca.getEffect().getDamageResult().getRoll();
 
         if (!this.battleStats.containsKey(responsible.getName())) {
             this.battleStats.put(responsible.getName(),
-                    this.basicAI.new BattleStatRecord(responsible.getName(), responsible.getFaction(),
+                    new BattleStatRecord(responsible.getName(), responsible.getFaction(),
                             responsible.getVocation(),
                             responsible.getHealthBucket()));
         }
-        if (ca.getAffected() == this.basicAI.npc && ca.getEffect().isOffensive()) {
-            if (origRoll >= this.lastAggroDamage) {
-                this.lastAggroDamage = origRoll;
-                this.lastAttakerName = Optional.of(responsible.getName());
-            }
-        }
+
         BattleStatRecord found = this.battleStats.get(responsible.getName());
         if (found == null) {
             return this;
@@ -149,17 +173,19 @@ public class BattleMemories {
         return this;
     }
 
-    public BattleMemories initialize(Iterable<Creature> creatures) {
+    public BattleStats initialize(Iterable<Creature> creatures) {
         for (Creature creature : creatures) {
             if (creature != null) {
                 if (!this.battleStats.containsKey(creature.getName())) {
                     this.battleStats.put(creature.getName(),
-                            this.basicAI.new BattleStatRecord(creature.getName(), creature.getFaction(),
+                            new BattleStatRecord(creature.getName(), creature.getFaction(),
                                     creature.getVocation(),
                                     creature.getHealthBucket()));
                 } else {
                     BattleStatRecord found = this.battleStats.get(creature.getName());
                     found.faction = creature.getFaction(); // update just in case
+                    found.bucket = creature.getHealthBucket();
+                    found.vocation = creature.getVocation();
                 }
             }
         }
@@ -167,13 +193,10 @@ public class BattleMemories {
     }
 
     public boolean contains(String creatureName) {
-        if (this.lastAttakerName.isPresent() && this.lastAttakerName.get().equals(creatureName)) {
-            return true;
-        }
         return this.battleStats.containsKey(creatureName);
     }
 
-    public BattleMemories remove(String creatureName) {
+    public BattleStats remove(String creatureName) {
         this.battleStats.remove(creatureName);
         return this;
     }
@@ -182,23 +205,11 @@ public class BattleMemories {
         return Collections.unmodifiableMap(this.battleStats);
     }
 
-    public Optional<String> getLastAttakerName() {
-        return lastAttakerName;
-    }
-
-    public int getLastAggroDamage() {
-        return lastAggroDamage;
-    }
-
-    public CommandContext.Reply launchCommand(String command) {
-        return this.basicAI.ProcessString(command);
-    }
-
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("BattleMemories [lastAttaker=").append(lastAttakerName).append(", lastAggroDamage=")
-                .append(lastAggroDamage).append(", battleStats=").append(battleStats).append("]");
+        builder.append("BattleStats [battleStats=").append(battleStats != null ? battleStats.values() : null)
+                .append("]");
         return builder.toString();
     }
 

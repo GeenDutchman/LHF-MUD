@@ -4,10 +4,12 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
+import com.lhf.game.EntityEffect;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
@@ -24,6 +26,7 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
+import com.lhf.messages.out.CreatureAffectedMessage;
 
 public class NonPlayerCharacter extends Creature {
     public static class BlessedFist extends Weapon {
@@ -51,6 +54,8 @@ public class NonPlayerCharacter extends Creature {
     private final Weapon defaultWeapon = new BlessedFist(this);
     private ConversationTree convoTree = null;
     public static final String defaultConvoTreeName = "verbal_default";
+    private transient Optional<String> lastAttackerName = Optional.empty();
+    private transient int lastDamage;
 
     protected static abstract class AbstractNPCBuilder<T extends AbstractNPCBuilder<T>>
             extends Creature.CreatureBuilder<T> {
@@ -215,4 +220,38 @@ public class NonPlayerCharacter extends Creature {
     public void restoreFaction() {
         this.setFaction(CreatureFaction.NPC);
     }
+
+    public Optional<String> getLastAttackerName() {
+        return lastAttackerName;
+    }
+
+    public void setLastAttackerName(String lastAttackerName) {
+        if (lastAttackerName != null && lastAttackerName.trim().length() > 0) {
+            this.lastAttackerName = Optional.of(lastAttackerName.trim());
+        } else {
+            this.lastAttackerName = Optional.empty();
+        }
+    }
+
+    public int getLastDamage() {
+        return lastDamage;
+    }
+
+    public void setLastDamage(int lastDamage) {
+        this.lastDamage = lastDamage;
+    }
+
+    @Override
+    public CreatureAffectedMessage processEffect(EntityEffect effect, boolean reverse) {
+        CreatureAffectedMessage cam = super.processEffect(effect, reverse);
+        if (cam != null) {
+            CreatureEffect ce = cam.getEffect();
+            if (ce != null && (ce.isOffensive() || ce.getDamageResult().getTotal() < 0)) {
+                this.setLastAttackerName(ce.creatureResponsible().getName());
+                this.setLastDamage(ce.getDamageResult().getTotal());
+            }
+        }
+        return cam;
+    }
+
 }

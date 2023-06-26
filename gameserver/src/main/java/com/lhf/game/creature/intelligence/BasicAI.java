@@ -1,6 +1,9 @@
 package com.lhf.game.creature.intelligence;
 
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -15,6 +18,11 @@ import com.lhf.game.creature.intelligence.handlers.ForgetOnOtherExit;
 import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
+import com.lhf.game.creature.vocation.Vocation;
+import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.HealthBuckets;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.OutMessageType;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.CreatureAffectedMessage;
@@ -27,7 +35,6 @@ import com.lhf.server.interfaces.NotNull;
 
 public class BasicAI extends Client {
     protected NonPlayerCharacter npc;
-    protected BattleMemories battleMemories;
     protected Map<OutMessageType, AIChunk> handlers;
     protected BlockingQueue<OutMessage> queue;
     protected AIRunner runner;
@@ -42,7 +49,6 @@ public class BasicAI extends Client {
         this.initBasicHandlers();
         this.runner = runner;
         this.queue = new ArrayBlockingQueue<>(32, true);
-        this.battleMemories = new BattleMemories(this);
     }
 
     public OutMessage peek() {
@@ -75,18 +81,10 @@ public class BasicAI extends Client {
         }
         this.handlers.put(OutMessageType.FIGHT_OVER, (BasicAI bai, OutMessage msg) -> {
             if (msg.getOutType().equals(OutMessageType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
-                bai.resetBattleMemories();
+                bai.npc.setLastAttackerName(null);
             }
         });
-        this.handlers.put(OutMessageType.SEE, (BasicAI bai, OutMessage msg) -> {
-            if (msg.getOutType().equals(OutMessageType.SEE) && bai.getNpc().isInBattle()) {
-                SeeOutMessage som = (SeeOutMessage) msg;
-                bai.getBattleMemories()
-                        .initialize(som.getTaggedCategory("Participants").stream()
-                                .filter(possCreature -> possCreature instanceof Creature)
-                                .map(toCreature -> (Creature) toCreature).collect(Collectors.toUnmodifiableList()));
-            }
-        });
+
         this.handlers.put(OutMessageType.FLEE, (BasicAI bai, OutMessage msg) -> {
             if (msg.getOutType().equals(OutMessageType.FLEE)) {
                 FleeMessage flee = (FleeMessage) msg;

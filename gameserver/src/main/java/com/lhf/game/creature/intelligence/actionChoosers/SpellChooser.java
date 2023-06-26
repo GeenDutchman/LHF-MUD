@@ -7,8 +7,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import com.lhf.game.battle.BattleStats;
 import com.lhf.game.creature.intelligence.ActionChooser;
-import com.lhf.game.creature.intelligence.BattleMemories;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.magic.SpellEntry;
 import com.lhf.messages.CommandContext;
@@ -21,7 +21,7 @@ public class SpellChooser implements ActionChooser {
         this.offensiveFocus = offensiveFocus;
     }
 
-    private SortedMap<String, Float> offensiveChoice(BattleMemories battleMemories, CreatureFaction myFaction,
+    private SortedMap<String, Float> offensiveChoice(BattleStats battleMemories, CreatureFaction myFaction,
             NavigableSet<SpellEntry> entries) {
         NavigableSet<SpellEntry> offEntries = entries.stream().filter(entry -> entry.isOffensive())
                 .collect(Collectors.toCollection(TreeSet::new));
@@ -32,13 +32,13 @@ public class SpellChooser implements ActionChooser {
         return selection;
     }
 
-    private SortedMap<String, Float> notOffensiveChoice(BattleMemories battleMemories, CreatureFaction myFaction,
+    private SortedMap<String, Float> notOffensiveChoice(BattleStats battleMemories, CreatureFaction myFaction,
             NavigableSet<SpellEntry> entries) {
         return new TreeMap<>();
     }
 
     @Override
-    public SortedMap<String, Float> chooseTarget(BattleMemories battleMemories, CreatureFaction myFaction) {
+    public SortedMap<String, Float> chooseTarget(BattleStats battleMemories, CreatureFaction myFaction) {
         SortedMap<String, Float> selection = new TreeMap<>();
         CommandContext.Reply reply = battleMemories.launchCommand("SPELLBOOK");
         if (!reply.isHandled()) {

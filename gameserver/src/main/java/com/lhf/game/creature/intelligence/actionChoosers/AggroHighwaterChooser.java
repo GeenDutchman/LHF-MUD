@@ -3,8 +3,8 @@ package com.lhf.game.creature.intelligence.actionChoosers;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.lhf.game.battle.BattleStats;
 import com.lhf.game.creature.intelligence.ActionChooser;
-import com.lhf.game.creature.intelligence.BattleMemories;
 import com.lhf.game.enums.CreatureFaction;
 
 public class AggroHighwaterChooser implements ActionChooser {
@@ -21,7 +21,7 @@ public class AggroHighwaterChooser implements ActionChooser {
     }
 
     @Override
-    public SortedMap<String, Float> chooseTarget(BattleMemories battleMemories, CreatureFaction myFaction) {
+    public SortedMap<String, Float> chooseTarget(BattleStats battleMemories, CreatureFaction myFaction) {
         SortedMap<String, Float> results = new TreeMap<>();
         if (battleMemories.getLastAttakerName().isPresent()) {
             results.put(battleMemories.getLastAttakerName().get(), this.weight);

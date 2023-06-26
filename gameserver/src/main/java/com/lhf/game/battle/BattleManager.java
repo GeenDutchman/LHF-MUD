@@ -35,6 +35,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
     private final TimeUnit turnBarrierWaitUnit;
     private AtomicReference<BattleManagerThread> battleThread;
     private Initiative participants;
+    private BattleStats battleStats;
     private Area room;
     private transient MessageHandler successor;
     private Map<CommandMessage, String> interceptorCmds;
@@ -157,6 +158,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
 
     public BattleManager(Area room, Builder builder) {
         this.participants = builder.initiativeBuilder.Build();
+        this.battleStats = new BattleStats().initialize(this.participants.getCreatures());
         this.room = room;
         this.successor = this.room;
         this.turnBarrierWaitCount = builder.waitCount;
