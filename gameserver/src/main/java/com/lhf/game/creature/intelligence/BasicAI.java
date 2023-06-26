@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler;
 import com.lhf.game.creature.intelligence.handlers.ForgetOnOtherExit;
 import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
@@ -190,6 +191,13 @@ public class BasicAI extends Client {
             return this;
         }
 
+        public boolean contains(String creatureName) {
+            if (this.lastAttakerName.isPresent() && this.lastAttakerName.get().equals(creatureName)) {
+                return true;
+            }
+            return this.battleStats.containsKey(creatureName);
+        }
+
         public BattleMemories remove(String creatureName) {
             this.battleStats.remove(creatureName);
             return this;
@@ -306,16 +314,6 @@ public class BasicAI extends Client {
                 }
             }
         });
-        this.handlers.put(OutMessageType.BATTLE_TURN, (BasicAI bai, OutMessage msg) -> {
-            if (msg.getOutType().equals(OutMessageType.BATTLE_TURN)) {
-                BattleTurnMessage btm = (BattleTurnMessage) msg;
-                if (bai.getNpc() != null && bai.getNpc().equals(btm.getMyTurn()) && !btm.isBroadcast()
-                        && btm.isYesTurn()) {
-                    bai.basicAttack();
-                }
-                return;
-            }
-        });
         this.handlers.put(OutMessageType.CREATURE_AFFECTED, (BasicAI bai, OutMessage msg) -> {
             if (msg.getOutType().equals(OutMessageType.CREATURE_AFFECTED) && bai.getNpc().isInBattle()) {
                 CreatureAffectedMessage caMessage = (CreatureAffectedMessage) msg;
@@ -327,51 +325,11 @@ public class BasicAI extends Client {
                 }
             }
         });
+        this.addHandler(new BattleTurnHandler());
         this.addHandler(new SpokenPromptChunk());
         this.addHandler(new ForgetOnOtherExit());
         this.addHandler(new HandleCreatureAffected());
         this.addHandler(new LewdAIHandler().setPartnersOnly());
-    }
-
-    public void setLastAttacker(Creature object) {
-        // TODO: ELIMIATE THIS
-    }
-
-    public Creature getLastAttacker() {
-        // TODO: ELIMINATE THIS
-        return null;
-    }
-
-    protected void selectNextTarget(Collection<Creature> possTargets) {
-        if (this.getLastAttacker() != null) {
-            return; // no need to reselect if known
-        }
-        for (Creature creature : possTargets) {
-            if (creature == this.getNpc()) {
-                continue;
-            }
-            if (creature.getFaction() == null || CreatureFaction.RENEGADE.equals(creature.getFaction())) {
-                this.setLastAttacker(creature);
-            }
-            if (this.getLastAttacker() == null) {
-                if (!CreatureFaction.NPC.equals(creature.getFaction())
-                        && this.npc.getFaction().competing(creature.getFaction())) {
-                    this.setLastAttacker(creature);
-                }
-            }
-        }
-    }
-
-    protected void basicAttack() {
-        if (this.getLastAttacker() == null) {
-            PassMessage passCommand = (PassMessage) CommandBuilder.fromCommand(CommandMessage.PASS, "pass");
-            this.handleMessage(null, passCommand);
-            return;
-        }
-        AttackMessage aMessage = (AttackMessage) CommandBuilder.fromCommand(CommandMessage.ATTACK,
-                this.getLastAttacker().getName());
-        CommandBuilder.addDirect(aMessage, this.getLastAttacker().getName());
-        super.handleMessage(null, aMessage);
     }
 
     public BasicAI addHandler(OutMessageType type, AIChunk chunk) {
