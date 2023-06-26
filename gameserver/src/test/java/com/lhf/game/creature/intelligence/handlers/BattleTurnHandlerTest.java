@@ -1,6 +1,8 @@
 package com.lhf.game.creature.intelligence.handlers;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -11,8 +13,18 @@ import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.google.common.truth.Truth;
 import com.google.common.truth.Truth8;
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.TickType;
+import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.intelligence.AIComBundle;
+import com.lhf.game.creature.intelligence.BasicAI.BattleMemories;
+import com.lhf.game.dice.DamageDice;
+import com.lhf.game.dice.DieType;
+import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -22,6 +34,7 @@ import com.lhf.messages.MessageHandler;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.BattleTurnMessage;
+import com.lhf.messages.out.CreatureAffectedMessage;
 
 public class BattleTurnHandlerTest {
     @Spy
@@ -35,7 +48,35 @@ public class BattleTurnHandlerTest {
 
     @Test
     void testChooseEnemyTarget() {
+        AIComBundle finder = new AIComBundle();
+        finder.npc.setFaction(CreatureFaction.RENEGADE);
+        AIComBundle attacker = new AIComBundle();
+        AIComBundle subAttacker = new AIComBundle();
 
+        BattleTurnHandler handler = new BattleTurnHandler();
+        finder.brain.addHandler(handler);
+
+        List<Map.Entry<String, Float>> targets = handler.chooseEnemyTarget(finder.brain.getBattleMemories(),
+                finder.npc.getFaction());
+        Truth.assertThat(targets).isEmpty();
+
+        CreatureEffectSource source = new CreatureEffectSource("test", new EffectPersistence(TickType.INSTANT), null,
+                "For a test", false).addDamage(new DamageDice(1, DieType.HUNDRED, DamageFlavor.BLUDGEONING));
+
+        finder.brain.getBattleMemories().update(CreatureAffectedMessage.getBuilder().setAffected(finder.npc)
+                .setEffect(new CreatureEffect(source, attacker.npc, attacker.npc)).Build());
+
+        targets = handler.chooseEnemyTarget(finder.brain.getBattleMemories(), finder.npc.getFaction());
+        Truth.assertThat(targets).isNotEmpty();
+        Truth.assertThat(targets).hasSize(1);
+
+        finder.brain.getBattleMemories().update(CreatureAffectedMessage.getBuilder().setAffected(finder.npc)
+                .setEffect(new CreatureEffect(source, subAttacker.npc, subAttacker.npc)).Build());
+
+        targets = handler.chooseEnemyTarget(finder.brain.getBattleMemories(), finder.npc.getFaction());
+        Truth.assertThat(targets).isNotEmpty();
+        Truth.assertThat(targets).hasSize(2);
+        Truth.assertThat(targets.get(0).getValue()).isAtLeast(targets.get(1).getValue());
     }
 
     @Test
@@ -80,8 +121,4 @@ public class BattleTurnHandlerTest {
         Mockito.verifyNoMoreInteractions(searcher.mockedWrappedHandler);
     }
 
-    @Test
-    void testHandle() {
-
-    }
 }

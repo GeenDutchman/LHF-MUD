@@ -41,7 +41,7 @@ public class BattleTurnHandler extends AIHandler {
                         TreeMap::new));
 
         List<Map.Entry<String, Float>> targetList = possTarget.entrySet().stream()
-                .sorted((e1, e2) -> e1.getValue().compareTo(e2.getValue())).toList();
+                .sorted((e1, e2) -> -1 * e1.getValue().compareTo(e2.getValue())).toList();
 
         this.logger.fine(() -> String.format("Target list: %s", targetList));
         return targetList;
