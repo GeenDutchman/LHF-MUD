@@ -7,7 +7,7 @@ import java.util.TreeMap;
 
 import com.lhf.game.creature.intelligence.ActionChooser;
 import com.lhf.game.creature.intelligence.BasicAI.BattleMemories;
-import com.lhf.game.creature.intelligence.BasicAI.BattleMemories.BattleStats;
+import com.lhf.game.creature.intelligence.BasicAI.BattleMemories.BattleStatRecord;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 
@@ -30,9 +30,9 @@ public class VocationChooser implements ActionChooser {
     @Override
     public SortedMap<String, Float> chooseTarget(BattleMemories battleMemories, CreatureFaction myFaction) {
         SortedMap<String, Float> results = new TreeMap<>();
-        Map<String, BattleStats> stats = battleMemories.getBattleStats();
+        Map<String, BattleStatRecord> stats = battleMemories.getBattleStats();
         if (stats != null) {
-            for (BattleStats stat : stats.values()) {
+            for (BattleStatRecord stat : stats.values()) {
                 float priority = ActionChooser.MIN_VALUE;
                 for (int i = 0; i < this.targetOrder.size(); i++) {
                     VocationName name = this.targetOrder.get(i);

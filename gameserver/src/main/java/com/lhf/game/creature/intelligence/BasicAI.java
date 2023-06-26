@@ -41,7 +41,7 @@ public class BasicAI extends Client {
     protected AIRunner runner;
 
     public class BattleMemories {
-        public class BattleStats {
+        public class BattleStatRecord {
             protected final String targetName;
             private CreatureFaction faction;
             private Vocation vocation;
@@ -52,7 +52,8 @@ public class BasicAI extends Client {
             private int numDamgages;
             private int healingPerformed;
 
-            public BattleStats(String targetName, CreatureFaction faction, Vocation vocation, HealthBuckets bucket) {
+            public BattleStatRecord(String targetName, CreatureFaction faction, Vocation vocation,
+                    HealthBuckets bucket) {
                 this.targetName = targetName;
                 this.faction = faction;
                 this.vocation = vocation;
@@ -114,7 +115,7 @@ public class BasicAI extends Client {
 
         protected Optional<String> lastAttakerName;
         protected int lastAggroDamage;
-        protected Map<String, BattleStats> battleStats;
+        protected Map<String, BattleStatRecord> battleStats;
 
         public BattleMemories() {
             this.lastAggroDamage = 0;
@@ -143,7 +144,7 @@ public class BasicAI extends Client {
 
             if (!this.battleStats.containsKey(responsible.getName())) {
                 this.battleStats.put(responsible.getName(),
-                        new BattleStats(responsible.getName(), responsible.getFaction(), responsible.getVocation(),
+                        new BattleStatRecord(responsible.getName(), responsible.getFaction(), responsible.getVocation(),
                                 responsible.getHealthBucket()));
             }
             if (ca.getAffected() == BasicAI.this.npc && ca.getEffect().isOffensive()) {
@@ -152,7 +153,7 @@ public class BasicAI extends Client {
                     this.lastAttakerName = Optional.of(responsible.getName());
                 }
             }
-            BattleStats found = this.battleStats.get(responsible.getName());
+            BattleStatRecord found = this.battleStats.get(responsible.getName());
             if (found == null) {
                 return this;
             }
@@ -172,10 +173,10 @@ public class BasicAI extends Client {
                 if (creature != null) {
                     if (!this.battleStats.containsKey(creature.getName())) {
                         this.battleStats.put(creature.getName(),
-                                new BattleStats(creature.getName(), creature.getFaction(), creature.getVocation(),
+                                new BattleStatRecord(creature.getName(), creature.getFaction(), creature.getVocation(),
                                         creature.getHealthBucket()));
                     } else {
-                        BattleStats found = this.battleStats.get(creature.getName());
+                        BattleStatRecord found = this.battleStats.get(creature.getName());
                         found.faction = creature.getFaction(); // update just in case
                     }
                 }
@@ -195,7 +196,7 @@ public class BasicAI extends Client {
             return this;
         }
 
-        public Map<String, BattleStats> getBattleStats() {
+        public Map<String, BattleStatRecord> getBattleStats() {
             return Collections.unmodifiableMap(this.battleStats);
         }
 

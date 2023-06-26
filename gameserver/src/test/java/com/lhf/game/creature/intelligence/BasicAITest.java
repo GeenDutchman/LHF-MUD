@@ -23,7 +23,7 @@ import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
-import com.lhf.game.creature.intelligence.BasicAI.BattleMemories.BattleStats;
+import com.lhf.game.creature.intelligence.BasicAI.BattleMemories.BattleStatRecord;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.out.BadTargetSelectedMessage;
