@@ -58,7 +58,11 @@ public class CommandContext implements ClientMessenger {
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append("Reply [handled=").append(handled).append("]");
+            builder.append("Reply [handled=").append(handled)
+                    .append(",messageTypes=")
+                    .append(this.getMessages().stream().map(outMessage -> outMessage.getOutType()).toList())
+                    .append(",helps=").append(this.getHelps().keySet())
+                    .append("]");
             return builder.toString();
         }
 
