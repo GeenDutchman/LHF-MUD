@@ -1,11 +1,8 @@
 package com.lhf.game.creature.intelligence.handlers;
 
-import static org.mockito.Mockito.timeout;
-
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -16,19 +13,15 @@ import org.mockito.stubbing.Answer;
 
 import com.google.common.truth.Truth8;
 import com.lhf.game.creature.intelligence.AIComBundle;
-import com.lhf.game.creature.intelligence.BasicAI.BattleMemories.BattleStats;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMatcher;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
-import com.lhf.messages.MessageMatcher;
 import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.BattleTurnMessage;
-import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.out.BattleTurnMessage;
 
 public class BattleTurnHandlerTest {
     @Spy

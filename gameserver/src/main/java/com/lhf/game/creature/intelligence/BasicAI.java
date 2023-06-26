@@ -1,7 +1,5 @@
 package com.lhf.game.creature.intelligence;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
@@ -13,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler;
@@ -25,14 +22,9 @@ import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealthBuckets;
-import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.OutMessageType;
-import com.lhf.messages.in.AttackMessage;
-import com.lhf.messages.in.PassMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.BattleTurnMessage;
 import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.FleeMessage;
 import com.lhf.messages.out.OutMessage;
