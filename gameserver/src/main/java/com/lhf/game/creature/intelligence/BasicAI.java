@@ -298,33 +298,12 @@ public class BasicAI extends Client {
         });
         this.handlers.put(OutMessageType.BAD_TARGET_SELECTED, (BasicAI bai, OutMessage msg) -> {
             if (msg.getOutType().equals(OutMessageType.BAD_TARGET_SELECTED) && bai.getNpc().isInBattle()) {
-                bai.setLastAttacker(null); // the message means that this was invalid anyway
                 BadTargetSelectedMessage btsm = (BadTargetSelectedMessage) msg;
-                ArrayList<Creature> creaturesFound = new ArrayList<>();
-                if (btsm.getPossibleTargets() != null) {
-                    for (Taggable target : btsm.getPossibleTargets()) {
-                        if (target instanceof Creature) {
-                            creaturesFound.add((Creature) target);
-                        }
-                    }
-                }
-                if (bai.getNpc() != null && bai.getNpc().isInBattle()) {
-                    bai.selectNextTarget(creaturesFound);
-                    bai.basicAttack();
-                }
+                this.logger.warning(() -> String.format("%s selected a bad target: %s with possible targets", bai, btsm,
+                        btsm.getPossibleTargets()));
             }
         });
-        this.handlers.put(OutMessageType.CREATURE_AFFECTED, (BasicAI bai, OutMessage msg) -> {
-            if (msg.getOutType().equals(OutMessageType.CREATURE_AFFECTED) && bai.getNpc().isInBattle()) {
-                CreatureAffectedMessage caMessage = (CreatureAffectedMessage) msg;
-                if (caMessage.getAffected() != bai.getNpc()) {
-                    return;
-                }
-                if (caMessage.getEffect().isOffensive()) {
-                    bai.setLastAttacker(caMessage.getEffect().creatureResponsible());
-                }
-            }
-        });
+
         this.addHandler(new BattleTurnHandler());
         this.addHandler(new SpokenPromptChunk());
         this.addHandler(new ForgetOnOtherExit());
