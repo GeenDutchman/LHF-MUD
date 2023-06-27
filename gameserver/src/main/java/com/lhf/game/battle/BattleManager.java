@@ -19,6 +19,7 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.map.Area;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -884,6 +885,13 @@ public class BattleManager implements CreatureContainerMessageHandler {
                 }
             }
         }
+    }
+
+    @Override
+    public Collection<ClientMessenger> getClientMessengers() {
+        Collection<ClientMessenger> messengers = CreatureContainerMessageHandler.super.getClientMessengers();
+        messengers.add(this.battleStats);
+        return messengers;
     }
 
     @Override

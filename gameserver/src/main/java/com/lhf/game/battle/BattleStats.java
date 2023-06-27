@@ -11,9 +11,13 @@ import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealthBuckets;
+import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.OutMessageType;
 import com.lhf.messages.out.CreatureAffectedMessage;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.server.client.ClientID;
 
-public class BattleStats {
+public class BattleStats implements ClientMessenger {
     /**
      *
      */
@@ -114,7 +118,8 @@ public class BattleStats {
 
     }
 
-    protected Map<String, BattleStatRecord> battleStats;
+    private Map<String, BattleStatRecord> battleStats;
+    private ClientID clientID = new ClientID();
 
     public BattleStats() {
         this.battleStats = new TreeMap<>();
@@ -211,6 +216,34 @@ public class BattleStats {
         builder.append("BattleStats [battleStats=").append(battleStats != null ? battleStats.values() : null)
                 .append("]");
         return builder.toString();
+    }
+
+    @Override
+    public String getStartTag() {
+        return "<BattleStats>";
+    }
+
+    @Override
+    public String getEndTag() {
+        return "</BattleStats>";
+    }
+
+    @Override
+    public String getColorTaggedName() {
+        return this.getStartTag() + "Battle Statistics" + this.getEndTag();
+    }
+
+    @Override
+    public void sendMsg(OutMessage msg) {
+        if (msg != null && OutMessageType.CREATURE_AFFECTED.equals(msg.getOutType())) {
+            CreatureAffectedMessage cam = (CreatureAffectedMessage) msg;
+            this.update(cam);
+        }
+    }
+
+    @Override
+    public ClientID getClientID() {
+        return this.clientID;
     }
 
 }
