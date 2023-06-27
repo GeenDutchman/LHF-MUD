@@ -232,6 +232,9 @@ public class BattleManager implements CreatureContainerMessageHandler {
                 .add("Uses an item that you have on something or someone else, if applicable.")
                 .add("Like \"use potion on Bob\"");
         cmds.put(CommandMessage.USE, sj.toString());
+        sj = new StringJoiner(" ");
+        sj.add("\"stats\"").add("Retrieves the statistics about the current battle.");
+        cmds.put(CommandMessage.STATS, sj.toString());
         return cmds;
     }
 
@@ -661,6 +664,10 @@ public class BattleManager implements CreatureContainerMessageHandler {
                     handled = this.handlePass(ctx, msg);
                 } else if (type == CommandMessage.USE) {
                     handled = this.handleUse(ctx, msg);
+                } else if (type == CommandMessage.STATS) {
+                    ctx.sendMsg(StatsOutMessage.getBuilder().addRecords(this.battleStats.getBattleStatSet())
+                            .setNotBroadcast());
+                    handled = ctx.handled();
                 }
             }
             if (handled.isHandled()) {
