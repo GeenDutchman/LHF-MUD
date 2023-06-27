@@ -1,5 +1,6 @@
 package com.lhf.game.battle;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
@@ -208,6 +209,10 @@ public class BattleStats implements ClientMessenger {
 
     public Map<String, BattleStatRecord> getBattleStats() {
         return Collections.unmodifiableMap(this.battleStats);
+    }
+
+    public Collection<BattleStatRecord> getBattleStatSet() {
+        return Collections.unmodifiableCollection(this.battleStats.values());
     }
 
     @Override
