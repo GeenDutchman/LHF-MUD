@@ -17,6 +17,7 @@ import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
@@ -54,8 +55,60 @@ public class NonPlayerCharacter extends Creature {
     private final Weapon defaultWeapon = new BlessedFist(this);
     private ConversationTree convoTree = null;
     public static final String defaultConvoTreeName = "verbal_default";
-    private transient Optional<String> lastAttackerName = Optional.empty();
-    private transient int lastDamage;
+
+    public class HarmMemories {
+        private Optional<String> lastAttackerName = Optional.empty();
+        private int lastDamageAmount = 0;
+        private Optional<String> lastMassAttackerName = Optional.empty();
+        private int lastMassDamageAmount = 0;
+
+        public Optional<String> getLastAttackerName() {
+            return lastAttackerName;
+        }
+
+        public int getLastDamageAmount() {
+            return lastDamageAmount;
+        }
+
+        public Optional<String> getLastMassAttackerName() {
+            return lastMassAttackerName;
+        }
+
+        public int getLastMassDamageAmount() {
+            return lastMassDamageAmount;
+        }
+
+        public HarmMemories reset() {
+            this.lastAttackerName = Optional.empty();
+            this.lastMassAttackerName = Optional.empty();
+            this.lastDamageAmount = 0;
+            this.lastMassDamageAmount = 0;
+            return this;
+        }
+
+        public HarmMemories update(CreatureAffectedMessage cam) {
+            if (cam == null) {
+                return this;
+            }
+            CreatureEffect ce = cam.getEffect();
+            if (ce == null) {
+                return this;
+            }
+            MultiRollResult damage = ce.getDamageResult();
+            if (ce.isOffensive()) {
+                this.lastAttackerName = Optional.of(ce.creatureResponsible().getName());
+                this.lastDamageAmount = damage.getTotal();
+            }
+            if (damage.getTotal() >= this.lastMassDamageAmount) {
+                this.lastMassDamageAmount = damage.getTotal();
+                this.lastMassAttackerName = Optional.of(ce.creatureResponsible().getName());
+            }
+            return this;
+        }
+
+    }
+
+    private transient HarmMemories harmMemories = new HarmMemories();
 
     protected static abstract class AbstractNPCBuilder<T extends AbstractNPCBuilder<T>>
             extends Creature.CreatureBuilder<T> {
@@ -221,36 +274,14 @@ public class NonPlayerCharacter extends Creature {
         this.setFaction(CreatureFaction.NPC);
     }
 
-    public Optional<String> getLastAttackerName() {
-        return lastAttackerName;
-    }
-
-    public void setLastAttackerName(String lastAttackerName) {
-        if (lastAttackerName != null && lastAttackerName.trim().length() > 0) {
-            this.lastAttackerName = Optional.of(lastAttackerName.trim());
-        } else {
-            this.lastAttackerName = Optional.empty();
-        }
-    }
-
-    public int getLastDamage() {
-        return lastDamage;
-    }
-
-    public void setLastDamage(int lastDamage) {
-        this.lastDamage = lastDamage;
+    public HarmMemories getHarmMemories() {
+        return harmMemories;
     }
 
     @Override
     public CreatureAffectedMessage processEffect(EntityEffect effect, boolean reverse) {
         CreatureAffectedMessage cam = super.processEffect(effect, reverse);
-        if (cam != null) {
-            CreatureEffect ce = cam.getEffect();
-            if (ce != null && (ce.isOffensive() || ce.getDamageResult().getTotal() < 0)) {
-                this.setLastAttackerName(ce.creatureResponsible().getName());
-                this.setLastDamage(ce.getDamageResult().getTotal());
-            }
-        }
+        this.getHarmMemories().update(cam);
         return cam;
     }
 
