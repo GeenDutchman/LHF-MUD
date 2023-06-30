@@ -2,6 +2,7 @@ package com.lhf.game.creature.intelligence.actionChoosers;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -29,11 +30,11 @@ public class RandomTargetChooser implements ActionChooser {
 
     @Override
     public SortedMap<String, Double> chooseTarget(Optional<Collection<BattleStatRecord>> battleMemories,
-            HarmMemories harmMemories, CreatureFaction myFaction) {
+            HarmMemories harmMemories, Set<CreatureFaction> targetFactions) {
         SortedMap<String, Double> results = new TreeMap<>();
         if (battleMemories.isPresent()) {
             for (BattleStatRecord stat : battleMemories.get()) {
-                if (myFaction == null || myFaction.competing(stat.getFaction())) {
+                if (targetFactions == null || targetFactions.contains(stat.getFaction())) {
                     results.put(stat.getTargetName(),
                             (double) roller.rollDice().getRoll() / roller.getType().getType());
                 }

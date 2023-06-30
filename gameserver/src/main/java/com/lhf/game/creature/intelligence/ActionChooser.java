@@ -2,6 +2,7 @@ package com.lhf.game.creature.intelligence;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import java.util.SortedMap;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
@@ -13,7 +14,7 @@ public interface ActionChooser extends Comparable<ActionChooser> {
 
     public SortedMap<String, Double> chooseTarget(Optional<Collection<BattleStatRecord>> battleMemories,
             HarmMemories harmMemories,
-            CreatureFaction myFaction);
+            Set<CreatureFaction> targetFactions);
 
     @Override
     public default int compareTo(ActionChooser arg0) {

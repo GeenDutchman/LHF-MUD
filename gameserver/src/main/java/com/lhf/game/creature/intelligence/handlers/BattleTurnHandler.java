@@ -42,10 +42,15 @@ public class BattleTurnHandler extends AIHandler {
             HarmMemories harmMemories,
             CreatureFaction myFaction) {
         SortedMap<String, Double> possTarget = this.enemyTargetChoosers.stream()
-                .flatMap(chooser -> chooser.chooseTarget(battleMemories, harmMemories, myFaction).entrySet().stream())
+                .flatMap(chooser -> chooser
+                        .chooseTarget(battleMemories, harmMemories, CreatureFaction.competeSet(myFaction)).entrySet()
+                        .stream())
                 .collect(Collectors.groupingBy(Map.Entry::getKey, TreeMap::new,
                         Collectors.summingDouble(Map.Entry::getValue)));
 
+        if (harmMemories != null) {
+            possTarget.remove(harmMemories.getOwnerName());
+        }
         List<Map.Entry<String, Double>> targetList = possTarget.entrySet().stream()
                 .sorted((e1, e2) -> -1 * e1.getValue().compareTo(e2.getValue())).toList();
 

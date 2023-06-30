@@ -2,6 +2,7 @@ package com.lhf.game.creature.intelligence.actionChoosers;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -14,13 +15,16 @@ public class AggroStatsChooser implements ActionChooser {
 
     @Override
     public SortedMap<String, Double> chooseTarget(Optional<Collection<BattleStatRecord>> battleMemories,
-            HarmMemories harmMemories, CreatureFaction myFaction) {
+            HarmMemories harmMemories, Set<CreatureFaction> targetFactions) {
         SortedMap<String, Double> results = new TreeMap<>();
         if (battleMemories.isPresent() && battleMemories.get() != null) {
             float max = 0;
             float min = 0;
             for (BattleStatRecord stat : battleMemories.get()) {
-                if (myFaction == null || myFaction.competing(stat.getFaction())) {
+                if (harmMemories != null && harmMemories.getOwnerName().equals(stat.getTargetName())) {
+                    continue;
+                }
+                if (targetFactions == null || targetFactions.contains(stat.getFaction())) {
                     if (stat.getAggroDamage() > max) {
                         max = stat.getAggroDamage();
                     }
@@ -30,7 +34,10 @@ public class AggroStatsChooser implements ActionChooser {
                 }
             }
             for (BattleStatRecord stat : battleMemories.get()) {
-                if (myFaction == null || myFaction.competing(stat.getFaction())) {
+                if (harmMemories != null && harmMemories.getOwnerName().equals(stat.getTargetName())) {
+                    continue;
+                }
+                if (targetFactions == null || targetFactions.contains(stat.getFaction())) {
                     float calculated = (stat.getAggroDamage() - min) / (max - min);
                     results.put(stat.getTargetName(), calculated > 0.0f ? calculated : ActionChooser.MIN_VALUE);
                 }
