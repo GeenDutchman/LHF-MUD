@@ -91,7 +91,7 @@ public class NonPlayerCharacter extends Creature {
         }
 
         public HarmMemories update(CreatureAffectedMessage cam) {
-            if (cam == null) {
+            if (cam == null || !NonPlayerCharacter.this.equals(cam.getAffected())) {
                 return this;
             }
             CreatureEffect ce = cam.getEffect();
