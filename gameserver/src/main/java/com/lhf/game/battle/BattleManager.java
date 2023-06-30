@@ -322,6 +322,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
         if (participants.removeCreature(c)) {
             c.setInBattle(false);
             c.setSuccessor(this.successor);
+            this.battleStats.remove(c.getName());
             if (!this.checkCompetingFactionsPresent()) {
                 endBattle();
             }
