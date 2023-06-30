@@ -28,9 +28,14 @@ public class AggroHighwaterChooser implements ActionChooser {
     public SortedMap<String, Double> chooseTarget(Optional<Collection<BattleStatRecord>> battleMemories,
             HarmMemories harmMemories, Set<CreatureFaction> targetFactions) {
         SortedMap<String, Double> results = new TreeMap<>();
-        if (battleMemories != null && battleMemories.isPresent() && battleMemories.get().stream().filter(stat -> harmMemories != null && harmMemories.getLastMassAttackerName().isPresent() && stat.getTargetName().equals(harmMemories.getLastMassAttackerName().get())).findAny().isPresent())
+        if (battleMemories != null && battleMemories.isPresent()
+                && battleMemories.get().stream()
+                        .filter(stat -> harmMemories != null && harmMemories.getLastMassAttackerName().isPresent()
+                                && stat.getTargetName().equals(harmMemories.getLastMassAttackerName().get()))
+                        .findAny().isPresent()) {
             results.put(harmMemories.getLastMassAttackerName().get(), this.weight);
-        }return results;
-}
+        }
+        return results;
+    }
 
 }
