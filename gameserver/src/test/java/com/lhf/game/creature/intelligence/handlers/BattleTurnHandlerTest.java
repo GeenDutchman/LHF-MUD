@@ -2,7 +2,8 @@ package com.lhf.game.creature.intelligence.handlers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -17,14 +18,15 @@ import com.google.common.truth.Truth;
 import com.google.common.truth.Truth8;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
+import com.lhf.game.battle.BattleStats;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.intelligence.AIComBundle;
+import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
-import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -54,25 +56,35 @@ public class BattleTurnHandlerTest {
 
         BattleTurnHandler handler = new BattleTurnHandler();
         finder.brain.addHandler(handler);
+        BattleStats battleStats = new BattleStats().initialize(List.of(finder.npc, attacker.npc, subAttacker.npc));
 
-        List<Map.Entry<String, Float>> targets = handler.chooseEnemyTarget(finder.brain.getBattleMemories(),
+        List<Entry<String, Double>> targets = handler.chooseEnemyTarget(Optional.of(battleStats.getBattleStatSet()),
+                finder.npc.getHarmMemories(),
                 finder.npc.getFaction());
         Truth.assertThat(targets).isEmpty();
 
         CreatureEffectSource source = new CreatureEffectSource("test", new EffectPersistence(TickType.INSTANT), null,
                 "For a test", false).addDamage(new DamageDice(1, DieType.HUNDRED, DamageFlavor.BLUDGEONING));
 
-        finder.brain.getBattleMemories().update(CreatureAffectedMessage.getBuilder().setAffected(finder.npc)
-                .setEffect(new CreatureEffect(source, attacker.npc, attacker.npc)).Build());
+        CreatureAffectedMessage cam = CreatureAffectedMessage.getBuilder().setAffected(finder.npc)
+                .setEffect(new CreatureEffect(source, attacker.npc, attacker.npc)).Build();
 
-        targets = handler.chooseEnemyTarget(finder.brain.getBattleMemories(), finder.npc.getFaction());
+        finder.npc.getHarmMemories().update(cam);
+        battleStats.update(cam);
+
+        targets = handler.chooseEnemyTarget(Optional.of(battleStats.getBattleStatSet()), finder.npc.getHarmMemories(),
+                finder.npc.getFaction());
         Truth.assertThat(targets).isNotEmpty();
         Truth.assertThat(targets).hasSize(1);
 
-        finder.brain.getBattleMemories().update(CreatureAffectedMessage.getBuilder().setAffected(finder.npc)
-                .setEffect(new CreatureEffect(source, subAttacker.npc, subAttacker.npc)).Build());
+        cam = CreatureAffectedMessage.getBuilder().setAffected(finder.npc)
+                .setEffect(new CreatureEffect(source, subAttacker.npc, subAttacker.npc)).Build();
 
-        targets = handler.chooseEnemyTarget(finder.brain.getBattleMemories(), finder.npc.getFaction());
+        finder.npc.getHarmMemories().update(cam);
+        battleStats.update(cam);
+
+        targets = handler.chooseEnemyTarget(Optional.of(battleStats.getBattleStatSet()), finder.npc.getHarmMemories(),
+                finder.npc.getFaction());
         Truth.assertThat(targets).isNotEmpty();
         Truth.assertThat(targets).hasSize(2);
         Truth.assertThat(targets.get(0).getValue()).isAtLeast(targets.get(1).getValue());
@@ -114,7 +126,7 @@ public class BattleTurnHandlerTest {
         // trigger it
         searcher.npc.sendMsg(BattleTurnMessage.getBuilder().setCurrentCreature(searcher.npc).setYesTurn(true).Build());
 
-        Truth8.assertThat(searcher.brain.getBattleMemories().getLastAttakerName()).isEmpty();
+        Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();
         Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains("PASS")));
         Mockito.verifyNoMoreInteractions(searcher.mockedWrappedHandler);
