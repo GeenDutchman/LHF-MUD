@@ -1,5 +1,9 @@
 package com.lhf.game.enums;
 
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
+
 public enum CreatureFaction {
     PLAYER, MONSTER, NPC, RENEGADE;
 
@@ -16,22 +20,56 @@ public enum CreatureFaction {
         return CreatureFaction.getFaction(value) != null;
     }
 
+    public static Set<CreatureFaction> competeSet(CreatureFaction aFaction) {
+        if (aFaction == null || RENEGADE.equals(aFaction)) {
+            return Collections.unmodifiableSet(EnumSet.allOf(CreatureFaction.class));
+        }
+        switch (aFaction) {
+            case MONSTER:
+                return Collections.unmodifiableSet(EnumSet.of(PLAYER, RENEGADE));
+            case NPC:
+                return Collections.unmodifiableSet(EnumSet.of(MONSTER, RENEGADE));
+            case PLAYER:
+                return Collections.unmodifiableSet(EnumSet.of(MONSTER, RENEGADE));
+            case RENEGADE:
+                return Collections.unmodifiableSet(EnumSet.allOf(CreatureFaction.class));
+            default:
+                return Collections.unmodifiableSet(EnumSet.allOf(CreatureFaction.class));
+        }
+    }
+
+    public static Set<CreatureFaction> allySet(CreatureFaction aFaction) {
+        if (aFaction == null || RENEGADE.equals(aFaction)) {
+            return Collections.unmodifiableSet(EnumSet.noneOf(CreatureFaction.class));
+        }
+
+        switch (aFaction) {
+            case MONSTER:
+                return Collections.unmodifiableSet(EnumSet.of(MONSTER));
+            case NPC:
+                return Collections.unmodifiableSet(EnumSet.of(PLAYER, NPC));
+            case PLAYER:
+                return Collections.unmodifiableSet(EnumSet.of(PLAYER, NPC));
+            case RENEGADE:
+                return Collections.unmodifiableSet(EnumSet.noneOf(CreatureFaction.class));
+            default:
+                return Collections.unmodifiableSet(EnumSet.noneOf(CreatureFaction.class));
+
+        }
+    }
+
     public boolean competing(CreatureFaction other) {
         if (other == null || RENEGADE.equals(other)) {
             return true;
         }
-        switch (this) {
-            case MONSTER:
-                return PLAYER.equals(other);
-            case NPC:
-                return !NPC.equals(other);
-            case PLAYER:
-                return MONSTER.equals(other);
-            case RENEGADE:
-                return true;
-            default:
-                return true;
+        return CreatureFaction.competeSet(this).contains(other);
+    }
+
+    public boolean allied(CreatureFaction other) {
+        if (other == null || RENEGADE.equals(other)) {
+            return false;
         }
+        return CreatureFaction.allySet(this).contains(other);
     }
 
 }
