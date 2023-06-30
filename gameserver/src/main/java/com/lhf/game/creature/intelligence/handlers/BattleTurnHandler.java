@@ -17,6 +17,7 @@ import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.intelligence.actionChoosers.AggroHighwaterChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.AggroStatsChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.RandomTargetChooser;
+import com.lhf.game.creature.intelligence.actionChoosers.VocationChooser;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -36,6 +37,7 @@ public class BattleTurnHandler extends AIHandler {
         this.enemyTargetChoosers.add(new RandomTargetChooser());
         this.enemyTargetChoosers.add(new AggroStatsChooser());
         this.enemyTargetChoosers.add(new AggroHighwaterChooser());
+        this.enemyTargetChoosers.add(new VocationChooser());
     }
 
     public List<Map.Entry<String, Double>> chooseEnemyTarget(Optional<Collection<BattleStatRecord>> battleMemories,

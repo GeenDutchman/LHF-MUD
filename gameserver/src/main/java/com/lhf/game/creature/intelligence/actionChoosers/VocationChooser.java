@@ -1,11 +1,14 @@
 package com.lhf.game.creature.intelligence.actionChoosers;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.lhf.game.battle.BattleStats;
+import com.lhf.game.battle.BattleStats.BattleStatRecord;
+import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.ActionChooser;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
@@ -27,12 +30,12 @@ public class VocationChooser implements ActionChooser {
     }
 
     @Override
-    public SortedMap<String, Float> chooseTarget(BattleStats battleMemories, CreatureFaction myFaction) {
-        SortedMap<String, Float> results = new TreeMap<>();
-        Map<String, BattleStatRecord> stats = battleMemories.getBattleStats();
-        if (stats != null) {
-            for (BattleStatRecord stat : stats.values()) {
-                float priority = ActionChooser.MIN_VALUE;
+    public SortedMap<String, Double> chooseTarget(Optional<Collection<BattleStatRecord>> battleMemories,
+            HarmMemories harmMemories, Set<CreatureFaction> targetFactions) {
+        SortedMap<String, Double> results = new TreeMap<>();
+        if (battleMemories != null && battleMemories.isPresent()) {
+            for (BattleStatRecord stat : battleMemories.get()) {
+                double priority = ActionChooser.MIN_VALUE;
                 for (int i = 0; i < this.targetOrder.size(); i++) {
                     VocationName name = this.targetOrder.get(i);
                     if (name != null && stat.getVocation() != null
