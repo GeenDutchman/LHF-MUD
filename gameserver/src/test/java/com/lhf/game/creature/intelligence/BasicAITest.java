@@ -16,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.google.common.truth.Truth8;
-
 import com.lhf.Taggable;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.CreatureEffect;
@@ -26,12 +25,11 @@ import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.BattleTurnMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.server.client.ClientID;
 import com.lhf.messages.out.CreatureAffectedMessage;
-import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.SpeakingMessage;
+import com.lhf.server.client.ClientID;
 
 @ExtendWith(MockitoExtension.class)
 public class BasicAITest {
@@ -90,7 +88,7 @@ public class BasicAITest {
                                 .Build();
                 sendMsgAndWait(adm, victim);
 
-                Truth8.assertThat(victim.brain.getBattleMemories().getLastAttakerName()).isEmpty();
+                Truth8.assertThat(victim.npc.getHarmMemories().getLastAttackerName()).isEmpty();
 
                 victim.npc.setInBattle(true); // turn it on!
 
@@ -102,8 +100,8 @@ public class BasicAITest {
                 Mockito.verify(victim.sssb, Mockito.timeout(1000)).send(doneAttack);
 
                 Truth.assertWithMessage("The victim should remember the attacker")
-                                .that(victim.brain.getBattleMemories().getBattleStats())
-                                .containsKey(attacker.npc.getName());
+                                .that(victim.npc.getHarmMemories().getLastAttackerName().get())
+                                .isEqualTo(attacker.npc.getName());
                 // verify that both attack effects got handled before reaching the final handler
                 Mockito.verify(victim.mockedWrappedHandler, Mockito.after(100).never()).handleMessage(Mockito.any(),
                                 Mockito.any());
@@ -121,8 +119,8 @@ public class BasicAITest {
                 BadTargetSelectedMessage btsm = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR)
                                 .setBadTarget("bloohoo jane").setPossibleTargets(stuff).Build();
                 sendMsgAndWait(btsm, searcher);
-                Truth.assertThat(searcher.brain.getBattleMemories().getLastAttakerName().get()).isNotNull();
-                Truth.assertThat(searcher.brain.getBattleMemories().getLastAttakerName().get()).isEqualTo(victim.npc);
+                Truth.assertThat(searcher.npc.getHarmMemories().getLastAttackerName().get()).isNotNull();
+                Truth.assertThat(searcher.npc.getHarmMemories().getLastAttackerName().get()).isEqualTo(victim.npc);
                 Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
                                 Mockito.argThat((command) -> command != null
                                                 && command.getWhole().contains(victim.npc.getName())));
@@ -139,7 +137,7 @@ public class BasicAITest {
                 BadTargetSelectedMessage btsm = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR)
                                 .setBadTarget("bloohoo jane").setPossibleTargets(stuff).Build();
                 sendMsgAndWait(btsm, searcher);
-                Truth8.assertThat(searcher.brain.getBattleMemories().getLastAttakerName()).isEmpty();
+                Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();
                 Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
                                 Mockito.argThat((command) -> command != null && command.getWhole().contains("pass")));
 
