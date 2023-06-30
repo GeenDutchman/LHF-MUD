@@ -38,6 +38,10 @@ public enum CreatureFaction {
         }
     }
 
+    public Set<CreatureFaction> competeSet() {
+        return CreatureFaction.competeSet(this);
+    }
+
     public static Set<CreatureFaction> allySet(CreatureFaction aFaction) {
         if (aFaction == null || RENEGADE.equals(aFaction)) {
             return Collections.unmodifiableSet(EnumSet.noneOf(CreatureFaction.class));
@@ -56,6 +60,10 @@ public enum CreatureFaction {
                 return Collections.unmodifiableSet(EnumSet.noneOf(CreatureFaction.class));
 
         }
+    }
+
+    public Set<CreatureFaction> allySet() {
+        return CreatureFaction.allySet(this);
     }
 
     public boolean competing(CreatureFaction other) {
