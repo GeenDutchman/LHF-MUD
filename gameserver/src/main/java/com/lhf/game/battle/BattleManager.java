@@ -302,6 +302,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
             if (participants.addCreature(c)) {
                 c.setInBattle(true);
                 c.setSuccessor(this);
+                this.battleStats.initialize(this.getCreatures());
                 JoinBattleMessage.Builder joinedMessage = JoinBattleMessage.getBuilder().setJoiner(c)
                         .setOngoing(isBattleOngoing()).setBroacast();// new JoinBattleMessage(c, this.isBattleOngoing(),
                                                                      // false);

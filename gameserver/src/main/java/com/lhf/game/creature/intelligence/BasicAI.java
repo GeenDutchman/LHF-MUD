@@ -81,7 +81,7 @@ public class BasicAI extends Client {
         }
         this.handlers.put(OutMessageType.FIGHT_OVER, (BasicAI bai, OutMessage msg) -> {
             if (msg.getOutType().equals(OutMessageType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
-                bai.npc.setLastAttackerName(null);
+                bai.npc.getHarmMemories().reset();
             }
         });
 
@@ -90,9 +90,9 @@ public class BasicAI extends Client {
                 FleeMessage flee = (FleeMessage) msg;
                 if (flee.isFled() && flee.getRunner() != null) {
                     if (flee.getRunner() == bai.getNpc()) {
-                        bai.resetBattleMemories();
+                        bai.npc.getHarmMemories().reset();
                     } else {
-                        bai.getBattleMemories().remove(flee.getRunner().getName());
+                        bai.npc.getBattleMemories().remove(flee.getRunner().getName());
                     }
                 }
             }
