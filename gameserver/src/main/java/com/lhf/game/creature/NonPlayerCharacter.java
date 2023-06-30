@@ -62,6 +62,10 @@ public class NonPlayerCharacter extends Creature {
         private Optional<String> lastMassAttackerName = Optional.empty();
         private int lastMassDamageAmount = 0;
 
+        public String getOwnerName() {
+            return NonPlayerCharacter.this.getName();
+        }
+
         public Optional<String> getLastAttackerName() {
             return lastAttackerName;
         }

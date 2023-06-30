@@ -1,10 +1,12 @@
 package com.lhf.game.creature.intelligence.actionChoosers;
 
-import java.util.Map;
+import java.util.Collection;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.lhf.game.battle.BattleStats;
+import com.lhf.game.battle.BattleStats.BattleStatRecord;
+import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.ActionChooser;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
@@ -32,7 +34,7 @@ public class HealthBucketChooser implements ActionChooser {
         this.threshold = threshold;
     }
 
-    private Float calculate(BattleStatRecord stat) {
+    private Double calculate(BattleStatRecord stat) {
         HealthBuckets retrieved = stat.getBucket();
         if (retrieved == null || HealthBuckets.DEAD.equals(retrieved)) {
             return ActionChooser.MIN_VALUE;
@@ -48,11 +50,14 @@ public class HealthBucketChooser implements ActionChooser {
     }
 
     @Override
-    public SortedMap<String, Float> chooseTarget(BattleStats battleMemories, CreatureFaction myFaction) {
-        SortedMap<String, Float> results = new TreeMap<>();
-        Map<String, BattleStatRecord> stats = battleMemories.getBattleStats();
+    public SortedMap<String, Double> chooseTarget(Optional<Collection<BattleStatRecord>> battleMemories,
+            HarmMemories harmMemories, CreatureFaction myFaction) {
+        SortedMap<String, Double> results = new TreeMap<>();
+        if (battleMemories.isEmpty()) {
+            return results;
+        }
 
-        for (BattleStatRecord stat : stats.values()) {
+        for (BattleStatRecord stat : battleMemories.get()) {
             if (this.aimEnemies && (myFaction == null || myFaction.competing(stat.getFaction()))) {
                 results.put(stat.getTargetName(), this.calculate(stat));
             } else if (!this.aimEnemies && myFaction != null && !myFaction.competing(stat.getFaction())) {

@@ -1,30 +1,34 @@
 package com.lhf.game.creature.intelligence.actionChoosers;
 
+import java.util.Collection;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.lhf.game.battle.BattleStats;
+import com.lhf.game.battle.BattleStats.BattleStatRecord;
+import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.ActionChooser;
 import com.lhf.game.enums.CreatureFaction;
 
 public class AggroHighwaterChooser implements ActionChooser {
-    private static final float defaultValue = (float) 0.90;
+    private static final double defaultValue = (double) 0.90;
 
-    private final float weight;
+    private final double weight;
 
     public AggroHighwaterChooser() {
         this.weight = defaultValue;
     }
 
-    public AggroHighwaterChooser(float selectedWeight) {
-        this.weight = selectedWeight > 0.0f ? selectedWeight : ActionChooser.MIN_VALUE;
+    public AggroHighwaterChooser(double selectedWeight) {
+        this.weight = selectedWeight > 0.0 ? selectedWeight : ActionChooser.MIN_VALUE;
     }
 
     @Override
-    public SortedMap<String, Float> chooseTarget(BattleStats battleMemories, CreatureFaction myFaction) {
-        SortedMap<String, Float> results = new TreeMap<>();
-        if (battleMemories.getLastAttakerName().isPresent()) {
-            results.put(battleMemories.getLastAttakerName().get(), this.weight);
+    public SortedMap<String, Double> chooseTarget(Optional<Collection<BattleStatRecord>> battleMemories,
+            HarmMemories harmMemories, CreatureFaction myFaction) {
+        SortedMap<String, Double> results = new TreeMap<>();
+        if (harmMemories != null && harmMemories.getLastMassAttackerName().isPresent()) {
+            results.put(harmMemories.getLastMassAttackerName().get(), this.weight);
         }
         return results;
     }

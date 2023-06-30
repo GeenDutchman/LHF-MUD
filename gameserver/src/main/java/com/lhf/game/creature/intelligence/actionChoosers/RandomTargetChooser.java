@@ -1,10 +1,12 @@
 package com.lhf.game.creature.intelligence.actionChoosers;
 
-import java.util.Map;
+import java.util.Collection;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.lhf.game.battle.BattleStats;
+import com.lhf.game.battle.BattleStats.BattleStatRecord;
+import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.ActionChooser;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD100;
@@ -26,13 +28,14 @@ public class RandomTargetChooser implements ActionChooser {
     }
 
     @Override
-    public SortedMap<String, Float> chooseTarget(BattleStats battleMemories, CreatureFaction myFaction) {
-        SortedMap<String, Float> results = new TreeMap<>();
-        Map<String, BattleStatRecord> stats = battleMemories.getBattleStats();
-        if (stats != null) {
-            for (BattleStatRecord stat : stats.values()) {
+    public SortedMap<String, Double> chooseTarget(Optional<Collection<BattleStatRecord>> battleMemories,
+            HarmMemories harmMemories, CreatureFaction myFaction) {
+        SortedMap<String, Double> results = new TreeMap<>();
+        if (battleMemories.isPresent()) {
+            for (BattleStatRecord stat : battleMemories.get()) {
                 if (myFaction == null || myFaction.competing(stat.getFaction())) {
-                    results.put(stat.getTargetName(), (float) roller.rollDice().getRoll() / roller.getType().getType());
+                    results.put(stat.getTargetName(),
+                            (double) roller.rollDice().getRoll() / roller.getType().getType());
                 }
             }
         }
