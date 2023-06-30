@@ -1,34 +1,22 @@
 package com.lhf.game.creature.intelligence;
 
-import java.util.Collections;
-import java.util.EnumSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
-import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler;
 import com.lhf.game.creature.intelligence.handlers.ForgetOnOtherExit;
 import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
-import com.lhf.game.creature.vocation.Vocation;
-import com.lhf.game.enums.CreatureFaction;
-import com.lhf.game.enums.DamageFlavor;
-import com.lhf.game.enums.HealthBuckets;
-import com.lhf.messages.CommandContext;
 import com.lhf.messages.OutMessageType;
 import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.FleeMessage;
 import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.DoNothingSendStrategy;
 import com.lhf.server.interfaces.NotNull;
@@ -91,8 +79,6 @@ public class BasicAI extends Client {
                 if (flee.isFled() && flee.getRunner() != null) {
                     if (flee.getRunner() == bai.getNpc()) {
                         bai.npc.getHarmMemories().reset();
-                    } else {
-                        bai.npc.getBattleMemories().remove(flee.getRunner().getName());
                     }
                 }
             }
@@ -142,18 +128,6 @@ public class BasicAI extends Client {
 
     public NonPlayerCharacter getNpc() {
         return npc;
-    }
-
-    public BattleMemories getBattleMemories() {
-        return this.battleMemories;
-    }
-
-    public BattleMemories resetBattleMemories() {
-        return this.battleMemories.reset();
-    }
-
-    public BattleMemories updateBattleMemories(CreatureAffectedMessage ca) {
-        return this.battleMemories.update(ca);
     }
 
     @Override
