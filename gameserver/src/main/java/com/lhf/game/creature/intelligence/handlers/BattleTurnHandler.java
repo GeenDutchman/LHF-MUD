@@ -1,6 +1,5 @@
 package com.lhf.game.creature.intelligence.handlers;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -9,7 +8,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.ActionChooser;
@@ -40,7 +38,7 @@ public class BattleTurnHandler extends AIHandler {
         this.enemyTargetChoosers.add(new VocationChooser());
     }
 
-    public List<Map.Entry<String, Double>> chooseEnemyTarget(Optional<Collection<BattleStatRecord>> battleMemories,
+    public List<Map.Entry<String, Double>> chooseEnemyTarget(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
             CreatureFaction myFaction) {
         SortedMap<String, Double> possTarget = this.enemyTargetChoosers.stream()
@@ -82,9 +80,9 @@ public class BattleTurnHandler extends AIHandler {
         }
         BattleTurnMessage btm = (BattleTurnMessage) msg;
         Reply reply = bai.ProcessString("STATS");
-        Optional<Collection<BattleStatRecord>> statsOutOpt = reply.getMessages().stream()
+        Optional<StatsOutMessage> statsOutOpt = reply.getMessages().stream()
                 .filter(outMessage -> outMessage != null && OutMessageType.STATS.equals(outMessage.getOutType()))
-                .map(outMessage -> ((StatsOutMessage) outMessage).getRecords()).findFirst();
+                .map(outMessage -> ((StatsOutMessage) outMessage)).findFirst();
         if (btm.isYesTurn() && bai.getNpc().equals(btm.getMyTurn())) {
 
             List<Map.Entry<String, Double>> targetList = this.chooseEnemyTarget(statsOutOpt,
