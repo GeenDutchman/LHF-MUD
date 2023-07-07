@@ -26,9 +26,10 @@ public class SpellChooser implements ActionChooser {
         this.offensiveFocus = offensiveFocus;
     }
 
-    private SortedMap<String, Double> offensiveChoice(BattleStats battleMemories, CreatureFaction myFaction,
-            NavigableSet<SpellEntry> entries) {
-        NavigableSet<SpellEntry> offEntries = entries.stream().filter(entry -> entry.isOffensive())
+    private SortedMap<String, Double> offensiveChoice(Optional<StatsOutMessage> battleMemories,
+            HarmMemories harmMemories,
+            Set<CreatureFaction> targetFactions, SpellEntryMessage entries) {
+        NavigableSet<SpellEntry> offEntries = entries.getEntries().stream().filter(entry -> entry.isOffensive())
                 .collect(Collectors.toCollection(TreeSet::new));
         SortedMap<String, Double> selection = new TreeMap<>();
         if (!offEntries.isEmpty()) {
@@ -37,8 +38,9 @@ public class SpellChooser implements ActionChooser {
         return selection;
     }
 
-    private SortedMap<String, Double> notOffensiveChoice(BattleStats battleMemories, CreatureFaction myFaction,
-            NavigableSet<SpellEntry> entries) {
+    private SortedMap<String, Double> notOffensiveChoice(Optional<StatsOutMessage> battleMemories,
+            HarmMemories harmMemories,
+            Set<CreatureFaction> targetFactions, SpellEntryMessage entries) {
         return new TreeMap<>();
     }
 
@@ -47,19 +49,17 @@ public class SpellChooser implements ActionChooser {
             HarmMemories harmMemories,
             Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages) {
         SortedMap<String, Double> selection = new TreeMap<>();
-        CommandContext.Reply reply = battleMemories.launchCommand("SPELLBOOK");
-        if (!reply.isHandled()) {
+        if (outMessages == null) {
             return selection;
         }
-        Optional<SpellEntryMessage> sem = reply.getMessages().stream()
+        Optional<SpellEntryMessage> sem = outMessages.stream()
                 .filter(message -> message instanceof SpellEntryMessage).map(message -> (SpellEntryMessage) message)
                 .findAny();
         if (sem.isEmpty() || sem.get().getEntries().isEmpty()) {
             return selection;
         }
-        selection.putAll(this.notOffensiveChoice(battleMemories, myFaction, sem.get().getEntries()));
-        selection.putAll(this.offensiveChoice(battleMemories, myFaction, sem.get()
-                .getEntries()));
+        selection.putAll(this.notOffensiveChoice(battleMemories, harmMemories, targetFactions, sem.get()));
+        selection.putAll(this.offensiveChoice(battleMemories, harmMemories, targetFactions, sem.get()));
         return selection;
     }
 
