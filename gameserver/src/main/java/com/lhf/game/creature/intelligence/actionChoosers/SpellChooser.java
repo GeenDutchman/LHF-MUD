@@ -9,12 +9,10 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import com.lhf.game.battle.BattleStats;
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.ActionChooser;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.magic.SpellEntry;
-import com.lhf.messages.CommandContext;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpellEntryMessage;
 import com.lhf.messages.out.StatsOutMessage;
