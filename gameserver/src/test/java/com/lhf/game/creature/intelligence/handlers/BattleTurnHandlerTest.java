@@ -64,7 +64,7 @@ public class BattleTurnHandlerTest {
                                 Optional.of(StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
                                                 .Build()),
                                 finder.npc.getHarmMemories(),
-                                finder.npc.getFaction());
+                                finder.npc.getFaction(), List.of());
                 Truth.assertThat(targets).isEmpty();
 
                 CreatureEffectSource source = new CreatureEffectSource("test", new EffectPersistence(TickType.INSTANT),
@@ -82,7 +82,7 @@ public class BattleTurnHandlerTest {
                                 Optional.of(StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
                                                 .Build()),
                                 finder.npc.getHarmMemories(),
-                                finder.npc.getFaction());
+                                finder.npc.getFaction(), List.of());
                 Truth.assertThat(targets).isNotEmpty();
                 Truth.assertThat(targets).hasSize(1);
 
@@ -96,7 +96,7 @@ public class BattleTurnHandlerTest {
                                 Optional.of(StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
                                                 .Build()),
                                 finder.npc.getHarmMemories(),
-                                finder.npc.getFaction());
+                                finder.npc.getFaction(), List.of());
                 Truth.assertThat(targets).isNotEmpty();
                 Truth.assertThat(targets).hasSize(2);
                 Truth.assertThat(targets.get(0).getValue()).isAtLeast(targets.get(1).getValue());

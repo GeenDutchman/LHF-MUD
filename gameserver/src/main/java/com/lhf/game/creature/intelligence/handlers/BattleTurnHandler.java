@@ -1,5 +1,6 @@
 package com.lhf.game.creature.intelligence.handlers;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,10 +41,11 @@ public class BattleTurnHandler extends AIHandler {
 
     public List<Map.Entry<String, Double>> chooseEnemyTarget(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
-            CreatureFaction myFaction) {
+            CreatureFaction myFaction, Collection<OutMessage> outMessages) {
         SortedMap<String, Double> possTarget = this.enemyTargetChoosers.stream()
                 .flatMap(chooser -> chooser
-                        .chooseTarget(battleMemories, harmMemories, CreatureFaction.competeSet(myFaction)).entrySet()
+                        .chooseTarget(battleMemories, harmMemories, CreatureFaction.competeSet(myFaction), List.of())
+                        .entrySet()
                         .stream())
                 .collect(Collectors.groupingBy(Map.Entry::getKey, TreeMap::new,
                         Collectors.summingDouble(Map.Entry::getValue)));
@@ -87,7 +89,8 @@ public class BattleTurnHandler extends AIHandler {
 
             List<Map.Entry<String, Double>> targetList = this.chooseEnemyTarget(statsOutOpt,
                     bai.getNpc().getHarmMemories(),
-                    bai.getNpc().getFaction());
+                    bai.getNpc().getFaction(),
+                    List.of());
 
             this.meleeAttackTargets(bai, targetList);
 

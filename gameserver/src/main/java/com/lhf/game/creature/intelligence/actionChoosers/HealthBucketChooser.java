@@ -1,5 +1,6 @@
 package com.lhf.game.creature.intelligence.actionChoosers;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
@@ -10,6 +11,7 @@ import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.ActionChooser;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
 public class HealthBucketChooser implements ActionChooser {
@@ -43,7 +45,7 @@ public class HealthBucketChooser implements ActionChooser {
 
     @Override
     public SortedMap<String, Double> chooseTarget(Optional<StatsOutMessage> battleMemories,
-            HarmMemories harmMemories, Set<CreatureFaction> targetFactions) {
+            HarmMemories harmMemories, Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages) {
         SortedMap<String, Double> results = new TreeMap<>();
         if (battleMemories.isEmpty()) {
             return results;

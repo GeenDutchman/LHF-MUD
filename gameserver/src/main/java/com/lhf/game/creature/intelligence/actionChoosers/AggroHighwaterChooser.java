@@ -1,5 +1,6 @@
 package com.lhf.game.creature.intelligence.actionChoosers;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
@@ -8,6 +9,7 @@ import java.util.TreeMap;
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.ActionChooser;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
 public class AggroHighwaterChooser implements ActionChooser {
@@ -25,7 +27,7 @@ public class AggroHighwaterChooser implements ActionChooser {
 
     @Override
     public SortedMap<String, Double> chooseTarget(Optional<StatsOutMessage> battleMemories,
-            HarmMemories harmMemories, Set<CreatureFaction> targetFactions) {
+            HarmMemories harmMemories, Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages) {
         SortedMap<String, Double> results = new TreeMap<>();
         if (battleMemories == null || battleMemories.isEmpty()) {
             return results;
