@@ -219,7 +219,7 @@ public abstract class Creature
     }
 
     public final HealthBuckets getHealthBucket() {
-        return HealthBuckets.calcualte(getHealth(), this.statblock.getStats().get(Stats.MAXHP));
+        return HealthBuckets.calculate(getHealth(), this.statblock.getStats().get(Stats.MAXHP));
     }
 
     public boolean isAlive() {

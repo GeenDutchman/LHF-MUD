@@ -1,6 +1,7 @@
 package com.lhf.game.creature.intelligence.actionChoosers;
 
 import java.util.Collection;
+import java.util.DoubleSummaryStatistics;
 import java.util.NavigableSet;
 import java.util.Optional;
 import java.util.Set;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.ActionChooser;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.magic.SpellEntry;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpellEntryMessage;
@@ -24,15 +26,35 @@ public class SpellChooser implements ActionChooser {
         this.offensiveFocus = offensiveFocus;
     }
 
+    private HealthBuckets factionHealth(StatsOutMessage battleMemories, Set<CreatureFaction> targetFactions) {
+        if (targetFactions == null || targetFactions.isEmpty() || battleMemories == null) {
+            return null;
+        }
+        DoubleSummaryStatistics sum = battleMemories.getRecords().stream()
+                .filter(statRecord -> statRecord != null && statRecord.getBucket() != null
+                        && targetFactions.contains(statRecord.getFaction()))
+                .map(statRecord -> statRecord.getBucket())
+                .collect(Collectors.summarizingDouble(HealthBuckets::getValue));
+
+        if (sum.getCount() < 1) {
+            return null;
+        }
+        HealthBuckets avgBucket = HealthBuckets.fromPercent(sum.getAverage());
+        return avgBucket;
+    }
+
     private SortedMap<String, Double> offensiveChoice(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
             Set<CreatureFaction> targetFactions, SpellEntryMessage entries) {
-        NavigableSet<SpellEntry> offEntries = entries.getEntries().stream().filter(entry -> entry.isOffensive())
-                .collect(Collectors.toCollection(TreeSet::new));
-        SortedMap<String, Double> selection = new TreeMap<>();
-        if (!offEntries.isEmpty()) {
-
+        SortedMap<String, Double> selection = entries.getEntries().stream()
+                .filter(entry -> entry != null && entry.isOffensive())
+                .collect(Collectors.toMap(SpellEntry::getInvocation,
+                        spellentry -> (double) (spellentry.aiScore() / entries.getEntries().size()),
+                        (scorea, scoreb) -> (scorea + scoreb) / 2, TreeMap::new));
+        if (selection.isEmpty()) {
+            return selection;
         }
+
         return selection;
     }
 
@@ -47,7 +69,7 @@ public class SpellChooser implements ActionChooser {
             HarmMemories harmMemories,
             Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages) {
         SortedMap<String, Double> selection = new TreeMap<>();
-        if (outMessages == null) {
+        if (outMessages == null || battleMemories == null || battleMemories.isEmpty() || battleMemories.get() == null) {
             return selection;
         }
         Optional<SpellEntryMessage> sem = outMessages.stream()

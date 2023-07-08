@@ -44,7 +44,7 @@ public class StatusOutMessage extends OutMessage {
             this.colorTaggedName = creature.getColorTaggedName();
             this.race = creature.getCreatureRace();
             this.faction = creature.getFaction();
-            this.healthBucket = HealthBuckets.calcualte(creature.getStats().get(Stats.CURRENTHP),
+            this.healthBucket = HealthBuckets.calculate(creature.getStats().get(Stats.CURRENTHP),
                     creature.getStats().get(Stats.MAXHP));
             this.vocationName = creature.getVocation() != null ? creature.getVocation().getVocationName() : null;
             if (this.full) {

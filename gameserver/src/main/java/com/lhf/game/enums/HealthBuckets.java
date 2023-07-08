@@ -12,9 +12,7 @@ public enum HealthBuckets implements Taggable {
         this.value = value;
     }
 
-    public static HealthBuckets calcualte(int currentHealth, int totalHealth) {
-        Double percent = currentHealth / (double) totalHealth;
-
+    public static HealthBuckets fromPercent(double percent) {
         if (percent <= DEAD.value) {
             return DEAD;
         } else if (percent <= NEAR_DEATH.value) {
@@ -30,6 +28,12 @@ public enum HealthBuckets implements Taggable {
         } else {
             return HEALTHY;
         }
+    }
+
+    public static HealthBuckets calculate(int currentHealth, int totalHealth) {
+        Double percent = currentHealth / (double) totalHealth;
+
+        return HealthBuckets.fromPercent(percent);
     }
 
     public float getValue() {
