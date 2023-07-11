@@ -7,7 +7,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
-import com.lhf.game.creature.intelligence.ActionChooser;
+import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD100;
 import com.lhf.game.enums.CreatureFaction;
@@ -16,7 +16,7 @@ import com.lhf.game.map.Directions;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
-public class FleeChooser implements ActionChooser {
+public class FleeChooser implements AIChooser<String> {
     private final Dice roller = new DiceD100(1);
     private final HealthBuckets fleeLevel;
 

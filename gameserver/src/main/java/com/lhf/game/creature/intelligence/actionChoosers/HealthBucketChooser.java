@@ -8,13 +8,13 @@ import java.util.TreeMap;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
-import com.lhf.game.creature.intelligence.ActionChooser;
+import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
-public class HealthBucketChooser implements ActionChooser {
+public class HealthBucketChooser implements AIChooser<String> {
     private final boolean chooseMoreHurt;
     private final HealthBuckets threshold;
 
@@ -31,16 +31,16 @@ public class HealthBucketChooser implements ActionChooser {
     private Double calculate(BattleStatRecord stat) {
         HealthBuckets retrieved = stat.getBucket();
         if (retrieved == null || HealthBuckets.DEAD.equals(retrieved)) {
-            return ActionChooser.MIN_VALUE;
+            return AIChooser.MIN_VALUE;
         }
         if (this.threshold != null) {
             if (this.chooseMoreHurt && retrieved.compareTo(this.threshold) > 0) {
-                return ActionChooser.MIN_VALUE;
+                return AIChooser.MIN_VALUE;
             } else if (!this.chooseMoreHurt && retrieved.compareTo(this.threshold) < 0) {
-                return ActionChooser.MIN_VALUE;
+                return AIChooser.MIN_VALUE;
             }
         }
-        return this.chooseMoreHurt ? ActionChooser.MIN_VALUE - retrieved.getValue() : retrieved.getValue();
+        return this.chooseMoreHurt ? AIChooser.MIN_VALUE - retrieved.getValue() : retrieved.getValue();
     }
 
     @Override

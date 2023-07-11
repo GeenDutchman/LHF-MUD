@@ -8,12 +8,12 @@ import java.util.TreeMap;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
-import com.lhf.game.creature.intelligence.ActionChooser;
+import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
-public class AggroStatsChooser implements ActionChooser {
+public class AggroStatsChooser implements AIChooser<String> {
 
     @Override
     public SortedMap<String, Double> chooseTarget(Optional<StatsOutMessage> battleMemories,
@@ -41,7 +41,7 @@ public class AggroStatsChooser implements ActionChooser {
                 }
                 if (targetFactions == null || targetFactions.contains(stat.getFaction())) {
                     float calculated = (stat.getAggroDamage() - min) / (max - min);
-                    results.put(stat.getTargetName(), calculated > 0.0f ? calculated : ActionChooser.MIN_VALUE);
+                    results.put(stat.getTargetName(), calculated > 0.0f ? calculated : AIChooser.MIN_VALUE);
                 }
             }
         }

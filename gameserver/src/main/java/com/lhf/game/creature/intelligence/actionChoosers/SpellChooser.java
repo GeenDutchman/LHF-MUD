@@ -2,6 +2,7 @@ package com.lhf.game.creature.intelligence.actionChoosers;
 
 import java.util.Collection;
 import java.util.DoubleSummaryStatistics;
+import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Optional;
 import java.util.Set;
@@ -11,7 +12,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
-import com.lhf.game.creature.intelligence.ActionChooser;
+import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.magic.SpellEntry;
@@ -19,7 +20,7 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpellEntryMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
-public class SpellChooser implements ActionChooser {
+public class SpellChooser implements AIChooser<SpellEntry> {
     private final boolean offensiveFocus;
 
     public SpellChooser(boolean offensiveFocus) {
@@ -43,13 +44,13 @@ public class SpellChooser implements ActionChooser {
         return avgBucket;
     }
 
-    private SortedMap<String, Double> offensiveChoice(Optional<StatsOutMessage> battleMemories,
+    private Map<SpellEntry, Double> offensiveChoice(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
             Set<CreatureFaction> targetFactions, SpellEntryMessage entries) {
         SortedMap<String, Double> selection = entries.getEntries().stream()
                 .filter(entry -> entry != null && entry.isOffensive())
                 .collect(Collectors.toMap(SpellEntry::getInvocation,
-                        spellentry -> (double) (spellentry.aiScore() / entries.getEntries().size()),
+                        spellentry -> (double) (spellentry.aiScore() / (spellentry.getLevel().toInt() + 0.1)),
                         (scorea, scoreb) -> (scorea + scoreb) / 2, TreeMap::new));
         if (selection.isEmpty()) {
             return selection;
@@ -58,17 +59,17 @@ public class SpellChooser implements ActionChooser {
         return selection;
     }
 
-    private SortedMap<String, Double> notOffensiveChoice(Optional<StatsOutMessage> battleMemories,
+    private Map<SpellEntry, Double> notOffensiveChoice(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
             Set<CreatureFaction> targetFactions, SpellEntryMessage entries) {
         return new TreeMap<>();
     }
 
     @Override
-    public SortedMap<String, Double> chooseTarget(Optional<StatsOutMessage> battleMemories,
+    public SortedMap<SpellEntry, Double> chooseTarget(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
             Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages) {
-        SortedMap<String, Double> selection = new TreeMap<>();
+        SortedMap<SpellEntry, Double> selection = new TreeMap<>();
         if (outMessages == null || battleMemories == null || battleMemories.isEmpty() || battleMemories.get() == null) {
             return selection;
         }

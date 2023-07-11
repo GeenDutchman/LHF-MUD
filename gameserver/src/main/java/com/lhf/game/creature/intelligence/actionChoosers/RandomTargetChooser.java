@@ -8,14 +8,14 @@ import java.util.TreeMap;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
-import com.lhf.game.creature.intelligence.ActionChooser;
+import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD100;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
-public class RandomTargetChooser implements ActionChooser {
+public class RandomTargetChooser implements AIChooser<String> {
     private final Dice roller;
 
     public RandomTargetChooser() {

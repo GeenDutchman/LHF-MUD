@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.AIHandler;
-import com.lhf.game.creature.intelligence.ActionChooser;
+import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.intelligence.actionChoosers.AggroHighwaterChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.AggroStatsChooser;
@@ -27,7 +27,7 @@ import com.lhf.messages.out.StatsOutMessage;
 
 public class BattleTurnHandler extends AIHandler {
 
-    private final TreeSet<ActionChooser> enemyTargetChoosers;
+    private final TreeSet<AIChooser<String>> enemyTargetChoosers;
 
     public BattleTurnHandler() {
         super(OutMessageType.BATTLE_TURN);

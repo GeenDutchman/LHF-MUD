@@ -9,13 +9,13 @@ import java.util.TreeMap;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
-import com.lhf.game.creature.intelligence.ActionChooser;
+import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
-public class VocationChooser implements ActionChooser {
+public class VocationChooser implements AIChooser<String> {
 
     private final List<VocationName> targetOrder;
 
@@ -37,7 +37,7 @@ public class VocationChooser implements ActionChooser {
         SortedMap<String, Double> results = new TreeMap<>();
         if (battleMemories != null && battleMemories.isPresent()) {
             for (BattleStatRecord stat : battleMemories.get().getRecords()) {
-                double priority = ActionChooser.MIN_VALUE;
+                double priority = AIChooser.MIN_VALUE;
                 for (int i = 0; i < this.targetOrder.size(); i++) {
                     VocationName name = this.targetOrder.get(i);
                     if (name != null && stat.getVocation() != null

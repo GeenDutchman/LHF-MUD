@@ -10,15 +10,15 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
-public interface ActionChooser extends Comparable<ActionChooser> {
+public interface AIChooser<T extends Comparable<T>> extends Comparable<AIChooser<T>> {
     public static double MIN_VALUE = 0.01;
 
-    public SortedMap<String, Double> chooseTarget(Optional<StatsOutMessage> battleMemories,
+    public SortedMap<T, Double> chooseTarget(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
             Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages);
 
     @Override
-    public default int compareTo(ActionChooser arg0) {
+    public default int compareTo(AIChooser<T> arg0) {
         if (arg0 == null) {
             return 1;
         }

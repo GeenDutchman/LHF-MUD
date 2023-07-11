@@ -7,12 +7,12 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
-import com.lhf.game.creature.intelligence.ActionChooser;
+import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
-public class AggroHighwaterChooser implements ActionChooser {
+public class AggroHighwaterChooser implements AIChooser<String> {
     private static final double defaultValue = (double) 0.90;
 
     private final double weight;
@@ -22,7 +22,7 @@ public class AggroHighwaterChooser implements ActionChooser {
     }
 
     public AggroHighwaterChooser(double selectedWeight) {
-        this.weight = selectedWeight > 0.0 ? selectedWeight : ActionChooser.MIN_VALUE;
+        this.weight = selectedWeight > 0.0 ? selectedWeight : AIChooser.MIN_VALUE;
     }
 
     @Override
