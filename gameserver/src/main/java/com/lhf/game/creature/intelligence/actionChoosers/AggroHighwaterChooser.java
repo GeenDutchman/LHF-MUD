@@ -33,6 +33,7 @@ public class AggroHighwaterChooser implements AIChooser<String> {
             return results;
         }
         if (battleMemories.get().getRecords().stream()
+                .filter(stat -> targetFactions == null || targetFactions.contains(stat.getFaction()))
                 .filter(stat -> harmMemories != null && harmMemories.getLastMassAttackerName().isPresent()
                         && stat.getTargetName().equals(harmMemories.getLastMassAttackerName().get()))
                 .findAny().isPresent()) {

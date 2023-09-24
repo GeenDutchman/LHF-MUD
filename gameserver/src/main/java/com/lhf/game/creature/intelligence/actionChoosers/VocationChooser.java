@@ -37,6 +37,9 @@ public class VocationChooser implements AIChooser<String> {
         SortedMap<String, Double> results = new TreeMap<>();
         if (battleMemories != null && battleMemories.isPresent()) {
             for (BattleStatRecord stat : battleMemories.get().getRecords()) {
+                if (targetFactions != null && !targetFactions.contains(stat.getFaction())) {
+                    continue; // skip who we are not targeting
+                }
                 double priority = AIChooser.MIN_VALUE;
                 for (int i = 0; i < this.targetOrder.size(); i++) {
                     VocationName name = this.targetOrder.get(i);
