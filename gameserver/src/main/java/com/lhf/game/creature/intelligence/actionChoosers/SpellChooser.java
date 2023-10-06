@@ -62,7 +62,16 @@ public class SpellChooser implements AIChooser<SpellEntry> {
     private Map<SpellEntry, Double> notOffensiveChoice(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
             Set<CreatureFaction> targetFactions, SpellEntryMessage entries) {
-        return new TreeMap<>();
+        SortedMap<SpellEntry, Double> selection = entries.getEntries().stream()
+                .filter(entry -> entry != null && !entry.isOffensive())
+                .collect(Collectors.toMap(spellentry -> spellentry,
+                        spellentry -> (double) (spellentry.aiScore() / (spellentry.getLevel().toInt() + 0.1)),
+                        (scorea, scoreb) -> (scorea + scoreb) / 2, TreeMap::new));
+        if (selection.isEmpty()) {
+            return selection;
+        }
+
+        return selection;
     }
 
     @Override
