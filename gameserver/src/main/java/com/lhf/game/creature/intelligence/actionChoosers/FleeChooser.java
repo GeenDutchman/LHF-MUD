@@ -21,7 +21,7 @@ public class FleeChooser implements AIChooser<String> {
     private final HealthBuckets fleeLevel;
 
     public FleeChooser(HealthBuckets fleeLevel) {
-        this.fleeLevel = fleeLevel;
+        this.fleeLevel = fleeLevel != null ? fleeLevel : HealthBuckets.CRITICALLY_INJURED;
     }
 
     @Override
