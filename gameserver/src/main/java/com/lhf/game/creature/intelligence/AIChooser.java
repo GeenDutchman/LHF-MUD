@@ -13,7 +13,7 @@ import com.lhf.messages.out.StatsOutMessage;
 public interface AIChooser<T extends Comparable<T>> extends Comparable<AIChooser<T>> {
     public static double MIN_VALUE = 0.01;
 
-    public SortedMap<T, Double> chooseTarget(Optional<StatsOutMessage> battleMemories,
+    public SortedMap<T, Double> choose(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
             Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages);
 

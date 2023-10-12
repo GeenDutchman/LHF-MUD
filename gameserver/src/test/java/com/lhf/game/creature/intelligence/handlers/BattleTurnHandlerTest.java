@@ -23,6 +23,7 @@ import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
+import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler.TargetLists;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.CreatureFaction;
@@ -39,113 +40,81 @@ import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
 public class BattleTurnHandlerTest {
-        @Spy
-        private GroupAIRunner aiRunner = new GroupAIRunner(false, 2, 250, TimeUnit.MILLISECONDS);
+    @Spy
+    private GroupAIRunner aiRunner = new GroupAIRunner(false, 2, 250, TimeUnit.MILLISECONDS);
 
-        @BeforeEach
-        public void setUp() throws Exception {
-                MockitoAnnotations.openMocks(this);
-                AIComBundle.setAIRunner(this.aiRunner.start());
-        }
+    @BeforeEach
+    public void setUp() throws Exception {
+        MockitoAnnotations.openMocks(this);
+        AIComBundle.setAIRunner(this.aiRunner.start());
+    }
 
-        @Test
-        void testChooseEnemyTarget() {
-                AIComBundle finder = new AIComBundle();
-                finder.npc.setFaction(CreatureFaction.RENEGADE);
-                AIComBundle attacker = new AIComBundle();
-                AIComBundle subAttacker = new AIComBundle();
+    @Test
+    void testChooseEnemyTarget() {
+        AIComBundle finder = new AIComBundle();
+        finder.npc.setFaction(CreatureFaction.RENEGADE);
+        AIComBundle attacker = new AIComBundle();
+        AIComBundle subAttacker = new AIComBundle();
 
-                BattleTurnHandler handler = new BattleTurnHandler();
-                finder.brain.addHandler(handler);
-                BattleStats battleStats = new BattleStats()
-                                .initialize(List.of(finder.npc, attacker.npc, subAttacker.npc));
+        BattleTurnHandler handler = new BattleTurnHandler();
+        finder.brain.addHandler(handler);
+        BattleStats battleStats = new BattleStats()
+                .initialize(List.of(finder.npc, attacker.npc, subAttacker.npc));
 
-                List<Entry<String, Double>> targets = handler.chooseEnemyTarget(
-                                Optional.of(StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
-                                                .Build()),
-                                finder.npc.getHarmMemories(),
-                                finder.npc.getFaction(), List.of());
-                Truth.assertThat(targets).isEmpty();
+        TargetLists targets = handler.chooseTargets(
+                Optional.of(StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
+                        .Build()),
+                finder.npc.getHarmMemories(),
+                finder.npc.getFaction(), List.of());
+        Truth.assertThat(targets.enemies()).hasSize(2);
+        Truth.assertThat(targets.enemies().get(0).getValue()).isAtLeast(targets.enemies().get(1).getValue());
 
-                CreatureEffectSource source = new CreatureEffectSource("test", new EffectPersistence(TickType.INSTANT),
-                                null,
-                                "For a test", false)
-                                .addDamage(new DamageDice(1, DieType.HUNDRED, DamageFlavor.BLUDGEONING));
+    }
 
-                CreatureAffectedMessage cam = CreatureAffectedMessage.getBuilder().setAffected(finder.npc)
-                                .setEffect(new CreatureEffect(source, attacker.npc, attacker.npc)).Build();
+    @Test
+    void testMeleeAttackTargets() {
+        AIComBundle searcher = new AIComBundle();
+        searcher.npc.setInBattle(true);
 
-                finder.npc.getHarmMemories().update(cam);
-                battleStats.update(cam);
+        MessageHandler interceptor = Mockito.mock(MessageHandler.class);
+        Mockito.doNothing().when(interceptor).setSuccessor(Mockito.any());
+        Mockito.when(interceptor.getSuccessor()).thenReturn(searcher);
+        Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(MessageHandler.class));
+        Mockito.when(interceptor.handleMessage(Mockito.any(CommandContext.class), Mockito.any(Command.class)))
+                .thenAnswer(new Answer<CommandContext.Reply>() {
 
-                targets = handler.chooseEnemyTarget(
-                                Optional.of(StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
-                                                .Build()),
-                                finder.npc.getHarmMemories(),
-                                finder.npc.getFaction(), List.of());
-                Truth.assertThat(targets).isNotEmpty();
-                Truth.assertThat(targets).hasSize(1);
+                    @Override
+                    public Reply answer(InvocationOnMock invocation) throws Throwable {
+                        CommandContext ctx = invocation.getArgument(0);
+                        Command cmd = invocation.getArgument(1);
+                        if (cmd.getType().equals(CommandMessage.ATTACK)
+                                && cmd.getWhole().contains("bloohoo")) {
+                            BadTargetSelectedMessage btsm = BadTargetSelectedMessage
+                                    .getBuilder()
+                                    .setBde(BadTargetOption.DNE)
+                                    .setBadTarget("bloohoo")
+                                    .setPossibleTargets(new ArrayList<>()).Build();
+                            ctx.sendMsg(btsm);
+                            return ctx.handled();
+                        }
+                        if (cmd.getType().equals(CommandMessage.SEE)) {
+                            return ctx.handled();
+                        }
+                        return interceptor.getSuccessor().handleMessage(ctx, cmd);
+                    }
 
-                cam = CreatureAffectedMessage.getBuilder().setAffected(finder.npc)
-                                .setEffect(new CreatureEffect(source, subAttacker.npc, subAttacker.npc)).Build();
+                });
 
-                finder.npc.getHarmMemories().update(cam);
-                battleStats.update(cam);
+        searcher.npc.intercept(interceptor);
 
-                targets = handler.chooseEnemyTarget(
-                                Optional.of(StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
-                                                .Build()),
-                                finder.npc.getHarmMemories(),
-                                finder.npc.getFaction(), List.of());
-                Truth.assertThat(targets).isNotEmpty();
-                Truth.assertThat(targets).hasSize(2);
-                Truth.assertThat(targets.get(0).getValue()).isAtLeast(targets.get(1).getValue());
-        }
+        // trigger it
+        searcher.npc.sendMsg(BattleTurnMessage.getBuilder().setCurrentCreature(searcher.npc).setYesTurn(true)
+                .Build());
 
-        @Test
-        void testMeleeAttackTargets() {
-                AIComBundle searcher = new AIComBundle();
-                searcher.npc.setInBattle(true);
-
-                MessageHandler interceptor = Mockito.mock(MessageHandler.class);
-                Mockito.doNothing().when(interceptor).setSuccessor(Mockito.any());
-                Mockito.when(interceptor.getSuccessor()).thenReturn(searcher);
-                Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(MessageHandler.class));
-                Mockito.when(interceptor.handleMessage(Mockito.any(CommandContext.class), Mockito.any(Command.class)))
-                                .thenAnswer(new Answer<CommandContext.Reply>() {
-
-                                        @Override
-                                        public Reply answer(InvocationOnMock invocation) throws Throwable {
-                                                CommandContext ctx = invocation.getArgument(0);
-                                                Command cmd = invocation.getArgument(1);
-                                                if (cmd.getType().equals(CommandMessage.ATTACK)
-                                                                && cmd.getWhole().contains("bloohoo")) {
-                                                        BadTargetSelectedMessage btsm = BadTargetSelectedMessage
-                                                                        .getBuilder()
-                                                                        .setBde(BadTargetOption.DNE)
-                                                                        .setBadTarget("bloohoo")
-                                                                        .setPossibleTargets(new ArrayList<>()).Build();
-                                                        ctx.sendMsg(btsm);
-                                                        return ctx.handled();
-                                                }
-                                                if (cmd.getType().equals(CommandMessage.SEE)) {
-                                                        return ctx.handled();
-                                                }
-                                                return interceptor.getSuccessor().handleMessage(ctx, cmd);
-                                        }
-
-                                });
-
-                searcher.npc.intercept(interceptor);
-
-                // trigger it
-                searcher.npc.sendMsg(BattleTurnMessage.getBuilder().setCurrentCreature(searcher.npc).setYesTurn(true)
-                                .Build());
-
-                Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();
-                Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
-                                Mockito.argThat((command) -> command != null && command.getWhole().contains("PASS")));
-                Mockito.verifyNoMoreInteractions(searcher.mockedWrappedHandler);
-        }
+        Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();
+        Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
+                Mockito.argThat((command) -> command != null && command.getWhole().contains("PASS")));
+        Mockito.verifyNoMoreInteractions(searcher.mockedWrappedHandler);
+    }
 
 }

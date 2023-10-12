@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.enums.CreatureFaction;
@@ -22,22 +23,30 @@ public class AggroHighwaterChooser implements AIChooser<String> {
     }
 
     public AggroHighwaterChooser(double selectedWeight) {
-        this.weight = selectedWeight > 0.0 ? selectedWeight : AIChooser.MIN_VALUE;
+        this.weight = Math.min(Math.max(AIChooser.MIN_VALUE, selectedWeight), 1.0);
+    }
+
+    public double getWeight() {
+        return weight;
     }
 
     @Override
-    public SortedMap<String, Double> chooseTarget(Optional<StatsOutMessage> battleMemories,
+    public SortedMap<String, Double> choose(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories, Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages) {
         SortedMap<String, Double> results = new TreeMap<>();
         if (battleMemories == null || battleMemories.isEmpty()) {
             return results;
         }
-        if (battleMemories.get().getRecords().stream()
-                .filter(stat -> targetFactions == null || targetFactions.contains(stat.getFaction()))
-                .filter(stat -> harmMemories != null && harmMemories.getLastMassAttackerName().isPresent()
-                        && stat.getTargetName().equals(harmMemories.getLastMassAttackerName().get()))
-                .findAny().isPresent()) {
-            results.put(harmMemories.getLastMassAttackerName().get(), this.weight);
+        for (BattleStatRecord stat : battleMemories.get().getRecords()) {
+            if (targetFactions != null && !targetFactions.contains(stat.getFaction())) {
+                continue;
+            }
+            double priority = AIChooser.MIN_VALUE;
+            if (harmMemories != null && harmMemories.getLastMassAttackerName().isPresent()
+                    && stat.getTargetName().equals(harmMemories.getLastMassAttackerName().get())) {
+                priority = this.weight;
+            }
+            results.put(stat.getTargetName(), priority);
         }
         return results;
     }

@@ -1,6 +1,7 @@
 package com.lhf.game.creature.intelligence.actionChoosers;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
@@ -31,7 +32,7 @@ public class RandomTargetChooser implements AIChooser<String> {
     }
 
     @Override
-    public SortedMap<String, Double> chooseTarget(Optional<StatsOutMessage> battleMemories,
+    public SortedMap<String, Double> choose(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories, Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages) {
         SortedMap<String, Double> results = new TreeMap<>();
         if (battleMemories.isPresent()) {
@@ -43,6 +44,38 @@ public class RandomTargetChooser implements AIChooser<String> {
             }
         }
         return results;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(roller);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof RandomTargetChooser))
+            return false;
+        RandomTargetChooser other = (RandomTargetChooser) obj;
+        return Objects.equals(roller, other.roller);
+    }
+
+    @Override
+    public int compareTo(AIChooser<String> arg0) {
+        if (this == arg0) {
+            return 0;
+        }
+        int compareResult = AIChooser.super.compareTo(arg0);
+        if (compareResult != 0) {
+            return compareResult;
+        }
+        if (!(arg0 instanceof RandomTargetChooser)) {
+            return 1;
+        }
+        RandomTargetChooser other = (RandomTargetChooser) arg0;
+
+        return this.roller.compareTo(other.roller);
     }
 
 }

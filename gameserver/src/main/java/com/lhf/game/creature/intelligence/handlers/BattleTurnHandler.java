@@ -14,7 +14,7 @@ import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.intelligence.actionChoosers.AggroHighwaterChooser;
-import com.lhf.game.creature.intelligence.actionChoosers.AggroStatsChooser;
+import com.lhf.game.creature.intelligence.actionChoosers.BattleStatsChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.RandomTargetChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.VocationChooser;
 import com.lhf.game.enums.CreatureFaction;
@@ -27,37 +27,52 @@ import com.lhf.messages.out.StatsOutMessage;
 
 public class BattleTurnHandler extends AIHandler {
 
-    private final TreeSet<AIChooser<String>> enemyTargetChoosers;
+    private final TreeSet<AIChooser<String>> targetChoosers;
+
+    public record TargetLists(List<Map.Entry<String, Double>> enemies, List<Map.Entry<String, Double>> allies) {
+    }
 
     public BattleTurnHandler() {
         super(OutMessageType.BATTLE_TURN);
-        this.enemyTargetChoosers = new TreeSet<>();
+        this.targetChoosers = new TreeSet<>();
 
-        this.enemyTargetChoosers.add(new RandomTargetChooser());
-        this.enemyTargetChoosers.add(new AggroStatsChooser());
-        this.enemyTargetChoosers.add(new AggroHighwaterChooser());
-        this.enemyTargetChoosers.add(new VocationChooser());
+        this.targetChoosers.add(new RandomTargetChooser());
+        this.targetChoosers.add(new BattleStatsChooser());
+        this.targetChoosers.add(new AggroHighwaterChooser());
+        this.targetChoosers.add(new VocationChooser());
     }
 
-    public List<Map.Entry<String, Double>> chooseEnemyTarget(Optional<StatsOutMessage> battleMemories,
+    public TargetLists chooseTargets(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
             CreatureFaction myFaction, Collection<OutMessage> outMessages) {
-        SortedMap<String, Double> possTarget = this.enemyTargetChoosers.stream()
+        SortedMap<String, Double> possEnemies = this.targetChoosers.stream()
                 .flatMap(chooser -> chooser
-                        .chooseTarget(battleMemories, harmMemories, CreatureFaction.competeSet(myFaction), List.of())
+                        .choose(battleMemories, harmMemories, CreatureFaction.competeSet(myFaction), List.of())
+                        .entrySet()
+                        .stream())
+                .collect(Collectors.groupingBy(Map.Entry::getKey, TreeMap::new,
+                        Collectors.summingDouble(Map.Entry::getValue)));
+
+        SortedMap<String, Double> possAllies = this.targetChoosers.stream()
+                .flatMap(chooser -> chooser
+                        .choose(battleMemories, harmMemories, CreatureFaction.allySet(myFaction), List.of())
                         .entrySet()
                         .stream())
                 .collect(Collectors.groupingBy(Map.Entry::getKey, TreeMap::new,
                         Collectors.summingDouble(Map.Entry::getValue)));
 
         if (harmMemories != null) {
-            possTarget.remove(harmMemories.getOwnerName());
+            possEnemies.remove(harmMemories.getOwnerName());
         }
-        List<Map.Entry<String, Double>> targetList = possTarget.entrySet().stream()
+        List<Map.Entry<String, Double>> enemyList = possEnemies.entrySet().stream()
+                .sorted((e1, e2) -> -1 * e1.getValue().compareTo(e2.getValue())).toList();
+        List<Map.Entry<String, Double>> allyList = possAllies.entrySet().stream()
                 .sorted((e1, e2) -> -1 * e1.getValue().compareTo(e2.getValue())).toList();
 
-        this.logger.fine(() -> String.format("Target list: %s", targetList));
-        return targetList;
+        TargetLists lists = new TargetLists(enemyList, allyList);
+
+        this.logger.fine(() -> String.format("Target list: %s", lists));
+        return lists;
     }
 
     public void meleeAttackTargets(BasicAI bai, List<Map.Entry<String, Double>> targetList) {
@@ -87,12 +102,12 @@ public class BattleTurnHandler extends AIHandler {
                 .map(outMessage -> ((StatsOutMessage) outMessage)).findFirst();
         if (btm.isYesTurn() && bai.getNpc().equals(btm.getMyTurn())) {
 
-            List<Map.Entry<String, Double>> targetList = this.chooseEnemyTarget(statsOutOpt,
+            TargetLists targetList = this.chooseTargets(statsOutOpt,
                     bai.getNpc().getHarmMemories(),
                     bai.getNpc().getFaction(),
                     List.of());
 
-            this.meleeAttackTargets(bai, targetList);
+            this.meleeAttackTargets(bai, targetList.enemies());
 
         }
     }

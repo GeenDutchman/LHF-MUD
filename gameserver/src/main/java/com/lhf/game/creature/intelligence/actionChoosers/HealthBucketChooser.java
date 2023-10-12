@@ -44,7 +44,7 @@ public class HealthBucketChooser implements AIChooser<String> {
     }
 
     @Override
-    public SortedMap<String, Double> chooseTarget(Optional<StatsOutMessage> battleMemories,
+    public SortedMap<String, Double> choose(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories, Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages) {
         SortedMap<String, Double> results = new TreeMap<>();
         if (battleMemories.isEmpty()) {

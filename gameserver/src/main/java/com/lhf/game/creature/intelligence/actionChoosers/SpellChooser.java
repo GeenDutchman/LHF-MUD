@@ -41,7 +41,7 @@ public class SpellChooser implements AIChooser<SpellEntry> {
     }
 
     @Override
-    public SortedMap<SpellEntry, Double> chooseTarget(Optional<StatsOutMessage> battleMemories,
+    public SortedMap<SpellEntry, Double> choose(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
             Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages) {
         SortedMap<SpellEntry, Double> selection = new TreeMap<>();
