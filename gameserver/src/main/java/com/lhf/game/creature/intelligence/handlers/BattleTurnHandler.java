@@ -63,6 +63,7 @@ public class BattleTurnHandler extends AIHandler {
 
         if (harmMemories != null) {
             possEnemies.remove(harmMemories.getOwnerName());
+            possAllies.merge(harmMemories.getOwnerName(), AIChooser.MIN_VALUE, (a, b) -> a + b);
         }
         List<Map.Entry<String, Double>> enemyList = possEnemies.entrySet().stream()
                 .sorted((e1, e2) -> -1 * e1.getValue().compareTo(e2.getValue())).toList();
