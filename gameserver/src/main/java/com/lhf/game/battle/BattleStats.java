@@ -2,11 +2,13 @@ package com.lhf.game.battle;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
+import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.enums.CreatureFaction;
@@ -23,15 +25,21 @@ public class BattleStats implements ClientMessenger {
      *
      */
     public static class BattleStatRecord implements Comparable<BattleStatRecord> {
+
+        public static enum BattleStat {
+            MAX_DAMAGE, AGGRO_DAMAGE, TOTAL_DAMAGE, NUM_DAMAGES, HEALING_PERFORMED, AVG_DAMAGE;
+        }
+
         protected final String targetName;
         private CreatureFaction faction;
         private Vocation vocation;
         private HealthBuckets bucket;
-        private int maxDamage;
-        private int aggroDamage;
-        private int totalDamage;
-        private int numDamgages;
-        private int healingPerformed;
+        private EnumMap<BattleStat, Integer> stats;
+        // private int maxDamage;
+        // private int aggroDamage;
+        // private int totalDamage;
+        // private int numDamgages;
+        // private int healingPerformed;
 
         public BattleStatRecord(String targetName, CreatureFaction faction, Vocation vocation,
                 HealthBuckets bucket) {
@@ -39,6 +47,10 @@ public class BattleStats implements ClientMessenger {
             this.faction = faction;
             this.vocation = vocation;
             this.bucket = bucket;
+            this.stats = new EnumMap<>(BattleStat.class);
+            for (BattleStat stat : BattleStat.values()) {
+                this.stats.put(stat, 0);
+            }
         }
 
         public String getTargetName() {
@@ -58,37 +70,45 @@ public class BattleStats implements ClientMessenger {
         }
 
         public int getMaxDamage() {
-            return maxDamage;
+            return this.stats.getOrDefault(BattleStat.MAX_DAMAGE, 0);
         }
 
         public int getAggroDamage() {
-            return aggroDamage;
+            return this.stats.getOrDefault(BattleStat.AGGRO_DAMAGE, 0);
         }
 
         public int getTotalDamage() {
-            return totalDamage;
+            return this.stats.getOrDefault(BattleStat.TOTAL_DAMAGE, 0);
         }
 
         public int getAverageDamage() {
-            return this.getTotalDamage() / this.getNumDamgages();
+            // return this.getTotalDamage() / this.getNumDamgages();
+            return this.stats.getOrDefault(BattleStat.AVG_DAMAGE, 0);
         }
 
         public int getNumDamgages() {
-            return numDamgages;
+            return this.stats.getOrDefault(BattleStat.NUM_DAMAGES, 0);
         }
 
         public int getHealingPerformed() {
-            return healingPerformed;
+            return this.stats.getOrDefault(BattleStat.HEALING_PERFORMED, 0);
+        }
+
+        public int get(BattleStat stat) {
+            if (stat == null) {
+                return 0;
+            }
+            return this.stats.getOrDefault(stat, 0);
         }
 
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
             builder.append("BattleStats [targetName=").append(targetName).append(", faction=").append(faction)
-                    .append(", vocation=").append(vocation).append(", bucket=").append(bucket)
-                    .append(", maxDamage=").append(maxDamage).append(", aggroDamage=").append(aggroDamage)
-                    .append(", totalDamage=").append(totalDamage).append(", numDamgages=").append(numDamgages)
-                    .append(", healingPerformed=").append(healingPerformed).append("]");
+                    .append(", vocation=").append(vocation).append(", bucket=").append(bucket);
+            this.stats.entrySet().stream()
+                    .forEach(entry -> builder.append(", ").append(entry.getKey()).append("=").append(entry.getValue()));
+            builder.append("]");
             return builder.toString();
         }
 
@@ -169,12 +189,16 @@ public class BattleStats implements ClientMessenger {
             return this;
         }
         found.bucket = responsible.getHealthBucket();
-        found.numDamgages += roll < 0 ? 1 : 0;
-        found.totalDamage += roll;
-        found.maxDamage = roll > found.maxDamage ? roll : found.maxDamage;
-        found.healingPerformed += ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.HEALING),
+        found.stats.merge(BattleStat.NUM_DAMAGES, roll < 0 ? 1 : 0, (a, b) -> a + b);
+        found.stats.merge(BattleStat.TOTAL_DAMAGE, roll, (a, b) -> a + b);
+        found.stats.merge(BattleStat.MAX_DAMAGE, roll, (a, b) -> a > b ? a : b);
+        int healingPerformed = ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.HEALING),
                 false);
-        found.aggroDamage = ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.AGGRO), true);
+        found.stats.merge(BattleStat.HEALING_PERFORMED, healingPerformed, (a, b) -> a + b);
+        found.stats.put(BattleStat.AGGRO_DAMAGE,
+                ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.AGGRO), true));
+        found.stats.put(BattleStat.AVG_DAMAGE,
+                found.getNumDamgages() == 0 ? 0 : found.getTotalDamage() / found.getNumDamgages());
 
         return this;
     }
