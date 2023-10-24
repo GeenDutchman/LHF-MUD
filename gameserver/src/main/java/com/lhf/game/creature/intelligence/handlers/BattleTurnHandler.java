@@ -4,8 +4,10 @@ import java.util.Collection;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.SortedMap;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -26,6 +28,8 @@ import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD100;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
+import com.lhf.game.magic.CreatureTargetingSpellEntry;
+import com.lhf.game.magic.SpellEntry;
 import com.lhf.game.map.Directions;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -164,19 +168,6 @@ public class BattleTurnHandler extends AIHandler {
 
     }
 
-    public Optional<String> processSpellcasting(Optional<StatsOutMessage> battleMemories,
-            HarmMemories harmMemories,
-            CreatureFaction myFaction, Collection<OutMessage> outMessages) {
-        if (battleMemories.isEmpty() || 
-            battleMemories.get().getRecords().stream().noneMatch(stat -> stat != null && stat.getTargetName().equals(harmMemories.getOwnerName()) && stat.getVocation().getVocationName().isCubeHolder())){
-            return Optional.empty();
-        }
-
-        Optional<SpellEntryMessage> spellbookEntries = 
-        
-
-    }
-
     public Optional<String> process(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
             CreatureFaction myFaction, Collection<OutMessage> outMessages) {
@@ -231,6 +222,49 @@ public class BattleTurnHandler extends AIHandler {
 
     }
 
+    private Optional<String> getSpellChoice(BasicAI bai, TargetLists targetList) {
+        Optional<String> command = Optional.empty();
+        final double offensiveFocus = 0.8;
+        if (bai.getNpc().getVocation().getVocationName().isCubeHolder()) {
+            Optional<SpellEntryMessage> spellbookEntries = bai.ProcessString("SPELLBOOK").getMessages()
+                    .stream()
+                    .filter(outMessage -> outMessage != null
+                            && OutMessageType.SPELL_ENTRY.equals((outMessage.getOutType())))
+                    .map(outMessage -> ((SpellEntryMessage) outMessage)).findFirst();
+            if (spellbookEntries.isPresent()) {
+                try {
+                    SpellEntry spellEntry = spellbookEntries.get().getEntries().stream()
+                            .filter(entry -> entry != null)
+                            .collect(Collectors.toMap(spellentry -> spellentry,
+                                    spellentry -> (spellentry.aiScore() / (spellentry.getLevel().toInt() + 0.1))
+                                            * (spellentry.isOffensive() ? offensiveFocus : 1 - offensiveFocus),
+                                    (scorea, scoreb) -> (scorea + scoreb) / 2, TreeMap::new))
+                            .firstKey();
+                    if (spellEntry instanceof CreatureTargetingSpellEntry) {
+                        final CreatureTargetingSpellEntry targetedSpell = (CreatureTargetingSpellEntry) spellEntry;
+                        final List<Map.Entry<String, Double>> listToPeruse = targetedSpell.isOffensive()
+                                ? targetList.enemies()
+                                : targetList.allies();
+                        if (targetedSpell.isSingleTarget()) {
+                            command = Optional.of("Cast " + targetedSpell.getInvocation() + " at "
+                                    + listToPeruse.get(0).getKey());
+                        } else {
+                            command = Optional.of(listToPeruse.stream()
+                                    .map(targetEntry -> targetEntry.getKey()).collect(Collectors.joining(" at ",
+                                            "Cast " + targetedSpell.getInvocation() + " at ", "")));
+                        }
+                    } else {
+                        command = Optional.of("Cast " + spellEntry.getInvocation());
+                    }
+                } catch (NoSuchElementException e) {
+                    command = Optional.empty();
+                }
+
+            }
+        }
+        return command;
+    }
+
     @Override
     public void handle(BasicAI bai, OutMessage msg) {
         bai.ProcessString("SEE");
@@ -255,24 +289,19 @@ public class BattleTurnHandler extends AIHandler {
                 return;
             }
 
-            if (bai.getNpc().getVocation().getVocationName().isCubeHolder()) {
-                Optional<SpellEntryMessage> spellbookEntries = bai.ProcessString("SPELLBOOK").getMessages().stream()
-                        .filter(outMessage -> outMessage != null
-                                && OutMessageType.SPELL_ENTRY.equals((outMessage.getOutType())))
-                        .map(outMessage -> ((SpellEntryMessage) outMessage)).findFirst();
-                if (spellbookEntries.isPresent()) {
-                    gibberish here to block it
-                }
-            }
-
             TargetLists targetList = this.chooseTargets(statsOutOpt,
-                    bai.getNpc().getHarmMemories(),
-                    bai.getNpc().getFaction(),
-                    List.of());
+                bai.getNpc().getHarmMemories(),
+                bai.getNpc().getFaction(),
+                List.of());
+
+            command = getSpellChoice(bai, targetList);
+            if (command.isPresent()) {
+                // CommandContext.Reply reply = bai.ProcessString(command.get());
+                bai.ProcessString(command.get());
+                return;
+            }
 
             this.meleeAttackTargets(bai, targetList.enemies());
 
         }
     }
-
-}
