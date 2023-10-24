@@ -2,7 +2,6 @@ package com.lhf.game.creature.intelligence.handlers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -16,18 +15,11 @@ import org.mockito.stubbing.Answer;
 
 import com.google.common.truth.Truth;
 import com.google.common.truth.Truth8;
-import com.lhf.game.EffectPersistence;
-import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleStats;
-import com.lhf.game.creature.CreatureEffect;
-import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler.TargetLists;
-import com.lhf.game.dice.DamageDice;
-import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.game.enums.DamageFlavor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -36,7 +28,6 @@ import com.lhf.messages.MessageHandler;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.BattleTurnMessage;
-import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
 public class BattleTurnHandlerTest {
@@ -65,7 +56,7 @@ public class BattleTurnHandlerTest {
                 Optional.of(StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
                         .Build()),
                 finder.npc.getHarmMemories(),
-                finder.npc.getFaction(), List.of());
+                finder.npc.getFaction());
         Truth.assertThat(targets.enemies()).hasSize(2);
         Truth.assertThat(targets.enemies().get(0).getValue()).isAtLeast(targets.enemies().get(1).getValue());
 

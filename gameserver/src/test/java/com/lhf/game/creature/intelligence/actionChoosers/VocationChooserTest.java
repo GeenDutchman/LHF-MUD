@@ -19,56 +19,58 @@ import com.lhf.game.creature.vocation.DMV;
 import com.lhf.game.creature.vocation.Fighter;
 import com.lhf.game.creature.vocation.Healer;
 import com.lhf.game.creature.vocation.Mage;
-import com.lhf.game.creature.vocation.Vocation;
-import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.out.StatsOutMessage;
 
 public class VocationChooserTest {
-    @Spy
-    private GroupAIRunner aiRunner = new GroupAIRunner(false, 2, 250, TimeUnit.MILLISECONDS);
+        @Spy
+        private GroupAIRunner aiRunner = new GroupAIRunner(false, 2, 250, TimeUnit.MILLISECONDS);
 
-    @BeforeEach
-    public void setUp() throws Exception {
-        MockitoAnnotations.openMocks(this);
-        AIComBundle.setAIRunner(this.aiRunner.start());
-    }
+        @BeforeEach
+        public void setUp() throws Exception {
+                MockitoAnnotations.openMocks(this);
+                AIComBundle.setAIRunner(this.aiRunner.start());
+        }
 
-    @Test
-    void testChoose() {
-        AIComBundle finder = new AIComBundle();
-        finder.npc.setFaction(CreatureFaction.RENEGADE);
-        AIComBundle magi = new AIComBundle();
-        magi.npc.setVocation(new Mage());
-        AIComBundle cleric = new AIComBundle();
-        cleric.npc.setVocation(new Healer());
-        AIComBundle barbarian = new AIComBundle();
-        barbarian.npc.setVocation(new Fighter());
-        AIComBundle supreme = new AIComBundle();
-        supreme.npc.setVocation(new DMV());
+        @Test
+        void testChoose() {
+                AIComBundle finder = new AIComBundle();
+                finder.npc.setFaction(CreatureFaction.RENEGADE);
+                AIComBundle magi = new AIComBundle();
+                magi.npc.setVocation(new Mage());
+                AIComBundle cleric = new AIComBundle();
+                cleric.npc.setVocation(new Healer());
+                AIComBundle barbarian = new AIComBundle();
+                barbarian.npc.setVocation(new Fighter());
+                AIComBundle supreme = new AIComBundle();
+                supreme.npc.setVocation(new DMV());
 
-        VocationChooser chooser = new VocationChooser();
+                VocationChooser chooser = new VocationChooser();
 
-        BattleStats battleStats = new BattleStats()
-                .initialize(List.of(finder.npc, magi.npc, cleric.npc, barbarian.npc, supreme.npc));
+                BattleStats battleStats = new BattleStats()
+                                .initialize(List.of(finder.npc, magi.npc, cleric.npc, barbarian.npc, supreme.npc));
 
-        SortedMap<String, Double> targets = chooser
-                .choose(Optional.of(StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
-                        .Build()), finder.npc.getHarmMemories(), finder.npc.getFaction().competeSet(), List.of());
+                SortedMap<String, Double> targets = chooser
+                                .choose(Optional.of(
+                                                StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
+                                                                .Build()),
+                                                finder.npc.getHarmMemories(), finder.npc.getFaction().competeSet(),
+                                                List.of());
 
-        Truth.assertThat(targets).hasSize(5); // us being a renegade makes us included
-        Truth.assertThat(targets).containsKey(magi.npc.getName());
-        Truth.assertThat(targets.get(magi.npc.getName())).isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
-                .of(2 / (double) 3);
-        Truth.assertThat(targets).containsKey(cleric.npc.getName());
-        Truth.assertThat(targets.get(cleric.npc.getName())).isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
-                .of(3 / (double) 3);
-        Truth.assertThat(targets).containsKey(barbarian.npc.getName());
-        Truth.assertThat(targets.get(barbarian.npc.getName())).isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
-                .of(1 / (double) 3);
-        Truth.assertThat(targets).containsKey(supreme.npc.getName());
-        Truth.assertThat(targets.get(supreme.npc.getName())).isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
-                .of(AIChooser.MIN_VALUE);
+                Truth.assertThat(targets).hasSize(5); // us being a renegade makes us included
+                Truth.assertThat(targets).containsKey(magi.npc.getName());
+                Truth.assertThat(targets.get(magi.npc.getName())).isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
+                                .of(2 / (double) 3);
+                Truth.assertThat(targets).containsKey(cleric.npc.getName());
+                Truth.assertThat(targets.get(cleric.npc.getName())).isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
+                                .of(3 / (double) 3);
+                Truth.assertThat(targets).containsKey(barbarian.npc.getName());
+                Truth.assertThat(targets.get(barbarian.npc.getName()))
+                                .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
+                                .of(1 / (double) 3);
+                Truth.assertThat(targets).containsKey(supreme.npc.getName());
+                Truth.assertThat(targets.get(supreme.npc.getName())).isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
+                                .of(AIChooser.MIN_VALUE);
 
-    }
+        }
 }

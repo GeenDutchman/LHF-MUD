@@ -1,30 +1,24 @@
 package com.lhf.game.creature.intelligence.handlers;
 
-import java.util.Collection;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.SortedMap;
-import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import javax.swing.Action;
-import javax.swing.text.html.Option;
-
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
-import com.lhf.game.creature.Player;
-import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.AIChooser;
+import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.intelligence.actionChoosers.AggroHighwaterChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.BattleStatsChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.RandomTargetChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.VocationChooser;
-import com.lhf.game.dice.Dice;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DiceD100;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
@@ -48,12 +42,12 @@ public class BattleTurnHandler extends AIHandler {
 
     private final DiceD100 roller;
 
-    public BattleTurnHandler(DiceD100 roller) {
+    public BattleTurnHandler() {
         super(OutMessageType.BATTLE_TURN);
-        this.roller = roller != null ? roller : new DiceD100(1);
+        this.roller = new DiceD100(1);
         this.targetChoosers = new TreeSet<>();
 
-        this.targetChoosers.add(new RandomTargetChooser());
+        this.targetChoosers.add(new RandomTargetChooser(this.roller));
         this.targetChoosers.add(new BattleStatsChooser());
         this.targetChoosers.add(new AggroHighwaterChooser());
         this.targetChoosers.add(new VocationChooser());
@@ -65,7 +59,7 @@ public class BattleTurnHandler extends AIHandler {
 
     public TargetLists chooseTargets(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
-            CreatureFaction myFaction, Collection<OutMessage> outMessages) {
+            CreatureFaction myFaction) {
         SortedMap<String, Double> possEnemies = this.targetChoosers.stream()
                 .flatMap(chooser -> chooser
                         .choose(battleMemories, harmMemories, CreatureFaction.competeSet(myFaction), List.of())
@@ -120,11 +114,10 @@ public class BattleTurnHandler extends AIHandler {
                 .map(stat -> stat.getBucket())
                 .findFirst();
 
-        final Dice roller = new DiceD100(1);
         boolean shouldFlee = selfHealthBucket.isPresent()
                 && selfHealthBucket.get().compareTo(HealthBuckets.CRITICALLY_INJURED) <= 0;
         if (shouldFlee) {
-            final double fleeDecision = (double) roller.rollDice().getRoll() / roller.getType().getType();
+            final double fleeDecision = this.pick();
 
             final double stayForFriendsChance = 0.2;
             final double beserkerChance = 0.2;
@@ -162,7 +155,7 @@ public class BattleTurnHandler extends AIHandler {
         if (!shouldFlee) {
             return Optional.empty();
         }
-        final double directionDecision = (double) roller.rollDice().getRoll() / roller.getType().getType();
+        final double directionDecision = this.pick();
         if (directionDecision < 0.25) {
             return Optional.of("FLEE " + Directions.NORTH.toString());
         } else if (directionDecision < 0.50) {
@@ -175,63 +168,10 @@ public class BattleTurnHandler extends AIHandler {
 
     }
 
-    public Optional<String> process(Optional<StatsOutMessage> battleMemories,
-            HarmMemories harmMemories,
-            CreatureFaction myFaction, Collection<OutMessage> outMessages) {
-
-        Optional<String> command = processFlee(battleMemories, harmMemories, myFaction);
-        if (command.isPresent()) {
-            return command;
-        }
-        if (battleMemories.isPresent() && battleMemories.get().getRecords().stream()
-                .anyMatch(stat -> stat != null && stat.getTargetName().equals(harmMemories.getOwnerName())
-                        && stat.getVocation().getVocationName().isCubeHolder())) {
-            // Check if the Monster is a Spellcaster
-            if (monster.hasSpells()) {
-                // Decide which spell to cast based on your logic
-                Spell selectedSpell = monster.selectSpell();
-
-                if (selectedSpell.isTargeted()) {
-                    // If the spell targets specific Players, select the target(s)
-                    List<Player> spellTargets = monster.selectSpellTargets(selectedSpell);
-                    return new CastSpellAction(selectedSpell, spellTargets);
-                } else {
-                    // If the spell affects all players in the room, cast it without specific
-                    // targets
-                    return new CastSpellAction(selectedSpell, null);
-                }
-            }
-        }
-
-        // Calculate probabilities based on damage criteria
-        double recentDamageProbability = 0.3;
-        double mostDamageProbability = 0.2;
-        double randomAttackProbability = 1.0 - (recentDamageProbability + mostDamageProbability);
-
-        double randomValue = Math.random();
-        if (randomValue < recentDamageProbability && recentDamagePlayer != null && recentDamagePlayer.health > 0) {
-            return new AttackAction(recentDamagePlayer);
-        } else if (randomValue < recentDamageProbability + mostDamageProbability && mostDamagePlayer != null
-                && mostDamagePlayer.health > 0) {
-            return new AttackAction(mostDamagePlayer);
-        } else {
-            // If the random value doesn't match recent or most damage, choose a random
-            // target
-            List<Player> potentialTargets = getPotentialTargets();
-            if (!potentialTargets.isEmpty()) {
-                Player randomTarget = potentialTargets.get((int) (Math.random() * potentialTargets.size()));
-                return new AttackAction(randomTarget);
-            } else {
-                // If no valid targets, pass the turn
-                return Action.PASS;
-            }
-        }
-
-    }
-
     private Optional<String> getSpellChoice(BasicAI bai, TargetLists targetList) {
         Optional<String> command = Optional.empty();
-        final double offensiveFocus = 0.8;
+        final double offensiveFocus = VocationName.HEALER.equals(bai.getNpc().getVocation().getVocationName()) ? 0.2
+                : 0.8;
         if (bai.getNpc().getVocation().getVocationName().isCubeHolder()) {
             Optional<SpellEntryMessage> spellbookEntries = bai.ProcessString("SPELLBOOK").getMessages()
                     .stream()
@@ -288,8 +228,8 @@ public class BattleTurnHandler extends AIHandler {
         if (btm.isYesTurn() && bai.getNpc().equals(btm.getMyTurn())) {
 
             Optional<String> command = processFlee(statsOutOpt,
-                    bai.getNpc().getHarmMemories(),
-                    bai.getNpc().getFaction());
+                    harmMemories,
+                    myFaction);
             if (command.isPresent()) {
                 // CommandContext.Reply reply = bai.ProcessString(command.get());
                 bai.ProcessString(command.get());
@@ -297,9 +237,8 @@ public class BattleTurnHandler extends AIHandler {
             }
 
             TargetLists targetList = this.chooseTargets(statsOutOpt,
-                bai.getNpc().getHarmMemories(),
-                bai.getNpc().getFaction(),
-                List.of());
+                    harmMemories,
+                    myFaction);
 
             command = getSpellChoice(bai, targetList);
             if (command.isPresent()) {
@@ -308,7 +247,12 @@ public class BattleTurnHandler extends AIHandler {
                 return;
             }
 
-            this.meleeAttackTargets(bai, targetList.enemies());
+            if (targetList.enemies.size() > 0) {
+                this.meleeAttackTargets(bai, targetList.enemies());
+            } else {
+                bai.ProcessString("Pass");
+            }
 
         }
     }
+}
