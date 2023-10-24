@@ -46,14 +46,21 @@ public class BattleTurnHandler extends AIHandler {
     public record TargetLists(List<Map.Entry<String, Double>> enemies, List<Map.Entry<String, Double>> allies) {
     }
 
-    public BattleTurnHandler() {
+    private final DiceD100 roller;
+
+    public BattleTurnHandler(DiceD100 roller) {
         super(OutMessageType.BATTLE_TURN);
+        this.roller = roller != null ? roller : new DiceD100(1);
         this.targetChoosers = new TreeSet<>();
 
         this.targetChoosers.add(new RandomTargetChooser());
         this.targetChoosers.add(new BattleStatsChooser());
         this.targetChoosers.add(new AggroHighwaterChooser());
         this.targetChoosers.add(new VocationChooser());
+    }
+
+    private double pick() {
+        return roller.rollDice().getRoll() / (double) roller.getType().getType();
     }
 
     public TargetLists chooseTargets(Optional<StatsOutMessage> battleMemories,
