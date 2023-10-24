@@ -1,6 +1,7 @@
 package com.lhf.game.creature.intelligence.handlers;
 
 import java.util.Collection;
+import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -9,7 +10,11 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import javax.swing.Action;
+import javax.swing.text.html.Option;
+
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
+import com.lhf.game.creature.Player;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.creature.intelligence.BasicAI;
@@ -17,12 +22,17 @@ import com.lhf.game.creature.intelligence.actionChoosers.AggroHighwaterChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.BattleStatsChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.RandomTargetChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.VocationChooser;
+import com.lhf.game.dice.Dice;
+import com.lhf.game.dice.DiceD100;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.HealthBuckets;
+import com.lhf.game.map.Directions;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.OutMessageType;
 import com.lhf.messages.out.BattleTurnMessage;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.SpellEntryMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
 public class BattleTurnHandler extends AIHandler {
@@ -90,6 +100,137 @@ public class BattleTurnHandler extends AIHandler {
         this.logger.warning(() -> String.format("Unable to attack anyone, passing: %s", bai.ProcessString("PASS")));
     }
 
+    // Returns empty if not to flee, otherwise populated with "flee <direction>"
+    private Optional<String> processFlee(Optional<StatsOutMessage> battleMemories,
+            HarmMemories harmMemories,
+            CreatureFaction myFaction) {
+        Optional<HealthBuckets> selfHealthBucket = battleMemories.get().getRecords().stream()
+                .filter(stat -> stat != null && harmMemories.getOwnerName().equals(stat.getTargetName()))
+                .map(stat -> stat.getBucket())
+                .findFirst();
+
+        final Dice roller = new DiceD100(1);
+        boolean shouldFlee = selfHealthBucket.isPresent()
+                && selfHealthBucket.get().compareTo(HealthBuckets.CRITICALLY_INJURED) <= 0;
+        if (shouldFlee) {
+            final double fleeDecision = (double) roller.rollDice().getRoll() / roller.getType().getType();
+
+            final double stayForFriendsChance = 0.2;
+            final double beserkerChance = 0.2;
+            final double retributionChance = 0.2;
+
+            // Introduce a chance for various behaviors
+            if (fleeDecision < stayForFriendsChance) {
+                // 20% chance of protecting allies instead of fleeing
+                DoubleSummaryStatistics allyStats = battleMemories.get().getRecords().stream()
+                        .filter(stat -> stat != null && (myFaction.allied(stat.getFaction())
+                                || stat.getTargetName().equals(harmMemories.getOwnerName())))
+                        .collect(Collectors.summarizingDouble(stat -> stat.getBucket().getValue()));
+                DoubleSummaryStatistics enemyStats = battleMemories.get().getRecords().stream()
+                        .filter(stat -> stat != null && (myFaction.competing(stat.getFaction())
+                                && !stat.getTargetName().equals(harmMemories.getOwnerName())))
+                        .collect(Collectors.summarizingDouble(stat -> stat.getBucket().getValue()));
+                if (allyStats.getAverage() > enemyStats.getAverage()) {
+                    shouldFlee = false;
+                }
+                if (allyStats.getCount() > 1) {
+                    shouldFlee = false;
+                }
+            } else if (fleeDecision < stayForFriendsChance + beserkerChance) {
+                shouldFlee = false;
+            } else if (fleeDecision < stayForFriendsChance + beserkerChance + retributionChance) {
+                if (harmMemories.getLastAttackerName().isPresent() && harmMemories.getLastMassAttackerName().isPresent()
+                        && harmMemories.getLastAttackerName().get()
+                                .equals(harmMemories.getLastMassAttackerName().get())) {
+                    shouldFlee = false;
+                }
+            }
+            // If none of the special conditions are met, flee.
+        }
+
+        if (!shouldFlee) {
+            return Optional.empty();
+        }
+        final double directionDecision = (double) roller.rollDice().getRoll() / roller.getType().getType();
+        if (directionDecision < 0.25) {
+            return Optional.of("FLEE " + Directions.NORTH.toString());
+        } else if (directionDecision < 0.50) {
+            return Optional.of("FLEE " + Directions.SOUTH.toString());
+        } else if (directionDecision < 0.75) {
+            return Optional.of("FLEE " + Directions.EAST.toString());
+        } else {
+            return Optional.of("FLEE " + Directions.WEST.toString());
+        }
+
+    }
+
+    public Optional<String> processSpellcasting(Optional<StatsOutMessage> battleMemories,
+            HarmMemories harmMemories,
+            CreatureFaction myFaction, Collection<OutMessage> outMessages) {
+        if (battleMemories.isEmpty() || 
+            battleMemories.get().getRecords().stream().noneMatch(stat -> stat != null && stat.getTargetName().equals(harmMemories.getOwnerName()) && stat.getVocation().getVocationName().isCubeHolder())){
+            return Optional.empty();
+        }
+
+        Optional<SpellEntryMessage> spellbookEntries = 
+        
+
+    }
+
+    public Optional<String> process(Optional<StatsOutMessage> battleMemories,
+            HarmMemories harmMemories,
+            CreatureFaction myFaction, Collection<OutMessage> outMessages) {
+
+        Optional<String> command = processFlee(battleMemories, harmMemories, myFaction);
+        if (command.isPresent()) {
+            return command;
+        }
+        if (battleMemories.isPresent() && battleMemories.get().getRecords().stream()
+                .anyMatch(stat -> stat != null && stat.getTargetName().equals(harmMemories.getOwnerName())
+                        && stat.getVocation().getVocationName().isCubeHolder())) {
+            // Check if the Monster is a Spellcaster
+            if (monster.hasSpells()) {
+                // Decide which spell to cast based on your logic
+                Spell selectedSpell = monster.selectSpell();
+
+                if (selectedSpell.isTargeted()) {
+                    // If the spell targets specific Players, select the target(s)
+                    List<Player> spellTargets = monster.selectSpellTargets(selectedSpell);
+                    return new CastSpellAction(selectedSpell, spellTargets);
+                } else {
+                    // If the spell affects all players in the room, cast it without specific
+                    // targets
+                    return new CastSpellAction(selectedSpell, null);
+                }
+            }
+        }
+
+        // Calculate probabilities based on damage criteria
+        double recentDamageProbability = 0.3;
+        double mostDamageProbability = 0.2;
+        double randomAttackProbability = 1.0 - (recentDamageProbability + mostDamageProbability);
+
+        double randomValue = Math.random();
+        if (randomValue < recentDamageProbability && recentDamagePlayer != null && recentDamagePlayer.health > 0) {
+            return new AttackAction(recentDamagePlayer);
+        } else if (randomValue < recentDamageProbability + mostDamageProbability && mostDamagePlayer != null
+                && mostDamagePlayer.health > 0) {
+            return new AttackAction(mostDamagePlayer);
+        } else {
+            // If the random value doesn't match recent or most damage, choose a random
+            // target
+            List<Player> potentialTargets = getPotentialTargets();
+            if (!potentialTargets.isEmpty()) {
+                Player randomTarget = potentialTargets.get((int) (Math.random() * potentialTargets.size()));
+                return new AttackAction(randomTarget);
+            } else {
+                // If no valid targets, pass the turn
+                return Action.PASS;
+            }
+        }
+
+    }
+
     @Override
     public void handle(BasicAI bai, OutMessage msg) {
         bai.ProcessString("SEE");
@@ -101,7 +242,28 @@ public class BattleTurnHandler extends AIHandler {
         Optional<StatsOutMessage> statsOutOpt = reply.getMessages().stream()
                 .filter(outMessage -> outMessage != null && OutMessageType.STATS.equals(outMessage.getOutType()))
                 .map(outMessage -> ((StatsOutMessage) outMessage)).findFirst();
+        HarmMemories harmMemories = bai.getNpc().getHarmMemories();
+        CreatureFaction myFaction = bai.getNpc().getFaction();
         if (btm.isYesTurn() && bai.getNpc().equals(btm.getMyTurn())) {
+
+            Optional<String> command = processFlee(statsOutOpt,
+                    bai.getNpc().getHarmMemories(),
+                    bai.getNpc().getFaction());
+            if (command.isPresent()) {
+                // CommandContext.Reply reply = bai.ProcessString(command.get());
+                bai.ProcessString(command.get());
+                return;
+            }
+
+            if (bai.getNpc().getVocation().getVocationName().isCubeHolder()) {
+                Optional<SpellEntryMessage> spellbookEntries = bai.ProcessString("SPELLBOOK").getMessages().stream()
+                        .filter(outMessage -> outMessage != null
+                                && OutMessageType.SPELL_ENTRY.equals((outMessage.getOutType())))
+                        .map(outMessage -> ((SpellEntryMessage) outMessage)).findFirst();
+                if (spellbookEntries.isPresent()) {
+                    gibberish here to block it
+                }
+            }
 
             TargetLists targetList = this.chooseTargets(statsOutOpt,
                     bai.getNpc().getHarmMemories(),
