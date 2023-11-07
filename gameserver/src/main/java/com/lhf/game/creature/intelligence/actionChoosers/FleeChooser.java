@@ -6,15 +6,14 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD100;
-import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.map.Directions;
 import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.StatsOutMessage;
 
 public class FleeChooser implements AIChooser<String> {
     private final Dice roller = new DiceD100(1);
@@ -25,12 +24,12 @@ public class FleeChooser implements AIChooser<String> {
     }
 
     @Override
-    public SortedMap<String, Double> choose(Optional<StatsOutMessage> battleMemories,
-            HarmMemories harmMemories, Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages) {
+    public SortedMap<String, Double> choose(Set<BattleStatRecord> battleMemories,
+            HarmMemories harmMemories, Collection<OutMessage> outMessages) {
         SortedMap<String, Double> results = new TreeMap<>();
 
-        if (harmMemories != null && this.fleeLevel != null && battleMemories != null && battleMemories.isPresent()) {
-            Optional<HealthBuckets> watched = battleMemories.get().getRecords().stream()
+        if (harmMemories != null && this.fleeLevel != null && battleMemories != null && battleMemories.size() > 0) {
+            Optional<HealthBuckets> watched = battleMemories.stream()
                     .filter(stat -> stat != null && harmMemories.getOwnerName().equals(stat.getTargetName()))
                     .map(stat -> stat.getBucket())
                     .findFirst();

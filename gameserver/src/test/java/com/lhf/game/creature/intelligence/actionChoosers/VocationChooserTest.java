@@ -1,9 +1,9 @@
 package com.lhf.game.creature.intelligence.actionChoosers;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,6 @@ import com.lhf.game.creature.vocation.Fighter;
 import com.lhf.game.creature.vocation.Healer;
 import com.lhf.game.creature.vocation.Mage;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.messages.out.StatsOutMessage;
 
 public class VocationChooserTest {
         @Spy
@@ -50,12 +49,10 @@ public class VocationChooserTest {
                 BattleStats battleStats = new BattleStats()
                                 .initialize(List.of(finder.npc, magi.npc, cleric.npc, barbarian.npc, supreme.npc));
 
-                SortedMap<String, Double> targets = chooser
-                                .choose(Optional.of(
-                                                StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
-                                                                .Build()),
-                                                finder.npc.getHarmMemories(), finder.npc.getFaction().competeSet(),
-                                                List.of());
+                SortedMap<String, Double> targets = chooser.choose(
+                                battleStats.getBattleStatSet().stream().collect(Collectors.toSet()),
+                                finder.npc.getHarmMemories(),
+                                List.of());
 
                 Truth.assertThat(targets).hasSize(5); // us being a renegade makes us included
                 Truth.assertThat(targets).containsKey(magi.npc.getName());

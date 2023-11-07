@@ -2,7 +2,6 @@ package com.lhf.game.creature.intelligence.actionChoosers;
 
 import java.util.Collection;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -12,9 +11,7 @@ import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD100;
-import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.StatsOutMessage;
 
 public class RandomTargetChooser implements AIChooser<String> {
     private final Dice roller;
@@ -32,15 +29,16 @@ public class RandomTargetChooser implements AIChooser<String> {
     }
 
     @Override
-    public SortedMap<String, Double> choose(Optional<StatsOutMessage> battleMemories,
-            HarmMemories harmMemories, Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages) {
+    public SortedMap<String, Double> choose(Set<BattleStatRecord> battleMemories,
+            HarmMemories harmMemories, Collection<OutMessage> outMessages) {
         SortedMap<String, Double> results = new TreeMap<>();
-        if (battleMemories.isPresent()) {
-            for (BattleStatRecord stat : battleMemories.get().getRecords()) {
-                if (targetFactions == null || targetFactions.contains(stat.getFaction())) {
-                    results.put(stat.getTargetName(),
-                            (double) roller.rollDice().getRoll() / roller.getType().getType());
+        if (battleMemories != null && battleMemories.size() > 0) {
+            for (BattleStatRecord stat : battleMemories) {
+                if (stat == null) {
+                    continue;
                 }
+                results.put(stat.getTargetName(),
+                        (double) roller.rollDice().getRoll() / roller.getType().getType());
             }
         }
         return results;

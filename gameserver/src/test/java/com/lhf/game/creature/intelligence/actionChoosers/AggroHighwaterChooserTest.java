@@ -1,9 +1,9 @@
 package com.lhf.game.creature.intelligence.actionChoosers;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,6 @@ import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.messages.out.CreatureAffectedMessage;
-import com.lhf.messages.out.StatsOutMessage;
 
 public class AggroHighwaterChooserTest {
     @Spy
@@ -49,10 +48,9 @@ public class AggroHighwaterChooserTest {
         AggroHighwaterChooser chooser = new AggroHighwaterChooser();
 
         SortedMap<String, Double> targets = chooser.choose(
-                Optional.of(StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
-                        .Build()),
+                battleStats.getBattleStatSet().stream().collect(Collectors.toSet()),
                 finder.npc.getHarmMemories(),
-                finder.npc.getFaction().competeSet(), List.of());
+                List.of());
 
         Truth.assertThat(targets).hasSize(3); // includes finder
         for (Double value : targets.values()) {
@@ -74,10 +72,9 @@ public class AggroHighwaterChooserTest {
         battleStats.update(cam);
 
         targets = chooser.choose(
-                Optional.of(StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
-                        .Build()),
+                battleStats.getBattleStatSet().stream().collect(Collectors.toSet()),
                 finder.npc.getHarmMemories(),
-                finder.npc.getFaction().competeSet(), List.of());
+                List.of());
 
         Truth.assertThat(targets).hasSize(3); // includes finder
         Truth.assertThat(targets.get(attacker.npc.getName()))
@@ -102,10 +99,9 @@ public class AggroHighwaterChooserTest {
         battleStats.update(cam2);
 
         targets = chooser.choose(
-                Optional.of(StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
-                        .Build()),
+                battleStats.getBattleStatSet().stream().collect(Collectors.toSet()),
                 finder.npc.getHarmMemories(),
-                finder.npc.getFaction().competeSet(), List.of());
+                List.of());
 
         Truth.assertThat(targets).hasSize(3); // includes finder
         Truth.assertThat(targets.get(attacker.npc.getName()))

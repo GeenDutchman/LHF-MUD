@@ -1,7 +1,6 @@
 package com.lhf.game.creature.intelligence.actionChoosers;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -9,9 +8,7 @@ import java.util.TreeMap;
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.AIChooser;
-import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.StatsOutMessage;
 
 public class AggroHighwaterChooser implements AIChooser<String> {
     private static final double defaultValue = (double) 0.90;
@@ -31,16 +28,13 @@ public class AggroHighwaterChooser implements AIChooser<String> {
     }
 
     @Override
-    public SortedMap<String, Double> choose(Optional<StatsOutMessage> battleMemories,
-            HarmMemories harmMemories, Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages) {
+    public SortedMap<String, Double> choose(Set<BattleStatRecord> battleMemories,
+            HarmMemories harmMemories, Collection<OutMessage> outMessages) {
         SortedMap<String, Double> results = new TreeMap<>();
         if (battleMemories == null || battleMemories.isEmpty()) {
             return results;
         }
-        for (BattleStatRecord stat : battleMemories.get().getRecords()) {
-            if (targetFactions != null && !targetFactions.contains(stat.getFaction())) {
-                continue;
-            }
+        for (BattleStatRecord stat : battleMemories) {
             double priority = AIChooser.MIN_VALUE;
             if (harmMemories != null && harmMemories.getLastMassAttackerName().isPresent()
                     && stat.getTargetName().equals(harmMemories.getLastMassAttackerName().get())) {

@@ -3,7 +3,6 @@ package com.lhf.game.creature.intelligence.actionChoosers;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -12,9 +11,7 @@ import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
-import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.StatsOutMessage;
 
 public class VocationChooser implements AIChooser<String> {
 
@@ -35,14 +32,11 @@ public class VocationChooser implements AIChooser<String> {
     }
 
     @Override
-    public SortedMap<String, Double> choose(Optional<StatsOutMessage> battleMemories,
-            HarmMemories harmMemories, Set<CreatureFaction> targetFactions, Collection<OutMessage> outMessages) {
+    public SortedMap<String, Double> choose(Set<BattleStatRecord> battleMemories,
+            HarmMemories harmMemories, Collection<OutMessage> outMessages) {
         SortedMap<String, Double> results = new TreeMap<>();
-        if (battleMemories != null && battleMemories.isPresent()) {
-            for (BattleStatRecord stat : battleMemories.get().getRecords()) {
-                if (targetFactions != null && !targetFactions.contains(stat.getFaction())) {
-                    continue; // skip who we are not targeting
-                }
+        if (battleMemories != null && battleMemories.size() > 0) {
+            for (BattleStatRecord stat : battleMemories) {
                 double priority = AIChooser.MIN_VALUE;
                 for (int i = 0; i < this.targetOrder.size(); i++) {
                     VocationName name = this.targetOrder.get(i);
