@@ -1,15 +1,18 @@
 package com.lhf.game.creature.intelligence.handlers;
 
+import java.util.ArrayList;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.creature.intelligence.AIHandler;
@@ -18,6 +21,7 @@ import com.lhf.game.creature.intelligence.actionChoosers.AggroHighwaterChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.BattleStatsChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.RandomTargetChooser;
 import com.lhf.game.creature.intelligence.actionChoosers.VocationChooser;
+import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DiceD100;
 import com.lhf.game.enums.CreatureFaction;
@@ -60,9 +64,18 @@ public class BattleTurnHandler extends AIHandler {
     public TargetLists chooseTargets(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
             CreatureFaction myFaction) {
+        if (battleMemories == null || battleMemories.isEmpty()) {
+            return new TargetLists(new ArrayList<>(), new ArrayList<>());
+        }
+        Map<Boolean, Set<BattleStatRecord>> partitioned = battleMemories.get().getRecords().stream()
+                .filter(stat -> stat != null).collect(
+                        Collectors.partitioningBy(
+                                stat -> stat.getTargetName().equals(harmMemories.getOwnerName())
+                                        || (myFaction != null && myFaction.allied(stat.getFaction())),
+                                Collectors.toSet()));
         SortedMap<String, Double> possEnemies = this.targetChoosers.stream()
                 .flatMap(chooser -> chooser
-                        .choose(battleMemories, harmMemories, CreatureFaction.competeSet(myFaction), List.of())
+                        .choose(partitioned.getOrDefault(false, null), harmMemories, List.of())
                         .entrySet()
                         .stream())
                 .collect(Collectors.groupingBy(Map.Entry::getKey, TreeMap::new,
@@ -70,7 +83,7 @@ public class BattleTurnHandler extends AIHandler {
 
         SortedMap<String, Double> possAllies = this.targetChoosers.stream()
                 .flatMap(chooser -> chooser
-                        .choose(battleMemories, harmMemories, CreatureFaction.allySet(myFaction), List.of())
+                        .choose(partitioned.getOrDefault(true, null), harmMemories, List.of())
                         .entrySet()
                         .stream())
                 .collect(Collectors.groupingBy(Map.Entry::getKey, TreeMap::new,
@@ -109,6 +122,9 @@ public class BattleTurnHandler extends AIHandler {
     private Optional<String> processFlee(Optional<StatsOutMessage> battleMemories,
             HarmMemories harmMemories,
             CreatureFaction myFaction) {
+        if (battleMemories.isEmpty()) {
+            return Optional.empty();
+        }
         Optional<HealthBuckets> selfHealthBucket = battleMemories.get().getRecords().stream()
                 .filter(stat -> stat != null && harmMemories.getOwnerName().equals(stat.getTargetName()))
                 .map(stat -> stat.getBucket())
@@ -170,6 +186,10 @@ public class BattleTurnHandler extends AIHandler {
 
     private Optional<String> getSpellChoice(BasicAI bai, TargetLists targetList) {
         Optional<String> command = Optional.empty();
+        Vocation vocation = bai.getNpc().getVocation();
+        if (vocation == null) {
+            return command;
+        }
         final double offensiveFocus = VocationName.HEALER.equals(bai.getNpc().getVocation().getVocationName()) ? 0.2
                 : 0.8;
         if (bai.getNpc().getVocation().getVocationName().isCubeHolder()) {
@@ -223,6 +243,18 @@ public class BattleTurnHandler extends AIHandler {
         Optional<StatsOutMessage> statsOutOpt = reply.getMessages().stream()
                 .filter(outMessage -> outMessage != null && OutMessageType.STATS.equals(outMessage.getOutType()))
                 .map(outMessage -> ((StatsOutMessage) outMessage)).findFirst();
+
+        if (statsOutOpt.isEmpty()) {
+            this.logger.warning(() -> String
+                    .format("%s cannot get battle stats, and thus cannot battle: attempting PASS", bai.toString()));
+            reply = bai.ProcessString("PASS");
+            if (!reply.isHandled()) {
+                String logMessage = String.format("PASS not handled: %s", reply.toString());
+                this.logger.warning(logMessage);
+            }
+            return;
+        }
+
         HarmMemories harmMemories = bai.getNpc().getHarmMemories();
         CreatureFaction myFaction = bai.getNpc().getFaction();
         if (btm.isYesTurn() && bai.getNpc().equals(btm.getMyTurn())) {
