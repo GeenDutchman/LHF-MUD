@@ -15,18 +15,18 @@ import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class SpellEntry implements Taggable, Examinable, Comparable<SpellEntry> {
     private final String className;
-    protected final Integer level;
+    protected final SpellLevel level;
     protected final String name;
     protected final String invocation;
     protected String description;
     protected final Set<VocationName> allowedVocations;
     protected final Set<? extends EntityEffectSource> effectSources;
 
-    public SpellEntry(Integer level, String name, Set<? extends EntityEffectSource> effectSources,
+    public SpellEntry(SpellLevel level, String name, Set<? extends EntityEffectSource> effectSources,
             Set<VocationName> allowed,
             String description) {
         this.className = this.getClass().getName();
-        this.level = level;
+        this.level = level != null ? level : SpellLevel.CANTRIP;
         this.name = name;
         this.description = description;
         this.invocation = name;
@@ -34,11 +34,11 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         this.effectSources = Set.copyOf(effectSources);
     }
 
-    public SpellEntry(Integer level, String name, String invocation, Set<? extends EntityEffectSource> effectSources,
+    public SpellEntry(SpellLevel level, String name, String invocation, Set<? extends EntityEffectSource> effectSources,
             Set<VocationName> allowed,
             String description) {
         this.className = this.getClass().getName();
-        this.level = level;
+        this.level = level != null ? level : SpellLevel.CANTRIP;
         this.name = name;
         this.invocation = invocation;
         this.description = description;
@@ -74,11 +74,19 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         return false;
     }
 
+    public int aiScore() {
+        int score = 0;
+        for (EntityEffectSource source : this.effectSources) {
+            score += source.aiScore();
+        }
+        return score;
+    }
+
     public String getClassName() {
         return this.className;
     }
 
-    public Integer getLevel() {
+    public SpellLevel getLevel() {
         return level;
     }
 
@@ -94,7 +102,7 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         return this.effectSources;
     }
 
-    abstract public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets);
+    abstract public CastingMessage Cast(Creature caster, SpellLevel castLevel, List<? extends Taggable> targets);
 
     @Override
     public String getColorTaggedName() {
@@ -174,7 +182,7 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         if (this.equals(other)) {
             return 0;
         }
-        int diff = this.getLevel() - other.getLevel();
+        int diff = this.getLevel().compareTo(other.getLevel());
         if (diff != 0) {
             return diff;
         }

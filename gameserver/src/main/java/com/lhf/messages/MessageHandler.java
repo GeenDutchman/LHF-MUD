@@ -1,6 +1,5 @@
 package com.lhf.messages;
 
-import java.util.EnumMap;
 import java.util.Map;
 
 public interface MessageHandler {
@@ -14,37 +13,16 @@ public interface MessageHandler {
         this.setSuccessor(interceptor);
     }
 
-    public abstract Map<CommandMessage, String> getCommands(); // TODO: contextful
+    public abstract Map<CommandMessage, String> getCommands(CommandContext ctx);
 
     public abstract CommandContext addSelfToContext(CommandContext ctx);
 
-    public default EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
-        if (ctx == null) {
-            ctx = new CommandContext();
-        }
-        ctx = this.addSelfToContext(ctx);
-        EnumMap<CommandMessage, String> coalesce = new EnumMap<>(CommandMessage.class);
-        Map<CommandMessage, String> myCommands = this.getCommands();
-        if (myCommands != null) {
-            coalesce.putAll(myCommands);
-        }
-        if (this.getSuccessor() == null) {
-            return coalesce;
-        }
-        EnumMap<CommandMessage, String> received = this.getSuccessor().gatherHelp(ctx);
-        if (received != null) {
-            received.putAll(coalesce); // override received with mine
-            return received;
-        }
-        return coalesce;
-    }
-
-    public default boolean handleMessage(CommandContext ctx, Command msg) {
+    public default CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         MessageHandler retrievedSuccessor = this.getSuccessor();
         if (retrievedSuccessor != null) {
             return retrievedSuccessor.handleMessage(ctx, msg);
         }
-        return false;
+        return ctx.failhandle();
     }
 
 }

@@ -1,11 +1,8 @@
 package com.lhf.game.magic;
 
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import com.lhf.Taggable;
 import com.lhf.game.EffectResistance;
@@ -13,11 +10,11 @@ import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.vocation.Vocation;
-import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
+import com.lhf.game.magic.Spellbook.Filters;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.RoomEffect;
 import com.lhf.messages.ClientMessenger;
@@ -42,10 +39,6 @@ public class ThirdPower implements MessageHandler {
     // buff debuff
     // damage heal
     // summon banish
-
-    public enum Filters {
-        VOCATION_NAME, SPELL_NAME, INVOCATION, LEVELS;
-    }
 
     /*
      * Some spells target creatures
@@ -89,58 +82,6 @@ public class ThirdPower implements MessageHandler {
                 .add("Looks up a specific spell by name, as long as your vocation allows it.").add("\n");
         toGenerate.put(CommandMessage.SPELLBOOK, sj.toString());
         return toGenerate;
-    }
-
-    @Override
-    public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
-        EnumMap<CommandMessage, String> retrieved = MessageHandler.super.gatherHelp(ctx);
-        if (ctx.getCreature() == null || !(ctx.getCreature().getVocation() instanceof CubeHolder)) {
-            retrieved.remove(CommandMessage.CAST);
-            retrieved.remove(CommandMessage.SPELLBOOK);
-        }
-        return retrieved;
-    }
-
-    public NavigableSet<SpellEntry> filter(EnumSet<Filters> filters,
-            VocationName vocationName, String spellName, String invocation, Collection<Integer> levels) {
-        Supplier<TreeSet<SpellEntry>> sortSupplier = () -> new TreeSet<SpellEntry>();
-        return this.spellbook.getEntries().stream()
-                .filter(entry -> {
-                    if (!filters.contains(Filters.VOCATION_NAME)) {
-                        return true;
-                    }
-                    if (vocationName == null || !vocationName.isCubeHolder()) {
-                        return false;
-                    }
-                    return entry.getAllowedVocations().size() == 0 ||
-                            entry.getAllowedVocations().contains(vocationName) ||
-                            VocationName.DUNGEON_MASTER.equals(vocationName);
-                })
-                .filter(entry -> !filters.contains(Filters.SPELL_NAME) || entry.getName().equals(spellName))
-                .filter(entry -> !filters.contains(Filters.INVOCATION) || entry.getInvocation().equals(invocation))
-                .filter(entry -> !filters.contains(Filters.LEVELS) ||
-                        (levels != null && (levels.size() == 0 || levels.contains(entry.getLevel()))))
-                .collect(Collectors.toCollection(sortSupplier));
-    }
-
-    public NavigableSet<SpellEntry> filterByExactLevel(int level) {
-        return this.filter(EnumSet.of(Filters.LEVELS), null, null, null, Set.of(level));
-    }
-
-    public NavigableSet<SpellEntry> filterByVocationName(VocationName vocationName) {
-        return this.filter(EnumSet.of(Filters.VOCATION_NAME), vocationName, null, null, null);
-    }
-
-    public NavigableSet<SpellEntry> filterByVocationAndLevels(VocationName vocationName, Collection<Integer> levels) {
-        return this.filter(EnumSet.of(Filters.VOCATION_NAME, Filters.LEVELS), vocationName, null, null, levels);
-    }
-
-    public NavigableSet<SpellEntry> filterByExactName(String name) {
-        return this.filter(EnumSet.of(Filters.SPELL_NAME), null, name, null, null);
-    }
-
-    public NavigableSet<SpellEntry> filterByExactInvocation(String invocation) {
-        return this.filter(EnumSet.of(Filters.INVOCATION), null, null, invocation, null);
     }
 
     private boolean affectCreatures(CommandContext ctx, ISpell<CreatureEffect> spell, Collection<Creature> targets) {
@@ -225,7 +166,8 @@ public class ThirdPower implements MessageHandler {
         this.logger.log(Level.INFO,
                 () -> String.format("Handling cast of '%s' by '%s' who is a '%s'", casting.getInvocation(),
                         caster.getName(), casterVocation));
-        NavigableSet<SpellEntry> foundByInvocation = this.filter(EnumSet.of(Filters.INVOCATION, Filters.VOCATION_NAME),
+        NavigableSet<SpellEntry> foundByInvocation = this.spellbook.filter(
+                EnumSet.of(Spellbook.Filters.INVOCATION, Spellbook.Filters.VOCATION_NAME),
                 casterVocation != null ? casterVocation.getVocationName() : null, null, casting.getInvocation(), null);
         if (foundByInvocation.isEmpty()) {
             this.logger.log(Level.INFO, () -> String.format("Invocation by '%s' -> '%s' not found", caster.getName(),
@@ -267,8 +209,10 @@ public class ThirdPower implements MessageHandler {
             }
 
             this.logger.log(Level.FINE, "Casting creature targeting spell");
-            int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
-                    : entry.getLevel();
+            SpellLevel level = casting.getLevel() != null
+                    && entry.getLevel().compareTo(SpellLevel.fromInt(casting.getLevel())) <= 0
+                            ? SpellLevel.fromInt(casting.getLevel())
+                            : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, possTargets);
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
 
@@ -280,8 +224,8 @@ public class ThirdPower implements MessageHandler {
             }
 
             CreatureAOESpellEntry aoeEntry = (CreatureAOESpellEntry) entry;
-            int castLevel = casting.getLevel() != null ? casting.getLevel() : entry.getLevel();
-            AutoTargeted upcasted = AutoTargeted.upCast(aoeEntry.getAutoSafe(), castLevel - entry.getLevel(),
+            int castLevel = casting.getLevel() != null ? casting.getLevel() : entry.getLevel().toInt();
+            AutoTargeted upcasted = AutoTargeted.upCast(aoeEntry.getAutoSafe(), castLevel - entry.getLevel().toInt(),
                     entry.isOffensive());
             CreatureAOESpell spell = new CreatureAOESpell(aoeEntry, caster, upcasted);
 
@@ -307,8 +251,10 @@ public class ThirdPower implements MessageHandler {
             }
 
             this.logger.log(Level.FINE, "Casting AOE creature targeting spell");
-            int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
-                    : entry.getLevel();
+            SpellLevel level = casting.getLevel() != null
+                    && entry.getLevel().compareTo(SpellLevel.fromInt(casting.getLevel())) <= 0
+                            ? SpellLevel.fromInt(casting.getLevel())
+                            : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, new ArrayList<>(targets));
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
 
@@ -361,8 +307,10 @@ public class ThirdPower implements MessageHandler {
             // TODO: summons and banish
 
             this.logger.log(Level.FINE, "Casting DMRoom targeting spell");
-            int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
-                    : entry.getLevel();
+            SpellLevel level = casting.getLevel() != null
+                    && entry.getLevel().compareTo(SpellLevel.fromInt(casting.getLevel())) <= 0
+                            ? SpellLevel.fromInt(casting.getLevel())
+                            : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, taggedTargets);
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive());
 
@@ -379,8 +327,10 @@ public class ThirdPower implements MessageHandler {
             // TODO: summons and banish
 
             this.logger.log(Level.FINE, "Casting Room targeting spell");
-            int level = casting.getLevel() != null && casting.getLevel() >= entry.getLevel() ? casting.getLevel()
-                    : entry.getLevel();
+            SpellLevel level = casting.getLevel() != null
+                    && entry.getLevel().compareTo(SpellLevel.fromInt(casting.getLevel())) <= 0
+                            ? SpellLevel.fromInt(casting.getLevel())
+                            : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, null);
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive());
 
@@ -392,18 +342,24 @@ public class ThirdPower implements MessageHandler {
         return true;
     }
 
-    private boolean handleSpellbook(CommandContext ctx, Command msg) {
+    private CommandContext.Reply handleSpellbook(CommandContext ctx, Command msg) {
         SpellbookMessage spellbookMessage = (SpellbookMessage) msg;
         Creature caster = ctx.getCreature();
         EnumSet<Filters> filters = EnumSet.of(Filters.VOCATION_NAME, Filters.LEVELS);
         if (spellbookMessage.getSpellName() != null) {
             filters.add(Filters.SPELL_NAME);
         }
-        NavigableSet<SpellEntry> entries = this.filter(filters, caster.getVocation().getVocationName(),
+        for (String withFilters : spellbookMessage.getWithFilters()) {
+            Filters found = Filters.getFilters(withFilters);
+            if (found != null) {
+                filters.add(found);
+            }
+        }
+        NavigableSet<SpellEntry> entries = this.spellbook.filter(filters, caster.getVocation().getVocationName(),
                 spellbookMessage.getSpellName(), null,
-                IntStream.rangeClosed(0, caster.getVocation().getLevel()).boxed().collect(Collectors.toList()));
+                ((CubeHolder) caster.getVocation()).availableMagnitudes());
         ctx.sendMsg(SpellEntryMessage.getBuilder().setEntries(entries).Build());
-        return true;
+        return ctx.handled();
     }
 
     private void channelizeMessage(CommandContext ctx, OutMessage message, boolean includeBattle,
@@ -439,41 +395,55 @@ public class ThirdPower implements MessageHandler {
     }
 
     @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
-        if (msg.getType() == CommandMessage.CAST) {
-            if (ctx.getCreature() == null) {
-                ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
-                return true;
-            }
-            Creature attempter = ctx.getCreature();
-            if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
-                SpellFizzleMessage.Builder spellFizzle = SpellFizzleMessage.getBuilder()
-                        .setSubType(SpellFizzleType.NOT_CASTER).setAttempter(attempter).setNotBroadcast();
-                ctx.sendMsg(spellFizzle.Build());
-                if (ctx.getRoom() != null) {
-                    ctx.getRoom().announce(spellFizzle.setBroacast().Build());
+        if (this.getCommands(ctx).containsKey(msg.getType())) {
+            if (msg.getType() == CommandMessage.CAST) {
+                if (ctx.getCreature() == null) {
+                    ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                            .setHelps(ctx.getHelps()).setCommand(msg).Build());
+                    return ctx.handled();
                 }
-            } else {
-                this.handleCast(ctx, msg);
+                Creature attempter = ctx.getCreature();
+                if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
+                    SpellFizzleMessage.Builder spellFizzle = SpellFizzleMessage.getBuilder()
+                            .setSubType(SpellFizzleType.NOT_CASTER).setAttempter(attempter).setNotBroadcast();
+                    ctx.sendMsg(spellFizzle.Build());
+                    if (ctx.getRoom() != null) {
+                        ctx.getRoom().announce(spellFizzle.setBroacast().Build());
+                    }
+                } else {
+                    this.handleCast(ctx, msg);
+                }
+                return ctx.handled();
             }
-            return true;
-        }
-        if (msg.getType() == CommandMessage.SPELLBOOK) {
-            if (ctx.getCreature() == null) {
-                ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
-                return true;
+            if (msg.getType() == CommandMessage.SPELLBOOK) {
+                if (ctx.getCreature() == null) {
+                    ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                            .setHelps(ctx.getHelps()).setCommand(msg).Build());
+                    return ctx.handled();
+                }
+                Creature attempter = ctx.getCreature();
+                if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
+                    SpellEntryMessage.Builder notCaster = SpellEntryMessage.getBuilder().setNotCubeHolder()
+                            .setNotBroadcast();
+                    ctx.sendMsg(notCaster.Build());
+                    return ctx.handled();
+                }
+                return this.handleSpellbook(ctx, msg);
             }
-            return this.handleSpellbook(ctx, msg);
         }
         return MessageHandler.super.handleMessage(ctx, msg);
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands() {
-        return Collections.unmodifiableMap(this.cmds);
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+        Map<CommandMessage, String> commands = new EnumMap<>(this.cmds);
+        if (ctx.getCreature() == null || !(ctx.getCreature().getVocation() instanceof CubeHolder)) {
+            commands.remove(CommandMessage.CAST);
+            commands.remove(CommandMessage.SPELLBOOK);
+        }
+        return ctx.addHelps(Collections.unmodifiableMap(commands));
     }
 
 }

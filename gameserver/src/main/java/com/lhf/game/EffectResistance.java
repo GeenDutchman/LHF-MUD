@@ -202,41 +202,41 @@ public class EffectResistance {
     }
 
     public MultiRollResult actorEffort(Creature actor, int bonus) {
-        MultiRollResult result = null;
+        MultiRollResult.Builder result = new MultiRollResult.Builder();
         if (actor != null && actorAttrs != null && actorAttrs.size() > 0) {
             Attributes highest = actor.getHighestAttributeBonus(actorAttrs);
             if (highest == null) {
                 return null;
             }
-            result = actor.check(highest);
+            result.addMultiRollResult(actor.check(highest));
         } else if (actor != null && actorStat != null) {
-            result = new MultiRollResult(new DiceDC(actor.getStats().get(actorStat)).rollDice());
+            result.addRollResults((new DiceDC(actor.getStats().get(actorStat)).rollDice()));
         } else if (actorDC != null) {
-            result = new MultiRollResult(new DiceDC(actorDC).rollDice());
+            result.addRollResults((new DiceDC(actorDC).rollDice()));
         }
         if (result != null && bonus != 0) {
-            result.addBonus(bonus);
+            result.addBonuses(bonus);
         }
-        return result;
+        return result.Build();
     }
 
     public MultiRollResult targetEffort(Creature target, int bonus) {
-        MultiRollResult result = null;
+        MultiRollResult.Builder result = new MultiRollResult.Builder();
         if (target != null && targetAttrs != null && targetAttrs.size() > 0) {
             Attributes highest = target.getHighestAttributeBonus(targetAttrs);
             if (highest == null) {
                 return null;
             }
-            result = target.check(highest);
+            result.addMultiRollResult(target.check(highest));
         } else if (target != null && targetStat != null) {
-            result = new MultiRollResult(new DiceDC(target.getStats().get(targetStat)).rollDice());
+            result.addRollResults(new DiceDC(target.getStats().get(targetStat)).rollDice());
         } else if (targetDC != null) {
-            result = new MultiRollResult(new DiceDC(targetDC).rollDice());
+            result.addRollResults(new DiceDC(targetDC).rollDice());
         }
         if (result != null && bonus != 0) {
-            result.addBonus(bonus);
+            result.addBonuses(bonus);
         }
-        return result;
+        return result.Build();
     }
 
     public MultiRollResult targetEffort(int bonus) {

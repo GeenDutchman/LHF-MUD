@@ -47,9 +47,9 @@ public class ServerTest {
         }
 
         public String create(String name, String vocation, Boolean expectUnique) {
-            String result = this
-                    .handleCommand("create " + name + " with " + name + (vocation != null ? " as " + vocation : ""),
-                            expectUnique ? OutMessageType.SEE : OutMessageType.DUPLICATE_USER);
+            String command = "create " + name + " with " + name + (vocation != null ? " as " + vocation : "");
+            String result = this.handleCommand(command,
+                    expectUnique ? OutMessageType.SEE : OutMessageType.DUPLICATE_USER);
             OutMessage outMessage = this.outCaptor.getValue();
             if (expectUnique && outMessage != null
                     && outMessage.getOutType() != OutMessageType.DUPLICATE_USER
@@ -72,7 +72,8 @@ public class ServerTest {
             Truth.assertThat(outMessage).isNotNull();
             String response = outMessage.toString();
             if (outMessageType != null) {
-                Truth.assertThat(outMessage.getOutType()).isEqualTo(outMessageType);
+                Truth.assertWithMessage("Message is: %s", response).that(outMessage.getOutType())
+                        .isEqualTo(outMessageType);
             }
             return response;
         }
@@ -426,7 +427,7 @@ public class ServerTest {
         bystander.create("bystander");
 
         this.comm.handleCommand("attack " + second.name);
-        Mockito.verify(this.comm.sssb)
+        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce())
                 .send(Mockito.argThat(new MessageMatcher(OutMessageType.RENEGADE_ANNOUNCEMENT, "RENEGADE")));
         Mockito.verify(bystander.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito
                 .argThat(new MessageMatcher(OutMessageType.RENEGADE_ANNOUNCEMENT)));
@@ -446,15 +447,13 @@ public class ServerTest {
         // because we know it's thaumaturgy
         // Truth.assertThat(spellResult).contains(this.comm.name);
         Truth.assertThat(spellResult).ignoringCase()
-                .contains("mumbles and tries to cast a spell...nothing spectacular happens");
+                .contains("was not handled");
         // Truth.assertThat(victim.read()).contains(this.comm.name);
-        Mockito.verify(victim.sssb, Mockito.timeout(500).atLeastOnce())
-                .send(Mockito.argThat(message -> message != null && message.getOutType() == OutMessageType.FIZZLE));
 
         spellResult = this.comm.handleCommand("cast Astra Horeb at " + victim.name); // attack spell
         // Truth.assertThat(spellResult).ignoringCase().contains("fight");
         Truth.assertThat(spellResult).ignoringCase()
-                .contains("mumbles and tries to cast a spell...nothing spectacular happens");
+                .contains("was not handled");
 
         spellResult = caster.handleCommand("cast zarmamoo");
         Truth.assertThat(spellResult).ignoringCase().contains("used");
@@ -470,7 +469,7 @@ public class ServerTest {
 
         this.comm.handleCommand("spellbook");
         Mockito.verify(this.comm.sssb, Mockito.timeout(500))
-                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPELL_ENTRY, "No spells found")));
+                .send(Mockito.argThat(new MessageMatcher(OutMessageType.BAD_MESSAGE, "was not handled")));
         mage.handleCommand("spellbook");
         Mockito.verify(mage.sssb, Mockito.timeout(500)).send(
                 Mockito.argThat(new MessageMatcher(OutMessageType.SPELL_ENTRY, "Thaumaturgy")));

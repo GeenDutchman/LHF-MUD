@@ -7,6 +7,7 @@ import java.util.UUID;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainerMessageHandler;
 import com.lhf.game.ItemContainer;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NonPlayerCharacter;
@@ -15,6 +16,7 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.TickMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 public interface Area
@@ -88,6 +90,12 @@ public interface Area
             }
         }
         return seen.Build();
+    }
+
+    @Override
+    default void tick(TickType type) {
+        AffectableEntity.super.tick(type);
+        this.announce(TickMessage.getBuilder().setTickType(type).setBroacast());
     }
 
     @Override

@@ -5,20 +5,21 @@ import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffect;
+import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.statblock.Statblock.DamageFlavorReactions;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DamageDice.FlavoredRollResult;
 import com.lhf.game.dice.Dice;
-import com.lhf.game.dice.Dice.RollResult;
+import com.lhf.game.dice.Dice.IRollResult;
 import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.dice.MultiRollResult;
@@ -38,6 +39,7 @@ import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
+import com.lhf.messages.ITickMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.UnequipMessage;
@@ -216,8 +218,8 @@ public abstract class Creature
         return this.statblock.getStats().get(Stats.CURRENTHP);
     }
 
-    public final HealthBuckets getHealthBucket() {
-        return HealthBuckets.calcualte(getHealth(), this.statblock.getStats().get(Stats.MAXHP));
+    public HealthBuckets getHealthBucket() {
+        return HealthBuckets.calculate(getHealth(), this.statblock.getStats().get(Stats.MAXHP));
     }
 
     public boolean isAlive() {
@@ -255,7 +257,8 @@ public abstract class Creature
 
     public MultiRollResult check(Attributes attribute) {
         Dice d20 = new DiceD20(1);
-        MultiRollResult result = new MultiRollResult(d20.rollDice(), this.getAttributes().getMod(attribute));
+        MultiRollResult result = new MultiRollResult.Builder().addRollResults(d20.rollDice())
+                .addBonuses(this.getAttributes().getMod(attribute)).Build();
         return result;
     }
 
@@ -363,6 +366,9 @@ public abstract class Creature
 
     public Attack attack(Weapon weapon) {
         Attack a = weapon.generateAttack(this);
+        if (this.getVocation() != null) {
+            a = this.getVocation().modifyAttack(a);
+        }
         return a;
     }
 
@@ -387,35 +393,54 @@ public abstract class Creature
         if (mrr == null) {
             return null;
         }
-        ArrayList<RollResult> adjusted = new ArrayList<>();
-        for (RollResult rr : mrr) {
+        MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
+        DamageFlavorReactions dfr = this.statblock.getDamageFlavorReactions();
+        for (IRollResult rr : mrr) {
             if (rr instanceof FlavoredRollResult) {
                 FlavoredRollResult frr = (FlavoredRollResult) rr;
-                switch (frr.getFlavor()) {
-                    case HEALING:
-                        if (reverse) {
-                            adjusted.add(rr.negative());
-                        } else {
-                            adjusted.add(rr);
-                        }
-                        break;
-                    default:
-                        if (reverse) {
-                            adjusted.add(rr);
-                        } else {
-                            adjusted.add(rr.negative());
-                        }
-                        break;
+                if (dfr.getHealing().contains(frr.getFlavor())) {
+                    if (reverse) {
+                        mrrBuilder.addRollResults(frr.negative());
+                    } else {
+                        mrrBuilder.addRollResults(frr);
+                    }
+                } else if (dfr.getImmunities().contains(frr.getFlavor())) {
+                    mrrBuilder.addRollResults(frr.none());
+                } else if (dfr.getResistances().contains(frr.getFlavor())) {
+                    if (reverse) {
+                        mrrBuilder.addRollResults(frr.half());
+                    } else {
+                        mrrBuilder.addRollResults(frr.negative().half());
+                    }
+                } else if (dfr.getWeaknesses().contains(frr.getFlavor())) {
+                    if (reverse) {
+                        mrrBuilder.addRollResults(frr.twice());
+                    } else {
+                        mrrBuilder.addRollResults(frr.negative().twice());
+                    }
+                } else {
+                    if (reverse) {
+                        mrrBuilder.addRollResults(frr);
+                    } else {
+                        mrrBuilder.addRollResults(frr.negative());
+                    }
                 }
             } else {
-                if (reverse) {
-                    adjusted.add(rr.negative());
+                if (dfr.getImmunities().size() > 0) {
+                    mrrBuilder.addRollResults(rr.none()); // if they have any immunities, unflavored damge does nothing
+                } else if (reverse) {
+                    mrrBuilder.addRollResults(rr.negative());
                 } else {
-                    adjusted.add(rr);
+                    mrrBuilder.addRollResults(rr);
                 }
             }
         }
-        return new MultiRollResult(adjusted, mrr.getBonuses());
+
+        if (dfr.getImmunities().size() == 0) { // if they have any immunities, unflavored damge does nothing
+            mrrBuilder.addBonuses(mrr.getBonuses());
+        }
+
+        return mrrBuilder.Build();
     }
 
     @Override
@@ -468,7 +493,7 @@ public abstract class Creature
         }
 
         CreatureAffectedMessage camOut = CreatureAffectedMessage.getBuilder().setAffected(this)
-                .setEffect(creatureEffect).setReversed(reverse).Build();
+                .setEffect(creatureEffect).setReversed(reverse).setBroacast().Build();
         return camOut;
     }
 
@@ -731,6 +756,9 @@ public abstract class Creature
 
     @Override
     public void sendMsg(OutMessage msg) {
+        if (msg != null && msg instanceof ITickMessage) {
+            this.tick(((ITickMessage) msg).getTickType());
+        }
         if (this.getController() != null) {
             this.getController().sendMsg(msg);
             return;
@@ -757,8 +785,8 @@ public abstract class Creature
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands() {
-        return Collections.unmodifiableMap(this.cmds);
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+        return ctx.addHelps(Collections.unmodifiableMap(this.cmds));
     }
 
     @Override
@@ -770,29 +798,32 @@ public abstract class Creature
     }
 
     @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         boolean handled = false;
+        CommandMessage msgType = msg.getType();
         ctx = this.addSelfToContext(ctx);
-        if (msg.getType() == CommandMessage.EQUIP) {
-            EquipMessage eqmsg = (EquipMessage) msg;
-            this.equipItem(eqmsg.getItemName(), eqmsg.getEquipSlot());
-            handled = true;
-        } else if (msg.getType() == CommandMessage.UNEQUIP) {
-            UnequipMessage uneqmsg = (UnequipMessage) msg;
-            this.unequipItem(EquipmentSlots.getEquipmentSlot(uneqmsg.getUnequipWhat()),
-                    uneqmsg.getUnequipWhat());
-            handled = true;
-        } else if (msg.getType() == CommandMessage.STATUS) {
-            ctx.sendMsg(StatusOutMessage.getBuilder().setNotBroadcast().setFromCreature(this, true).Build());
-            handled = true;
-        } else if (msg.getType() == CommandMessage.INVENTORY) {
-            ctx.sendMsg(this.getInventory().getInventoryOutMessage(this.getEquipmentSlots()));
-            handled = true;
+        if (msgType != null && this.getCommands(ctx).containsKey(msgType)) {
+            if (msgType == CommandMessage.EQUIP) {
+                EquipMessage eqmsg = (EquipMessage) msg;
+                this.equipItem(eqmsg.getItemName(), eqmsg.getEquipSlot());
+                handled = true;
+            } else if (msgType == CommandMessage.UNEQUIP) {
+                UnequipMessage uneqmsg = (UnequipMessage) msg;
+                this.unequipItem(EquipmentSlots.getEquipmentSlot(uneqmsg.getUnequipWhat()),
+                        uneqmsg.getUnequipWhat());
+                handled = true;
+            } else if (msgType == CommandMessage.STATUS) {
+                ctx.sendMsg(StatusOutMessage.getBuilder().setNotBroadcast().setFromCreature(this, true).Build());
+                handled = true;
+            } else if (msgType == CommandMessage.INVENTORY) {
+                ctx.sendMsg(this.getInventory().getInventoryOutMessage(this.getEquipmentSlots()));
+                handled = true;
+            }
         }
 
         if (handled) {
             this.tick(TickType.ACTION);
-            return handled;
+            return ctx.handled();
         }
         return MessageHandler.super.handleMessage(ctx, msg);
     }

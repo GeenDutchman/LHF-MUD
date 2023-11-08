@@ -1,89 +1,125 @@
 package com.lhf.game.dice;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
-import com.lhf.game.dice.Dice.RollResult;
+import com.lhf.game.dice.Dice.IRollResult;
+import com.lhf.game.enums.DamageFlavor;
 
-public class MultiRollResult implements Taggable, Iterable<RollResult> {
-    protected List<RollResult> rolls;
-    protected List<Integer> bonuses;
+public class MultiRollResult implements Taggable, Iterable<IRollResult> {
+    protected final List<IRollResult> rolls;
+    protected final List<Integer> bonuses;
 
-    // TODO: this needs some final, immutable view
+    public static class Builder {
+        protected List<IRollResult> rolls;
+        protected List<Integer> bonuses;
 
-    public MultiRollResult(RollResult first) {
-        this.rolls = new ArrayList<>();
-        this.rolls.add(first);
-        this.bonuses = new ArrayList<>();
-    }
+        public Builder() {
+            this.rolls = new ArrayList<>();
+            this.bonuses = new ArrayList<>();
+        }
 
-    public MultiRollResult(RollResult first, int... bonuses) {
-        this.rolls = new ArrayList<>();
-        this.rolls.add(first);
-        this.bonuses = new ArrayList<>();
-        for (int b : bonuses) {
-            this.bonuses.add(b);
+        public Builder addRollResults(IRollResult... rrs) {
+            for (IRollResult rr : rrs) {
+                if (rr != null) {
+                    this.rolls.add(rr);
+                }
+            }
+            return this;
+        }
+
+        public Builder addBonuses(Integer... bonuses) {
+            for (Integer bonus : bonuses) {
+                if (bonus != null) {
+                    this.bonuses.add(bonus);
+                }
+            }
+            return this;
+        }
+
+        public Builder addRollResults(Iterable<IRollResult> rrs) {
+            for (IRollResult rr : rrs) {
+                if (rr != null) {
+                    this.rolls.add(rr);
+                }
+            }
+            return this;
+        }
+
+        public Builder addBonuses(Iterable<Integer> bonuses) {
+            for (Integer bonus : bonuses) {
+                if (bonus != null) {
+                    this.bonuses.add(bonus);
+                }
+            }
+            return this;
+        }
+
+        public Builder addMultiRollResult(MultiRollResult mrr) {
+            this.rolls.addAll(mrr.rolls);
+            this.bonuses.addAll(mrr.bonuses);
+            return this;
+        }
+
+        public MultiRollResult Build() {
+            return new MultiRollResult(this);
         }
     }
 
-    public MultiRollResult(RollResult first, List<Integer> bonuses) {
-        this.rolls = new ArrayList<>();
-        this.rolls.add(first);
-        this.bonuses = new ArrayList<>(bonuses);
-    }
-
-    public MultiRollResult(List<RollResult> rolls) {
-        this.rolls = new ArrayList<>(rolls);
-        this.bonuses = new ArrayList<>();
-    }
-
-    public MultiRollResult(List<RollResult> rolls, List<Integer> bonuses) {
-        this.rolls = new ArrayList<>(rolls);
-        this.bonuses = new ArrayList<>(bonuses);
-    }
-
-    public MultiRollResult combine(MultiRollResult otherToConsume) {
-        this.rolls.addAll(otherToConsume.rolls);
-        this.bonuses.addAll(otherToConsume.bonuses);
-        return this;
-    }
-
-    public MultiRollResult addResult(RollResult next) {
-        this.rolls.add(next);
-        return this;
+    protected MultiRollResult(Builder builder) {
+        if (builder != null) {
+            this.rolls = List.copyOf(builder.rolls);
+            this.bonuses = List.copyOf(builder.bonuses);
+        } else {
+            this.rolls = List.of();
+            this.bonuses = List.of();
+        }
     }
 
     public List<Integer> getBonuses() {
         return this.bonuses;
     }
 
-    public MultiRollResult addBonus(int bonus) {
-        this.bonuses.add(bonus);
-        return this;
-    }
-
     public int getTotal() {
-        int sum = 0;
-        for (RollResult rr : this.rolls) {
-            sum += rr.getRoll();
-        }
-        for (int bonus : this.bonuses) {
-            sum += bonus;
-        }
-        return sum;
+        return this.getByFlavors(EnumSet.noneOf(DamageFlavor.class), false);
     }
 
     public int getRoll() {
         return this.getTotal();
     }
 
+    public int getOrigRoll() {
+        return this.getByFlavors(EnumSet.noneOf(DamageFlavor.class), true);
+    }
+
+    public int getByFlavors(EnumSet<DamageFlavor> flavors, boolean origRoll) {
+        int sum = 0;
+        for (IRollResult rr : this.rolls) {
+            if (flavors.size() > 0 && rr instanceof DamageDice.FlavoredRollResult) {
+                DamageDice.FlavoredRollResult ddrr = (DamageDice.FlavoredRollResult) rr;
+                if (flavors.contains(ddrr.getFlavor())) {
+                    sum += origRoll ? ddrr.getOrigRoll() : ddrr.getRoll();
+                }
+            } else if (flavors.size() == 0) {
+                sum += origRoll ? rr.getOrigRoll() : rr.getRoll();
+            }
+        }
+        if (flavors.size() == 0) {
+            for (int bonus : this.bonuses) {
+                sum += bonus;
+            }
+        }
+        return sum;
+    }
+
     public String toString() {
         StringJoiner sj = new StringJoiner(" + ");
         int sum = 0;
-        for (RollResult rr : this.rolls) {
+        for (IRollResult rr : this.rolls) {
             sj.add(rr.toString());
             sum += rr.getRoll();
         }
@@ -112,7 +148,7 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
     }
 
     @Override
-    public Iterator<RollResult> iterator() {
+    public Iterator<IRollResult> iterator() {
         return this.rolls.listIterator();
     }
 

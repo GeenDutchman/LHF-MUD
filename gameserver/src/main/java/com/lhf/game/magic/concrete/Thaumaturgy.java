@@ -6,13 +6,14 @@ import java.util.Set;
 
 import com.lhf.Taggable;
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.EffectResistance.TargetResistAmount;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.magic.RoomTargetingSpellEntry;
+import com.lhf.game.magic.SpellLevel;
 import com.lhf.game.map.RoomEffectSource;
 import com.lhf.messages.out.CastingMessage;
 
@@ -24,12 +25,12 @@ public class Thaumaturgy extends RoomTargetingSpellEntry {
             "Announce yourself to the room!"));
 
     public Thaumaturgy() {
-        super(0, "Thaumaturgy", "zarmamoo", spellEffects, new HashSet<VocationName>(),
+        super(SpellLevel.CANTRIP, "Thaumaturgy", "zarmamoo", spellEffects, new HashSet<VocationName>(),
                 "A way to magically announce your presence", false, false);
     }
 
     @Override
-    public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets) {
+    public CastingMessage Cast(Creature caster, SpellLevel castLevel, List<? extends Taggable> targets) {
         StringBuilder sb = new StringBuilder();
         String casterName = caster.getName();
         String[] splitname = casterName.split("( |_)");

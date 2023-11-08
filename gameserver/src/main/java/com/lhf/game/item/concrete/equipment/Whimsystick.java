@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EffectResistance;
+import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffectSource;

@@ -98,9 +98,9 @@ public class Game implements UserListener, MessageHandler {
 		this.controlRoom.addUser(user);
 	}
 
-	private Boolean handleListPlayersMessage(CommandContext ctx, Command cmd) {
+	private CommandContext.Reply handleListPlayersMessage(CommandContext ctx, Command cmd) {
 		ctx.sendMsg(ListPlayersMessage.getBuilder().setPlayerNames(this.userManager.getAllUsernames()));
-		return true;
+		return ctx.handled();
 	}
 
 	@Override
@@ -114,10 +114,10 @@ public class Game implements UserListener, MessageHandler {
 	}
 
 	@Override
-	public Map<CommandMessage, String> getCommands() {
+	public Map<CommandMessage, String> getCommands(CommandContext ctx) {
 		Map<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
 		helps.put(CommandMessage.PLAYERS, "List the players currently in the game.");
-		return helps;
+		return ctx.addHelps(helps);
 	}
 
 	@Override
@@ -126,7 +126,7 @@ public class Game implements UserListener, MessageHandler {
 	}
 
 	@Override
-	public boolean handleMessage(CommandContext ctx, Command msg) {
+	public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
 		ctx = this.addSelfToContext(ctx);
 		if (msg.getType() == CommandMessage.PLAYERS) {
 			return this.handleListPlayersMessage(ctx, msg);

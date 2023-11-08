@@ -92,4 +92,6 @@ public abstract class EntityEffectSource implements Taggable, Examinable {
 
     public abstract boolean isOffensive();
 
+    public abstract int aiScore();
+
 }

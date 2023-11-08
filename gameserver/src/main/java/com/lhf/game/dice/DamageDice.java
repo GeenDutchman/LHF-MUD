@@ -19,7 +19,7 @@ public class DamageDice extends Dice {
         this.flavor = flavor;
     }
 
-    private DamageFlavor flavor;
+    private final DamageFlavor flavor;
 
     @Override
     public RollResult rollDice() {

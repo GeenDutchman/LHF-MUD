@@ -2,7 +2,7 @@ package com.lhf.game.dice;
 
 public class DiceDC extends Dice {
 
-    protected Integer difficultyClass;
+    protected final Integer difficultyClass;
 
     public DiceDC(Integer dc) {
         super(0, DieType.NONE);

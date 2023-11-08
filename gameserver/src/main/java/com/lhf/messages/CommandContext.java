@@ -1,5 +1,11 @@
 package com.lhf.messages;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.map.Dungeon;
@@ -16,6 +22,90 @@ public class CommandContext implements ClientMessenger {
     protected Room room;
     protected BattleManager bManager;
     protected Dungeon dungeon;
+    protected EnumMap<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
+    protected List<OutMessage> messages = new ArrayList<>();
+
+    public class Reply {
+        protected boolean handled;
+
+        protected Reply(boolean isHandled) {
+            this.handled = isHandled;
+        }
+
+        public Map<CommandMessage, String> getHelps() {
+            if (CommandContext.this.helps == null) {
+                CommandContext.this.helps = new EnumMap<>(CommandMessage.class);
+            }
+            return Collections.unmodifiableMap(CommandContext.this.helps);
+        }
+
+        public List<OutMessage> getMessages() {
+            if (CommandContext.this.messages == null) {
+                CommandContext.this.messages = new ArrayList<>();
+            }
+            return Collections.unmodifiableList(CommandContext.this.messages);
+        }
+
+        public boolean isHandled() {
+            return handled;
+        }
+
+        public Reply resolve() {
+            this.handled = true;
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Reply [handled=").append(handled)
+                    .append(",messageTypes=")
+                    .append(this.getMessages().stream().map(outMessage -> outMessage.getOutType()).toList())
+                    .append(",helps=").append(this.getHelps().keySet())
+                    .append("]");
+            return builder.toString();
+        }
+
+    }
+
+    public Reply failhandle() {
+        return this.new Reply(false);
+    }
+
+    public Reply handled() {
+        return this.new Reply(true);
+    }
+
+    public void addMessage(OutMessage message) {
+        if (this.messages == null) {
+            this.messages = new ArrayList<>();
+        }
+        if (message != null) {
+            this.messages.add(message);
+        }
+    }
+
+    /**
+     * Adds help data to the context, returns the provided helps found
+     * 
+     * @param helpsFound help data to collect in the context
+     * @return the helpsFound
+     */
+    public Map<CommandMessage, String> addHelps(Map<CommandMessage, String> helpsFound) {
+        if (this.helps == null) {
+            this.helps = new EnumMap<>(CommandMessage.class);
+        }
+        if (helpsFound != null) {
+            for (Map.Entry<CommandMessage, String> entry : helpsFound.entrySet()) {
+                this.helps.putIfAbsent(entry.getKey(), entry.getValue());
+            }
+        }
+        return helpsFound;
+    }
+
+    public Map<CommandMessage, String> getHelps() {
+        return Collections.unmodifiableMap(helps);
+    }
 
     @Override
     public ClientID getClientID() {
@@ -39,8 +129,11 @@ public class CommandContext implements ClientMessenger {
 
     @Override
     public void sendMsg(OutMessage msg) {
-        if (this.client != null) {
-            this.client.sendMsg(msg);
+        if (msg != null) {
+            this.addMessage(msg);
+            if (this.client != null) {
+                this.client.sendMsg(msg);
+            }
         }
     }
 

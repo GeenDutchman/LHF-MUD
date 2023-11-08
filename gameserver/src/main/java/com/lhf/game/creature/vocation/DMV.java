@@ -10,6 +10,7 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.magic.CubeHolder;
+import com.lhf.game.magic.SpellLevel;
 
 public class DMV extends Vocation implements CubeHolder {
 
@@ -54,8 +55,36 @@ public class DMV extends Vocation implements CubeHolder {
 
     @Override
     public MultiRollResult spellAttack() {
-        return new MultiRollResult(new DiceD20(1).rollDice()).addBonus(Integer.MAX_VALUE / 15); // TODO: actual attack
+        return new MultiRollResult.Builder()
+                .addRollResults(new DiceD20(1).rollDice())
+                .addBonuses(Integer.MAX_VALUE / 15).Build(); // TODO: actual attack
 
+    }
+
+    @Override
+    public String printMagnitudes() {
+        return "You are a DM, you can cast all the spells on your list.\n";
+    }
+
+    @Override
+    public boolean useMagnitude(SpellLevel level) {
+        return level != null;
+    }
+
+    @Override
+    public EnumSet<SpellLevel> availableMagnitudes() {
+        return EnumSet.allOf(SpellLevel.class);
+    }
+
+    @Override
+    public Vocation onLevel() {
+        // level as a DM??
+        return this;
+    }
+
+    @Override
+    public Vocation onRestTick() {
+        return this;
     }
 
 }

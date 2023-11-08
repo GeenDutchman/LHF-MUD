@@ -12,6 +12,7 @@ import com.lhf.game.magic.CreatureAOESpellEntry;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
 import com.lhf.game.magic.SpellEntry;
+import com.lhf.game.magic.SpellLevel;
 import com.lhf.game.magic.Spellbook;
 
 public class SpellEntryBuilder {
@@ -26,7 +27,7 @@ public class SpellEntryBuilder {
 
         public String buildName();
 
-        public int buildLevel();
+        public SpellLevel buildLevel();
 
         public String buildInvocation(String name);
 
@@ -52,7 +53,7 @@ public class SpellEntryBuilder {
             throw new NullPointerException("Cannot build with an empty name!");
         }
         name = name.trim();
-        int level = adapter.buildLevel();
+        SpellLevel level = adapter.buildLevel();
         String invocation = adapter.buildInvocation(name);
         String description = adapter.buildDescription(name);
         Set<VocationName> allowed = adapter.buildVocations();

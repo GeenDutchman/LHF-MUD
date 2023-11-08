@@ -8,7 +8,6 @@ import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.item.Weapon;
 
 public class Attack implements Iterable<CreatureEffect> {
-    // TODO: add aggro
     private Creature attacker;
     private Weapon weapon;
     private Set<CreatureEffect> effects;

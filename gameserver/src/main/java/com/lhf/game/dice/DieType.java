@@ -1,7 +1,7 @@
 package com.lhf.game.dice;
 
 public enum DieType {
-    HUNDRED(100), TWENTY(20), TWELVE(12), TEN(10), EIGHT(8), SIX(6), FOUR(4), TWO(2), NONE(0); // coin
+    NONE(0), TWO(2), FOUR(4), SIX(6), EIGHT(8), TEN(10), TWELVE(12), TWENTY(20), HUNDRED(100);
 
     public static DieType getDieType(String value) {
         for (DieType dType : values()) {

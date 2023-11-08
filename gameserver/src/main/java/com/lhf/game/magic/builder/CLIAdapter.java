@@ -9,8 +9,8 @@ import java.util.StringJoiner;
 import java.util.TreeSet;
 
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EffectResistance.TargetResistAmount;
+import com.lhf.game.TickType;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
@@ -19,6 +19,7 @@ import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.magic.SpellLevel;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
 import com.lhf.game.magic.builder.SpellEntryBuilder.SpellEntryBuilderAdapter;
 
@@ -107,10 +108,10 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
     }
 
     @Override
-    public int buildLevel() {
+    public SpellLevel buildLevel() {
         Integer level = null;
         do {
-            System.out.println("What is this spell's level? ");
+            System.out.println("What is this spell's level as an integer? ");
             level = this.input.nextInt();
             this.input.nextLine();
             System.out.printf("You chose %d, is that correct? ", level);
@@ -118,7 +119,7 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
                 level = null;
             }
         } while (level == null);
-        return level;
+        return SpellLevel.fromInt(level);
     }
 
     @Override

@@ -4,7 +4,8 @@ import com.lhf.Taggable;
 
 public enum DamageFlavor implements Taggable {
     SLASHING, MAGICAL_SLASHING, BLUDGEONING, MAGICAL_BLUDGEONING, PIERCING, MAGICAL_PIERCING,
-    VOID, FORCE, FIRE, COLD, HEALING, NECROTIC, POISON, ACID, LIGHTNING, THUNDER, PSYCHIC;
+    VOID, FORCE, FIRE, COLD, HEALING, NECROTIC, POISON, ACID, LIGHTNING, THUNDER, PSYCHIC,
+    AGGRO;
 
     public static DamageFlavor getDamageFlavor(String value) {
         for (DamageFlavor flavor : values()) {

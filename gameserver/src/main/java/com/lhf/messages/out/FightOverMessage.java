@@ -1,8 +1,10 @@
 package com.lhf.messages.out;
 
+import com.lhf.game.TickType;
 import com.lhf.messages.OutMessageType;
+import com.lhf.messages.ITickMessage;
 
-public class FightOverMessage extends OutMessage {
+public class FightOverMessage extends OutMessage implements ITickMessage {
     public static class Builder extends OutMessage.Builder<Builder> {
 
         protected Builder() {
@@ -35,6 +37,11 @@ public class FightOverMessage extends OutMessage {
             return "Take a deep breath.  You have survived this battle!";
         }
         return "The fight is over!";
+    }
+
+    @Override
+    public TickType getTickType() {
+        return TickType.BATTLE;
     }
 
     @Override
