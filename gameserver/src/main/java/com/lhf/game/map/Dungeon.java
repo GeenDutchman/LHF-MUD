@@ -194,18 +194,18 @@ public class Dungeon implements Land {
 
     @Override
     public boolean onCreatureDeath(Creature creature) {
-        if (this.removeCreature(creature)) {
-            if (creature != null && creature instanceof Player) {
-                Player asPlayer = (Player) creature;
-                Player nextLife = Player.PlayerBuilder.getInstance(asPlayer.getUser()).build();
-                this.addPlayer(nextLife);
-                creature.sendMsg(ReincarnateMessage.getBuilder().setTaggedName(creature).setNotBroadcast().Build());
-                nextLife.sendMsg(SeeOutMessage.getBuilder().setExaminable(startingRoom).Build());
+        boolean removed = this.removeCreature(creature);
 
-            }
-            return true;
+        if (creature != null && creature instanceof Player) {
+            Player asPlayer = (Player) creature;
+            Player nextLife = Player.PlayerBuilder.getInstance(asPlayer.getUser()).setVocation(asPlayer.getVocation())
+                    .build();
+            this.addPlayer(nextLife);
+            creature.sendMsg(ReincarnateMessage.getBuilder().setTaggedName(creature).setNotBroadcast().Build());
+            nextLife.sendMsg(SeeOutMessage.getBuilder().setExaminable(startingRoom).Build());
+
         }
-        return false;
+        return removed;
     }
 
     void setStartingRoom(Room r) {
