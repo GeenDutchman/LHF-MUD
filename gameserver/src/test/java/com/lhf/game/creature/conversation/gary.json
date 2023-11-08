@@ -2,7 +2,7 @@
   "treeName": "gary",
   "start": {
     "nodeID": "5a47048f-73f7-413e-953f-8d6f9b33b14b",
-    "body": "intro lore placeholder here",
+    "body": "intro lore placeholder here.  Are you ok to start?",
     "prompts": []
   },
   "nodes": {
@@ -46,7 +46,7 @@
     },
     "5a47048f-73f7-413e-953f-8d6f9b33b14b": {
       "nodeID": "5a47048f-73f7-413e-953f-8d6f9b33b14b",
-      "body": "intro lore placeholder here",
+      "body": "intro lore placeholder here.  Are you ok to start?",
       "prompts": []
     }
   },
@@ -116,7 +116,7 @@
     "5a47048f-73f7-413e-953f-8d6f9b33b14b": [
       {
         "regex": {
-          "regex": "ok",
+          "regex": "\\b(ok|okay)\\b",
           "flags": 2,
           "example": "ok"
         },
