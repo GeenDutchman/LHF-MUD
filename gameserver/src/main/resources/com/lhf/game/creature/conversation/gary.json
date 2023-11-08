@@ -2,7 +2,7 @@
   "treeName": "gary",
   "start": {
     "nodeID": "5a47048f-73f7-413e-953f-8d6f9b33b14b",
-    "body": "intro lore placeholder here",
+    "body": "intro lore placeholder here.  Are you ok to start?",
     "prompts": []
   },
   "nodes": {
@@ -17,7 +17,7 @@
     },
     "d481500f-848b-4528-9616-efc80ae7f69a": {
       "nodeID": "d481500f-848b-4528-9616-efc80ae7f69a",
-      "body": "You have selected HEALER",
+      "body": "You have selected HEALER.  Are you ready to go into the dungeon?",
       "prompts": [
         "STORE CREATE_VOCATION HEALER",
         "PROMPT LEWD Ada Lovejax use TALKER_NAME"
@@ -25,7 +25,7 @@
     },
     "ef641ebf-b750-462f-947d-3681b4329501": {
       "nodeID": "ef641ebf-b750-462f-947d-3681b4329501",
-      "body": "You have selected FIGHTER",
+      "body": "You have selected FIGHTER.  Are you ready to go into the dungeon?",
       "prompts": [
         "STORE CREATE_VOCATION FIGHTER",
         "PROMPT LEWD Ada Lovejax use TALKER_NAME"
@@ -38,7 +38,7 @@
     },
     "4f17903d-f69e-4e3f-ab2d-7616b9f0fe4c": {
       "nodeID": "4f17903d-f69e-4e3f-ab2d-7616b9f0fe4c",
-      "body": "You have selected MAGE",
+      "body": "You have selected MAGE.  Are you ready to go into the dungeon?",
       "prompts": [
         "STORE CREATE_VOCATION MAGE",
         "PROMPT LEWD Ada Lovejax use TALKER_NAME"
@@ -46,7 +46,7 @@
     },
     "5a47048f-73f7-413e-953f-8d6f9b33b14b": {
       "nodeID": "5a47048f-73f7-413e-953f-8d6f9b33b14b",
-      "body": "intro lore placeholder here",
+      "body": "intro lore placeholder here.  Are you ok to start?",
       "prompts": []
     }
   },
@@ -54,9 +54,9 @@
     "d481500f-848b-4528-9616-efc80ae7f69a": [
       {
         "regex": {
-          "regex": "thank",
+          "regex": "\\bready\\b",
           "flags": 2,
-          "example": "Thank you"
+          "example": "I'm ready"
         },
         "nodeID": "bb00fbdb-e2c9-4eac-bbd2-07614cdaff43",
         "blacklist": {}
@@ -65,9 +65,9 @@
     "ef641ebf-b750-462f-947d-3681b4329501": [
       {
         "regex": {
-          "regex": "thank",
+          "regex": "\\bready\\b",
           "flags": 2,
-          "example": "Thank you"
+          "example": "I'm ready"
         },
         "nodeID": "bb00fbdb-e2c9-4eac-bbd2-07614cdaff43",
         "blacklist": {}
@@ -105,9 +105,9 @@
     "4f17903d-f69e-4e3f-ab2d-7616b9f0fe4c": [
       {
         "regex": {
-          "regex": "thank",
+          "regex": "\\bready\\b",
           "flags": 2,
-          "example": "Thank you"
+          "example": "I'm ready"
         },
         "nodeID": "bb00fbdb-e2c9-4eac-bbd2-07614cdaff43",
         "blacklist": {}
@@ -116,7 +116,7 @@
     "5a47048f-73f7-413e-953f-8d6f9b33b14b": [
       {
         "regex": {
-          "regex": "ok",
+          "regex": "\\b(ok|okay)\\b",
           "flags": 2,
           "example": "ok"
         },
@@ -128,7 +128,7 @@
   "greetings": [
     {
       "regex": {
-        "regex": "hi",
+        "regex": "\\bhi\\b",
         "flags": 2,
         "example": "this is some lore, but to make a character you need to say \"hi\" to me!"
       },

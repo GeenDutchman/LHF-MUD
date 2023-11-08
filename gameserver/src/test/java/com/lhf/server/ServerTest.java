@@ -159,7 +159,7 @@ public class ServerTest {
         this.comm.handleCommand("say mage to gary lovejax");
         Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
                 .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPEAKING, "You have selected MAGE")));
-        this.comm.handleCommand("say thanks to gary lovejax");
+        this.comm.handleCommand("say ready to gary lovejax");
         Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
                 .send(Mockito.argThat(new MessageMatcher(OutMessageType.SEE)));
         String room1 = this.comm.handleCommand("see");
