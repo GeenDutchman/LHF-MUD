@@ -256,7 +256,10 @@ public class ConversationTree implements Serializable {
         if (pattern == null) {
             return null;
         }
-        return pattern.getExample();
+        String output = pattern.getExample();
+        Matcher matcher = pattern.getRegex().matcher(output);
+        output = matcher.replaceFirst("<convo>$0</convo>");
+        return output;
     }
 
     public void setRepeats(Set<ConversationPattern> repeats) {

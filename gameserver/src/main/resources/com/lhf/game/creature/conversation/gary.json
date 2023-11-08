@@ -128,7 +128,7 @@
   "greetings": [
     {
       "regex": {
-        "regex": "hi",
+        "regex": "\\bhi\\b",
         "flags": 2,
         "example": "this is some lore, but to make a character you need to say \"hi\" to me!"
       },
