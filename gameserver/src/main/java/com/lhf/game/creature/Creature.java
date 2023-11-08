@@ -218,7 +218,7 @@ public abstract class Creature
         return this.statblock.getStats().get(Stats.CURRENTHP);
     }
 
-    public final HealthBuckets getHealthBucket() {
+    public HealthBuckets getHealthBucket() {
         return HealthBuckets.calculate(getHealth(), this.statblock.getStats().get(Stats.MAXHP));
     }
 

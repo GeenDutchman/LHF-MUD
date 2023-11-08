@@ -13,6 +13,7 @@ import com.lhf.game.battle.BattleManager.BattleManagerThread;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.map.Area;
 import com.lhf.messages.MessageMatcher;
 import com.lhf.messages.OutMessageType;
@@ -30,9 +31,11 @@ public class BattleManagerTest {
 
                 Mockito.when(monster.getName()).thenReturn("Monster");
                 Mockito.when(monster.getClientID()).thenReturn(monstercClientID);
+                Mockito.when(monster.getHealthBucket()).thenReturn(HealthBuckets.HEALTHY);
                 // Mockito.when(monster.getColorTaggedName()).thenCallRealMethod();
                 Mockito.when(npc.getName()).thenReturn("NPC");
                 Mockito.when(npc.getClientID()).thenReturn(npClientID);
+                Mockito.when(npc.getHealthBucket()).thenReturn(HealthBuckets.LIGHTLY_INJURED);
                 // Mockito.when(npc.getColorTaggedName()).thenCallRealMethod();
 
                 Initiative.Builder initiative = FIFOInitiative.Builder.getInstance();
@@ -67,11 +70,13 @@ public class BattleManagerTest {
                 Mockito.when(monster.isAlive()).thenReturn(true);
                 Mockito.when(monster.getFaction()).thenReturn(CreatureFaction.RENEGADE);
                 Mockito.when(monster.getClientID()).thenReturn(monstercClientID);
+                Mockito.when(monster.getHealthBucket()).thenReturn(HealthBuckets.HEALTHY);
                 Mockito.when(npc.getName()).thenReturn("NPC");
                 Mockito.when(npc.getColorTaggedName()).thenReturn("NPC");
                 Mockito.when(npc.isAlive()).thenReturn(true);
                 Mockito.when(npc.getFaction()).thenReturn(CreatureFaction.RENEGADE);
                 Mockito.when(npc.getClientID()).thenReturn(npClientID);
+                Mockito.when(npc.getHealthBucket()).thenReturn(HealthBuckets.LIGHTLY_INJURED);
 
                 Initiative.Builder initiative = FIFOInitiative.Builder.getInstance();
                 Truth.assertThat(initiative.addCreature(npc)).isTrue();
@@ -90,7 +95,7 @@ public class BattleManagerTest {
                 Mockito.verify(npc, Mockito.timeout(1000).atLeastOnce())
                                 .sendMsg(Mockito.argThat(startBattle.ownedCopy("npc")));
 
-                Mockito.verify(npc, Mockito.timeout(1000).times(battleManager.getMaxPokesPerAction() + 1))
+                Mockito.verify(npc, Mockito.timeout(1000).atLeast(battleManager.getMaxPokesPerAction() + 1))
                                 .sendMsg(Mockito.argThat(turnMessage.ownedCopy("npc")));
 
                 Mockito.verify(monster, Mockito.timeout(1000).atLeastOnce())

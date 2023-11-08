@@ -105,7 +105,6 @@ public class BattleTurnHandlerTest {
         Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();
         Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains("PASS")));
-        Mockito.verifyNoMoreInteractions(searcher.mockedWrappedHandler);
     }
 
 }

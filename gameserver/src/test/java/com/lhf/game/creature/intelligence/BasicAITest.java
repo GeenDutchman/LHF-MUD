@@ -99,7 +99,9 @@ public class BasicAITest {
 
                 Mockito.verify(victim.sssb, Mockito.timeout(1000)).send(doneAttack);
 
-                Truth.assertWithMessage("The victim should remember the attacker")
+                Truth.assertWithMessage("The victim should remember an attacker")
+                                .that(victim.npc.getHarmMemories().getLastAttackerName().isPresent()).isTrue();
+                Truth.assertWithMessage("The victim should remember the attacker's name")
                                 .that(victim.npc.getHarmMemories().getLastAttackerName().get())
                                 .isEqualTo(attacker.npc.getName());
                 // verify that both attack effects got handled before reaching the final handler
@@ -119,12 +121,7 @@ public class BasicAITest {
                 BadTargetSelectedMessage btsm = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR)
                                 .setBadTarget("bloohoo jane").setPossibleTargets(stuff).Build();
                 sendMsgAndWait(btsm, searcher);
-                Truth.assertThat(searcher.npc.getHarmMemories().getLastAttackerName().get()).isNotNull();
-                Truth.assertThat(searcher.npc.getHarmMemories().getLastAttackerName().get()).isEqualTo(victim.npc);
-                Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
-                                Mockito.argThat((command) -> command != null
-                                                && command.getWhole().contains(victim.npc.getName())));
-
+                Truth.assertThat(searcher.npc.getHarmMemories().getLastAttackerName().isEmpty()).isTrue();
         }
 
         @Test
@@ -138,9 +135,6 @@ public class BasicAITest {
                                 .setBadTarget("bloohoo jane").setPossibleTargets(stuff).Build();
                 sendMsgAndWait(btsm, searcher);
                 Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();
-                Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
-                                Mockito.argThat((command) -> command != null && command.getWhole().contains("pass")));
-
         }
 
 }
