@@ -87,15 +87,19 @@ public class Statblock {
 
     private DamageFlavorReactions damageFlavorReactions;
 
+    public static final int DEFAULT_HP = 12;
+    public static final int DEFAULT_AC = 11;
+    public static final int DEFAULT_XP_WORTH = 500;
+
     public Statblock() {
         this.creatureRace = "creature";
         this.attributes = new AttributeBlock();
         this.stats = Collections.synchronizedMap(new EnumMap<>(Stats.class));
         // Set default stats
-        this.stats.put(Stats.MAXHP, 12);
-        this.stats.put(Stats.CURRENTHP, 12);
-        this.stats.put(Stats.AC, 11);
-        this.stats.put(Stats.XPWORTH, 500);
+        this.stats.put(Stats.MAXHP, Statblock.DEFAULT_HP);
+        this.stats.put(Stats.CURRENTHP, Statblock.DEFAULT_HP);
+        this.stats.put(Stats.AC, Statblock.DEFAULT_AC);
+        this.stats.put(Stats.XPWORTH, Statblock.DEFAULT_XP_WORTH);
         this.proficiencies = Collections.synchronizedSet(EnumSet.noneOf(EquipmentTypes.class));
         this.inventory = new Inventory();
         this.equipmentSlots = Collections.synchronizedMap(new EnumMap<>(EquipmentSlots.class));
