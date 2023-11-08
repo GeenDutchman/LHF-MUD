@@ -39,7 +39,7 @@ public class RoomTargetingSpellEntry extends SpellEntry {
         this.creaturesToSummon = new TreeMap<>();
     }
 
-    public RoomTargetingSpellEntry(Integer level, String name, String invocation,
+    public RoomTargetingSpellEntry(SpellLevel level, String name, String invocation,
             Set<? extends RoomEffectSource> effectSources,
             Set<VocationName> allowed, String description,
             boolean banishesItems, boolean banishesCreatures) {
@@ -49,7 +49,7 @@ public class RoomTargetingSpellEntry extends SpellEntry {
         this.init();
     }
 
-    public RoomTargetingSpellEntry(Integer level, String name, Set<? extends RoomEffectSource> effectSources,
+    public RoomTargetingSpellEntry(SpellLevel level, String name, Set<? extends RoomEffectSource> effectSources,
             Set<VocationName> allowed, String description,
             boolean banishesItems, boolean banishesCreatures) {
         super(level, name, effectSources, allowed, description);
@@ -94,7 +94,7 @@ public class RoomTargetingSpellEntry extends SpellEntry {
     }
 
     @Override
-    public CastingMessage Cast(Creature caster, int castLevel, List<? extends Taggable> targets) {
+    public CastingMessage Cast(Creature caster, SpellLevel castLevel, List<? extends Taggable> targets) {
         StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("nothing");
         if (targets != null) {
             for (Taggable taggable : targets) {

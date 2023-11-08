@@ -1,6 +1,7 @@
 package com.lhf.server.interfaces;
 
 import java.util.EnumMap;
+import java.util.Map;
 
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -15,11 +16,11 @@ public interface ServerInterface extends MessageHandler {
     void removeUser(UserID id);
 
     @Override
-    default EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
-        EnumMap<CommandMessage, String> gathered = MessageHandler.super.gatherHelp(ctx);
-        if (ctx.getClientID() != null) {
+    default Map<CommandMessage, String> getCommands(CommandContext ctx) {
+        EnumMap<CommandMessage, String> gathered = new EnumMap<>(CommandMessage.class);
+        if (ctx.getUser() != null) {
             gathered.remove(CommandMessage.CREATE);
         }
-        return gathered;
+        return ctx.addHelps(gathered);
     }
 }

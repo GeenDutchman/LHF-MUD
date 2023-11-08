@@ -47,7 +47,7 @@ public abstract class ISpell<T extends EntityEffect>
         return this.entry.getName();
     }
 
-    public Integer getLevel() {
+    public SpellLevel getLevel() {
         return this.entry.getLevel();
     }
 

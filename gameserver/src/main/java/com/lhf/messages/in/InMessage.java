@@ -72,6 +72,8 @@ public class InMessage {
                 return new LewdInMessage(arguments);
             case SPELLBOOK:
                 return new SpellbookMessage(arguments);
+            case STATS:
+                return new StatsInMessage(arguments);
             default:
                 return new HelpInMessage(arguments);
 

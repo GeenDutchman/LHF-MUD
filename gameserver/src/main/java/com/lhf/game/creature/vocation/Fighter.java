@@ -1,7 +1,14 @@
 package com.lhf.game.creature.vocation;
 
+import com.lhf.game.battle.Attack;
+import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.dice.DamageDice;
+import com.lhf.game.dice.DieType;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
+import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.concrete.HealPotion;
@@ -40,10 +47,46 @@ public class Fighter extends Vocation {
         built.getAttributes().setScore(Attributes.DEX, 12);
         built.getAttributes().setScore(Attributes.CON, 14);
         built.getAttributes().setScore(Attributes.INT, 8);
-        built.getAttributes().setScore(Attributes.WIS, 12);
-        built.getAttributes().setScore(Attributes.CHA, 10);
+        built.getAttributes().setScore(Attributes.WIS, 10);
+        built.getAttributes().setScore(Attributes.CHA, 12);
 
         return built;
+    }
+
+    @Override
+    public Attack modifyAttack(Attack attack) {
+        // Attributes bestAttr =
+        // this.getHighestAttributeBonus(EnumSet.of(Attributes.CHA));
+        Creature attacker = attack.getAttacker();
+        if (attacker != null) {
+            int chaMod = attacker.getAttributes().getMod(Attributes.CHA);
+            if (chaMod <= 0) {
+                chaMod = 1;
+            }
+            DamageDice dd = new DamageDice(chaMod, DieType.TWELVE, DamageFlavor.AGGRO);
+            for (CreatureEffect crEffect : attack) {
+                if (crEffect.isOffensive()) {
+                    MultiRollResult mrr = crEffect.getDamageResult();
+                    MultiRollResult.Builder rebuilder = new MultiRollResult.Builder().addMultiRollResult(mrr);
+                    rebuilder.addRollResults(dd.rollDice());
+                    crEffect.updateDamageResult(rebuilder.Build());
+                }
+            }
+        }
+        return attack;
+
+    }
+
+    @Override
+    public Vocation onLevel() {
+        // maybe do something
+        return this;
+    }
+
+    @Override
+    public Vocation onRestTick() {
+        // maybe do something
+        return this;
     }
 
 }

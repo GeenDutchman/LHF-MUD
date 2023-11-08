@@ -228,15 +228,12 @@ public class DMRoom extends Room {
     }
 
     @Override
-    public boolean announce(OutMessage message, String... deafened) {
-        super.announce(message, deafened);
-        List<String> deafenedNames = Arrays.asList(deafened);
-        for (User user : this.users) {
-            if (!deafenedNames.contains(user.getUsername())) {
-                user.sendMsg(message);
-            }
-        }
-        return true;
+    public Collection<ClientMessenger> getClientMessengers() {
+        Collection<ClientMessenger> messengers = new ArrayList<>(super.getClientMessengers());
+        messengers.addAll(this.users.stream()
+                .filter(userThing -> userThing != null)
+                .map(userThing -> (ClientMessenger) userThing).toList());
+        return messengers;
     }
 
     @Override
@@ -282,7 +279,7 @@ public class DMRoom extends Room {
     }
 
     @Override
-    protected Boolean handleSay(CommandContext ctx, Command msg) {
+    protected CommandContext.Reply handleSay(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SAY) {
             SayMessage sayMessage = (SayMessage) msg;
             if (sayMessage.getTarget() != null && !sayMessage.getTarget().isBlank()) {
@@ -302,7 +299,7 @@ public class DMRoom extends Room {
                     }
                 }
                 if (sent) {
-                    return sent;
+                    return ctx.handled();
                 }
             }
         }
@@ -310,33 +307,36 @@ public class DMRoom extends Room {
     }
 
     @Override
-    protected Boolean handleSee(CommandContext ctx, Command msg) {
+    protected CommandContext.Reply handleSee(CommandContext ctx, Command msg) {
         return super.handleSee(ctx, msg);
     }
 
     @Override
-    public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
         ctx = super.addSelfToContext(ctx);
-        EnumMap<CommandMessage, String> gathered = super.gatherHelp(ctx);
+        Map<CommandMessage, String> gathered = new EnumMap<>(CommandMessage.class);
+        StringJoiner sj = new StringJoiner(" ");
+        sj.add("\"say [message] to [name]\"")
+                .add("Will tell a specific person somewhere in your current room your message.");
+        sj.add("If your message contains the word 'to', put your message in quotes like")
+                .add("\"say 'They are taking the hobbits to Isengard' to Aragorn\"")
+                .add("\r\n");
+        gathered.put(CommandMessage.SAY, sj.toString());
         if (ctx.getCreature() == null || !(ctx.getCreature() instanceof DungeonMaster)) {
-            StringJoiner sj = new StringJoiner(" ");
-            sj.add("\"say [message] to [name]\"")
-                    .add("Will tell a specific person somewhere in your current room your message.");
-            sj.add("If your message contains the word 'to', put your message in quotes like")
-                    .add("\"say 'They are taking the hobbits to Isengard' to Aragorn\"")
-                    .add("\r\n");
-            gathered.put(CommandMessage.SAY, sj.toString());
             gathered.remove(CommandMessage.CAST);
         }
-        return gathered;
+        ctx.addHelps(gathered);
+        Map<CommandMessage, String> superGathered = new EnumMap<>(super.getCommands(ctx));
+        superGathered.putAll(gathered);
+        return superGathered;
     }
 
     @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         if (ctx.getCreature() != null && ctx.getCreature() instanceof DungeonMaster) {
             return super.handleMessage(ctx, msg);
         }
-        boolean handled = false;
+        CommandContext.Reply handled = ctx.failhandle();
         CommandMessage type = msg.getType();
         if (ctx.getRoom() == null) { // if we aren't already in a room
             ctx = this.addSelfToContext(ctx);
@@ -344,27 +344,27 @@ public class DMRoom extends Room {
                 handled = this.handleSay(ctx, msg);
             } else if (type == CommandMessage.SEE) {
                 handled = this.handleSee(ctx, msg);
-                if (handled) {
+                if (handled.isHandled()) {
                     return handled;
                 }
                 ctx.sendMsg(this.produceMessage());
-                return true;
+                return handled.resolve();
             } else if (type == CommandMessage.CAST) {
                 if (ctx.getCreature() == null || !(ctx.getCreature() instanceof DungeonMaster)) {
                     ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                            .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
-                    return true;
+                            .setHelps(ctx.getHelps()).setCommand(msg).Build());
+                    return handled.resolve();
                 }
                 handled = super.handleCast(ctx, msg);
             }
-            if (handled) {
+            if (handled.isHandled()) {
                 return handled;
             }
         }
         if (this.getSuccessor() != null) {
             return this.getSuccessor().handleMessage(ctx, msg);
         }
-        return false;
+        return handled;
     }
 
 }

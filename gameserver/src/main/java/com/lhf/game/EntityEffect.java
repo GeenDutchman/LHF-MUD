@@ -4,7 +4,6 @@ import java.util.Objects;
 
 import com.lhf.Examinable;
 import com.lhf.Taggable;
-import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.Creature;
 import com.lhf.messages.out.SeeOutMessage;

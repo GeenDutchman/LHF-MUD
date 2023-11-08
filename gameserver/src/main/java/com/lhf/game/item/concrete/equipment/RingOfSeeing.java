@@ -1,7 +1,7 @@
 package com.lhf.game.item.concrete.equipment;
 
 import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;

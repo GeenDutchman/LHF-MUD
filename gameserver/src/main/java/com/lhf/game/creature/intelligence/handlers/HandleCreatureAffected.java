@@ -15,7 +15,7 @@ public class HandleCreatureAffected extends AIHandler {
     private void handleOuch(BasicAI bai, CreatureAffectedMessage caMessage) {
         if (bai.getNpc().isInBattle()) {
             if (caMessage.getAffected() == bai.getNpc() && caMessage.getEffect().isOffensive()) {
-                bai.setLastAttacker(caMessage.getEffect().creatureResponsible());
+                bai.getNpc().getHarmMemories().update(caMessage);
             }
         }
     }
@@ -32,8 +32,8 @@ public class HandleCreatureAffected extends AIHandler {
     public void handle(BasicAI bai, OutMessage msg) {
         if (OutMessageType.CREATURE_AFFECTED.equals(msg.getOutType())) {
             CreatureAffectedMessage caMessage = (CreatureAffectedMessage) msg;
-            this.handleOuch(bai, caMessage);
             this.handleOtherDeath(bai, caMessage);
+            this.handleOuch(bai, caMessage);
         }
 
     }

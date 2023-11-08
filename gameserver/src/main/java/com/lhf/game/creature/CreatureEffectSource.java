@@ -82,6 +82,30 @@ public class CreatureEffectSource extends EntityEffectSource {
     }
 
     @Override
+    public int aiScore() {
+        int score = 0;
+        for (DamageDice dd : this.damages) {
+            score += Math.abs(dd.getCount() * dd.getType().getType());
+        }
+        for (Integer i : this.statChanges.values()) {
+            if (i != null) {
+                score += Math.abs(i);
+            }
+        }
+        for (Integer i : this.attributeScoreChanges.values()) {
+            if (i != null) {
+                score += Math.abs(i);
+            }
+        }
+        for (Integer i : this.attributeBonusChanges.values()) {
+            if (i != null) {
+                score += Math.abs(i);
+            }
+        }
+        return score;
+    }
+
+    @Override
     public SeeOutMessage produceMessage() {
         SeeOutMessage.Builder seeOutMessage = (Builder) super.produceMessage().copyBuilder();
         for (DamageDice dd : this.damages) {

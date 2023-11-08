@@ -10,9 +10,11 @@ import java.util.UUID;
 
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.messages.MessageHandler;
+import com.lhf.messages.out.TickMessage;
 import com.lhf.server.client.user.UserID;
 
 public interface Land extends CreatureContainer, MessageHandler, AffectableEntity<DungeonEffect> {
@@ -104,6 +106,12 @@ public interface Land extends CreatureContainer, MessageHandler, AffectableEntit
             }
         }
         return Collections.unmodifiableSet(creatures);
+    }
+
+    @Override
+    default void tick(TickType type) {
+        AffectableEntity.super.tick(type);
+        this.announce(TickMessage.getBuilder().setTickType(type).setBroacast());
     }
 
 }

@@ -8,8 +8,8 @@ import java.util.regex.PatternSyntaxException;
 import org.mockito.exceptions.misusing.UnfinishedStubbingException;
 
 import com.lhf.Examinable;
-import com.lhf.game.EffectPersistence.TickType;
 import com.lhf.game.EntityEffect;
+import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
@@ -49,6 +49,7 @@ public class Room implements Area {
     private Set<Creature> allCreatures;
     private transient Land dungeon;
     private transient TreeSet<RoomEffect> effects;
+    private transient Set<UUID> sentMessage;
 
     private Map<CommandMessage, String> commands;
     private MessageHandler successor;
@@ -200,6 +201,7 @@ public class Room implements Area {
         this.successor = builder.getSuccessor();
         this.battleManager = builder.battleManagerBuilder.Build(this);
         this.commands = builder.buildCommands();
+        this.sentMessage = new TreeSet<>();
     }
 
     @Override
@@ -223,6 +225,21 @@ public class Room implements Area {
     }
 
     @Override
+    public Collection<ClientMessenger> getClientMessengers() {
+        return this.getCreatures().stream()
+                .filter(creature -> creature != null)
+                .map(creature -> (ClientMessenger) creature).toList();
+    }
+
+    @Override
+    public boolean checkMessageSent(OutMessage outMessage) {
+        if (outMessage == null) {
+            return true; // yes we "sent" null
+        }
+        return !this.sentMessage.add(outMessage.getUuid());
+    }
+
+    @Override
     public Set<Creature> getCreatures() {
         return Collections.unmodifiableSet(this.allCreatures);
     }
@@ -234,7 +251,7 @@ public class Room implements Area {
         if (added) {
             this.logger.log(Level.FINER, () -> String.format("%s entered the room", c.getName()));
             c.sendMsg(this.produceMessage());
-            this.announce(RoomEnteredOutMessage.getBuilder().setNewbie(c).setBroacast().Build(), c.getName());
+            this.announce(RoomEnteredOutMessage.getBuilder().setNewbie(c).setBroacast().Build(), c);
             if (this.allCreatures.size() > 1 && !this.commands.containsKey(CommandMessage.ATTACK)) {
                 StringJoiner sj = new StringJoiner(" ");
                 sj.add("\"attack [name]\"").add("Attacks a creature").add("\r\n");
@@ -280,8 +297,7 @@ public class Room implements Area {
     public Creature removeCreature(Creature c, Directions dir) {
         boolean removed = removeCreature(c);
         if (removed) {
-            this.announce(SomeoneLeftRoom.getBuilder().setLeaveTaker(c).setWhichWay(dir).Build(), null,
-                    List.of(c.getName()));
+            this.announce(SomeoneLeftRoom.getBuilder().setLeaveTaker(c).setWhichWay(dir).Build());
         }
         return c;
     }
@@ -467,21 +483,8 @@ public class Room implements Area {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands() {
-        return Collections.unmodifiableMap(this.commands);
-    }
-
-    @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
-        if (ctx.getRoom() == null) {
-            ctx.setRoom(this);
-        }
-        return ctx;
-    }
-
-    @Override
-    public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
-        EnumMap<CommandMessage, String> gathered = Area.super.gatherHelp(ctx);
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+        EnumMap<CommandMessage, String> gathered = new EnumMap<>(this.commands);
         if (ctx.getCreature() == null) {
             gathered.remove(CommandMessage.ATTACK);
             gathered.remove(CommandMessage.DROP);
@@ -493,16 +496,25 @@ public class Room implements Area {
         if (ctx.getCreature() != null && !(ctx.getCreature().getVocation() instanceof CubeHolder)) {
             gathered.remove(CommandMessage.CAST);
         }
-        return gathered;
+        ctx.addHelps(gathered);
+        return Collections.unmodifiableMap(gathered);
     }
 
     @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
-        Boolean handled = false;
+    public CommandContext addSelfToContext(CommandContext ctx) {
+        if (ctx.getRoom() == null) {
+            ctx.setRoom(this);
+        }
+        return ctx;
+    }
+
+    @Override
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+        CommandContext.Reply handled = ctx.failhandle();
         CommandMessage type = msg.getType();
         ctx = this.addSelfToContext(ctx);
-        if (type != null && (this.commands.containsKey(type)
-                || (this.battleManager != null && this.battleManager.getCommands().containsKey(type)))) {
+        if (type != null && (this.getCommands(ctx).containsKey(type)
+                || (this.battleManager != null && this.battleManager.getCommands(ctx).containsKey(type)))) {
             if (type == CommandMessage.ATTACK) {
                 handled = this.handleAttack(ctx, msg);
             } else if (type == CommandMessage.SAY) {
@@ -521,41 +533,41 @@ public class Room implements Area {
                 handled = this.handleUse(ctx, msg);
             }
         }
-        if (handled) {
+        if (handled.isHandled()) {
             return handled;
         }
         return Area.super.handleMessage(ctx, msg);
     }
 
-    protected Boolean handleAttack(CommandContext ctx, Command msg) {
+    protected CommandContext.Reply handleAttack(CommandContext ctx, Command msg) {
         if (msg.getType() != CommandMessage.ATTACK) {
-            return false;
+            return ctx.failhandle();
         }
         ctx = this.addSelfToContext(ctx);
         if (ctx.getCreature() == null) {
             ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                    .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
-            return true;
+                    .setHelps(ctx.getHelps()).setCommand(msg).Build());
+            return ctx.handled();
         }
         return this.battleManager.handleMessage(ctx, msg);
     }
 
-    protected boolean handleCast(CommandContext ctx, Command msg) {
+    protected CommandContext.Reply handleCast(CommandContext ctx, Command msg) {
         ctx.setBattleManager(this.battleManager);
         if (ctx.getCreature() == null) {
             ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                    .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
-            return true;
+                    .setHelps(ctx.getHelps()).setCommand(msg).Build());
+            return ctx.handled();
         }
-        return false; // let a successor (ThirdPower) handle it
+        return ctx.failhandle(); // let a successor (ThirdPower) handle it
     }
 
-    protected Boolean handleTake(CommandContext ctx, Command msg) {
+    protected CommandContext.Reply handleTake(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.TAKE) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
-                return true;
+                        .setHelps(ctx.getHelps()).setCommand(msg).Build());
+                return ctx.handled();
             }
             TakeMessage tMessage = (TakeMessage) msg;
 
@@ -596,17 +608,17 @@ public class Room implements Area {
                     ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.UNCLEVER).Build());
                 }
             }
-            return true;
+            return ctx.handled();
         }
-        return false;
+        return ctx.failhandle();
     }
 
-    protected Boolean handleInteract(CommandContext ctx, Command msg) {
+    protected CommandContext.Reply handleInteract(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.INTERACT) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
-                return true;
+                        .setHelps(ctx.getHelps()).setCommand(msg).Build());
+                return ctx.handled();
             }
             InteractMessage intMessage = (InteractMessage) msg;
             String name = intMessage.getObject();
@@ -625,7 +637,7 @@ public class Room implements Area {
                     ctx.sendMsg(InteractOutMessage.getBuilder().setTaggable(ro)
                             .setSubType(InteractOutMessageType.CANNOT).Build());
                 }
-                return true;
+                return ctx.handled();
             }
             List<InteractObject> interactables = new ArrayList<>();
             for (Item ro : matches) {
@@ -635,17 +647,17 @@ public class Room implements Area {
             }
             ctx.sendMsg(BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR).setBadTarget(name)
                     .setPossibleTargets(interactables).Build());
-            return true;
+            return ctx.handled();
         }
-        return false;
+        return ctx.failhandle();
     }
 
-    protected Boolean handleDrop(CommandContext ctx, Command msg) {
+    protected CommandContext.Reply handleDrop(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.DROP) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
-                return true;
+                        .setHelps(ctx.getHelps()).setCommand(msg).Build());
+                return ctx.handled();
             }
             DropMessage dMessage = (DropMessage) msg;
             if (dMessage.getDirects().size() == 0) {
@@ -663,13 +675,13 @@ public class Room implements Area {
                 this.addItem(takeable);
                 ctx.sendMsg(DropOutMessage.getBuilder().setItem(takeable).Build());
             }
-            return true;
+            return ctx.handled();
         }
-        return false;
+        return ctx.failhandle();
     }
 
     // only used to examine items and creatures in this room
-    protected Boolean handleSee(CommandContext ctx, Command msg) {
+    protected CommandContext.Reply handleSee(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SEE) {
             SeeMessage sMessage = (SeeMessage) msg;
             if (sMessage.getThing() != null && !sMessage.getThing().isBlank()) {
@@ -680,20 +692,20 @@ public class Room implements Area {
                     ArrayList<Creature> foundList = new ArrayList<Creature>(found);
                     ctx.sendMsg(((SeeOutMessage.Builder) foundList.get(0).produceMessage().copyBuilder())
                             .addExtraInfo("They are in the room with you. ").Build());
-                    return true;
+                    return ctx.handled();
                 }
 
                 if (ctx.getCreature() != null && ctx.getCreature().isInBattle()) {
                     ctx.sendMsg(SeeOutMessage.getBuilder()
                             .setDeniedReason("You are in a fight right now, you are too busy to examine that!")
                             .Build());
-                    return true;
+                    return ctx.handled();
                 }
 
                 for (Item ro : items) {
                     if (ro.CheckNameRegex(name, 3)) {
                         ctx.sendMsg(SeeOutMessage.getBuilder().setExaminable(ro).Build());
-                        return true;
+                        return ctx.handled();
                     }
                 }
 
@@ -704,11 +716,11 @@ public class Room implements Area {
                             if (thing instanceof Examinable) {
                                 ctx.sendMsg(((SeeOutMessage.Builder) thing.produceMessage().copyBuilder())
                                         .addExtraInfo("You have it equipped. ").Build());
-                                return true;
+                                return ctx.handled();
                             }
                             ctx.sendMsg(SeeOutMessage.getBuilder().setExaminable(thing)
                                     .addExtraInfo("You have it equipped. ").Build());
-                            return true;
+                            return ctx.handled();
                         }
                     }
 
@@ -718,26 +730,26 @@ public class Room implements Area {
                         if (thing instanceof Examinable) {
                             ctx.sendMsg(((SeeOutMessage.Builder) thing.produceMessage().copyBuilder())
                                     .addExtraInfo("You see it in your inventory. ").Build());
-                            return true;
+                            return ctx.handled();
                         }
                         ctx.sendMsg(SeeOutMessage.getBuilder().setExaminable(thing)
                                 .addExtraInfo("You see it in your inventory. ").Build());
-                        return true;
+                        return ctx.handled();
                     }
                 }
 
                 ctx.sendMsg(SeeOutMessage.getBuilder().setDeniedReason("You couldn't find " + name + " to examine. ")
                         .Build());
-                return true;
+                return ctx.handled();
             } else {
                 ctx.sendMsg(this.produceMessage());
-                return true;
+                return ctx.handled();
             }
         }
-        return false;
+        return ctx.failhandle();
     }
 
-    protected Boolean handleSay(CommandContext ctx, Command msg) {
+    protected CommandContext.Reply handleSay(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SAY) {
             SayMessage sMessage = (SayMessage) msg;
             SpeakingMessage.Builder speakMessage = SpeakingMessage.getBuilder().setSayer(ctx.getCreature())
@@ -763,55 +775,55 @@ public class Room implements Area {
             } else {
                 this.announce(speakMessage.Build());
             }
-            return true;
+            return ctx.handled();
         }
-        return false;
+        return ctx.failhandle();
     }
 
-    protected Boolean handleUse(CommandContext ctx, Command msg) {
+    protected CommandContext.Reply handleUse(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.USE) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(this.gatherHelp(ctx)).setCommand(msg).Build());
-                return true;
+                        .setHelps(ctx.getHelps()).setCommand(msg).Build());
+                return ctx.handled();
             }
             UseMessage useMessage = (UseMessage) msg;
             Optional<Item> maybeItem = ctx.getCreature().getItem(useMessage.getUsefulItem());
             if (maybeItem.isEmpty() || !(maybeItem.get() instanceof Usable)) {
                 ctx.sendMsg(UseOutMessage.getBuilder().setSubType(UseOutMessageOption.NO_USES)
                         .setItemUser(ctx.getCreature()).Build());
-                return true;
+                return ctx.handled();
             }
             Usable usable = (Usable) maybeItem.get();
             if (useMessage.getTarget() == null || useMessage.getTarget().isBlank()) {
                 usable.doUseAction(ctx, ctx.getCreature());
-                return true;
+                return ctx.handled();
             }
             Collection<Creature> maybeCreature = this.getCreaturesLike(useMessage.getTarget());
             if (maybeCreature.size() == 1) {
                 List<Creature> creatureList = new ArrayList<>(maybeCreature);
                 usable.doUseAction(ctx, creatureList.get(0));
-                return true;
+                return ctx.handled();
             } else if (maybeCreature.size() > 1) {
                 ctx.sendMsg(BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR)
                         .setBadTarget(useMessage.getTarget()).setPossibleTargets(maybeCreature).Build());
-                return true;
+                return ctx.handled();
             }
             Optional<Item> maybeRoomItem = this.getItem(useMessage.getTarget());
             if (maybeRoomItem.isPresent()) {
                 usable.doUseAction(ctx, maybeRoomItem.get());
-                return true;
+                return ctx.handled();
             }
             Optional<Item> maybeInventory = ctx.getCreature().getItem(useMessage.getTarget());
             if (maybeInventory.isPresent()) {
                 usable.doUseAction(ctx, maybeInventory.get());
-                return true;
+                return ctx.handled();
             }
             ctx.sendMsg(BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR)
                     .setBadTarget(useMessage.getTarget()).Build());
-            return true;
+            return ctx.handled();
         }
-        return false;
+        return ctx.failhandle();
     }
 
     @Override

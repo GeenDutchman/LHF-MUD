@@ -19,6 +19,7 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.map.Area;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -26,7 +27,6 @@ import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.out.*;
-import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
@@ -36,11 +36,13 @@ public class BattleManager implements CreatureContainerMessageHandler {
     private final TimeUnit turnBarrierWaitUnit;
     private AtomicReference<BattleManagerThread> battleThread;
     private Initiative participants;
+    private BattleStats battleStats;
     private Area room;
     private transient MessageHandler successor;
     private Map<CommandMessage, String> interceptorCmds;
     private Map<CommandMessage, String> cmds;
     private Logger battleLogger;
+    private transient Set<UUID> sentMessage;
 
     public static class Builder {
         private int waitCount;
@@ -157,10 +159,12 @@ public class BattleManager implements CreatureContainerMessageHandler {
 
     public BattleManager(Area room, Builder builder) {
         this.participants = builder.initiativeBuilder.Build();
+        this.battleStats = new BattleStats().initialize(this.participants.getCreatures());
         this.room = room;
         this.successor = this.room;
         this.turnBarrierWaitCount = builder.waitCount;
         this.turnBarrierWaitUnit = builder.waitUnit;
+        this.sentMessage = new TreeSet<>();
         this.init();
     }
 
@@ -228,6 +232,9 @@ public class BattleManager implements CreatureContainerMessageHandler {
                 .add("Uses an item that you have on something or someone else, if applicable.")
                 .add("Like \"use potion on Bob\"");
         cmds.put(CommandMessage.USE, sj.toString());
+        sj = new StringJoiner(" ");
+        sj.add("\"stats\"").add("Retrieves the statistics about the current battle.");
+        cmds.put(CommandMessage.STATS, sj.toString());
         return cmds;
     }
 
@@ -295,13 +302,14 @@ public class BattleManager implements CreatureContainerMessageHandler {
             if (participants.addCreature(c)) {
                 c.setInBattle(true);
                 c.setSuccessor(this);
+                this.battleStats.initialize(this.getCreatures());
                 JoinBattleMessage.Builder joinedMessage = JoinBattleMessage.getBuilder().setJoiner(c)
                         .setOngoing(isBattleOngoing()).setBroacast();// new JoinBattleMessage(c, this.isBattleOngoing(),
                                                                      // false);
                 if (this.room != null) {
-                    this.room.announce(joinedMessage.Build(), c.getName());
+                    this.room.announce(joinedMessage.Build(), c);
                 } else {
-                    this.announce(joinedMessage.Build(), c.getName());
+                    this.announce(joinedMessage.Build(), c);
                 }
                 c.sendMsg(joinedMessage.setNotBroadcast().Build());
                 return true;
@@ -315,6 +323,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
         if (participants.removeCreature(c)) {
             c.setInBattle(false);
             c.setSuccessor(this.successor);
+            this.battleStats.remove(c.getName());
             if (!this.checkCompetingFactionsPresent()) {
                 endBattle();
             }
@@ -476,9 +485,9 @@ public class BattleManager implements CreatureContainerMessageHandler {
             turned.sendMsg(builder.setNotBroadcast().Build());
             builder.setBroacast();
             if (this.room != null) {
-                room.announce(builder.Build(), turned.getName());
+                room.announce(builder.Build());
             } else {
-                this.announce(builder.Build(), turned.getName());
+                this.announce(builder.Build());
             }
         }
     }
@@ -487,7 +496,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
         if (!CreatureFaction.RENEGADE.equals(target.getFaction())
                 && !CreatureFaction.RENEGADE.equals(attacker.getFaction())
                 && attacker.getFaction() != null
-                && attacker.getFaction().equals(target.getFaction())) {
+                && attacker.getFaction().allied(target.getFaction())) {
             this.handleTurnRenegade(attacker);
             return true;
         }
@@ -579,10 +588,6 @@ public class BattleManager implements CreatureContainerMessageHandler {
         return current;
     }
 
-    public void announce(OutMessage message) {
-        this.participants.announce(message);
-    }
-
     @Override
     public String toString() {
         StringBuilder builder2 = new StringBuilder();
@@ -612,12 +617,26 @@ public class BattleManager implements CreatureContainerMessageHandler {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands() {
-        Map<CommandMessage, String> collected = this.cmds;
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+        Map<CommandMessage, String> collected = new EnumMap<>(this.cmds);
         if (this.isBattleOngoing()) {
             collected.putAll(this.interceptorCmds);
         }
-        return Collections.unmodifiableMap(collected);
+        if (ctx.getCreature() == null) {
+            collected.remove(CommandMessage.ATTACK);
+            collected.remove(CommandMessage.DROP);
+            collected.remove(CommandMessage.INTERACT);
+            collected.remove(CommandMessage.TAKE);
+            collected.remove(CommandMessage.CAST);
+            collected.remove(CommandMessage.USE);
+        } else if (!this.isBattleOngoing() || !ctx.getCreature().isInBattle()) {
+            collected.remove(CommandMessage.INTERACT);
+            collected.remove(CommandMessage.PASS);
+            collected.remove(CommandMessage.GO);
+            collected.remove(CommandMessage.TAKE);
+            collected.remove(CommandMessage.USE);
+        }
+        return ctx.addHelps(Collections.unmodifiableMap(collected));
     }
 
     @Override
@@ -629,31 +648,11 @@ public class BattleManager implements CreatureContainerMessageHandler {
     }
 
     @Override
-    public EnumMap<CommandMessage, String> gatherHelp(CommandContext ctx) {
-        EnumMap<CommandMessage, String> gathered = CreatureContainerMessageHandler.super.gatherHelp(ctx);
-        if (ctx.getCreature() == null) {
-            gathered.remove(CommandMessage.ATTACK);
-            gathered.remove(CommandMessage.DROP);
-            gathered.remove(CommandMessage.INTERACT);
-            gathered.remove(CommandMessage.TAKE);
-            gathered.remove(CommandMessage.CAST);
-            gathered.remove(CommandMessage.USE);
-        }
-        return gathered;
-    }
-
-    @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         CommandMessage type = msg.getType();
-        Boolean handled = false;
+        CommandContext.Reply handled = ctx.failhandle();
         ctx = this.addSelfToContext(ctx);
-        if (ctx.getCreature() == null) {
-            ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                    .setHelps(this.room != null ? this.room.gatherHelp(ctx) : this.gatherHelp(ctx)).setCommand(msg)
-                    .Build());
-            return true;
-        }
-        if (type != null) {
+        if (type != null && this.getCommands(ctx).containsKey(type)) {
             if (type == CommandMessage.ATTACK) {
                 AttackMessage aMessage = (AttackMessage) msg;
                 handled = handleAttack(ctx, aMessage);
@@ -663,44 +662,44 @@ public class BattleManager implements CreatureContainerMessageHandler {
                     handled = this.handleSee(ctx, msg);
                 } else if (type == CommandMessage.GO) {
                     handled = this.handleGo(ctx, msg);
-                } else if (type == CommandMessage.INTERACT) {
-                    ctx.sendMsg(
-                            HelpMessage.getHelpBuilder().setHelps(this.gatherHelp(ctx)).setSingleHelp(type).Build());
-                    handled = true;
-                } else if (type == CommandMessage.TAKE) {
-                    ctx.sendMsg(
-                            HelpMessage.getHelpBuilder().setHelps(this.gatherHelp(ctx)).setSingleHelp(type).Build());
-                    handled = true;
                 } else if (type == CommandMessage.PASS) {
                     handled = this.handlePass(ctx, msg);
                 } else if (type == CommandMessage.USE) {
                     handled = this.handleUse(ctx, msg);
+                } else if (type == CommandMessage.STATS) {
+                    ctx.sendMsg(StatsOutMessage.getBuilder().addRecords(this.battleStats.getBattleStatSet())
+                            .setNotBroadcast());
+                    handled = ctx.handled();
                 }
             }
-            if (handled) {
+            if (handled.isHandled()) {
                 return handled;
             }
         }
         return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
     }
 
-    private boolean handleUse(CommandContext ctx, Command msg) {
+    private CommandContext.Reply handleUse(CommandContext ctx, Command msg) {
         // TODO: test me!
         if (this.checkTurn(ctx.getCreature())) {
-            return false;
+            CommandContext.Reply reply = CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
+            if (reply.isHandled()) {
+                this.endTurn(ctx.getCreature());
+            }
+            return reply;
         }
-        return true;
+        return ctx.handled();
     }
 
-    private boolean handlePass(CommandContext ctx, Command msg) {
+    private CommandContext.Reply handlePass(CommandContext ctx, Command msg) {
         Creature creature = ctx.getCreature();
         if (this.checkTurn(creature)) {
             this.endTurn(creature);
         }
-        return true;
+        return ctx.handled();
     }
 
-    private boolean handleSee(CommandContext ctx, Command msg) {
+    private CommandContext.Reply handleSee(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SEE) {
             SeeMessage seeMessage = (SeeMessage) msg;
             if (seeMessage.getThing() != null) {
@@ -708,15 +707,15 @@ public class BattleManager implements CreatureContainerMessageHandler {
                 if (this.room != null) {
                     return this.room.handleMessage(ctx, msg);
                 }
-                return false;
+                return ctx.failhandle();
             }
             ctx.sendMsg(this.produceMessage());
-            return true;
+            return ctx.handled();
         }
-        return false;
+        return ctx.failhandle();
     }
 
-    private Boolean handleGo(CommandContext ctx, Command msg) {
+    private CommandContext.Reply handleGo(CommandContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.GO) {
             Integer check = 10 + this.participants.size();
             MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
@@ -724,20 +723,21 @@ public class BattleManager implements CreatureContainerMessageHandler {
             if (result.getRoll() < check) {
                 ctx.sendMsg(builder.setFled(false).setNotBroadcast().Build());
                 if (this.room != null) {
-                    this.room.announce(builder.setBroacast().Build(), ctx.getCreature().getName());
+                    this.room.announce(builder.setBroacast().Build(), ctx.getCreature());
                 } else {
-                    this.announce(builder.setBroacast().Build(), ctx.getCreature().getName());
+                    this.announce(builder.setBroacast().Build(), ctx.getCreature());
                 }
-                return true;
+                return ctx.handled();
             }
             builder.setFled(true).setBroacast();
             if (this.room != null) {
-                this.room.announce(builder.Build(), ctx.getCreature().getName());
+                this.room.announce(builder.Build(), ctx.getCreature());
             } else {
-                this.announce(builder.Build(), ctx.getCreature().getName());
+                this.announce(builder.Build(), ctx.getCreature());
             }
+            return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
         }
-        return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
+        return ctx.failhandle();
     }
 
     /**
@@ -806,21 +806,21 @@ public class BattleManager implements CreatureContainerMessageHandler {
         return targets;
     }
 
-    private Boolean handleAttack(CommandContext ctx, AttackMessage aMessage) {
+    private CommandContext.Reply handleAttack(CommandContext ctx, AttackMessage aMessage) {
         this.battleLogger.log(Level.INFO, ctx.getCreature().getName() + " attempts attacking " + aMessage.getTargets());
 
         Creature attacker = ctx.getCreature();
 
         if (!this.checkTurn(attacker)) {
 
-            return true;
+            return ctx.handled();
         }
 
         BadTargetSelectedMessage.Builder btMessBuilder = BadTargetSelectedMessage.getBuilder().setNotBroadcast();
 
         if (aMessage.getNumTargets() == 0) {
             ctx.sendMsg(btMessBuilder.setBde(BadTargetOption.NOTARGET).Build());
-            return true;
+            return ctx.handled();
         }
 
         int numAllowedTargets = 1;
@@ -831,17 +831,18 @@ public class BattleManager implements CreatureContainerMessageHandler {
         if (aMessage.getNumTargets() > numAllowedTargets) {
             String badTarget = aMessage.getTargets().get(numAllowedTargets + 1);
             ctx.sendMsg(btMessBuilder.setBadTarget(badTarget).setBde(BadTargetOption.TOO_MANY).Build());
-            return true;
+            return ctx.handled();
         }
 
         List<Creature> targets = this.collectTargetsFromRoom(attacker, aMessage.getTargets());
         if (targets == null || targets.size() == 0) {
-            return true;
+            ctx.sendMsg(btMessBuilder.setBde(BadTargetOption.NOTARGET).Build());
+            return ctx.handled();
         }
 
         Weapon weapon = this.getDesignatedWeapon(attacker, aMessage.getWeapon());
         if (weapon == null) {
-            return true;
+            return ctx.handled();
         }
 
         if (!this.isBattleOngoing()) {
@@ -849,7 +850,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
         }
         this.applyAttacks(attacker, weapon, targets);
         endTurn(attacker);
-        return true;
+        return ctx.handled();
     }
 
     /**
@@ -893,6 +894,21 @@ public class BattleManager implements CreatureContainerMessageHandler {
                 }
             }
         }
+    }
+
+    @Override
+    public Collection<ClientMessenger> getClientMessengers() {
+        Collection<ClientMessenger> messengers = CreatureContainerMessageHandler.super.getClientMessengers();
+        messengers.add(this.battleStats);
+        return messengers;
+    }
+
+    @Override
+    public boolean checkMessageSent(OutMessage outMessage) {
+        if (outMessage == null) {
+            return true; // yes we "sent" null
+        }
+        return !this.sentMessage.add(outMessage.getUuid());
     }
 
 }

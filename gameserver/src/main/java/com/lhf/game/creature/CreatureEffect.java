@@ -25,20 +25,20 @@ public class CreatureEffect extends EntityEffect {
 
     public MultiRollResult getDamageResult() {
         if (this.damageResult == null) {
+            MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
             for (DamageDice dd : this.getSource().getDamages()) {
-                if (this.damageResult == null) {
-                    this.damageResult = new MultiRollResult(dd.rollDice());
-                } else {
-                    this.damageResult.addResult(dd.rollDice());
-                }
+                mrrBuilder.addRollResults(dd.rollDice());
             }
+            this.damageResult = mrrBuilder.Build();
         }
         return this.damageResult;
     }
 
     public CreatureEffect addDamageBonus(int bonus) {
         if (this.getDamageResult() != null) {
-            this.getDamageResult().addBonus(bonus);
+            this.damageResult = new MultiRollResult.Builder()
+                    .addMultiRollResult(this.getDamageResult())
+                    .addBonuses(bonus).Build();
         }
         return this;
     }

@@ -5,12 +5,15 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.logging.Logger;
 
-import com.lhf.game.EffectPersistence.TickType;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.server.client.user.UserID;
 
@@ -40,11 +43,13 @@ public class FIFOInitiative implements Initiative {
 
     }
 
+    private transient Set<UUID> sentMessage;
     private Deque<Creature> participants;
     private int roundCount;
     private int turnCount;
 
     public FIFOInitiative(FIFOInitiative.Builder builder) {
+        this.sentMessage = new TreeSet<>();
         this.participants = new ConcurrentLinkedDeque<>();
         for (Creature included : builder.creatures) {
             this.addCreature(included);
@@ -73,6 +78,14 @@ public class FIFOInitiative implements Initiative {
             sb.append("There is no fight right now. ");
         }
         return sb.toString();
+    }
+
+    @Override
+    public boolean checkMessageSent(OutMessage outMessage) {
+        if (outMessage == null) {
+            return true; // yes we "sent" null
+        }
+        return !this.sentMessage.add(outMessage.getUuid());
     }
 
     @Override
@@ -181,14 +194,18 @@ public class FIFOInitiative implements Initiative {
     public synchronized Creature nextTurn() {
         Creature current = this.participants.pollFirst();
         if (current != null) {
+            this.onTurnEnd(current);
             this.participants.offerLast(current);
         }
         this.turnCount++;
         if (this.turnCount > this.participants.size()) {
             this.roundCount++;
+            this.onRoundEnd();
             this.turnCount = 1;
         }
-        return this.getCurrent();
+        Creature nextCreature = this.getCurrent();
+        this.onTurnStart(nextCreature);
+        return nextCreature;
     }
 
     @Override

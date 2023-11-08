@@ -3,7 +3,6 @@ package com.lhf.server.client;
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,27 +37,29 @@ public class Client implements MessageHandler, ClientMessenger {
         this.out = out;
     }
 
-    public void ProcessString(String value) {
+    public CommandContext.Reply ProcessString(String value) {
         this.logger.log(Level.FINE, "message received: " + value);
         Command cmd = CommandBuilder.parse(value);
-        Boolean accepted = false;
+        CommandContext ctx = new CommandContext();
+        CommandContext.Reply accepted = ctx.failhandle();
         if (cmd.isValid()) {
             this.logger.log(Level.FINEST, "the message received was deemed" + cmd.getClass().toString());
             this.logger.log(Level.FINER, "Post Processing:" + cmd);
-            accepted = this.handleMessage(null, cmd);
-            if (!accepted) {
+            accepted = this.handleMessage(ctx, cmd);
+            if (!accepted.isHandled()) {
                 this.logger.log(Level.WARNING, "Command not accepted:" + cmd.getWhole());
-                accepted = this.handleHelpMessage(cmd, BadMessageType.UNHANDLED);
+                accepted = this.handleHelpMessage(cmd, BadMessageType.UNHANDLED, accepted);
             }
         } else {
             // The message was not recognized
             this.logger.log(Level.FINE, "Message was bad");
-            accepted = this.handleHelpMessage(cmd, BadMessageType.UNRECOGNIZED);
+            accepted = this.handleHelpMessage(cmd, BadMessageType.UNRECOGNIZED, accepted);
         }
-        if (!accepted) {
+        if (!accepted.isHandled()) {
             this.logger.log(Level.WARNING, "Command really not accepted/recognized:" + cmd.getWhole());
-            this.handleHelpMessage(cmd, BadMessageType.OTHER);
+            this.handleHelpMessage(cmd, BadMessageType.OTHER, accepted);
         }
+        return accepted;
     }
 
     @Override
@@ -78,8 +79,9 @@ public class Client implements MessageHandler, ClientMessenger {
         return this.id;
     }
 
-    private Boolean handleHelpMessage(Command msg, BadMessageType badMessageType) {
-        TreeMap<CommandMessage, String> helps = new TreeMap<>(this.gatherHelp(null));
+    private CommandContext.Reply handleHelpMessage(Command msg, BadMessageType badMessageType,
+            CommandContext.Reply reply) {
+        Map<CommandMessage, String> helps = reply.getHelps();
 
         if (badMessageType != null) {
             this.sendMsg(
@@ -88,7 +90,7 @@ public class Client implements MessageHandler, ClientMessenger {
             this.sendMsg(HelpMessage.getHelpBuilder().setHelps(helps).setSingleHelp(msg == null ? null : msg.getType())
                     .Build());
         }
-        return true;
+        return reply.resolve();
     }
 
     @Override
@@ -102,7 +104,7 @@ public class Client implements MessageHandler, ClientMessenger {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands() {
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
         Map<CommandMessage, String> cmdMap = new EnumMap<>(CommandMessage.class);
         cmdMap.put(CommandMessage.HELP, "Tells you the commands that you can use.  They are case insensitive!");
         return cmdMap;
@@ -120,13 +122,16 @@ public class Client implements MessageHandler, ClientMessenger {
     }
 
     @Override
-    public boolean handleMessage(CommandContext ctx, Command msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
+        CommandContext.Reply reply = MessageHandler.super.handleMessage(ctx, msg);
         if (msg.getType() == CommandMessage.HELP) {
-            return this.handleHelpMessage(null, null);
+            return this.handleHelpMessage(null, null, reply);
+        } else if (!reply.isHandled()) {
+            return this.handleHelpMessage(msg, BadMessageType.UNHANDLED, reply);
         }
 
-        return MessageHandler.super.handleMessage(ctx, msg);
+        return reply;
     }
 
     @Override
