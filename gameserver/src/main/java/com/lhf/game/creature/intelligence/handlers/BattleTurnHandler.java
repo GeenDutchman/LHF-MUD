@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
@@ -115,7 +116,7 @@ public class BattleTurnHandler extends AIHandler {
             }
         }
 
-        this.logger.warning(() -> String.format("Unable to attack anyone, passing: %s", bai.ProcessString("PASS")));
+        bai.log(Level.WARNING, () -> String.format("Unable to attack anyone, passing: %s", bai.ProcessString("PASS")));
     }
 
     // Returns empty if not to flee, otherwise populated with "flee <direction>"

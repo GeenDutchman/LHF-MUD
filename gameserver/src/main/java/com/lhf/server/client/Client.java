@@ -3,6 +3,7 @@ package com.lhf.server.client;
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,8 +20,8 @@ import com.lhf.messages.out.OutMessage;
 
 public class Client implements MessageHandler, ClientMessenger {
     protected SendStrategy out;
-    protected ClientID id;
-    protected Logger logger;
+    protected final ClientID id;
+    protected final Logger logger;
     protected transient MessageHandler _successor;
 
     protected Client() {
@@ -69,6 +70,10 @@ public class Client implements MessageHandler, ClientMessenger {
             this.SetOut(new PrintWriterSendStrategy(System.out));
         }
         this.out.send(msg);
+    }
+
+    public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        this.logger.log(logLevel, logMessageSupplier);
     }
 
     void disconnect() throws IOException {
