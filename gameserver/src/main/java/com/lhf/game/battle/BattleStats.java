@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -28,6 +29,19 @@ public class BattleStats implements ClientMessenger {
 
         public static enum BattleStat {
             MAX_DAMAGE, AGGRO_DAMAGE, TOTAL_DAMAGE, NUM_DAMAGES, HEALING_PERFORMED, AVG_DAMAGE;
+
+            public static BattleStat getBattleStat(String value) {
+                for (BattleStat stat : values()) {
+                    if (stat.toString().equalsIgnoreCase(value)) {
+                        return stat;
+                    }
+                }
+                return null;
+            }
+
+            public static List<BattleStat> asList() {
+                return List.of(values());
+            }
         }
 
         protected final String targetName;
@@ -35,11 +49,6 @@ public class BattleStats implements ClientMessenger {
         private Vocation vocation;
         private HealthBuckets bucket;
         private EnumMap<BattleStat, Integer> stats;
-        // private int maxDamage;
-        // private int aggroDamage;
-        // private int totalDamage;
-        // private int numDamgages;
-        // private int healingPerformed;
 
         public BattleStatRecord(String targetName, CreatureFaction faction, Vocation vocation,
                 HealthBuckets bucket) {
@@ -51,6 +60,11 @@ public class BattleStats implements ClientMessenger {
             for (BattleStat stat : BattleStat.values()) {
                 this.stats.put(stat, 0);
             }
+        }
+
+        // returns immutable map of stats
+        public Map<BattleStat, Integer> getStats() {
+            return Collections.unmodifiableMap(this.stats);
         }
 
         public String getTargetName() {
@@ -99,6 +113,11 @@ public class BattleStats implements ClientMessenger {
                 return 0;
             }
             return this.stats.getOrDefault(stat, 0);
+        }
+
+        public int get(String statString) {
+            BattleStat stat = BattleStat.getBattleStat(statString);
+            return this.get(stat);
         }
 
         @Override
