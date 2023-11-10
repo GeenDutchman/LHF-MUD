@@ -824,8 +824,8 @@ public class BattleManager implements CreatureContainerMessageHandler {
         }
 
         int numAllowedTargets = 1;
-        if (attacker.getVocation() != null && attacker.getVocation().getName().equals("Fighter")) {
-            numAllowedTargets += attacker.getVocation().getLevel() / 5; // TODO: move this to fighter
+        if (attacker.getVocation() != null) {
+            numAllowedTargets = attacker.getVocation().numberOfMeleeTargets();
         }
 
         if (aMessage.getNumTargets() > numAllowedTargets) {
