@@ -46,6 +46,7 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
     }
 
     protected int level;
+    protected int experiencePoints;
     protected final VocationName name;
 
     public abstract Statblock createNewDefaultStatblock(String creatureRace);
@@ -57,10 +58,20 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
     protected Vocation(VocationName name) {
         this.name = name;
         this.level = 1;
+        this.experiencePoints = 0;
     }
 
     public int getLevel() {
         return level;
+    }
+
+    public int getExperiencePoints() {
+        return this.experiencePoints;
+    }
+
+    public int addExperience(int xpGain) {
+        this.experiencePoints += xpGain >= 0 ? xpGain : -1 * xpGain;
+        return this.experiencePoints;
     }
 
     public String getName() {
