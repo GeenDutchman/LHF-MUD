@@ -7,6 +7,7 @@ import java.util.StringJoiner;
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.SpellLevel;
 import com.lhf.game.map.DungeonEffectSource;
 import com.lhf.messages.out.CastingMessage;
 

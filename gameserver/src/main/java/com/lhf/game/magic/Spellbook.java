@@ -23,6 +23,7 @@ import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.SpellLevel;
 import com.lhf.game.magic.concrete.Ensouling;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;

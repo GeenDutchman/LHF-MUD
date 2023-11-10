@@ -7,6 +7,7 @@ import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.enums.SpellLevel;
 import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class ISpell<T extends EntityEffect>

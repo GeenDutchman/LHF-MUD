@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.SpellLevel;
 import com.lhf.game.magic.concrete.Thaumaturgy;
 import com.lhf.game.magic.concrete.ThunderStrike;
 

@@ -10,6 +10,7 @@ import com.lhf.Taggable;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.SpellLevel;
 import com.lhf.messages.out.CastingMessage;
 import com.lhf.messages.out.SeeOutMessage;
 

@@ -1,4 +1,4 @@
-package com.lhf.game.magic;
+package com.lhf.game.enums;
 
 import java.util.Optional;
 

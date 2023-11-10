@@ -13,6 +13,7 @@ import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.SpellLevel;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
 import com.lhf.game.magic.Spellbook.Filters;
 import com.lhf.game.map.DMRoom;

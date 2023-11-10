@@ -9,8 +9,8 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.SpellLevel;
 import com.lhf.game.magic.DMRoomTargetingSpellEntry;
-import com.lhf.game.magic.SpellLevel;
 import com.lhf.game.map.DMRoomEffectSource;
 import com.lhf.messages.out.CastingMessage;
 

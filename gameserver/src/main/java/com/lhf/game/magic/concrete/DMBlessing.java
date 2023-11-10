@@ -7,9 +7,9 @@ import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.Attributes;
+import com.lhf.game.enums.SpellLevel;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
-import com.lhf.game.magic.SpellLevel;
 
 public class DMBlessing extends CreatureTargetingSpellEntry {
 

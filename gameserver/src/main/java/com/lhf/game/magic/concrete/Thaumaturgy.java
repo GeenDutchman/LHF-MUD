@@ -12,8 +12,8 @@ import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.Attributes;
+import com.lhf.game.enums.SpellLevel;
 import com.lhf.game.magic.RoomTargetingSpellEntry;
-import com.lhf.game.magic.SpellLevel;
 import com.lhf.game.map.RoomEffectSource;
 import com.lhf.messages.out.CastingMessage;
 

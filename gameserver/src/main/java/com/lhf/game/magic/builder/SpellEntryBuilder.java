@@ -8,11 +8,11 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.SpellLevel;
 import com.lhf.game.magic.CreatureAOESpellEntry;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
 import com.lhf.game.magic.SpellEntry;
-import com.lhf.game.magic.SpellLevel;
 import com.lhf.game.magic.Spellbook;
 
 public class SpellEntryBuilder {

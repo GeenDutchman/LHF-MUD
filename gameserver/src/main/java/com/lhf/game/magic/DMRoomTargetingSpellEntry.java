@@ -4,6 +4,7 @@ import java.util.Set;
 
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.SpellLevel;
 import com.lhf.game.map.DMRoomEffectSource;
 
 public class DMRoomTargetingSpellEntry extends RoomTargetingSpellEntry {

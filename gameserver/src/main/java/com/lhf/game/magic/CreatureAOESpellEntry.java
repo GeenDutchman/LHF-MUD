@@ -9,6 +9,7 @@ import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.SpellLevel;
 import com.lhf.messages.out.CastingMessage;
 
 public class CreatureAOESpellEntry extends SpellEntry {

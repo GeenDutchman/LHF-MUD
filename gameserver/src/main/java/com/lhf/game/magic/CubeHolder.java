@@ -4,6 +4,7 @@ import java.util.EnumSet;
 
 import com.lhf.Taggable;
 import com.lhf.game.dice.MultiRollResult;
+import com.lhf.game.enums.SpellLevel;
 
 public interface CubeHolder extends Taggable {
     public String getName();

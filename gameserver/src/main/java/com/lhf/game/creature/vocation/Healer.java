@@ -7,11 +7,11 @@ import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.SpellLevel;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.equipment.LeatherArmor;
 import com.lhf.game.magic.CubeHolder;
-import com.lhf.game.magic.SpellLevel;
 
 public class Healer extends Vocation implements CubeHolder {
     private static class SpellPoints {
