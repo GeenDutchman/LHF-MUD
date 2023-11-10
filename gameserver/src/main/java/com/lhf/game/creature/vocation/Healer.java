@@ -7,7 +7,7 @@ import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentTypes;
-import com.lhf.game.enums.SpellLevel;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.equipment.LeatherArmor;
@@ -102,7 +102,7 @@ public class Healer extends Vocation implements CubeHolder {
     }
 
     @Override
-    public boolean useMagnitude(SpellLevel level) {
+    public boolean useMagnitude(ResourceCost level) {
         if (level == null) {
             return false;
         } else if (level.toInt() > this.spellPoints.available) {
@@ -113,10 +113,10 @@ public class Healer extends Vocation implements CubeHolder {
     }
 
     @Override
-    public EnumSet<SpellLevel> availableMagnitudes() {
+    public EnumSet<ResourceCost> availableMagnitudes() {
         int count = (this.level / 2) + (this.level % 2 != 0 ? 1 : 0);
-        EnumSet<SpellLevel> available = EnumSet.of(SpellLevel.CANTRIP);
-        for (SpellLevel sl : SpellLevel.values()) {
+        EnumSet<ResourceCost> available = EnumSet.of(ResourceCost.NO_COST);
+        for (ResourceCost sl : ResourceCost.values()) {
             if (sl.toInt() <= count && this.spellPoints.available >= sl.toInt()) {
                 available.add(sl);
             }

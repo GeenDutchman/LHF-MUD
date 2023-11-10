@@ -4,19 +4,19 @@ import java.util.Set;
 
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
-import com.lhf.game.enums.SpellLevel;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.map.DMRoomEffectSource;
 
 public class DMRoomTargetingSpellEntry extends RoomTargetingSpellEntry {
     private Boolean ensoulsUsers = null;
 
-    public DMRoomTargetingSpellEntry(SpellLevel level, String name, String invocation,
+    public DMRoomTargetingSpellEntry(ResourceCost level, String name, String invocation,
             Set<DMRoomEffectSource> effectSources,
             Set<VocationName> allowed, String description, boolean banishesItems, boolean banishesCreatures) {
         super(level, name, invocation, effectSources, allowed, description, banishesItems, banishesCreatures);
     }
 
-    public DMRoomTargetingSpellEntry(SpellLevel level, String name, Set<DMRoomEffectSource> effectSources,
+    public DMRoomTargetingSpellEntry(ResourceCost level, String name, Set<DMRoomEffectSource> effectSources,
             Set<VocationName> allowed, String description, boolean banishesItems, boolean banishesCreatures) {
         super(level, name, effectSources, allowed, description, banishesItems, banishesCreatures);
     }

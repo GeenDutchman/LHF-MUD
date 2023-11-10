@@ -10,7 +10,7 @@ import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentTypes;
-import com.lhf.game.enums.SpellLevel;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.equipment.LeatherArmor;
@@ -51,38 +51,38 @@ public class Mage extends Vocation implements CubeHolder {
         }
     }
 
-    private static EnumMap<SpellLevel, SpellSlot> getSpellSlotsMax() {
-        EnumMap<SpellLevel, SpellSlot> maxes = new EnumMap<>(SpellLevel.class);
-        maxes.put(SpellLevel.CANTRIP, new SpellSlot(Integer.MAX_VALUE));
-        maxes.put(SpellLevel.FIRST_MAGNITUDE, new SpellSlot(4));
-        maxes.put(SpellLevel.SECOND_MAGNITUDE, new SpellSlot(3));
-        maxes.put(SpellLevel.THIRD_MAGNITUDE, new SpellSlot(3));
-        maxes.put(SpellLevel.FOURTH_MAGNITUDE, new SpellSlot(3));
-        maxes.put(SpellLevel.FIVTH_MAGNITUDE, new SpellSlot(3));
-        maxes.put(SpellLevel.SIXTH_MAGNITUDE, new SpellSlot(2));
-        maxes.put(SpellLevel.SEVENTH_MAGNITUDE, new SpellSlot(2));
-        maxes.put(SpellLevel.EIGHTH_MAGNITUDE, new SpellSlot(1));
-        maxes.put(SpellLevel.NINTH_MAGNITUDE, new SpellSlot(1));
-        maxes.put(SpellLevel.TENTH_MAGNITUDE, new SpellSlot(0));
+    private static EnumMap<ResourceCost, SpellSlot> getSpellSlotsMax() {
+        EnumMap<ResourceCost, SpellSlot> maxes = new EnumMap<>(ResourceCost.class);
+        maxes.put(ResourceCost.NO_COST, new SpellSlot(Integer.MAX_VALUE));
+        maxes.put(ResourceCost.FIRST_MAGNITUDE, new SpellSlot(4));
+        maxes.put(ResourceCost.SECOND_MAGNITUDE, new SpellSlot(3));
+        maxes.put(ResourceCost.THIRD_MAGNITUDE, new SpellSlot(3));
+        maxes.put(ResourceCost.FOURTH_MAGNITUDE, new SpellSlot(3));
+        maxes.put(ResourceCost.FIVTH_MAGNITUDE, new SpellSlot(3));
+        maxes.put(ResourceCost.SIXTH_MAGNITUDE, new SpellSlot(2));
+        maxes.put(ResourceCost.SEVENTH_MAGNITUDE, new SpellSlot(2));
+        maxes.put(ResourceCost.EIGHTH_MAGNITUDE, new SpellSlot(1));
+        maxes.put(ResourceCost.NINTH_MAGNITUDE, new SpellSlot(1));
+        maxes.put(ResourceCost.TENTH_MAGNITUDE, new SpellSlot(0));
         return maxes;
     }
 
-    private EnumMap<SpellLevel, SpellSlot> spellSlots;
+    private EnumMap<ResourceCost, SpellSlot> spellSlots;
 
     public Mage() {
         super(VocationName.MAGE);
         this.spellSlots = spellSlotsMaxForLevel();
     }
 
-    private EnumMap<SpellLevel, SpellSlot> spellSlotsMaxForLevel() {
-        EnumMap<SpellLevel, SpellSlot> Slots = Mage.getSpellSlotsMax();
-        Slots.get(SpellLevel.CANTRIP).updateLevelMax(Integer.MAX_VALUE);
+    private EnumMap<ResourceCost, SpellSlot> spellSlotsMaxForLevel() {
+        EnumMap<ResourceCost, SpellSlot> Slots = Mage.getSpellSlotsMax();
+        Slots.get(ResourceCost.NO_COST).updateLevelMax(Integer.MAX_VALUE);
         if (this.level > 0) {
             level_iter: for (int i = 0; i <= this.level; i++) {
-                for (SpellLevel sl : SpellLevel.values()) {
-                    if (!SpellLevel.CANTRIP.equals(sl) && Slots.get(sl).max > 0) {
+                for (ResourceCost sl : ResourceCost.values()) {
+                    if (!ResourceCost.NO_COST.equals(sl) && Slots.get(sl).max > 0) {
                         if (Slots.get(sl).levelMax == 0) {
-                            if (SpellLevel.FOURTH_MAGNITUDE.compareTo(sl) >= 0) {
+                            if (ResourceCost.FOURTH_MAGNITUDE.compareTo(sl) >= 0) {
                                 Slots.get(sl).updateLevelMax(2);
                             } else {
                                 Slots.get(sl).updateLevelMax(1);
@@ -143,7 +143,7 @@ public class Mage extends Vocation implements CubeHolder {
     public String printMagnitudes() {
         StringBuilder sb = new StringBuilder();
         sb.append("Spell Magnitude: Slots").append("\n");
-        for (SpellLevel sl : SpellLevel.values()) {
+        for (ResourceCost sl : ResourceCost.values()) {
             sb.append(sl.toString()).append(":");
             sb.append(this.spellSlots.get(sl).print());
             sb.append("\n");
@@ -152,11 +152,11 @@ public class Mage extends Vocation implements CubeHolder {
     }
 
     @Override
-    public boolean useMagnitude(SpellLevel level) {
+    public boolean useMagnitude(ResourceCost level) {
         if (level == null) {
             return false;
-        } else if (SpellLevel.CANTRIP.equals(level)) {
-            return true; // it's a cantrip
+        } else if (ResourceCost.NO_COST.equals(level)) {
+            return true; // it's a no_cost
         }
         SpellSlot available = this.spellSlots.getOrDefault(level, new SpellSlot(0));
         if (available.available <= 0) {
@@ -167,10 +167,11 @@ public class Mage extends Vocation implements CubeHolder {
     }
 
     @Override
-    public EnumSet<SpellLevel> availableMagnitudes() {
+    public EnumSet<ResourceCost> availableMagnitudes() {
         return this.spellSlots.entrySet().stream()
                 .filter(entry -> entry.getKey() != null && entry.getValue() != null && entry.getValue().available >= 0)
-                .map(entry -> entry.getKey()).collect(Collectors.toCollection(() -> EnumSet.noneOf(SpellLevel.class)));
+                .map(entry -> entry.getKey())
+                .collect(Collectors.toCollection(() -> EnumSet.noneOf(ResourceCost.class)));
     }
 
     @Override
@@ -182,8 +183,9 @@ public class Mage extends Vocation implements CubeHolder {
 
     @Override
     public Vocation onRestTick() {
-        for (Map.Entry<SpellLevel, SpellSlot> entry : this.spellSlots.entrySet()) {
-            if (!SpellLevel.CANTRIP.equals(entry.getKey()) && entry.getValue().available < entry.getValue().levelMax) {
+        for (Map.Entry<ResourceCost, SpellSlot> entry : this.spellSlots.entrySet()) {
+            if (!ResourceCost.NO_COST.equals(entry.getKey())
+                    && entry.getValue().available < entry.getValue().levelMax) {
                 entry.getValue().available++;
                 break;
             }

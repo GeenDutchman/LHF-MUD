@@ -10,7 +10,7 @@ import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
-import com.lhf.game.enums.SpellLevel;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.item.Item;
 import com.lhf.game.map.RoomEffectSource;
 import com.lhf.messages.out.CastingMessage;
@@ -40,7 +40,7 @@ public class RoomTargetingSpellEntry extends SpellEntry {
         this.creaturesToSummon = new TreeMap<>();
     }
 
-    public RoomTargetingSpellEntry(SpellLevel level, String name, String invocation,
+    public RoomTargetingSpellEntry(ResourceCost level, String name, String invocation,
             Set<? extends RoomEffectSource> effectSources,
             Set<VocationName> allowed, String description,
             boolean banishesItems, boolean banishesCreatures) {
@@ -50,7 +50,7 @@ public class RoomTargetingSpellEntry extends SpellEntry {
         this.init();
     }
 
-    public RoomTargetingSpellEntry(SpellLevel level, String name, Set<? extends RoomEffectSource> effectSources,
+    public RoomTargetingSpellEntry(ResourceCost level, String name, Set<? extends RoomEffectSource> effectSources,
             Set<VocationName> allowed, String description,
             boolean banishesItems, boolean banishesCreatures) {
         super(level, name, effectSources, allowed, description);
@@ -95,7 +95,7 @@ public class RoomTargetingSpellEntry extends SpellEntry {
     }
 
     @Override
-    public CastingMessage Cast(Creature caster, SpellLevel castLevel, List<? extends Taggable> targets) {
+    public CastingMessage Cast(Creature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
         StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("nothing");
         if (targets != null) {
             for (Taggable taggable : targets) {

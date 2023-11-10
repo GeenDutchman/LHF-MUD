@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
-import com.lhf.game.enums.SpellLevel;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.magic.concrete.Thaumaturgy;
 import com.lhf.game.magic.concrete.ThunderStrike;
 
@@ -24,9 +24,9 @@ public class SpellbookTest {
     @Test
     void testLoading() {
         Spellbook spellbook = new Spellbook();
-        EnumMap<SpellLevel, SortedSet<SpellEntry>> counts = new EnumMap<>(SpellLevel.class);
+        EnumMap<ResourceCost, SortedSet<SpellEntry>> counts = new EnumMap<>(ResourceCost.class);
         Integer presize = 0;
-        for (SpellLevel i : SpellLevel.values()) {
+        for (ResourceCost i : ResourceCost.values()) {
             SortedSet<SpellEntry> found = spellbook.filterByExactLevel(i);
             counts.put(i, found);
             if (found != null) {
@@ -35,7 +35,7 @@ public class SpellbookTest {
         }
         Truth.assertThat(spellbook.loadFromFile()).isTrue();
         int postSize = 0;
-        for (SpellLevel i : SpellLevel.values()) {
+        for (ResourceCost i : ResourceCost.values()) {
             SortedSet<SpellEntry> found = spellbook.filterByExactLevel(i);
             if (found != null) {
                 postSize += found.size();
@@ -71,10 +71,10 @@ public class SpellbookTest {
     void testFilterByExactLevel() {
         Spellbook spellbook = new Spellbook();
         ThunderStrike thunderStrike = new ThunderStrike();
-        SortedSet<SpellEntry> found = spellbook.filterByExactLevel(SpellLevel.CANTRIP);
+        SortedSet<SpellEntry> found = spellbook.filterByExactLevel(ResourceCost.NO_COST);
         Truth.assertThat(found.size()).isAtLeast(2);
         Truth.assertThat(found).doesNotContain(thunderStrike);
-        found = spellbook.filterByExactLevel(SpellLevel.FIRST_MAGNITUDE);
+        found = spellbook.filterByExactLevel(ResourceCost.FIRST_MAGNITUDE);
         Truth.assertThat(found.size()).isAtLeast(1);
         Truth.assertThat(found).contains(thunderStrike);
     }
@@ -100,7 +100,7 @@ public class SpellbookTest {
         found = spellbook.filterByVocationName(VocationName.MAGE);
         Truth.assertThat(found.size()).isAtLeast(1);
         Truth.assertThat(found).contains(new ThunderStrike());
-        SpellLevel previous = SpellLevel.CANTRIP;
+        ResourceCost previous = ResourceCost.NO_COST;
         for (SpellEntry entry : found) {
             System.out.println(entry.toString());
             Truth.assertThat(entry.getLevel()).isAtLeast(previous);
@@ -113,7 +113,7 @@ public class SpellbookTest {
         Spellbook spellbook = new Spellbook();
         SortedSet<SpellEntry> found = spellbook.filterByVocationAndLevels(null, null);
         Truth.assertThat(found).hasSize(0);
-        found = spellbook.filterByVocationAndLevels(VocationName.MAGE, EnumSet.of(SpellLevel.FIRST_MAGNITUDE));
+        found = spellbook.filterByVocationAndLevels(VocationName.MAGE, EnumSet.of(ResourceCost.FIRST_MAGNITUDE));
         Truth.assertThat(found.size()).isAtLeast(1);
     }
 }

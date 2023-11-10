@@ -7,7 +7,7 @@ import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentTypes;
-import com.lhf.game.enums.SpellLevel;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.magic.CubeHolder;
@@ -67,13 +67,13 @@ public class DMV extends Vocation implements CubeHolder {
     }
 
     @Override
-    public boolean useMagnitude(SpellLevel level) {
+    public boolean useMagnitude(ResourceCost level) {
         return level != null;
     }
 
     @Override
-    public EnumSet<SpellLevel> availableMagnitudes() {
-        return EnumSet.allOf(SpellLevel.class);
+    public EnumSet<ResourceCost> availableMagnitudes() {
+        return EnumSet.allOf(ResourceCost.class);
     }
 
     @Override

@@ -9,7 +9,7 @@ import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
-import com.lhf.game.enums.SpellLevel;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.messages.out.CastingMessage;
 
 public class CreatureAOESpellEntry extends SpellEntry {
@@ -213,13 +213,13 @@ public class CreatureAOESpellEntry extends SpellEntry {
 
     protected final AutoTargeted autoSafe;
 
-    public CreatureAOESpellEntry(SpellLevel level, String name, Set<CreatureEffectSource> effectSources,
+    public CreatureAOESpellEntry(ResourceCost level, String name, Set<CreatureEffectSource> effectSources,
             Set<VocationName> allowed, String description, AutoTargeted safe) {
         super(level, name, effectSources, allowed, description);
         this.autoSafe = safe;
     }
 
-    public CreatureAOESpellEntry(SpellLevel level, String name, String invocation,
+    public CreatureAOESpellEntry(ResourceCost level, String name, String invocation,
             Set<CreatureEffectSource> effectSources,
             Set<VocationName> allowed, String description, AutoTargeted safe) {
         super(level, name, invocation, effectSources, allowed, description);
@@ -231,7 +231,7 @@ public class CreatureAOESpellEntry extends SpellEntry {
     }
 
     @Override
-    public CastingMessage Cast(Creature caster, SpellLevel castLevel, List<? extends Taggable> targets) {
+    public CastingMessage Cast(Creature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
         StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("nothing");
         if (targets != null) {
             for (Taggable taggable : targets) {

@@ -2,7 +2,7 @@
   {
     "singleTarget": true,
     "className": "com.lhf.game.magic.concrete.ShockBolt",
-    "level": "CANTRIP",
+    "level": "NO_COST",
     "name": "Shock Bolt",
     "invocation": "Astra Horeb",
     "description": "A small spark of electricity shocks a creature you choose as a target",
@@ -45,7 +45,7 @@
     "banishesItems": false,
     "banishesCreatures": false,
     "className": "com.lhf.game.magic.concrete.Thaumaturgy",
-    "level": "CANTRIP",
+    "level": "NO_COST",
     "name": "Thaumaturgy",
     "invocation": "zarmamoo",
     "description": "A way to magically announce your presence",

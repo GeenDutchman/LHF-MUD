@@ -8,7 +8,7 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
-import com.lhf.game.enums.SpellLevel;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.magic.CreatureAOESpellEntry;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
@@ -27,7 +27,7 @@ public class SpellEntryBuilder {
 
         public String buildName();
 
-        public SpellLevel buildLevel();
+        public ResourceCost buildLevel();
 
         public String buildInvocation(String name);
 
@@ -53,7 +53,7 @@ public class SpellEntryBuilder {
             throw new NullPointerException("Cannot build with an empty name!");
         }
         name = name.trim();
-        SpellLevel level = adapter.buildLevel();
+        ResourceCost level = adapter.buildLevel();
         String invocation = adapter.buildInvocation(name);
         String description = adapter.buildDescription(name);
         Set<VocationName> allowed = adapter.buildVocations();

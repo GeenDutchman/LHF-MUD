@@ -7,7 +7,7 @@ import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Creature;
-import com.lhf.game.enums.SpellLevel;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class ISpell<T extends EntityEffect>
@@ -48,7 +48,7 @@ public abstract class ISpell<T extends EntityEffect>
         return this.entry.getName();
     }
 
-    public SpellLevel getLevel() {
+    public ResourceCost getLevel() {
         return this.entry.getLevel();
     }
 

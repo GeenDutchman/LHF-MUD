@@ -10,24 +10,24 @@ import com.lhf.Taggable;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
-import com.lhf.game.enums.SpellLevel;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.messages.out.CastingMessage;
 import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class SpellEntry implements Taggable, Examinable, Comparable<SpellEntry> {
     private final String className;
-    protected final SpellLevel level;
+    protected final ResourceCost level;
     protected final String name;
     protected final String invocation;
     protected String description;
     protected final Set<VocationName> allowedVocations;
     protected final Set<? extends EntityEffectSource> effectSources;
 
-    public SpellEntry(SpellLevel level, String name, Set<? extends EntityEffectSource> effectSources,
+    public SpellEntry(ResourceCost level, String name, Set<? extends EntityEffectSource> effectSources,
             Set<VocationName> allowed,
             String description) {
         this.className = this.getClass().getName();
-        this.level = level != null ? level : SpellLevel.CANTRIP;
+        this.level = level != null ? level : ResourceCost.NO_COST;
         this.name = name;
         this.description = description;
         this.invocation = name;
@@ -35,11 +35,12 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         this.effectSources = Set.copyOf(effectSources);
     }
 
-    public SpellEntry(SpellLevel level, String name, String invocation, Set<? extends EntityEffectSource> effectSources,
+    public SpellEntry(ResourceCost level, String name, String invocation,
+            Set<? extends EntityEffectSource> effectSources,
             Set<VocationName> allowed,
             String description) {
         this.className = this.getClass().getName();
-        this.level = level != null ? level : SpellLevel.CANTRIP;
+        this.level = level != null ? level : ResourceCost.NO_COST;
         this.name = name;
         this.invocation = invocation;
         this.description = description;
@@ -87,7 +88,7 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         return this.className;
     }
 
-    public SpellLevel getLevel() {
+    public ResourceCost getLevel() {
         return level;
     }
 
@@ -103,7 +104,7 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         return this.effectSources;
     }
 
-    abstract public CastingMessage Cast(Creature caster, SpellLevel castLevel, List<? extends Taggable> targets);
+    abstract public CastingMessage Cast(Creature caster, ResourceCost castLevel, List<? extends Taggable> targets);
 
     @Override
     public String getColorTaggedName() {

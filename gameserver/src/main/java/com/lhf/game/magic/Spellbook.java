@@ -23,7 +23,7 @@ import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
-import com.lhf.game.enums.SpellLevel;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.magic.concrete.Ensouling;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
@@ -151,7 +151,7 @@ public class Spellbook {
     }
 
     public NavigableSet<SpellEntry> filter(EnumSet<Filters> filters,
-            VocationName vocationName, String spellName, String invocation, EnumSet<SpellLevel> levels) {
+            VocationName vocationName, String spellName, String invocation, EnumSet<ResourceCost> levels) {
         Supplier<TreeSet<SpellEntry>> sortSupplier = () -> filters.contains(Filters.SCORE)
                 ? new TreeSet<SpellEntry>((entry1, entry2) -> entry2.aiScore() - entry1.aiScore())
                 : new TreeSet<SpellEntry>();
@@ -177,7 +177,7 @@ public class Spellbook {
                 .collect(Collectors.toCollection(sortSupplier));
     }
 
-    public NavigableSet<SpellEntry> filterByExactLevel(SpellLevel level) {
+    public NavigableSet<SpellEntry> filterByExactLevel(ResourceCost level) {
         return this.filter(EnumSet.of(Filters.LEVELS), null, null, null, EnumSet.of(level));
     }
 
@@ -185,7 +185,7 @@ public class Spellbook {
         return this.filter(EnumSet.of(Filters.VOCATION_NAME), vocationName, null, null, null);
     }
 
-    public NavigableSet<SpellEntry> filterByVocationAndLevels(VocationName vocationName, EnumSet<SpellLevel> levels) {
+    public NavigableSet<SpellEntry> filterByVocationAndLevels(VocationName vocationName, EnumSet<ResourceCost> levels) {
         return this.filter(EnumSet.of(Filters.VOCATION_NAME, Filters.LEVELS), vocationName, null, null, levels);
     }
 
