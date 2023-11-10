@@ -178,6 +178,35 @@ public class Room implements Area {
                     "Sometimes you want to put more power into your spell, so put a higher level number for the level.")
                     .add("\n");
             cmds.put(CommandMessage.CAST, sj.toString());
+            if (this.creatures != null && this.creatures.size() > 1 && !cmds.containsKey(CommandMessage.ATTACK)) {
+                sj = new StringJoiner(" ");
+                sj.add("\"attack [name]\"").add("Attacks a creature").add("\r\n");
+                sj.add("\"attack [name] with [weapon]\"").add("Attack the named creature with a weapon that you have.");
+                sj.add("In the unlikely event that either the creature or the weapon's name contains 'with', enclose the name in quotation marks.");
+                cmds.putIfAbsent(CommandMessage.ATTACK, sj.toString());
+            }
+            if (this.items != null && this.items.size() > 0) {
+                boolean foundInteract = false;
+                boolean foundTakable = false;
+                for (Item obj : this.items) {
+                    if (obj instanceof InteractObject && !cmds.containsKey(CommandMessage.INTERACT)) {
+                        sj = new StringJoiner(" ");
+                        sj.add("\"interact [item]\"").add("Certain items in the room may be interactable.")
+                                .add("Like \"interact lever\"");
+                        cmds.putIfAbsent(CommandMessage.INTERACT, sj.toString());
+                        foundInteract = true;
+                    }
+                    if (obj instanceof Takeable && !cmds.containsKey(CommandMessage.TAKE)) {
+                        sj = new StringJoiner(" ");
+                        sj.add("\"take [item]\"").add("Take an item from the room and add it to your inventory.");
+                        cmds.putIfAbsent(CommandMessage.TAKE, sj.toString());
+                        foundTakable = true;
+                    }
+                    if (foundInteract && foundTakable) {
+                        break;
+                    }
+                }
+            }
             return cmds;
         }
 
@@ -359,13 +388,13 @@ public class Room implements Area {
         }
         items.add(obj);
         StringJoiner sj;
-        if (obj instanceof InteractObject) {
+        if (obj instanceof InteractObject && !this.commands.containsKey(CommandMessage.INTERACT)) {
             sj = new StringJoiner(" ");
             sj.add("\"interact [item]\"").add("Certain items in the room may be interactable.")
                     .add("Like \"interact lever\"");
             this.commands.put(CommandMessage.INTERACT, sj.toString());
         }
-        if (obj instanceof Takeable) {
+        if (obj instanceof Takeable && !this.commands.containsKey(CommandMessage.TAKE)) {
             sj = new StringJoiner(" ");
             sj.add("\"take [item]\"").add("Take an item from the room and add it to your inventory.");
             this.commands.put(CommandMessage.TAKE, sj.toString());
