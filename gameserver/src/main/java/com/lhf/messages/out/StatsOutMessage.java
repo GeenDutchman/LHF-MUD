@@ -111,7 +111,7 @@ public class StatsOutMessage extends OutMessage {
         if (this.records.size() > 0) {
             header = HEADER_STRING + "\n" + DELINEATOR_STRING + "\n";
         }
-        StringJoiner sj = new StringJoiner("\n", "<BattleStats>Battle Statistics\n" + header, "</BattleStats>")
+        StringJoiner sj = new StringJoiner("\n", "<BattleStats>\nBattle Statistics\n" + header, "\n</BattleStats>")
                 .setEmptyValue("No statistics found.");
         this.records.stream().forEach(record -> {
             ArrayList<Object> toFormat = new ArrayList<>();
