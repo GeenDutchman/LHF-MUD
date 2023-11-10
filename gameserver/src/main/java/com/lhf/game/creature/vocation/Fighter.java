@@ -78,6 +78,11 @@ public class Fighter extends Vocation {
     }
 
     @Override
+    public int numberOfMeleeTargets() {
+        return super.numberOfMeleeTargets() + this.getLevel() / 5;
+    }
+
+    @Override
     public Vocation onLevel() {
         // maybe do something
         return this;

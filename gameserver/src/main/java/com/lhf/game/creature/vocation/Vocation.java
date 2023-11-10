@@ -75,6 +75,10 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
         return attack;
     }
 
+    public int numberOfMeleeTargets() {
+        return 1;
+    }
+
     @Override
     public String getColorTaggedName() {
         return this.name.getColorTaggedName();
