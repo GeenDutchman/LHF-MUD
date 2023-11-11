@@ -1,8 +1,8 @@
 package com.lhf.game.creature.vocation;
 
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.Map;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 
@@ -123,41 +123,42 @@ public class Mage extends Vocation implements CubeHolder {
 
     @Override
     public boolean useMagnitude(ResourceCost level) {
+        ResourcePool pool = this.getResourcePool();
+        if (pool == null) {
+            return false;
+        }
         if (level == null) {
             return false;
-        } else if (ResourceCost.NO_COST.equals(level)) {
-            return true; // it's a no_cost
         }
-        SpellSlot available = this.spellSlots.getOrDefault(level, 0);
-        if (available.available <= 0) {
+        if (!pool.checkCost(level)) {
             return false;
         }
-        available.useOne();
-        return true;
+        ResourceCost paid = pool.payCost(level);
+        if (paid == null) {
+            return false;
+        }
+        if (level.compareTo(paid) >= 0) {
+            return true;
+        }
+        return false;
     }
 
     @Override
     public EnumSet<ResourceCost> availableMagnitudes() {
-        return this.spellSlots.entrySet().stream()
-                .filter(entry -> entry.getKey() != null && entry.getValue() != null && entry.getValue().available >= 0)
-                .map(entry -> entry.getKey())
+        ResourcePool pool = this.getResourcePool();
+        if (pool == null) {
+            return EnumSet.noneOf(ResourceCost.class);
+        }
+        return Arrays.asList(ResourceCost.values()).stream().filter(cost -> pool.checkCost(cost))
                 .collect(Collectors.toCollection(() -> EnumSet.noneOf(ResourceCost.class)));
     }
 
     @Override
-    public Vocation onLevel() {
-        this.level++;
-        this.spellSlots = this.spellSlotsMaxForLevel();
-        return this;
-    }
-
-    @Override
     public Vocation onRestTick() {
-        for (Map.Entry<ResourceCost, SpellSlot> entry : this.spellSlots.entrySet()) {
-            if (!ResourceCost.NO_COST.equals(entry.getKey())
-                    && entry.getValue().available < entry.getValue().levelMax) {
-                entry.getValue().available++;
-                break;
+        ResourcePool pool = this.getResourcePool();
+        if (pool != null) {
+            for (ResourceCost cost : ResourceCost.values()) {
+                pool.reload(cost);
             }
         }
         return this;

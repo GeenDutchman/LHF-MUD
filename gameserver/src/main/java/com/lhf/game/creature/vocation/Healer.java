@@ -1,9 +1,10 @@
 package com.lhf.game.creature.vocation;
 
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.stream.Collectors;
 
 import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.vocation.Healer.SpellPoints;
 import com.lhf.game.creature.vocation.resourcepools.IntegerResourcePool;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.dice.DiceD20;
@@ -95,39 +96,43 @@ public class Healer extends Vocation implements CubeHolder {
 
     @Override
     public boolean useMagnitude(ResourceCost level) {
-        if (level == null) {
-            return false;
-        } else if (level.toInt() > this.spellPoints.amount) {
+        ResourcePool pool = this.getResourcePool();
+        if (pool == null) {
             return false;
         }
-        this.spellPoints.use(level.toInt());
-        return true;
+        if (level == null) {
+            return false;
+        }
+        if (!pool.checkCost(level)) {
+            return false;
+        }
+        ResourceCost paid = pool.payCost(level);
+        if (paid == null) {
+            return false;
+        }
+        if (level.compareTo(paid) >= 0) {
+            return true;
+        }
+        return false;
     }
 
     @Override
     public EnumSet<ResourceCost> availableMagnitudes() {
-        int count = (this.level / 2) + (this.level % 2 != 0 ? 1 : 0);
-        EnumSet<ResourceCost> available = EnumSet.of(ResourceCost.NO_COST);
-        for (ResourceCost sl : ResourceCost.values()) {
-            if (sl.toInt() <= count && this.spellPoints.amount >= sl.toInt()) {
-                available.add(sl);
-            }
+        ResourcePool pool = this.getResourcePool();
+        if (pool == null) {
+            return EnumSet.noneOf(ResourceCost.class);
         }
-        return available;
-    }
-
-    @Override
-    public Vocation onLevel() {
-        this.level += 1;
-        this.spellPoints = this.initSpellPoints();
-        return this;
+        return Arrays.asList(ResourceCost.values()).stream().filter(cost -> pool.checkCost(cost))
+                .collect(Collectors.toCollection(() -> EnumSet.noneOf(ResourceCost.class)));
     }
 
     @Override
     public Vocation onRestTick() {
-        this.spellPoints.amount += 1;
-        if (this.spellPoints.amount > this.spellPoints.maxAmount) {
-            this.spellPoints.amount = this.spellPoints.maxAmount;
+        ResourcePool pool = this.getResourcePool();
+        if (pool != null) {
+            for (ResourceCost cost : ResourceCost.values()) {
+                pool.reload(cost);
+            }
         }
         return this;
     }
