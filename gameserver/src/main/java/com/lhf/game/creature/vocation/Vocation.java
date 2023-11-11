@@ -5,6 +5,7 @@ import java.util.Objects;
 import com.lhf.Taggable;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.enums.ResourceCost;
 
 public abstract class Vocation implements Taggable, Comparable<Vocation> {
     // TODO: redesign Vocation vs VocationName (decorator pattern?)
@@ -43,6 +44,71 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
         public String getColorTaggedName() {
             return this.getStartTag() + this.toString() + this.getEndTag();
         }
+    }
+
+    protected interface ResourcePool {
+
+        /** Checks to see if the cost can be paid from the pool */
+        public default boolean checkCost(ResourceCost costNeeded) {
+            return false;
+        }
+
+        /**
+         * Pays *at least* the cost from the pool.
+         * Will return either `costNeeded` or a higher magnitude of it was necessary.
+         * If `{@link #checkCost(ResourceCost)}` would return false, this method will
+         * return {@link com.lhf.game.enums.ResourceCost#NO_COST}.
+         * 
+         * @param costNeeded how much power is needed to pay
+         * @return how much was actually paid
+         */
+        public default ResourceCost payCost(ResourceCost costNeeded) {
+            return ResourceCost.NO_COST;
+        }
+
+        /**
+         * Pays *at least* the cost from the pool.
+         * Will return either `costNeeded` or a higher magnitude of it was necessary.
+         * If `{@link #checkCost(ResourceCost)}` would return false, this method will
+         * return {@link com.lhf.game.enums.ResourceCost#NO_COST}.
+         * 
+         * @param costNeeded how much power is needed to pay
+         * @return how much was actually paid
+         */
+        public default ResourceCost payCost(int costNeeded) {
+            return this.payCost(ResourceCost.fromInt(costNeeded));
+        }
+
+        /**
+         * Fills the resource pool back up all the way, with all the way defined by
+         * level. `level` < 0 will be ignored.
+         */
+        public void refresh(int level);
+
+        /**
+         * Adds `refill` amount of the resource back to the pool.
+         * Cannot overflow the pool.
+         * 
+         * @param refill
+         * @return true if amount was accepted, false if not
+         */
+        public boolean reload(ResourceCost refill);
+
+        /**
+         * Adds `refill` amount of the resource back to the pool.
+         * Cannot overflow the pool. `refil` <= 0 will be ignored.
+         * 
+         * @param refill
+         */
+        public default void reload(int refill) {
+            while (refill > 0) {
+                ResourceCost toRefill = ResourceCost.fromInt(refill);
+                refill = refill - toRefill.toInt();
+                this.reload(toRefill);
+            }
+        }
+
+        public String print();
     }
 
     protected int level;
