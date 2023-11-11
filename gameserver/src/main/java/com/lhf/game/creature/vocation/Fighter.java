@@ -100,18 +100,24 @@ public class Fighter extends Vocation {
 
     @Override
     public int numberOfMeleeTargets() {
-        return super.numberOfMeleeTargets() + this.getLevel() / 5;
-    }
+        ResourcePool pool = this.getResourcePool();
+        int number = 1;
+        if (pool != null && pool instanceof Stamina) {
+            Stamina stamina = (Stamina) pool;
+            number += stamina.getAmount();
+        }
 
-    @Override
-    public Vocation onLevel() {
-        // maybe do something
-        return this;
+        return number;
     }
 
     @Override
     public Vocation onRestTick() {
-        // maybe do something
+        ResourcePool pool = this.getResourcePool();
+        if (pool != null) {
+            for (ResourceCost cost : ResourceCost.values()) {
+                pool.reload(cost);
+            }
+        }
         return this;
     }
 
