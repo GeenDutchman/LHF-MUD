@@ -4,12 +4,15 @@ import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.vocation.resourcepools.IntegerResourcePool;
+import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.equipment.LeatherArmor;
@@ -18,8 +21,26 @@ import com.lhf.game.item.concrete.equipment.Shield;
 
 public class Fighter extends Vocation {
 
+    protected class Stamina extends IntegerResourcePool {
+
+        protected Stamina() {
+            super(22, level -> level / 2);
+        }
+
+        @Override
+        public int getLevel() {
+            return Fighter.this.level;
+        }
+
+    }
+
     public Fighter() {
         super(VocationName.FIGHTER);
+    }
+
+    @Override
+    protected ResourcePool initPool() {
+        return new Stamina();
     }
 
     @Override

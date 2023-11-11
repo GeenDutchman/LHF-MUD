@@ -3,6 +3,9 @@ package com.lhf.game.creature.vocation;
 import java.util.EnumSet;
 
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.vocation.Healer.SpellPoints;
+import com.lhf.game.creature.vocation.resourcepools.IntegerResourcePool;
+import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
@@ -14,46 +17,35 @@ import com.lhf.game.item.concrete.equipment.LeatherArmor;
 import com.lhf.game.magic.CubeHolder;
 
 public class Healer extends Vocation implements CubeHolder {
-    private static class SpellPoints {
-        private int available;
-        private int levelmax;
-        private final int max = 22;
+    protected class SpellPoints extends IntegerResourcePool {
 
-        public String print() {
-            return String.format("%d/%d", this.available, this.levelmax);
+        protected SpellPoints() {
+            super(22, level -> {
+                int calculated = 0;
+                for (int i = 1; i <= level; i++) {
+                    calculated += 1;
+                    if (i < 7 && i % 2 != 0) {
+                        calculated += 1;
+                    }
+                }
+                return calculated;
+            });
         }
 
-        public SpellPoints use(int amount) {
-            int toUse = Integer.max(0, amount);
-            if (toUse <= this.available) {
-                this.available -= toUse;
-            }
-            return this;
+        @Override
+        public int getLevel() {
+            return Healer.this.level;
         }
+
     }
-
-    private SpellPoints spellPoints;
 
     public Healer() {
         super(VocationName.HEALER);
-        this.spellPoints = this.initSpellPoints();
     }
 
-    private SpellPoints initSpellPoints() {
-        SpellPoints constructed = new SpellPoints();
-        if (this.level > 0) {
-            for (int i = 1; i <= this.level; i++) {
-                constructed.levelmax += 1;
-                if (i < 7 && i % 2 != 0) {
-                    constructed.levelmax += 1;
-                }
-            }
-        }
-        if (constructed.levelmax > constructed.max) {
-            constructed.levelmax = constructed.max;
-        }
-        constructed.available = constructed.levelmax;
-        return constructed;
+    @Override
+    protected ResourcePool initPool() {
+        return new SpellPoints();
     }
 
     @Override
@@ -98,14 +90,14 @@ public class Healer extends Vocation implements CubeHolder {
 
     @Override
     public String printMagnitudes() {
-        return String.format("You have %s spell points.\n", this.spellPoints.print());
+        return String.format("You have %s.\n", this.getResourcePool().print());
     }
 
     @Override
     public boolean useMagnitude(ResourceCost level) {
         if (level == null) {
             return false;
-        } else if (level.toInt() > this.spellPoints.available) {
+        } else if (level.toInt() > this.spellPoints.amount) {
             return false;
         }
         this.spellPoints.use(level.toInt());
@@ -117,7 +109,7 @@ public class Healer extends Vocation implements CubeHolder {
         int count = (this.level / 2) + (this.level % 2 != 0 ? 1 : 0);
         EnumSet<ResourceCost> available = EnumSet.of(ResourceCost.NO_COST);
         for (ResourceCost sl : ResourceCost.values()) {
-            if (sl.toInt() <= count && this.spellPoints.available >= sl.toInt()) {
+            if (sl.toInt() <= count && this.spellPoints.amount >= sl.toInt()) {
                 available.add(sl);
             }
         }
@@ -133,9 +125,9 @@ public class Healer extends Vocation implements CubeHolder {
 
     @Override
     public Vocation onRestTick() {
-        this.spellPoints.available += 1;
-        if (this.spellPoints.available > this.spellPoints.levelmax) {
-            this.spellPoints.available = this.spellPoints.levelmax;
+        this.spellPoints.amount += 1;
+        if (this.spellPoints.amount > this.spellPoints.maxAmount) {
+            this.spellPoints.amount = this.spellPoints.maxAmount;
         }
         return this;
     }

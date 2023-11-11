@@ -3,6 +3,7 @@ package com.lhf.game.creature.vocation;
 import java.util.EnumSet;
 
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
@@ -14,8 +15,50 @@ import com.lhf.game.magic.CubeHolder;
 
 public class DMV extends Vocation implements CubeHolder {
 
+    private class UnlimitedPool implements ResourcePool {
+
+        @Override
+        public void refresh() {
+            // Unlimited power is always refreshed
+        }
+
+        @Override
+        public int getLevel() {
+            return DMV.this.level;
+        }
+
+        @Override
+        public boolean reload(ResourceCost refill) {
+            // Unlimited power is always full
+            return true;
+        }
+
+        @Override
+        public String print() {
+            return "Power: UnlimitedPool";
+        }
+
+        @Override
+        public boolean checkCost(ResourceCost costNeeded) {
+            // Unlimited power can pay
+            return true;
+        }
+
+        @Override
+        public ResourceCost payCost(ResourceCost costNeeded) {
+            // Unlimited power pays it
+            return costNeeded;
+        }
+
+    }
+
     public DMV() {
         super(VocationName.DUNGEON_MASTER);
+    }
+
+    @Override
+    protected ResourcePool initPool() {
+        return new UnlimitedPool();
     }
 
     @Override
