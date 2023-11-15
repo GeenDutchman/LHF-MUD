@@ -2,6 +2,7 @@ package com.lhf.game.creature.vocation;
 
 import java.util.EnumSet;
 
+import com.lhf.game.battle.MultiAttacker;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.dice.DiceD20;
@@ -13,7 +14,7 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.magic.CubeHolder;
 
-public class DMV extends Vocation implements CubeHolder {
+public class DMV extends Vocation implements CubeHolder, MultiAttacker {
 
     private class UnlimitedPool implements ResourcePool {
 
@@ -128,6 +129,21 @@ public class DMV extends Vocation implements CubeHolder {
     @Override
     public Vocation onRestTick() {
         return this;
+    }
+
+    @Override
+    public String getMultiAttackerVocation() {
+        return this.getName();
+    }
+
+    @Override
+    public Attributes getAggrovationAttribute() {
+        return Attributes.CHA;
+    }
+
+    @Override
+    public int getAggrovationLevel() {
+        return this.level;
     }
 
 }
