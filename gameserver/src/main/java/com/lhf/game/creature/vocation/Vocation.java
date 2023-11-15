@@ -7,8 +7,6 @@ import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 
 public abstract class Vocation implements Taggable, Comparable<Vocation> {
-    // TODO: redesign Vocation vs VocationName (decorator pattern?)
-
     public enum VocationName implements Taggable {
         FIGHTER, MAGE, DUNGEON_MASTER, HEALER;
 
