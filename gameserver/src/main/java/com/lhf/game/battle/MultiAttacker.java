@@ -3,7 +3,6 @@ package com.lhf.game.battle;
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
-import com.lhf.game.creature.vocation.Fighter.Stamina;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
