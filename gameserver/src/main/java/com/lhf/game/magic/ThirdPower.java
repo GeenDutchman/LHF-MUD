@@ -13,6 +13,7 @@ import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
 import com.lhf.game.magic.Spellbook.Filters;
 import com.lhf.game.map.DMRoom;
@@ -209,9 +210,9 @@ public class ThirdPower implements MessageHandler {
             }
 
             this.logger.log(Level.FINE, "Casting creature targeting spell");
-            SpellLevel level = casting.getLevel() != null
-                    && entry.getLevel().compareTo(SpellLevel.fromInt(casting.getLevel())) <= 0
-                            ? SpellLevel.fromInt(casting.getLevel())
+            ResourceCost level = casting.getLevel() != null
+                    && entry.getLevel().compareTo(ResourceCost.fromInt(casting.getLevel())) <= 0
+                            ? ResourceCost.fromInt(casting.getLevel())
                             : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, possTargets);
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
@@ -251,9 +252,9 @@ public class ThirdPower implements MessageHandler {
             }
 
             this.logger.log(Level.FINE, "Casting AOE creature targeting spell");
-            SpellLevel level = casting.getLevel() != null
-                    && entry.getLevel().compareTo(SpellLevel.fromInt(casting.getLevel())) <= 0
-                            ? SpellLevel.fromInt(casting.getLevel())
+            ResourceCost level = casting.getLevel() != null
+                    && entry.getLevel().compareTo(ResourceCost.fromInt(casting.getLevel())) <= 0
+                            ? ResourceCost.fromInt(casting.getLevel())
                             : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, new ArrayList<>(targets));
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
@@ -307,9 +308,9 @@ public class ThirdPower implements MessageHandler {
             // TODO: summons and banish
 
             this.logger.log(Level.FINE, "Casting DMRoom targeting spell");
-            SpellLevel level = casting.getLevel() != null
-                    && entry.getLevel().compareTo(SpellLevel.fromInt(casting.getLevel())) <= 0
-                            ? SpellLevel.fromInt(casting.getLevel())
+            ResourceCost level = casting.getLevel() != null
+                    && entry.getLevel().compareTo(ResourceCost.fromInt(casting.getLevel())) <= 0
+                            ? ResourceCost.fromInt(casting.getLevel())
                             : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, taggedTargets);
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive());
@@ -327,9 +328,9 @@ public class ThirdPower implements MessageHandler {
             // TODO: summons and banish
 
             this.logger.log(Level.FINE, "Casting Room targeting spell");
-            SpellLevel level = casting.getLevel() != null
-                    && entry.getLevel().compareTo(SpellLevel.fromInt(casting.getLevel())) <= 0
-                            ? SpellLevel.fromInt(casting.getLevel())
+            ResourceCost level = casting.getLevel() != null
+                    && entry.getLevel().compareTo(ResourceCost.fromInt(casting.getLevel())) <= 0
+                            ? ResourceCost.fromInt(casting.getLevel())
                             : entry.getLevel();
             CastingMessage castingMessage = entry.Cast(caster, level, null);
             this.channelizeMessage(ctx, castingMessage, spell.isOffensive());

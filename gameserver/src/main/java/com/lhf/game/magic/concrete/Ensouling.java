@@ -9,8 +9,8 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.magic.DMRoomTargetingSpellEntry;
-import com.lhf.game.magic.SpellLevel;
 import com.lhf.game.map.DMRoomEffectSource;
 import com.lhf.messages.out.CastingMessage;
 
@@ -20,13 +20,13 @@ public class Ensouling extends DMRoomTargetingSpellEntry {
             true));
 
     public Ensouling() {
-        super(SpellLevel.TENTH_MAGNITUDE, "Ensouling", "heresabodyandgo", spellEffects,
+        super(ResourceCost.TENTH_MAGNITUDE, "Ensouling", "heresabodyandgo", spellEffects,
                 Set.of(VocationName.DUNGEON_MASTER),
                 "A way to create a player by ensouling them with a user.", false, false);
     }
 
     @Override
-    public CastingMessage Cast(Creature caster, SpellLevel castLevel, List<? extends Taggable> targets) {
+    public CastingMessage Cast(Creature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
         StringBuilder sb = new StringBuilder();
         if (targets != null && targets.size() > 0) {
             sb.append(caster.getColorTaggedName()).append(" will now ensoul ");

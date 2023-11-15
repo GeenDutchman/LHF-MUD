@@ -1,25 +1,40 @@
 package com.lhf.game.creature.vocation;
 
-import com.lhf.game.battle.Attack;
-import com.lhf.game.creature.Creature;
-import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.battle.MultiAttacker;
 import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.dice.DamageDice;
-import com.lhf.game.dice.DieType;
-import com.lhf.game.dice.MultiRollResult;
+import com.lhf.game.creature.vocation.resourcepools.IntegerResourcePool;
+import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.enums.Attributes;
-import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.equipment.LeatherArmor;
 import com.lhf.game.item.concrete.equipment.Longsword;
 import com.lhf.game.item.concrete.equipment.Shield;
 
-public class Fighter extends Vocation {
+public class Fighter extends Vocation implements MultiAttacker {
+
+    protected class Stamina extends IntegerResourcePool {
+
+        protected Stamina() {
+            super(22, level -> level / 2);
+        }
+
+        @Override
+        public int getLevel() {
+            return Fighter.this.level;
+        }
+
+    }
 
     public Fighter() {
         super(VocationName.FIGHTER);
+    }
+
+    @Override
+    protected ResourcePool initPool() {
+        return new Stamina();
     }
 
     @Override
@@ -54,43 +69,28 @@ public class Fighter extends Vocation {
     }
 
     @Override
-    public Attack modifyAttack(Attack attack) {
-        // Attributes bestAttr =
-        // this.getHighestAttributeBonus(EnumSet.of(Attributes.CHA));
-        Creature attacker = attack.getAttacker();
-        if (attacker != null) {
-            int chaMod = attacker.getAttributes().getMod(Attributes.CHA);
-            if (chaMod <= 0) {
-                chaMod = 1;
-            }
-            DamageDice dd = new DamageDice(chaMod, DieType.TWELVE, DamageFlavor.AGGRO);
-            for (CreatureEffect crEffect : attack) {
-                if (crEffect.isOffensive()) {
-                    MultiRollResult mrr = crEffect.getDamageResult();
-                    MultiRollResult.Builder rebuilder = new MultiRollResult.Builder().addMultiRollResult(mrr);
-                    rebuilder.addRollResults(dd.rollDice());
-                    crEffect.updateDamageResult(rebuilder.Build());
-                }
-            }
-        }
-        return attack;
-
+    public Attributes getAggrovationAttribute() {
+        return Attributes.CHA;
     }
 
     @Override
-    public int numberOfMeleeTargets() {
-        return super.numberOfMeleeTargets() + this.getLevel() / 5;
+    public int getAggrovationLevel() {
+        return this.level;
     }
 
     @Override
-    public Vocation onLevel() {
-        // maybe do something
-        return this;
+    public String getMultiAttackerVocation() {
+        return this.getName();
     }
 
     @Override
     public Vocation onRestTick() {
-        // maybe do something
+        ResourcePool pool = this.getResourcePool();
+        if (pool != null) {
+            for (ResourceCost cost : ResourceCost.values()) {
+                pool.reload(cost);
+            }
+        }
         return this;
     }
 

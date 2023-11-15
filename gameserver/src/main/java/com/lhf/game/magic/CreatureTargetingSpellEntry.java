@@ -8,18 +8,19 @@ import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.messages.out.CastingMessage;
 
 public class CreatureTargetingSpellEntry extends SpellEntry {
     protected final boolean singleTarget;
 
-    public CreatureTargetingSpellEntry(SpellLevel level, String name, Set<CreatureEffectSource> effectSources,
+    public CreatureTargetingSpellEntry(ResourceCost level, String name, Set<CreatureEffectSource> effectSources,
             Set<VocationName> allowed, String description, boolean singleTarget) {
         super(level, name, effectSources, allowed, description);
         this.singleTarget = singleTarget;
     }
 
-    public CreatureTargetingSpellEntry(SpellLevel level, String name, String invocation,
+    public CreatureTargetingSpellEntry(ResourceCost level, String name, String invocation,
             Set<CreatureEffectSource> effectSources,
             Set<VocationName> allowed, String description, boolean singleTarget) {
         super(level, name, invocation, effectSources, allowed, description);
@@ -31,7 +32,7 @@ public class CreatureTargetingSpellEntry extends SpellEntry {
     }
 
     @Override
-    public CastingMessage Cast(Creature caster, SpellLevel castLevel, List<? extends Taggable> targets) {
+    public CastingMessage Cast(Creature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
         StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("nothing");
         if (targets != null) {
             for (Taggable taggable : targets) {

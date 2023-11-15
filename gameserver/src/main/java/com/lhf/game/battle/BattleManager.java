@@ -1,6 +1,17 @@
 package com.lhf.game.battle;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -13,6 +24,7 @@ import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
@@ -26,8 +38,20 @@ import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageHandler;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.SeeMessage;
-import com.lhf.messages.out.*;
+import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.out.BattleTurnMessage;
+import com.lhf.messages.out.FightOverMessage;
+import com.lhf.messages.out.FleeMessage;
+import com.lhf.messages.out.JoinBattleMessage;
+import com.lhf.messages.out.MissMessage;
+import com.lhf.messages.out.NotPossessedMessage;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.ReinforcementsCall;
+import com.lhf.messages.out.RenegadeAnnouncement;
+import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.StartFightMessage;
+import com.lhf.messages.out.StatsOutMessage;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
 
@@ -558,6 +582,10 @@ public class BattleManager implements CreatureContainerMessageHandler {
                 this.callReinforcements(attacker, target);
             }
             Attack a = attacker.attack(weapon);
+            Vocation attackerVocation = attacker.getVocation();
+            if (attackerVocation != null && attackerVocation instanceof MultiAttacker) {
+                a = ((MultiAttacker) attackerVocation).modifyAttack(a, false);
+            }
 
             for (CreatureEffect effect : a) {
                 EffectResistance resistance = effect.getResistance();
@@ -824,8 +852,9 @@ public class BattleManager implements CreatureContainerMessageHandler {
         }
 
         int numAllowedTargets = 1;
-        if (attacker.getVocation() != null) {
-            numAllowedTargets = attacker.getVocation().numberOfMeleeTargets();
+        Vocation attackerVocation = attacker.getVocation();
+        if (attackerVocation != null && attackerVocation instanceof MultiAttacker) {
+            numAllowedTargets = ((MultiAttacker) attackerVocation).maxAttackCount(false);
         }
 
         if (aMessage.getNumTargets() > numAllowedTargets) {
@@ -838,6 +867,10 @@ public class BattleManager implements CreatureContainerMessageHandler {
         if (targets == null || targets.size() == 0) {
             ctx.sendMsg(btMessBuilder.setBde(BadTargetOption.NOTARGET).Build());
             return ctx.handled();
+        }
+
+        if (attackerVocation != null && attackerVocation instanceof MultiAttacker) {
+            ((MultiAttacker) attackerVocation).attackNumberOfTargets(targets.size(), false);
         }
 
         Weapon weapon = this.getDesignatedWeapon(attacker, aMessage.getWeapon());

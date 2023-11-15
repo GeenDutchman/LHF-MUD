@@ -4,6 +4,7 @@ import java.util.EnumSet;
 
 import com.lhf.Taggable;
 import com.lhf.game.dice.MultiRollResult;
+import com.lhf.game.enums.ResourceCost;
 
 public interface CubeHolder extends Taggable {
     public String getName();
@@ -16,11 +17,11 @@ public interface CubeHolder extends Taggable {
 
     public String printMagnitudes();
 
-    boolean useMagnitude(SpellLevel level); // package private
+    boolean useMagnitude(ResourceCost level); // package private
 
-    public default boolean canUseMagnitude(SpellLevel level) {
+    public default boolean canUseMagnitude(ResourceCost level) {
         return this.availableMagnitudes().contains(level);
     }
 
-    public EnumSet<SpellLevel> availableMagnitudes();
+    public EnumSet<ResourceCost> availableMagnitudes();
 }

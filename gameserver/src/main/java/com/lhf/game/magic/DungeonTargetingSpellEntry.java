@@ -7,6 +7,7 @@ import java.util.StringJoiner;
 import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.map.DungeonEffectSource;
 import com.lhf.messages.out.CastingMessage;
 
@@ -14,7 +15,7 @@ public class DungeonTargetingSpellEntry extends SpellEntry {
     // add way to create dungeon?
     protected final boolean addsRoomToDungeon;
 
-    public DungeonTargetingSpellEntry(SpellLevel level, String name, Set<DungeonEffectSource> effectSources,
+    public DungeonTargetingSpellEntry(ResourceCost level, String name, Set<DungeonEffectSource> effectSources,
             Set<VocationName> allowed, String description,
             boolean addsRoomToDungeon) {
         super(level, name, effectSources, allowed, description);
@@ -26,7 +27,7 @@ public class DungeonTargetingSpellEntry extends SpellEntry {
     }
 
     @Override
-    public CastingMessage Cast(Creature caster, SpellLevel castLevel, List<? extends Taggable> targets) {
+    public CastingMessage Cast(Creature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
         StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("nothing");
         if (targets != null) {
             for (Taggable taggable : targets) {

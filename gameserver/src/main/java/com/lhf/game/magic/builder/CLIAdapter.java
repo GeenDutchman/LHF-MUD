@@ -18,8 +18,8 @@ import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.magic.SpellLevel;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
 import com.lhf.game.magic.builder.SpellEntryBuilder.SpellEntryBuilderAdapter;
 
@@ -108,7 +108,7 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
     }
 
     @Override
-    public SpellLevel buildLevel() {
+    public ResourceCost buildLevel() {
         Integer level = null;
         do {
             System.out.println("What is this spell's level as an integer? ");
@@ -119,7 +119,7 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
                 level = null;
             }
         } while (level == null);
-        return SpellLevel.fromInt(level);
+        return ResourceCost.fromInt(level);
     }
 
     @Override

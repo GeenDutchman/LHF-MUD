@@ -3,12 +3,10 @@ package com.lhf.game.creature.vocation;
 import java.util.Objects;
 
 import com.lhf.Taggable;
-import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 
 public abstract class Vocation implements Taggable, Comparable<Vocation> {
-    // TODO: redesign Vocation vs VocationName (decorator pattern?)
-
     public enum VocationName implements Taggable {
         FIGHTER, MAGE, DUNGEON_MASTER, HEALER;
 
@@ -46,21 +44,51 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
     }
 
     protected int level;
+    protected int experiencePoints;
     protected final VocationName name;
+    protected ResourcePool resourcePool;
 
     public abstract Statblock createNewDefaultStatblock(String creatureRace);
 
-    public abstract Vocation onLevel();
+    public Vocation onLevel() {
+        this.level++;
+        this.experiencePoints = 0;
+        this.getResourcePool().refresh();
+        return this;
+    }
 
     public abstract Vocation onRestTick();
 
+    protected abstract ResourcePool initPool();
+
     protected Vocation(VocationName name) {
         this.name = name;
+        this.resourcePool = this.initPool();
         this.level = 1;
+        this.experiencePoints = 0;
     }
 
     public int getLevel() {
         return level;
+    }
+
+    public int getExperiencePoints() {
+        return this.experiencePoints;
+    }
+
+    public ResourcePool getResourcePool() {
+        if (this.resourcePool == null) {
+            this.resourcePool = this.initPool();
+        }
+        return this.resourcePool;
+    }
+
+    public int addExperience(int xpGain) {
+        this.experiencePoints += xpGain >= 0 ? xpGain : -1 * xpGain;
+        if (this.experiencePoints >= (this.level + 1) * 100) {
+            this.onLevel();
+        }
+        return this.experiencePoints;
     }
 
     public String getName() {
@@ -69,14 +97,6 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
     public VocationName getVocationName() {
         return this.name;
-    }
-
-    public Attack modifyAttack(Attack attack) {
-        return attack;
-    }
-
-    public int numberOfMeleeTargets() {
-        return 1;
     }
 
     @Override

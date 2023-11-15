@@ -1,102 +1,78 @@
 package com.lhf.game.creature.vocation;
 
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.Map;
+import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
+import com.lhf.game.creature.vocation.resourcepools.SlottedResourcePool;
 import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.equipment.LeatherArmor;
 import com.lhf.game.magic.CubeHolder;
-import com.lhf.game.magic.SpellLevel;
 
 public class Mage extends Vocation implements CubeHolder {
-    private static class SpellSlot {
-        private int available;
-        private int levelMax;
-        private final int max;
+    private class SpellSlots extends SlottedResourcePool {
 
-        public SpellSlot(int max) {
-            this.max = max;
+        private static EnumMap<ResourceCost, Integer> getSpellSlotsMax() {
+            EnumMap<ResourceCost, Integer> maxes = new EnumMap<>(ResourceCost.class);
+            maxes.put(ResourceCost.NO_COST, Integer.MAX_VALUE);
+            maxes.put(ResourceCost.FIRST_MAGNITUDE, 4);
+            maxes.put(ResourceCost.SECOND_MAGNITUDE, 3);
+            maxes.put(ResourceCost.THIRD_MAGNITUDE, 3);
+            maxes.put(ResourceCost.FOURTH_MAGNITUDE, 3);
+            maxes.put(ResourceCost.FIVTH_MAGNITUDE, 3);
+            maxes.put(ResourceCost.SIXTH_MAGNITUDE, 2);
+            maxes.put(ResourceCost.SEVENTH_MAGNITUDE, 2);
+            maxes.put(ResourceCost.EIGHTH_MAGNITUDE, 1);
+            maxes.put(ResourceCost.NINTH_MAGNITUDE, 1);
+            maxes.put(ResourceCost.TENTH_MAGNITUDE, 0);
+            return maxes;
         }
 
-        public String print() {
-            if (Integer.MAX_VALUE == this.levelMax) {
-                return "Infinite";
-            }
-            return String.format("%d/%d", this.available, this.levelMax);
+        private static EnumMap<ResourceCost, IntUnaryOperator> getSpellSlotsRefreshers() {
+            EnumMap<ResourceCost, IntUnaryOperator> maxes = new EnumMap<>(ResourceCost.class);
+            maxes.put(ResourceCost.NO_COST, level -> Integer.MAX_VALUE);
+            maxes.put(ResourceCost.FIRST_MAGNITUDE, level -> level >= 3 ? 4 : (level == 2 ? 3 : 2));
+            maxes.put(ResourceCost.SECOND_MAGNITUDE, level -> level >= 4 ? 3 : (level == 3 ? 2 : 0));
+            maxes.put(ResourceCost.THIRD_MAGNITUDE, level -> level >= 6 ? 3 : (level == 5 ? 3 : 0));
+            maxes.put(ResourceCost.FOURTH_MAGNITUDE, level -> level >= 9 ? 3 : (level == 8 ? 2 : (level == 7 ? 1 : 0)));
+            maxes.put(ResourceCost.FIVTH_MAGNITUDE,
+                    level -> level >= 18 ? 3 : (level == 10 ? 2 : (level == 9 ? 1 : 0)));
+            maxes.put(ResourceCost.SIXTH_MAGNITUDE, level -> level >= 19 ? 2 : (level >= 11 ? 1 : 0));
+            maxes.put(ResourceCost.SEVENTH_MAGNITUDE, level -> level >= 20 ? 2 : (level >= 12 ? 1 : 0));
+            maxes.put(ResourceCost.EIGHTH_MAGNITUDE, level -> level >= 15 ? 1 : 0);
+            maxes.put(ResourceCost.NINTH_MAGNITUDE, level -> level >= 17 ? 1 : 0);
+            maxes.put(ResourceCost.TENTH_MAGNITUDE, level -> 0);
+            return maxes;
         }
 
-        public SpellSlot updateLevelMax() {
-            return this.updateLevelMax(this.levelMax + 1);
+        public SpellSlots() {
+            super(SpellSlots.getSpellSlotsMax(), SpellSlots.getSpellSlotsRefreshers());
         }
 
-        public SpellSlot updateLevelMax(int nextmax) {
-            this.levelMax = nextmax > this.max ? this.max : nextmax;
-            this.available = levelMax;
-            return this;
+        @Override
+        public int getLevel() {
+            return Mage.this.level;
         }
 
-        public SpellSlot useOne() {
-            if (this.available > 0) {
-                this.available--;
-            }
-            return this;
-        }
     }
-
-    private static EnumMap<SpellLevel, SpellSlot> getSpellSlotsMax() {
-        EnumMap<SpellLevel, SpellSlot> maxes = new EnumMap<>(SpellLevel.class);
-        maxes.put(SpellLevel.CANTRIP, new SpellSlot(Integer.MAX_VALUE));
-        maxes.put(SpellLevel.FIRST_MAGNITUDE, new SpellSlot(4));
-        maxes.put(SpellLevel.SECOND_MAGNITUDE, new SpellSlot(3));
-        maxes.put(SpellLevel.THIRD_MAGNITUDE, new SpellSlot(3));
-        maxes.put(SpellLevel.FOURTH_MAGNITUDE, new SpellSlot(3));
-        maxes.put(SpellLevel.FIVTH_MAGNITUDE, new SpellSlot(3));
-        maxes.put(SpellLevel.SIXTH_MAGNITUDE, new SpellSlot(2));
-        maxes.put(SpellLevel.SEVENTH_MAGNITUDE, new SpellSlot(2));
-        maxes.put(SpellLevel.EIGHTH_MAGNITUDE, new SpellSlot(1));
-        maxes.put(SpellLevel.NINTH_MAGNITUDE, new SpellSlot(1));
-        maxes.put(SpellLevel.TENTH_MAGNITUDE, new SpellSlot(0));
-        return maxes;
-    }
-
-    private EnumMap<SpellLevel, SpellSlot> spellSlots;
 
     public Mage() {
         super(VocationName.MAGE);
-        this.spellSlots = spellSlotsMaxForLevel();
     }
 
-    private EnumMap<SpellLevel, SpellSlot> spellSlotsMaxForLevel() {
-        EnumMap<SpellLevel, SpellSlot> Slots = Mage.getSpellSlotsMax();
-        Slots.get(SpellLevel.CANTRIP).updateLevelMax(Integer.MAX_VALUE);
-        if (this.level > 0) {
-            level_iter: for (int i = 0; i <= this.level; i++) {
-                for (SpellLevel sl : SpellLevel.values()) {
-                    if (!SpellLevel.CANTRIP.equals(sl) && Slots.get(sl).max > 0) {
-                        if (Slots.get(sl).levelMax == 0) {
-                            if (SpellLevel.FOURTH_MAGNITUDE.compareTo(sl) >= 0) {
-                                Slots.get(sl).updateLevelMax(2);
-                            } else {
-                                Slots.get(sl).updateLevelMax(1);
-                            }
-                            continue level_iter;
-                        } else if (Slots.get(sl).levelMax < Slots.get(sl).max) {
-                            Slots.get(sl).updateLevelMax();
-                            continue level_iter;
-                        }
-                    }
-                }
-            }
-        }
-        return Slots;
+    @Override
+    protected ResourcePool initPool() {
+        return new SpellSlots();
     }
 
     @Override
@@ -141,51 +117,48 @@ public class Mage extends Vocation implements CubeHolder {
 
     @Override
     public String printMagnitudes() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Spell Magnitude: Slots").append("\n");
-        for (SpellLevel sl : SpellLevel.values()) {
-            sb.append(sl.toString()).append(":");
-            sb.append(this.spellSlots.get(sl).print());
-            sb.append("\n");
-        }
-        return sb.toString();
+        return String.format("You have %s.\n", this.getResourcePool().print());
+
     }
 
     @Override
-    public boolean useMagnitude(SpellLevel level) {
+    public boolean useMagnitude(ResourceCost level) {
+        ResourcePool pool = this.getResourcePool();
+        if (pool == null) {
+            return false;
+        }
         if (level == null) {
             return false;
-        } else if (SpellLevel.CANTRIP.equals(level)) {
-            return true; // it's a cantrip
         }
-        SpellSlot available = this.spellSlots.getOrDefault(level, new SpellSlot(0));
-        if (available.available <= 0) {
+        if (!pool.checkCost(level)) {
             return false;
         }
-        available.useOne();
-        return true;
+        ResourceCost paid = pool.payCost(level);
+        if (paid == null) {
+            return false;
+        }
+        if (level.compareTo(paid) >= 0) {
+            return true;
+        }
+        return false;
     }
 
     @Override
-    public EnumSet<SpellLevel> availableMagnitudes() {
-        return this.spellSlots.entrySet().stream()
-                .filter(entry -> entry.getKey() != null && entry.getValue() != null && entry.getValue().available >= 0)
-                .map(entry -> entry.getKey()).collect(Collectors.toCollection(() -> EnumSet.noneOf(SpellLevel.class)));
-    }
-
-    @Override
-    public Vocation onLevel() {
-        this.level++;
-        this.spellSlots = this.spellSlotsMaxForLevel();
-        return this;
+    public EnumSet<ResourceCost> availableMagnitudes() {
+        ResourcePool pool = this.getResourcePool();
+        if (pool == null) {
+            return EnumSet.noneOf(ResourceCost.class);
+        }
+        return Arrays.asList(ResourceCost.values()).stream().filter(cost -> pool.checkCost(cost))
+                .collect(Collectors.toCollection(() -> EnumSet.noneOf(ResourceCost.class)));
     }
 
     @Override
     public Vocation onRestTick() {
-        for (Map.Entry<SpellLevel, SpellSlot> entry : this.spellSlots.entrySet()) {
-            if (!SpellLevel.CANTRIP.equals(entry.getKey()) && entry.getValue().available < entry.getValue().levelMax) {
-                entry.getValue().available++;
-                break;
+        ResourcePool pool = this.getResourcePool();
+        if (pool != null) {
+            for (ResourceCost cost : ResourceCost.values()) {
+                pool.reload(cost);
             }
         }
         return this;
