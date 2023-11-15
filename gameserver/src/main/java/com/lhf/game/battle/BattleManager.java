@@ -582,6 +582,10 @@ public class BattleManager implements CreatureContainerMessageHandler {
                 this.callReinforcements(attacker, target);
             }
             Attack a = attacker.attack(weapon);
+            Vocation attackerVocation = attacker.getVocation();
+            if (attackerVocation != null && attackerVocation instanceof MultiAttacker) {
+                a = ((MultiAttacker) attackerVocation).modifyAttack(a, false);
+            }
 
             for (CreatureEffect effect : a) {
                 EffectResistance resistance = effect.getResistance();

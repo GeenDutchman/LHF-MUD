@@ -3,7 +3,6 @@ package com.lhf.game.creature.vocation;
 import java.util.Objects;
 
 import com.lhf.Taggable;
-import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 
@@ -97,14 +96,6 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
     public VocationName getVocationName() {
         return this.name;
-    }
-
-    public Attack modifyAttack(Attack attack) {
-        return attack;
-    }
-
-    public int numberOfMeleeTargets() {
-        return 1;
     }
 
     @Override
