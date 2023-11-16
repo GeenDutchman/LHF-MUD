@@ -45,7 +45,7 @@ public class ClientHandle extends Client implements Runnable {
             e.printStackTrace();
             throw e;
         } finally {
-            connectionListener.connectionTerminated(id); // let connectionListener know that it is over
+            connectionListener.clientConnectionTerminated(id); // let connectionListener know that it is over
             this.kill();
         }
     }
