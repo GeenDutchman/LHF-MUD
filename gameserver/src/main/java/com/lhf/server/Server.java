@@ -96,7 +96,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public void userConnected(ClientID id) {
+    public void clientConnected(ClientID id) {
         logger.log(Level.INFO, "User connected");
         clientManager.getUserForClient(id).ifPresent(userID -> {
             for (UserListener listener : userListeners) {
@@ -111,7 +111,7 @@ public class Server implements ServerInterface, ConnectionListener {
      * @param id id of the User who has left
      */
     @Override
-    public void userLeft(ClientID id) {
+    public void clientLeft(ClientID id) {
         logger.entering(this.getClass().getName(), "userLeft()", id);
         clientManager.getUserForClient(id).ifPresent(userID -> {
             for (UserListener listener : userListeners) {
@@ -122,9 +122,9 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public void connectionTerminated(ClientID id) {
+    public void clientConnectionTerminated(ClientID id) {
         logger.entering(this.getClass().getName(), "connectionTerminated()", id);
-        userLeft(id);
+        clientLeft(id);
         removeClient(id);
     }
 
@@ -161,6 +161,7 @@ public class Server implements ServerInterface, ConnectionListener {
         }
         user.setSuccessor(this);
         Client client = this.clientManager.getConnection(ctx.getClientID());
+        this.clientManager.addUserForClient(client.getClientID(), user.getUserID());
         client.setSuccessor(user);
         this.game.addNewPlayerToGame(user, msg.vocationRequest());
         return ctx.handled();

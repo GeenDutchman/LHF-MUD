@@ -38,14 +38,16 @@ public class ClientHandle extends Client implements Runnable {
                 this.ProcessString(value);
             }
         } catch (IOException e) {
-            sendMsg(new FatalMessage());
-            e.printStackTrace();
+            final FatalMessage fatal = FatalMessage.getBuilder().setException(e).setExtraInfo("recoverable").Build();
+            this.logger.log(Level.SEVERE, fatal.toString(), e);
+            sendMsg(fatal);
         } catch (Exception e) {
-            sendMsg(new FatalMessage());
-            e.printStackTrace();
+            final FatalMessage fatal = FatalMessage.getBuilder().setException(e).setExtraInfo("irrecoverable").Build();
+            this.logger.log(Level.SEVERE, fatal.toString(), e);
+            sendMsg(fatal);
             throw e;
         } finally {
-            connectionListener.connectionTerminated(id); // let connectionListener know that it is over
+            connectionListener.clientConnectionTerminated(id); // let connectionListener know that it is over
             this.kill();
         }
     }
