@@ -858,7 +858,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
         }
 
         if (aMessage.getNumTargets() > numAllowedTargets) {
-            String badTarget = aMessage.getTargets().get(numAllowedTargets + 1);
+            String badTarget = aMessage.getTargets().get(numAllowedTargets);
             ctx.sendMsg(btMessBuilder.setBadTarget(badTarget).setBde(BadTargetOption.TOO_MANY).Build());
             return ctx.handled();
         }
