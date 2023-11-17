@@ -1,6 +1,7 @@
 package com.lhf.game.dice;
 
 import java.util.Comparator;
+import java.util.function.IntUnaryOperator;
 
 import com.lhf.Taggable;
 
@@ -20,14 +21,19 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
             return this.getStartTag() + this.toString() + this.getEndTag();
         }
 
+        /** Returns a modified result of the roll * -1 if the roll is positive */
         public IRollResult negative();
 
+        /** Returns a modified result of the roll * -1 if the roll is negative */
         public IRollResult positive();
 
+        /** Returns a modified result of the roll * 2 if the roll is non-zero */
         public IRollResult twice();
 
+        /** Returns a modified result of the roll / 2 if the roll is non-zero */
         public IRollResult half();
 
+        /** Returns a modified result of the roll * 0 if the roll is non-zero */
         public IRollResult none();
 
         @Override
@@ -75,12 +81,24 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
             return Dice.this;
         }
 
+        /**
+         * Overridable factory method to produce an annotated result
+         * 
+         * @param result    The result to annotate
+         * @param operation The operation to perform on the result's roll
+         * @param note      An optional note to display
+         * @return Annotated result
+         */
+        protected IRollResult annotate(final IRollResult result, final IntUnaryOperator operation, final String note) {
+            return new Dice.AnnotatedRollResult(result, operation, note);
+        }
+
         @Override
         public IRollResult negative() {
             if (this.getRoll() <= 0) {
                 return this;
             }
-            return new Dice.AnnotatedRollResult(this, this.getRoll() * -1, "negative");
+            return this.annotate(this, rolled -> rolled * -1, "negative");
         }
 
         @Override
@@ -88,7 +106,7 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
             if (this.getRoll() >= 0) {
                 return this;
             }
-            return new Dice.AnnotatedRollResult(this, this.getRoll() * -1, "negative");
+            return this.annotate(this, rolled -> rolled * -1, "positive");
         }
 
         @Override
@@ -96,7 +114,7 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
             if (this.getRoll() == 0) {
                 return this;
             }
-            return new Dice.AnnotatedRollResult(this, this.getRoll() * 2, "doubled");
+            return this.annotate(this, rolled -> rolled * 2, "doubled");
         }
 
         @Override
@@ -104,7 +122,7 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
             if (this.getRoll() == 0) {
                 return this;
             }
-            return new Dice.AnnotatedRollResult(this, this.getRoll() / 2, "halved");
+            return this.annotate(this, rolled -> rolled / 2, "halved");
         }
 
         @Override
@@ -112,7 +130,7 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
             if (this.getRoll() == 0) {
                 return this;
             }
-            return new Dice.AnnotatedRollResult(this, 0, "negated");
+            return this.annotate(this, rolled -> 0, "negated");
         }
 
         @Override
@@ -160,6 +178,12 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
         public AnnotatedRollResult(final IRollResult result, int alteredResult, String note) {
             this.sub = result;
             this.alteredResult = alteredResult;
+            this.note = note != null ? note.trim() : note;
+        }
+
+        public AnnotatedRollResult(final IRollResult result, final IntUnaryOperator operation, final String note) {
+            this.sub = result;
+            this.alteredResult = operation != null ? operation.applyAsInt(result.getRoll()) : result.getRoll();
             this.note = note != null ? note.trim() : note;
         }
 
