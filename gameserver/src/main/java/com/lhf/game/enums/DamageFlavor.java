@@ -7,6 +7,10 @@ public enum DamageFlavor implements Taggable {
     VOID, FORCE, FIRE, COLD, HEALING, NECROTIC, POISON, ACID, LIGHTNING, THUNDER, PSYCHIC,
     AGGRO;
 
+    public interface DamageFlavored {
+        public DamageFlavor getDamageFlavor();
+    }
+
     public static DamageFlavor getDamageFlavor(String value) {
         for (DamageFlavor flavor : values()) {
             if (flavor.toString().equalsIgnoreCase(value)) {

@@ -19,7 +19,7 @@ import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DamageDice.FlavoredRollResult;
 import com.lhf.game.dice.Dice;
-import com.lhf.game.dice.Dice.IRollResult;
+import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.dice.MultiRollResult;
@@ -392,24 +392,24 @@ public abstract class Creature
         }
         MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
         DamageFlavorReactions dfr = this.statblock.getDamageFlavorReactions();
-        for (IRollResult rr : mrr) {
+        for (RollResult rr : mrr) {
             if (rr instanceof FlavoredRollResult) {
                 FlavoredRollResult frr = (FlavoredRollResult) rr;
-                if (dfr.getHealing().contains(frr.getFlavor())) {
+                if (dfr.getHealing().contains(frr.getDamageFlavor())) {
                     if (reverse) {
                         mrrBuilder.addRollResults(frr.negative());
                     } else {
                         mrrBuilder.addRollResults(frr);
                     }
-                } else if (dfr.getImmunities().contains(frr.getFlavor())) {
+                } else if (dfr.getImmunities().contains(frr.getDamageFlavor())) {
                     mrrBuilder.addRollResults(frr.none());
-                } else if (dfr.getResistances().contains(frr.getFlavor())) {
+                } else if (dfr.getResistances().contains(frr.getDamageFlavor())) {
                     if (reverse) {
                         mrrBuilder.addRollResults(frr.half());
                     } else {
                         mrrBuilder.addRollResults(frr.negative().half());
                     }
-                } else if (dfr.getWeaknesses().contains(frr.getFlavor())) {
+                } else if (dfr.getWeaknesses().contains(frr.getDamageFlavor())) {
                     if (reverse) {
                         mrrBuilder.addRollResults(frr.twice());
                     } else {
