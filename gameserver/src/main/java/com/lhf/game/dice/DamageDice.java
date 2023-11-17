@@ -1,15 +1,17 @@
 package com.lhf.game.dice;
 
 import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.DamageFlavor.DamageFlavored;
 
-public class DamageDice extends Dice {
-    public class FlavoredRollResult extends RollResult {
+public class DamageDice extends Dice implements DamageFlavored {
+    public class FlavoredRollResult extends RollResult implements DamageFlavored {
         public FlavoredRollResult(int total) {
             super(total);
         }
 
-        public DamageFlavor getFlavor() {
-            return DamageDice.this.getFlavor();
+        @Override
+        public DamageFlavor getDamageFlavor() {
+            return DamageDice.this.getDamageFlavor();
         }
 
     }
@@ -36,7 +38,8 @@ public class DamageDice extends Dice {
         return super.toString() + ' ' + flavor.toString();
     }
 
-    public DamageFlavor getFlavor() {
+    @Override
+    public DamageFlavor getDamageFlavor() {
         return flavor;
     }
 

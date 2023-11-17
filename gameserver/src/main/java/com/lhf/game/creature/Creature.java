@@ -395,21 +395,21 @@ public abstract class Creature
         for (IRollResult rr : mrr) {
             if (rr instanceof FlavoredRollResult) {
                 FlavoredRollResult frr = (FlavoredRollResult) rr;
-                if (dfr.getHealing().contains(frr.getFlavor())) {
+                if (dfr.getHealing().contains(frr.getDamageFlavor())) {
                     if (reverse) {
                         mrrBuilder.addRollResults(frr.negative());
                     } else {
                         mrrBuilder.addRollResults(frr);
                     }
-                } else if (dfr.getImmunities().contains(frr.getFlavor())) {
+                } else if (dfr.getImmunities().contains(frr.getDamageFlavor())) {
                     mrrBuilder.addRollResults(frr.none());
-                } else if (dfr.getResistances().contains(frr.getFlavor())) {
+                } else if (dfr.getResistances().contains(frr.getDamageFlavor())) {
                     if (reverse) {
                         mrrBuilder.addRollResults(frr.half());
                     } else {
                         mrrBuilder.addRollResults(frr.negative().half());
                     }
-                } else if (dfr.getWeaknesses().contains(frr.getFlavor())) {
+                } else if (dfr.getWeaknesses().contains(frr.getDamageFlavor())) {
                     if (reverse) {
                         mrrBuilder.addRollResults(frr.twice());
                     } else {

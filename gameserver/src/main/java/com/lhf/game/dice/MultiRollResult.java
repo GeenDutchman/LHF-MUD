@@ -101,7 +101,7 @@ public class MultiRollResult implements Taggable, Iterable<IRollResult> {
         for (IRollResult rr : this.rolls) {
             if (flavors.size() > 0 && rr instanceof DamageDice.FlavoredRollResult) {
                 DamageDice.FlavoredRollResult ddrr = (DamageDice.FlavoredRollResult) rr;
-                if (flavors.contains(ddrr.getFlavor())) {
+                if (flavors.contains(ddrr.getDamageFlavor())) {
                     sum += origRoll ? ddrr.getOrigRoll() : ddrr.getRoll();
                 }
             } else if (flavors.size() == 0) {
