@@ -164,16 +164,6 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
         }
 
         @Override
-        public String getStartTag() {
-            return Dice.this.getStartTag();
-        }
-
-        @Override
-        public String getEndTag() {
-            return Dice.this.getEndTag();
-        }
-
-        @Override
         public int getRoll() {
             return this.alteredResult;
         }
