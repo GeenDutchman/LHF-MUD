@@ -11,37 +11,21 @@ public class DamageDice extends Dice implements DamageFlavored {
             super(total);
         }
 
-        @Override
-        public DamageFlavor getDamageFlavor() {
-            return DamageDice.this.getDamageFlavor();
-        }
-
-        @Override
-        protected IRollResult annotate(IRollResult result, IntUnaryOperator operation, String note) {
-            return new DamageDice.FlavoredAnnotatedRollResult(result, operation, note);
-        }
-
-    }
-
-    public class FlavoredAnnotatedRollResult extends AnnotatedRollResult implements DamageFlavored {
-
-        public FlavoredAnnotatedRollResult(IRollResult result, int alteredResult, String note) {
+        protected FlavoredRollResult(final RollResult result, final int alteredResult, final String note) {
             super(result, alteredResult, note);
         }
 
-        public FlavoredAnnotatedRollResult(final IRollResult result, final IntUnaryOperator operation,
-                final String note) {
-            super(result, operation, note);
-        }
-
-        @Override
-        protected IRollResult annotate(IRollResult result, IntUnaryOperator operation, String note) {
-            return new DamageDice.FlavoredAnnotatedRollResult(result, operation, note);
-        }
-
         @Override
         public DamageFlavor getDamageFlavor() {
             return DamageDice.this.getDamageFlavor();
+        }
+
+        @Override
+        protected FlavoredRollResult annotate(IntUnaryOperator operation, String note) {
+            if (operation == null) {
+                return this;
+            }
+            return new DamageDice.FlavoredRollResult(this, operation.applyAsInt(this.roll), note);
         }
 
     }

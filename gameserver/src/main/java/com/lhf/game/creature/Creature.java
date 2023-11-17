@@ -19,7 +19,7 @@ import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DamageDice.FlavoredRollResult;
 import com.lhf.game.dice.Dice;
-import com.lhf.game.dice.Dice.IRollResult;
+import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.dice.DiceD20;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.dice.MultiRollResult;
@@ -392,7 +392,7 @@ public abstract class Creature
         }
         MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
         DamageFlavorReactions dfr = this.statblock.getDamageFlavorReactions();
-        for (IRollResult rr : mrr) {
+        for (RollResult rr : mrr) {
             if (rr instanceof FlavoredRollResult) {
                 FlavoredRollResult frr = (FlavoredRollResult) rr;
                 if (dfr.getHealing().contains(frr.getDamageFlavor())) {

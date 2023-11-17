@@ -9,35 +9,103 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
     protected final int count;
     protected final DieType type;
 
-    public interface IRollResult extends Taggable, Comparable<IRollResult> {
-        public Dice getDice();
+    public class RollResult implements Taggable, Comparable<RollResult> {
+        protected final RollResult origin;
+        protected final String note;
+        protected final int roll;
 
-        public int getRoll();
+        public RollResult(final int roll) {
+            this.roll = roll;
+            this.note = null;
+            this.origin = null;
+        }
 
-        public int getOrigRoll();
+        protected RollResult(final RollResult result, final int alteredResult, final String note) {
+            this.origin = result;
+            this.roll = alteredResult;
+            this.note = note != null ? note.trim() : note;
+        }
+
+        public Dice getDice() {
+            return Dice.this;
+        }
+
+        public int getRoll() {
+            return this.roll;
+        }
+
+        public int getOrigRoll() {
+            if (this.origin != null) {
+                return this.origin.getOrigRoll();
+            }
+            return this.roll;
+        }
+
+        public RollResult getOrigin() {
+            return this.origin;
+        }
 
         @Override
-        public default String getColorTaggedName() {
+        public String getColorTaggedName() {
             return this.getStartTag() + this.toString() + this.getEndTag();
         }
 
+        /**
+         * Overridable factory method to produce an annotated result
+         * 
+         * @param operation The operation to perform on the result's roll
+         * @param note      An optional note to display
+         * @return this if `operation` is null, else a new result
+         */
+        protected RollResult annotate(final IntUnaryOperator operation, final String note) {
+            if (operation == null) {
+                return this;
+            }
+            return new Dice.RollResult(this, operation.applyAsInt(this.roll), note);
+        }
+
         /** Returns a modified result of the roll * -1 if the roll is positive */
-        public IRollResult negative();
+        public final RollResult negative() {
+            if (this.getRoll() <= 0) {
+                return this;
+            }
+            return this.annotate(rolled -> rolled * -1, "negative");
+        }
 
         /** Returns a modified result of the roll * -1 if the roll is negative */
-        public IRollResult positive();
+        public final RollResult positive() {
+            if (this.getRoll() >= 0) {
+                return this;
+            }
+            return this.annotate(rolled -> rolled * -1, "positive");
+        }
 
         /** Returns a modified result of the roll * 2 if the roll is non-zero */
-        public IRollResult twice();
+        public final RollResult twice() {
+            if (this.getRoll() == 0) {
+                return this;
+            }
+            return this.annotate(rolled -> rolled * 2, "doubled");
+        }
 
         /** Returns a modified result of the roll / 2 if the roll is non-zero */
-        public IRollResult half();
+        public final RollResult half() {
+            if (this.getRoll() == 0) {
+                return this;
+            }
+            return this.annotate(rolled -> rolled / 2, "halved");
+        }
 
         /** Returns a modified result of the roll * 0 if the roll is non-zero */
-        public IRollResult none();
+        public final RollResult none() {
+            if (this.getRoll() == 0) {
+                return this;
+            }
+            return this.annotate(rolled -> 0, "negated");
+        }
 
         @Override
-        default int compareTo(IRollResult o) {
+        public int compareTo(RollResult o) {
             if (o == null) {
                 throw new NullPointerException("other IRollResult is null");
             }
@@ -48,10 +116,10 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
             return this.getRoll() - o.getRoll();
         }
 
-        static Comparator<IRollResult> origRollComparator() {
-            return new Comparator<IRollResult>() {
+        static Comparator<RollResult> origRollComparator() {
+            return new Comparator<RollResult>() {
                 @Override
-                public int compare(IRollResult first, IRollResult second) {
+                public int compare(RollResult first, RollResult second) {
                     if (first == null || second == null) {
                         throw new NullPointerException("cannot compare null IRollResult");
                     }
@@ -60,77 +128,16 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
             };
         }
 
-        static Comparator<IRollResult> rollComparator() {
-            return new Comparator<IRollResult>() {
+        static Comparator<RollResult> rollComparator() {
+            return new Comparator<RollResult>() {
                 @Override
-                public int compare(IRollResult first, IRollResult second) {
+                public int compare(RollResult first, RollResult second) {
                     if (first == null || second == null) {
                         throw new NullPointerException("cannot compare null IRollResult");
                     }
                     return first.getRoll() - second.getRoll();
                 }
             };
-        }
-
-    }
-
-    protected abstract class ARollResult implements IRollResult {
-
-        @Override
-        public Dice getDice() {
-            return Dice.this;
-        }
-
-        /**
-         * Overridable factory method to produce an annotated result
-         * 
-         * @param result    The result to annotate
-         * @param operation The operation to perform on the result's roll
-         * @param note      An optional note to display
-         * @return Annotated result
-         */
-        protected IRollResult annotate(final IRollResult result, final IntUnaryOperator operation, final String note) {
-            return new Dice.AnnotatedRollResult(result, operation, note);
-        }
-
-        @Override
-        public IRollResult negative() {
-            if (this.getRoll() <= 0) {
-                return this;
-            }
-            return this.annotate(this, rolled -> rolled * -1, "negative");
-        }
-
-        @Override
-        public IRollResult positive() {
-            if (this.getRoll() >= 0) {
-                return this;
-            }
-            return this.annotate(this, rolled -> rolled * -1, "positive");
-        }
-
-        @Override
-        public IRollResult twice() {
-            if (this.getRoll() == 0) {
-                return this;
-            }
-            return this.annotate(this, rolled -> rolled * 2, "doubled");
-        }
-
-        @Override
-        public IRollResult half() {
-            if (this.getRoll() == 0) {
-                return this;
-            }
-            return this.annotate(this, rolled -> rolled / 2, "halved");
-        }
-
-        @Override
-        public IRollResult none() {
-            if (this.getRoll() == 0) {
-                return this;
-            }
-            return this.annotate(this, rolled -> 0, "negated");
         }
 
         @Override
@@ -142,69 +149,12 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
         public String getEndTag() {
             return Dice.this.getEndTag();
         }
-    }
-
-    public class RollResult extends ARollResult {
-        protected final int roll;
-
-        public RollResult(int total) {
-            this.roll = total;
-        }
-
-        @Override
-        public int getRoll() {
-            return this.roll;
-        }
-
-        @Override
-        public int getOrigRoll() {
-            return this.roll;
-        }
 
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
-            sb.append(Dice.this.toString()).append("(").append(this.getRoll()).append(")");
-            return sb.toString();
-        }
-
-    }
-
-    protected class AnnotatedRollResult extends ARollResult {
-        protected final IRollResult sub;
-        protected final String note;
-        protected final int alteredResult;
-
-        public AnnotatedRollResult(final IRollResult result, int alteredResult, String note) {
-            this.sub = result;
-            this.alteredResult = alteredResult;
-            this.note = note != null ? note.trim() : note;
-        }
-
-        public AnnotatedRollResult(final IRollResult result, final IntUnaryOperator operation, final String note) {
-            this.sub = result;
-            this.alteredResult = operation != null ? operation.applyAsInt(result.getRoll()) : result.getRoll();
-            this.note = note != null ? note.trim() : note;
-        }
-
-        @Override
-        public int getRoll() {
-            return this.alteredResult;
-        }
-
-        @Override
-        public int getOrigRoll() {
-            if (this.sub != null) {
-                return this.sub.getOrigRoll();
-            }
-            return this.alteredResult;
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-            if (this.sub != null) {
-                sb.append(this.sub.toString());
+            if (this.origin != null) {
+                sb.append(this.origin.toString());
                 sb.append(" -->");
             } else {
                 sb.append(Dice.this.toString());
@@ -212,7 +162,7 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
             if (this.note != null && !this.note.isBlank()) {
                 sb.append(" ").append(this.note).append(" ");
             }
-            sb.append("(").append(this.getRoll()).append(")");
+            sb.append("(").append(this.roll).append(")");
             return sb.toString();
         }
 

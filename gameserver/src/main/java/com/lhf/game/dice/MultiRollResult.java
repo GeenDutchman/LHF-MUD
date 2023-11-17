@@ -7,15 +7,15 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
-import com.lhf.game.dice.Dice.IRollResult;
+import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.DamageFlavor;
 
-public class MultiRollResult implements Taggable, Iterable<IRollResult> {
-    protected final List<IRollResult> rolls;
+public class MultiRollResult implements Taggable, Iterable<RollResult> {
+    protected final List<RollResult> rolls;
     protected final List<Integer> bonuses;
 
     public static class Builder {
-        protected List<IRollResult> rolls;
+        protected List<RollResult> rolls;
         protected List<Integer> bonuses;
 
         public Builder() {
@@ -23,8 +23,8 @@ public class MultiRollResult implements Taggable, Iterable<IRollResult> {
             this.bonuses = new ArrayList<>();
         }
 
-        public Builder addRollResults(IRollResult... rrs) {
-            for (IRollResult rr : rrs) {
+        public Builder addRollResults(RollResult... rrs) {
+            for (RollResult rr : rrs) {
                 if (rr != null) {
                     this.rolls.add(rr);
                 }
@@ -41,8 +41,8 @@ public class MultiRollResult implements Taggable, Iterable<IRollResult> {
             return this;
         }
 
-        public Builder addRollResults(Iterable<IRollResult> rrs) {
-            for (IRollResult rr : rrs) {
+        public Builder addRollResults(Iterable<RollResult> rrs) {
+            for (RollResult rr : rrs) {
                 if (rr != null) {
                     this.rolls.add(rr);
                 }
@@ -98,7 +98,7 @@ public class MultiRollResult implements Taggable, Iterable<IRollResult> {
 
     public int getByFlavors(EnumSet<DamageFlavor> flavors, boolean origRoll) {
         int sum = 0;
-        for (IRollResult rr : this.rolls) {
+        for (RollResult rr : this.rolls) {
             if (flavors.size() > 0 && rr instanceof DamageDice.FlavoredRollResult) {
                 DamageDice.FlavoredRollResult ddrr = (DamageDice.FlavoredRollResult) rr;
                 if (flavors.contains(ddrr.getDamageFlavor())) {
@@ -119,7 +119,7 @@ public class MultiRollResult implements Taggable, Iterable<IRollResult> {
     public String toString() {
         StringJoiner sj = new StringJoiner(" + ");
         int sum = 0;
-        for (IRollResult rr : this.rolls) {
+        for (RollResult rr : this.rolls) {
             sj.add(rr.toString());
             sum += rr.getRoll();
         }
@@ -148,7 +148,7 @@ public class MultiRollResult implements Taggable, Iterable<IRollResult> {
     }
 
     @Override
-    public Iterator<IRollResult> iterator() {
+    public Iterator<RollResult> iterator() {
         return this.rolls.listIterator();
     }
 
