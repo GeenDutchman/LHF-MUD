@@ -73,10 +73,6 @@ public class Statblock {
      * // and example item would be lightCrossbow
      */
     private Set<EquipmentTypes> proficiencies;
-    /*
-     * TODO: or to add once things are done
-     * Abilities... initial thought was some kind of array
-     */
 
     // Inventory
     private Inventory inventory;
