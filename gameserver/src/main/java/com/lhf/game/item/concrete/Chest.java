@@ -10,6 +10,9 @@ import java.util.UUID;
 
 import com.lhf.game.ItemContainer;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.Takeable;
+import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 public class Chest extends Item implements ItemContainer {
     protected final UUID chestUuid;
@@ -38,6 +41,23 @@ public class Chest extends Item implements ItemContainer {
     }
 
     @Override
+    public SeeOutMessage produceMessage() {
+        SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
+        for (Item thing : this.chestItems) {
+            if (thing instanceof Takeable) {
+                seeOutMessage.addSeen(SeeCategory.TAKEABLE, thing);
+            } else {
+                seeOutMessage.addSeen(SeeCategory.OTHER, thing);
+            }
+        }
+        return seeOutMessage.Build();
+    }
+
+    public UUID getChestUuid() {
+        return chestUuid;
+    }
+
+    @Override
     public boolean addItem(Item item) {
         if (item == null) {
             return false;
@@ -53,7 +73,7 @@ public class Chest extends Item implements ItemContainer {
     @Override
     public Optional<Item> removeItem(String name) {
         for (Item exact : this.chestItems) {
-            if (exact.CheckNameRegex(name, 3)) {
+            if (exact instanceof Takeable && exact.CheckNameRegex(name, 3)) {
                 this.chestItems.remove(exact);
                 return Optional.of(exact);
             }
