@@ -80,6 +80,10 @@ public class MultiRollResult implements Taggable, Iterable<RollResult> {
         }
     }
 
+    public boolean isEmpty() {
+        return this.bonuses.isEmpty() && this.rolls.isEmpty();
+    }
+
     public List<Integer> getBonuses() {
         return this.bonuses;
     }

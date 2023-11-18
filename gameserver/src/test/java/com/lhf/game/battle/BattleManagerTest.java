@@ -9,7 +9,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
-import com.lhf.game.battle.BattleManager.BattleManagerThread;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.enums.CreatureFaction;
@@ -86,7 +85,7 @@ public class BattleManagerTest {
                                 .setUnit(TimeUnit.MICROSECONDS).setWaitCount(500).Build(area);
                 Truth.assertThat(battleManager.getCreatures()).hasSize(2);
 
-                BattleManagerThread thread = battleManager.startBattle(monster, List.of(npc));
+                battleManager.startBattle(monster, List.of(npc));
 
                 MessageMatcher startBattle = new MessageMatcher(OutMessageType.START_FIGHT).setPrint(true);
                 MessageMatcher turnMessage = new MessageMatcher(OutMessageType.BATTLE_TURN,

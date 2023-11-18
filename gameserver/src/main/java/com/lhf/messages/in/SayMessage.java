@@ -15,12 +15,12 @@ public class SayMessage extends Command {
         if (this.directs.size() < 1) {
             return null;
         }
-        return this.directs.get(0); // TODO: allow for more than one message?
+        return this.directs.get(0);
     }
 
     public String getTarget() {
         if (this.indirects.containsKey("to")) {
-            return this.indirects.getOrDefault("to", null); // TODO: allow more than one recipient?
+            return this.indirects.getOrDefault("to", null);
         }
         return null;
     }
