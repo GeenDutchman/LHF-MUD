@@ -7,7 +7,7 @@ import com.lhf.game.ItemContainer;
 import com.lhf.game.item.Item;
 import com.lhf.messages.out.SeeOutMessage;
 
-// TODO: actually use this
+// TODO: #129 actually use this
 
 public class Corpse extends Item implements ItemContainer {
     public Corpse(String name, boolean isVisible) {
