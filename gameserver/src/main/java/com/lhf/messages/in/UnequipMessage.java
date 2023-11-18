@@ -16,7 +16,7 @@ public class UnequipMessage extends Command {
         if (this.directs.size() < 1) {
             return null;
         }
-        return this.directs.get(0); // TODO: allow unequipping more than one thing/slot?
+        return this.directs.get(0);
     }
 
     @Override

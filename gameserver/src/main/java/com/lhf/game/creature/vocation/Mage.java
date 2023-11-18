@@ -82,12 +82,13 @@ public class Mage extends Vocation implements CubeHolder {
 
     @Override
     public Integer getCasterDifficulty() {
-        return 13; // TODO: actual difficulty
+        return 13; // TODO: #128 actual difficulty
     }
 
     @Override
     public MultiRollResult spellAttack() {
-        return new MultiRollResult.Builder().addRollResults(new DiceD20(1).rollDice()).Build(); // TODO: actual attack
+        return new MultiRollResult.Builder().addRollResults(new DiceD20(1).rollDice()).Build(); // TODO: #128 actual
+                                                                                                // attack
     }
 
     @Override

@@ -16,7 +16,7 @@ public class DropMessage extends Command {
     }
 
     public String getTarget() {
-        return this.directs.get(0); // TODO: allow dropping multiple?
+        return this.directs.get(0);
     }
 
     @Override

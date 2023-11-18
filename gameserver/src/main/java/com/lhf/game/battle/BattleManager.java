@@ -708,7 +708,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
     }
 
     private CommandContext.Reply handleUse(CommandContext ctx, Command msg) {
-        // TODO: test me!
+        // TODO: #127 test me!
         if (this.checkTurn(ctx.getCreature())) {
             CommandContext.Reply reply = CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
             if (reply.isHandled()) {
