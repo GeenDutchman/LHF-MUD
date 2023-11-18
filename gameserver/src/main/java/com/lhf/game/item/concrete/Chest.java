@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -63,6 +64,23 @@ public class Chest extends Item implements ItemContainer {
     @Override
     public boolean removeItem(Item item) {
         return this.chestItems.remove(item);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(chestUuid);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (!(obj instanceof Chest))
+            return false;
+        Chest other = (Chest) obj;
+        return Objects.equals(chestUuid, other.chestUuid);
     }
 
 }
