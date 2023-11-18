@@ -105,7 +105,7 @@ public class CreatureAffectedMessage extends OutMessage {
             sj.add("But the effects have EXPIRED, and will now REVERSE!").add("\r\n");
         }
         MultiRollResult damageResults = this.effect.getDamageResult();
-        if (damageResults != null) {
+        if (damageResults != null && !damageResults.isEmpty()) {
             if (!this.isBroadcast()) {
                 sj.add("Your");
             } else if (this.affected != null) {
