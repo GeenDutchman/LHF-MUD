@@ -8,6 +8,7 @@ import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffect;
+import com.lhf.game.ItemContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
@@ -577,7 +578,9 @@ public abstract class Creature
                 deadCreature.unequipItem(slot, deadCreature.getEquipmentSlots().get(slot).getName());
             }
         }
-        return new Corpse(deadCreature.getName() + "'s corpse", true);
+        Corpse deadCorpse = new Corpse(deadCreature.getName() + "'s corpse", true);
+        ItemContainer.transfer(deadCreature, deadCorpse, null);
+        return deadCorpse;
     }
 
     @Override

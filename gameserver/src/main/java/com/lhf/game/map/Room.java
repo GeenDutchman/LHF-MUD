@@ -364,12 +364,8 @@ public class Room implements Area {
         boolean removed = this.removeCreature(creature);
         if (removed) {
             this.logger.log(Level.FINER, () -> String.format("The creature '%s' has died", creature.getName()));
-            Corpse corpse = creature.die();
+            Corpse corpse = Creature.die(creature);
             this.addItem(corpse);
-            for (String i : creature.getInventory().getItemList()) {
-                Item drop = creature.removeItem(i).get();
-                this.addItem(drop);
-            }
         }
         removed = this.dungeon.onCreatureDeath(creature) || removed;
 
