@@ -12,9 +12,9 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.GoMessage;
 import com.lhf.game.events.messages.in.InteractMessage;
@@ -355,7 +355,7 @@ public class Bed extends InteractObject implements CreatureContainerGameEventHan
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
         EnumMap<CommandMessage, String> commands = new EnumMap<>(CommandMessage.class);
         commands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
         commands.put(CommandMessage.GO, "Use the command <command>GO UP</command> to get out of bed. ");
@@ -367,12 +367,12 @@ public class Bed extends InteractObject implements CreatureContainerGameEventHan
     }
 
     @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
+    public GameEventContext addSelfToContext(GameEventContext ctx) {
         return ctx;
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.EXIT) {
             this.removeCreature(ctx.getCreature());
             if (this.room != null) {

@@ -28,10 +28,10 @@ import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.AttackMessage;
 import com.lhf.game.events.messages.in.SeeMessage;
@@ -645,7 +645,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
         Map<CommandMessage, String> collected = new EnumMap<>(this.cmds);
         if (this.isBattleOngoing()) {
             collected.putAll(this.interceptorCmds);
@@ -668,7 +668,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
     }
 
     @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
+    public GameEventContext addSelfToContext(GameEventContext ctx) {
         if (ctx.getBattleManager() == null) {
             ctx.setBattleManager(this);
         }
@@ -676,9 +676,9 @@ public class BattleManager implements CreatureContainerGameEventHandler {
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
         CommandMessage type = msg.getType();
-        CommandContext.Reply handled = ctx.failhandle();
+        GameEventContext.Reply handled = ctx.failhandle();
         ctx = this.addSelfToContext(ctx);
         if (type != null && this.getCommands(ctx).containsKey(type)) {
             if (type == CommandMessage.ATTACK) {
@@ -707,10 +707,10 @@ public class BattleManager implements CreatureContainerGameEventHandler {
         return CreatureContainerGameEventHandler.super.handleMessage(ctx, msg);
     }
 
-    private CommandContext.Reply handleUse(CommandContext ctx, Command msg) {
+    private GameEventContext.Reply handleUse(GameEventContext ctx, Command msg) {
         // TODO: #127 test me!
         if (this.checkTurn(ctx.getCreature())) {
-            CommandContext.Reply reply = CreatureContainerGameEventHandler.super.handleMessage(ctx, msg);
+            GameEventContext.Reply reply = CreatureContainerGameEventHandler.super.handleMessage(ctx, msg);
             if (reply.isHandled()) {
                 this.endTurn(ctx.getCreature());
             }
@@ -719,7 +719,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
         return ctx.handled();
     }
 
-    private CommandContext.Reply handlePass(CommandContext ctx, Command msg) {
+    private GameEventContext.Reply handlePass(GameEventContext ctx, Command msg) {
         Creature creature = ctx.getCreature();
         if (this.checkTurn(creature)) {
             this.endTurn(creature);
@@ -727,7 +727,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
         return ctx.handled();
     }
 
-    private CommandContext.Reply handleSee(CommandContext ctx, Command msg) {
+    private GameEventContext.Reply handleSee(GameEventContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SEE) {
             SeeMessage seeMessage = (SeeMessage) msg;
             if (seeMessage.getThing() != null) {
@@ -743,7 +743,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
         return ctx.failhandle();
     }
 
-    private CommandContext.Reply handleGo(CommandContext ctx, Command msg) {
+    private GameEventContext.Reply handleGo(GameEventContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.GO) {
             Integer check = 10 + this.participants.size();
             MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
@@ -834,7 +834,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
         return targets;
     }
 
-    private CommandContext.Reply handleAttack(CommandContext ctx, AttackMessage aMessage) {
+    private GameEventContext.Reply handleAttack(GameEventContext ctx, AttackMessage aMessage) {
         this.battleLogger.log(Level.INFO, ctx.getCreature().getName() + " attempts attacking " + aMessage.getTargets());
 
         Creature attacker = ctx.getCreature();

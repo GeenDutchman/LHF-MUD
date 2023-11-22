@@ -4,10 +4,10 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
 
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.CreateInMessage;
 import com.lhf.game.events.messages.out.OutMessage;
@@ -66,14 +66,14 @@ public class User implements GameEventHandler, ClientMessenger, Comparable<User>
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
         return new EnumMap<>(CommandMessage.class);
     }
 
     @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
+    public GameEventContext addSelfToContext(GameEventContext ctx) {
         if (ctx == null) {
-            ctx = new CommandContext();
+            ctx = new GameEventContext();
         }
         if (ctx.getUser() == null) {
             ctx.setUser(this);
@@ -99,7 +99,7 @@ public class User implements GameEventHandler, ClientMessenger, Comparable<User>
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
         return GameEventHandler.super.handleMessage(ctx, msg);
     }

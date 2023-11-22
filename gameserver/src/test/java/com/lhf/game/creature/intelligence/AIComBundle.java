@@ -8,9 +8,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.server.client.ComBundle;
 
@@ -61,17 +61,17 @@ public class AIComBundle extends ComBundle implements GameEventHandler {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
         return new EnumMap<>(CommandMessage.class);
     }
 
     @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
+    public GameEventContext addSelfToContext(GameEventContext ctx) {
         return ctx;
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
         this.print(msg.toString(), true);
         this.mockedWrappedHandler.handleMessage(ctx, msg);
         return ctx.handled();

@@ -6,10 +6,10 @@ import java.util.Map.Entry;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.GoMessage;
 import com.lhf.game.events.messages.in.ShoutMessage;
@@ -262,7 +262,7 @@ public class Dungeon implements Land {
         room.announce(msg, deafened);
     }
 
-    private CommandContext.Reply handleShout(CommandContext ctx, Command cmd) {
+    private GameEventContext.Reply handleShout(GameEventContext ctx, Command cmd) {
         if (cmd.getType() == CommandMessage.SHOUT) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
@@ -280,7 +280,7 @@ public class Dungeon implements Land {
         return ctx.failhandle();
     }
 
-    private CommandContext.Reply handleGo(CommandContext ctx, Command msg) {
+    private GameEventContext.Reply handleGo(GameEventContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.GO) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
@@ -336,7 +336,7 @@ public class Dungeon implements Land {
         return ctx.failhandle();
     }
 
-    private CommandContext.Reply handleSee(CommandContext ctx, Command msg) {
+    private GameEventContext.Reply handleSee(GameEventContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SEE) {
             Room presentRoom = ctx.getRoom();
             if (presentRoom != null) {
@@ -359,12 +359,12 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
+    public GameEventContext addSelfToContext(GameEventContext ctx) {
         return ctx;
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
         Map<CommandMessage, String> gathered = new EnumMap<>(this.commands);
         if (ctx.getCreature() == null) {
             gathered.remove(CommandMessage.SHOUT);
@@ -377,8 +377,8 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-        CommandContext.Reply performed = ctx.failhandle();
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
+        GameEventContext.Reply performed = ctx.failhandle();
         ctx = this.addSelfToContext(ctx);
         if (this.getCommands(ctx).containsKey(msg.getType())) {
             if (msg.getType() == CommandMessage.SHOUT) {

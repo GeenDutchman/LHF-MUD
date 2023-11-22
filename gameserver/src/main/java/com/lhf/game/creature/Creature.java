@@ -30,10 +30,10 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.ITickMessage;
 import com.lhf.game.events.messages.in.EquipMessage;
@@ -782,12 +782,12 @@ public abstract class Creature
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
         return ctx.addHelps(Collections.unmodifiableMap(this.cmds));
     }
 
     @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
+    public GameEventContext addSelfToContext(GameEventContext ctx) {
         if (ctx.getCreature() == null) {
             ctx.setCreature(this);
         }
@@ -795,7 +795,7 @@ public abstract class Creature
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
         boolean handled = false;
         CommandMessage msgType = msg.getType();
         ctx = this.addSelfToContext(ctx);

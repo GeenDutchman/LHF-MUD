@@ -1,8 +1,8 @@
 package com.lhf.game.item.interfaces;
 
-import com.lhf.game.events.messages.CommandContext;
+import com.lhf.game.events.GameEventContext;
 
 public interface UseAction {
 
-    boolean useAction(CommandContext ctx, Object useOn);
+    boolean useAction(GameEventContext ctx, Object useOn);
 }

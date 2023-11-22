@@ -20,11 +20,11 @@ import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler.TargetLists;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
+import com.lhf.game.events.GameEventContext.Reply;
 import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.CommandContext.Reply;
 import com.lhf.game.events.messages.out.BadTargetSelectedMessage;
 import com.lhf.game.events.messages.out.BattleTurnMessage;
 import com.lhf.game.events.messages.out.StatsOutMessage;
@@ -71,12 +71,12 @@ public class BattleTurnHandlerTest {
         Mockito.doNothing().when(interceptor).setSuccessor(Mockito.any());
         Mockito.when(interceptor.getSuccessor()).thenReturn(searcher);
         Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(GameEventHandler.class));
-        Mockito.when(interceptor.handleMessage(Mockito.any(CommandContext.class), Mockito.any(Command.class)))
-                .thenAnswer(new Answer<CommandContext.Reply>() {
+        Mockito.when(interceptor.handleMessage(Mockito.any(GameEventContext.class), Mockito.any(Command.class)))
+                .thenAnswer(new Answer<GameEventContext.Reply>() {
 
                     @Override
                     public Reply answer(InvocationOnMock invocation) throws Throwable {
-                        CommandContext ctx = invocation.getArgument(0);
+                        GameEventContext ctx = invocation.getArgument(0);
                         Command cmd = invocation.getArgument(1);
                         if (cmd.getType().equals(CommandMessage.ATTACK)
                                 && cmd.getWhole().contains("bloohoo")) {

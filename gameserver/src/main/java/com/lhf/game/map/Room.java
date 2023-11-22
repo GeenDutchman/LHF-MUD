@@ -14,10 +14,10 @@ import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.DropMessage;
 import com.lhf.game.events.messages.in.InteractMessage;
@@ -512,7 +512,7 @@ public class Room implements Area {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
         EnumMap<CommandMessage, String> gathered = new EnumMap<>(this.commands);
         if (ctx.getCreature() == null) {
             gathered.remove(CommandMessage.ATTACK);
@@ -530,7 +530,7 @@ public class Room implements Area {
     }
 
     @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
+    public GameEventContext addSelfToContext(GameEventContext ctx) {
         if (ctx.getRoom() == null) {
             ctx.setRoom(this);
         }
@@ -538,8 +538,8 @@ public class Room implements Area {
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-        CommandContext.Reply handled = ctx.failhandle();
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
+        GameEventContext.Reply handled = ctx.failhandle();
         CommandMessage type = msg.getType();
         ctx = this.addSelfToContext(ctx);
         if (type != null && (this.getCommands(ctx).containsKey(type)
@@ -568,7 +568,7 @@ public class Room implements Area {
         return Area.super.handleMessage(ctx, msg);
     }
 
-    protected CommandContext.Reply handleAttack(CommandContext ctx, Command msg) {
+    protected GameEventContext.Reply handleAttack(GameEventContext ctx, Command msg) {
         if (msg.getType() != CommandMessage.ATTACK) {
             return ctx.failhandle();
         }
@@ -581,7 +581,7 @@ public class Room implements Area {
         return this.battleManager.handleMessage(ctx, msg);
     }
 
-    protected CommandContext.Reply handleCast(CommandContext ctx, Command msg) {
+    protected GameEventContext.Reply handleCast(GameEventContext ctx, Command msg) {
         ctx.setBattleManager(this.battleManager);
         if (ctx.getCreature() == null) {
             ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
@@ -591,7 +591,7 @@ public class Room implements Area {
         return ctx.failhandle(); // let a successor (ThirdPower) handle it
     }
 
-    protected CommandContext.Reply handleTake(CommandContext ctx, Command msg) {
+    protected GameEventContext.Reply handleTake(GameEventContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.TAKE) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
@@ -642,7 +642,7 @@ public class Room implements Area {
         return ctx.failhandle();
     }
 
-    protected CommandContext.Reply handleInteract(CommandContext ctx, Command msg) {
+    protected GameEventContext.Reply handleInteract(GameEventContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.INTERACT) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
@@ -681,7 +681,7 @@ public class Room implements Area {
         return ctx.failhandle();
     }
 
-    protected CommandContext.Reply handleDrop(CommandContext ctx, Command msg) {
+    protected GameEventContext.Reply handleDrop(GameEventContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.DROP) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
@@ -710,7 +710,7 @@ public class Room implements Area {
     }
 
     // only used to examine items and creatures in this room
-    protected CommandContext.Reply handleSee(CommandContext ctx, Command msg) {
+    protected GameEventContext.Reply handleSee(GameEventContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SEE) {
             SeeMessage sMessage = (SeeMessage) msg;
             if (sMessage.getThing() != null && !sMessage.getThing().isBlank()) {
@@ -778,7 +778,7 @@ public class Room implements Area {
         return ctx.failhandle();
     }
 
-    protected CommandContext.Reply handleSay(CommandContext ctx, Command msg) {
+    protected GameEventContext.Reply handleSay(GameEventContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SAY) {
             SayMessage sMessage = (SayMessage) msg;
             SpeakingMessage.Builder speakMessage = SpeakingMessage.getBuilder().setSayer(ctx.getCreature())
@@ -809,7 +809,7 @@ public class Room implements Area {
         return ctx.failhandle();
     }
 
-    protected CommandContext.Reply handleUse(CommandContext ctx, Command msg) {
+    protected GameEventContext.Reply handleUse(GameEventContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.USE) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)

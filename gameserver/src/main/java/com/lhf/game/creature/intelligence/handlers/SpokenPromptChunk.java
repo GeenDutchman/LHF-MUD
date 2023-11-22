@@ -11,9 +11,9 @@ import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandBuilder;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.OutMessageType;
 import com.lhf.game.events.messages.in.SayMessage;
@@ -73,7 +73,7 @@ public class SpokenPromptChunk extends AIHandler {
                     this.logger.log(Level.FINE,
                             String.format("Result has prompt \"%s\" for %s", prompt, bai.toString()));
                     Command cmd = CommandBuilder.parse(prompt);
-                    CommandContext.Reply handled = bai.handleMessage(null, cmd);
+                    GameEventContext.Reply handled = bai.handleMessage(null, cmd);
                     this.logger.log(Level.FINER,
                             () -> String.format("%s: prompted command \"%s\" handled: %s", bai.toString(),
                                     cmd.toString(), handled));

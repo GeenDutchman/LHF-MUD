@@ -3,9 +3,7 @@ package com.lhf.game.events;
 import java.util.Map;
 
 import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.CommandContext.Reply;
 
 public interface GameEventHandler {
 
@@ -18,11 +16,11 @@ public interface GameEventHandler {
         this.setSuccessor(interceptor);
     }
 
-    public abstract Map<CommandMessage, String> getCommands(CommandContext ctx);
+    public abstract Map<CommandMessage, String> getCommands(GameEventContext ctx);
 
-    public abstract CommandContext addSelfToContext(CommandContext ctx);
+    public abstract GameEventContext addSelfToContext(GameEventContext ctx);
 
-    public default CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+    public default GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
         GameEventHandler retrievedSuccessor = this.getSuccessor();
         if (retrievedSuccessor != null) {
             return retrievedSuccessor.handleMessage(ctx, msg);

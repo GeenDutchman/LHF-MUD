@@ -15,6 +15,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,8 +74,8 @@ public class MessageHandlerTest {
         Map<CommandMessage, String> leafNodeOneHelps = new HashMap<>();
         leafNodeOneHelps.put(CommandMessage.HELP, "When you need help");
         leafNodeOneHelps.put(CommandMessage.INVENTORY, "When you need to know what you have");
-        when(this.leafNodeOne.getCommands(Mockito.isA(CommandContext.class))).thenAnswer( i -> {
-            CommandContext cc = i.getArgument(0);
+        when(this.leafNodeOne.getCommands(Mockito.isA(GameEventContext.class))).thenAnswer( i -> {
+            GameEventContext cc = i.getArgument(0);
             if (cc != null) {
                 cc.addHelps(leafNodeOneHelps);
             }
@@ -83,8 +84,8 @@ public class MessageHandlerTest {
 
         Map<CommandMessage, String> leafNodeTwoHelps = new HashMap<>();
         leafNodeTwoHelps.put(CommandMessage.CAST, "If you are a caster");
-        when(this.leafNodeTwo.getCommands(Mockito.isA(CommandContext.class))).thenAnswer( i -> {
-            CommandContext cc = i.getArgument(0);
+        when(this.leafNodeTwo.getCommands(Mockito.isA(GameEventContext.class))).thenAnswer( i -> {
+            GameEventContext cc = i.getArgument(0);
             if (cc != null) {
                 cc.addHelps(leafNodeTwoHelps);
             }
@@ -94,8 +95,8 @@ public class MessageHandlerTest {
         Map<CommandMessage, String> branchNodeHelps = new HashMap<>();
         branchNodeHelps.put(CommandMessage.HELP, "When you get higher help");
         branchNodeHelps.put(CommandMessage.SEE, "I added something!");
-        when(this.branchNode.getCommands(Mockito.isA(CommandContext.class))).thenAnswer( i -> {
-            CommandContext cc = i.getArgument(0);
+        when(this.branchNode.getCommands(Mockito.isA(GameEventContext.class))).thenAnswer( i -> {
+            GameEventContext cc = i.getArgument(0);
             if (cc != null) {
                 cc.addHelps(branchNodeHelps);
             }
@@ -108,9 +109,9 @@ public class MessageHandlerTest {
 
     }
 
-    private CommandContext follow(GameEventHandler mh, CommandContext ctx) {
+    private GameEventContext follow(GameEventHandler mh, GameEventContext ctx) {
         if (ctx == null) {
-            ctx = new CommandContext();
+            ctx = new GameEventContext();
         }
         GameEventHandler following = mh;
         while (following != null) {

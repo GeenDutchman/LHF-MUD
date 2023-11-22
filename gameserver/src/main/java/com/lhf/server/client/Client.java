@@ -7,11 +7,11 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandBuilder;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.out.BadMessage;
 import com.lhf.game.events.messages.out.HelpMessage;
@@ -38,11 +38,11 @@ public class Client implements GameEventHandler, ClientMessenger {
         this.out = out;
     }
 
-    public CommandContext.Reply ProcessString(String value) {
+    public GameEventContext.Reply ProcessString(String value) {
         this.logger.log(Level.FINE, "message received: " + value);
         Command cmd = CommandBuilder.parse(value);
-        CommandContext ctx = new CommandContext();
-        CommandContext.Reply accepted = ctx.failhandle();
+        GameEventContext ctx = new GameEventContext();
+        GameEventContext.Reply accepted = ctx.failhandle();
         if (cmd.isValid()) {
             this.logger.log(Level.FINEST, "the message received was deemed" + cmd.getClass().toString());
             this.logger.log(Level.FINER, "Post Processing:" + cmd);
@@ -84,8 +84,8 @@ public class Client implements GameEventHandler, ClientMessenger {
         return this.id;
     }
 
-    private CommandContext.Reply handleHelpMessage(Command msg, BadMessageType badMessageType,
-            CommandContext.Reply reply) {
+    private GameEventContext.Reply handleHelpMessage(Command msg, BadMessageType badMessageType,
+            GameEventContext.Reply reply) {
         Map<CommandMessage, String> helps = reply.getHelps();
 
         if (badMessageType != null) {
@@ -109,16 +109,16 @@ public class Client implements GameEventHandler, ClientMessenger {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
         Map<CommandMessage, String> cmdMap = new EnumMap<>(CommandMessage.class);
         cmdMap.put(CommandMessage.HELP, "Tells you the commands that you can use.  They are case insensitive!");
         return cmdMap;
     }
 
     @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
+    public GameEventContext addSelfToContext(GameEventContext ctx) {
         if (ctx == null) {
-            ctx = new CommandContext();
+            ctx = new GameEventContext();
         }
         if (ctx.getClientID() == null) {
             ctx.setClient(this);
@@ -127,9 +127,9 @@ public class Client implements GameEventHandler, ClientMessenger {
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
-        CommandContext.Reply reply = GameEventHandler.super.handleMessage(ctx, msg);
+        GameEventContext.Reply reply = GameEventHandler.super.handleMessage(ctx, msg);
         if (msg.getType() == CommandMessage.HELP) {
             return this.handleHelpMessage(null, null, reply);
         } else if (!reply.isHandled()) {

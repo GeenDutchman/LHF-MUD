@@ -12,9 +12,9 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.VocationFactory;
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.out.ListPlayersMessage;
 import com.lhf.game.magic.ThirdPower;
@@ -98,7 +98,7 @@ public class Game implements UserListener, GameEventHandler {
 		this.controlRoom.addUser(user);
 	}
 
-	private CommandContext.Reply handleListPlayersMessage(CommandContext ctx, Command cmd) {
+	private GameEventContext.Reply handleListPlayersMessage(GameEventContext ctx, Command cmd) {
 		ctx.sendMsg(ListPlayersMessage.getBuilder().setPlayerNames(this.userManager.getAllUsernames()));
 		return ctx.handled();
 	}
@@ -114,19 +114,19 @@ public class Game implements UserListener, GameEventHandler {
 	}
 
 	@Override
-	public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+	public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
 		Map<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
 		helps.put(CommandMessage.PLAYERS, "List the players currently in the game.");
 		return ctx.addHelps(helps);
 	}
 
 	@Override
-	public CommandContext addSelfToContext(CommandContext ctx) {
+	public GameEventContext addSelfToContext(GameEventContext ctx) {
 		return ctx;
 	}
 
 	@Override
-	public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+	public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
 		ctx = this.addSelfToContext(ctx);
 		if (msg.getType() == CommandMessage.PLAYERS) {
 			return this.handleListPlayersMessage(ctx, msg);

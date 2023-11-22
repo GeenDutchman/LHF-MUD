@@ -14,10 +14,10 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.SayMessage;
 import com.lhf.game.events.messages.out.BadMessage;
@@ -279,7 +279,7 @@ public class DMRoom extends Room {
     }
 
     @Override
-    protected CommandContext.Reply handleSay(CommandContext ctx, Command msg) {
+    protected GameEventContext.Reply handleSay(GameEventContext ctx, Command msg) {
         if (msg.getType() == CommandMessage.SAY) {
             SayMessage sayMessage = (SayMessage) msg;
             if (sayMessage.getTarget() != null && !sayMessage.getTarget().isBlank()) {
@@ -307,12 +307,12 @@ public class DMRoom extends Room {
     }
 
     @Override
-    protected CommandContext.Reply handleSee(CommandContext ctx, Command msg) {
+    protected GameEventContext.Reply handleSee(GameEventContext ctx, Command msg) {
         return super.handleSee(ctx, msg);
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
         ctx = super.addSelfToContext(ctx);
         Map<CommandMessage, String> gathered = new EnumMap<>(CommandMessage.class);
         StringJoiner sj = new StringJoiner(" ");
@@ -332,11 +332,11 @@ public class DMRoom extends Room {
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
         if (ctx.getCreature() != null && ctx.getCreature() instanceof DungeonMaster) {
             return super.handleMessage(ctx, msg);
         }
-        CommandContext.Reply handled = ctx.failhandle();
+        GameEventContext.Reply handled = ctx.failhandle();
         CommandMessage type = msg.getType();
         if (ctx.getRoom() == null) { // if we aren't already in a room
             ctx = this.addSelfToContext(ctx);

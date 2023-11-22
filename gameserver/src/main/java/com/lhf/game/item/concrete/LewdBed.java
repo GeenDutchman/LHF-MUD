@@ -12,8 +12,8 @@ import java.util.logging.Level;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.LewdInMessage;
 import com.lhf.game.events.messages.out.BadTargetSelectedMessage;
@@ -96,7 +96,7 @@ public class LewdBed extends Bed {
         this.vrijPartijen.clear();
     }
 
-    protected CommandContext.Reply handlePass(CommandContext ctx, Command msg) {
+    protected GameEventContext.Reply handlePass(GameEventContext ctx, Command msg) {
         if (!CommandMessage.PASS.equals(msg.getType())) {
             return ctx.failhandle();
         }
@@ -204,7 +204,7 @@ public class LewdBed extends Bed {
         }
     }
 
-    protected CommandContext.Reply handleLewd(CommandContext ctx, Command msg) {
+    protected GameEventContext.Reply handleLewd(GameEventContext ctx, Command msg) {
         LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder();
         if (msg.getType() != CommandMessage.LEWD) {
             return ctx.failhandle();
@@ -242,8 +242,8 @@ public class LewdBed extends Bed {
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-        CommandContext.Reply handled = super.handleMessage(ctx, msg);
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
+        GameEventContext.Reply handled = super.handleMessage(ctx, msg);
         if (handled.isHandled()) {
             return handled;
         }
@@ -267,7 +267,7 @@ public class LewdBed extends Bed {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
         Map<CommandMessage, String> bedCommands = super.getCommands(ctx);
         bedCommands.put(CommandMessage.LEWD, "\"lewd [creature]\" lewd another person in the bed");
         if (this.vrijPartijen.size() > 0) {

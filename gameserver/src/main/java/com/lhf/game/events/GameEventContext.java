@@ -1,4 +1,4 @@
-package com.lhf.game.events.messages;
+package com.lhf.game.events;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,6 +8,8 @@ import java.util.Map;
 
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
+import com.lhf.game.events.messages.ClientMessenger;
+import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.out.OutMessage;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.Room;
@@ -15,7 +17,7 @@ import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 
-public class CommandContext implements ClientMessenger {
+public class GameEventContext implements ClientMessenger {
     protected ClientMessenger client;
     protected User user;
     protected Creature creature;
@@ -33,17 +35,17 @@ public class CommandContext implements ClientMessenger {
         }
 
         public Map<CommandMessage, String> getHelps() {
-            if (CommandContext.this.helps == null) {
-                CommandContext.this.helps = new EnumMap<>(CommandMessage.class);
+            if (GameEventContext.this.helps == null) {
+                GameEventContext.this.helps = new EnumMap<>(CommandMessage.class);
             }
-            return Collections.unmodifiableMap(CommandContext.this.helps);
+            return Collections.unmodifiableMap(GameEventContext.this.helps);
         }
 
         public List<OutMessage> getMessages() {
-            if (CommandContext.this.messages == null) {
-                CommandContext.this.messages = new ArrayList<>();
+            if (GameEventContext.this.messages == null) {
+                GameEventContext.this.messages = new ArrayList<>();
             }
-            return Collections.unmodifiableList(CommandContext.this.messages);
+            return Collections.unmodifiableList(GameEventContext.this.messages);
         }
 
         public boolean isHandled() {

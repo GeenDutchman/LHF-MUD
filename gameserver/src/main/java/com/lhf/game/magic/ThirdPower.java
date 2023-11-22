@@ -14,10 +14,10 @@ import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.ResourceCost;
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.CastMessage;
 import com.lhf.game.events.messages.in.SpellbookMessage;
@@ -85,7 +85,7 @@ public class ThirdPower implements GameEventHandler {
         return toGenerate;
     }
 
-    private boolean affectCreatures(CommandContext ctx, ISpell<CreatureEffect> spell, Collection<Creature> targets) {
+    private boolean affectCreatures(GameEventContext ctx, ISpell<CreatureEffect> spell, Collection<Creature> targets) {
         Creature caster = ctx.getCreature();
         BattleManager battleManager = ctx.getBattleManager();
         if (spell.isOffensive() && battleManager != null && !battleManager.isBattleOngoing()) {
@@ -125,7 +125,7 @@ public class ThirdPower implements GameEventHandler {
         return true;
     }
 
-    private boolean affectRoom(CommandContext ctx, ISpell<? extends RoomEffect> spell) {
+    private boolean affectRoom(GameEventContext ctx, ISpell<? extends RoomEffect> spell) {
         Creature caster = ctx.getCreature();
         BattleManager battleManager = ctx.getBattleManager();
 
@@ -157,7 +157,7 @@ public class ThirdPower implements GameEventHandler {
         return true;
     }
 
-    private boolean handleCast(CommandContext ctx, Command msg) {
+    private boolean handleCast(GameEventContext ctx, Command msg) {
         CastMessage casting = (CastMessage) msg;
         Creature caster = ctx.getCreature();
         SpellFizzleMessage.Builder spellFizzleMessage = SpellFizzleMessage.getBuilder().setAttempter(caster)
@@ -343,7 +343,7 @@ public class ThirdPower implements GameEventHandler {
         return true;
     }
 
-    private CommandContext.Reply handleSpellbook(CommandContext ctx, Command msg) {
+    private GameEventContext.Reply handleSpellbook(GameEventContext ctx, Command msg) {
         SpellbookMessage spellbookMessage = (SpellbookMessage) msg;
         Creature caster = ctx.getCreature();
         EnumSet<Filters> filters = EnumSet.of(Filters.VOCATION_NAME, Filters.LEVELS);
@@ -363,7 +363,7 @@ public class ThirdPower implements GameEventHandler {
         return ctx.handled();
     }
 
-    private void channelizeMessage(CommandContext ctx, OutMessage message, boolean includeBattle,
+    private void channelizeMessage(GameEventContext ctx, OutMessage message, boolean includeBattle,
             ClientMessenger... directs) {
         if (message == null) {
             return;
@@ -391,12 +391,12 @@ public class ThirdPower implements GameEventHandler {
     }
 
     @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
+    public GameEventContext addSelfToContext(GameEventContext ctx) {
         return ctx;
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
         if (this.getCommands(ctx).containsKey(msg.getType())) {
             if (msg.getType() == CommandMessage.CAST) {
@@ -438,7 +438,7 @@ public class ThirdPower implements GameEventHandler {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
         Map<CommandMessage, String> commands = new EnumMap<>(this.cmds);
         if (ctx.getCreature() == null || !(ctx.getCreature().getVocation() instanceof CubeHolder)) {
             commands.remove(CommandMessage.CAST);

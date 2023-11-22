@@ -3,8 +3,8 @@ package com.lhf.server.interfaces;
 import java.util.EnumMap;
 import java.util.Map;
 
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.server.client.user.UserID;
 
@@ -16,7 +16,7 @@ public interface ServerInterface extends GameEventHandler {
     void removeUser(UserID id);
 
     @Override
-    default Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    default Map<CommandMessage, String> getCommands(GameEventContext ctx) {
         EnumMap<CommandMessage, String> gathered = new EnumMap<>(CommandMessage.class);
         if (ctx.getUser() != null) {
             gathered.remove(CommandMessage.CREATE);

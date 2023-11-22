@@ -9,9 +9,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.Game;
+import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.CreateInMessage;
 import com.lhf.game.events.messages.out.DuplicateUserMessage;
@@ -141,7 +141,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
         Map<CommandMessage, String> pruned = new EnumMap<>(this.acceptedCommands);
         if (ctx.getUser() != null) {
             pruned.remove(CommandMessage.CREATE);
@@ -149,7 +149,7 @@ public class Server implements ServerInterface, ConnectionListener {
         return ctx.addHelps(pruned);
     }
 
-    private CommandContext.Reply handleCreateMessage(CommandContext ctx, CreateInMessage msg) {
+    private GameEventContext.Reply handleCreateMessage(GameEventContext ctx, CreateInMessage msg) {
         if (this.userManager.getAllUsernames().contains(msg.getUsername())) {
             ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
             return ctx.handled();
@@ -168,12 +168,12 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
+    public GameEventContext addSelfToContext(GameEventContext ctx) {
         return ctx;
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
         if (this.getCommands(ctx).containsKey(msg.getType())) {
             if (msg.getType() == CommandMessage.EXIT) {
