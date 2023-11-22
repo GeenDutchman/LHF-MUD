@@ -3,7 +3,7 @@ package com.lhf.game.creature.intelligence;
 import java.util.Objects;
 import java.util.logging.Logger;
 
-import com.lhf.messages.OutMessageType;
+import com.lhf.game.events.messages.OutMessageType;
 import com.lhf.server.interfaces.NotNull;
 
 public abstract class AIHandler implements AIChunk {

@@ -3,9 +3,9 @@ package com.lhf.server.interfaces;
 import java.util.EnumMap;
 import java.util.Map;
 
-import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.game.events.messages.CommandContext;
+import com.lhf.game.events.messages.CommandMessage;
+import com.lhf.game.events.messages.MessageHandler;
 import com.lhf.server.client.user.UserID;
 
 public interface ServerInterface extends MessageHandler {

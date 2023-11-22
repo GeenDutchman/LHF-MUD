@@ -17,6 +17,9 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.HealType;
+import com.lhf.game.events.messages.MessageHandler;
+import com.lhf.game.events.messages.out.InteractOutMessage;
+import com.lhf.game.events.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.game.item.DispenserAction;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.concrete.HealPotion;
@@ -32,9 +35,6 @@ import com.lhf.game.item.concrete.equipment.Whimsystick;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 import com.lhf.game.map.Land.AreaDirectionalLinks;
-import com.lhf.messages.MessageHandler;
-import com.lhf.messages.out.InteractOutMessage;
-import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 
 public class DungeonBuilder implements Land.LandBuilder {
     private class RoomAndDirs implements Land.AreaDirectionalLinks {

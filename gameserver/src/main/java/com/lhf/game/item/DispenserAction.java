@@ -4,12 +4,12 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.game.events.messages.out.InteractOutMessage;
+import com.lhf.game.events.messages.out.OutMessage;
+import com.lhf.game.events.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.Room;
-import com.lhf.messages.out.InteractOutMessage;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 
 public class DispenserAction implements InteractAction {
     @Override

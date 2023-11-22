@@ -9,10 +9,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.lhf.game.ItemContainer;
+import com.lhf.game.events.messages.out.SeeOutMessage;
+import com.lhf.game.events.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 public class Chest extends Item implements ItemContainer {
     protected final UUID chestUuid;

@@ -1,6 +1,6 @@
 package com.lhf.game.item.interfaces;
 
-import com.lhf.messages.CommandContext;
+import com.lhf.game.events.messages.CommandContext;
 
 public interface UseAction {
 

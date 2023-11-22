@@ -12,12 +12,12 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.Player;
+import com.lhf.game.events.messages.MessageHandler;
+import com.lhf.game.events.messages.out.SeeOutMessage;
+import com.lhf.game.events.messages.out.TickMessage;
+import com.lhf.game.events.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
-import com.lhf.messages.MessageHandler;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.TickMessage;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 public interface Area
         extends ItemContainer, CreatureContainerMessageHandler, Comparable<Area>, AffectableEntity<RoomEffect> {

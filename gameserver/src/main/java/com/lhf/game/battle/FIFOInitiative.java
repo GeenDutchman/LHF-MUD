@@ -13,8 +13,8 @@ import java.util.logging.Logger;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.game.events.messages.out.OutMessage;
+import com.lhf.game.events.messages.out.SeeOutMessage;
 import com.lhf.server.client.user.UserID;
 
 public class FIFOInitiative implements Initiative {

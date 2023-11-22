@@ -7,16 +7,16 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.messages.ClientMessenger;
-import com.lhf.messages.Command;
-import com.lhf.messages.CommandBuilder;
-import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
-import com.lhf.messages.out.BadMessage;
-import com.lhf.messages.out.BadMessage.BadMessageType;
-import com.lhf.messages.out.HelpMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.game.events.messages.ClientMessenger;
+import com.lhf.game.events.messages.Command;
+import com.lhf.game.events.messages.CommandBuilder;
+import com.lhf.game.events.messages.CommandContext;
+import com.lhf.game.events.messages.CommandMessage;
+import com.lhf.game.events.messages.MessageHandler;
+import com.lhf.game.events.messages.out.BadMessage;
+import com.lhf.game.events.messages.out.HelpMessage;
+import com.lhf.game.events.messages.out.OutMessage;
+import com.lhf.game.events.messages.out.BadMessage.BadMessageType;
 
 public class Client implements MessageHandler, ClientMessenger {
     protected SendStrategy out;

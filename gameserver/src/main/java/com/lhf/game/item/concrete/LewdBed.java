@@ -12,21 +12,21 @@ import java.util.logging.Level;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.events.messages.Command;
+import com.lhf.game.events.messages.CommandContext;
+import com.lhf.game.events.messages.CommandMessage;
+import com.lhf.game.events.messages.in.LewdInMessage;
+import com.lhf.game.events.messages.out.BadTargetSelectedMessage;
+import com.lhf.game.events.messages.out.InteractOutMessage;
+import com.lhf.game.events.messages.out.LewdOutMessage;
+import com.lhf.game.events.messages.out.OutMessage;
+import com.lhf.game.events.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.game.events.messages.out.InteractOutMessage.InteractOutMessageType;
+import com.lhf.game.events.messages.out.LewdOutMessage.LewdOutMessageType;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.lewd.LewdProduct;
 import com.lhf.game.lewd.VrijPartij;
 import com.lhf.game.map.Area;
-import com.lhf.messages.Command;
-import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandMessage;
-import com.lhf.messages.in.LewdInMessage;
-import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.messages.out.InteractOutMessage;
-import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
-import com.lhf.messages.out.LewdOutMessage;
-import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
-import com.lhf.messages.out.OutMessage;
 
 public class LewdBed extends Bed {
 

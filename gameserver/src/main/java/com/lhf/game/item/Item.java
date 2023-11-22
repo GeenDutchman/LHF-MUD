@@ -4,7 +4,7 @@ import java.util.regex.PatternSyntaxException;
 
 import com.lhf.Examinable;
 import com.lhf.Taggable;
-import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.game.events.messages.out.SeeOutMessage;
 
 public abstract class Item implements Examinable, Taggable {
     // Class name for discrimination

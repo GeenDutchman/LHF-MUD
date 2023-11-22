@@ -12,8 +12,8 @@ import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD100;
 import com.lhf.game.enums.HealthBuckets;
+import com.lhf.game.events.messages.out.OutMessage;
 import com.lhf.game.map.Directions;
-import com.lhf.messages.out.OutMessage;
 
 public class FleeChooser implements AIChooser<String> {
     private final Dice roller = new DiceD100(1);

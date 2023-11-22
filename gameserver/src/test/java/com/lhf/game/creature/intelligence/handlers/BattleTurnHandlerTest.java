@@ -20,15 +20,15 @@ import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler.TargetLists;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.messages.Command;
-import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
-import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.messages.out.BattleTurnMessage;
-import com.lhf.messages.out.StatsOutMessage;
+import com.lhf.game.events.messages.Command;
+import com.lhf.game.events.messages.CommandContext;
+import com.lhf.game.events.messages.CommandMessage;
+import com.lhf.game.events.messages.MessageHandler;
+import com.lhf.game.events.messages.CommandContext.Reply;
+import com.lhf.game.events.messages.out.BadTargetSelectedMessage;
+import com.lhf.game.events.messages.out.BattleTurnMessage;
+import com.lhf.game.events.messages.out.StatsOutMessage;
+import com.lhf.game.events.messages.out.BadTargetSelectedMessage.BadTargetOption;
 
 public class BattleTurnHandlerTest {
     @Spy

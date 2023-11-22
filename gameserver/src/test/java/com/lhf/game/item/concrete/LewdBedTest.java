@@ -10,11 +10,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
+import com.lhf.game.events.messages.MessageMatcher;
+import com.lhf.game.events.messages.OutMessageType;
 import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.Room.RoomBuilder;
-import com.lhf.messages.MessageMatcher;
-import com.lhf.messages.OutMessageType;
 
 @ExtendWith(MockitoExtension.class)
 public class LewdBedTest {

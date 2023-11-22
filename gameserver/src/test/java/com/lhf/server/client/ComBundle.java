@@ -4,7 +4,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mockito;
 
-import com.lhf.messages.out.OutMessage;
+import com.lhf.game.events.messages.out.OutMessage;
 
 public abstract class ComBundle {
     public SendStrategy sssb;

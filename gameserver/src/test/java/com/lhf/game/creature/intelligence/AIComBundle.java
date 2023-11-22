@@ -8,10 +8,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import com.lhf.game.creature.NonPlayerCharacter;
-import com.lhf.messages.Command;
-import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.game.events.messages.Command;
+import com.lhf.game.events.messages.CommandContext;
+import com.lhf.game.events.messages.CommandMessage;
+import com.lhf.game.events.messages.MessageHandler;
 import com.lhf.server.client.ComBundle;
 
 public class AIComBundle extends ComBundle implements MessageHandler {

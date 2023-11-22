@@ -12,10 +12,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.intelligence.AIComBundle;
-import com.lhf.messages.OutMessageType;
-import com.lhf.messages.out.LewdOutMessage;
-import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.game.events.messages.OutMessageType;
+import com.lhf.game.events.messages.out.LewdOutMessage;
+import com.lhf.game.events.messages.out.OutMessage;
+import com.lhf.game.events.messages.out.LewdOutMessage.LewdOutMessageType;
 
 @ExtendWith(MockitoExtension.class)
 public class VrijPartijTest {

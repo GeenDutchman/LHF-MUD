@@ -4,12 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.game.events.messages.CommandContext;
+import com.lhf.game.events.messages.out.SeeOutMessage;
+import com.lhf.game.events.messages.out.UseOutMessage;
+import com.lhf.game.events.messages.out.UseOutMessage.UseOutMessageOption;
 import com.lhf.game.item.interfaces.UseAction;
 import com.lhf.game.map.Room;
-import com.lhf.messages.CommandContext;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.UseOutMessage;
-import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 
 public class Usable extends Takeable {
     private Integer numCanUseTimes;

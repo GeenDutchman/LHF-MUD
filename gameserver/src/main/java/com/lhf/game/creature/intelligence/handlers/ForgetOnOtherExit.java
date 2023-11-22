@@ -2,9 +2,9 @@ package com.lhf.game.creature.intelligence.handlers;
 
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
-import com.lhf.messages.OutMessageType;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.SomeoneLeftRoom;
+import com.lhf.game.events.messages.OutMessageType;
+import com.lhf.game.events.messages.out.OutMessage;
+import com.lhf.game.events.messages.out.SomeoneLeftRoom;
 
 public class ForgetOnOtherExit extends AIHandler {
     public ForgetOnOtherExit() {

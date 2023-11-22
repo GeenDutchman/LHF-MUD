@@ -8,8 +8,8 @@ import com.lhf.Taggable;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
+import com.lhf.game.events.messages.out.CastingMessage;
 import com.lhf.game.map.DungeonEffectSource;
-import com.lhf.messages.out.CastingMessage;
 
 public class DungeonTargetingSpellEntry extends SpellEntry {
     // add way to create dungeon?

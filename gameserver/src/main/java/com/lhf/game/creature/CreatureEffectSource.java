@@ -13,9 +13,9 @@ import com.lhf.game.dice.DamageDice;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SeeOutMessage.Builder;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
+import com.lhf.game.events.messages.out.SeeOutMessage;
+import com.lhf.game.events.messages.out.SeeOutMessage.Builder;
+import com.lhf.game.events.messages.out.SeeOutMessage.SeeCategory;
 
 public class CreatureEffectSource extends EntityEffectSource {
 

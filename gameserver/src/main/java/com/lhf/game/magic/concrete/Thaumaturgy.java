@@ -13,9 +13,9 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.ResourceCost;
+import com.lhf.game.events.messages.out.CastingMessage;
 import com.lhf.game.magic.RoomTargetingSpellEntry;
 import com.lhf.game.map.RoomEffectSource;
-import com.lhf.messages.out.CastingMessage;
 
 public class Thaumaturgy extends RoomTargetingSpellEntry {
 

@@ -13,8 +13,8 @@ import com.lhf.game.CreatureContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
-import com.lhf.messages.MessageHandler;
-import com.lhf.messages.out.TickMessage;
+import com.lhf.game.events.messages.MessageHandler;
+import com.lhf.game.events.messages.out.TickMessage;
 import com.lhf.server.client.user.UserID;
 
 public interface Land extends CreatureContainer, MessageHandler, AffectableEntity<DungeonEffect> {

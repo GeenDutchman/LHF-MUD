@@ -4,13 +4,13 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
 
-import com.lhf.messages.ClientMessenger;
-import com.lhf.messages.Command;
-import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
-import com.lhf.messages.in.CreateInMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.game.events.messages.ClientMessenger;
+import com.lhf.game.events.messages.Command;
+import com.lhf.game.events.messages.CommandContext;
+import com.lhf.game.events.messages.CommandMessage;
+import com.lhf.game.events.messages.MessageHandler;
+import com.lhf.game.events.messages.in.CreateInMessage;
+import com.lhf.game.events.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
 public class User implements MessageHandler, ClientMessenger, Comparable<User> {

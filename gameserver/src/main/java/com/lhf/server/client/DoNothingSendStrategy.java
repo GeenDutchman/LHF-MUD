@@ -1,6 +1,6 @@
 package com.lhf.server.client;
 
-import com.lhf.messages.out.OutMessage;
+import com.lhf.game.events.messages.out.OutMessage;
 
 public class DoNothingSendStrategy implements SendStrategy {
 

@@ -3,8 +3,8 @@ package com.lhf.server.client;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.lhf.messages.OutMessageType;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.game.events.messages.OutMessageType;
+import com.lhf.game.events.messages.out.OutMessage;
 
 public class ListBufferSendStrategy extends StringBufferSendStrategy {
     private List<OutMessage> lBuffer;

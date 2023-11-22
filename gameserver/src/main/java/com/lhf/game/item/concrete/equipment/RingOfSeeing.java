@@ -5,10 +5,10 @@ import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.events.messages.out.UseOutMessage;
+import com.lhf.game.events.messages.out.UseOutMessage.UseOutMessageOption;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.map.Room;
-import com.lhf.messages.out.UseOutMessage;
-import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 
 public class RingOfSeeing extends Equipable {
 

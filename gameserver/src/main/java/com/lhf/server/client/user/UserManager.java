@@ -5,8 +5,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-import com.lhf.messages.ClientMessenger;
-import com.lhf.messages.in.CreateInMessage;
+import com.lhf.game.events.messages.ClientMessenger;
+import com.lhf.game.events.messages.in.CreateInMessage;
 import com.lhf.server.client.ClientID;
 
 public class UserManager {
