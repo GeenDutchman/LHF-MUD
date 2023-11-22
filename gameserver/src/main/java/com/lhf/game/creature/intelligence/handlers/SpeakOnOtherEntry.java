@@ -3,12 +3,12 @@ package com.lhf.game.creature.intelligence.handlers;
 import com.lhf.Taggable;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
-import com.lhf.game.events.messages.CommandBuilder;
-import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.OutMessageType;
-import com.lhf.game.events.messages.in.SayMessage;
-import com.lhf.game.events.messages.out.OutMessage;
-import com.lhf.game.events.messages.out.RoomEnteredOutMessage;
+import com.lhf.messages.CommandBuilder;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.OutMessageType;
+import com.lhf.messages.in.SayMessage;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.RoomEnteredOutMessage;
 
 public class SpeakOnOtherEntry extends AIHandler {
     protected String greeting;

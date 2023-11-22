@@ -10,8 +10,8 @@ import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
-import com.lhf.game.events.messages.out.SeeOutMessage;
-import com.lhf.game.events.messages.out.SeeOutMessage.SeeCategory;
+import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 public class Equipable extends Usable {
     protected List<EquipmentTypes> types;

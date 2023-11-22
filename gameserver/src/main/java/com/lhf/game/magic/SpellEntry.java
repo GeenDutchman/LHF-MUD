@@ -11,8 +11,8 @@ import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
-import com.lhf.game.events.messages.out.CastingMessage;
-import com.lhf.game.events.messages.out.SeeOutMessage;
+import com.lhf.messages.out.CastingMessage;
+import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class SpellEntry implements Taggable, Examinable, Comparable<SpellEntry> {
     private final String className;

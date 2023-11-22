@@ -7,12 +7,12 @@ import org.mockito.Mockito;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.intelligence.AIComBundle;
-import com.lhf.game.events.messages.MessageMatcher;
-import com.lhf.game.events.messages.OutMessageType;
 import com.lhf.game.item.concrete.LockKey;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 import com.lhf.game.map.Land.AreaDirectionalLinks;
 import com.lhf.game.map.Room.RoomBuilder;
+import com.lhf.messages.MessageMatcher;
+import com.lhf.messages.OutMessageType;
 
 public class KeyedDoorwayTest {
         @Test

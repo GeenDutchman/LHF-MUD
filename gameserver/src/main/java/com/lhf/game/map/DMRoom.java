@@ -14,26 +14,26 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
-import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandlerNode;
-import com.lhf.game.events.messages.ClientMessenger;
-import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.in.SayMessage;
-import com.lhf.game.events.messages.out.BadMessage;
-import com.lhf.game.events.messages.out.BadTargetSelectedMessage;
-import com.lhf.game.events.messages.out.OutMessage;
-import com.lhf.game.events.messages.out.RoomAffectedMessage;
-import com.lhf.game.events.messages.out.RoomEnteredOutMessage;
-import com.lhf.game.events.messages.out.SomeoneLeftRoom;
-import com.lhf.game.events.messages.out.SpeakingMessage;
-import com.lhf.game.events.messages.out.UserLeftMessage;
-import com.lhf.game.events.messages.out.BadMessage.BadMessageType;
-import com.lhf.game.events.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.game.lewd.LewdBabyMaker;
+import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
+import com.lhf.messages.in.SayMessage;
+import com.lhf.messages.out.BadMessage;
+import com.lhf.messages.out.BadMessage.BadMessageType;
+import com.lhf.messages.out.BadTargetSelectedMessage;
+import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.RoomAffectedMessage;
+import com.lhf.messages.out.RoomEnteredOutMessage;
+import com.lhf.messages.out.SomeoneLeftRoom;
+import com.lhf.messages.out.SpeakingMessage;
+import com.lhf.messages.out.UserLeftMessage;
 import com.lhf.server.client.user.User;
 import com.lhf.server.interfaces.NotNull;
 
@@ -94,7 +94,7 @@ public class DMRoom extends Room {
             return this;
         }
 
-        public DMRoomBuilder setSuccessor(GameEventHandlerNode successor) {
+        public DMRoomBuilder setSuccessor(MessageHandler successor) {
             this.delegate = delegate.setSuccessor(successor);
             return this;
         }
@@ -125,7 +125,7 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public GameEventHandlerNode getSuccessor() {
+        public MessageHandler getSuccessor() {
             return this.delegate.getSuccessor();
         }
 
@@ -279,8 +279,8 @@ public class DMRoom extends Room {
     }
 
     @Override
-    protected GameEventContext.Reply handleSay(GameEventContext ctx, Command msg) {
-        if (msg.getGameEventType() == CommandMessage.SAY) {
+    protected CommandContext.Reply handleSay(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.SAY) {
             SayMessage sayMessage = (SayMessage) msg;
             if (sayMessage.getTarget() != null && !sayMessage.getTarget().isBlank()) {
                 boolean sent = false;
@@ -307,12 +307,12 @@ public class DMRoom extends Room {
     }
 
     @Override
-    protected GameEventContext.Reply handleSee(GameEventContext ctx, Command msg) {
+    protected CommandContext.Reply handleSee(CommandContext ctx, Command msg) {
         return super.handleSee(ctx, msg);
     }
 
     @Override
-    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
         ctx = super.addSelfToContext(ctx);
         Map<CommandMessage, String> gathered = new EnumMap<>(CommandMessage.class);
         StringJoiner sj = new StringJoiner(" ");
@@ -326,18 +326,18 @@ public class DMRoom extends Room {
             gathered.remove(CommandMessage.CAST);
         }
         ctx.addHelps(gathered);
-        Map<CommandMessage, String> superGathered = new EnumMap<>(super.getHandlers(ctx));
+        Map<CommandMessage, String> superGathered = new EnumMap<>(super.getCommands(ctx));
         superGathered.putAll(gathered);
         return superGathered;
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         if (ctx.getCreature() != null && ctx.getCreature() instanceof DungeonMaster) {
             return super.handleMessage(ctx, msg);
         }
-        GameEventContext.Reply handled = ctx.failhandle();
-        CommandMessage type = msg.getGameEventType();
+        CommandContext.Reply handled = ctx.failhandle();
+        CommandMessage type = msg.getType();
         if (ctx.getRoom() == null) { // if we aren't already in a room
             ctx = this.addSelfToContext(ctx);
             if (type == CommandMessage.SAY) {

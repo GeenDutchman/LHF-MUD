@@ -24,10 +24,10 @@ import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.events.messages.out.CreatureAffectedMessage;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
+import com.lhf.messages.out.CreatureAffectedMessage;
 
 public class NonPlayerCharacter extends Creature {
     public static class BlessedFist extends Weapon {

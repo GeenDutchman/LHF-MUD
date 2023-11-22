@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.CreatureContainerGameEventHandler;
+import com.lhf.game.CreatureContainerMessageHandler;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
@@ -28,41 +28,41 @@ import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.game.events.GameEvent;
-import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandlerNode;
-import com.lhf.game.events.messages.ClientMessenger;
-import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.in.AttackMessage;
-import com.lhf.game.events.messages.in.SeeMessage;
-import com.lhf.game.events.messages.out.BadTargetSelectedMessage;
-import com.lhf.game.events.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.game.events.messages.out.BattleTurnMessage;
-import com.lhf.game.events.messages.out.FightOverMessage;
-import com.lhf.game.events.messages.out.FleeMessage;
-import com.lhf.game.events.messages.out.JoinBattleMessage;
-import com.lhf.game.events.messages.out.MissMessage;
-import com.lhf.game.events.messages.out.NotPossessedMessage;
-import com.lhf.game.events.messages.out.OutMessage;
-import com.lhf.game.events.messages.out.ReinforcementsCall;
-import com.lhf.game.events.messages.out.RenegadeAnnouncement;
-import com.lhf.game.events.messages.out.SeeOutMessage;
-import com.lhf.game.events.messages.out.StartFightMessage;
-import com.lhf.game.events.messages.out.StatsOutMessage;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.map.Area;
+import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
+import com.lhf.messages.in.AttackMessage;
+import com.lhf.messages.in.SeeMessage;
+import com.lhf.messages.out.BadTargetSelectedMessage;
+import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.out.BattleTurnMessage;
+import com.lhf.messages.out.FightOverMessage;
+import com.lhf.messages.out.FleeMessage;
+import com.lhf.messages.out.JoinBattleMessage;
+import com.lhf.messages.out.MissMessage;
+import com.lhf.messages.out.NotPossessedMessage;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.ReinforcementsCall;
+import com.lhf.messages.out.RenegadeAnnouncement;
+import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.StartFightMessage;
+import com.lhf.messages.out.StatsOutMessage;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
 
-public class BattleManager implements CreatureContainerGameEventHandler {
+public class BattleManager implements CreatureContainerMessageHandler {
     private final int turnBarrierWaitCount;
     private final TimeUnit turnBarrierWaitUnit;
     private AtomicReference<BattleManagerThread> battleThread;
     private Initiative participants;
     private BattleStats battleStats;
     private Area room;
-    private transient GameEventHandlerNode successor;
+    private transient MessageHandler successor;
     private Map<CommandMessage, String> interceptorCmds;
     private Map<CommandMessage, String> cmds;
     private Logger battleLogger;
@@ -635,17 +635,17 @@ public class BattleManager implements CreatureContainerGameEventHandler {
     }
 
     @Override
-    public void setSuccessor(GameEventHandlerNode successor) {
+    public void setSuccessor(MessageHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public GameEventHandlerNode getSuccessor() {
+    public MessageHandler getSuccessor() {
         return this.successor;
     }
 
     @Override
-    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
         Map<CommandMessage, String> collected = new EnumMap<>(this.cmds);
         if (this.isBattleOngoing()) {
             collected.putAll(this.interceptorCmds);
@@ -668,7 +668,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
     }
 
     @Override
-    public GameEventContext addSelfToContext(GameEventContext ctx) {
+    public CommandContext addSelfToContext(CommandContext ctx) {
         if (ctx.getBattleManager() == null) {
             ctx.setBattleManager(this);
         }
@@ -676,11 +676,11 @@ public class BattleManager implements CreatureContainerGameEventHandler {
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
-        CommandMessage type = (CommandMessage) msg.getGameEventType();
-        GameEventContext.Reply handled = ctx.failhandle();
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+        CommandMessage type = msg.getType();
+        CommandContext.Reply handled = ctx.failhandle();
         ctx = this.addSelfToContext(ctx);
-        if (type != null && this.getHandlers(ctx).containsKey(type)) {
+        if (type != null && this.getCommands(ctx).containsKey(type)) {
             if (type == CommandMessage.ATTACK) {
                 AttackMessage aMessage = (AttackMessage) msg;
                 handled = handleAttack(ctx, aMessage);
@@ -704,13 +704,13 @@ public class BattleManager implements CreatureContainerGameEventHandler {
                 return handled;
             }
         }
-        return CreatureContainerGameEventHandler.super.handleMessage(ctx, msg);
+        return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
     }
 
-    private GameEventContext.Reply handleUse(GameEventContext ctx, GameEvent msg) {
+    private CommandContext.Reply handleUse(CommandContext ctx, Command msg) {
         // TODO: #127 test me!
         if (this.checkTurn(ctx.getCreature())) {
-            GameEventContext.Reply reply = CreatureContainerGameEventHandler.super.handleMessage(ctx, msg);
+            CommandContext.Reply reply = CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
             if (reply.isHandled()) {
                 this.endTurn(ctx.getCreature());
             }
@@ -719,7 +719,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
         return ctx.handled();
     }
 
-    private GameEventContext.Reply handlePass(GameEventContext ctx, GameEvent msg) {
+    private CommandContext.Reply handlePass(CommandContext ctx, Command msg) {
         Creature creature = ctx.getCreature();
         if (this.checkTurn(creature)) {
             this.endTurn(creature);
@@ -727,8 +727,8 @@ public class BattleManager implements CreatureContainerGameEventHandler {
         return ctx.handled();
     }
 
-    private GameEventContext.Reply handleSee(GameEventContext ctx, GameEvent msg) {
-        if (msg.getGameEventType() == CommandMessage.SEE) {
+    private CommandContext.Reply handleSee(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.SEE) {
             SeeMessage seeMessage = (SeeMessage) msg;
             if (seeMessage.getThing() != null) {
                 ctx.setBattleManager(this);
@@ -743,8 +743,8 @@ public class BattleManager implements CreatureContainerGameEventHandler {
         return ctx.failhandle();
     }
 
-    private GameEventContext.Reply handleGo(GameEventContext ctx, GameEvent msg) {
-        if (msg.getGameEventType() == CommandMessage.GO) {
+    private CommandContext.Reply handleGo(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.GO) {
             Integer check = 10 + this.participants.size();
             MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
             FleeMessage.Builder builder = FleeMessage.getBuilder().setRunner(ctx.getCreature()).setRoll(result);
@@ -763,7 +763,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
             } else {
                 this.announce(builder.Build(), ctx.getCreature());
             }
-            return CreatureContainerGameEventHandler.super.handleMessage(ctx, msg);
+            return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
         }
         return ctx.failhandle();
     }
@@ -834,7 +834,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
         return targets;
     }
 
-    private GameEventContext.Reply handleAttack(GameEventContext ctx, AttackMessage aMessage) {
+    private CommandContext.Reply handleAttack(CommandContext ctx, AttackMessage aMessage) {
         this.battleLogger.log(Level.INFO, ctx.getCreature().getName() + " attempts attacking " + aMessage.getTargets());
 
         Creature attacker = ctx.getCreature();
@@ -931,7 +931,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
 
     @Override
     public Collection<ClientMessenger> getClientMessengers() {
-        Collection<ClientMessenger> messengers = CreatureContainerGameEventHandler.super.getClientMessengers();
+        Collection<ClientMessenger> messengers = CreatureContainerMessageHandler.super.getClientMessengers();
         messengers.add(this.battleStats);
         return messengers;
     }

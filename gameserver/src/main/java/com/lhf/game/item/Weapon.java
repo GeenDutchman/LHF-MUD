@@ -9,10 +9,10 @@ import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.enums.DamageFlavor;
-import com.lhf.game.events.messages.out.SeeOutMessage;
-import com.lhf.game.events.messages.out.SeeOutMessage.Builder;
-import com.lhf.game.events.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.game.item.interfaces.WeaponSubtype;
+import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SeeOutMessage.Builder;
+import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 public class Weapon extends Equipable {
     protected Set<CreatureEffectSource> effectSources;

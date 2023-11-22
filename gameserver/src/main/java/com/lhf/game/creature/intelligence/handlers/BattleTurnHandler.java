@@ -27,16 +27,16 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DiceD100;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
-import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventContext.Reply;
-import com.lhf.game.events.messages.OutMessageType;
-import com.lhf.game.events.messages.out.BattleTurnMessage;
-import com.lhf.game.events.messages.out.OutMessage;
-import com.lhf.game.events.messages.out.SpellEntryMessage;
-import com.lhf.game.events.messages.out.StatsOutMessage;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
 import com.lhf.game.magic.SpellEntry;
 import com.lhf.game.map.Directions;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.OutMessageType;
+import com.lhf.messages.out.BattleTurnMessage;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.SpellEntryMessage;
+import com.lhf.messages.out.StatsOutMessage;
 
 public class BattleTurnHandler extends AIHandler {
 
@@ -107,7 +107,7 @@ public class BattleTurnHandler extends AIHandler {
 
     public void meleeAttackTargets(BasicAI bai, List<Map.Entry<String, Double>> targetList) {
         for (Map.Entry<String, Double> targetEntry : targetList) {
-            GameEventContext.Reply reply = bai.ProcessString("attack " + targetEntry.getKey());
+            CommandContext.Reply reply = bai.ProcessString("attack " + targetEntry.getKey());
             this.logger
                     .info(() -> String.format("Attacking target %s has reply: %s", targetEntry, reply.toString()));
             if (reply.getMessages().stream()

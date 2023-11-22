@@ -10,12 +10,12 @@ import java.util.stream.Collectors;
 
 import com.lhf.game.ItemContainer;
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.events.messages.out.InventoryOutMessage;
-import com.lhf.game.events.messages.out.SeeOutMessage;
-import com.lhf.game.events.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
+import com.lhf.messages.out.InventoryOutMessage;
+import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 public class Inventory implements ItemContainer {
     private List<Takeable> items;

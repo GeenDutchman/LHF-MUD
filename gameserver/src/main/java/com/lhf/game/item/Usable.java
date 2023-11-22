@@ -4,12 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.lhf.game.creature.Creature;
-import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.messages.out.SeeOutMessage;
-import com.lhf.game.events.messages.out.UseOutMessage;
-import com.lhf.game.events.messages.out.UseOutMessage.UseOutMessageOption;
 import com.lhf.game.item.interfaces.UseAction;
 import com.lhf.game.map.Room;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.UseOutMessage;
+import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 
 public class Usable extends Takeable {
     private Integer numCanUseTimes;
@@ -48,7 +48,7 @@ public class Usable extends Takeable {
         return (numCanUseTimes < 0) || (hasBeenUsedTimes < numCanUseTimes);
     }
 
-    public boolean doUseAction(GameEventContext ctx, Object usingOn) {
+    public boolean doUseAction(CommandContext ctx, Object usingOn) {
         UseOutMessage.Builder useOutMessage = UseOutMessage.getBuilder().setItemUser(ctx.getCreature()).setUsable(this);
         if (methods == null || usingOn == null) {
             ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());

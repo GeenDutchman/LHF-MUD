@@ -15,10 +15,10 @@ import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealthBuckets;
-import com.lhf.game.events.messages.ClientMessenger;
-import com.lhf.game.events.messages.OutMessageType;
-import com.lhf.game.events.messages.out.CreatureAffectedMessage;
-import com.lhf.game.events.messages.out.OutMessage;
+import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.OutMessageType;
+import com.lhf.messages.out.CreatureAffectedMessage;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
 public class BattleStats implements ClientMessenger {

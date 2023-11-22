@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.lhf.game.creature.intelligence.AIComBundle;
-import com.lhf.game.events.messages.MessageMatcher;
-import com.lhf.game.events.messages.OutMessageType;
 import com.lhf.game.map.Room.RoomBuilder;
+import com.lhf.messages.MessageMatcher;
+import com.lhf.messages.OutMessageType;
 
 public class OneWayDoorwayTest {
         @Test

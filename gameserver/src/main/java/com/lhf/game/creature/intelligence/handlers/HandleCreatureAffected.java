@@ -2,9 +2,9 @@ package com.lhf.game.creature.intelligence.handlers;
 
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
-import com.lhf.game.events.messages.OutMessageType;
-import com.lhf.game.events.messages.out.CreatureAffectedMessage;
-import com.lhf.game.events.messages.out.OutMessage;
+import com.lhf.messages.OutMessageType;
+import com.lhf.messages.out.CreatureAffectedMessage;
+import com.lhf.messages.out.OutMessage;
 
 public class HandleCreatureAffected extends AIHandler {
 

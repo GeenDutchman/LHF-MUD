@@ -20,15 +20,15 @@ import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler.TargetLists;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandlerNode;
-import com.lhf.game.events.GameEventContext.Reply;
-import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.out.BadTargetSelectedMessage;
-import com.lhf.game.events.messages.out.BattleTurnMessage;
-import com.lhf.game.events.messages.out.StatsOutMessage;
-import com.lhf.game.events.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
+import com.lhf.messages.out.BadTargetSelectedMessage;
+import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.out.BattleTurnMessage;
+import com.lhf.messages.out.StatsOutMessage;
 
 public class BattleTurnHandlerTest {
     @Spy
@@ -67,18 +67,18 @@ public class BattleTurnHandlerTest {
         AIComBundle searcher = new AIComBundle();
         searcher.npc.setInBattle(true);
 
-        GameEventHandlerNode interceptor = Mockito.mock(GameEventHandlerNode.class);
+        MessageHandler interceptor = Mockito.mock(MessageHandler.class);
         Mockito.doNothing().when(interceptor).setSuccessor(Mockito.any());
         Mockito.when(interceptor.getSuccessor()).thenReturn(searcher);
-        Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(GameEventHandlerNode.class));
-        Mockito.when(interceptor.handleMessage(Mockito.any(GameEventContext.class), Mockito.any(Command.class)))
-                .thenAnswer(new Answer<GameEventContext.Reply>() {
+        Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(MessageHandler.class));
+        Mockito.when(interceptor.handleMessage(Mockito.any(CommandContext.class), Mockito.any(Command.class)))
+                .thenAnswer(new Answer<CommandContext.Reply>() {
 
                     @Override
                     public Reply answer(InvocationOnMock invocation) throws Throwable {
-                        GameEventContext ctx = invocation.getArgument(0);
+                        CommandContext ctx = invocation.getArgument(0);
                         Command cmd = invocation.getArgument(1);
-                        if (cmd.getGameEventType().equals(CommandMessage.ATTACK)
+                        if (cmd.getType().equals(CommandMessage.ATTACK)
                                 && cmd.getWhole().contains("bloohoo")) {
                             BadTargetSelectedMessage btsm = BadTargetSelectedMessage
                                     .getBuilder()
@@ -88,7 +88,7 @@ public class BattleTurnHandlerTest {
                             ctx.sendMsg(btsm);
                             return ctx.handled();
                         }
-                        if (cmd.getGameEventType().equals(CommandMessage.SEE)) {
+                        if (cmd.getType().equals(CommandMessage.SEE)) {
                             return ctx.handled();
                         }
                         return interceptor.getSuccessor().handleMessage(ctx, cmd);

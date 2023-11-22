@@ -10,9 +10,9 @@ import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
-import com.lhf.game.events.messages.out.CastingMessage;
 import com.lhf.game.magic.DMRoomTargetingSpellEntry;
 import com.lhf.game.map.DMRoomEffectSource;
+import com.lhf.messages.out.CastingMessage;
 
 public class Ensouling extends DMRoomTargetingSpellEntry {
     private static final Set<DMRoomEffectSource> spellEffects = Set.of(new DMRoomEffectSource("Ensoul and send",

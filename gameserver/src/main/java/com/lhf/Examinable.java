@@ -1,6 +1,6 @@
 package com.lhf;
 
-import com.lhf.game.events.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SeeOutMessage;
 
 public interface Examinable {
     String getName();

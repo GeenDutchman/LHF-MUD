@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 import com.lhf.Taggable;
 import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
-import com.lhf.game.events.messages.ClientMessenger;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.interfaces.NotNull;
 

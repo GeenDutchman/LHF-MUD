@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.logging.Level;
 
-import com.lhf.game.events.messages.out.FatalMessage;
+import com.lhf.messages.out.FatalMessage;
 import com.lhf.server.interfaces.ConnectionListener;
 
 public class ClientHandle extends Client implements Runnable {

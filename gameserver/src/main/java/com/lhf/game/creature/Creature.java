@@ -1,17 +1,7 @@
 package com.lhf.game.creature;
 
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableSet;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.StringJoiner;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.regex.PatternSyntaxException;
-import java.util.stream.Collectors;
 
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.EffectPersistence;
@@ -40,38 +30,33 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.events.GameEvent;
-import com.lhf.game.events.GameEvent.GameEventType;
-import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventContext.Reply;
-import com.lhf.game.events.GameEventHandlerNode;
-import com.lhf.game.events.messages.ClientMessenger;
-import com.lhf.game.events.messages.CommandHandler;
-import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.ITickMessage;
-import com.lhf.game.events.messages.in.EquipMessage;
-import com.lhf.game.events.messages.in.InventoryMessage;
-import com.lhf.game.events.messages.in.StatusMessage;
-import com.lhf.game.events.messages.in.UnequipMessage;
-import com.lhf.game.events.messages.out.CreatureAffectedMessage;
-import com.lhf.game.events.messages.out.EquipOutMessage;
-import com.lhf.game.events.messages.out.EquipOutMessage.EquipResultType;
-import com.lhf.game.events.messages.out.NotPossessedMessage;
-import com.lhf.game.events.messages.out.OutMessage;
-import com.lhf.game.events.messages.out.SeeOutMessage;
-import com.lhf.game.events.messages.out.SeeOutMessage.SeeCategory;
-import com.lhf.game.events.messages.out.StatusOutMessage;
-import com.lhf.game.events.messages.out.UnequipOutMessage;
-import com.lhf.game.events.messages.out.UnequipOutMessage.UnequipResultType;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
+import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.ITickMessage;
+import com.lhf.messages.MessageHandler;
+import com.lhf.messages.in.EquipMessage;
+import com.lhf.messages.in.UnequipMessage;
+import com.lhf.messages.out.CreatureAffectedMessage;
+import com.lhf.messages.out.EquipOutMessage;
+import com.lhf.messages.out.EquipOutMessage.EquipResultType;
+import com.lhf.messages.out.NotPossessedMessage;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SeeOutMessage.SeeCategory;
+import com.lhf.messages.out.UnequipOutMessage.UnequipResultType;
+import com.lhf.messages.out.StatusOutMessage;
+import com.lhf.messages.out.UnequipOutMessage;
 import com.lhf.server.client.ClientID;
 
 public abstract class Creature
-        implements InventoryOwner, EquipmentOwner, ClientMessenger, GameEventHandlerNode, Comparable<Creature>,
+        implements InventoryOwner, EquipmentOwner, ClientMessenger, MessageHandler, Comparable<Creature>,
         AffectableEntity<CreatureEffect> {
 
     public class Fist extends Weapon {
@@ -101,8 +86,8 @@ public abstract class Creature
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
     private transient ClientMessenger controller;
-    private transient GameEventHandlerNode successor;
-    private Map<GameEventType, GameEventTypeHandler> cmds;
+    private transient MessageHandler successor;
+    private Map<CommandMessage, String> cmds;
 
     public abstract static class CreatureBuilder<T extends CreatureBuilder<T>> {
         protected T thisObject;
@@ -111,7 +96,7 @@ public abstract class Creature
         private Vocation vocation;
         private Statblock statblock;
         private ClientMessenger controller;
-        private GameEventHandlerNode successor;
+        private MessageHandler successor;
 
         protected CreatureBuilder() {
             this.name = NameGenerator.Generate(null);
@@ -177,12 +162,12 @@ public abstract class Creature
             return this.controller;
         }
 
-        public T setSuccessor(GameEventHandlerNode successor) {
+        public T setSuccessor(MessageHandler successor) {
             this.successor = successor;
             return this.getThis();
         }
 
-        public GameEventHandlerNode getSuccessor() {
+        public MessageHandler getSuccessor() {
             return this.successor;
         }
 
@@ -192,8 +177,7 @@ public abstract class Creature
 
     // Default constructor
     protected Creature(Creature.CreatureBuilder<?> builder) {
-        this.cmds = Map.of(CommandMessage.STATUS, new StatusHandler(), CommandMessage.INVENTORY, new InventoryHandler(),
-                CommandMessage.EQUIP, new EquipHandler(), CommandMessage.UNEQUIP, new UnEquipHandler());
+        this.cmds = this.buildCommands();
         // Instantiate creature with no name and type Monster
         this.name = builder.getName();
         this.faction = builder.getFaction();
@@ -206,6 +190,28 @@ public abstract class Creature
 
         // We don't start them in battle
         this.inBattle = false;
+    }
+
+    private Map<CommandMessage, String> buildCommands() {
+        StringJoiner sj = new StringJoiner(" ");
+        Map<CommandMessage, String> cmds = new EnumMap<>(CommandMessage.class);
+        sj.add("\"equip [item]\"").add("Equips the item from your inventory to its default slot").add("\r\n");
+        sj.add("\"equip [item] to [slot]\"")
+                .add("Equips the item from your inventory to the specified slot, if such exists.");
+        sj.add("In the unlikely event that either the item or the slot's name contains 'to', enclose the name in quotation marks.");
+        cmds.put(CommandMessage.EQUIP, sj.toString());
+        sj = new StringJoiner(" ");
+        sj.add("\"unequip [item]\"").add("Unequips the item (if equipped) and places it in your inventory").add("\r\n");
+        sj.add("\"unequip [slot]\"")
+                .add("Unequips the item that is in the specified slot (if equipped) and places it in your inventory");
+        cmds.put(CommandMessage.UNEQUIP, sj.toString());
+        sj = new StringJoiner(" ");
+        sj.add("\"inventory\"").add("List what you have in your inventory and what you have equipped");
+        cmds.put(CommandMessage.INVENTORY, sj.toString());
+        sj = new StringJoiner(" ");
+        sj.add("\"status\"").add("Show you how much HP you currently have, among other things.");
+        cmds.put(CommandMessage.STATUS, sj.toString());
+        return cmds;
     }
 
     private int getHealth() {
@@ -766,195 +772,57 @@ public abstract class Creature
     }
 
     @Override
-    public void setSuccessor(GameEventHandlerNode successor) {
+    public void setSuccessor(MessageHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public GameEventHandlerNode getSuccessor() {
+    public MessageHandler getSuccessor() {
         return this.successor;
     }
 
     @Override
-    public Map<GameEventType, GameEventTypeHandler> getHandlers(GameEventContext ctx) {
-        return this.cmds.entrySet().stream()
-                .filter(entry -> entry != null && entry.getValue() != null && entry.getValue().isEnabled(ctx))
-                .collect(Collectors.toUnmodifiableMap(entry -> entry.getKey(), entry -> entry.getValue()));
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+        return ctx.addHelps(Collections.unmodifiableMap(this.cmds));
     }
 
     @Override
-    public GameEventContext addSelfToContext(GameEventContext ctx) {
+    public CommandContext addSelfToContext(CommandContext ctx) {
         if (ctx.getCreature() == null) {
             ctx.setCreature(this);
         }
         return ctx;
     }
 
-    protected class EquipHandler implements CommandHandler {
-
-        private final String helpString;
-
-        protected EquipHandler() {
-            StringJoiner sj = new StringJoiner(" ");
-            sj.add("\"equip [item]\"").add("Equips the item from your inventory to its default slot").add("\r\n");
-            sj.add("\"equip [item] to [slot]\"")
-                    .add("Equips the item from your inventory to the specified slot, if such exists.");
-            sj.add("In the unlikely event that either the item or the slot's name contains 'to', enclose the name in quotation marks.");
-            this.helpString = sj.toString();
-        }
-
-        @Override
-        public boolean isEnabled(GameEventContext ctx) {
-            return true;
-        }
-
-        @Override
-        public Reply handle(GameEventContext ctx, GameEvent event) {
-            if (event instanceof EquipMessage eqmsg) {
-                Creature.this.equipItem(eqmsg.getItemName(), eqmsg.getEquipSlot());
-                return ctx.handled();
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public String getHelp(GameEventContext ctx) {
-            return this.helpString;
-        }
-
-        @Override
-        public CommandMessage forType() {
-            return CommandMessage.EQUIP;
-        }
-
-    }
-
-    protected class UnEquipHandler implements CommandHandler {
-
-        private final String helpString;
-
-        protected UnEquipHandler() {
-            StringJoiner sj = new StringJoiner(" ");
-            sj.add("\"unequip [item]\"").add("Unequips the item (if equipped) and places it in your inventory")
-                    .add("\r\n");
-            sj.add("\"unequip [slot]\"")
-                    .add("Unequips the item that is in the specified slot (if equipped) and places it in your inventory");
-            this.helpString = sj.toString();
-        }
-
-        @Override
-        public boolean isEnabled(GameEventContext ctx) {
-            return true;
-        }
-
-        @Override
-        public Reply handle(GameEventContext ctx, GameEvent event) {
-            if (event instanceof UnequipMessage uneqmsg) {
-                Creature.this.unequipItem(EquipmentSlots.getEquipmentSlot(uneqmsg.getUnequipWhat()),
-                        uneqmsg.getUnequipWhat());
-                return ctx.handled();
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public String getHelp(GameEventContext ctx) {
-            return this.helpString;
-        }
-
-        @Override
-        public CommandMessage forType() {
-            return CommandMessage.UNEQUIP;
-        }
-
-    }
-
-    protected class StatusHandler implements CommandHandler {
-
-        private final String helpString;
-
-        protected StatusHandler() {
-            StringJoiner sj = new StringJoiner(" ");
-            sj.add("\"status\"").add("Show you how much HP you currently have, among other things.");
-            this.helpString = sj.toString();
-        }
-
-        @Override
-        public boolean isEnabled(GameEventContext ctx) {
-            return true;
-        }
-
-        @Override
-        public Reply handle(GameEventContext ctx, GameEvent event) {
-            if (event instanceof StatusMessage status) {
-                ctx.sendMsg(
-                        StatusOutMessage.getBuilder().setNotBroadcast().setFromCreature(Creature.this, true).Build());
-                return ctx.handled();
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public String getHelp(GameEventContext ctx) {
-            return this.helpString;
-        }
-
-        @Override
-        public CommandMessage forType() {
-            return CommandMessage.UNEQUIP;
-        }
-
-    }
-
-    protected class InventoryHandler implements CommandHandler {
-
-        private final String helpString;
-
-        protected InventoryHandler() {
-            StringJoiner sj = new StringJoiner(" ");
-            sj.add("\"inventory\"").add("List what you have in your inventory and what you have equipped");
-            this.helpString = sj.toString();
-        }
-
-        @Override
-        public boolean isEnabled(GameEventContext ctx) {
-            return true;
-        }
-
-        @Override
-        public Reply handle(GameEventContext ctx, GameEvent event) {
-            if (event instanceof InventoryMessage uneqmsg) {
-                ctx.sendMsg(Creature.this.getInventory().getInventoryOutMessage(Creature.this.getEquipmentSlots()));
-                return ctx.handled();
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public String getHelp(GameEventContext ctx) {
-            return this.helpString;
-        }
-
-        @Override
-        public CommandMessage forType() {
-            return CommandMessage.UNEQUIP;
-        }
-
-    }
-
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
-        GameEventType msgType = msg.getGameEventType();
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+        boolean handled = false;
+        CommandMessage msgType = msg.getType();
         ctx = this.addSelfToContext(ctx);
-        GameEventTypeHandler handler = this.getHandlers(ctx).getOrDefault(msgType, null);
-        if (handler != null) {
-            GameEventContext.Reply reply = handler.handle(ctx, msg);
-            if (reply.isHandled()) {
-                this.tick(TickType.ACTION);
-                return reply;
+        if (msgType != null && this.getCommands(ctx).containsKey(msgType)) {
+            if (msgType == CommandMessage.EQUIP) {
+                EquipMessage eqmsg = (EquipMessage) msg;
+                this.equipItem(eqmsg.getItemName(), eqmsg.getEquipSlot());
+                handled = true;
+            } else if (msgType == CommandMessage.UNEQUIP) {
+                UnequipMessage uneqmsg = (UnequipMessage) msg;
+                this.unequipItem(EquipmentSlots.getEquipmentSlot(uneqmsg.getUnequipWhat()),
+                        uneqmsg.getUnequipWhat());
+                handled = true;
+            } else if (msgType == CommandMessage.STATUS) {
+                ctx.sendMsg(StatusOutMessage.getBuilder().setNotBroadcast().setFromCreature(this, true).Build());
+                handled = true;
+            } else if (msgType == CommandMessage.INVENTORY) {
+                ctx.sendMsg(this.getInventory().getInventoryOutMessage(this.getEquipmentSlots()));
+                handled = true;
             }
         }
-        return GameEventHandlerNode.super.handleMessage(ctx, msg);
+
+        if (handled) {
+            this.tick(TickType.ACTION);
+            return ctx.handled();
+        }
+        return MessageHandler.super.handleMessage(ctx, msg);
     }
 
     @Override

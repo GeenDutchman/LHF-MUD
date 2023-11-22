@@ -1,6 +1,6 @@
 package com.lhf.server.client.user;
 
-import com.lhf.game.events.messages.in.CreateInMessage;
+import com.lhf.messages.in.CreateInMessage;
 
 public class UserID {
     private final String username;

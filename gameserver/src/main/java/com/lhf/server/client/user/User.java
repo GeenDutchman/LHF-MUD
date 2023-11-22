@@ -4,20 +4,19 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
 
-import com.lhf.game.events.GameEvent;
-import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandlerNode;
-import com.lhf.game.events.GameEvent.GameEventType;
-import com.lhf.game.events.messages.ClientMessenger;
-import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.in.CreateInMessage;
-import com.lhf.game.events.messages.out.OutMessage;
+import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
+import com.lhf.messages.in.CreateInMessage;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
-public class User implements GameEventHandlerNode, ClientMessenger, Comparable<User> {
+public class User implements MessageHandler, ClientMessenger, Comparable<User> {
     private UserID id;
     private String username;
-    private transient GameEventHandlerNode successor;
+    private transient MessageHandler successor;
 
     // private String password;
     private ClientMessenger client;
@@ -57,24 +56,24 @@ public class User implements GameEventHandlerNode, ClientMessenger, Comparable<U
     }
 
     @Override
-    public void setSuccessor(GameEventHandlerNode successor) {
+    public void setSuccessor(MessageHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public GameEventHandlerNode getSuccessor() {
+    public MessageHandler getSuccessor() {
         return this.successor;
     }
 
     @Override
-    public Map<GameEventType, GameEventTypeHandler> getHandlers(GameEventContext ctx) {
-        return Map.of();
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+        return new EnumMap<>(CommandMessage.class);
     }
 
     @Override
-    public GameEventContext addSelfToContext(GameEventContext ctx) {
+    public CommandContext addSelfToContext(CommandContext ctx) {
         if (ctx == null) {
-            ctx = new GameEventContext();
+            ctx = new CommandContext();
         }
         if (ctx.getUser() == null) {
             ctx.setUser(this);
@@ -100,9 +99,9 @@ public class User implements GameEventHandlerNode, ClientMessenger, Comparable<U
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
-        return GameEventHandlerNode.super.handleMessage(ctx, msg);
+        return MessageHandler.super.handleMessage(ctx, msg);
     }
 
     @Override

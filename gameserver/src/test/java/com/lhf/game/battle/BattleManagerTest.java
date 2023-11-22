@@ -13,9 +13,9 @@ import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
-import com.lhf.game.events.messages.MessageMatcher;
-import com.lhf.game.events.messages.OutMessageType;
 import com.lhf.game.map.Area;
+import com.lhf.messages.MessageMatcher;
+import com.lhf.messages.OutMessageType;
 import com.lhf.server.client.ClientID;
 
 @ExtendWith(MockitoExtension.class)

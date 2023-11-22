@@ -5,22 +5,22 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.lhf.game.AffectableEntity;
-import com.lhf.game.CreatureContainerGameEventHandler;
+import com.lhf.game.CreatureContainerMessageHandler;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.Player;
-import com.lhf.game.events.GameEventHandlerNode;
-import com.lhf.game.events.messages.out.SeeOutMessage;
-import com.lhf.game.events.messages.out.TickMessage;
-import com.lhf.game.events.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
+import com.lhf.messages.MessageHandler;
+import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.TickMessage;
+import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 public interface Area
-        extends ItemContainer, CreatureContainerGameEventHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
+        extends ItemContainer, CreatureContainerMessageHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
 
     public interface AreaBuilder {
         public abstract String getName();
@@ -33,7 +33,7 @@ public interface Area
 
         public abstract Collection<Creature> getCreatures();
 
-        public abstract GameEventHandlerNode getSuccessor();
+        public abstract MessageHandler getSuccessor();
 
         public abstract Area build();
     }

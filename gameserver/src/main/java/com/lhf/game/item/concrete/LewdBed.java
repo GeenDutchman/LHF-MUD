@@ -12,21 +12,21 @@ import java.util.logging.Level;
 
 import com.lhf.game.creature.Creature;
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.in.LewdInMessage;
-import com.lhf.game.events.messages.out.BadTargetSelectedMessage;
-import com.lhf.game.events.messages.out.InteractOutMessage;
-import com.lhf.game.events.messages.out.LewdOutMessage;
-import com.lhf.game.events.messages.out.OutMessage;
-import com.lhf.game.events.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.game.events.messages.out.InteractOutMessage.InteractOutMessageType;
-import com.lhf.game.events.messages.out.LewdOutMessage.LewdOutMessageType;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.lewd.LewdProduct;
 import com.lhf.game.lewd.VrijPartij;
 import com.lhf.game.map.Area;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.in.LewdInMessage;
+import com.lhf.messages.out.BadTargetSelectedMessage;
+import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.out.InteractOutMessage;
+import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
+import com.lhf.messages.out.LewdOutMessage;
+import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
+import com.lhf.messages.out.OutMessage;
 
 public class LewdBed extends Bed {
 
@@ -96,8 +96,8 @@ public class LewdBed extends Bed {
         this.vrijPartijen.clear();
     }
 
-    protected GameEventContext.Reply handlePass(GameEventContext ctx, Command msg) {
-        if (!CommandMessage.PASS.equals(msg.getGameEventType())) {
+    protected CommandContext.Reply handlePass(CommandContext ctx, Command msg) {
+        if (!CommandMessage.PASS.equals(msg.getType())) {
             return ctx.failhandle();
         }
         Iterator<VrijPartij> it = this.vrijPartijen.values().iterator();
@@ -204,9 +204,9 @@ public class LewdBed extends Bed {
         }
     }
 
-    protected GameEventContext.Reply handleLewd(GameEventContext ctx, Command msg) {
+    protected CommandContext.Reply handleLewd(CommandContext ctx, Command msg) {
         LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder();
-        if (msg.getGameEventType() != CommandMessage.LEWD) {
+        if (msg.getType() != CommandMessage.LEWD) {
             return ctx.failhandle();
         }
         if (ctx.getCreature() == null) {
@@ -242,14 +242,14 @@ public class LewdBed extends Bed {
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
-        GameEventContext.Reply handled = super.handleMessage(ctx, msg);
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+        CommandContext.Reply handled = super.handleMessage(ctx, msg);
         if (handled.isHandled()) {
             return handled;
         }
-        if (CommandMessage.LEWD.equals(msg.getGameEventType())) {
+        if (CommandMessage.LEWD.equals(msg.getType())) {
             handled = this.handleLewd(ctx, msg);
-        } else if (this.vrijPartijen.size() > 0 && CommandMessage.PASS.equals(msg.getGameEventType())) {
+        } else if (this.vrijPartijen.size() > 0 && CommandMessage.PASS.equals(msg.getType())) {
             handled = this.handlePass(ctx, msg);
         }
         return handled;
@@ -267,8 +267,8 @@ public class LewdBed extends Bed {
     }
 
     @Override
-    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
-        Map<CommandMessage, String> bedCommands = super.getHandlers(ctx);
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+        Map<CommandMessage, String> bedCommands = super.getCommands(ctx);
         bedCommands.put(CommandMessage.LEWD, "\"lewd [creature]\" lewd another person in the bed");
         if (this.vrijPartijen.size() > 0) {
             bedCommands.put(CommandMessage.PASS, "\"pass\" to decline all the lewdness");

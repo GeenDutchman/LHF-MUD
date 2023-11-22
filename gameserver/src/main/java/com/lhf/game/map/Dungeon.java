@@ -6,23 +6,23 @@ import java.util.Map.Entry;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
-import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandlerNode;
-import com.lhf.game.events.messages.ClientMessenger;
-import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.in.GoMessage;
-import com.lhf.game.events.messages.in.ShoutMessage;
-import com.lhf.game.events.messages.out.BadGoMessage;
-import com.lhf.game.events.messages.out.BadMessage;
-import com.lhf.game.events.messages.out.OutMessage;
-import com.lhf.game.events.messages.out.ReincarnateMessage;
-import com.lhf.game.events.messages.out.SeeOutMessage;
-import com.lhf.game.events.messages.out.SpawnMessage;
-import com.lhf.game.events.messages.out.SpeakingMessage;
-import com.lhf.game.events.messages.out.BadGoMessage.BadGoType;
-import com.lhf.game.events.messages.out.BadMessage.BadMessageType;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
+import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
+import com.lhf.messages.in.GoMessage;
+import com.lhf.messages.in.ShoutMessage;
+import com.lhf.messages.out.BadGoMessage;
+import com.lhf.messages.out.BadGoMessage.BadGoType;
+import com.lhf.messages.out.BadMessage;
+import com.lhf.messages.out.BadMessage.BadMessageType;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.ReincarnateMessage;
+import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SpawnMessage;
+import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.user.UserID;
 
 public class Dungeon implements Land {
@@ -49,7 +49,7 @@ public class Dungeon implements Land {
 
     private Map<UUID, Land.AreaDirectionalLinks> mapping;
     private Area startingRoom = null;
-    private transient GameEventHandlerNode successor;
+    private transient MessageHandler successor;
     private Map<CommandMessage, String> commands;
     private transient TreeSet<DungeonEffect> effects;
     private transient Set<UUID> sentMessage;
@@ -262,8 +262,8 @@ public class Dungeon implements Land {
         room.announce(msg, deafened);
     }
 
-    private GameEventContext.Reply handleShout(GameEventContext ctx, Command cmd) {
-        if (cmd.getGameEventType() == CommandMessage.SHOUT) {
+    private CommandContext.Reply handleShout(CommandContext ctx, Command cmd) {
+        if (cmd.getType() == CommandMessage.SHOUT) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                         .setHelps(ctx.getHelps()).setCommand(cmd).Build());
@@ -280,8 +280,8 @@ public class Dungeon implements Land {
         return ctx.failhandle();
     }
 
-    private GameEventContext.Reply handleGo(GameEventContext ctx, Command msg) {
-        if (msg.getGameEventType() == CommandMessage.GO) {
+    private CommandContext.Reply handleGo(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.GO) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                         .setHelps(ctx.getHelps()).setCommand(msg).Build());
@@ -336,8 +336,8 @@ public class Dungeon implements Land {
         return ctx.failhandle();
     }
 
-    private GameEventContext.Reply handleSee(GameEventContext ctx, Command msg) {
-        if (msg.getGameEventType() == CommandMessage.SEE) {
+    private CommandContext.Reply handleSee(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.SEE) {
             Room presentRoom = ctx.getRoom();
             if (presentRoom != null) {
                 SeeOutMessage roomSeen = presentRoom.produceMessage();
@@ -349,22 +349,22 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public void setSuccessor(GameEventHandlerNode successor) {
+    public void setSuccessor(MessageHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public GameEventHandlerNode getSuccessor() {
+    public MessageHandler getSuccessor() {
         return this.successor;
     }
 
     @Override
-    public GameEventContext addSelfToContext(GameEventContext ctx) {
+    public CommandContext addSelfToContext(CommandContext ctx) {
         return ctx;
     }
 
     @Override
-    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
         Map<CommandMessage, String> gathered = new EnumMap<>(this.commands);
         if (ctx.getCreature() == null) {
             gathered.remove(CommandMessage.SHOUT);
@@ -377,15 +377,15 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
-        GameEventContext.Reply performed = ctx.failhandle();
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+        CommandContext.Reply performed = ctx.failhandle();
         ctx = this.addSelfToContext(ctx);
-        if (this.getHandlers(ctx).containsKey(msg.getGameEventType())) {
-            if (msg.getGameEventType() == CommandMessage.SHOUT) {
+        if (this.getCommands(ctx).containsKey(msg.getType())) {
+            if (msg.getType() == CommandMessage.SHOUT) {
                 performed = this.handleShout(ctx, msg);
-            } else if (msg.getGameEventType() == CommandMessage.GO) {
+            } else if (msg.getType() == CommandMessage.GO) {
                 performed = this.handleGo(ctx, msg);
-            } else if (msg.getGameEventType() == CommandMessage.SEE) {
+            } else if (msg.getType() == CommandMessage.SEE) {
                 performed = this.handleSee(ctx, msg);
             }
             if (performed.isHandled()) {

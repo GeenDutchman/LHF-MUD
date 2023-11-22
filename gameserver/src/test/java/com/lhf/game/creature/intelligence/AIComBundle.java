@@ -8,13 +8,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import com.lhf.game.creature.NonPlayerCharacter;
-import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandlerNode;
-import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandMessage;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
 import com.lhf.server.client.ComBundle;
 
-public class AIComBundle extends ComBundle implements GameEventHandlerNode {
+public class AIComBundle extends ComBundle implements MessageHandler {
     public static AIRunner aiRunner;
 
     public static AIRunner getAIRunner() {
@@ -32,11 +32,11 @@ public class AIComBundle extends ComBundle implements GameEventHandlerNode {
     public NonPlayerCharacter npc;
     public BasicAI brain;
     @Mock
-    public GameEventHandlerNode mockedWrappedHandler;
+    public MessageHandler mockedWrappedHandler;
 
     public AIComBundle() {
         super();
-        this.mockedWrappedHandler = Mockito.mock(GameEventHandlerNode.class);
+        this.mockedWrappedHandler = Mockito.mock(MessageHandler.class);
 
         this.npc = NonPlayerCharacter.getNPCBuilder(AIComBundle.getAIRunner()).build();
         this.brain = AIComBundle.getAIRunner().register(this.npc);
@@ -51,27 +51,27 @@ public class AIComBundle extends ComBundle implements GameEventHandlerNode {
     }
 
     @Override
-    public void setSuccessor(GameEventHandlerNode successor) {
+    public void setSuccessor(MessageHandler successor) {
         // no -op
     }
 
     @Override
-    public GameEventHandlerNode getSuccessor() {
+    public MessageHandler getSuccessor() {
         return null;
     }
 
     @Override
-    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
         return new EnumMap<>(CommandMessage.class);
     }
 
     @Override
-    public GameEventContext addSelfToContext(GameEventContext ctx) {
+    public CommandContext addSelfToContext(CommandContext ctx) {
         return ctx;
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         this.print(msg.toString(), true);
         this.mockedWrappedHandler.handleMessage(ctx, msg);
         return ctx.handled();

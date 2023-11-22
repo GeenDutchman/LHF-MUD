@@ -7,29 +7,29 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.CreatureContainerGameEventHandler;
+import com.lhf.game.CreatureContainerMessageHandler;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
-import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandlerNode;
-import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.in.GoMessage;
-import com.lhf.game.events.messages.in.InteractMessage;
-import com.lhf.game.events.messages.out.BadGoMessage;
-import com.lhf.game.events.messages.out.InteractOutMessage;
-import com.lhf.game.events.messages.out.OutMessage;
-import com.lhf.game.events.messages.out.BadGoMessage.BadGoType;
-import com.lhf.game.events.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.Directions;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
+import com.lhf.messages.in.GoMessage;
+import com.lhf.messages.in.InteractMessage;
+import com.lhf.messages.out.BadGoMessage;
+import com.lhf.messages.out.BadGoMessage.BadGoType;
+import com.lhf.messages.out.InteractOutMessage;
+import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.user.UserID;
 
-public class Bed extends InteractObject implements CreatureContainerGameEventHandler {
+public class Bed extends InteractObject implements CreatureContainerMessageHandler {
     protected Logger logger;
     protected final ScheduledThreadPoolExecutor executor;
     protected final int sleepSeconds;
@@ -39,7 +39,7 @@ public class Bed extends InteractObject implements CreatureContainerGameEventHan
 
     protected class BedTime implements Runnable, Comparable<Bed.BedTime> {
         protected Creature occupant;
-        protected GameEventHandlerNode successor;
+        protected MessageHandler successor;
         protected ScheduledFuture<?> future;
 
         protected BedTime(Creature occupant) {
@@ -342,7 +342,7 @@ public class Bed extends InteractObject implements CreatureContainerGameEventHan
     }
 
     @Override
-    public void setSuccessor(GameEventHandlerNode successor) {
+    public void setSuccessor(MessageHandler successor) {
         // We only care about the room
         if (successor instanceof Area && successor != null) {
             this.room = (Area) successor;
@@ -350,12 +350,12 @@ public class Bed extends InteractObject implements CreatureContainerGameEventHan
     }
 
     @Override
-    public GameEventHandlerNode getSuccessor() {
+    public MessageHandler getSuccessor() {
         return null; // we're gonna pretend there *is* no successor!
     }
 
     @Override
-    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
         EnumMap<CommandMessage, String> commands = new EnumMap<>(CommandMessage.class);
         commands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
         commands.put(CommandMessage.GO, "Use the command <command>GO UP</command> to get out of bed. ");
@@ -367,19 +367,19 @@ public class Bed extends InteractObject implements CreatureContainerGameEventHan
     }
 
     @Override
-    public GameEventContext addSelfToContext(GameEventContext ctx) {
+    public CommandContext addSelfToContext(CommandContext ctx) {
         return ctx;
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
-        if (msg.getGameEventType() == CommandMessage.EXIT) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.EXIT) {
             this.removeCreature(ctx.getCreature());
             if (this.room != null) {
                 return this.room.handleMessage(ctx, msg);
             }
-            return CreatureContainerGameEventHandler.super.handleMessage(ctx, msg);
-        } else if (msg.getGameEventType() == CommandMessage.GO) {
+            return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
+        } else if (msg.getType() == CommandMessage.GO) {
             GoMessage goMessage = (GoMessage) msg;
             if (Directions.UP.equals(goMessage.getDirection())) {
                 this.removeCreature(ctx.getCreature());
@@ -389,17 +389,17 @@ public class Bed extends InteractObject implements CreatureContainerGameEventHan
                         .setAvailable(EnumSet.of(Directions.UP)).Build());
                 return ctx.handled();
             }
-        } else if (msg.getGameEventType() == CommandMessage.INTERACT) {
+        } else if (msg.getType() == CommandMessage.INTERACT) {
             InteractMessage interactMessage = (InteractMessage) msg;
             if (this.getName() == interactMessage.getObject()) {
                 this.removeCreature(ctx.getCreature());
                 return ctx.handled();
             }
-        } else if (msg.getGameEventType() == CommandMessage.SAY || msg.getGameEventType() == CommandMessage.SHOUT) {
+        } else if (msg.getType() == CommandMessage.SAY || msg.getType() == CommandMessage.SHOUT) {
             if (this.room != null) {
                 return this.room.handleMessage(ctx, msg);
             }
-            return CreatureContainerGameEventHandler.super.handleMessage(ctx, msg);
+            return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
         }
         return ctx.failhandle();
     }

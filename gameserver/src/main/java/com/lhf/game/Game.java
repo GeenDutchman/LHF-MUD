@@ -12,15 +12,15 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.VocationFactory;
-import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandlerNode;
-import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.out.ListPlayersMessage;
 import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
+import com.lhf.messages.out.ListPlayersMessage;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
@@ -28,8 +28,8 @@ import com.lhf.server.interfaces.NotNull;
 import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
 
-public class Game implements UserListener, GameEventHandlerNode {
-	private transient GameEventHandlerNode successor;
+public class Game implements UserListener, MessageHandler {
+	private transient MessageHandler successor;
 	private ServerInterface server;
 	private UserManager userManager;
 	private Logger logger;
@@ -98,40 +98,40 @@ public class Game implements UserListener, GameEventHandlerNode {
 		this.controlRoom.addUser(user);
 	}
 
-	private GameEventContext.Reply handleListPlayersMessage(GameEventContext ctx, Command cmd) {
+	private CommandContext.Reply handleListPlayersMessage(CommandContext ctx, Command cmd) {
 		ctx.sendMsg(ListPlayersMessage.getBuilder().setPlayerNames(this.userManager.getAllUsernames()));
 		return ctx.handled();
 	}
 
 	@Override
-	public void setSuccessor(GameEventHandlerNode successor) {
+	public void setSuccessor(MessageHandler successor) {
 		this.successor = successor;
 	}
 
 	@Override
-	public GameEventHandlerNode getSuccessor() {
+	public MessageHandler getSuccessor() {
 		return this.successor;
 	}
 
 	@Override
-	public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
+	public Map<CommandMessage, String> getCommands(CommandContext ctx) {
 		Map<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
 		helps.put(CommandMessage.PLAYERS, "List the players currently in the game.");
 		return ctx.addHelps(helps);
 	}
 
 	@Override
-	public GameEventContext addSelfToContext(GameEventContext ctx) {
+	public CommandContext addSelfToContext(CommandContext ctx) {
 		return ctx;
 	}
 
 	@Override
-	public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
+	public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
 		ctx = this.addSelfToContext(ctx);
-		if (msg.getGameEventType() == CommandMessage.PLAYERS) {
+		if (msg.getType() == CommandMessage.PLAYERS) {
 			return this.handleListPlayersMessage(ctx, msg);
 		}
-		return GameEventHandlerNode.super.handleMessage(ctx, msg);
+		return MessageHandler.super.handleMessage(ctx, msg);
 	}
 
 	public void setServer(ServerInterface server) {

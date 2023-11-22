@@ -8,12 +8,12 @@ import java.util.logging.Level;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
-import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandBuilder;
-import com.lhf.game.events.messages.OutMessageType;
-import com.lhf.game.events.messages.out.LewdOutMessage;
-import com.lhf.game.events.messages.out.OutMessage;
-import com.lhf.game.events.messages.out.LewdOutMessage.LewdOutMessageType;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandBuilder;
+import com.lhf.messages.OutMessageType;
+import com.lhf.messages.out.LewdOutMessage;
+import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
 
 public class LewdAIHandler extends AIHandler {
     private Set<Creature> partners;

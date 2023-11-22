@@ -5,10 +5,10 @@ import org.mockito.Mockito;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.intelligence.AIComBundle;
-import com.lhf.game.events.messages.MessageMatcher;
-import com.lhf.game.events.messages.out.OutMessage;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.Room;
+import com.lhf.messages.MessageMatcher;
+import com.lhf.messages.out.OutMessage;
 
 public class BedTest {
 

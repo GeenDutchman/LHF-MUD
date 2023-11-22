@@ -14,8 +14,8 @@ import com.lhf.game.creature.Player;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.game.events.messages.ClientMessenger;
-import com.lhf.game.events.messages.ClientMessengerHub;
+import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ClientMessengerHub;
 import com.lhf.server.client.user.UserID;
 
 public interface CreatureContainer extends Examinable, ClientMessengerHub {

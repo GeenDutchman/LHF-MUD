@@ -12,9 +12,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.NonPlayerCharacter;
-import com.lhf.game.events.messages.out.FatalMessage;
-import com.lhf.game.events.messages.out.SeeOutMessage;
-import com.lhf.game.events.messages.out.WelcomeMessage;
+import com.lhf.messages.out.FatalMessage;
+import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.ClientID;
 
 @ExtendWith(MockitoExtension.class)

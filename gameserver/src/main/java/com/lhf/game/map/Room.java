@@ -14,29 +14,29 @@ import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandlerNode;
-import com.lhf.game.events.messages.ClientMessenger;
-import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.in.DropMessage;
-import com.lhf.game.events.messages.in.InteractMessage;
-import com.lhf.game.events.messages.in.SayMessage;
-import com.lhf.game.events.messages.in.SeeMessage;
-import com.lhf.game.events.messages.in.TakeMessage;
-import com.lhf.game.events.messages.in.UseMessage;
-import com.lhf.game.events.messages.out.*;
-import com.lhf.game.events.messages.out.BadMessage.BadMessageType;
-import com.lhf.game.events.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.game.events.messages.out.InteractOutMessage.InteractOutMessageType;
-import com.lhf.game.events.messages.out.TakeOutMessage.TakeOutType;
-import com.lhf.game.events.messages.out.UseOutMessage.UseOutMessageOption;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.magic.CubeHolder;
+import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
+import com.lhf.messages.in.DropMessage;
+import com.lhf.messages.in.InteractMessage;
+import com.lhf.messages.in.SayMessage;
+import com.lhf.messages.in.SeeMessage;
+import com.lhf.messages.in.TakeMessage;
+import com.lhf.messages.in.UseMessage;
+import com.lhf.messages.out.*;
+import com.lhf.messages.out.BadMessage.BadMessageType;
+import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
+import com.lhf.messages.out.TakeOutMessage.TakeOutType;
+import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 import com.lhf.server.client.user.UserID;
 
 public class Room implements Area {
@@ -52,7 +52,7 @@ public class Room implements Area {
     private transient Set<UUID> sentMessage;
 
     private Map<CommandMessage, String> commands;
-    private GameEventHandlerNode successor;
+    private MessageHandler successor;
 
     public static class RoomBuilder implements Area.AreaBuilder {
         private Logger logger;
@@ -61,7 +61,7 @@ public class Room implements Area {
         private List<Item> items;
         private Set<Creature> creatures;
         private Land dungeon;
-        private GameEventHandlerNode successor;
+        private MessageHandler successor;
         private BattleManager.Builder battleManagerBuilder;
 
         private RoomBuilder() {
@@ -112,7 +112,7 @@ public class Room implements Area {
             return this;
         }
 
-        public RoomBuilder setSuccessor(GameEventHandlerNode successor) {
+        public RoomBuilder setSuccessor(MessageHandler successor) {
             this.successor = successor;
             return this;
         }
@@ -143,7 +143,7 @@ public class Room implements Area {
         }
 
         @Override
-        public GameEventHandlerNode getSuccessor() {
+        public MessageHandler getSuccessor() {
             return this.successor;
         }
 
@@ -502,17 +502,17 @@ public class Room implements Area {
     }
 
     @Override
-    public void setSuccessor(GameEventHandlerNode successor) {
+    public void setSuccessor(MessageHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public GameEventHandlerNode getSuccessor() {
+    public MessageHandler getSuccessor() {
         return this.successor;
     }
 
     @Override
-    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
         EnumMap<CommandMessage, String> gathered = new EnumMap<>(this.commands);
         if (ctx.getCreature() == null) {
             gathered.remove(CommandMessage.ATTACK);
@@ -530,7 +530,7 @@ public class Room implements Area {
     }
 
     @Override
-    public GameEventContext addSelfToContext(GameEventContext ctx) {
+    public CommandContext addSelfToContext(CommandContext ctx) {
         if (ctx.getRoom() == null) {
             ctx.setRoom(this);
         }
@@ -538,12 +538,12 @@ public class Room implements Area {
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
-        GameEventContext.Reply handled = ctx.failhandle();
-        CommandMessage type = msg.getGameEventType();
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
+        CommandContext.Reply handled = ctx.failhandle();
+        CommandMessage type = msg.getType();
         ctx = this.addSelfToContext(ctx);
-        if (type != null && (this.getHandlers(ctx).containsKey(type)
-                || (this.battleManager != null && this.battleManager.getHandlers(ctx).containsKey(type)))) {
+        if (type != null && (this.getCommands(ctx).containsKey(type)
+                || (this.battleManager != null && this.battleManager.getCommands(ctx).containsKey(type)))) {
             if (type == CommandMessage.ATTACK) {
                 handled = this.handleAttack(ctx, msg);
             } else if (type == CommandMessage.SAY) {
@@ -568,8 +568,8 @@ public class Room implements Area {
         return Area.super.handleMessage(ctx, msg);
     }
 
-    protected GameEventContext.Reply handleAttack(GameEventContext ctx, Command msg) {
-        if (msg.getGameEventType() != CommandMessage.ATTACK) {
+    protected CommandContext.Reply handleAttack(CommandContext ctx, Command msg) {
+        if (msg.getType() != CommandMessage.ATTACK) {
             return ctx.failhandle();
         }
         ctx = this.addSelfToContext(ctx);
@@ -581,7 +581,7 @@ public class Room implements Area {
         return this.battleManager.handleMessage(ctx, msg);
     }
 
-    protected GameEventContext.Reply handleCast(GameEventContext ctx, Command msg) {
+    protected CommandContext.Reply handleCast(CommandContext ctx, Command msg) {
         ctx.setBattleManager(this.battleManager);
         if (ctx.getCreature() == null) {
             ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
@@ -591,8 +591,8 @@ public class Room implements Area {
         return ctx.failhandle(); // let a successor (ThirdPower) handle it
     }
 
-    protected GameEventContext.Reply handleTake(GameEventContext ctx, Command msg) {
-        if (msg.getGameEventType() == CommandMessage.TAKE) {
+    protected CommandContext.Reply handleTake(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.TAKE) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                         .setHelps(ctx.getHelps()).setCommand(msg).Build());
@@ -642,8 +642,8 @@ public class Room implements Area {
         return ctx.failhandle();
     }
 
-    protected GameEventContext.Reply handleInteract(GameEventContext ctx, Command msg) {
-        if (msg.getGameEventType() == CommandMessage.INTERACT) {
+    protected CommandContext.Reply handleInteract(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.INTERACT) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                         .setHelps(ctx.getHelps()).setCommand(msg).Build());
@@ -681,8 +681,8 @@ public class Room implements Area {
         return ctx.failhandle();
     }
 
-    protected GameEventContext.Reply handleDrop(GameEventContext ctx, Command msg) {
-        if (msg.getGameEventType() == CommandMessage.DROP) {
+    protected CommandContext.Reply handleDrop(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.DROP) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                         .setHelps(ctx.getHelps()).setCommand(msg).Build());
@@ -710,8 +710,8 @@ public class Room implements Area {
     }
 
     // only used to examine items and creatures in this room
-    protected GameEventContext.Reply handleSee(GameEventContext ctx, Command msg) {
-        if (msg.getGameEventType() == CommandMessage.SEE) {
+    protected CommandContext.Reply handleSee(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.SEE) {
             SeeMessage sMessage = (SeeMessage) msg;
             if (sMessage.getThing() != null && !sMessage.getThing().isBlank()) {
                 String name = sMessage.getThing();
@@ -778,8 +778,8 @@ public class Room implements Area {
         return ctx.failhandle();
     }
 
-    protected GameEventContext.Reply handleSay(GameEventContext ctx, Command msg) {
-        if (msg.getGameEventType() == CommandMessage.SAY) {
+    protected CommandContext.Reply handleSay(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.SAY) {
             SayMessage sMessage = (SayMessage) msg;
             SpeakingMessage.Builder speakMessage = SpeakingMessage.getBuilder().setSayer(ctx.getCreature())
                     .setMessage(sMessage.getMessage());
@@ -809,8 +809,8 @@ public class Room implements Area {
         return ctx.failhandle();
     }
 
-    protected GameEventContext.Reply handleUse(GameEventContext ctx, Command msg) {
-        if (msg.getGameEventType() == CommandMessage.USE) {
+    protected CommandContext.Reply handleUse(CommandContext ctx, Command msg) {
+        if (msg.getType() == CommandMessage.USE) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                         .setHelps(ctx.getHelps()).setCommand(msg).Build());

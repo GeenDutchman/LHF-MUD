@@ -5,7 +5,7 @@ import java.util.Collection;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
-import com.lhf.game.events.messages.out.TickMessage;
+import com.lhf.messages.out.TickMessage;
 
 public interface Initiative extends CreatureContainer {
 

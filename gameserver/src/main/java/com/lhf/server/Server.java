@@ -9,14 +9,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.Game;
-import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandlerNode;
-import com.lhf.game.events.messages.Command;
-import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.in.CreateInMessage;
-import com.lhf.game.events.messages.out.DuplicateUserMessage;
-import com.lhf.game.events.messages.out.UserLeftMessage;
-import com.lhf.game.events.messages.out.WelcomeMessage;
+import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageHandler;
+import com.lhf.messages.in.CreateInMessage;
+import com.lhf.messages.out.DuplicateUserMessage;
+import com.lhf.messages.out.UserLeftMessage;
+import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.ClientManager;
@@ -129,19 +129,19 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public void setSuccessor(GameEventHandlerNode successor) {
+    public void setSuccessor(MessageHandler successor) {
         // Server is IT, the buck stops here
         logger.log(Level.WARNING, "Attempted to put a successor on the Server");
     }
 
     @Override
-    public GameEventHandlerNode getSuccessor() {
+    public MessageHandler getSuccessor() {
         // Server is IT, the buck stops here
         return null;
     }
 
     @Override
-    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
+    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
         Map<CommandMessage, String> pruned = new EnumMap<>(this.acceptedCommands);
         if (ctx.getUser() != null) {
             pruned.remove(CommandMessage.CREATE);
@@ -149,7 +149,7 @@ public class Server implements ServerInterface, ConnectionListener {
         return ctx.addHelps(pruned);
     }
 
-    private GameEventContext.Reply handleCreateMessage(GameEventContext ctx, CreateInMessage msg) {
+    private CommandContext.Reply handleCreateMessage(CommandContext ctx, CreateInMessage msg) {
         if (this.userManager.getAllUsernames().contains(msg.getUsername())) {
             ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
             return ctx.handled();
@@ -168,15 +168,15 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public GameEventContext addSelfToContext(GameEventContext ctx) {
+    public CommandContext addSelfToContext(CommandContext ctx) {
         return ctx;
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
+    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
-        if (this.getHandlers(ctx).containsKey(msg.getGameEventType())) {
-            if (msg.getGameEventType() == CommandMessage.EXIT) {
+        if (this.getCommands(ctx).containsKey(msg.getType())) {
+            if (msg.getType() == CommandMessage.EXIT) {
                 this.logger.log(Level.INFO, "client " + ctx.getClientID().toString() + " is exiting");
                 Client ch = this.clientManager.getConnection(ctx.getClientID());
 
@@ -198,7 +198,7 @@ public class Server implements ServerInterface, ConnectionListener {
                 }
                 return ctx.handled();
             }
-            if (ctx.getUserID() == null && msg.getGameEventType() == CommandMessage.CREATE) {
+            if (ctx.getUserID() == null && msg.getType() == CommandMessage.CREATE) {
                 CreateInMessage createMessage = (CreateInMessage) msg;
                 return this.handleCreateMessage(ctx, createMessage);
             }
