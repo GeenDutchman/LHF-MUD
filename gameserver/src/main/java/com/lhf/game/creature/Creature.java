@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.AffectableEntity;
+import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffect;
@@ -229,15 +230,20 @@ public abstract class Creature
     public void updateHitpoints(int value) {
         int current = this.statblock.getStats().get(Stats.CURRENTHP);
         int max = this.statblock.getStats().get(Stats.MAXHP);
-        current += value;
-        if (current <= 0) {
-            current = 0;
-            this.die();
-        }
-        if (current > max) {
-            current = max;
-        }
+        current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
         this.statblock.getStats().replace(Stats.CURRENTHP, current);
+        if (current <= 0) {
+            MessageHandler next = this.getSuccessor();
+            while (next != null) {
+                if (next instanceof CreatureContainer container) {
+                    container.onCreatureDeath(this); // the rest of the chain should be handled here as well
+                    return; // break out of here, because it is handled
+                }
+                next = next.getSuccessor();
+            }
+        }
+        // if it gets to here, welcome to undeath (not literally)
+        System.out.format("'%s' has died, but is not in a `CreatureContainer`!", this.getName());
     }
 
     public void updateAc(int value) {
