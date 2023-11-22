@@ -734,7 +734,8 @@ public class Room implements Area {
 
                 for (Item ro : items) {
                     if (ro.CheckNameRegex(name, 3)) {
-                        ctx.sendMsg(SeeOutMessage.getBuilder().setExaminable(ro).Build());
+                        ctx.sendMsg(ro.produceMessage(SeeOutMessage.getBuilder().setExaminable(ro)
+                                .addExtraInfo("You see it in the room with you. ")));
                         return ctx.handled();
                     }
                 }

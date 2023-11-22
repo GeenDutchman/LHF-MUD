@@ -13,6 +13,7 @@ import com.lhf.game.ItemContainer;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SeeOutMessage.Builder;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 public class Chest extends Item implements ItemContainer {
@@ -44,6 +45,22 @@ public class Chest extends Item implements ItemContainer {
     @Override
     public SeeOutMessage produceMessage() {
         SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
+        for (Item thing : this.chestItems) {
+            if (thing instanceof Takeable) {
+                seeOutMessage.addSeen(SeeCategory.TAKEABLE, thing);
+            } else {
+                seeOutMessage.addSeen(SeeCategory.OTHER, thing);
+            }
+        }
+        return seeOutMessage.Build();
+    }
+
+    @Override
+    public SeeOutMessage produceMessage(Builder seeOutMessage) {
+        if (seeOutMessage == null) {
+            seeOutMessage = SeeOutMessage.getBuilder();
+        }
+        seeOutMessage.setExaminable(this);
         for (Item thing : this.chestItems) {
             if (thing instanceof Takeable) {
                 seeOutMessage.addSeen(SeeCategory.TAKEABLE, thing);
