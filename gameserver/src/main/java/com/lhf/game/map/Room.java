@@ -439,6 +439,11 @@ public class Room implements Area {
     }
 
     @Override
+    public Iterator<? extends Item> itemIterator() {
+        return this.items.iterator();
+    }
+
+    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("Room [name=").append(name).append(", description=").append(description).append(", uuid=")

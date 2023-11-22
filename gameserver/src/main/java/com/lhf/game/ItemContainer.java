@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -25,6 +27,23 @@ public interface ItemContainer extends Examinable {
     public abstract Optional<Item> removeItem(String name);
 
     public abstract boolean removeItem(Item item);
+
+    public abstract Iterator<? extends Item> itemIterator();
+
+    public static boolean transfer(ItemContainer from, ItemContainer to, Predicate<Item> predicate) {
+        if (from == null || to == null) {
+            return false;
+        }
+        boolean changed = false;
+        for (Iterator<? extends Item> it = from.itemIterator(); it.hasNext();) {
+            Item item = it.next();
+            if (item != null && (predicate != null ? predicate.test(item) : true) && to.addItem(item)) {
+                it.remove();
+                changed = true;
+            }
+        }
+        return changed;
+    }
 
     public enum Filters {
         CLASS_NAME, OBJECT_NAME, TYPE, VISIBILITY;

@@ -3,6 +3,7 @@ package com.lhf.game.creature.inventory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,6 +42,11 @@ public class Inventory implements ItemContainer {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public Iterator<? extends Item> itemIterator() {
+        return this.items.iterator();
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.lhf.game.item.concrete;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -84,6 +85,11 @@ public class Chest extends Item implements ItemContainer {
     @Override
     public boolean removeItem(Item item) {
         return this.chestItems.remove(item);
+    }
+
+    @Override
+    public Iterator<? extends Item> itemIterator() {
+        return this.chestItems.iterator();
     }
 
     @Override

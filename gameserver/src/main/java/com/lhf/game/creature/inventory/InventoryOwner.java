@@ -1,6 +1,7 @@
 package com.lhf.game.creature.inventory;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Optional;
 
 import com.lhf.game.ItemContainer;
@@ -41,6 +42,11 @@ public interface InventoryOwner extends ItemContainer {
     @Override
     default boolean removeItem(Item item) {
         return this.getInventory().removeItem(item);
+    }
+
+    @Override
+    default Iterator<? extends Item> itemIterator() {
+        return this.getInventory().itemIterator();
     }
 
 }
