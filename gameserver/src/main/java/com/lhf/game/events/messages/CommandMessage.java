@@ -1,8 +1,9 @@
 package com.lhf.game.events.messages;
 
 import com.lhf.Taggable;
+import com.lhf.game.events.GameEvent.GameEventType;
 
-public enum CommandMessage implements Taggable {
+public enum CommandMessage implements Taggable, GameEventType {
     HELP, SAY, SEE, GO, ATTACK, CAST, DROP, EQUIP, UNEQUIP, INTERACT, INVENTORY, TAKE, USE, STATUS,
     PLAYERS, EXIT, CREATE, SHOUT, PASS, LEWD, SPELLBOOK, STATS;
 
