@@ -8,7 +8,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 
-public abstract class Command {
+import com.lhf.game.events.GameEvent;
+
+public abstract class Command implements GameEvent {
     protected String whole;
     protected Boolean isValid;
     protected CommandMessage command;
