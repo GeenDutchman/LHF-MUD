@@ -570,14 +570,14 @@ public abstract class Creature
         return false;
     }
 
-    public Corpse die() {
-        System.out.println(name + "died");
+    public static Corpse die(Creature deadCreature) {
+        System.out.println(deadCreature.getName() + " died");
         for (EquipmentSlots slot : EquipmentSlots.values()) {
-            if (this.getEquipmentSlots().containsKey(slot)) {
-                unequipItem(slot, this.getEquipmentSlots().get(slot).getName());
+            if (deadCreature.getEquipmentSlots().containsKey(slot)) {
+                deadCreature.unequipItem(slot, deadCreature.getEquipmentSlots().get(slot).getName());
             }
         }
-        return new Corpse(name + "'s corpse", true);
+        return new Corpse(deadCreature.getName() + "'s corpse", true);
     }
 
     @Override
