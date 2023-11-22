@@ -97,7 +97,7 @@ public class LewdBed extends Bed {
     }
 
     protected GameEventContext.Reply handlePass(GameEventContext ctx, Command msg) {
-        if (!CommandMessage.PASS.equals(msg.getType())) {
+        if (!CommandMessage.PASS.equals(msg.getGameEventType())) {
             return ctx.failhandle();
         }
         Iterator<VrijPartij> it = this.vrijPartijen.values().iterator();
@@ -206,7 +206,7 @@ public class LewdBed extends Bed {
 
     protected GameEventContext.Reply handleLewd(GameEventContext ctx, Command msg) {
         LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder();
-        if (msg.getType() != CommandMessage.LEWD) {
+        if (msg.getGameEventType() != CommandMessage.LEWD) {
             return ctx.failhandle();
         }
         if (ctx.getCreature() == null) {
@@ -242,14 +242,14 @@ public class LewdBed extends Bed {
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
         GameEventContext.Reply handled = super.handleMessage(ctx, msg);
         if (handled.isHandled()) {
             return handled;
         }
-        if (CommandMessage.LEWD.equals(msg.getType())) {
+        if (CommandMessage.LEWD.equals(msg.getGameEventType())) {
             handled = this.handleLewd(ctx, msg);
-        } else if (this.vrijPartijen.size() > 0 && CommandMessage.PASS.equals(msg.getType())) {
+        } else if (this.vrijPartijen.size() > 0 && CommandMessage.PASS.equals(msg.getGameEventType())) {
             handled = this.handlePass(ctx, msg);
         }
         return handled;

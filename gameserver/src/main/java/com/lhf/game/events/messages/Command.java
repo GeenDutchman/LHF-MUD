@@ -40,7 +40,8 @@ public abstract class Command implements GameEvent {
         return this.whole;
     }
 
-    public CommandMessage getType() {
+    @Override
+    public CommandMessage getGameEventType() {
         return this.command;
     }
 
@@ -143,7 +144,7 @@ public abstract class Command implements GameEvent {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
-        sj.add("Message:").add(this.getType().toString());
+        sj.add("Message:").add(this.getGameEventType().toString());
         sj.add("Valid:").add(this.isValid().toString());
         return sj.toString();
     }

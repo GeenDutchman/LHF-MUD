@@ -35,7 +35,7 @@ public class BadMessage extends HelpMessage {
         }
 
         public Builder setCommand(Command badCommand) {
-            this.commandType = badCommand.getType();
+            this.commandType = badCommand.getGameEventType();
             this.commandEntered = badCommand.getWhole();
             return this.getThis();
         }

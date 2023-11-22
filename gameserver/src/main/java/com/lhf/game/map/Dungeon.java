@@ -263,7 +263,7 @@ public class Dungeon implements Land {
     }
 
     private GameEventContext.Reply handleShout(GameEventContext ctx, Command cmd) {
-        if (cmd.getType() == CommandMessage.SHOUT) {
+        if (cmd.getGameEventType() == CommandMessage.SHOUT) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                         .setHelps(ctx.getHelps()).setCommand(cmd).Build());
@@ -281,7 +281,7 @@ public class Dungeon implements Land {
     }
 
     private GameEventContext.Reply handleGo(GameEventContext ctx, Command msg) {
-        if (msg.getType() == CommandMessage.GO) {
+        if (msg.getGameEventType() == CommandMessage.GO) {
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                         .setHelps(ctx.getHelps()).setCommand(msg).Build());
@@ -337,7 +337,7 @@ public class Dungeon implements Land {
     }
 
     private GameEventContext.Reply handleSee(GameEventContext ctx, Command msg) {
-        if (msg.getType() == CommandMessage.SEE) {
+        if (msg.getGameEventType() == CommandMessage.SEE) {
             Room presentRoom = ctx.getRoom();
             if (presentRoom != null) {
                 SeeOutMessage roomSeen = presentRoom.produceMessage();
@@ -377,15 +377,15 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
         GameEventContext.Reply performed = ctx.failhandle();
         ctx = this.addSelfToContext(ctx);
-        if (this.getCommands(ctx).containsKey(msg.getType())) {
-            if (msg.getType() == CommandMessage.SHOUT) {
+        if (this.getCommands(ctx).containsKey(msg.getGameEventType())) {
+            if (msg.getGameEventType() == CommandMessage.SHOUT) {
                 performed = this.handleShout(ctx, msg);
-            } else if (msg.getType() == CommandMessage.GO) {
+            } else if (msg.getGameEventType() == CommandMessage.GO) {
                 performed = this.handleGo(ctx, msg);
-            } else if (msg.getType() == CommandMessage.SEE) {
+            } else if (msg.getGameEventType() == CommandMessage.SEE) {
                 performed = this.handleSee(ctx, msg);
             }
             if (performed.isHandled()) {

@@ -173,10 +173,10 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
         ctx = this.addSelfToContext(ctx);
-        if (this.getCommands(ctx).containsKey(msg.getType())) {
-            if (msg.getType() == CommandMessage.EXIT) {
+        if (this.getCommands(ctx).containsKey(msg.getGameEventType())) {
+            if (msg.getGameEventType() == CommandMessage.EXIT) {
                 this.logger.log(Level.INFO, "client " + ctx.getClientID().toString() + " is exiting");
                 Client ch = this.clientManager.getConnection(ctx.getClientID());
 
@@ -198,7 +198,7 @@ public class Server implements ServerInterface, ConnectionListener {
                 }
                 return ctx.handled();
             }
-            if (ctx.getUserID() == null && msg.getType() == CommandMessage.CREATE) {
+            if (ctx.getUserID() == null && msg.getGameEventType() == CommandMessage.CREATE) {
                 CreateInMessage createMessage = (CreateInMessage) msg;
                 return this.handleCreateMessage(ctx, createMessage);
             }

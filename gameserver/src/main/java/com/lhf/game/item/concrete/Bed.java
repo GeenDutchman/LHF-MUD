@@ -372,14 +372,14 @@ public class Bed extends InteractObject implements CreatureContainerGameEventHan
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
-        if (msg.getType() == CommandMessage.EXIT) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
+        if (msg.getGameEventType() == CommandMessage.EXIT) {
             this.removeCreature(ctx.getCreature());
             if (this.room != null) {
                 return this.room.handleMessage(ctx, msg);
             }
             return CreatureContainerGameEventHandler.super.handleMessage(ctx, msg);
-        } else if (msg.getType() == CommandMessage.GO) {
+        } else if (msg.getGameEventType() == CommandMessage.GO) {
             GoMessage goMessage = (GoMessage) msg;
             if (Directions.UP.equals(goMessage.getDirection())) {
                 this.removeCreature(ctx.getCreature());
@@ -389,13 +389,13 @@ public class Bed extends InteractObject implements CreatureContainerGameEventHan
                         .setAvailable(EnumSet.of(Directions.UP)).Build());
                 return ctx.handled();
             }
-        } else if (msg.getType() == CommandMessage.INTERACT) {
+        } else if (msg.getGameEventType() == CommandMessage.INTERACT) {
             InteractMessage interactMessage = (InteractMessage) msg;
             if (this.getName() == interactMessage.getObject()) {
                 this.removeCreature(ctx.getCreature());
                 return ctx.handled();
             }
-        } else if (msg.getType() == CommandMessage.SAY || msg.getType() == CommandMessage.SHOUT) {
+        } else if (msg.getGameEventType() == CommandMessage.SAY || msg.getGameEventType() == CommandMessage.SHOUT) {
             if (this.room != null) {
                 return this.room.handleMessage(ctx, msg);
             }

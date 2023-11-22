@@ -795,9 +795,9 @@ public abstract class Creature
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
         boolean handled = false;
-        CommandMessage msgType = msg.getType();
+        CommandMessage msgType = msg.getGameEventType();
         ctx = this.addSelfToContext(ctx);
         if (msgType != null && this.getCommands(ctx).containsKey(msgType)) {
             if (msgType == CommandMessage.EQUIP) {

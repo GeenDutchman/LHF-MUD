@@ -20,7 +20,7 @@ public interface GameEventHandler {
 
     public abstract GameEventContext addSelfToContext(GameEventContext ctx);
 
-    public default GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
+    public default GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
         GameEventHandler retrievedSuccessor = this.getSuccessor();
         if (retrievedSuccessor != null) {
             return retrievedSuccessor.handleMessage(ctx, msg);

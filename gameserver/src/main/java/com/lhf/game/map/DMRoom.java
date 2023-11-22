@@ -280,7 +280,7 @@ public class DMRoom extends Room {
 
     @Override
     protected GameEventContext.Reply handleSay(GameEventContext ctx, Command msg) {
-        if (msg.getType() == CommandMessage.SAY) {
+        if (msg.getGameEventType() == CommandMessage.SAY) {
             SayMessage sayMessage = (SayMessage) msg;
             if (sayMessage.getTarget() != null && !sayMessage.getTarget().isBlank()) {
                 boolean sent = false;
@@ -332,12 +332,12 @@ public class DMRoom extends Room {
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
         if (ctx.getCreature() != null && ctx.getCreature() instanceof DungeonMaster) {
             return super.handleMessage(ctx, msg);
         }
         GameEventContext.Reply handled = ctx.failhandle();
-        CommandMessage type = msg.getType();
+        CommandMessage type = msg.getGameEventType();
         if (ctx.getRoom() == null) { // if we aren't already in a room
             ctx = this.addSelfToContext(ctx);
             if (type == CommandMessage.SAY) {

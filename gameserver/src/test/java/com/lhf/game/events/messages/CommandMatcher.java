@@ -73,9 +73,9 @@ public class CommandMatcher implements ArgumentMatcher<Command> {
         String argumentAsString = argument.getWhole();
         StringBuilder sb = new StringBuilder().append(argument.hashCode()).append(this.printArgument(argumentAsString));
 
-        if (this.cmd != null && this.cmd != argument.getType()) {
+        if (this.cmd != null && this.cmd != argument.getGameEventType()) {
             if (this.printIt) {
-                sb.append("expected type ").append(this.cmd).append(" got type ").append(argument.getType())
+                sb.append("expected type ").append(this.cmd).append(" got type ").append(argument.getGameEventType())
                         .append(",no match");
                 System.out.println(sb.toString());
             }

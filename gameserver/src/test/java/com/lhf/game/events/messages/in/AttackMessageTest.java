@@ -73,7 +73,7 @@ public class AttackMessageTest {
                 for (AttackMessage am : desired) {
                         System.out.println("Testing: " + am.getWhole());
                         Command cmd = CommandBuilder.parse(am.getWhole());
-                        Truth.assertThat(cmd.getType()).isEqualTo(CommandMessage.ATTACK);
+                        Truth.assertThat(cmd.getGameEventType()).isEqualTo(CommandMessage.ATTACK);
                         Truth.assertThat(cmd).isEqualTo(am);
                 }
         }

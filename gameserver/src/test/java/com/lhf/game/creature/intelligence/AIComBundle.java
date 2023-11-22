@@ -71,7 +71,7 @@ public class AIComBundle extends ComBundle implements GameEventHandler {
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
         this.print(msg.toString(), true);
         this.mockedWrappedHandler.handleMessage(ctx, msg);
         return ctx.handled();

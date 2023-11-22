@@ -92,7 +92,8 @@ public class Client implements GameEventHandler, ClientMessenger {
             this.sendMsg(
                     BadMessage.getBuilder().setBadMessageType(badMessageType).setHelps(helps).setCommand(msg).Build());
         } else {
-            this.sendMsg(HelpMessage.getHelpBuilder().setHelps(helps).setSingleHelp(msg == null ? null : msg.getType())
+            this.sendMsg(HelpMessage.getHelpBuilder().setHelps(helps)
+                    .setSingleHelp(msg == null ? null : msg.getGameEventType())
                     .Build());
         }
         return reply.resolve();
@@ -127,10 +128,10 @@ public class Client implements GameEventHandler, ClientMessenger {
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
         ctx = this.addSelfToContext(ctx);
         GameEventContext.Reply reply = GameEventHandler.super.handleMessage(ctx, msg);
-        if (msg.getType() == CommandMessage.HELP) {
+        if (msg.getGameEventType() == CommandMessage.HELP) {
             return this.handleHelpMessage(null, null, reply);
         } else if (!reply.isHandled()) {
             return this.handleHelpMessage(msg, BadMessageType.UNHANDLED, reply);

@@ -42,7 +42,7 @@ public class AttackMessage extends Command {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
-        sj.add("Message:").add(this.getType().toString());
+        sj.add("Message:").add(this.getGameEventType().toString());
         sj.add("Valid:").add(this.isValid().toString());
         sj.add("Targets:");
         if (this.getTargets() != null) {

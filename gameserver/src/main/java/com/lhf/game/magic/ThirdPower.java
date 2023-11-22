@@ -396,10 +396,10 @@ public class ThirdPower implements GameEventHandler {
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
         ctx = this.addSelfToContext(ctx);
-        if (this.getCommands(ctx).containsKey(msg.getType())) {
-            if (msg.getType() == CommandMessage.CAST) {
+        if (this.getCommands(ctx).containsKey(msg.getGameEventType())) {
+            if (msg.getGameEventType() == CommandMessage.CAST) {
                 if (ctx.getCreature() == null) {
                     ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                             .setHelps(ctx.getHelps()).setCommand(msg).Build());
@@ -418,7 +418,7 @@ public class ThirdPower implements GameEventHandler {
                 }
                 return ctx.handled();
             }
-            if (msg.getType() == CommandMessage.SPELLBOOK) {
+            if (msg.getGameEventType() == CommandMessage.SPELLBOOK) {
                 if (ctx.getCreature() == null) {
                     ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                             .setHelps(ctx.getHelps()).setCommand(msg).Build());

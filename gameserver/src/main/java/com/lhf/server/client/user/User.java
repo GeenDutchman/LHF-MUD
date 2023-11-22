@@ -99,7 +99,7 @@ public class User implements GameEventHandler, ClientMessenger, Comparable<User>
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
         ctx = this.addSelfToContext(ctx);
         return GameEventHandler.super.handleMessage(ctx, msg);
     }

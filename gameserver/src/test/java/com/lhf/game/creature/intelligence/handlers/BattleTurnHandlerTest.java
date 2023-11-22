@@ -78,7 +78,7 @@ public class BattleTurnHandlerTest {
                     public Reply answer(InvocationOnMock invocation) throws Throwable {
                         GameEventContext ctx = invocation.getArgument(0);
                         Command cmd = invocation.getArgument(1);
-                        if (cmd.getType().equals(CommandMessage.ATTACK)
+                        if (cmd.getGameEventType().equals(CommandMessage.ATTACK)
                                 && cmd.getWhole().contains("bloohoo")) {
                             BadTargetSelectedMessage btsm = BadTargetSelectedMessage
                                     .getBuilder()
@@ -88,7 +88,7 @@ public class BattleTurnHandlerTest {
                             ctx.sendMsg(btsm);
                             return ctx.handled();
                         }
-                        if (cmd.getType().equals(CommandMessage.SEE)) {
+                        if (cmd.getGameEventType().equals(CommandMessage.SEE)) {
                             return ctx.handled();
                         }
                         return interceptor.getSuccessor().handleMessage(ctx, cmd);

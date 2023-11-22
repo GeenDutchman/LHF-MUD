@@ -126,9 +126,9 @@ public class Game implements UserListener, GameEventHandler {
 	}
 
 	@Override
-	public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
+	public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
 		ctx = this.addSelfToContext(ctx);
-		if (msg.getType() == CommandMessage.PLAYERS) {
+		if (msg.getGameEventType() == CommandMessage.PLAYERS) {
 			return this.handleListPlayersMessage(ctx, msg);
 		}
 		return GameEventHandler.super.handleMessage(ctx, msg);

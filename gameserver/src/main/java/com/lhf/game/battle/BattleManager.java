@@ -28,14 +28,15 @@ import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.events.GameEvent;
 import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
-import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.AttackMessage;
 import com.lhf.game.events.messages.in.SeeMessage;
 import com.lhf.game.events.messages.out.BadTargetSelectedMessage;
+import com.lhf.game.events.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.game.events.messages.out.BattleTurnMessage;
 import com.lhf.game.events.messages.out.FightOverMessage;
 import com.lhf.game.events.messages.out.FleeMessage;
@@ -48,7 +49,6 @@ import com.lhf.game.events.messages.out.RenegadeAnnouncement;
 import com.lhf.game.events.messages.out.SeeOutMessage;
 import com.lhf.game.events.messages.out.StartFightMessage;
 import com.lhf.game.events.messages.out.StatsOutMessage;
-import com.lhf.game.events.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.map.Area;
@@ -676,8 +676,8 @@ public class BattleManager implements CreatureContainerGameEventHandler {
     }
 
     @Override
-    public GameEventContext.Reply handleMessage(GameEventContext ctx, Command msg) {
-        CommandMessage type = msg.getType();
+    public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
+        CommandMessage type = (CommandMessage) msg.getGameEventType();
         GameEventContext.Reply handled = ctx.failhandle();
         ctx = this.addSelfToContext(ctx);
         if (type != null && this.getCommands(ctx).containsKey(type)) {
@@ -707,7 +707,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
         return CreatureContainerGameEventHandler.super.handleMessage(ctx, msg);
     }
 
-    private GameEventContext.Reply handleUse(GameEventContext ctx, Command msg) {
+    private GameEventContext.Reply handleUse(GameEventContext ctx, GameEvent msg) {
         // TODO: #127 test me!
         if (this.checkTurn(ctx.getCreature())) {
             GameEventContext.Reply reply = CreatureContainerGameEventHandler.super.handleMessage(ctx, msg);
@@ -719,7 +719,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
         return ctx.handled();
     }
 
-    private GameEventContext.Reply handlePass(GameEventContext ctx, Command msg) {
+    private GameEventContext.Reply handlePass(GameEventContext ctx, GameEvent msg) {
         Creature creature = ctx.getCreature();
         if (this.checkTurn(creature)) {
             this.endTurn(creature);
@@ -727,8 +727,8 @@ public class BattleManager implements CreatureContainerGameEventHandler {
         return ctx.handled();
     }
 
-    private GameEventContext.Reply handleSee(GameEventContext ctx, Command msg) {
-        if (msg.getType() == CommandMessage.SEE) {
+    private GameEventContext.Reply handleSee(GameEventContext ctx, GameEvent msg) {
+        if (msg.getGameEventType() == CommandMessage.SEE) {
             SeeMessage seeMessage = (SeeMessage) msg;
             if (seeMessage.getThing() != null) {
                 ctx.setBattleManager(this);
@@ -743,8 +743,8 @@ public class BattleManager implements CreatureContainerGameEventHandler {
         return ctx.failhandle();
     }
 
-    private GameEventContext.Reply handleGo(GameEventContext ctx, Command msg) {
-        if (msg.getType() == CommandMessage.GO) {
+    private GameEventContext.Reply handleGo(GameEventContext ctx, GameEvent msg) {
+        if (msg.getGameEventType() == CommandMessage.GO) {
             Integer check = 10 + this.participants.size();
             MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
             FleeMessage.Builder builder = FleeMessage.getBuilder().setRunner(ctx.getCreature()).setRoll(result);
