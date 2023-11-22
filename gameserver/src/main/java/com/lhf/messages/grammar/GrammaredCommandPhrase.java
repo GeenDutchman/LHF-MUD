@@ -16,7 +16,7 @@ public class GrammaredCommandPhrase implements GrammarStateMachine {
 
     public GrammaredCommandPhrase() {
 
-        this.prepositions = this.commonPrepositionSet();
+        this.prepositions = Prepositions.asStringSet();
 
         this.commandWord = new CommandWord();
         this.optWhat = Optional.empty();
@@ -29,7 +29,7 @@ public class GrammaredCommandPhrase implements GrammarStateMachine {
         if (prepositions != null) {
             this.prepositions = prepositions;
         } else {
-            this.prepositions = this.commonPrepositionSet();
+            this.prepositions = Prepositions.asStringSet();
         }
 
         this.commandWord = new CommandWord();
@@ -37,18 +37,6 @@ public class GrammaredCommandPhrase implements GrammarStateMachine {
         this.optPreps = Optional.empty();
         this.invalidated = false;
 
-    }
-
-    private Set<String> commonPrepositionSet() {
-        Set<String> preps = new TreeSet<>();
-        preps.add("at");
-        preps.add("to");
-        preps.add("with");
-        preps.add("in");
-        preps.add("use");
-        preps.add("from");
-        preps.add("as");
-        return preps;
     }
 
     public CommandWord getCommandWord() {
