@@ -15,17 +15,18 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
+import com.lhf.game.events.GameEventHandler;
 
 @ExtendWith(MockitoExtension.class)
 public class MessageHandlerTest {
     @Mock
-    private MessageHandler leafNodeOne;
+    private GameEventHandler leafNodeOne;
     @Mock
-    private MessageHandler leafNodeTwo;
+    private GameEventHandler leafNodeTwo;
     @Mock
-    private MessageHandler branchNode;
+    private GameEventHandler branchNode;
     @Mock
-    private MessageHandler rootNode;
+    private GameEventHandler rootNode;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -107,11 +108,11 @@ public class MessageHandlerTest {
 
     }
 
-    private CommandContext follow(MessageHandler mh, CommandContext ctx) {
+    private CommandContext follow(GameEventHandler mh, CommandContext ctx) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
-        MessageHandler following = mh;
+        GameEventHandler following = mh;
         while (following != null) {
             following.getCommands(ctx);
             following = following.getSuccessor();

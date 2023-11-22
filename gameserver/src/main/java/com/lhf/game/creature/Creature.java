@@ -30,12 +30,12 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.ITickMessage;
-import com.lhf.game.events.messages.MessageHandler;
 import com.lhf.game.events.messages.in.EquipMessage;
 import com.lhf.game.events.messages.in.UnequipMessage;
 import com.lhf.game.events.messages.out.CreatureAffectedMessage;
@@ -56,7 +56,7 @@ import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.server.client.ClientID;
 
 public abstract class Creature
-        implements InventoryOwner, EquipmentOwner, ClientMessenger, MessageHandler, Comparable<Creature>,
+        implements InventoryOwner, EquipmentOwner, ClientMessenger, GameEventHandler, Comparable<Creature>,
         AffectableEntity<CreatureEffect> {
 
     public class Fist extends Weapon {
@@ -86,7 +86,7 @@ public abstract class Creature
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
     private transient ClientMessenger controller;
-    private transient MessageHandler successor;
+    private transient GameEventHandler successor;
     private Map<CommandMessage, String> cmds;
 
     public abstract static class CreatureBuilder<T extends CreatureBuilder<T>> {
@@ -96,7 +96,7 @@ public abstract class Creature
         private Vocation vocation;
         private Statblock statblock;
         private ClientMessenger controller;
-        private MessageHandler successor;
+        private GameEventHandler successor;
 
         protected CreatureBuilder() {
             this.name = NameGenerator.Generate(null);
@@ -162,12 +162,12 @@ public abstract class Creature
             return this.controller;
         }
 
-        public T setSuccessor(MessageHandler successor) {
+        public T setSuccessor(GameEventHandler successor) {
             this.successor = successor;
             return this.getThis();
         }
 
-        public MessageHandler getSuccessor() {
+        public GameEventHandler getSuccessor() {
             return this.successor;
         }
 
@@ -772,12 +772,12 @@ public abstract class Creature
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(GameEventHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public GameEventHandler getSuccessor() {
         return this.successor;
     }
 
@@ -822,7 +822,7 @@ public abstract class Creature
             this.tick(TickType.ACTION);
             return ctx.handled();
         }
-        return MessageHandler.super.handleMessage(ctx, msg);
+        return GameEventHandler.super.handleMessage(ctx, msg);
     }
 
     @Override

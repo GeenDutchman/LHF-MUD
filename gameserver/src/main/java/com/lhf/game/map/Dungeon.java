@@ -6,11 +6,11 @@ import java.util.Map.Entry;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
+import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.MessageHandler;
 import com.lhf.game.events.messages.in.GoMessage;
 import com.lhf.game.events.messages.in.ShoutMessage;
 import com.lhf.game.events.messages.out.BadGoMessage;
@@ -49,7 +49,7 @@ public class Dungeon implements Land {
 
     private Map<UUID, Land.AreaDirectionalLinks> mapping;
     private Area startingRoom = null;
-    private transient MessageHandler successor;
+    private transient GameEventHandler successor;
     private Map<CommandMessage, String> commands;
     private transient TreeSet<DungeonEffect> effects;
     private transient Set<UUID> sentMessage;
@@ -349,12 +349,12 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(GameEventHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public GameEventHandler getSuccessor() {
         return this.successor;
     }
 

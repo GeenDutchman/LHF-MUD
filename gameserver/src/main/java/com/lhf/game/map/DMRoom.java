@@ -14,11 +14,11 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
+import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.MessageHandler;
 import com.lhf.game.events.messages.in.SayMessage;
 import com.lhf.game.events.messages.out.BadMessage;
 import com.lhf.game.events.messages.out.BadTargetSelectedMessage;
@@ -94,7 +94,7 @@ public class DMRoom extends Room {
             return this;
         }
 
-        public DMRoomBuilder setSuccessor(MessageHandler successor) {
+        public DMRoomBuilder setSuccessor(GameEventHandler successor) {
             this.delegate = delegate.setSuccessor(successor);
             return this;
         }
@@ -125,7 +125,7 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public MessageHandler getSuccessor() {
+        public GameEventHandler getSuccessor() {
             return this.delegate.getSuccessor();
         }
 

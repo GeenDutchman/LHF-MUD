@@ -7,22 +7,22 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandBuilder;
 import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.MessageHandler;
 import com.lhf.game.events.messages.out.BadMessage;
 import com.lhf.game.events.messages.out.HelpMessage;
 import com.lhf.game.events.messages.out.OutMessage;
 import com.lhf.game.events.messages.out.BadMessage.BadMessageType;
 
-public class Client implements MessageHandler, ClientMessenger {
+public class Client implements GameEventHandler, ClientMessenger {
     protected SendStrategy out;
     protected final ClientID id;
     protected final Logger logger;
-    protected transient MessageHandler _successor;
+    protected transient GameEventHandler _successor;
 
     protected Client() {
         this.id = new ClientID();
@@ -99,12 +99,12 @@ public class Client implements MessageHandler, ClientMessenger {
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(GameEventHandler successor) {
         this._successor = successor;
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public GameEventHandler getSuccessor() {
         return this._successor;
     }
 
@@ -129,7 +129,7 @@ public class Client implements MessageHandler, ClientMessenger {
     @Override
     public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
-        CommandContext.Reply reply = MessageHandler.super.handleMessage(ctx, msg);
+        CommandContext.Reply reply = GameEventHandler.super.handleMessage(ctx, msg);
         if (msg.getType() == CommandMessage.HELP) {
             return this.handleHelpMessage(null, null, reply);
         } else if (!reply.isHandled()) {

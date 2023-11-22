@@ -7,15 +7,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.CreatureContainerMessageHandler;
+import com.lhf.game.CreatureContainerGameEventHandler;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
+import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.MessageHandler;
 import com.lhf.game.events.messages.in.GoMessage;
 import com.lhf.game.events.messages.in.InteractMessage;
 import com.lhf.game.events.messages.out.BadGoMessage;
@@ -29,7 +29,7 @@ import com.lhf.game.map.Area;
 import com.lhf.game.map.Directions;
 import com.lhf.server.client.user.UserID;
 
-public class Bed extends InteractObject implements CreatureContainerMessageHandler {
+public class Bed extends InteractObject implements CreatureContainerGameEventHandler {
     protected Logger logger;
     protected final ScheduledThreadPoolExecutor executor;
     protected final int sleepSeconds;
@@ -39,7 +39,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
 
     protected class BedTime implements Runnable, Comparable<Bed.BedTime> {
         protected Creature occupant;
-        protected MessageHandler successor;
+        protected GameEventHandler successor;
         protected ScheduledFuture<?> future;
 
         protected BedTime(Creature occupant) {
@@ -342,7 +342,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(GameEventHandler successor) {
         // We only care about the room
         if (successor instanceof Area && successor != null) {
             this.room = (Area) successor;
@@ -350,7 +350,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public GameEventHandler getSuccessor() {
         return null; // we're gonna pretend there *is* no successor!
     }
 
@@ -378,7 +378,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
             if (this.room != null) {
                 return this.room.handleMessage(ctx, msg);
             }
-            return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
+            return CreatureContainerGameEventHandler.super.handleMessage(ctx, msg);
         } else if (msg.getType() == CommandMessage.GO) {
             GoMessage goMessage = (GoMessage) msg;
             if (Directions.UP.equals(goMessage.getDirection())) {
@@ -399,7 +399,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
             if (this.room != null) {
                 return this.room.handleMessage(ctx, msg);
             }
-            return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
+            return CreatureContainerGameEventHandler.super.handleMessage(ctx, msg);
         }
         return ctx.failhandle();
     }

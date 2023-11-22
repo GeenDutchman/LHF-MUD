@@ -14,11 +14,11 @@ import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.ResourceCost;
+import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.MessageHandler;
 import com.lhf.game.events.messages.in.CastMessage;
 import com.lhf.game.events.messages.in.SpellbookMessage;
 import com.lhf.game.events.messages.out.BadMessage;
@@ -36,7 +36,7 @@ import com.lhf.game.magic.Spellbook.Filters;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.RoomEffect;
 
-public class ThirdPower implements MessageHandler {
+public class ThirdPower implements GameEventHandler {
     // buff debuff
     // damage heal
     // summon banish
@@ -49,12 +49,12 @@ public class ThirdPower implements MessageHandler {
      * 
      * 
      */
-    private transient MessageHandler successor;
+    private transient GameEventHandler successor;
     private EnumMap<CommandMessage, String> cmds;
     private Spellbook spellbook;
     private Logger logger;
 
-    public ThirdPower(MessageHandler successor, Spellbook spellbook) {
+    public ThirdPower(GameEventHandler successor, Spellbook spellbook) {
         this.logger = Logger.getLogger(this.getClass().getName());
         this.successor = successor;
         this.cmds = this.generateCommands();
@@ -381,12 +381,12 @@ public class ThirdPower implements MessageHandler {
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(GameEventHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public GameEventHandler getSuccessor() {
         return this.successor;
     }
 
@@ -434,7 +434,7 @@ public class ThirdPower implements MessageHandler {
                 return this.handleSpellbook(ctx, msg);
             }
         }
-        return MessageHandler.super.handleMessage(ctx, msg);
+        return GameEventHandler.super.handleMessage(ctx, msg);
     }
 
     @Override

@@ -20,10 +20,10 @@ import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler.TargetLists;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.MessageHandler;
 import com.lhf.game.events.messages.CommandContext.Reply;
 import com.lhf.game.events.messages.out.BadTargetSelectedMessage;
 import com.lhf.game.events.messages.out.BattleTurnMessage;
@@ -67,10 +67,10 @@ public class BattleTurnHandlerTest {
         AIComBundle searcher = new AIComBundle();
         searcher.npc.setInBattle(true);
 
-        MessageHandler interceptor = Mockito.mock(MessageHandler.class);
+        GameEventHandler interceptor = Mockito.mock(GameEventHandler.class);
         Mockito.doNothing().when(interceptor).setSuccessor(Mockito.any());
         Mockito.when(interceptor.getSuccessor()).thenReturn(searcher);
-        Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(MessageHandler.class));
+        Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(GameEventHandler.class));
         Mockito.when(interceptor.handleMessage(Mockito.any(CommandContext.class), Mockito.any(Command.class)))
                 .thenAnswer(new Answer<CommandContext.Reply>() {
 

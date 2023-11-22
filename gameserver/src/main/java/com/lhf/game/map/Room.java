@@ -14,11 +14,11 @@ import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.MessageHandler;
 import com.lhf.game.events.messages.in.DropMessage;
 import com.lhf.game.events.messages.in.InteractMessage;
 import com.lhf.game.events.messages.in.SayMessage;
@@ -52,7 +52,7 @@ public class Room implements Area {
     private transient Set<UUID> sentMessage;
 
     private Map<CommandMessage, String> commands;
-    private MessageHandler successor;
+    private GameEventHandler successor;
 
     public static class RoomBuilder implements Area.AreaBuilder {
         private Logger logger;
@@ -61,7 +61,7 @@ public class Room implements Area {
         private List<Item> items;
         private Set<Creature> creatures;
         private Land dungeon;
-        private MessageHandler successor;
+        private GameEventHandler successor;
         private BattleManager.Builder battleManagerBuilder;
 
         private RoomBuilder() {
@@ -112,7 +112,7 @@ public class Room implements Area {
             return this;
         }
 
-        public RoomBuilder setSuccessor(MessageHandler successor) {
+        public RoomBuilder setSuccessor(GameEventHandler successor) {
             this.successor = successor;
             return this;
         }
@@ -143,7 +143,7 @@ public class Room implements Area {
         }
 
         @Override
-        public MessageHandler getSuccessor() {
+        public GameEventHandler getSuccessor() {
             return this.successor;
         }
 
@@ -502,12 +502,12 @@ public class Room implements Area {
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(GameEventHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public GameEventHandler getSuccessor() {
         return this.successor;
     }
 

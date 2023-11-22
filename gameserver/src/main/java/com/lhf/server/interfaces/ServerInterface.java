@@ -3,12 +3,12 @@ package com.lhf.server.interfaces;
 import java.util.EnumMap;
 import java.util.Map;
 
+import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.MessageHandler;
 import com.lhf.server.client.user.UserID;
 
-public interface ServerInterface extends MessageHandler {
+public interface ServerInterface extends GameEventHandler {
     void registerCallback(UserListener listener);
 
     void start();

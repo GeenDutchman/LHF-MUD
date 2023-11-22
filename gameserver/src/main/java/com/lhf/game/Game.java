@@ -12,10 +12,10 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.VocationFactory;
+import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.MessageHandler;
 import com.lhf.game.events.messages.out.ListPlayersMessage;
 import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.DMRoom;
@@ -28,8 +28,8 @@ import com.lhf.server.interfaces.NotNull;
 import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
 
-public class Game implements UserListener, MessageHandler {
-	private transient MessageHandler successor;
+public class Game implements UserListener, GameEventHandler {
+	private transient GameEventHandler successor;
 	private ServerInterface server;
 	private UserManager userManager;
 	private Logger logger;
@@ -104,12 +104,12 @@ public class Game implements UserListener, MessageHandler {
 	}
 
 	@Override
-	public void setSuccessor(MessageHandler successor) {
+	public void setSuccessor(GameEventHandler successor) {
 		this.successor = successor;
 	}
 
 	@Override
-	public MessageHandler getSuccessor() {
+	public GameEventHandler getSuccessor() {
 		return this.successor;
 	}
 
@@ -131,7 +131,7 @@ public class Game implements UserListener, MessageHandler {
 		if (msg.getType() == CommandMessage.PLAYERS) {
 			return this.handleListPlayersMessage(ctx, msg);
 		}
-		return MessageHandler.super.handleMessage(ctx, msg);
+		return GameEventHandler.super.handleMessage(ctx, msg);
 	}
 
 	public void setServer(ServerInterface server) {

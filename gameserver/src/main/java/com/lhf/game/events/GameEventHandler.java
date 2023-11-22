@@ -1,14 +1,19 @@
-package com.lhf.game.events.messages;
+package com.lhf.game.events;
 
 import java.util.Map;
 
-public interface MessageHandler {
+import com.lhf.game.events.messages.Command;
+import com.lhf.game.events.messages.CommandContext;
+import com.lhf.game.events.messages.CommandMessage;
+import com.lhf.game.events.messages.CommandContext.Reply;
 
-    public void setSuccessor(MessageHandler successor);
+public interface GameEventHandler {
 
-    public MessageHandler getSuccessor();
+    public void setSuccessor(GameEventHandler successor);
 
-    public default void intercept(MessageHandler interceptor) {
+    public GameEventHandler getSuccessor();
+
+    public default void intercept(GameEventHandler interceptor) {
         interceptor.setSuccessor(this.getSuccessor());
         this.setSuccessor(interceptor);
     }
@@ -18,7 +23,7 @@ public interface MessageHandler {
     public abstract CommandContext addSelfToContext(CommandContext ctx);
 
     public default CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-        MessageHandler retrievedSuccessor = this.getSuccessor();
+        GameEventHandler retrievedSuccessor = this.getSuccessor();
         if (retrievedSuccessor != null) {
             return retrievedSuccessor.handleMessage(ctx, msg);
         }

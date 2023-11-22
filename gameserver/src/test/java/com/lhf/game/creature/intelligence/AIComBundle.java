@@ -8,13 +8,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
-import com.lhf.game.events.messages.MessageHandler;
 import com.lhf.server.client.ComBundle;
 
-public class AIComBundle extends ComBundle implements MessageHandler {
+public class AIComBundle extends ComBundle implements GameEventHandler {
     public static AIRunner aiRunner;
 
     public static AIRunner getAIRunner() {
@@ -32,11 +32,11 @@ public class AIComBundle extends ComBundle implements MessageHandler {
     public NonPlayerCharacter npc;
     public BasicAI brain;
     @Mock
-    public MessageHandler mockedWrappedHandler;
+    public GameEventHandler mockedWrappedHandler;
 
     public AIComBundle() {
         super();
-        this.mockedWrappedHandler = Mockito.mock(MessageHandler.class);
+        this.mockedWrappedHandler = Mockito.mock(GameEventHandler.class);
 
         this.npc = NonPlayerCharacter.getNPCBuilder(AIComBundle.getAIRunner()).build();
         this.brain = AIComBundle.getAIRunner().register(this.npc);
@@ -51,12 +51,12 @@ public class AIComBundle extends ComBundle implements MessageHandler {
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(GameEventHandler successor) {
         // no -op
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public GameEventHandler getSuccessor() {
         return null;
     }
 
