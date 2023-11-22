@@ -398,7 +398,7 @@ public class ThirdPower implements GameEventHandlerNode {
     @Override
     public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
         ctx = this.addSelfToContext(ctx);
-        if (this.getCommands(ctx).containsKey(msg.getGameEventType())) {
+        if (this.getHandlers(ctx).containsKey(msg.getGameEventType())) {
             if (msg.getGameEventType() == CommandMessage.CAST) {
                 if (ctx.getCreature() == null) {
                     ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
@@ -438,7 +438,7 @@ public class ThirdPower implements GameEventHandlerNode {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
+    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
         Map<CommandMessage, String> commands = new EnumMap<>(this.cmds);
         if (ctx.getCreature() == null || !(ctx.getCreature().getVocation() instanceof CubeHolder)) {
             commands.remove(CommandMessage.CAST);

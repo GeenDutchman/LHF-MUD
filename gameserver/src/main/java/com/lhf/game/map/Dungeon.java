@@ -364,7 +364,7 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
+    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
         Map<CommandMessage, String> gathered = new EnumMap<>(this.commands);
         if (ctx.getCreature() == null) {
             gathered.remove(CommandMessage.SHOUT);
@@ -380,7 +380,7 @@ public class Dungeon implements Land {
     public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
         GameEventContext.Reply performed = ctx.failhandle();
         ctx = this.addSelfToContext(ctx);
-        if (this.getCommands(ctx).containsKey(msg.getGameEventType())) {
+        if (this.getHandlers(ctx).containsKey(msg.getGameEventType())) {
             if (msg.getGameEventType() == CommandMessage.SHOUT) {
                 performed = this.handleShout(ctx, msg);
             } else if (msg.getGameEventType() == CommandMessage.GO) {

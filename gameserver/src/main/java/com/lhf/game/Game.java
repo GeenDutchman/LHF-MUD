@@ -114,7 +114,7 @@ public class Game implements UserListener, GameEventHandlerNode {
 	}
 
 	@Override
-	public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
+	public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
 		Map<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
 		helps.put(CommandMessage.PLAYERS, "List the players currently in the game.");
 		return ctx.addHelps(helps);

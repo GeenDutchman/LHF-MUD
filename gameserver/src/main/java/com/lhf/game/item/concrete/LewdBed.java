@@ -267,8 +267,8 @@ public class LewdBed extends Bed {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
-        Map<CommandMessage, String> bedCommands = super.getCommands(ctx);
+    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
+        Map<CommandMessage, String> bedCommands = super.getHandlers(ctx);
         bedCommands.put(CommandMessage.LEWD, "\"lewd [creature]\" lewd another person in the bed");
         if (this.vrijPartijen.size() > 0) {
             bedCommands.put(CommandMessage.PASS, "\"pass\" to decline all the lewdness");

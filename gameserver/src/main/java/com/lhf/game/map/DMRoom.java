@@ -312,7 +312,7 @@ public class DMRoom extends Room {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
+    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
         ctx = super.addSelfToContext(ctx);
         Map<CommandMessage, String> gathered = new EnumMap<>(CommandMessage.class);
         StringJoiner sj = new StringJoiner(" ");
@@ -326,7 +326,7 @@ public class DMRoom extends Room {
             gathered.remove(CommandMessage.CAST);
         }
         ctx.addHelps(gathered);
-        Map<CommandMessage, String> superGathered = new EnumMap<>(super.getCommands(ctx));
+        Map<CommandMessage, String> superGathered = new EnumMap<>(super.getHandlers(ctx));
         superGathered.putAll(gathered);
         return superGathered;
     }

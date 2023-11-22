@@ -74,7 +74,7 @@ public class MessageHandlerTest {
         Map<CommandMessage, String> leafNodeOneHelps = new HashMap<>();
         leafNodeOneHelps.put(CommandMessage.HELP, "When you need help");
         leafNodeOneHelps.put(CommandMessage.INVENTORY, "When you need to know what you have");
-        when(this.leafNodeOne.getCommands(Mockito.isA(GameEventContext.class))).thenAnswer( i -> {
+        when(this.leafNodeOne.getHandlers(Mockito.isA(GameEventContext.class))).thenAnswer( i -> {
             GameEventContext cc = i.getArgument(0);
             if (cc != null) {
                 cc.addHelps(leafNodeOneHelps);
@@ -84,7 +84,7 @@ public class MessageHandlerTest {
 
         Map<CommandMessage, String> leafNodeTwoHelps = new HashMap<>();
         leafNodeTwoHelps.put(CommandMessage.CAST, "If you are a caster");
-        when(this.leafNodeTwo.getCommands(Mockito.isA(GameEventContext.class))).thenAnswer( i -> {
+        when(this.leafNodeTwo.getHandlers(Mockito.isA(GameEventContext.class))).thenAnswer( i -> {
             GameEventContext cc = i.getArgument(0);
             if (cc != null) {
                 cc.addHelps(leafNodeTwoHelps);
@@ -95,7 +95,7 @@ public class MessageHandlerTest {
         Map<CommandMessage, String> branchNodeHelps = new HashMap<>();
         branchNodeHelps.put(CommandMessage.HELP, "When you get higher help");
         branchNodeHelps.put(CommandMessage.SEE, "I added something!");
-        when(this.branchNode.getCommands(Mockito.isA(GameEventContext.class))).thenAnswer( i -> {
+        when(this.branchNode.getHandlers(Mockito.isA(GameEventContext.class))).thenAnswer( i -> {
             GameEventContext cc = i.getArgument(0);
             if (cc != null) {
                 cc.addHelps(branchNodeHelps);
@@ -105,7 +105,7 @@ public class MessageHandlerTest {
         
 
         // root node does nothing
-        when(this.rootNode.getCommands(any())).thenReturn(null);
+        when(this.rootNode.getHandlers(any())).thenReturn(null);
 
     }
 
@@ -115,7 +115,7 @@ public class MessageHandlerTest {
         }
         GameEventHandlerNode following = mh;
         while (following != null) {
-            following.getCommands(ctx);
+            following.getHandlers(ctx);
             following = following.getSuccessor();
         }
         return ctx;

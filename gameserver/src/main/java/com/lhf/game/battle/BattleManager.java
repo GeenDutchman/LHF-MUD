@@ -645,7 +645,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
+    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
         Map<CommandMessage, String> collected = new EnumMap<>(this.cmds);
         if (this.isBattleOngoing()) {
             collected.putAll(this.interceptorCmds);
@@ -680,7 +680,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
         CommandMessage type = (CommandMessage) msg.getGameEventType();
         GameEventContext.Reply handled = ctx.failhandle();
         ctx = this.addSelfToContext(ctx);
-        if (type != null && this.getCommands(ctx).containsKey(type)) {
+        if (type != null && this.getHandlers(ctx).containsKey(type)) {
             if (type == CommandMessage.ATTACK) {
                 AttackMessage aMessage = (AttackMessage) msg;
                 handled = handleAttack(ctx, aMessage);

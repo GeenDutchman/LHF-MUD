@@ -7,6 +7,7 @@ import java.util.Objects;
 import com.lhf.game.events.GameEvent;
 import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandlerNode;
+import com.lhf.game.events.GameEvent.GameEventType;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.CreateInMessage;
@@ -66,8 +67,8 @@ public class User implements GameEventHandlerNode, ClientMessenger, Comparable<U
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
-        return new EnumMap<>(CommandMessage.class);
+    public Map<GameEventType, GameEventTypeHandler> getHandlers(GameEventContext ctx) {
+        return Map.of();
     }
 
     @Override

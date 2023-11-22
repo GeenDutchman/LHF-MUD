@@ -75,6 +75,13 @@ public class GameEventContext implements ClientMessenger {
         }
     }
 
+    public List<OutMessage> getMessages() {
+        if (this.messages == null) {
+            this.messages = new ArrayList<>();
+        }
+        return Collections.unmodifiableList(this.messages);
+    }
+
     @Override
     public ClientID getClientID() {
         if (this.client != null) {

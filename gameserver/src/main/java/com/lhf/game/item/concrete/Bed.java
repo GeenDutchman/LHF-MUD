@@ -355,7 +355,7 @@ public class Bed extends InteractObject implements CreatureContainerGameEventHan
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
+    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
         EnumMap<CommandMessage, String> commands = new EnumMap<>(CommandMessage.class);
         commands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
         commands.put(CommandMessage.GO, "Use the command <command>GO UP</command> to get out of bed. ");

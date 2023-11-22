@@ -61,7 +61,7 @@ public class AIComBundle extends ComBundle implements GameEventHandlerNode {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
+    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
         return new EnumMap<>(CommandMessage.class);
     }
 

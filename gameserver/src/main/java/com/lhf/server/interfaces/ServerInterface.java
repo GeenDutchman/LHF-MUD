@@ -16,7 +16,7 @@ public interface ServerInterface extends GameEventHandlerNode {
     void removeUser(UserID id);
 
     @Override
-    default Map<CommandMessage, String> getCommands(GameEventContext ctx) {
+    default Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
         EnumMap<CommandMessage, String> gathered = new EnumMap<>(CommandMessage.class);
         if (ctx.getUser() != null) {
             gathered.remove(CommandMessage.CREATE);

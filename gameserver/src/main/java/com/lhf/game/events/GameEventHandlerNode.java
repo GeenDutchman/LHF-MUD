@@ -45,7 +45,7 @@ public interface GameEventHandlerNode {
         this.setSuccessor(interceptor);
     }
 
-    public abstract Map<CommandMessage, String> getCommands(GameEventContext ctx);
+    public abstract Map<GameEventType, GameEventTypeHandler> getHandlers(GameEventContext ctx);
 
     public abstract GameEventContext addSelfToContext(GameEventContext ctx);
 

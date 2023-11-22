@@ -141,7 +141,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
+    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
         Map<CommandMessage, String> pruned = new EnumMap<>(this.acceptedCommands);
         if (ctx.getUser() != null) {
             pruned.remove(CommandMessage.CREATE);
@@ -175,7 +175,7 @@ public class Server implements ServerInterface, ConnectionListener {
     @Override
     public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
         ctx = this.addSelfToContext(ctx);
-        if (this.getCommands(ctx).containsKey(msg.getGameEventType())) {
+        if (this.getHandlers(ctx).containsKey(msg.getGameEventType())) {
             if (msg.getGameEventType() == CommandMessage.EXIT) {
                 this.logger.log(Level.INFO, "client " + ctx.getClientID().toString() + " is exiting");
                 Client ch = this.clientManager.getConnection(ctx.getClientID());

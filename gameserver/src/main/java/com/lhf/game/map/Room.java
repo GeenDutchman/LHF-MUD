@@ -512,7 +512,7 @@ public class Room implements Area {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(GameEventContext ctx) {
+    public Map<CommandMessage, String> getHandlers(GameEventContext ctx) {
         EnumMap<CommandMessage, String> gathered = new EnumMap<>(this.commands);
         if (ctx.getCreature() == null) {
             gathered.remove(CommandMessage.ATTACK);
@@ -542,8 +542,8 @@ public class Room implements Area {
         GameEventContext.Reply handled = ctx.failhandle();
         CommandMessage type = msg.getGameEventType();
         ctx = this.addSelfToContext(ctx);
-        if (type != null && (this.getCommands(ctx).containsKey(type)
-                || (this.battleManager != null && this.battleManager.getCommands(ctx).containsKey(type)))) {
+        if (type != null && (this.getHandlers(ctx).containsKey(type)
+                || (this.battleManager != null && this.battleManager.getHandlers(ctx).containsKey(type)))) {
             if (type == CommandMessage.ATTACK) {
                 handled = this.handleAttack(ctx, msg);
             } else if (type == CommandMessage.SAY) {
