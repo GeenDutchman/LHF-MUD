@@ -1,5 +1,6 @@
 package com.lhf.messages.in;
 
+import java.util.Optional;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
@@ -9,6 +10,7 @@ public class TakeMessage extends Command {
 
     TakeMessage(String arguments) {
         super(CommandMessage.TAKE, arguments, true);
+        this.addPreposition("from");
     }
 
     public String getTarget() {
@@ -20,7 +22,16 @@ public class TakeMessage extends Command {
 
     @Override
     public Boolean isValid() {
-        return super.isValid() && this.directs.size() >= 1 && this.indirects.size() == 0;
+        boolean indirectsvalid = true;
+        if (this.indirects.size() >= 1) {
+            indirectsvalid = this.indirects.size() == 1 && this.indirects.containsKey("from")
+                    && this.indirects.getOrDefault("from", null) != null;
+        }
+        return super.isValid() && this.directs.size() >= 1 && indirectsvalid;
+    }
+
+    public Optional<String> fromContainer() {
+        return Optional.ofNullable(this.indirects.getOrDefault("from", null));
     }
 
     @Override
