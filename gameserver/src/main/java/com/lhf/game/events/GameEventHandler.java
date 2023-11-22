@@ -2,7 +2,6 @@ package com.lhf.game.events;
 
 import java.util.Map;
 
-import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandMessage;
 
 public interface GameEventHandler {

@@ -7,11 +7,13 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.events.GameEvent;
 import com.lhf.game.events.GameEventContext;
 import com.lhf.game.events.GameEventHandler;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandBuilder;
+import com.lhf.game.events.messages.CommandContext;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.out.BadMessage;
 import com.lhf.game.events.messages.out.HelpMessage;
@@ -41,7 +43,7 @@ public class Client implements GameEventHandler, ClientMessenger {
     public GameEventContext.Reply ProcessString(String value) {
         this.logger.log(Level.FINE, "message received: " + value);
         Command cmd = CommandBuilder.parse(value);
-        GameEventContext ctx = new GameEventContext();
+        CommandContext ctx = new CommandContext();
         GameEventContext.Reply accepted = ctx.failhandle();
         if (cmd.isValid()) {
             this.logger.log(Level.FINEST, "the message received was deemed" + cmd.getClass().toString());
@@ -86,7 +88,9 @@ public class Client implements GameEventHandler, ClientMessenger {
 
     private GameEventContext.Reply handleHelpMessage(Command msg, BadMessageType badMessageType,
             GameEventContext.Reply reply) {
-        Map<CommandMessage, String> helps = reply.getHelps();
+        Map<CommandMessage, String> helps = reply instanceof CommandContext.Reply
+                ? ((CommandContext.Reply) reply).getHelps()
+                : Map.of();
 
         if (badMessageType != null) {
             this.sendMsg(
@@ -134,7 +138,7 @@ public class Client implements GameEventHandler, ClientMessenger {
         if (msg.getGameEventType() == CommandMessage.HELP) {
             return this.handleHelpMessage(null, null, reply);
         } else if (!reply.isHandled()) {
-            return this.handleHelpMessage(msg, BadMessageType.UNHANDLED, reply);
+            return this.handleHelpMessage((Command) msg, BadMessageType.UNHANDLED, reply);
         }
 
         return reply;
