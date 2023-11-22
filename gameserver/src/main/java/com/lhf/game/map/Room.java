@@ -15,7 +15,7 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandler;
+import com.lhf.game.events.GameEventHandlerNode;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandMessage;
@@ -52,7 +52,7 @@ public class Room implements Area {
     private transient Set<UUID> sentMessage;
 
     private Map<CommandMessage, String> commands;
-    private GameEventHandler successor;
+    private GameEventHandlerNode successor;
 
     public static class RoomBuilder implements Area.AreaBuilder {
         private Logger logger;
@@ -61,7 +61,7 @@ public class Room implements Area {
         private List<Item> items;
         private Set<Creature> creatures;
         private Land dungeon;
-        private GameEventHandler successor;
+        private GameEventHandlerNode successor;
         private BattleManager.Builder battleManagerBuilder;
 
         private RoomBuilder() {
@@ -112,7 +112,7 @@ public class Room implements Area {
             return this;
         }
 
-        public RoomBuilder setSuccessor(GameEventHandler successor) {
+        public RoomBuilder setSuccessor(GameEventHandlerNode successor) {
             this.successor = successor;
             return this;
         }
@@ -143,7 +143,7 @@ public class Room implements Area {
         }
 
         @Override
-        public GameEventHandler getSuccessor() {
+        public GameEventHandlerNode getSuccessor() {
             return this.successor;
         }
 
@@ -502,12 +502,12 @@ public class Room implements Area {
     }
 
     @Override
-    public void setSuccessor(GameEventHandler successor) {
+    public void setSuccessor(GameEventHandlerNode successor) {
         this.successor = successor;
     }
 
     @Override
-    public GameEventHandler getSuccessor() {
+    public GameEventHandlerNode getSuccessor() {
         return this.successor;
     }
 

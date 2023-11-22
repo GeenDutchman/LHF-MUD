@@ -4,11 +4,11 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandler;
+import com.lhf.game.events.GameEventHandlerNode;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.server.client.user.UserID;
 
-public interface ServerInterface extends GameEventHandler {
+public interface ServerInterface extends GameEventHandlerNode {
     void registerCallback(UserListener listener);
 
     void start();

@@ -6,17 +6,17 @@ import java.util.Objects;
 
 import com.lhf.game.events.GameEvent;
 import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandler;
+import com.lhf.game.events.GameEventHandlerNode;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.CreateInMessage;
 import com.lhf.game.events.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
-public class User implements GameEventHandler, ClientMessenger, Comparable<User> {
+public class User implements GameEventHandlerNode, ClientMessenger, Comparable<User> {
     private UserID id;
     private String username;
-    private transient GameEventHandler successor;
+    private transient GameEventHandlerNode successor;
 
     // private String password;
     private ClientMessenger client;
@@ -56,12 +56,12 @@ public class User implements GameEventHandler, ClientMessenger, Comparable<User>
     }
 
     @Override
-    public void setSuccessor(GameEventHandler successor) {
+    public void setSuccessor(GameEventHandlerNode successor) {
         this.successor = successor;
     }
 
     @Override
-    public GameEventHandler getSuccessor() {
+    public GameEventHandlerNode getSuccessor() {
         return this.successor;
     }
 
@@ -101,7 +101,7 @@ public class User implements GameEventHandler, ClientMessenger, Comparable<User>
     @Override
     public GameEventContext.Reply handleMessage(GameEventContext ctx, GameEvent msg) {
         ctx = this.addSelfToContext(ctx);
-        return GameEventHandler.super.handleMessage(ctx, msg);
+        return GameEventHandlerNode.super.handleMessage(ctx, msg);
     }
 
     @Override

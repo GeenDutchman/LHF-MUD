@@ -21,7 +21,7 @@ import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler.TargetLists;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandler;
+import com.lhf.game.events.GameEventHandlerNode;
 import com.lhf.game.events.GameEventContext.Reply;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandMessage;
@@ -67,10 +67,10 @@ public class BattleTurnHandlerTest {
         AIComBundle searcher = new AIComBundle();
         searcher.npc.setInBattle(true);
 
-        GameEventHandler interceptor = Mockito.mock(GameEventHandler.class);
+        GameEventHandlerNode interceptor = Mockito.mock(GameEventHandlerNode.class);
         Mockito.doNothing().when(interceptor).setSuccessor(Mockito.any());
         Mockito.when(interceptor.getSuccessor()).thenReturn(searcher);
-        Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(GameEventHandler.class));
+        Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(GameEventHandlerNode.class));
         Mockito.when(interceptor.handleMessage(Mockito.any(GameEventContext.class), Mockito.any(Command.class)))
                 .thenAnswer(new Answer<GameEventContext.Reply>() {
 

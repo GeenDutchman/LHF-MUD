@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 
 import com.lhf.game.Game;
 import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandler;
+import com.lhf.game.events.GameEventHandlerNode;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.CreateInMessage;
@@ -129,13 +129,13 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public void setSuccessor(GameEventHandler successor) {
+    public void setSuccessor(GameEventHandlerNode successor) {
         // Server is IT, the buck stops here
         logger.log(Level.WARNING, "Attempted to put a successor on the Server");
     }
 
     @Override
-    public GameEventHandler getSuccessor() {
+    public GameEventHandlerNode getSuccessor() {
         // Server is IT, the buck stops here
         return null;
     }

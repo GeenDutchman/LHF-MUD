@@ -15,7 +15,7 @@ import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandler;
+import com.lhf.game.events.GameEventHandlerNode;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandMessage;
@@ -36,7 +36,7 @@ import com.lhf.game.magic.Spellbook.Filters;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.RoomEffect;
 
-public class ThirdPower implements GameEventHandler {
+public class ThirdPower implements GameEventHandlerNode {
     // buff debuff
     // damage heal
     // summon banish
@@ -49,12 +49,12 @@ public class ThirdPower implements GameEventHandler {
      * 
      * 
      */
-    private transient GameEventHandler successor;
+    private transient GameEventHandlerNode successor;
     private EnumMap<CommandMessage, String> cmds;
     private Spellbook spellbook;
     private Logger logger;
 
-    public ThirdPower(GameEventHandler successor, Spellbook spellbook) {
+    public ThirdPower(GameEventHandlerNode successor, Spellbook spellbook) {
         this.logger = Logger.getLogger(this.getClass().getName());
         this.successor = successor;
         this.cmds = this.generateCommands();
@@ -381,12 +381,12 @@ public class ThirdPower implements GameEventHandler {
     }
 
     @Override
-    public void setSuccessor(GameEventHandler successor) {
+    public void setSuccessor(GameEventHandlerNode successor) {
         this.successor = successor;
     }
 
     @Override
-    public GameEventHandler getSuccessor() {
+    public GameEventHandlerNode getSuccessor() {
         return this.successor;
     }
 
@@ -434,7 +434,7 @@ public class ThirdPower implements GameEventHandler {
                 return this.handleSpellbook(ctx, msg);
             }
         }
-        return GameEventHandler.super.handleMessage(ctx, msg);
+        return GameEventHandlerNode.super.handleMessage(ctx, msg);
     }
 
     @Override

@@ -7,7 +7,7 @@ import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandler;
+import com.lhf.game.events.GameEventHandlerNode;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandMessage;
@@ -49,7 +49,7 @@ public class Dungeon implements Land {
 
     private Map<UUID, Land.AreaDirectionalLinks> mapping;
     private Area startingRoom = null;
-    private transient GameEventHandler successor;
+    private transient GameEventHandlerNode successor;
     private Map<CommandMessage, String> commands;
     private transient TreeSet<DungeonEffect> effects;
     private transient Set<UUID> sentMessage;
@@ -349,12 +349,12 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public void setSuccessor(GameEventHandler successor) {
+    public void setSuccessor(GameEventHandlerNode successor) {
         this.successor = successor;
     }
 
     @Override
-    public GameEventHandler getSuccessor() {
+    public GameEventHandlerNode getSuccessor() {
         return this.successor;
     }
 

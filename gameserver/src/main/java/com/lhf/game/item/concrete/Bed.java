@@ -13,7 +13,7 @@ import com.lhf.game.creature.Player;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandler;
+import com.lhf.game.events.GameEventHandlerNode;
 import com.lhf.game.events.messages.Command;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.GoMessage;
@@ -39,7 +39,7 @@ public class Bed extends InteractObject implements CreatureContainerGameEventHan
 
     protected class BedTime implements Runnable, Comparable<Bed.BedTime> {
         protected Creature occupant;
-        protected GameEventHandler successor;
+        protected GameEventHandlerNode successor;
         protected ScheduledFuture<?> future;
 
         protected BedTime(Creature occupant) {
@@ -342,7 +342,7 @@ public class Bed extends InteractObject implements CreatureContainerGameEventHan
     }
 
     @Override
-    public void setSuccessor(GameEventHandler successor) {
+    public void setSuccessor(GameEventHandlerNode successor) {
         // We only care about the room
         if (successor instanceof Area && successor != null) {
             this.room = (Area) successor;
@@ -350,7 +350,7 @@ public class Bed extends InteractObject implements CreatureContainerGameEventHan
     }
 
     @Override
-    public GameEventHandler getSuccessor() {
+    public GameEventHandlerNode getSuccessor() {
         return null; // we're gonna pretend there *is* no successor!
     }
 

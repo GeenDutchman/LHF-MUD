@@ -30,7 +30,7 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.events.GameEvent;
 import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandler;
+import com.lhf.game.events.GameEventHandlerNode;
 import com.lhf.game.events.messages.ClientMessenger;
 import com.lhf.game.events.messages.CommandMessage;
 import com.lhf.game.events.messages.in.AttackMessage;
@@ -62,7 +62,7 @@ public class BattleManager implements CreatureContainerGameEventHandler {
     private Initiative participants;
     private BattleStats battleStats;
     private Area room;
-    private transient GameEventHandler successor;
+    private transient GameEventHandlerNode successor;
     private Map<CommandMessage, String> interceptorCmds;
     private Map<CommandMessage, String> cmds;
     private Logger battleLogger;
@@ -635,12 +635,12 @@ public class BattleManager implements CreatureContainerGameEventHandler {
     }
 
     @Override
-    public void setSuccessor(GameEventHandler successor) {
+    public void setSuccessor(GameEventHandlerNode successor) {
         this.successor = successor;
     }
 
     @Override
-    public GameEventHandler getSuccessor() {
+    public GameEventHandlerNode getSuccessor() {
         return this.successor;
     }
 

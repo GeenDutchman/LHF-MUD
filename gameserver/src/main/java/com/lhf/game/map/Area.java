@@ -12,7 +12,7 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.Player;
-import com.lhf.game.events.GameEventHandler;
+import com.lhf.game.events.GameEventHandlerNode;
 import com.lhf.game.events.messages.out.SeeOutMessage;
 import com.lhf.game.events.messages.out.TickMessage;
 import com.lhf.game.events.messages.out.SeeOutMessage.SeeCategory;
@@ -33,7 +33,7 @@ public interface Area
 
         public abstract Collection<Creature> getCreatures();
 
-        public abstract GameEventHandler getSuccessor();
+        public abstract GameEventHandlerNode getSuccessor();
 
         public abstract Area build();
     }

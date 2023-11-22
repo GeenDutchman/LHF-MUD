@@ -17,7 +17,7 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.HealType;
-import com.lhf.game.events.GameEventHandler;
+import com.lhf.game.events.GameEventHandlerNode;
 import com.lhf.game.events.messages.out.InteractOutMessage;
 import com.lhf.game.events.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.game.item.DispenserAction;
@@ -60,7 +60,7 @@ public class DungeonBuilder implements Land.LandBuilder {
     private Logger logger;
     private Map<UUID, Land.AreaDirectionalLinks> mapping;
     private Room startingRoom = null;
-    private GameEventHandler successor = null;
+    private GameEventHandlerNode successor = null;
     private List<Room> orderAdded;
 
     public static DungeonBuilder newInstance() {
@@ -80,7 +80,7 @@ public class DungeonBuilder implements Land.LandBuilder {
         return this;
     }
 
-    public DungeonBuilder setSuccessor(GameEventHandler successor) {
+    public DungeonBuilder setSuccessor(GameEventHandlerNode successor) {
         this.successor = successor;
         return this;
     }
@@ -125,7 +125,7 @@ public class DungeonBuilder implements Land.LandBuilder {
         return dungeon;
     }
 
-    public static Dungeon buildStaticDungeon(GameEventHandler successor, AIRunner aiRunner)
+    public static Dungeon buildStaticDungeon(GameEventHandlerNode successor, AIRunner aiRunner)
             throws FileNotFoundException {
         DungeonBuilder builder = DungeonBuilder.newInstance();
         if (aiRunner == null) {
@@ -339,7 +339,7 @@ public class DungeonBuilder implements Land.LandBuilder {
     }
 
     @Override
-    public GameEventHandler getSuccessor() {
+    public GameEventHandlerNode getSuccessor() {
         return this.successor;
     }
 }

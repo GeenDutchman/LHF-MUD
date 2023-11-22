@@ -16,18 +16,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventHandler;
+import com.lhf.game.events.GameEventHandlerNode;
 
 @ExtendWith(MockitoExtension.class)
 public class MessageHandlerTest {
     @Mock
-    private GameEventHandler leafNodeOne;
+    private GameEventHandlerNode leafNodeOne;
     @Mock
-    private GameEventHandler leafNodeTwo;
+    private GameEventHandlerNode leafNodeTwo;
     @Mock
-    private GameEventHandler branchNode;
+    private GameEventHandlerNode branchNode;
     @Mock
-    private GameEventHandler rootNode;
+    private GameEventHandlerNode rootNode;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -109,11 +109,11 @@ public class MessageHandlerTest {
 
     }
 
-    private GameEventContext follow(GameEventHandler mh, GameEventContext ctx) {
+    private GameEventContext follow(GameEventHandlerNode mh, GameEventContext ctx) {
         if (ctx == null) {
             ctx = new GameEventContext();
         }
-        GameEventHandler following = mh;
+        GameEventHandlerNode following = mh;
         while (following != null) {
             following.getCommands(ctx);
             following = following.getSuccessor();

@@ -1,7 +1,7 @@
 package com.lhf.game.events.messages;
 
 import com.lhf.game.events.GameEventContext;
-import com.lhf.game.events.GameEventTypeHandler;
+import com.lhf.game.events.GameEventHandlerNode.GameEventTypeHandler;
 
 public interface CommandHandler extends GameEventTypeHandler {
     /**
