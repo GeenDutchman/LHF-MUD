@@ -45,6 +45,10 @@ public class TakeMessage extends Command {
         } else {
             sj.add("Nothing!");
         }
+        Optional<String> container = this.fromContainer();
+        if (container.isPresent()) {
+            sj.add("From:").add(container.get());
+        }
         return sj.toString();
     }
 }

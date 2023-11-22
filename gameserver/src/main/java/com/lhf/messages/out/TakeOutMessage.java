@@ -2,22 +2,25 @@ package com.lhf.messages.out;
 
 import java.util.StringJoiner;
 
+import com.lhf.Examinable;
 import com.lhf.game.item.Item;
 import com.lhf.messages.OutMessageType;
 
 public class TakeOutMessage extends OutMessage {
     public enum TakeOutType {
-        FOUND_TAKEN, NOT_FOUND, SHORT, INVALID, GREEDY, NOT_TAKEABLE, UNCLEVER;
+        FOUND_TAKEN, NOT_FOUND, SHORT, INVALID, GREEDY, NOT_TAKEABLE, UNCLEVER, BAD_CONTAINER;
     }
 
     private final String attemptedName;
     private final Item item;
     private final TakeOutType subType;
+    private final String source;
 
     public static class Builder extends OutMessage.Builder<Builder> {
         private String attemptedName;
         private Item item;
         private TakeOutType subType;
+        private String source;
 
         protected Builder() {
             super(OutMessageType.TAKE);
@@ -50,6 +53,20 @@ public class TakeOutMessage extends OutMessage {
             return this;
         }
 
+        public String getSource() {
+            return source;
+        }
+
+        public Builder setSource(Examinable source) {
+            this.source = source.getName();
+            return this;
+        }
+
+        public Builder setSource(String source) {
+            this.source = source;
+            return this;
+        }
+
         @Override
         public Builder getThis() {
             return this;
@@ -71,6 +88,7 @@ public class TakeOutMessage extends OutMessage {
         this.item = builder.getItem();
         this.attemptedName = builder.getAttemptedName();
         this.subType = builder.getSubType();
+        this.source = builder.getSource();
     }
 
     @Override
@@ -83,14 +101,24 @@ public class TakeOutMessage extends OutMessage {
                 } else {
                     sj.add("Item");
                 }
-                sj.add("successfully taken\n");
+                sj.add("successfully taken");
+                if (this.source != null) {
+                    sj.add("from").add(this.source);
+                }
+                sj.add("\n");
                 return sj.toString();
             case NOT_FOUND:
                 sj.add("Could not find that item");
                 if (this.attemptedName != null) {
                     sj.add("'" + this.attemptedName + "'");
                 }
-                sj.add("in this room.\n");
+                sj.add("in");
+                if (this.source != null) {
+                    sj.add(this.source + ".");
+                } else {
+                    sj.add("this room.");
+                }
+                sj.add("\n");
                 return sj.toString();
             case SHORT:
                 sj.add("You'll need to be more specific than");
@@ -137,7 +165,20 @@ public class TakeOutMessage extends OutMessage {
                 }
                 sj.add("?\n");
                 return sj.toString();
-
+            case BAD_CONTAINER:
+                sj.add("You attempted to take");
+                if (this.attemptedName != null) {
+                    sj.add("'" + this.attemptedName + "'");
+                } else {
+                    sj.add("that");
+                }
+                if (this.source != null) {
+                    sj.add("from an unrecognized container or source: " + this.source + ".");
+                } else {
+                    sj.add("from an unrecognized container or source.");
+                }
+                sj.add("\n");
+                return sj.toString();
             default:
                 sj.add("You tried to take an item.");
                 if (this.attemptedName != null) {
