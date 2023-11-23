@@ -1,7 +1,5 @@
 package com.lhf.game.item.concrete;
 
-// TODO: #129 actually use this
-
 public class Corpse extends Chest {
     public Corpse(String name, boolean isVisible) {
         super(name, isVisible);
