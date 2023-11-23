@@ -99,6 +99,7 @@ public abstract class Creature
         private Statblock statblock;
         private ClientMessenger controller;
         private MessageHandler successor;
+        private Corpse corpse;
 
         protected CreatureBuilder() {
             this.name = NameGenerator.Generate(null);
@@ -107,6 +108,7 @@ public abstract class Creature
             this.statblock = new Statblock();
             this.controller = null;
             this.successor = null;
+            this.corpse = null;
             this.thisObject = getThis();
         }
 
@@ -173,6 +175,15 @@ public abstract class Creature
             return this.successor;
         }
 
+        public T setCorpse(Corpse corpse) {
+            this.corpse = corpse;
+            return this.getThis();
+        }
+
+        public Corpse getCorpse() {
+            return this.corpse;
+        }
+
         public abstract Creature build();
 
     }
@@ -189,6 +200,7 @@ public abstract class Creature
         this.statblock = builder.getStatblock();
         this.controller = builder.getController();
         this.successor = builder.getSuccessor();
+        ItemContainer.transfer(builder.getCorpse(), this.getInventory(), null);
 
         // We don't start them in battle
         this.inBattle = false;
