@@ -19,6 +19,7 @@ import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Usable;
+import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.magic.CubeHolder;
 import com.lhf.messages.ClientMessenger;
@@ -614,7 +615,7 @@ public class Room implements Area {
             if (containerName.isPresent()) {
                 takeOutMessage.setSource(containerName.orElse(null));
                 Optional<ItemContainer> foundContainer = this.items.stream()
-                        .filter(item -> item != null && item instanceof ItemContainer
+                        .filter(item -> item != null && item instanceof Chest
                                 && item.checkName(containerName.get().replaceAll("^\"|\"$", "")))
                         .map(item -> (ItemContainer) item).findAny();
                 if (foundContainer.isEmpty()) {
