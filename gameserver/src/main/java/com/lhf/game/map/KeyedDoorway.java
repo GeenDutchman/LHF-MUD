@@ -6,7 +6,7 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.item.concrete.LockKey;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 
-class KeyedDoorway extends CloseableDoorway {
+class KeyedDoorway extends CloseableDoorway implements LockKey.Relockable {
     private UUID doorwayUuid;
 
     public KeyedDoorway(UUID roomAUuid, Directions fromBtoA, UUID roomBUuid) {
@@ -20,17 +20,29 @@ class KeyedDoorway extends CloseableDoorway {
         return DoorwayType.KEYED;
     }
 
-    public LockKey generateKey() {
-        return new LockKey(this.getDoorwayUuid());
+    @Override
+    public void lock() {
+        this.close();
     }
 
-    public UUID getDoorwayUuid() {
-        return doorwayUuid;
+    @Override
+    public UUID getLockUUID() {
+        return this.doorwayUuid;
+    }
+
+    @Override
+    public boolean isUnlocked() {
+        return this.isOpen();
+    }
+
+    @Override
+    public void unlock() {
+        this.open();
     }
 
     @Override
     public boolean canTraverse(Creature creature, Directions whichWay) {
-        String keyName = LockKey.generateKeyName(this.getDoorwayUuid());
+        String keyName = LockKey.generateKeyName(this.getLockUUID());
         if (creature.hasItem(keyName)) {
             this.open();
             creature.removeItem(keyName);
