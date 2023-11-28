@@ -8,7 +8,7 @@ import com.lhf.messages.OutMessageType;
 
 public class TakeOutMessage extends OutMessage {
     public enum TakeOutType {
-        FOUND_TAKEN, NOT_FOUND, SHORT, INVALID, GREEDY, NOT_TAKEABLE, UNCLEVER, BAD_CONTAINER;
+        FOUND_TAKEN, NOT_FOUND, SHORT, INVALID, GREEDY, NOT_TAKEABLE, UNCLEVER, BAD_CONTAINER, LOCKED_CONTAINER;
     }
 
     private final String attemptedName;
@@ -177,6 +177,22 @@ public class TakeOutMessage extends OutMessage {
                 } else {
                     sj.add("from an unrecognized container or source.");
                 }
+                sj.add("\n");
+                return sj.toString();
+            case LOCKED_CONTAINER:
+                sj.add("You attempted to take");
+                if (this.attemptedName != null) {
+                    sj.add("'" + this.attemptedName + "'");
+                } else {
+                    sj.add("that");
+                }
+                sj.add("from");
+                if (this.source != null) {
+                    sj.add(this.source);
+                } else {
+                    sj.add("some container");
+                }
+                sj.add("but it is locked.");
                 sj.add("\n");
                 return sj.toString();
             default:

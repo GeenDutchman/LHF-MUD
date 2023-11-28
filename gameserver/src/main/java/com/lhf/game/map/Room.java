@@ -615,12 +615,18 @@ public class Room implements Area {
             if (containerName.isPresent()) {
                 takeOutMessage.setSource(containerName.orElse(null));
                 Optional<ItemContainer> foundContainer = this.items.stream()
-                        .filter(item -> item != null && item instanceof Chest
+                        .filter(item -> item != null && item instanceof ItemContainer
                                 && item.checkName(containerName.get().replaceAll("^\"|\"$", "")))
                         .map(item -> (ItemContainer) item).findAny();
                 if (foundContainer.isEmpty()) {
                     ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.BAD_CONTAINER).Build());
                     return ctx.handled();
+                }
+                if (foundContainer.get() instanceof Chest chest) {
+                    if (!chest.canAccess(ctx.getCreature())) {
+                        ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.LOCKED_CONTAINER).Build());
+                        return ctx.handled();
+                    }
                 }
                 container = foundContainer.get();
             }
