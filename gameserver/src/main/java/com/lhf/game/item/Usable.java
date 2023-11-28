@@ -36,12 +36,14 @@ public class Usable extends Takeable {
         numCanUseTimes = useSoManyTimes;
     }
 
-    protected void setUseAction(String whenItIsThis, UseAction doThis) {
+    protected Usable setUseAction(String whenItIsThis, UseAction doThis) {
         methods.put(whenItIsThis, doThis);
+        return this;
     }
 
-    protected void removeUseAction(String targetName) {
+    protected Usable removeUseAction(String targetName) {
         methods.remove(targetName);
+        return this;
     }
 
     public boolean hasUsesLeft() {
