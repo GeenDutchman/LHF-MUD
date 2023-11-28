@@ -1,13 +1,14 @@
 package com.lhf.game.item.concrete;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.lhf.game.creature.inventory.InventoryOwner;
-import com.lhf.game.item.Takeable;
+import com.lhf.game.item.Item;
+import com.lhf.game.item.Usable;
 
-public class LockKey extends Takeable {
-    // TODO: make this usable?
+public class LockKey extends Usable {
 
     public interface Lockable {
         public default LockKey generateKey() {
@@ -24,10 +25,21 @@ public class LockKey extends Takeable {
         public void lock();
 
         public default boolean isAuthorized(InventoryOwner attemtper) {
-            if (attemtper == null || !attemtper.hasItem(LockKey.generateKeyName(this.getLockUUID()))) {
+            String keyName = LockKey.generateKeyName(this.getLockUUID());
+            Optional<Item> retrieved = attemtper.getItem(keyName);
+            if (attemtper == null || retrieved.isEmpty()) {
                 return false;
             }
-            return true;
+            if (retrieved.get() instanceof LockKey retrievedKey) {
+                if (!retrievedKey.hasUsesLeft()) {
+                    return false;
+                }
+                if (!retrievedKey.useOnce()) {
+                    attemtper.removeItem(retrievedKey);
+                }
+                return true;
+            }
+            return false;
         }
 
         public default boolean canAccess(InventoryOwner attempter) {
@@ -42,10 +54,30 @@ public class LockKey extends Takeable {
     private final UUID lockedItemUuid;
     private final UUID keyUuid;
 
+    /**
+     * Creates a LockKey keyed to an item's UUID. Only usable once.
+     * 
+     * @param lockedItemUuid
+     */
     public LockKey(UUID lockedItemUuid) {
-        super(LockKey.generateKeyName(lockedItemUuid), true, "A key for ... something.");
+        super(LockKey.generateKeyName(lockedItemUuid), true, 1);
         this.lockedItemUuid = lockedItemUuid;
         this.keyUuid = UUID.randomUUID();
+        this.descriptionString = "A key for ... something.";
+    }
+
+    /**
+     * Creates a LockKey keyed to an item's UUID.
+     * 
+     * @param lockedItemUuid
+     * @param useSoManyTimes if > 0 then can use that many times, if < 0 then has
+     *                       infinite uses
+     */
+    public LockKey(UUID lockedItemUuid, int useSoManyTimes) {
+        super(LockKey.generateKeyName(lockedItemUuid), true, useSoManyTimes);
+        this.lockedItemUuid = lockedItemUuid;
+        this.keyUuid = UUID.randomUUID();
+        this.descriptionString = "A key for ... something.";
     }
 
     public static String generateKeyName(UUID lockedItemUuid) {

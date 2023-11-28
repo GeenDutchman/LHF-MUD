@@ -12,7 +12,7 @@ import com.lhf.messages.out.UseOutMessage;
 import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 
 public class Usable extends Takeable {
-    private Integer numCanUseTimes;
+    private final Integer numCanUseTimes;
     private Integer hasBeenUsedTimes = 0;
     private Map<String, UseAction> methods;
 
@@ -93,11 +93,22 @@ public class Usable extends Takeable {
             return false;
         }
 
-        if (numCanUseTimes > 0) {
-            hasBeenUsedTimes++;
-        }
+        this.useOnce();
 
         return method.useAction(ctx, usingOn);
+    }
+
+    /**
+     * Uses the item once
+     * 
+     * @return true if it still can be used, false otherwise
+     */
+    protected boolean useOnce() {
+        if (numCanUseTimes > 0) {
+            hasBeenUsedTimes++;
+            return hasBeenUsedTimes < numCanUseTimes;
+        }
+        return true;
     }
 
     @Override
