@@ -21,11 +21,11 @@ public class Chest extends Item implements ItemContainer {
     protected List<Item> chestItems;
 
     public enum ChestDescriptor {
-        RUSTY, SHINY, ORANGE, OILY, WOODEN, COLORFUL, METAL, ORNATE;
+        RUSTY, SHINY, BLUE, SLIPPERY, WOODEN, COLORFUL, METAL, FANCY;
     }
 
     public Chest(ChestDescriptor descriptor, boolean isVisible) {
-        super(descriptor != null ? descriptor.toString().toLowerCase() + " chest" : "unobtrusive chest", isVisible);
+        super(descriptor != null ? descriptor.toString().toLowerCase() + " chest" : "nondescript chest", isVisible);
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.descriptionString = "A " + this.descriptionString;
