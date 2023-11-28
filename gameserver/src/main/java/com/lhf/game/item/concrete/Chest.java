@@ -22,6 +22,7 @@ public class Chest extends Item implements ItemContainer, Lockable {
     // TODO: #131 implement lockable Chests and chests locked by monsters
     protected final UUID chestUuid;
     protected final AtomicBoolean locked;
+    protected final boolean removeOnEmpty;
     protected List<Item> chestItems;
 
     private final static Note lockedNote = new Note("Chest Locked", false, "This chest is locked.");
@@ -36,14 +37,16 @@ public class Chest extends Item implements ItemContainer, Lockable {
         this.chestItems = new ArrayList<>();
         this.descriptionString = "A " + this.descriptionString;
         this.locked = new AtomicBoolean(false);
+        this.removeOnEmpty = false;
     }
 
-    public Chest(ChestDescriptor descriptor, boolean isVisible, boolean initialLock) {
+    public Chest(ChestDescriptor descriptor, boolean isVisible, boolean initialLock, boolean removeOnEmpty) {
         super(descriptor != null ? descriptor.toString().toLowerCase() + " chest" : "nondescript chest", isVisible);
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.descriptionString = "A " + this.descriptionString;
         this.locked = new AtomicBoolean(initialLock);
+        this.removeOnEmpty = removeOnEmpty;
     }
 
     protected Chest(String name, boolean isVisible) {
@@ -51,13 +54,15 @@ public class Chest extends Item implements ItemContainer, Lockable {
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.locked = new AtomicBoolean(false);
+        this.removeOnEmpty = false;
     }
 
-    protected Chest(String name, boolean isVisible, boolean initialLock) {
+    protected Chest(String name, boolean isVisible, boolean initialLock, boolean removeOnEmpty) {
         super(name, isVisible);
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.locked = new AtomicBoolean(initialLock);
+        this.removeOnEmpty = removeOnEmpty;
     }
 
     @Override
@@ -153,6 +158,10 @@ public class Chest extends Item implements ItemContainer, Lockable {
     @Override
     public Iterator<? extends Item> itemIterator() {
         return this.chestItems.iterator();
+    }
+
+    public boolean isRemoveOnEmpty() {
+        return removeOnEmpty;
     }
 
     @Override

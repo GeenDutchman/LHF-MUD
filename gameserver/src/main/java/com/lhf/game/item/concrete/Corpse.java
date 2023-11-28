@@ -4,7 +4,7 @@ import com.lhf.game.creature.inventory.InventoryOwner;
 
 public class Corpse extends Chest {
     public Corpse(String name, boolean isVisible) {
-        super(name, isVisible);
+        super(name, isVisible, false, true);
     }
 
     @Override
