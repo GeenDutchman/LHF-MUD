@@ -1,55 +1,11 @@
 package com.lhf.game.item.concrete;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
-import com.lhf.game.creature.inventory.InventoryOwner;
-import com.lhf.game.item.Item;
 import com.lhf.game.item.Usable;
 
 public class LockKey extends Usable {
-
-    public interface Lockable {
-        public default LockKey generateKey() {
-            this.lock();
-            return new LockKey(this.getLockUUID());
-        }
-
-        public UUID getLockUUID();
-
-        public boolean isUnlocked();
-
-        public void unlock();
-
-        public void lock();
-
-        public default boolean isAuthorized(InventoryOwner attemtper) {
-            String keyName = LockKey.generateKeyName(this.getLockUUID());
-            Optional<Item> retrieved = attemtper.getItem(keyName);
-            if (attemtper == null || retrieved.isEmpty()) {
-                return false;
-            }
-            if (retrieved.get() instanceof LockKey retrievedKey) {
-                if (!retrievedKey.hasUsesLeft()) {
-                    return false;
-                }
-                if (!retrievedKey.useOnce()) {
-                    attemtper.removeItem(retrievedKey);
-                }
-                return true;
-            }
-            return false;
-        }
-
-        public default boolean canAccess(InventoryOwner attempter) {
-            return this.isUnlocked() || this.isAuthorized(attempter);
-        }
-
-        public default boolean accessUnlocks() {
-            return true;
-        }
-    }
 
     private final UUID lockedItemUuid;
     private final UUID keyUuid;

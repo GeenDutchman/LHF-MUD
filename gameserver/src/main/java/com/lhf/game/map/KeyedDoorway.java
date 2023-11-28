@@ -2,11 +2,11 @@ package com.lhf.game.map;
 
 import java.util.UUID;
 
+import com.lhf.game.Lockable;
 import com.lhf.game.creature.Creature;
-import com.lhf.game.item.concrete.LockKey;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 
-class KeyedDoorway extends CloseableDoorway implements LockKey.Lockable {
+class KeyedDoorway extends CloseableDoorway implements Lockable {
     private UUID doorwayUuid;
 
     public KeyedDoorway(UUID roomAUuid, Directions fromBtoA, UUID roomBUuid) {

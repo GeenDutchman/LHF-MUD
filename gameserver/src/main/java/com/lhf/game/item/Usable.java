@@ -103,7 +103,7 @@ public class Usable extends Takeable {
      * 
      * @return true if it still can be used, false otherwise
      */
-    protected boolean useOnce() {
+    public boolean useOnce() {
         if (numCanUseTimes > 0) {
             hasBeenUsedTimes++;
             return hasBeenUsedTimes < numCanUseTimes;

@@ -11,9 +11,9 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lhf.game.ItemContainer;
+import com.lhf.game.Lockable;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
-import com.lhf.game.item.concrete.LockKey.Lockable;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SeeOutMessage.Builder;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
