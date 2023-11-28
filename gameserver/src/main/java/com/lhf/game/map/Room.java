@@ -649,9 +649,9 @@ public class Room implements Area {
                     }
                     Item item = maybeItem.get();
                     takeOutMessage.setItem(item);
-                    if (item instanceof Takeable) {
-                        ctx.getCreature().addItem((Takeable) item);
-                        container.removeItem(item);
+                    if (item instanceof Takeable takeableItem) {
+                        ctx.getCreature().addItem(takeableItem);
+                        container.removeItem(takeableItem);
                         ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.FOUND_TAKEN).Build());
                         continue;
                     }
@@ -659,6 +659,11 @@ public class Room implements Area {
                 } catch (PatternSyntaxException pse) {
                     pse.printStackTrace();
                     ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.UNCLEVER).Build());
+                }
+            }
+            if (container instanceof Chest chest) {
+                if (chest.isRemoveOnEmpty() && chest.isEmpty()) {
+                    this.items.remove(chest);
                 }
             }
             return ctx.handled();
