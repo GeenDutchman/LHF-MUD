@@ -8,18 +8,23 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lhf.game.ItemContainer;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
+import com.lhf.game.item.concrete.LockKey.Lockable;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SeeOutMessage.Builder;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
-public class Chest extends Item implements ItemContainer {
+public class Chest extends Item implements ItemContainer, Lockable {
     // TODO: #131 implement lockable Chests and chests locked by monsters
     protected final UUID chestUuid;
+    protected final AtomicBoolean locked;
     protected List<Item> chestItems;
+
+    private final static Note lockedNote = new Note("Chest Locked", false, "This chest is locked.");
 
     public enum ChestDescriptor {
         RUSTY, SHINY, BLUE, SLIPPERY, WOODEN, COLORFUL, METAL, FANCY;
@@ -30,17 +35,36 @@ public class Chest extends Item implements ItemContainer {
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.descriptionString = "A " + this.descriptionString;
+        this.locked = new AtomicBoolean(false);
+    }
+
+    public Chest(ChestDescriptor descriptor, boolean isVisible, boolean initialLock) {
+        super(descriptor != null ? descriptor.toString().toLowerCase() + " chest" : "nondescript chest", isVisible);
+        this.chestUuid = UUID.randomUUID();
+        this.chestItems = new ArrayList<>();
+        this.descriptionString = "A " + this.descriptionString;
+        this.locked = new AtomicBoolean(initialLock);
     }
 
     protected Chest(String name, boolean isVisible) {
         super(name, isVisible);
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
+        this.locked = new AtomicBoolean(false);
+    }
+
+    protected Chest(String name, boolean isVisible, boolean initialLock) {
+        super(name, isVisible);
+        this.chestUuid = UUID.randomUUID();
+        this.chestItems = new ArrayList<>();
+        this.locked = new AtomicBoolean(initialLock);
     }
 
     @Override
     public String printDescription() {
-        return super.printDescription() + (this.isEmpty() ? ". It is empty." : ". It doesn't seem to be empty.");
+        return super.printDescription()
+                + (this.isEmpty() ? ". It is empty." : ". It doesn't seem to be empty.")
+                + (this.isUnlocked() ? " It is unlocked." : " But it is locked.");
     }
 
     @Override
@@ -65,13 +89,34 @@ public class Chest extends Item implements ItemContainer {
         return seeOutMessage.Build();
     }
 
-    public UUID getChestUuid() {
-        return chestUuid;
+    @Override
+    public UUID getLockUUID() {
+        return this.chestUuid;
+    }
+
+    @Override
+    public boolean isUnlocked() {
+        return !this.locked.get();
+    }
+
+    @Override
+    public void unlock() {
+        this.locked.set(false);
+    }
+
+    @Override
+    public void lock() {
+        this.locked.set(true);
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return this.chestItems.isEmpty();
     }
 
     @Override
     public boolean addItem(Item item) {
-        if (item == null) {
+        if (item == null || !this.isUnlocked()) {
             return false;
         }
         return this.chestItems.add(item);
@@ -79,11 +124,17 @@ public class Chest extends Item implements ItemContainer {
 
     @Override
     public Collection<Item> getItems() {
+        if (!this.isUnlocked()) {
+            return List.of(Chest.lockedNote);
+        }
         return Collections.unmodifiableList(this.chestItems);
     }
 
     @Override
     public Optional<Item> removeItem(String name) {
+        if (!this.isUnlocked()) {
+            return Optional.empty();
+        }
         Optional<Item> found = this.getItem(name);
         if (found.isPresent()) {
             this.chestItems.remove(found.get());
@@ -93,6 +144,9 @@ public class Chest extends Item implements ItemContainer {
 
     @Override
     public boolean removeItem(Item item) {
+        if (!this.isUnlocked()) {
+            return false;
+        }
         return this.chestItems.remove(item);
     }
 
@@ -116,6 +170,55 @@ public class Chest extends Item implements ItemContainer {
             return false;
         Chest other = (Chest) obj;
         return Objects.equals(chestUuid, other.chestUuid);
+    }
+
+    private class LockBypass implements ItemContainer {
+        private LockBypass() {
+        }
+
+        @Override
+        public String getName() {
+            return Chest.this.getName();
+        }
+
+        @Override
+        public String printDescription() {
+            return Chest.this.printDescription();
+        }
+
+        @Override
+        public Collection<Item> getItems() {
+            return Collections.unmodifiableList(Chest.this.chestItems);
+        }
+
+        @Override
+        public boolean addItem(Item item) {
+            return Chest.this.chestItems.add(item);
+        }
+
+        @Override
+        public Optional<Item> removeItem(String name) {
+            Optional<Item> found = this.getItem(name);
+            if (found.isPresent()) {
+                Chest.this.chestItems.remove(found.get());
+            }
+            return found;
+        }
+
+        @Override
+        public boolean removeItem(Item item) {
+            return Chest.this.chestItems.remove(item);
+        }
+
+        @Override
+        public Iterator<? extends Item> itemIterator() {
+            return Chest.this.chestItems.iterator();
+        }
+
+    }
+
+    public ItemContainer bypass() {
+        return new LockBypass();
     }
 
 }
