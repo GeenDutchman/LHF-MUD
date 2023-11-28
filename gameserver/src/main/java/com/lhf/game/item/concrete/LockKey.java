@@ -3,6 +3,7 @@ package com.lhf.game.item.concrete;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.item.Takeable;
 
 public class LockKey extends Takeable {
@@ -21,6 +22,17 @@ public class LockKey extends Takeable {
         public void unlock();
 
         public void lock();
+
+        public default boolean isAuthorized(InventoryOwner attemtper) {
+            if (attemtper == null || !attemtper.hasItem(LockKey.generateKeyName(this.getLockUUID()))) {
+                return false;
+            }
+            return true;
+        }
+
+        public default boolean canAccess(InventoryOwner attempter) {
+            return this.isUnlocked() || this.isAuthorized(attempter);
+        }
     }
 
     private final UUID lockedItemUuid;
