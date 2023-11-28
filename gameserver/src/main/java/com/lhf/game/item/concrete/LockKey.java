@@ -33,6 +33,10 @@ public class LockKey extends Takeable {
         public default boolean canAccess(InventoryOwner attempter) {
             return this.isUnlocked() || this.isAuthorized(attempter);
         }
+
+        public default boolean accessUnlocks() {
+            return true;
+        }
     }
 
     private final UUID lockedItemUuid;
