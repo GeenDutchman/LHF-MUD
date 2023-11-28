@@ -18,9 +18,7 @@ public class LockKey extends Takeable {
         public boolean isUnlocked();
 
         public void unlock();
-    }
 
-    public interface Relockable extends Lockable {
         public void lock();
     }
 

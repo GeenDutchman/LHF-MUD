@@ -6,7 +6,7 @@ import com.lhf.game.creature.Creature;
 import com.lhf.game.item.concrete.LockKey;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 
-class KeyedDoorway extends CloseableDoorway implements LockKey.Relockable {
+class KeyedDoorway extends CloseableDoorway implements LockKey.Lockable {
     private UUID doorwayUuid;
 
     public KeyedDoorway(UUID roomAUuid, Directions fromBtoA, UUID roomBUuid) {
