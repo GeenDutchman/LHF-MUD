@@ -45,7 +45,7 @@ public class Chest extends Item implements ItemContainer {
     @Override
     public SeeOutMessage produceMessage() {
         SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
-        for (Item thing : this.chestItems) {
+        for (Item thing : this.getItems()) {
             if (thing instanceof Takeable) {
                 seeOutMessage.addSeen(SeeCategory.TAKEABLE, thing);
             } else {
@@ -61,7 +61,7 @@ public class Chest extends Item implements ItemContainer {
             seeOutMessage = SeeOutMessage.getBuilder();
         }
         seeOutMessage.setExaminable(this);
-        for (Item thing : this.chestItems) {
+        for (Item thing : this.getItems()) {
             if (thing instanceof Takeable) {
                 seeOutMessage.addSeen(SeeCategory.TAKEABLE, thing);
             } else {
@@ -90,13 +90,11 @@ public class Chest extends Item implements ItemContainer {
 
     @Override
     public Optional<Item> removeItem(String name) {
-        for (Item exact : this.chestItems) {
-            if (exact instanceof Takeable && exact.CheckNameRegex(name, 3)) {
-                this.chestItems.remove(exact);
-                return Optional.of(exact);
-            }
+        Optional<Item> found = this.getItem(name);
+        if (found.isPresent()) {
+            this.chestItems.remove(found.get());
         }
-        return Optional.empty();
+        return found;
     }
 
     @Override
