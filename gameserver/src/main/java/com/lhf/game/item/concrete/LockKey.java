@@ -10,6 +10,7 @@ public class LockKey extends Takeable {
 
     public interface Lockable {
         public default LockKey generateKey() {
+            this.lock();
             return new LockKey(this.getLockUUID());
         }
 
