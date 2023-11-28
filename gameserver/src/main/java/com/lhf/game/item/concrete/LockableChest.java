@@ -10,8 +10,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.LockKey.Lockable;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SeeOutMessage.Builder;
 
 public class LockableChest extends Chest implements Lockable {
 
@@ -98,27 +96,6 @@ public class LockableChest extends Chest implements Lockable {
     @Override
     public String printDescription() {
         return super.printDescription() + (this.locked.get() ? " But it is locked." : " It is unlocked.");
-    }
-
-    @Override
-    public SeeOutMessage produceMessage() {
-        if (this.locked.get()) {
-            SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
-            return seeOutMessage.Build();
-        }
-        return super.produceMessage();
-    }
-
-    @Override
-    public SeeOutMessage produceMessage(Builder seeOutMessage) {
-        if (seeOutMessage == null) {
-            seeOutMessage = SeeOutMessage.getBuilder();
-        }
-        seeOutMessage.setExaminable(this);
-        if (this.locked.get()) {
-            return seeOutMessage.Build();
-        }
-        return super.produceMessage(seeOutMessage);
     }
 
     @Override

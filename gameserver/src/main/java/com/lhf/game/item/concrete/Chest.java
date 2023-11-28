@@ -46,14 +46,7 @@ public class Chest extends Item implements ItemContainer {
     @Override
     public SeeOutMessage produceMessage() {
         SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
-        for (Item thing : this.getItems()) {
-            if (thing instanceof Takeable) {
-                seeOutMessage.addSeen(SeeCategory.TAKEABLE, thing);
-            } else {
-                seeOutMessage.addSeen(SeeCategory.OTHER, thing);
-            }
-        }
-        return seeOutMessage.Build();
+        return this.produceMessage(seeOutMessage);
     }
 
     @Override
