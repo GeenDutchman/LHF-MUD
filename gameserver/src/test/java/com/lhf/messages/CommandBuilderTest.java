@@ -3,8 +3,11 @@ package com.lhf.messages;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 
 import com.google.common.truth.Truth;
 import com.lhf.messages.in.InMessage;
@@ -37,6 +40,31 @@ public class CommandBuilderTest {
             return this;
         }
 
+        public DynamicTest toDynamicTest() {
+            return DynamicTest.dynamicTest(this.testName, this::execute);
+        }
+
+        public void execute() {
+            System.out.println("Testing: " + this.testName);
+            Command cmd = CommandBuilder.parse(this.input);
+            Truth.assertWithMessage("Expected '%s' to not make null command", this.input).that(cmd).isNotNull();
+            System.out.println("Recieved: " + cmd.toString());
+            if (this.command != null) {
+                System.out.println("Expected: " + this.command.toString());
+                Truth.assertWithMessage("Expected validation of command '%s' -> '%s' to be %s, but was not.",
+                        this.input, this.command.toString(), this.command.isValid()).that(cmd.isValid())
+                        .isEqualTo(this.command.isValid());
+            } else {
+                Truth.assertWithMessage("Expected validation of command '%s' to be %s, but it was not.", this.input,
+                        this.isValid)
+                        .that(cmd.isValid()).isEqualTo(this.isValid);
+            }
+            if (cmd.isValid) {
+                Truth.assertWithMessage("Expected commands to match, but they were not.").that(cmd)
+                        .isEqualTo(this.command);
+            }
+        }
+
     }
 
     @Test
@@ -50,8 +78,8 @@ public class CommandBuilderTest {
         }
     }
 
-    @Test
-    void testParse() {
+    @TestFactory
+    Stream<DynamicTest> testParse() {
         ArrayList<ParseTestCase> testCases = new ArrayList<>();
         testCases.add(new ParseTestCase("Command only, CAPS", "SAY", true,
                 CommandMessage.SAY));
@@ -83,22 +111,12 @@ public class CommandBuilderTest {
                         .addDirect("\"one, two, three\"").addPrepPhrase("to", "arnold"));
         testCases.add(new ParseTestCase("Trailing quoted space", "say \"one \"", true, CommandMessage.SAY)
                 .addDirect("\"one \""));
+        testCases.add(new ParseTestCase("Posessive preposition", "Take longsword from John's corpse", false,
+                CommandMessage.TAKE).addDirect("longsword").addPrepPhrase("from", "John's corpse"));
+        testCases.add(new ParseTestCase("Quoted Posessive preposition", "Take longsword from \"John's corpse\"", true,
+                CommandMessage.TAKE).addDirect("longsword").addPrepPhrase("from", "\"John's corpse\""));
 
-        for (ParseTestCase tc : testCases) {
-            System.out.println("Testing: " + tc.testName);
-            Command cmd = CommandBuilder.parse(tc.input);
-            Truth.assertThat(cmd).isNotNull();
-            System.out.println("Recieved: " + cmd.toString());
-            if (tc.command != null) {
-                System.out.println("Expected: " + tc.command.toString());
-                Truth.assertThat(cmd.isValid()).isEqualTo(tc.command.isValid());
-            } else {
-                Truth.assertThat(cmd.isValid()).isEqualTo(tc.isValid);
-            }
-            if (cmd.isValid) {
-                Truth.assertThat(cmd).isEqualTo(tc.command);
-            }
-        }
+        return testCases.stream().map(testCase -> testCase.toDynamicTest());
 
     }
 }

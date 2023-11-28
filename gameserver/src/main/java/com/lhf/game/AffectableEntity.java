@@ -69,7 +69,7 @@ public interface AffectableEntity<Effect extends EntityEffect> {
         OutMessage processed = this.processEffect(effect, reverse);
         if (this.shouldAdd(effect, reverse)) {
             this.getMutableEffects().add(effect);
-        } else if (this.shouldAdd(effect, reverse)) {
+        } else if (this.shouldRemove(effect, reverse)) {
             this.getMutableEffects().remove(effect);
         }
         return processed;

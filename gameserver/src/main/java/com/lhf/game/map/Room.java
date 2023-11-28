@@ -9,6 +9,7 @@ import org.mockito.exceptions.misusing.UnfinishedStubbingException;
 
 import com.lhf.Examinable;
 import com.lhf.game.EntityEffect;
+import com.lhf.game.ItemContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
@@ -18,6 +19,7 @@ import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Usable;
+import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.magic.CubeHolder;
 import com.lhf.messages.ClientMessenger;
@@ -198,7 +200,9 @@ public class Room implements Area {
                     }
                     if (obj instanceof Takeable && !cmds.containsKey(CommandMessage.TAKE)) {
                         sj = new StringJoiner(" ");
-                        sj.add("\"take [item]\"").add("Take an item from the room and add it to your inventory.");
+                        sj.add("\"take [item]\"").add("Take an item from the room and add it to your inventory.\n");
+                        sj.add("\"take [item] from \"[someone]'s corpse\"").add(
+                                "Take an item from a container of some kind, just double-quote the container name");
                         cmds.putIfAbsent(CommandMessage.TAKE, sj.toString());
                         foundTakable = true;
                     }
@@ -364,12 +368,8 @@ public class Room implements Area {
         boolean removed = this.removeCreature(creature);
         if (removed) {
             this.logger.log(Level.FINER, () -> String.format("The creature '%s' has died", creature.getName()));
-            Corpse corpse = creature.die();
+            Corpse corpse = Creature.die(creature);
             this.addItem(corpse);
-            for (String i : creature.getInventory().getItemList()) {
-                Item drop = creature.removeItem(i).get();
-                this.addItem(drop);
-            }
         }
         removed = this.dungeon.onCreatureDeath(creature) || removed;
 
@@ -396,7 +396,9 @@ public class Room implements Area {
         }
         if (obj instanceof Takeable && !this.commands.containsKey(CommandMessage.TAKE)) {
             sj = new StringJoiner(" ");
-            sj.add("\"take [item]\"").add("Take an item from the room and add it to your inventory.");
+            sj.add("\"take [item]\"").add("Take an item from the room and add it to your inventory.\n");
+            sj.add("\"take [item] from \"[someone]'s corpse\"")
+                    .add("Take an item from a container of some kind, just double-quote the container name");
             this.commands.put(CommandMessage.TAKE, sj.toString());
         }
         return true;
@@ -436,6 +438,11 @@ public class Room implements Area {
     @Override
     public boolean removeItem(Item item) {
         return this.items.remove(item);
+    }
+
+    @Override
+    public Iterator<? extends Item> itemIterator() {
+        return this.items.iterator();
     }
 
     @Override
@@ -602,6 +609,22 @@ public class Room implements Area {
 
             TakeOutMessage.Builder takeOutMessage = TakeOutMessage.getBuilder();
 
+            ItemContainer container = this;
+            takeOutMessage.setSource(this);
+            Optional<String> containerName = tMessage.fromContainer();
+            if (containerName.isPresent()) {
+                takeOutMessage.setSource(containerName.orElse(null));
+                Optional<ItemContainer> foundContainer = this.items.stream()
+                        .filter(item -> item != null && item instanceof Chest
+                                && item.checkName(containerName.get().replaceAll("^\"|\"$", "")))
+                        .map(item -> (ItemContainer) item).findAny();
+                if (foundContainer.isEmpty()) {
+                    ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.BAD_CONTAINER).Build());
+                    return ctx.handled();
+                }
+                container = foundContainer.get();
+            }
+
             for (String thing : tMessage.getDirects()) {
                 takeOutMessage.setAttemptedName(thing);
                 if (thing.length() < 3) {
@@ -613,7 +636,8 @@ public class Room implements Area {
                     continue;
                 }
                 try {
-                    Optional<Item> maybeItem = this.items.stream().filter(item -> item.CheckNameRegex(thing, 3))
+                    Optional<Item> maybeItem = container.getItems().stream()
+                            .filter(item -> item.CheckNameRegex(thing, 3))
                             .findAny();
                     if (maybeItem.isEmpty()) {
                         if (thing.equalsIgnoreCase("all") || thing.equalsIgnoreCase("everything")) {
@@ -627,7 +651,7 @@ public class Room implements Area {
                     takeOutMessage.setItem(item);
                     if (item instanceof Takeable) {
                         ctx.getCreature().addItem((Takeable) item);
-                        this.items.remove(item);
+                        container.removeItem(item);
                         ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.FOUND_TAKEN).Build());
                         continue;
                     }
@@ -733,7 +757,8 @@ public class Room implements Area {
 
                 for (Item ro : items) {
                     if (ro.CheckNameRegex(name, 3)) {
-                        ctx.sendMsg(SeeOutMessage.getBuilder().setExaminable(ro).Build());
+                        ctx.sendMsg(ro.produceMessage(SeeOutMessage.getBuilder().setExaminable(ro)
+                                .addExtraInfo("You see it in the room with you. ")));
                         return ctx.handled();
                     }
                 }

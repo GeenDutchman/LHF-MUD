@@ -269,8 +269,9 @@ public class DMRoom extends Room {
                         return null;
                     }
                 }
-                Corpse corpse = (Corpse) maybeCorpse.get(); // TODO: actually use the corpse and get vocation
-                Player player = Player.PlayerBuilder.getInstance(user).setVocation(dmRoomEffect.getVocation()).build();
+                Corpse corpse = (Corpse) maybeCorpse.get();
+                Player player = Player.PlayerBuilder.getInstance(user).setVocation(dmRoomEffect.getVocation())
+                        .setCorpse(corpse).build();
                 this.removeItem(corpse);
                 this.addNewPlayer(player);
             }

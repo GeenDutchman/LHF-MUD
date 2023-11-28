@@ -7,8 +7,24 @@ import com.lhf.game.item.Takeable;
 
 public class LockKey extends Takeable {
     // TODO: make this usable?
-    private UUID lockedItemUuid;
-    private UUID keyUuid;
+
+    public interface Lockable {
+        public default LockKey generateKey() {
+            this.lock();
+            return new LockKey(this.getLockUUID());
+        }
+
+        public UUID getLockUUID();
+
+        public boolean isUnlocked();
+
+        public void unlock();
+
+        public void lock();
+    }
+
+    private final UUID lockedItemUuid;
+    private final UUID keyUuid;
 
     public LockKey(UUID lockedItemUuid) {
         super(LockKey.generateKeyName(lockedItemUuid), true, "A key for ... something.");

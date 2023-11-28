@@ -4,9 +4,11 @@ import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.AffectableEntity;
+import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffect;
+import com.lhf.game.ItemContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.inventory.EquipmentOwner;
@@ -97,6 +99,7 @@ public abstract class Creature
         private Statblock statblock;
         private ClientMessenger controller;
         private MessageHandler successor;
+        private Corpse corpse;
 
         protected CreatureBuilder() {
             this.name = NameGenerator.Generate(null);
@@ -105,6 +108,7 @@ public abstract class Creature
             this.statblock = new Statblock();
             this.controller = null;
             this.successor = null;
+            this.corpse = null;
             this.thisObject = getThis();
         }
 
@@ -171,6 +175,15 @@ public abstract class Creature
             return this.successor;
         }
 
+        public T setCorpse(Corpse corpse) {
+            this.corpse = corpse;
+            return this.getThis();
+        }
+
+        public Corpse getCorpse() {
+            return this.corpse;
+        }
+
         public abstract Creature build();
 
     }
@@ -187,6 +200,7 @@ public abstract class Creature
         this.statblock = builder.getStatblock();
         this.controller = builder.getController();
         this.successor = builder.getSuccessor();
+        ItemContainer.transfer(builder.getCorpse(), this.getInventory(), null);
 
         // We don't start them in battle
         this.inBattle = false;
@@ -229,15 +243,20 @@ public abstract class Creature
     public void updateHitpoints(int value) {
         int current = this.statblock.getStats().get(Stats.CURRENTHP);
         int max = this.statblock.getStats().get(Stats.MAXHP);
-        current += value;
-        if (current <= 0) {
-            current = 0;
-            this.die();
-        }
-        if (current > max) {
-            current = max;
-        }
+        current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
         this.statblock.getStats().replace(Stats.CURRENTHP, current);
+        if (current <= 0) {
+            MessageHandler next = this.getSuccessor();
+            while (next != null) {
+                if (next instanceof CreatureContainer container) {
+                    container.onCreatureDeath(this); // the rest of the chain should be handled here as well
+                    return; // break out of here, because it is handled
+                }
+                next = next.getSuccessor();
+            }
+        }
+        // if it gets to here, welcome to undeath (not literally)
+        System.out.format("'%s' has died, but is not in a `CreatureContainer`!", this.getName());
     }
 
     public void updateAc(int value) {
@@ -564,14 +583,16 @@ public abstract class Creature
         return false;
     }
 
-    public Corpse die() {
-        System.out.println(name + "died");
+    public static Corpse die(Creature deadCreature) {
+        System.out.println(deadCreature.getName() + " died");
         for (EquipmentSlots slot : EquipmentSlots.values()) {
-            if (this.getEquipmentSlots().containsKey(slot)) {
-                unequipItem(slot, this.getEquipmentSlots().get(slot).getName());
+            if (deadCreature.getEquipmentSlots().containsKey(slot)) {
+                deadCreature.unequipItem(slot, deadCreature.getEquipmentSlots().get(slot).getName());
             }
         }
-        return new Corpse(name + "'s corpse", true);
+        Corpse deadCorpse = new Corpse(deadCreature.getName() + "'s corpse", true);
+        ItemContainer.transfer(deadCreature, deadCorpse, null);
+        return deadCorpse;
     }
 
     @Override

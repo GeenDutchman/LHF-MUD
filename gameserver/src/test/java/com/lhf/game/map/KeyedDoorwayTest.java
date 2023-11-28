@@ -48,7 +48,7 @@ public class KeyedDoorwayTest {
                 LockKey key = doorway.generateKey();
                 bundle.npc.addItem(key);
                 Truth.assertThat(bundle.npc.hasItem(key.getName()));
-                Truth.assertThat(LockKey.generateKeyName(doorway.getDoorwayUuid())).isEqualTo(key.getName());
+                Truth.assertThat(LockKey.generateKeyName(doorway.getLockUUID())).isEqualTo(key.getName());
 
                 bundle.brain.ProcessString("go west");
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000))
