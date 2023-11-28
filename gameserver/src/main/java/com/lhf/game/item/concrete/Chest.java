@@ -29,10 +29,14 @@ public class Chest extends Item implements ItemContainer, Lockable {
 
     public enum ChestDescriptor {
         RUSTY, SHINY, BLUE, SLIPPERY, WOODEN, COLORFUL, METAL, FANCY;
+
+        public static String generateDescription(ChestDescriptor descriptor) {
+            return descriptor != null ? descriptor.toString().toLowerCase() + " chest" : "nondescript chest";
+        }
     }
 
     public Chest(ChestDescriptor descriptor, boolean isVisible) {
-        super(descriptor != null ? descriptor.toString().toLowerCase() + " chest" : "nondescript chest", isVisible);
+        super(ChestDescriptor.generateDescription(descriptor), isVisible);
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.descriptionString = "A " + this.descriptionString;
@@ -41,7 +45,7 @@ public class Chest extends Item implements ItemContainer, Lockable {
     }
 
     public Chest(ChestDescriptor descriptor, boolean isVisible, boolean initialLock, boolean removeOnEmpty) {
-        super(descriptor != null ? descriptor.toString().toLowerCase() + " chest" : "nondescript chest", isVisible);
+        super(ChestDescriptor.generateDescription(descriptor), isVisible);
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.descriptionString = "A " + this.descriptionString;
