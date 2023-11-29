@@ -18,7 +18,6 @@ import com.lhf.messages.out.SeeOutMessage.Builder;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 public class Chest extends Item implements LockableItemContainer {
-    // TODO: #131 implement lockable Chests and chests locked by monsters
     protected final UUID chestUuid;
     protected final AtomicBoolean locked;
     protected final boolean removeOnEmpty;
