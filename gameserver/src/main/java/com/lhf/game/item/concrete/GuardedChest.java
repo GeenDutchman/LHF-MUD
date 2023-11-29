@@ -15,6 +15,10 @@ public class GuardedChest extends Chest {
         super(descriptor, isVisible, false, removeOnEmpty);
     }
 
+    protected GuardedChest(String name, boolean isVisible, boolean removeOnEmpty) {
+        super(name, isVisible, false, removeOnEmpty);
+    }
+
     private void updateGuards() {
         for (Iterator<Creature> guardIterator = this.guards.iterator(); guardIterator.hasNext();) {
             Creature guard = guardIterator.next();
