@@ -18,6 +18,7 @@ import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.HealType;
 import com.lhf.game.item.DispenserAction;
+import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.Note;
@@ -293,6 +294,9 @@ public class DungeonBuilder implements Land.LandBuilder {
         treasuryBuilder.addItem(regular);
         treasuryBuilder.addItem(greater);
         treasuryBuilder.addItem(critical);
+        for (Chest.ChestDescriptor descriptor : Chest.ChestDescriptor.values()) { // it's "looted", so...
+            treasuryBuilder.addItem(new Chest(descriptor, true, false, true));
+        }
         Room treasury = treasuryBuilder.build();
 
         // Monsters
