@@ -10,6 +10,7 @@ import org.mockito.exceptions.misusing.UnfinishedStubbingException;
 import com.lhf.Examinable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.ItemContainer;
+import com.lhf.game.LockableItemContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
@@ -19,7 +20,6 @@ import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Usable;
-import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.magic.CubeHolder;
 import com.lhf.messages.ClientMessenger;
@@ -622,13 +622,15 @@ public class Room implements Area {
                     ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.BAD_CONTAINER).Build());
                     return ctx.handled();
                 }
-                if (foundContainer.get() instanceof Chest chest) {
-                    if (!chest.canAccess(ctx.getCreature())) {
+                if (foundContainer.get() instanceof LockableItemContainer liCon) {
+                    if (!liCon.canAccess(ctx.getCreature())) {
                         ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.LOCKED_CONTAINER).Build());
                         return ctx.handled();
                     }
+                    container = liCon.getBypass();
+                } else {
+                    container = foundContainer.get();
                 }
-                container = foundContainer.get();
             }
 
             for (String thing : tMessage.getDirects()) {
@@ -667,9 +669,12 @@ public class Room implements Area {
                     ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.UNCLEVER).Build());
                 }
             }
-            if (container instanceof Chest chest) {
-                if (chest.isRemoveOnEmpty() && chest.isEmpty()) {
-                    this.items.remove(chest);
+            while (container instanceof LockableItemContainer.Bypass bypass) {
+                container = bypass.getOrigin();
+            }
+            if (container instanceof LockableItemContainer liCon && liCon instanceof Item liConItem) {
+                if (liCon.isRemoveOnEmpty() && liCon.isEmpty()) {
+                    this.items.remove(liConItem);
                 }
             }
             return ctx.handled();

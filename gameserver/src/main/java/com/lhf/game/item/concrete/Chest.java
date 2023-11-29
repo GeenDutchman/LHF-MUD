@@ -10,15 +10,14 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.lhf.game.ItemContainer;
-import com.lhf.game.Lockable;
+import com.lhf.game.LockableItemContainer;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SeeOutMessage.Builder;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
-public class Chest extends Item implements ItemContainer, Lockable {
+public class Chest extends Item implements LockableItemContainer {
     // TODO: #131 implement lockable Chests and chests locked by monsters
     protected final UUID chestUuid;
     protected final AtomicBoolean locked;
@@ -185,8 +184,8 @@ public class Chest extends Item implements ItemContainer, Lockable {
         return Objects.equals(chestUuid, other.chestUuid);
     }
 
-    private class LockBypass implements ItemContainer {
-        private LockBypass() {
+    private class ChestLockBypass implements LockableItemContainer.Bypass<Chest> {
+        private ChestLockBypass() {
         }
 
         @Override
@@ -228,10 +227,16 @@ public class Chest extends Item implements ItemContainer, Lockable {
             return Chest.this.chestItems.iterator();
         }
 
+        @Override
+        public Chest getOrigin() {
+            return Chest.this;
+        }
+
     }
 
-    public ItemContainer bypass() {
-        return new LockBypass();
+    @Override
+    public ChestLockBypass getBypass() {
+        return new ChestLockBypass();
     }
 
 }
