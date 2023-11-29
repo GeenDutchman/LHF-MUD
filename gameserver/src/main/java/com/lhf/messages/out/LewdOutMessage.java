@@ -140,6 +140,10 @@ public class LewdOutMessage extends OutMessage {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        if (this.subType == null) {
+            sb.append(this.statusString());
+            return sb.toString();
+        }
         switch (this.subType) {
             case DENIED:
                 if (this.creature != null) {

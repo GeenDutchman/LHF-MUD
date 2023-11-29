@@ -770,7 +770,8 @@ public class Room implements Area {
                 }
                 Item takeable = maybeTakeable.get();
                 container.addItem(takeable);
-                ctx.sendMsg(dOutMessage.setItem(takeable).setDestination(container.getName()).Build());
+                ctx.sendMsg(dOutMessage.setDropType(DropType.SUCCESS).setItem(takeable)
+                        .setDestination(container.getName()).Build());
             }
             return ctx.handled();
         }

@@ -85,6 +85,20 @@ public class InteractOutMessage extends OutMessage {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
+        if (this.subType == null) {
+            if (this.description == null || this.description.isBlank()) {
+                sj.add("Something happened because of the");
+                if (this.taggable != null) {
+                    sj.add(this.taggable.getColorTaggedName());
+                } else {
+                    sj.add("item");
+                }
+                sj.add(".");
+            } else {
+                sj.add(this.description);
+            }
+            return this.enTag(this.description);
+        }
         switch (this.subType) {
             case CANNOT:
                 return this.enTag(sj.add("You try to interact with the")

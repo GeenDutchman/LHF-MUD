@@ -73,6 +73,9 @@ public class SpellFizzleMessage extends OutMessage {
             sj.add(" mumbles and tries to cast a spell...nothing spectacular happens.");
             return sj.toString();
         }
+        if (this.subType == null) {
+            return "Weird, that spell should have done something.";
+        }
         switch (this.subType) {
             case NOT_CASTER:
                 return "You are not a caster type, so you cannot cast spells.";

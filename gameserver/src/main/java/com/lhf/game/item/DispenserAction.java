@@ -41,6 +41,6 @@ public class DispenserAction implements InteractAction {
         String s = (String) o4;
         r.addItem(i);
         d.incrementCount();
-        return interactOutMessage.setDescription(s).Build();
+        return interactOutMessage.setDescription(s).setPerformed().Build();
     }
 }

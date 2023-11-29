@@ -94,6 +94,16 @@ public class TakeOutMessage extends OutMessage {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
+        if (this.subType == null) {
+            sj.add("You tried to take an item.");
+            if (this.attemptedName != null) {
+                sj.add("You tried to find it using the name:").add(this.attemptedName).add(".");
+            }
+            if (this.item != null) {
+                sj.add("You found this item:").add(this.item.getColorTaggedName());
+            }
+            return sj.toString();
+        }
         switch (this.subType) {
             case FOUND_TAKEN:
                 if (this.item != null) {

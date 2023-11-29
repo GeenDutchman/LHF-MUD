@@ -107,25 +107,35 @@ public class UnequipOutMessage extends OutMessage {
             sb.append("an item.");
             return sb.toString();
         }
-        switch (this.subType) {
-            case SUCCESS:
-                sb.append("You have unequipped your ").append(this.describeItem());
-                break;
-            case ITEM_NOT_EQUIPPED:
-                sb.append("Your ").append(this.describeItem()).append(" is not equipped");
-                break;
-            case ITEM_NOT_FOUND:
-                sb.append("That ").append(this.describeItem()).append(" was not found");
-                break;
-            default:
-                sb.append("You tried to unequip an item ");
-                if (this.attemptedName != null && !this.attemptedName.isBlank()) {
-                    sb.append("with the name of ").append(this.attemptedName);
-                }
-                if (this.item != null) {
-                    sb.append("and an item ").append(this.item.getColorTaggedName()).append(" was found");
-                }
-                break;
+        if (this.subType == null) {
+            sb.append("You tried to unequip an item ");
+            if (this.attemptedName != null && !this.attemptedName.isBlank()) {
+                sb.append("with the name of ").append(this.attemptedName);
+            }
+            if (this.item != null) {
+                sb.append("and an item ").append(this.item.getColorTaggedName()).append(" was found");
+            }
+        } else {
+            switch (this.subType) {
+                case SUCCESS:
+                    sb.append("You have unequipped your ").append(this.describeItem());
+                    break;
+                case ITEM_NOT_EQUIPPED:
+                    sb.append("Your ").append(this.describeItem()).append(" is not equipped");
+                    break;
+                case ITEM_NOT_FOUND:
+                    sb.append("That ").append(this.describeItem()).append(" was not found");
+                    break;
+                default:
+                    sb.append("You tried to unequip an item ");
+                    if (this.attemptedName != null && !this.attemptedName.isBlank()) {
+                        sb.append("with the name of ").append(this.attemptedName);
+                    }
+                    if (this.item != null) {
+                        sb.append("and an item ").append(this.item.getColorTaggedName()).append(" was found");
+                    }
+                    break;
+            }
         }
         if (this.slot != null) {
             sb.append(" in your ").append(this.slot.getColorTaggedName()).append(" equipment slot");

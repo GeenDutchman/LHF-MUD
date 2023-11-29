@@ -126,17 +126,21 @@ public class UseOutMessage extends OutMessage {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
-        switch (this.subType) {
-            case NO_USES:
-                sj.add("You cannot use this").add(this.printItem()).add("like that!");
-            case USED_UP:
-                sj.add("This").add(this.printItem()).add("has been used up.");
-            case REQUIRE_EQUIPPED:
-                sj.add("You need to have this").add(this.printItem())
-                        .add("equipped in order to use it!");
-            case OK:
-            default:
-                sj.add("You used this").add(this.printItem() + ".");
+        if (this.subType == null) {
+            sj.add("You used this").add(this.printItem() + ".");
+        } else {
+            switch (this.subType) {
+                case NO_USES:
+                    sj.add("You cannot use this").add(this.printItem()).add("like that!");
+                case USED_UP:
+                    sj.add("This").add(this.printItem()).add("has been used up.");
+                case REQUIRE_EQUIPPED:
+                    sj.add("You need to have this").add(this.printItem())
+                            .add("equipped in order to use it!");
+                case OK:
+                default:
+                    sj.add("You used this").add(this.printItem() + ".");
+            }
         }
         if (this.message != null && !this.message.isBlank()) {
             sj.add(this.getMessage());

@@ -90,6 +90,9 @@ public class AttributeBlock {
     }
 
     public int getScore(Attributes attr) {
+        if (attr == null) {
+            return 0;
+        }
         switch (attr) {
             case CHA:
                 return this.charisma.getTotalScore();
@@ -109,6 +112,9 @@ public class AttributeBlock {
     }
 
     public Integer setScore(Attributes attr, Integer newScore) {
+        if (attr == null) {
+            return 0;
+        }
         switch (attr) {
             case CHA:
                 return this.charisma.setScore(newScore);
@@ -128,6 +134,9 @@ public class AttributeBlock {
     }
 
     public int getScoreBonus(Attributes attr) {
+        if (attr == null) {
+            return 0;
+        }
         switch (attr) {
             case CHA:
                 return this.charisma.getScoreBonus();
@@ -147,6 +156,9 @@ public class AttributeBlock {
     }
 
     public Integer setScoreBonus(Attributes attr, Integer newBonus) {
+        if (attr == null) {
+            return 0;
+        }
         switch (attr) {
             case CHA:
                 return this.charisma.setScoreBonus(newBonus);
@@ -166,6 +178,9 @@ public class AttributeBlock {
     }
 
     public int getMod(Attributes attr) {
+        if (attr == null) {
+            return 0;
+        }
         switch (attr) {
             case CHA:
                 return this.charisma.getMod();
@@ -185,6 +200,9 @@ public class AttributeBlock {
     }
 
     public Integer setModBonus(Attributes attr, Integer newBonus) {
+        if (attr == null) {
+            return 0;
+        }
         switch (attr) {
             case CHA:
                 return this.charisma.setModBonus(newBonus);
@@ -204,6 +222,9 @@ public class AttributeBlock {
     }
 
     public int getModBonus(Attributes attr) {
+        if (attr == null) {
+            return 0;
+        }
         switch (attr) {
             case CHA:
                 return this.charisma.getModBonus();

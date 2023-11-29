@@ -76,6 +76,20 @@ public class DropOutMessage extends OutMessage {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
+        if (this.dropType == null) {
+            sj.add("You glance at your empty hand as the");
+            if (this.item != null) {
+                sj.add(this.item.getColorTaggedName());
+            } else {
+                sj.add("item");
+            }
+            sj.add("drops to the floor");
+            if (this.destination != null) {
+                sj.add(this.destination.trim().toLowerCase().startsWith("the") ? "of" : "of the")
+                        .add(this.destination);
+            }
+            return sj.toString() + ".";
+        }
         switch (this.dropType) {
             case BAD_CONTAINER:
                 sj.add("You attempted to drop");

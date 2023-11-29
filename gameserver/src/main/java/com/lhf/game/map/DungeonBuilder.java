@@ -168,7 +168,8 @@ public class DungeonBuilder implements Land.LandBuilder {
             }
             Room r = (Room) o2;
             r.addItem(n);
-            return interactOutMessage.setDescription("Switch activated. A note dropped from the ceiling.")
+            return interactOutMessage.setSubType(InteractOutMessageType.PERFORMED)
+                    .setDescription("Switch activated. A note dropped from the ceiling.")
                     .setPerformed().Build();
         };
         // Set Action
@@ -253,6 +254,7 @@ public class DungeonBuilder implements Land.LandBuilder {
             r1.removeCreature(player);
             r2.addCreature(player);
             return interactOutMessage
+                    .setSubType(InteractOutMessageType.PERFORMED)
                     .setDescription(
                             "The statue glows and you black out for a second. You find yourself in another room.")
                     .Build();
