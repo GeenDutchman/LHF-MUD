@@ -29,6 +29,7 @@ public interface Lockable {
         }
         if (retrieved.get() instanceof LockKey retrievedKey) {
             if (!retrievedKey.hasUsesLeft()) {
+                attemtper.removeItem(retrievedKey);
                 return false;
             }
             if (!retrievedKey.useOnce()) {
