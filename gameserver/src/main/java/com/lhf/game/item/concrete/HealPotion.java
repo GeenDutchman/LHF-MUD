@@ -87,16 +87,20 @@ public class HealPotion extends Usable {
     }
 
     private CreatureEffectSource setHealing(CreatureEffectSource effect) {
-        switch (this.healtype) {
-            case Critical:
-                effect.addDamage(new DamageDice(1, DieType.EIGHT, DamageFlavor.HEALING));
-            case Greater:
-                effect.addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.HEALING));
-            case Regular:
-                effect.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
-            default:
-                effect.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
+        if (this.healtype == null) {
+            effect.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
+        } else {
+            switch (this.healtype) {
+                case Critical:
+                    effect.addDamage(new DamageDice(1, DieType.EIGHT, DamageFlavor.HEALING));
+                case Greater:
+                    effect.addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.HEALING));
+                case Regular:
+                    effect.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
+                default:
+                    effect.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
 
+            }
         }
 
         effect.addStatChange(Stats.CURRENTHP, 1);

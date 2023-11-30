@@ -18,6 +18,7 @@ import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.HealType;
 import com.lhf.game.item.DispenserAction;
+import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.Note;
@@ -168,7 +169,8 @@ public class DungeonBuilder implements Land.LandBuilder {
             }
             Room r = (Room) o2;
             r.addItem(n);
-            return interactOutMessage.setDescription("Switch activated. A note dropped from the ceiling.")
+            return interactOutMessage.setSubType(InteractOutMessageType.PERFORMED)
+                    .setDescription("Switch activated. A note dropped from the ceiling.")
                     .setPerformed().Build();
         };
         // Set Action
@@ -253,6 +255,7 @@ public class DungeonBuilder implements Land.LandBuilder {
             r1.removeCreature(player);
             r2.addCreature(player);
             return interactOutMessage
+                    .setSubType(InteractOutMessageType.PERFORMED)
                     .setDescription(
                             "The statue glows and you black out for a second. You find yourself in another room.")
                     .Build();
@@ -291,6 +294,9 @@ public class DungeonBuilder implements Land.LandBuilder {
         treasuryBuilder.addItem(regular);
         treasuryBuilder.addItem(greater);
         treasuryBuilder.addItem(critical);
+        for (Chest.ChestDescriptor descriptor : Chest.ChestDescriptor.values()) { // it's "looted", so...
+            treasuryBuilder.addItem(new Chest(descriptor, true, false, true));
+        }
         Room treasury = treasuryBuilder.build();
 
         // Monsters

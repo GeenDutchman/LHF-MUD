@@ -113,6 +113,34 @@ public class EquipOutMessage extends OutMessage {
             sb.append("an item.");
             return sb.toString();
         }
+        if (this.subType == null) {
+            sb.append("You searched to equip ");
+            if (this.attemptedItemName != null && this.attemptedItemName.length() > 0) {
+                sb.append("'").append(this.attemptedItemName).append("' ");
+            } else {
+                sb.append("an item ");
+            }
+            if (this.attemptedSlot != null) {
+                sb.append("to your ").append(this.attemptedSlot.getColorTaggedName()).append(" equipment slot ");
+            }
+            if (this.item != null) {
+                sb.append(", and found ").append(this.item.getColorTaggedName()).append(" ");
+                if (this.item instanceof Equipable) {
+                    sb.append("which could equip to any of these slots: ");
+                    StringJoiner sj = new StringJoiner(", ");
+                    for (EquipmentSlots slots : this.getCorrectSlots()) {
+                        sj.add(slots.getColorTaggedName());
+                    }
+                    sb.append(sj.toString()).append(". ");
+                    if (this.attemptedSlot != null) {
+                        sb.append("And you equipped it.");
+                    }
+                }
+            } else {
+                sb.append(" but did not find such in your inventory. ");
+            }
+            return sb.toString();
+        }
         switch (this.subType) {
             case SUCCESS:
                 sb.append("You successfully equipped your ").append(this.printItemName(null));

@@ -10,6 +10,7 @@ import org.mockito.exceptions.misusing.UnfinishedStubbingException;
 import com.lhf.Examinable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.ItemContainer;
+import com.lhf.game.LockableItemContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Creature;
@@ -19,7 +20,6 @@ import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Usable;
-import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.magic.CubeHolder;
 import com.lhf.messages.ClientMessenger;
@@ -36,6 +36,7 @@ import com.lhf.messages.in.UseMessage;
 import com.lhf.messages.out.*;
 import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
+import com.lhf.messages.out.DropOutMessage.DropType;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.TakeOutMessage.TakeOutType;
 import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
@@ -615,14 +616,22 @@ public class Room implements Area {
             if (containerName.isPresent()) {
                 takeOutMessage.setSource(containerName.orElse(null));
                 Optional<ItemContainer> foundContainer = this.items.stream()
-                        .filter(item -> item != null && item instanceof Chest
+                        .filter(item -> item != null && item instanceof ItemContainer
                                 && item.checkName(containerName.get().replaceAll("^\"|\"$", "")))
                         .map(item -> (ItemContainer) item).findAny();
                 if (foundContainer.isEmpty()) {
                     ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.BAD_CONTAINER).Build());
                     return ctx.handled();
                 }
-                container = foundContainer.get();
+                if (foundContainer.get() instanceof LockableItemContainer liCon) {
+                    if (!liCon.canAccess(ctx.getCreature())) {
+                        ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.LOCKED_CONTAINER).Build());
+                        return ctx.handled();
+                    }
+                    container = liCon.getBypass();
+                } else {
+                    container = foundContainer.get();
+                }
             }
 
             for (String thing : tMessage.getDirects()) {
@@ -649,9 +658,9 @@ public class Room implements Area {
                     }
                     Item item = maybeItem.get();
                     takeOutMessage.setItem(item);
-                    if (item instanceof Takeable) {
-                        ctx.getCreature().addItem((Takeable) item);
-                        container.removeItem(item);
+                    if (item instanceof Takeable takeableItem) {
+                        ctx.getCreature().addItem(takeableItem);
+                        container.removeItem(takeableItem);
                         ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.FOUND_TAKEN).Build());
                         continue;
                     }
@@ -659,6 +668,14 @@ public class Room implements Area {
                 } catch (PatternSyntaxException pse) {
                     pse.printStackTrace();
                     ctx.sendMsg(takeOutMessage.setSubType(TakeOutType.UNCLEVER).Build());
+                }
+            }
+            while (container instanceof LockableItemContainer.Bypass bypass) {
+                container = bypass.getOrigin();
+            }
+            if (container instanceof LockableItemContainer liCon && liCon instanceof Item liConItem) {
+                if (liCon.isRemoveOnEmpty() && liCon.isEmpty()) {
+                    this.items.remove(liConItem);
                 }
             }
             return ctx.handled();
@@ -713,10 +730,37 @@ public class Room implements Area {
                 return ctx.handled();
             }
             DropMessage dMessage = (DropMessage) msg;
+            DropOutMessage.Builder dOutMessage = DropOutMessage.getBuilder();
             if (dMessage.getDirects().size() == 0) {
-                ctx.sendMsg(BadTargetSelectedMessage.getBuilder()
-                        .setBde(BadTargetSelectedMessage.BadTargetOption.NOTARGET).Build());
+                ctx.sendMsg(dOutMessage.setDropType(DropType.NO_ITEM));
+                return ctx.handled();
             }
+
+            ItemContainer container = this;
+            dOutMessage.setDestination(this.getName());
+            Optional<String> containerName = dMessage.inContainer();
+            if (containerName.isPresent()) {
+                // takeOutMessage.setSource(containerName.orElse(null));
+                dOutMessage.setDestination(containerName.get());
+                Optional<ItemContainer> foundContainer = this.items.stream()
+                        .filter(item -> item != null && item instanceof ItemContainer
+                                && item.checkName(containerName.get().replaceAll("^\"|\"$", "")))
+                        .map(item -> (ItemContainer) item).findAny();
+                if (foundContainer.isEmpty()) {
+                    ctx.sendMsg(dOutMessage.setDropType(DropType.BAD_CONTAINER));
+                    return ctx.handled();
+                } else if (foundContainer.get() instanceof LockableItemContainer liCon) {
+                    if (!liCon.canAccess(ctx.getCreature())) {
+                        ctx.sendMsg(dOutMessage.setDropType(DropType.LOCKED_CONTAINER));
+                        return ctx.handled();
+                    }
+                    container = liCon.getBypass();
+                } else {
+                    container = foundContainer.get();
+                }
+            }
+            dOutMessage.setDestination(container.getName());
+
             for (String itemName : dMessage.getDirects()) {
                 Optional<Item> maybeTakeable = ctx.getCreature().removeItem(itemName);
                 if (maybeTakeable.isEmpty()) {
@@ -725,8 +769,9 @@ public class Room implements Area {
                     continue;
                 }
                 Item takeable = maybeTakeable.get();
-                this.addItem(takeable);
-                ctx.sendMsg(DropOutMessage.getBuilder().setItem(takeable).Build());
+                container.addItem(takeable);
+                ctx.sendMsg(dOutMessage.setDropType(DropType.SUCCESS).setItem(takeable)
+                        .setDestination(container.getName()).Build());
             }
             return ctx.handled();
         }

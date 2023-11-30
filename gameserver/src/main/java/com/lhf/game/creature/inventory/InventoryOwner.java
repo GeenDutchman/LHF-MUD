@@ -12,6 +12,8 @@ public interface InventoryOwner extends ItemContainer {
 
     String printInventory();
 
+    String getName();
+
     @Override
     public default Collection<Item> getItems() {
         Inventory inventory = this.getInventory();

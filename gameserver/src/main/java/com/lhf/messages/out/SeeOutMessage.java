@@ -137,7 +137,11 @@ public class SeeOutMessage extends OutMessage {
             }
             SeeCategory categorized = SeeCategory.getSeeCategory(category);
             if (categorized == null) {
-                sj.add(category);
+                if (category == null) {
+                    sj.add("Other things that you can see:");
+                } else {
+                    sj.add(category);
+                }
             } else {
                 switch (categorized) {
                     case DIRECTION:

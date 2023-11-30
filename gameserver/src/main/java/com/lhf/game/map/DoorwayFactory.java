@@ -6,6 +6,9 @@ public class DoorwayFactory {
     }
 
     public static Doorway createDoorway(DoorwayType type, Room toAdd, Directions toExistingRoom, Room existing) {
+        if (type == null) {
+            return new Doorway(existing.getUuid(), toExistingRoom, toAdd.getUuid());
+        }
         switch (type) {
             case ONE_WAY:
                 return new OneWayDoorway(existing.getUuid(), toExistingRoom, toAdd.getUuid());
