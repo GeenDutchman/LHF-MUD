@@ -20,7 +20,10 @@ public interface MessageChainHandler {
     public interface CommandHandler extends Comparable<CommandHandler> {
         public CommandMessage getHandleType();
 
-        public boolean isEnabled(CommandContext ctx);
+        public default boolean isEnabled(CommandContext ctx) {
+            Predicate<CommandContext> predicate = this.getEnabledPredicate();
+            return predicate == null ? false : predicate.test(ctx);
+        }
 
         public Optional<String> getHelp(CommandContext ctx);
 
