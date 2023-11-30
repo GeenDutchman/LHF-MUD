@@ -815,18 +815,16 @@ public abstract class Creature
         return ctx;
     }
 
-    protected class EquipHandler implements CommandHandler {
+    public interface CreatureCommandHandler extends CommandHandler {
+        static final Predicate<CommandContext> defaultCreaturePredicate = CommandHandler.defaultPredicate
+                .and((ctx) -> ctx.getCreature() != null);
+    }
+
+    protected class EquipHandler implements CreatureCommandHandler {
         private static String helpString;
-        private static final Predicate<CommandContext> enabledPredicate = (ctx) -> {
-            if (ctx == null) {
-                return false;
-            }
-            Creature creature = ctx.getCreature();
-            if (creature == null) {
-                return false;
-            }
-            return creature.getItems().stream().anyMatch(item -> item != null && item instanceof Equipable);
-        };
+        private static final Predicate<CommandContext> enabledPredicate = CreatureCommandHandler.defaultCreaturePredicate
+                .and(ctx -> ctx.getCreature().getItems().stream()
+                        .anyMatch(item -> item != null && item instanceof Equipable));
 
         static {
             StringJoiner sj = new StringJoiner(" ");
@@ -869,18 +867,10 @@ public abstract class Creature
 
     }
 
-    protected class UnequipHandler implements CommandHandler {
+    protected class UnequipHandler implements CreatureCommandHandler {
         private static String helpString;
-        private static final Predicate<CommandContext> enabledPredicate = (ctx) -> {
-            if (ctx == null) {
-                return false;
-            }
-            Creature creature = ctx.getCreature();
-            if (creature == null) {
-                return false;
-            }
-            return creature.getEquipmentSlots().values().size() > 0;
-        };
+        private static final Predicate<CommandContext> enabledPredicate = CreatureCommandHandler.defaultCreaturePredicate
+                .and(ctx -> ctx.getCreature().getEquipmentSlots().values().size() > 0);
 
         static {
             StringJoiner sj = new StringJoiner(" ");
@@ -924,18 +914,8 @@ public abstract class Creature
 
     }
 
-    protected class StatusHandler implements CommandHandler {
+    protected class StatusHandler implements CreatureCommandHandler {
         private final static String helpString = "\"status\" Show you how much HP you currently have, among other things.";
-        private static final Predicate<CommandContext> enabledPredicate = (ctx) -> {
-            if (ctx == null) {
-                return false;
-            }
-            Creature creature = ctx.getCreature();
-            if (creature == null) {
-                return false;
-            }
-            return true;
-        };
 
         @Override
         public CommandMessage getHandleType() {
@@ -949,7 +929,7 @@ public abstract class Creature
 
         @Override
         public Predicate<CommandContext> getEnabledPredicate() {
-            return StatusHandler.enabledPredicate;
+            return StatusHandler.defaultCreaturePredicate;
         }
 
         @Override
@@ -970,18 +950,8 @@ public abstract class Creature
 
     }
 
-    protected class InventoryHandler implements CommandHandler {
+    protected class InventoryHandler implements CreatureCommandHandler {
         private final static String helpString = "\"inventory\" List what you have in your inventory and what you have equipped";
-        private static final Predicate<CommandContext> enabledPredicate = (ctx) -> {
-            if (ctx == null) {
-                return false;
-            }
-            Creature creature = ctx.getCreature();
-            if (creature == null) {
-                return false;
-            }
-            return true;
-        };
 
         @Override
         public CommandMessage getHandleType() {
@@ -995,7 +965,7 @@ public abstract class Creature
 
         @Override
         public Predicate<CommandContext> getEnabledPredicate() {
-            return InventoryHandler.enabledPredicate;
+            return InventoryHandler.defaultCreaturePredicate;
         }
 
         @Override
