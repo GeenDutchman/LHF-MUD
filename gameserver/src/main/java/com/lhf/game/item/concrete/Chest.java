@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -69,9 +70,16 @@ public class Chest extends Item implements LockableItemContainer {
 
     @Override
     public String printDescription() {
-        return super.printDescription()
-                + (this.isEmpty() ? ". It is empty." : ". It doesn't seem to be empty.")
-                + (this.isUnlocked() ? " It is unlocked." : " But it is locked.");
+        StringJoiner sj = new StringJoiner(" ");
+        sj.add(super.printDescription() + ".");
+        if (this.isUnlocked()) {
+            sj.add("It is unlocked.");
+            sj.add(this.isEmpty() ? "It is empty." : "Something is inside.");
+        } else {
+            sj.add("It is locked.");
+            sj.add(this.isEmpty() ? "It seems to be empty." : "It doesn't seem to be empty.");
+        }
+        return sj.toString();
     }
 
     @Override
