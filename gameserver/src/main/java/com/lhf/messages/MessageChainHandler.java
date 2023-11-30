@@ -18,7 +18,7 @@ public interface MessageChainHandler {
     public abstract CommandContext addSelfToContext(CommandContext ctx);
 
     public interface CommandHandler extends Comparable<CommandHandler> {
-        final static Predicate<CommandContext> defaultPredicate = (ctx) -> true;
+        final static Predicate<CommandContext> defaultPredicate = (ctx) -> ctx != null;
 
         public CommandMessage getHandleType();
 
@@ -53,7 +53,37 @@ public interface MessageChainHandler {
     // }
 
     public default CommandContext.Reply handleChain(CommandContext ctx, Command cmd) {
+        ctx = this.addSelfToContext(ctx);
+        Map<CommandMessage, CommandHandler> handlers = this.getCommands(ctx);
+        ctx = MessageChainHandler.addHelps(handlers, ctx);
+        if (cmd != null && handlers != null) {
+            CommandHandler handler = handlers.get(cmd.getType());
+            if (handler != null && handler.isEnabled(ctx)) {
+                CommandContext.Reply reply = handler.handle(ctx, cmd);
+                if (reply.isHandled()) {
+                    return reply;
+                }
+            }
+        }
         return MessageChainHandler.passUpChain(this, ctx, cmd);
+    }
+
+    private static CommandContext addHelps(Map<CommandMessage, CommandHandler> handlers, CommandContext ctx) {
+        if (ctx == null) {
+            ctx = new CommandContext();
+        }
+        if (handlers == null) {
+            return ctx;
+        }
+        for (CommandHandler handler : handlers.values()) {
+            if (handler.isEnabled(ctx)) {
+                Optional<String> helpString = handler.getHelp(ctx);
+                if (helpString.isPresent()) {
+                    ctx.addHelp(handler.getHandleType(), helpString.get());
+                }
+            }
+        }
+        return ctx;
     }
 
     public static CommandContext.Reply passUpChain(MessageChainHandler presentChainHandler, CommandContext ctx,
@@ -64,20 +94,14 @@ public interface MessageChainHandler {
         if (ctx == null) {
             ctx = new CommandContext();
         }
-        presentChainHandler.addSelfToContext(ctx);
-        MessageChainHandler currentChainHandler = presentChainHandler; // keep some track of our start point
+        ctx = presentChainHandler.addSelfToContext(ctx);
+        ctx = MessageChainHandler.addHelps(presentChainHandler.getCommands(ctx), ctx);
+        MessageChainHandler currentChainHandler = presentChainHandler.getSuccessor();
         while (currentChainHandler != null) {
-            currentChainHandler.addSelfToContext(ctx);
+            ctx = currentChainHandler.addSelfToContext(ctx);
             Map<CommandMessage, CommandHandler> successorHandlers = currentChainHandler.getCommands(ctx);
-            for (CommandHandler handler : successorHandlers.values()) {
-                if (handler.isEnabled(ctx)) {
-                    Optional<String> helpString = handler.getHelp(ctx);
-                    if (helpString.isPresent()) {
-                        ctx.addHelp(handler.getHandleType(), helpString.get());
-                    }
-                }
-            }
-            if (msg != null) {
+            ctx = MessageChainHandler.addHelps(successorHandlers, ctx);
+            if (msg != null && successorHandlers != null) {
                 CommandHandler handler = successorHandlers.get(msg.getType());
                 if (handler != null && handler.isEnabled(ctx)) {
                     CommandContext.Reply reply = handler.handle(ctx, msg);
