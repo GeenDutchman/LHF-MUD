@@ -18,6 +18,8 @@ public interface MessageChainHandler {
     public abstract CommandContext addSelfToContext(CommandContext ctx);
 
     public interface CommandHandler extends Comparable<CommandHandler> {
+        final static Predicate<CommandContext> defaultPredicate = (ctx) -> true;
+
         public CommandMessage getHandleType();
 
         public default boolean isEnabled(CommandContext ctx) {
@@ -28,8 +30,6 @@ public interface MessageChainHandler {
         public Optional<String> getHelp(CommandContext ctx);
 
         public Predicate<CommandContext> getEnabledPredicate();
-
-        public boolean setEnabledPredicate(Predicate<CommandContext> predicate);
 
         public CommandContext.Reply handle(CommandContext ctx, Command cmd);
 

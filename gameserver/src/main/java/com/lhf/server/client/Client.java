@@ -90,16 +90,9 @@ public class Client implements MessageChainHandler, ClientMessenger {
 
     private class HelpHandler implements CommandHandler {
 
-        private Predicate<CommandContext> enabledPredicate = (ctx) -> true;
-
         @Override
         public CommandMessage getHandleType() {
             return CommandMessage.HELP;
-        }
-
-        @Override
-        public boolean isEnabled(CommandContext ctx) {
-            return this.enabledPredicate.test(ctx);
         }
 
         @Override
@@ -109,23 +102,12 @@ public class Client implements MessageChainHandler, ClientMessenger {
 
         @Override
         public Predicate<CommandContext> getEnabledPredicate() {
-            return this.enabledPredicate;
+            return CommandHandler.defaultPredicate;
         }
 
         @Override
         public MessageChainHandler getChainHandler() {
             return Client.this;
-        }
-
-        @Override
-        public boolean setEnabledPredicate(Predicate<CommandContext> predicate) {
-            if (predicate == null) {
-                this.enabledPredicate = (ctx) -> true;
-                return false;
-            } else {
-                this.enabledPredicate = predicate;
-            }
-            return true;
         }
 
         @Override
