@@ -1,7 +1,7 @@
 package com.lhf.game;
 
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 
-public interface CreatureContainerMessageHandler extends CreatureContainer, MessageHandler {
+public interface CreatureContainerMessageHandler extends CreatureContainer, MessageChainHandler {
 
 }

@@ -19,7 +19,7 @@ import com.lhf.game.map.DungeonBuilder;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.out.ListPlayersMessage;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
@@ -28,8 +28,8 @@ import com.lhf.server.interfaces.NotNull;
 import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
 
-public class Game implements UserListener, MessageHandler {
-	private transient MessageHandler successor;
+public class Game implements UserListener, MessageChainHandler {
+	private transient MessageChainHandler successor;
 	private ServerInterface server;
 	private UserManager userManager;
 	private Logger logger;
@@ -104,12 +104,12 @@ public class Game implements UserListener, MessageHandler {
 	}
 
 	@Override
-	public void setSuccessor(MessageHandler successor) {
+	public void setSuccessor(MessageChainHandler successor) {
 		this.successor = successor;
 	}
 
 	@Override
-	public MessageHandler getSuccessor() {
+	public MessageChainHandler getSuccessor() {
 		return this.successor;
 	}
 
@@ -131,7 +131,7 @@ public class Game implements UserListener, MessageHandler {
 		if (msg.getType() == CommandMessage.PLAYERS) {
 			return this.handleListPlayersMessage(ctx, msg);
 		}
-		return MessageHandler.super.handleMessage(ctx, msg);
+		return MessageChainHandler.super.handleMessage(ctx, msg);
 	}
 
 	public void setServer(ServerInterface server) {

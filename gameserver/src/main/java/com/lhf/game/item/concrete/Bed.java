@@ -19,7 +19,7 @@ import com.lhf.game.map.Directions;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.InteractMessage;
 import com.lhf.messages.out.BadGoMessage;
@@ -39,7 +39,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
 
     protected class BedTime implements Runnable, Comparable<Bed.BedTime> {
         protected Creature occupant;
-        protected MessageHandler successor;
+        protected MessageChainHandler successor;
         protected ScheduledFuture<?> future;
 
         protected BedTime(Creature occupant) {
@@ -342,7 +342,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(MessageChainHandler successor) {
         // We only care about the room
         if (successor instanceof Area && successor != null) {
             this.room = (Area) successor;
@@ -350,7 +350,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public MessageChainHandler getSuccessor() {
         return null; // we're gonna pretend there *is* no successor!
     }
 

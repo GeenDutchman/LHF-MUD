@@ -12,7 +12,7 @@ import com.lhf.game.Game;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.out.DuplicateUserMessage;
 import com.lhf.messages.out.UserLeftMessage;
@@ -129,13 +129,13 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(MessageChainHandler successor) {
         // Server is IT, the buck stops here
         logger.log(Level.WARNING, "Attempted to put a successor on the Server");
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public MessageChainHandler getSuccessor() {
         // Server is IT, the buck stops here
         return null;
     }

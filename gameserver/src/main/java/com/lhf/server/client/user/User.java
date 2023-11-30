@@ -8,15 +8,15 @@ import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
-public class User implements MessageHandler, ClientMessenger, Comparable<User> {
+public class User implements MessageChainHandler, ClientMessenger, Comparable<User> {
     private UserID id;
     private String username;
-    private transient MessageHandler successor;
+    private transient MessageChainHandler successor;
 
     // private String password;
     private ClientMessenger client;
@@ -56,12 +56,12 @@ public class User implements MessageHandler, ClientMessenger, Comparable<User> {
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(MessageChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public MessageChainHandler getSuccessor() {
         return this.successor;
     }
 
@@ -101,7 +101,7 @@ public class User implements MessageHandler, ClientMessenger, Comparable<User> {
     @Override
     public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
         ctx = this.addSelfToContext(ctx);
-        return MessageHandler.super.handleMessage(ctx, msg);
+        return MessageChainHandler.super.handleMessage(ctx, msg);
     }
 
     @Override

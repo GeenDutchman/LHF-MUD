@@ -2,13 +2,13 @@ package com.lhf.messages;
 
 import java.util.Map;
 
-public interface MessageHandler {
+public interface MessageChainHandler {
 
-    public void setSuccessor(MessageHandler successor);
+    public void setSuccessor(MessageChainHandler successor);
 
-    public MessageHandler getSuccessor();
+    public MessageChainHandler getSuccessor();
 
-    public default void intercept(MessageHandler interceptor) {
+    public default void intercept(MessageChainHandler interceptor) {
         interceptor.setSuccessor(this.getSuccessor());
         this.setSuccessor(interceptor);
     }
@@ -18,7 +18,7 @@ public interface MessageHandler {
     public abstract CommandContext addSelfToContext(CommandContext ctx);
 
     public default CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-        MessageHandler retrievedSuccessor = this.getSuccessor();
+        MessageChainHandler retrievedSuccessor = this.getSuccessor();
         if (retrievedSuccessor != null) {
             return retrievedSuccessor.handleMessage(ctx, msg);
         }

@@ -22,7 +22,7 @@ import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.CastMessage;
 import com.lhf.messages.in.SpellbookMessage;
 import com.lhf.messages.out.BadMessage;
@@ -36,7 +36,7 @@ import com.lhf.messages.out.SpellEntryMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
 
-public class ThirdPower implements MessageHandler {
+public class ThirdPower implements MessageChainHandler {
     // buff debuff
     // damage heal
     // summon banish
@@ -49,12 +49,12 @@ public class ThirdPower implements MessageHandler {
      * 
      * 
      */
-    private transient MessageHandler successor;
+    private transient MessageChainHandler successor;
     private EnumMap<CommandMessage, String> cmds;
     private Spellbook spellbook;
     private Logger logger;
 
-    public ThirdPower(MessageHandler successor, Spellbook spellbook) {
+    public ThirdPower(MessageChainHandler successor, Spellbook spellbook) {
         this.logger = Logger.getLogger(this.getClass().getName());
         this.successor = successor;
         this.cmds = this.generateCommands();
@@ -381,12 +381,12 @@ public class ThirdPower implements MessageHandler {
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(MessageChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public MessageChainHandler getSuccessor() {
         return this.successor;
     }
 
@@ -434,7 +434,7 @@ public class ThirdPower implements MessageHandler {
                 return this.handleSpellbook(ctx, msg);
             }
         }
-        return MessageHandler.super.handleMessage(ctx, msg);
+        return MessageChainHandler.super.handleMessage(ctx, msg);
     }
 
     @Override

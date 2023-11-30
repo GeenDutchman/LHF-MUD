@@ -11,10 +11,10 @@ import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.server.client.ComBundle;
 
-public class AIComBundle extends ComBundle implements MessageHandler {
+public class AIComBundle extends ComBundle implements MessageChainHandler {
     public static AIRunner aiRunner;
 
     public static AIRunner getAIRunner() {
@@ -32,11 +32,11 @@ public class AIComBundle extends ComBundle implements MessageHandler {
     public NonPlayerCharacter npc;
     public BasicAI brain;
     @Mock
-    public MessageHandler mockedWrappedHandler;
+    public MessageChainHandler mockedWrappedHandler;
 
     public AIComBundle() {
         super();
-        this.mockedWrappedHandler = Mockito.mock(MessageHandler.class);
+        this.mockedWrappedHandler = Mockito.mock(MessageChainHandler.class);
 
         this.npc = NonPlayerCharacter.getNPCBuilder(AIComBundle.getAIRunner()).build();
         this.brain = AIComBundle.getAIRunner().register(this.npc);
@@ -51,12 +51,12 @@ public class AIComBundle extends ComBundle implements MessageHandler {
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(MessageChainHandler successor) {
         // no -op
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public MessageChainHandler getSuccessor() {
         return null;
     }
 

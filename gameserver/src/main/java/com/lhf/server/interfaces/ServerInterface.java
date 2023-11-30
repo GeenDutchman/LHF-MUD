@@ -5,10 +5,10 @@ import java.util.Map;
 
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.server.client.user.UserID;
 
-public interface ServerInterface extends MessageHandler {
+public interface ServerInterface extends MessageChainHandler {
     void registerCallback(UserListener listener);
 
     void start();

@@ -42,7 +42,7 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.ITickMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.UnequipMessage;
 import com.lhf.messages.out.CreatureAffectedMessage;
@@ -58,7 +58,7 @@ import com.lhf.messages.out.UnequipOutMessage;
 import com.lhf.server.client.ClientID;
 
 public abstract class Creature
-        implements InventoryOwner, EquipmentOwner, ClientMessenger, MessageHandler, Comparable<Creature>,
+        implements InventoryOwner, EquipmentOwner, ClientMessenger, MessageChainHandler, Comparable<Creature>,
         AffectableEntity<CreatureEffect> {
 
     public class Fist extends Weapon {
@@ -88,7 +88,7 @@ public abstract class Creature
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
     private transient ClientMessenger controller;
-    private transient MessageHandler successor;
+    private transient MessageChainHandler successor;
     private Map<CommandMessage, String> cmds;
 
     public abstract static class CreatureBuilder<T extends CreatureBuilder<T>> {
@@ -98,7 +98,7 @@ public abstract class Creature
         private Vocation vocation;
         private Statblock statblock;
         private ClientMessenger controller;
-        private MessageHandler successor;
+        private MessageChainHandler successor;
         private Corpse corpse;
 
         protected CreatureBuilder() {
@@ -166,12 +166,12 @@ public abstract class Creature
             return this.controller;
         }
 
-        public T setSuccessor(MessageHandler successor) {
+        public T setSuccessor(MessageChainHandler successor) {
             this.successor = successor;
             return this.getThis();
         }
 
-        public MessageHandler getSuccessor() {
+        public MessageChainHandler getSuccessor() {
             return this.successor;
         }
 
@@ -246,7 +246,7 @@ public abstract class Creature
         current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
         this.statblock.getStats().replace(Stats.CURRENTHP, current);
         if (current <= 0) {
-            MessageHandler next = this.getSuccessor();
+            MessageChainHandler next = this.getSuccessor();
             while (next != null) {
                 if (next instanceof CreatureContainer container) {
                     container.onCreatureDeath(this); // the rest of the chain should be handled here as well
@@ -793,12 +793,12 @@ public abstract class Creature
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(MessageChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public MessageChainHandler getSuccessor() {
         return this.successor;
     }
 
@@ -843,7 +843,7 @@ public abstract class Creature
             this.tick(TickType.ACTION);
             return ctx.handled();
         }
-        return MessageHandler.super.handleMessage(ctx, msg);
+        return MessageChainHandler.super.handleMessage(ctx, msg);
     }
 
     @Override

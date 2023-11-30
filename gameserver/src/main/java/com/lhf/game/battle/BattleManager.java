@@ -35,7 +35,7 @@ import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
@@ -62,7 +62,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
     private Initiative participants;
     private BattleStats battleStats;
     private Area room;
-    private transient MessageHandler successor;
+    private transient MessageChainHandler successor;
     private Map<CommandMessage, String> interceptorCmds;
     private Map<CommandMessage, String> cmds;
     private Logger battleLogger;
@@ -635,12 +635,12 @@ public class BattleManager implements CreatureContainerMessageHandler {
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(MessageChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public MessageChainHandler getSuccessor() {
         return this.successor;
     }
 

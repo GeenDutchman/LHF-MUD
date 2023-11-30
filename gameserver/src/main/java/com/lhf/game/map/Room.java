@@ -26,7 +26,7 @@ import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.DropMessage;
 import com.lhf.messages.in.InteractMessage;
 import com.lhf.messages.in.SayMessage;
@@ -55,7 +55,7 @@ public class Room implements Area {
     private transient Set<UUID> sentMessage;
 
     private Map<CommandMessage, String> commands;
-    private MessageHandler successor;
+    private MessageChainHandler successor;
 
     public static class RoomBuilder implements Area.AreaBuilder {
         private Logger logger;
@@ -64,7 +64,7 @@ public class Room implements Area {
         private List<Item> items;
         private Set<Creature> creatures;
         private Land dungeon;
-        private MessageHandler successor;
+        private MessageChainHandler successor;
         private BattleManager.Builder battleManagerBuilder;
 
         private RoomBuilder() {
@@ -115,7 +115,7 @@ public class Room implements Area {
             return this;
         }
 
-        public RoomBuilder setSuccessor(MessageHandler successor) {
+        public RoomBuilder setSuccessor(MessageChainHandler successor) {
             this.successor = successor;
             return this;
         }
@@ -146,7 +146,7 @@ public class Room implements Area {
         }
 
         @Override
-        public MessageHandler getSuccessor() {
+        public MessageChainHandler getSuccessor() {
             return this.successor;
         }
 
@@ -510,12 +510,12 @@ public class Room implements Area {
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(MessageChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public MessageChainHandler getSuccessor() {
         return this.successor;
     }
 

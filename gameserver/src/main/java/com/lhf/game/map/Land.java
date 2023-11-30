@@ -13,17 +13,17 @@ import com.lhf.game.CreatureContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.out.TickMessage;
 import com.lhf.server.client.user.UserID;
 
-public interface Land extends CreatureContainer, MessageHandler, AffectableEntity<DungeonEffect> {
+public interface Land extends CreatureContainer, MessageChainHandler, AffectableEntity<DungeonEffect> {
     public interface LandBuilder {
         public abstract Area getStartingArea();
 
         public abstract Map<UUID, AreaDirectionalLinks> getAtlas();
 
-        public abstract MessageHandler getSuccessor();
+        public abstract MessageChainHandler getSuccessor();
 
         public abstract Land build();
     }

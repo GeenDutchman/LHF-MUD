@@ -14,7 +14,7 @@ import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.Player;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.TickMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
@@ -33,7 +33,7 @@ public interface Area
 
         public abstract Collection<Creature> getCreatures();
 
-        public abstract MessageHandler getSuccessor();
+        public abstract MessageChainHandler getSuccessor();
 
         public abstract Area build();
     }
