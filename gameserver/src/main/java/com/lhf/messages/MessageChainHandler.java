@@ -46,4 +46,39 @@ public interface MessageChainHandler {
         return ctx.failhandle();
     }
 
+    public static CommandContext.Reply passUpChain(MessageChainHandler presentChainHandler, CommandContext ctx,
+            Command msg) {
+        if (presentChainHandler == null) {
+            return ctx.failhandle();
+        }
+        if (ctx == null) {
+            ctx = new CommandContext();
+        }
+        presentChainHandler.addSelfToContext(ctx);
+        MessageChainHandler currentChainHandler = presentChainHandler.getSuccessor();
+        while (currentChainHandler != null) {
+            currentChainHandler.addSelfToContext(ctx);
+            Map<CommandMessage, CommandHandler> successorHandlers = currentChainHandler.getCommands(ctx);
+            for (CommandHandler handler : successorHandlers.values()) {
+                if (handler.isEnabled(ctx)) {
+                    Optional<String> helpString = handler.getHelp(ctx);
+                    if (helpString.isPresent()) {
+                        ctx.addHelp(handler.getHandleType(), helpString.get());
+                    }
+                }
+            }
+            if (msg != null) {
+                CommandHandler handler = successorHandlers.get(msg.getType());
+                if (handler != null && handler.isEnabled(ctx)) {
+                    CommandContext.Reply reply = handler.handle(ctx, msg);
+                    if (reply.isHandled()) {
+                        return reply;
+                    }
+                }
+            }
+            currentChainHandler = currentChainHandler.getSuccessor();
+        }
+        return ctx.failhandle();
+    }
+
 }

@@ -103,6 +103,16 @@ public class CommandContext implements ClientMessenger {
         return helpsFound;
     }
 
+    public CommandContext addHelp(CommandMessage cmd, String help) {
+        if (this.helps == null) {
+            this.helps = new EnumMap<>(CommandMessage.class);
+        }
+        if (cmd != null && help != null) {
+            this.helps.putIfAbsent(cmd, help);
+        }
+        return this;
+    }
+
     public Map<CommandMessage, String> getHelps() {
         return Collections.unmodifiableMap(helps);
     }
