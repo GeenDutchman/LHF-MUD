@@ -179,18 +179,6 @@ public class Client implements MessageChainHandler, ClientMessenger {
         return ctx;
     }
 
-    public CommandContext.Reply handleChain(CommandContext ctx, Command msg) {
-        ctx = this.addSelfToContext(ctx);
-        CommandContext.Reply reply = MessageChainHandler.super.handleChain(ctx, msg);
-        if (msg.getType() == CommandMessage.HELP) {
-            return this.handleHelpMessage(null, null, reply);
-        } else if (!reply.isHandled()) {
-            return this.handleHelpMessage(msg, BadMessageType.UNHANDLED, reply);
-        }
-
-        return reply;
-    }
-
     @Override
     public String getStartTag() {
         return "<client>";
