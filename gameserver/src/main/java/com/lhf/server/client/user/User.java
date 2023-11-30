@@ -66,7 +66,7 @@ public class User implements MessageChainHandler, ClientMessenger, Comparable<Us
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return new EnumMap<>(CommandMessage.class);
     }
 
@@ -96,12 +96,6 @@ public class User implements MessageChainHandler, ClientMessenger, Comparable<Us
         }
         User other = (User) obj;
         return Objects.equals(id, other.id) && Objects.equals(username, other.username);
-    }
-
-    @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-        ctx = this.addSelfToContext(ctx);
-        return MessageChainHandler.super.handleMessage(ctx, msg);
     }
 
     @Override

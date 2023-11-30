@@ -30,6 +30,8 @@ public interface MessageChainHandler {
 
         public CommandContext.Reply handle(CommandContext ctx, Command cmd);
 
+        public MessageChainHandler getChainHandler();
+
         @Override
         default int compareTo(CommandHandler arg0) {
             return this.getHandleType().compareTo(arg0.getHandleType());
@@ -38,12 +40,17 @@ public interface MessageChainHandler {
 
     public abstract Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx);
 
-    public default CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-        MessageChainHandler retrievedSuccessor = this.getSuccessor();
-        if (retrievedSuccessor != null) {
-            return retrievedSuccessor.handleMessage(ctx, msg);
-        }
-        return ctx.failhandle();
+    // public default CommandContext.Reply handleMessage(CommandContext ctx, Command
+    // msg) {
+    // MessageChainHandler retrievedSuccessor = this.getSuccessor();
+    // if (retrievedSuccessor != null) {
+    // return retrievedSuccessor.handleMessage(ctx, msg);
+    // }
+    // return ctx.failhandle();
+    // }
+
+    public default CommandContext.Reply handleChain(CommandContext ctx, Command cmd) {
+        return MessageChainHandler.passUpChain(this, ctx, cmd);
     }
 
     public static CommandContext.Reply passUpChain(MessageChainHandler presentChainHandler, CommandContext ctx,
@@ -55,7 +62,7 @@ public interface MessageChainHandler {
             ctx = new CommandContext();
         }
         presentChainHandler.addSelfToContext(ctx);
-        MessageChainHandler currentChainHandler = presentChainHandler.getSuccessor();
+        MessageChainHandler currentChainHandler = presentChainHandler; // keep some track of our start point
         while (currentChainHandler != null) {
             currentChainHandler.addSelfToContext(ctx);
             Map<CommandMessage, CommandHandler> successorHandlers = currentChainHandler.getCommands(ctx);
