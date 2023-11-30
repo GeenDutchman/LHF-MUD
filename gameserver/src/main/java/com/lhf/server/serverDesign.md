@@ -1,8 +1,8 @@
 ```mermaid
 classDiagram
-    class MessageHandler
-    <<interface>> MessageHandler
-    MessageHandler: +handleMessage(context, Command)
+    class MessageChainHandler
+    <<interface>> MessageChainHandler
+    MessageChainHandler: +handleMessage(context, Command)
     class Main
     class Server
     class UserManager
@@ -45,15 +45,15 @@ classDiagram
 
     Room o-- BattleManager
     
-    MessageHandler <|-- BattleManager
-    MessageHandler <|-- Player
-    MessageHandler <|-- Room
-    MessageHandler <|-- Dungeon
-    MessageHandler <|-- ThirdPower
-    MessageHandler <|-- Game
-    MessageHandler <|-- Server
-    MessageHandler <|-- User
-    MessageHandler <|-- Client
+    MessageChainHandler <|-- BattleManager
+    MessageChainHandler <|-- Player
+    MessageChainHandler <|-- Room
+    MessageChainHandler <|-- Dungeon
+    MessageChainHandler <|-- ThirdPower
+    MessageChainHandler <|-- Game
+    MessageChainHandler <|-- Server
+    MessageChainHandler <|-- User
+    MessageChainHandler <|-- Client
 
 ```
 
