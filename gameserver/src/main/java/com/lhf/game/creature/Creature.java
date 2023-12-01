@@ -817,7 +817,7 @@ public abstract class Creature
 
     public interface CreatureCommandHandler extends CommandHandler {
         static final Predicate<CommandContext> defaultCreaturePredicate = CommandHandler.defaultPredicate
-                .and((ctx) -> ctx.getCreature() != null);
+                .and((ctx) -> ctx.getCreature() != null && ctx.getCreature().isAlive());
     }
 
     protected class EquipHandler implements CreatureCommandHandler {
