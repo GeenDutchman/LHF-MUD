@@ -68,6 +68,19 @@ public class CommandContext implements ClientMessenger {
 
     }
 
+    public CommandContext copy() {
+        CommandContext theCopy = new CommandContext();
+        theCopy.client = this.client;
+        theCopy.user = this.user;
+        theCopy.creature = this.creature;
+        theCopy.room = this.room;
+        theCopy.bManager = this.bManager;
+        theCopy.dungeon = this.dungeon;
+        theCopy.helps = new EnumMap<>(this.helps);
+        theCopy.messages = new ArrayList<>(this.messages);
+        return theCopy;
+    }
+
     public Reply failhandle() {
         return this.new Reply(false);
     }
