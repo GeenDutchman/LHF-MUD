@@ -31,6 +31,7 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
+import com.lhf.game.item.Usable;
 import com.lhf.game.map.Area;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
@@ -636,7 +637,8 @@ public class BattleManager implements CreatureContainerMessageHandler {
     }
 
     private class UseHandler implements BattleManagerCommandHandler {
-
+        private final static Predicate<CommandContext> enabledPredicate = UseHandler.defaultTurnPredicate.and(
+                ctx -> ctx.getCreature().getItems().stream().anyMatch(item -> item != null && item instanceof Usable));
         private static String helpString;
 
         static {
@@ -661,7 +663,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
 
         @Override
         public Predicate<CommandContext> getEnabledPredicate() {
-            return UseHandler.defaultTurnPredicate;
+            return UseHandler.enabledPredicate;
         }
 
         @Override
