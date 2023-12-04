@@ -5,12 +5,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.Game;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.CreateInMessage;
@@ -34,7 +37,7 @@ public class Server implements ServerInterface, ConnectionListener {
     protected ClientManager clientManager;
     protected Logger logger;
     protected ArrayList<UserListener> userListeners;
-    protected Map<CommandMessage, String> acceptedCommands;
+    protected Map<CommandMessage, CommandHandler> acceptedCommands;
 
     public Server() throws IOException {
         this.logger = Logger.getLogger(this.getClass().getName());
@@ -42,8 +45,8 @@ public class Server implements ServerInterface, ConnectionListener {
         this.userListeners = new ArrayList<>();
         this.clientManager = new ClientManager();
         this.acceptedCommands = new EnumMap<>(CommandMessage.class);
-        this.acceptedCommands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
-        this.acceptedCommands.put(CommandMessage.CREATE, "Create a character in Ibaif!");
+        this.acceptedCommands.put(CommandMessage.EXIT, new ExitHandler());
+        this.acceptedCommands.put(CommandMessage.CREATE, new CreateHandler());
         this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
         this.game = new Game(this, this.userManager);
         this.logger.exiting(this.getClass().getName(), "NoArgConstructor");
@@ -55,8 +58,8 @@ public class Server implements ServerInterface, ConnectionListener {
         this.userListeners = new ArrayList<>();
         this.clientManager = clientManager;
         this.acceptedCommands = new EnumMap<>(CommandMessage.class);
-        this.acceptedCommands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
-        this.acceptedCommands.put(CommandMessage.CREATE, "Create a character in Ibaif!");
+        this.acceptedCommands.put(CommandMessage.EXIT, new ExitHandler());
+        this.acceptedCommands.put(CommandMessage.CREATE, new CreateHandler());
         this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
         this.game = game;
         if (game != null) {
@@ -141,30 +144,8 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
-        Map<CommandMessage, String> pruned = new EnumMap<>(this.acceptedCommands);
-        if (ctx.getUser() != null) {
-            pruned.remove(CommandMessage.CREATE);
-        }
-        return ctx.addHelps(pruned);
-    }
-
-    private CommandContext.Reply handleCreateMessage(CommandContext ctx, CreateInMessage msg) {
-        if (this.userManager.getAllUsernames().contains(msg.getUsername())) {
-            ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
-            return ctx.handled();
-        }
-        User user = this.userManager.addUser(msg, ctx.getClientMessenger());
-        if (user == null) {
-            ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
-            return ctx.handled();
-        }
-        user.setSuccessor(this);
-        Client client = this.clientManager.getConnection(ctx.getClientID());
-        this.clientManager.addUserForClient(client.getClientID(), user.getUserID());
-        client.setSuccessor(user);
-        this.game.addNewPlayerToGame(user, msg.vocationRequest());
-        return ctx.handled();
+    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+        return Collections.unmodifiableMap(this.acceptedCommands);
     }
 
     @Override
@@ -172,18 +153,34 @@ public class Server implements ServerInterface, ConnectionListener {
         return ctx;
     }
 
-    @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.getCommands(ctx).containsKey(msg.getType())) {
-            if (msg.getType() == CommandMessage.EXIT) {
-                this.logger.log(Level.INFO, "client " + ctx.getClientID().toString() + " is exiting");
-                Client ch = this.clientManager.getConnection(ctx.getClientID());
+    protected class ExitHandler implements ServerCommandHandler {
+        private static final String helpString = "Disconnect and leave Ibaif!";
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.EXIT;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(ExitHandler.helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return ExitHandler.defaultPredicate;
+        }
+
+        @Override
+        public Reply handle(CommandContext ctx, Command cmd) {
+            if (cmd != null && cmd.getType() == CommandMessage.EXIT) {
+                Server.this.logger.log(Level.INFO, "client " + ctx.getClientID().toString() + " is exiting");
+                Client ch = Server.this.clientManager.getConnection(ctx.getClientID());
 
                 if (ctx.getUserID() != null) {
-                    this.game.userLeft(ctx.getUserID());
-                    User leaving = this.userManager.getUser(ctx.getUserID());
-                    this.userManager.removeUser(ctx.getUserID());
+                    Server.this.game.userLeft(ctx.getUserID());
+                    User leaving = Server.this.userManager.getUser(ctx.getUserID());
+                    Server.this.userManager.removeUser(ctx.getUserID());
                     leaving.sendMsg(UserLeftMessage.getBuilder().setUser(leaving).setNotBroadcast().Build());
                 } else {
                     if (ch != null) {
@@ -192,18 +189,67 @@ public class Server implements ServerInterface, ConnectionListener {
                 }
 
                 try {
-                    this.clientManager.removeClient(ctx.getClientID()); // ch is killed in here
+                    Server.this.clientManager.removeClient(ctx.getClientID()); // ch is killed in here
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Server.this.logger.log(Level.WARNING, "While removing client", e);
                 }
                 return ctx.handled();
             }
-            if (ctx.getUserID() == null && msg.getType() == CommandMessage.CREATE) {
-                CreateInMessage createMessage = (CreateInMessage) msg;
-                return this.handleCreateMessage(ctx, createMessage);
-            }
+            return ctx.failhandle();
         }
-        return ServerInterface.super.handleMessage(ctx, msg);
+
+        @Override
+        public MessageChainHandler getChainHandler() {
+            return Server.this;
+        }
+
+    }
+
+    protected class CreateHandler implements ServerCommandHandler {
+        private static final String helpString = "Create a character in Ibaif!";
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.CREATE;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(CreateHandler.helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return CreateHandler.alreadyCreatedPredicate;
+        }
+
+        @Override
+        public Reply handle(CommandContext ctx, Command cmd) {
+            if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof CreateInMessage msg) {
+                if (Server.this.userManager.getAllUsernames().contains(msg.getUsername())) {
+                    ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
+                    return ctx.handled();
+                }
+                User user = Server.this.userManager.addUser(msg, ctx.getClientMessenger());
+                if (user == null) {
+                    ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
+                    return ctx.handled();
+                }
+                user.setSuccessor(Server.this);
+                Client client = Server.this.clientManager.getConnection(ctx.getClientID());
+                Server.this.clientManager.addUserForClient(client.getClientID(), user.getUserID());
+                client.setSuccessor(user);
+                Server.this.game.addNewPlayerToGame(user, msg.vocationRequest());
+                return ctx.handled();
+            }
+            return ctx.failhandle();
+        }
+
+        @Override
+        public MessageChainHandler getChainHandler() {
+            return Server.this;
+        }
+
     }
 
 }
