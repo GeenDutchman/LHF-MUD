@@ -52,7 +52,10 @@ public interface MessageChainHandler {
     // return ctx.failhandle();
     // }
 
-    public default CommandContext.Reply handleChain(CommandContext ctx, Command cmd) {
+    public default CommandContext.Reply handle(CommandContext ctx, Command cmd) {
+        if (ctx == null) {
+            ctx = new CommandContext();
+        }
         ctx = this.addSelfToContext(ctx);
         Map<CommandMessage, CommandHandler> handlers = this.getCommands(ctx);
         ctx = MessageChainHandler.addHelps(handlers, ctx);
@@ -64,6 +67,14 @@ public interface MessageChainHandler {
                     return reply;
                 }
             }
+        }
+        return ctx.failhandle();
+    }
+
+    public default CommandContext.Reply handleChain(CommandContext ctx, Command cmd) {
+        CommandContext.Reply thisLevelReply = this.handle(ctx, cmd);
+        if (thisLevelReply.isHandled()) {
+            return thisLevelReply;
         }
         return MessageChainHandler.passUpChain(this, ctx, cmd);
     }
@@ -98,17 +109,9 @@ public interface MessageChainHandler {
         ctx = MessageChainHandler.addHelps(presentChainHandler.getCommands(ctx), ctx);
         MessageChainHandler currentChainHandler = presentChainHandler.getSuccessor();
         while (currentChainHandler != null) {
-            ctx = currentChainHandler.addSelfToContext(ctx);
-            Map<CommandMessage, CommandHandler> successorHandlers = currentChainHandler.getCommands(ctx);
-            ctx = MessageChainHandler.addHelps(successorHandlers, ctx);
-            if (msg != null && successorHandlers != null) {
-                CommandHandler handler = successorHandlers.get(msg.getType());
-                if (handler != null && handler.isEnabled(ctx)) {
-                    CommandContext.Reply reply = handler.handle(ctx, msg);
-                    if (reply.isHandled()) {
-                        return reply;
-                    }
-                }
+            CommandContext.Reply thisLevelReply = currentChainHandler.handle(ctx, msg);
+            if (thisLevelReply.isHandled()) {
+                return thisLevelReply;
             }
             currentChainHandler = currentChainHandler.getSuccessor();
         }

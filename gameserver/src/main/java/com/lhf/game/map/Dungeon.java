@@ -454,6 +454,7 @@ public class Dungeon implements Land {
 
     @Override
     public CommandContext addSelfToContext(CommandContext ctx) {
+        ctx.setDungeon(this);
         return ctx;
     }
 

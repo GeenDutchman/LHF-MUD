@@ -71,7 +71,7 @@ public class BattleTurnHandlerTest {
         Mockito.doNothing().when(interceptor).setSuccessor(Mockito.any());
         Mockito.when(interceptor.getSuccessor()).thenReturn(searcher);
         Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(MessageChainHandler.class));
-        Mockito.when(interceptor.handleMessage(Mockito.any(CommandContext.class), Mockito.any(Command.class)))
+        Mockito.when(interceptor.handle(Mockito.any(CommandContext.class), Mockito.any(Command.class)))
                 .thenAnswer(new Answer<CommandContext.Reply>() {
 
                     @Override
@@ -91,7 +91,7 @@ public class BattleTurnHandlerTest {
                         if (cmd.getType().equals(CommandMessage.SEE)) {
                             return ctx.handled();
                         }
-                        return interceptor.getSuccessor().handleMessage(ctx, cmd);
+                        return interceptor.getSuccessor().handleChain(ctx, cmd);
                     }
 
                 });
@@ -103,7 +103,7 @@ public class BattleTurnHandlerTest {
                 .Build());
 
         Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();
-        Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
+        Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains("PASS")));
     }
 

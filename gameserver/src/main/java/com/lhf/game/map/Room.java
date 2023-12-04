@@ -426,7 +426,7 @@ public class Room implements Area {
      * 
      * @return
      */
-    public Long getTakeableCount() {
+    public long getTakeableCount() {
         if (this.takeableCount == null) {
             this.takeableCount = this.items.stream().filter(item -> item != null && item instanceof Takeable).count();
         }
@@ -438,12 +438,12 @@ public class Room implements Area {
      * 
      * @return
      */
-    public Long getInteractableCount() {
+    public long getInteractableCount() {
         if (this.interactableCount == null) {
             this.interactableCount = this.items.stream().filter(item -> item != null && item instanceof InteractObject)
                     .count();
         }
-        return this.takeableCount;
+        return this.interactableCount;
     }
 
     @Override

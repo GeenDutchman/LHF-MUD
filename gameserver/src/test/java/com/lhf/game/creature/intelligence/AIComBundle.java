@@ -12,6 +12,7 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandContext.Reply;
 import com.lhf.server.client.ComBundle;
 
 public class AIComBundle extends ComBundle implements MessageChainHandler {
@@ -61,7 +62,7 @@ public class AIComBundle extends ComBundle implements MessageChainHandler {
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return new EnumMap<>(CommandMessage.class);
     }
 
@@ -71,9 +72,9 @@ public class AIComBundle extends ComBundle implements MessageChainHandler {
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-        this.print(msg.toString(), true);
-        this.mockedWrappedHandler.handleMessage(ctx, msg);
+    public Reply handleChain(CommandContext ctx, Command cmd) {
+        this.print(cmd.toString(), true);
+        this.mockedWrappedHandler.handleChain(ctx, cmd);
         return ctx.handled();
     }
 

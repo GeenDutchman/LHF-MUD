@@ -55,10 +55,9 @@ public class ThirdPower implements MessageChainHandler {
     private transient MessageChainHandler successor;
     private EnumMap<CommandMessage, CommandHandler> cmds;
     private Spellbook spellbook;
-    private Logger logger;
 
     public ThirdPower(MessageChainHandler successor, Spellbook spellbook) {
-        this.logger = Logger.getLogger(this.getClass().getName());
+        // this.logger = Logger.getLogger(this.getClass().getName());
         this.successor = successor;
         this.cmds = this.generateCommands();
         if (spellbook == null) {

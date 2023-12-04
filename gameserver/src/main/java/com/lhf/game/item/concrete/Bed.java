@@ -538,7 +538,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
 
         @Override
         public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(ExitHandler.helpString);
+            return Optional.of(ShoutHandler.helpString);
         }
 
         @Override
