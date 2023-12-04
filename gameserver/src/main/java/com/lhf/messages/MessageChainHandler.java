@@ -99,11 +99,11 @@ public interface MessageChainHandler {
 
     public static CommandContext.Reply passUpChain(MessageChainHandler presentChainHandler, CommandContext ctx,
             Command msg) {
-        if (presentChainHandler == null) {
-            return ctx.failhandle();
-        }
         if (ctx == null) {
             ctx = new CommandContext();
+        }
+        if (presentChainHandler == null) {
+            return ctx.failhandle();
         }
         ctx = presentChainHandler.addSelfToContext(ctx);
         ctx = MessageChainHandler.addHelps(presentChainHandler.getCommands(ctx), ctx);
