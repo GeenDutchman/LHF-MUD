@@ -592,7 +592,7 @@ public class Room implements Area {
 
     }
 
-    private class CastHandler implements RoomCommandHandler {
+    protected class CastHandler implements RoomCommandHandler {
 
         @Override
         public CommandMessage getHandleType() {
