@@ -4,12 +4,14 @@ import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.CreatureContainerMessageHandler;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.Creature.CreatureCommandHandler;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.item.InteractObject;
@@ -18,6 +20,7 @@ import com.lhf.game.map.Area;
 import com.lhf.game.map.Directions;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.GoMessage;
@@ -36,6 +39,7 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
     protected Set<BedTime> occupants;
     protected transient Area room;
     private transient Set<UUID> sentMessage;
+    protected transient EnumMap<CommandMessage, CommandHandler> commands;
 
     protected class BedTime implements Runnable, Comparable<Bed.BedTime> {
         protected Creature occupant;
@@ -183,6 +187,12 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
             return this.bedAction(creature, triggerObject, args);
         };
         this.setAction(sleepAction);
+        this.commands = new EnumMap<>(CommandMessage.class);
+        commands.put(CommandMessage.EXIT, new ExitHandler());
+        commands.put(CommandMessage.GO, new GoHandler());
+        commands.put(CommandMessage.INTERACT, new InteractHandler());
+        commands.put(CommandMessage.SAY, new SayHandler());
+        commands.put(CommandMessage.SHOUT, new ShoutHandler());
     }
 
     protected OutMessage bedAction(Creature creature, InteractObject triggerObject, Map<String, Object> args) {
@@ -355,53 +365,208 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
-        EnumMap<CommandMessage, String> commands = new EnumMap<>(CommandMessage.class);
-        commands.put(CommandMessage.EXIT, "Disconnect and leave Ibaif!");
-        commands.put(CommandMessage.GO, "Use the command <command>GO UP</command> to get out of bed. ");
-        if (ctx.getCreature() != null) {
-            commands.put(CommandMessage.INTERACT,
-                    "Use the command <command>INTERACT " + this.getName() + "</command> to get out of bed. ");
+    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+        return Collections.unmodifiableMap(this.commands);
+    }
+
+    public interface BedCommandHandler extends CreatureCommandHandler {
+        static final Predicate<CommandContext> defaultBedPredicate = BedCommandHandler.defaultCreaturePredicate;
+    }
+
+    /**
+     * Reduces options to just "Go UP"
+     */
+    protected class GoHandler implements BedCommandHandler {
+        private static final String helpString = "Use the command <command>GO UP</command> to get out of bed. ";
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.GO;
         }
-        return ctx.addHelps(commands);
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(GoHandler.helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return GoHandler.defaultBedPredicate;
+        }
+
+        @Override
+        public Reply handle(CommandContext ctx, Command cmd) {
+            if (cmd != null && cmd.getType() == CommandMessage.GO && cmd instanceof GoMessage goMessage) {
+                if (Directions.UP.equals(goMessage.getDirection())) {
+                    Bed.this.removeCreature(ctx.getCreature());
+                    return ctx.handled();
+                } else {
+                    ctx.sendMsg(
+                            BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(goMessage.getDirection())
+                                    .setAvailable(EnumSet.of(Directions.UP)).Build());
+                    return ctx.handled();
+                }
+            }
+            return ctx.failhandle();
+        }
+
+        @Override
+        public MessageChainHandler getChainHandler() {
+            return Bed.this;
+        }
+
+    }
+
+    protected class ExitHandler implements BedCommandHandler {
+        private static final String helpString = "Disconnect and leave Ibaif!";
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.EXIT;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(ExitHandler.helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return ExitHandler.defaultBedPredicate;
+        }
+
+        @Override
+        public Reply handle(CommandContext ctx, Command cmd) {
+            if (cmd != null && cmd.getType() == CommandMessage.EXIT) {
+                Bed.this.removeCreature(ctx.getCreature());
+                if (Bed.this.room != null) {
+                    return Bed.this.room.handleChain(ctx, cmd);
+                }
+                return MessageChainHandler.passUpChain(Bed.this, ctx, cmd);
+            }
+            return ctx.failhandle();
+        }
+
+        @Override
+        public MessageChainHandler getChainHandler() {
+            return Bed.this;
+        }
+
+    }
+
+    protected class InteractHandler implements BedCommandHandler {
+        private final String helpString = "Use the command <command>INTERACT " + Bed.this.getName()
+                + "</command> to get out of bed. ";
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.INTERACT;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(this.helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return InteractHandler.defaultBedPredicate;
+        }
+
+        @Override
+        public Reply handle(CommandContext ctx, Command cmd) {
+            if (cmd != null && cmd.getType() == CommandMessage.INTERACT
+                    && cmd instanceof InteractMessage interactMessage) {
+                if (Bed.this.getName().equalsIgnoreCase(interactMessage.getObject())) {
+                    Bed.this.removeCreature(ctx.getCreature());
+                    return ctx.handled();
+                }
+            }
+            return ctx.failhandle();
+        }
+
+        @Override
+        public MessageChainHandler getChainHandler() {
+            return Bed.this;
+        }
+
+    }
+
+    protected class SayHandler implements BedCommandHandler {
+        private static final String helpString = "Says stuff to the people in the area.";
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.SAY;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(SayHandler.helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return ExitHandler.defaultBedPredicate;
+        }
+
+        @Override
+        public Reply handle(CommandContext ctx, Command cmd) {
+            if (cmd != null && cmd.getType() == CommandMessage.SAY) {
+                if (Bed.this.room != null) {
+                    return Bed.this.room.handleChain(ctx, cmd);
+                }
+                return MessageChainHandler.passUpChain(Bed.this, ctx, cmd);
+            }
+            return ctx.failhandle();
+        }
+
+        @Override
+        public MessageChainHandler getChainHandler() {
+            return Bed.this;
+        }
+
+    }
+
+    protected class ShoutHandler implements BedCommandHandler {
+        private static final String helpString = "Shouts stuff to the people in the land.";
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.SHOUT;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(ExitHandler.helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return ExitHandler.defaultBedPredicate;
+        }
+
+        @Override
+        public Reply handle(CommandContext ctx, Command cmd) {
+            if (cmd != null && cmd.getType() == CommandMessage.SHOUT) {
+                if (Bed.this.room != null) {
+                    return Bed.this.room.handleChain(ctx, cmd);
+                }
+                return MessageChainHandler.passUpChain(Bed.this, ctx, cmd);
+            }
+            return ctx.failhandle();
+        }
+
+        @Override
+        public MessageChainHandler getChainHandler() {
+            return Bed.this;
+        }
+
     }
 
     @Override
     public CommandContext addSelfToContext(CommandContext ctx) {
         return ctx;
-    }
-
-    @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-        if (msg.getType() == CommandMessage.EXIT) {
-            this.removeCreature(ctx.getCreature());
-            if (this.room != null) {
-                return this.room.handleMessage(ctx, msg);
-            }
-            return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
-        } else if (msg.getType() == CommandMessage.GO) {
-            GoMessage goMessage = (GoMessage) msg;
-            if (Directions.UP.equals(goMessage.getDirection())) {
-                this.removeCreature(ctx.getCreature());
-                return ctx.handled();
-            } else {
-                ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(goMessage.getDirection())
-                        .setAvailable(EnumSet.of(Directions.UP)).Build());
-                return ctx.handled();
-            }
-        } else if (msg.getType() == CommandMessage.INTERACT) {
-            InteractMessage interactMessage = (InteractMessage) msg;
-            if (this.getName() == interactMessage.getObject()) {
-                this.removeCreature(ctx.getCreature());
-                return ctx.handled();
-            }
-        } else if (msg.getType() == CommandMessage.SAY || msg.getType() == CommandMessage.SHOUT) {
-            if (this.room != null) {
-                return this.room.handleMessage(ctx, msg);
-            }
-            return CreatureContainerMessageHandler.super.handleMessage(ctx, msg);
-        }
-        return ctx.failhandle();
     }
 
 }

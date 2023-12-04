@@ -5,9 +5,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
 import com.lhf.game.creature.Creature;
@@ -18,7 +20,9 @@ import com.lhf.game.lewd.VrijPartij;
 import com.lhf.game.map.Area;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.LewdInMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
@@ -80,6 +84,8 @@ public class LewdBed extends Bed {
         super(room, builder.subBuilder);
         this.vrijPartijen = Collections.synchronizedNavigableMap(new TreeMap<>());
         this.lewdProduct = builder.lewdProduct;
+        this.commands.put(CommandMessage.LEWD, new LewdHandler());
+        this.commands.put(CommandMessage.PASS, new PassHandler());
     }
 
     public LewdBed setLewdProduct(LewdProduct lewdProduct) {
@@ -96,18 +102,110 @@ public class LewdBed extends Bed {
         this.vrijPartijen.clear();
     }
 
-    protected CommandContext.Reply handlePass(CommandContext ctx, Command msg) {
-        if (!CommandMessage.PASS.equals(msg.getType())) {
-            return ctx.failhandle();
+    protected class PassHandler implements BedCommandHandler {
+        private final Predicate<CommandContext> enabledPredicate = BedCommandHandler.defaultBedPredicate
+                .and(ctx -> LewdBed.this.vrijPartijen.size() > 0);
+        private final static String helpString = "\"pass\" to decline all the lewdness";
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.LEWD;
         }
-        Iterator<VrijPartij> it = this.vrijPartijen.values().iterator();
-        while (it.hasNext()) {
-            VrijPartij party = it.next();
-            if (party.passAndCheck(ctx.getCreature())) {
-                it.remove();
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(PassHandler.helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return this.enabledPredicate;
+        }
+
+        @Override
+        public Reply handle(CommandContext ctx, Command cmd) {
+            if (cmd == null || !CommandMessage.PASS.equals(cmd.getType())) {
+                return ctx.failhandle();
+            }
+            Iterator<VrijPartij> it = LewdBed.this.vrijPartijen.values().iterator();
+            while (it.hasNext()) {
+                VrijPartij party = it.next();
+                if (party.passAndCheck(ctx.getCreature())) {
+                    it.remove();
+                }
+            }
+            return ctx.handled();
+        }
+
+        @Override
+        public MessageChainHandler getChainHandler() {
+            return LewdBed.this;
+        }
+
+    }
+
+    protected class LewdHandler implements BedCommandHandler {
+        private final static String helpString = "\"lewd [creature]\" lewd another person in the bed";
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.LEWD;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return LewdHandler.defaultBedPredicate;
+        }
+
+        @Override
+        public Reply handle(CommandContext ctx, Command cmd) {
+            LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder();
+            if (cmd == null || cmd.getType() != CommandMessage.LEWD || !(cmd instanceof LewdInMessage)) {
+                return ctx.failhandle();
+            }
+            if (ctx.getCreature() == null) {
+                return ctx.failhandle();
+            }
+
+            if (!LewdBed.this.isInBed(ctx.getCreature())) {
+                ctx.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
+                return ctx.failhandle();
+            }
+            lewdOutMessage.setCreature(ctx.getCreature());
+
+            if (ctx.getCreature().isInBattle()) {
+                ctx.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
+                return ctx.failhandle();
+            }
+
+            if (ctx.getCreature().getEquipped(EquipmentSlots.ARMOR) != null) {
+                LewdBed.this.logger.log(Level.WARNING,
+                        String.format("%s is still wearing armor, but wants to lewd!", ctx.getCreature().getName()));
+                ctx.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
+                return ctx.failhandle();
+            }
+
+            LewdInMessage lewdInMessage = (LewdInMessage) cmd;
+            if (lewdInMessage.getPartners().size() > 0) {
+                return LewdBed.this.handlePopulatedJoin(ctx.getCreature(), lewdInMessage.getPartners(),
+                        lewdInMessage.getNames())
+                                ? ctx.handled()
+                                : ctx.failhandle();
+            } else {
+                return LewdBed.this.handleEmptyJoin(ctx.getCreature()) ? ctx.handled() : ctx.failhandle();
             }
         }
-        return ctx.handled();
+
+        @Override
+        public MessageChainHandler getChainHandler() {
+            return LewdBed.this;
+        }
+
     }
 
     protected boolean handleJoin(Creature joiner, int index) {
@@ -204,57 +302,6 @@ public class LewdBed extends Bed {
         }
     }
 
-    protected CommandContext.Reply handleLewd(CommandContext ctx, Command msg) {
-        LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder();
-        if (msg.getType() != CommandMessage.LEWD) {
-            return ctx.failhandle();
-        }
-        if (ctx.getCreature() == null) {
-            return ctx.failhandle();
-        }
-
-        if (!this.isInBed(ctx.getCreature())) {
-            ctx.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
-            return ctx.failhandle();
-        }
-        lewdOutMessage.setCreature(ctx.getCreature());
-
-        if (ctx.getCreature().isInBattle()) {
-            ctx.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
-            return ctx.failhandle();
-        }
-
-        if (ctx.getCreature().getEquipped(EquipmentSlots.ARMOR) != null) {
-            this.logger.log(Level.WARNING,
-                    String.format("%s is still wearing armor, but wants to lewd!", ctx.getCreature().getName()));
-            ctx.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
-            return ctx.failhandle();
-        }
-
-        LewdInMessage lewdInMessage = (LewdInMessage) msg;
-        if (lewdInMessage.getPartners().size() > 0) {
-            return this.handlePopulatedJoin(ctx.getCreature(), lewdInMessage.getPartners(), lewdInMessage.getNames())
-                    ? ctx.handled()
-                    : ctx.failhandle();
-        } else {
-            return this.handleEmptyJoin(ctx.getCreature()) ? ctx.handled() : ctx.failhandle();
-        }
-    }
-
-    @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-        CommandContext.Reply handled = super.handleMessage(ctx, msg);
-        if (handled.isHandled()) {
-            return handled;
-        }
-        if (CommandMessage.LEWD.equals(msg.getType())) {
-            handled = this.handleLewd(ctx, msg);
-        } else if (this.vrijPartijen.size() > 0 && CommandMessage.PASS.equals(msg.getType())) {
-            handled = this.handlePass(ctx, msg);
-        }
-        return handled;
-    }
-
     @Override
     public boolean removeCreature(Creature doneSleeping) {
         if (super.removeCreature(doneSleeping)) {
@@ -264,17 +311,6 @@ public class LewdBed extends Bed {
             return true;
         }
         return false;
-    }
-
-    @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
-        Map<CommandMessage, String> bedCommands = super.getCommands(ctx);
-        bedCommands.put(CommandMessage.LEWD, "\"lewd [creature]\" lewd another person in the bed");
-        if (this.vrijPartijen.size() > 0) {
-            bedCommands.put(CommandMessage.PASS, "\"pass\" to decline all the lewdness");
-        }
-        ctx.addHelps(bedCommands);
-        return Map.copyOf(bedCommands);
     }
 
     @Override
