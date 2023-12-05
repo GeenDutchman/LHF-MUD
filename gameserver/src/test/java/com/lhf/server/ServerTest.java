@@ -85,7 +85,7 @@ public class ServerTest {
         @Override
         protected String getName() {
             if (this.name != null) {
-                return this.name + ' ' + super.getName();
+                return super.getName() + ' ' + this.name;
             }
             return super.getName();
         }

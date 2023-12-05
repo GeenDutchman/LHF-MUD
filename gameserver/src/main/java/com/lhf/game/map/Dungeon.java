@@ -14,6 +14,9 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Creature;
@@ -66,8 +69,10 @@ public class Dungeon implements Land {
     private Map<CommandMessage, CommandHandler> commands;
     private transient TreeSet<DungeonEffect> effects;
     private transient Set<UUID> sentMessage;
+    private transient final Logger logger;
 
     Dungeon(Land.LandBuilder builder) {
+        this.logger = Logger.getLogger(String.format("%s.%s", this.getClass().getSimpleName(), this.getName()));
         this.startingRoom = builder.getStartingArea();
         this.mapping = builder.getAtlas();
         this.successor = builder.getSuccessor();
@@ -461,6 +466,17 @@ public class Dungeon implements Land {
     @Override
     public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.commands);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, String logMessage) {
+        this.logger.log(logLevel, logMessage);
+
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        this.logger.log(logLevel, logMessageSupplier);
     }
 
     @Override

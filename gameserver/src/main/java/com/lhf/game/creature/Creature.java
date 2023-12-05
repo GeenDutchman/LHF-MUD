@@ -2,6 +2,9 @@ package com.lhf.game.creature;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.AffectableEntity;
@@ -94,6 +97,7 @@ public abstract class Creature
     private transient ClientMessenger controller;
     private transient MessageChainHandler successor;
     private Map<CommandMessage, CommandHandler> cmds;
+    private transient final Logger logger;
 
     public abstract static class CreatureBuilder<T extends CreatureBuilder<T>> {
         protected T thisObject;
@@ -208,6 +212,7 @@ public abstract class Creature
 
         // We don't start them in battle
         this.inBattle = false;
+        this.logger = Logger.getLogger(String.format("%s.%s", this.getClass().getSimpleName(), this.name));
     }
 
     private Map<CommandMessage, CommandHandler> buildCommands() {
@@ -805,6 +810,16 @@ public abstract class Creature
     @Override
     public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.cmds);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, String logMessage) {
+        this.logger.log(logLevel, logMessage);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        this.logger.log(logLevel, logMessageSupplier);
     }
 
     @Override

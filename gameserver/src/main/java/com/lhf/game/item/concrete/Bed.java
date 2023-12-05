@@ -5,6 +5,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,7 +34,7 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.user.UserID;
 
 public class Bed extends InteractObject implements CreatureContainerMessageHandler {
-    protected Logger logger;
+    protected final Logger logger;
     protected final ScheduledThreadPoolExecutor executor;
     protected final int sleepSeconds;
     protected Set<BedTime> occupants;
@@ -367,6 +368,16 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
     @Override
     public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.commands);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, String logMessage) {
+        this.logger.log(logLevel, logMessage);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        this.logger.log(logLevel, logMessageSupplier);
     }
 
     public interface BedCommandHandler extends CreatureCommandHandler {

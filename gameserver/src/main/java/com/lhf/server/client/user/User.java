@@ -3,6 +3,9 @@ package com.lhf.server.client.user;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.CommandContext;
@@ -16,6 +19,7 @@ public class User implements MessageChainHandler, ClientMessenger, Comparable<Us
     private UserID id;
     private String username;
     private transient MessageChainHandler successor;
+    private transient final Logger logger;
 
     // private String password;
     private ClientMessenger client;
@@ -25,6 +29,7 @@ public class User implements MessageChainHandler, ClientMessenger, Comparable<Us
         username = msg.getUsername();
         // password = msg.getPassword();
         this.client = client;
+        this.logger = Logger.getLogger(String.format("User.%s", this.username));
     }
 
     public UserID getUserID() {
@@ -67,6 +72,16 @@ public class User implements MessageChainHandler, ClientMessenger, Comparable<Us
     @Override
     public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return new EnumMap<>(CommandMessage.class);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, String logMessage) {
+        this.logger.log(logLevel, logMessage);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        this.logger.log(logLevel, logMessageSupplier);
     }
 
     @Override

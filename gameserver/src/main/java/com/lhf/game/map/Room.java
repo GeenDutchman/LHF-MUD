@@ -16,6 +16,7 @@ import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.PatternSyntaxException;
@@ -522,6 +523,16 @@ public class Room implements Area {
     @Override
     public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.commands);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, String logMessage) {
+        this.logger.log(logLevel, logMessage);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        this.logger.log(logLevel, logMessageSupplier);
     }
 
     @Override

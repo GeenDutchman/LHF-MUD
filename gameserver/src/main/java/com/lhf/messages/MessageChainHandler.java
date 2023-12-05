@@ -3,6 +3,8 @@ package com.lhf.messages;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.logging.Level;
 
 public interface MessageChainHandler {
 
@@ -35,6 +37,14 @@ public interface MessageChainHandler {
 
         public MessageChainHandler getChainHandler();
 
+        public default void log(Level logLevel, String logMessage) {
+            this.getChainHandler().log(logLevel, logMessage);
+        }
+
+        public default void log(Level logLevel, Supplier<String> logMessageSupplier) {
+            this.getChainHandler().log(logLevel, logMessageSupplier);
+        }
+
         @Override
         default int compareTo(CommandHandler arg0) {
             return this.getHandleType().compareTo(arg0.getHandleType());
@@ -42,6 +52,10 @@ public interface MessageChainHandler {
     }
 
     public abstract Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx);
+
+    public abstract void log(Level logLevel, String logMessage);
+
+    public abstract void log(Level logLevel, Supplier<String> logMessageSupplier);
 
     // public default CommandContext.Reply handleMessage(CommandContext ctx, Command
     // msg) {

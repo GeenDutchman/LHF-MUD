@@ -2,6 +2,7 @@ package com.lhf.game.magic;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -55,9 +56,10 @@ public class ThirdPower implements MessageChainHandler {
     private transient MessageChainHandler successor;
     private EnumMap<CommandMessage, CommandHandler> cmds;
     private Spellbook spellbook;
+    private transient final Logger logger;
 
     public ThirdPower(MessageChainHandler successor, Spellbook spellbook) {
-        // this.logger = Logger.getLogger(this.getClass().getName());
+        this.logger = Logger.getLogger(this.getClass().getName());
         this.successor = successor;
         this.cmds = this.generateCommands();
         if (spellbook == null) {
@@ -503,6 +505,17 @@ public class ThirdPower implements MessageChainHandler {
     @Override
     public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.cmds);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, String logMessage) {
+        this.logger.log(logLevel, logMessage);
+
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        this.logger.log(logLevel, logMessageSupplier);
     }
 
 }

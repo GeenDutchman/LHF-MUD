@@ -5,8 +5,8 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -152,6 +152,16 @@ public class Game implements UserListener, MessageChainHandler {
 	@Override
 	public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
 		return Collections.unmodifiableMap(this.commands);
+	}
+
+	@Override
+	public synchronized void log(Level logLevel, String logMessage) {
+		this.logger.log(logLevel, logMessage);
+	}
+
+	@Override
+	public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+		this.logger.log(logLevel, logMessageSupplier);
 	}
 
 	@Override

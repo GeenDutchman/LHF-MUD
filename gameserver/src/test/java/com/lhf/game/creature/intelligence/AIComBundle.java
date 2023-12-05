@@ -3,6 +3,8 @@ package com.lhf.game.creature.intelligence;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import java.util.logging.Level;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -64,6 +66,16 @@ public class AIComBundle extends ComBundle implements MessageChainHandler {
     @Override
     public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return new EnumMap<>(CommandMessage.class);
+    }
+
+    @Override
+    public void log(Level logLevel, String logMessage) {
+        this.npc.log(logLevel, logMessage);
+    }
+
+    @Override
+    public void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        this.npc.log(logLevel, logMessageSupplier);
     }
 
     @Override

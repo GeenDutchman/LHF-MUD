@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -587,6 +588,16 @@ public class BattleManager implements CreatureContainerMessageHandler {
             this.cmds = this.buildCommands();
         }
         return Collections.unmodifiableMap(this.cmds);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, String logMessage) {
+        this.battleLogger.log(logLevel, logMessage);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        this.battleLogger.log(logLevel, logMessageSupplier);
     }
 
     @Override

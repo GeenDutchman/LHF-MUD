@@ -76,6 +76,12 @@ public class Client implements MessageChainHandler, ClientMessenger {
         this.out.send(msg);
     }
 
+    @Override
+    public synchronized void log(Level logLevel, String logMessage) {
+        this.logger.log(logLevel, logMessage);
+    }
+
+    @Override
     public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
         this.logger.log(logLevel, logMessageSupplier);
     }
