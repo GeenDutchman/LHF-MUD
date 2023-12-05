@@ -24,7 +24,7 @@ import com.lhf.messages.out.OutMessage;
 public class Client implements MessageChainHandler, ClientMessenger {
     protected SendStrategy out;
     protected final ClientID id;
-    protected final Logger logger;
+    protected Logger logger;
     protected transient MessageChainHandler _successor;
     protected final HelpHandler helpHandler = new HelpHandler();
 

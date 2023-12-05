@@ -7,6 +7,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler;
@@ -32,6 +33,9 @@ public class BasicAI extends Client {
         super();
         this.queue = new ArrayBlockingQueue<>(32, true);
         this.npc = npc;
+        if (npc != null) {
+            this.logger = Logger.getLogger(this.logger.getName() + "." + npc.getName().replaceAll("\\W", "_"));
+        }
         this.npc.setController(this);
         this.setSuccessor(npc);
         this.SetOut(new DoNothingSendStrategy());

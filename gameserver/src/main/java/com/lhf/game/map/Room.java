@@ -189,8 +189,10 @@ public class Room implements Area {
     }
 
     Room(RoomBuilder builder) {
-        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.uuid.toString());
         this.name = builder.getName();
+        this.logger = Logger.getLogger(this.getClass().getName() + "."
+                + (this.name != null && !this.name.isBlank() ? this.name.replaceAll("\\W", "_")
+                        : this.uuid.toString()));
         this.description = builder.getDescription() != null ? builder.getDescription() : builder.getName();
         this.items = new ArrayList<>(builder.getItems());
         this.allCreatures = new TreeSet<>(builder.getCreatures());

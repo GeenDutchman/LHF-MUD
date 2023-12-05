@@ -213,7 +213,7 @@ public abstract class Creature
         // We don't start them in battle
         this.inBattle = false;
         this.logger = Logger
-                .getLogger(String.format("%s.%s", this.getClass().getName(), this.name.replace(" ", "_")));
+                .getLogger(String.format("%s.%s", this.getClass().getName(), this.name.replaceAll("\\W", "_")));
     }
 
     private Map<CommandMessage, CommandHandler> buildCommands() {
