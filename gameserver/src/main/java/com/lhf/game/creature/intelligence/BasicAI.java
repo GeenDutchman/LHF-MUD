@@ -30,6 +30,7 @@ public class BasicAI extends Client {
 
     protected BasicAI(NonPlayerCharacter npc, AIRunner runner) {
         super();
+        this.queue = new ArrayBlockingQueue<>(32, true);
         this.npc = npc;
         this.npc.setController(this);
         this.setSuccessor(npc);
@@ -37,7 +38,6 @@ public class BasicAI extends Client {
         this.handlers = new TreeMap<>();
         this.initBasicHandlers();
         this.runner = runner;
-        this.queue = new ArrayBlockingQueue<>(32, true);
     }
 
     public OutMessage peek() {
@@ -135,7 +135,8 @@ public class BasicAI extends Client {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("BasicAI [npc=").append(npc).append(", queuesize=").append(queue.size()).append("]");
+        builder.append("BasicAI [npc=").append(npc).append(", queuesize=").append(this.queue != null ? queue.size() : 0)
+                .append("]");
         return builder.toString();
     }
 

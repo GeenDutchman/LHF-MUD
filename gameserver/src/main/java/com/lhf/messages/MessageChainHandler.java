@@ -75,9 +75,15 @@ public interface MessageChainHandler {
         ctx = MessageChainHandler.addHelps(handlers, ctx);
         if (cmd != null && handlers != null) {
             CommandHandler handler = handlers.get(cmd.getType());
-            if (handler != null && handler.isEnabled(ctx)) {
+            if (handler == null) {
+                this.log(Level.FINEST,
+                        () -> String.format("No CommandHandler for type %s at this level", cmd.getType()));
+            } else if (handler.isEnabled(ctx)) {
                 CommandContext.Reply reply = handler.handle(ctx, cmd);
-                if (reply.isHandled()) {
+                if (reply == null) {
+                    this.log(Level.SEVERE,
+                            () -> String.format("No reply for handler of type %s", handler.getHandleType()));
+                } else if (reply.isHandled()) {
                     return reply;
                 }
             }
@@ -87,7 +93,7 @@ public interface MessageChainHandler {
 
     public default CommandContext.Reply handleChain(CommandContext ctx, Command cmd) {
         CommandContext.Reply thisLevelReply = this.handle(ctx, cmd);
-        if (thisLevelReply.isHandled()) {
+        if (thisLevelReply != null && thisLevelReply.isHandled()) {
             return thisLevelReply;
         }
         return MessageChainHandler.passUpChain(this, ctx, cmd);
@@ -101,9 +107,9 @@ public interface MessageChainHandler {
             return ctx;
         }
         for (CommandHandler handler : handlers.values()) {
-            if (handler.isEnabled(ctx)) {
+            if (handler != null && handler.isEnabled(ctx)) {
                 Optional<String> helpString = handler.getHelp(ctx);
-                if (helpString.isPresent()) {
+                if (helpString != null && helpString.isPresent()) {
                     ctx.addHelp(handler.getHandleType(), helpString.get());
                 }
             }
@@ -124,11 +130,13 @@ public interface MessageChainHandler {
         MessageChainHandler currentChainHandler = presentChainHandler.getSuccessor();
         while (currentChainHandler != null) {
             CommandContext.Reply thisLevelReply = currentChainHandler.handle(ctx, msg);
-            if (thisLevelReply.isHandled()) {
+            if (thisLevelReply != null && thisLevelReply.isHandled()) {
                 return thisLevelReply;
             }
             currentChainHandler = currentChainHandler.getSuccessor();
         }
+        presentChainHandler.log(Level.INFO,
+                String.format("No successor handled message: %s\n%s", ctx.toString(), ctx.getHelps()));
         return ctx.failhandle();
     }
 

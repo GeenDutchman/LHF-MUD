@@ -72,7 +72,7 @@ public class Dungeon implements Land {
     private transient final Logger logger;
 
     Dungeon(Land.LandBuilder builder) {
-        this.logger = Logger.getLogger(String.format("%s.%s", this.getClass().getSimpleName(), this.getName()));
+        this.logger = Logger.getLogger(String.format("%s.%s", this.getClass().getName(), this.getName()));
         this.startingRoom = builder.getStartingArea();
         this.mapping = builder.getAtlas();
         this.successor = builder.getSuccessor();
