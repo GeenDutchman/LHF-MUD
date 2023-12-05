@@ -32,7 +32,7 @@ public class Client implements MessageChainHandler, ClientMessenger {
         this.id = new ClientID();
         this.logger = Logger
                 .getLogger(String.format("%s.%d", this.getClass().getName(), this.getClientID().hashCode()));
-        this.logger.log(Level.FINEST,
+        this.log(Level.FINEST,
                 () -> String.format("Creating client %s.%d", this.getClass().getName(), this.getClientID().hashCode()));
         this._successor = null;
         this.out = null;
@@ -43,25 +43,25 @@ public class Client implements MessageChainHandler, ClientMessenger {
     }
 
     public CommandContext.Reply ProcessString(String value) {
-        this.logger.log(Level.FINE, "message received: " + value);
+        this.log(Level.FINE, "message received: " + value);
         Command cmd = CommandBuilder.parse(value);
         CommandContext ctx = new CommandContext();
         CommandContext.Reply accepted = ctx.failhandle();
         if (cmd.isValid()) {
-            this.logger.log(Level.FINEST, "the message received was deemed" + cmd.getClass().toString());
-            this.logger.log(Level.FINER, "Post Processing:" + cmd);
+            this.log(Level.FINEST, "the message received was deemed" + cmd.getClass().toString());
+            this.log(Level.FINER, "Post Processing:" + cmd);
             accepted = MessageChainHandler.passUpChain(this, ctx, cmd);
             if (!accepted.isHandled()) {
-                this.logger.log(Level.WARNING, "Command not accepted:" + cmd.getWhole());
+                this.log(Level.WARNING, "Command not accepted:" + cmd.getWhole());
                 accepted = this.handleHelpMessage(cmd, BadMessageType.UNHANDLED, accepted);
             }
         } else {
             // The message was not recognized
-            this.logger.log(Level.FINE, "Message was bad");
+            this.log(Level.FINE, "Message was bad");
             accepted = this.handleHelpMessage(cmd, BadMessageType.UNRECOGNIZED, accepted);
         }
         if (!accepted.isHandled()) {
-            this.logger.log(Level.WARNING, "Command really not accepted/recognized:" + cmd.getWhole());
+            this.log(Level.WARNING, "Command really not accepted/recognized:" + cmd.getWhole());
             this.handleHelpMessage(cmd, BadMessageType.OTHER, accepted);
         }
         return accepted;
@@ -71,7 +71,7 @@ public class Client implements MessageChainHandler, ClientMessenger {
     public synchronized void sendMsg(OutMessage msg) {
         this.logger.entering(this.getClass().getName(), "sendMsg()", msg);
         if (this.out == null) {
-            this.SetOut(new PrintWriterSendStrategy(System.out));
+            this.SetOut(new LoggerSendStrategy(this.logger, Level.FINER));
         }
         this.out.send(msg);
     }

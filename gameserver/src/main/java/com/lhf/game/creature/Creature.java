@@ -212,7 +212,8 @@ public abstract class Creature
 
         // We don't start them in battle
         this.inBattle = false;
-        this.logger = Logger.getLogger(String.format("%s.%s", this.getClass().getSimpleName(), this.name));
+        this.logger = Logger
+                .getLogger(String.format("%s.%s", this.getClass().getSimpleName(), this.name.replace(" ", "_")));
     }
 
     private Map<CommandMessage, CommandHandler> buildCommands() {
@@ -261,7 +262,7 @@ public abstract class Creature
             }
         }
         // if it gets to here, welcome to undeath (not literally)
-        System.out.format("'%s' has died, but is not in a `CreatureContainer`!", this.getName());
+        this.log(Level.WARNING, "died while not in a `CreatureContainer`!");
     }
 
     public void updateAc(int value) {
@@ -394,7 +395,7 @@ public abstract class Creature
     }
 
     public Attack attack(String itemName, String target) {
-        System.out.println(name + " is attempting to attack: " + target);
+        this.log(Level.FINER, () -> "Attempting to attack: " + target);
         Weapon toUse;
         Optional<Item> item = this.getItem(itemName);
         if (item.isPresent() && item.get() instanceof Weapon) {
@@ -589,7 +590,7 @@ public abstract class Creature
     }
 
     public static Corpse die(Creature deadCreature) {
-        System.out.println(deadCreature.getName() + " died");
+        deadCreature.log(Level.INFO, () -> "Died.  ^_^   ->   x_x ");
         for (EquipmentSlots slot : EquipmentSlots.values()) {
             if (deadCreature.getEquipmentSlots().containsKey(slot)) {
                 deadCreature.unequipItem(slot, deadCreature.getEquipmentSlots().get(slot).getName());
