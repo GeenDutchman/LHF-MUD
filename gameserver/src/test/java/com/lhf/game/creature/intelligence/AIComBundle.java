@@ -86,8 +86,13 @@ public class AIComBundle extends ComBundle implements MessageChainHandler {
     @Override
     public Reply handleChain(CommandContext ctx, Command cmd) {
         this.print(cmd.toString(), true);
-        this.mockedWrappedHandler.handleChain(ctx, cmd);
-        return ctx.handled();
+        return this.mockedWrappedHandler.handleChain(ctx, cmd);
+    }
+
+    @Override
+    public Reply handle(CommandContext ctx, Command cmd) {
+        this.print(cmd.toString(), true);
+        return this.mockedWrappedHandler.handle(ctx, cmd);
     }
 
 }
