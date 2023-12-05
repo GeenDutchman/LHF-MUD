@@ -109,7 +109,7 @@ public class ThirdPower implements MessageChainHandler {
 
         @Override
         public Predicate<CommandContext> getEnabledPredicate() {
-            return ThirdPowerCommandHandler.defaultDungeonPredicate;
+            return ThirdPowerCommandHandler.defaultThirdPowerPredicate;
         }
 
         private boolean affectCreatures(CommandContext ctx, ISpell<CreatureEffect> spell,
