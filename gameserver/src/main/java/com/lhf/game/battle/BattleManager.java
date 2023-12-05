@@ -116,7 +116,8 @@ public class BattleManager implements CreatureContainerMessageHandler {
 
         protected BattleManagerThread() {
             this.isRunning = new AtomicBoolean(false);
-            this.threadLogger = Logger.getLogger(this.getClass().getName());
+            this.threadLogger = Logger
+                    .getLogger(this.getClass().getName() + "." + BattleManager.this.getName().replaceAll("\\W", "_"));
             this.turnBarrier = new Semaphore(0);
         }
 
@@ -201,7 +202,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
     private void init() {
         this.cmds = this.buildCommands();
         this.battleThread = new AtomicReference<BattleManager.BattleManagerThread>(null);
-        this.battleLogger = Logger.getLogger(this.getClass().getName());
+        this.battleLogger = Logger.getLogger(this.getClass().getName() + "." + this.getName().replaceAll("\\W", "_"));
     }
 
     protected int getTurnWaitCount() {
