@@ -178,9 +178,10 @@ public class ThirdPower implements MessageChainHandler {
                     OutMessage ram = ctx.getRoom().applyEffect(effect);
                     ThirdPower.this.channelizeMessage(ctx, ram, spell.isOffensive(), caster);
                 } else {
-                    MissMessage missMessage = MissMessage.getBuilder().setAttacker(caster)
-                            .setOffense(casterResult).setDefense(targetResult).Build();
-                    ThirdPower.this.channelizeMessage(ctx, missMessage, spell.isOffensive());
+                    SpellFizzleMessage fizzleMessage = SpellFizzleMessage.getBuilder().setAttempter(caster)
+                            .setSubType(SpellFizzleType.OTHER).setOffense(casterResult).setDefense(targetResult)
+                            .Build();
+                    ThirdPower.this.channelizeMessage(ctx, fizzleMessage, spell.isOffensive());
                 }
             }
             return true;
