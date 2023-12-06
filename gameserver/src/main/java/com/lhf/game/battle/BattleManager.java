@@ -65,7 +65,7 @@ import com.lhf.server.interfaces.NotNull;
 public class BattleManager implements CreatureContainerMessageHandler {
     private final int turnBarrierWaitCount;
     private final TimeUnit turnBarrierWaitUnit;
-    private AtomicReference<BattleManagerThread> battleThread;
+    private AtomicReference<TurnThread> battleThread;
     private Initiative participants;
     private BattleStats battleStats;
     private Area room;
@@ -109,16 +109,18 @@ public class BattleManager implements CreatureContainerMessageHandler {
         }
     }
 
-    protected class BattleManagerThread extends Thread {
+    protected class TurnThread extends Thread {
         protected AtomicBoolean isRunning;
         protected Logger threadLogger;
         private Semaphore turnBarrier;
+        private Semaphore firstDone;
 
-        protected BattleManagerThread() {
+        protected TurnThread() {
             this.isRunning = new AtomicBoolean(false);
             this.threadLogger = Logger
                     .getLogger(this.getClass().getName() + "." + BattleManager.this.getName().replaceAll("\\W", "_"));
             this.turnBarrier = new Semaphore(0);
+            this.firstDone = new Semaphore(0);
         }
 
         @Override
@@ -126,16 +128,30 @@ public class BattleManager implements CreatureContainerMessageHandler {
             this.threadLogger.log(Level.INFO, "Running");
             BattleManager.this.participants.start();
             this.isRunning.set(true);
+            try {
+                this.threadLogger.info(() -> String.format("Waiting for the initial attack to get done: %s",
+                        BattleManager.this.participants));
+                this.firstDone.tryAcquire(BattleManager.this.getTurnWaitCount(), BattleManager.this.getTurnWaitUnit());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                this.threadLogger.severe(
+                        () -> String.format("Failed to perform first turn: %s", BattleManager.this.participants));
+                this.isRunning.set(false);
+                BattleManager.this.clearDead();
+                return;
+            }
+            BattleManager.this.nextTurn(this.threadLogger);
             while (this.isRunning.get()) {
-                Creature current = BattleManager.this.startTurn(threadLogger);
-                for (int poke = 0; poke <= BattleManager.this.getMaxPokesPerAction(); poke++) {
+                final Creature current = BattleManager.this.startTurn(threadLogger);
+                for (int poke = 0; current != null && poke <= BattleManager.this.getMaxPokesPerAction(); poke++) {
                     try {
                         threadLogger.log(Level.FINEST, String.format("Waiting %d at turnBarrier for %s for %d %s", poke,
                                 current.getName(), BattleManager.this.getTurnWaitCount(),
                                 BattleManager.this.getTurnWaitUnit()));
                         if (this.turnBarrier.tryAcquire(BattleManager.this.getTurnWaitCount(),
                                 BattleManager.this.getTurnWaitUnit())) {
-                            threadLogger.log(Level.FINEST, "Barrier passed");
+                            threadLogger.log(Level.FINEST,
+                                    () -> String.format("Barrier passed for %s", current.getName()));
                             break;
                         } else {
                             threadLogger.log(Level.WARNING,
@@ -169,6 +185,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
             if (BattleManager.this.checkTurn(ender)) {
                 this.threadLogger.log(Level.FINEST, () -> String.format("%s has ended their turn", ender.getName()));
                 this.turnBarrier.release();
+                this.firstDone.release();
                 return true;
             } else {
                 this.threadLogger.log(Level.WARNING,
@@ -201,7 +218,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
 
     private void init() {
         this.cmds = this.buildCommands();
-        this.battleThread = new AtomicReference<BattleManager.BattleManagerThread>(null);
+        this.battleThread = new AtomicReference<BattleManager.TurnThread>(null);
         this.battleLogger = Logger.getLogger(this.getClass().getName() + "." + this.getName().replaceAll("\\W", "_"));
     }
 
@@ -369,12 +386,12 @@ public class BattleManager implements CreatureContainerMessageHandler {
     }
 
     public boolean isBattleOngoing() {
-        BattleManagerThread thread = this.battleThread.get();
+        TurnThread thread = this.battleThread.get();
         return thread != null && thread.getIsRunning() && this.checkCompetingFactionsPresent();
     }
 
-    public synchronized BattleManagerThread startBattle(Creature instigator, Collection<Creature> victims) {
-        BattleManagerThread curThread = this.battleThread.get();
+    public synchronized TurnThread startBattle(Creature instigator, Collection<Creature> victims) {
+        TurnThread curThread = this.battleThread.get();
         if (this.battleThread.get() == null || !curThread.getIsRunning()) {
             this.battleLogger.log(Level.FINER, () -> String.format("%s starts a fight", instigator.getName()));
             this.addCreature(instigator);
@@ -390,7 +407,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
             }
             this.participants.announce(startMessage.setNotBroadcast().Build());
             // if someone started a fight, no need to prompt them for their turn
-            BattleManagerThread thread = new BattleManagerThread();
+            TurnThread thread = new TurnThread();
             this.battleLogger.log(Level.INFO, "Starting thread");
             thread.start();
             this.battleThread.set(thread);
@@ -410,7 +427,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
         if (this.room != null) {
             this.room.announce(foverBuilder.setBroacast().Build());
         }
-        BattleManagerThread thread = this.battleThread.get();
+        TurnThread thread = this.battleThread.get();
         if (thread != null) {
             thread.killIt();
         }
@@ -438,7 +455,7 @@ public class BattleManager implements CreatureContainerMessageHandler {
             this.battleLogger.log(Level.WARNING, () -> "A null creature cannot end their turn!");
             return false;
         }
-        BattleManagerThread thread = this.battleThread.get();
+        TurnThread thread = this.battleThread.get();
         if (thread != null) {
             return thread.endTurn(ender);
         }
@@ -537,14 +554,19 @@ public class BattleManager implements CreatureContainerMessageHandler {
         }
         // if we have a current and you are not it, then you cannot act
         Creature current = this.getCurrent();
-        if (current != null && attempter != current) {
+        if (current == null) {
+            this.battleLogger.log(Level.FINE,
+                    () -> String.format("Current is NULL, so %s can go!", attempter.getName()));
+            return true;
+        } else if (attempter != current) {
             // give out of turn message
             attempter.sendMsg(BattleTurnMessage.getBuilder().setYesTurn(false).fromInitiative(participants).Build());
             // even if it's not their turn, make sure they are in it
             this.addCreature(attempter);
             return false;
         }
-        this.battleLogger.log(Level.FINE, () -> String.format("Current is NULL, so %s can go!", attempter.getName()));
+        this.battleLogger.log(Level.FINE,
+                () -> String.format("Current is %s, so %s can go!", current.getName(), attempter.getName()));
         return true;
     }
 
@@ -948,6 +970,8 @@ public class BattleManager implements CreatureContainerMessageHandler {
 
         private void applyAttacks(Creature attacker, Weapon weapon, Collection<Creature> targets) {
             for (Creature target : targets) {
+                this.log(Level.FINEST,
+                        () -> String.format("Applying attack from %s on %s", attacker.getName(), target.getName()));
                 BattleManager.this.checkAndHandleTurnRenegade(attacker, target);
                 if (!BattleManager.this.hasCreature(target)) {
                     BattleManager.this.addCreature(target);
