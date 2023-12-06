@@ -63,6 +63,13 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
             return command;
         }
 
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("PoolEntry [ctx=").append(ctx).append(", command=").append(command).append("]");
+            return builder.toString();
+        }
+
     }
 
     /**
@@ -205,8 +212,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
         return ctx;
     }
 
-    @Override
-    public default Reply handle(CommandContext ctx, Command cmd) {
+    private Reply innerHandle(CommandContext ctx, Command cmd, boolean pool) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
@@ -220,7 +226,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
                         () -> String.format("No CommandHandler for type %s at this level", cmd.getType()));
             } else if (handler.isEnabled(ctx)) {
                 CommandContext.Reply reply = null;
-                if (handler instanceof PooledCommandHandler pooledCommandHandler
+                if (pool && handler instanceof PooledCommandHandler pooledCommandHandler
                         && pooledCommandHandler.isPoolingEnabled(ctx)) {
                     reply = pooledCommandHandler.prePoolHandle(ctx, cmd);
                     if (reply != null && this.empool(ctx, cmd) && !reply.isHandled()) {
@@ -237,6 +243,51 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
                 }
             }
         }
+        return ctx.failhandle();
+    }
+
+    @Override
+    public default Reply handle(CommandContext ctx, Command cmd) {
+        return this.innerHandle(ctx, cmd, true);
+    }
+
+    public default Reply flushHandle(CommandContext ctx, Command cmd) {
+        return this.innerHandle(ctx, cmd, false);
+    }
+
+    default Reply handleFlushChain(CommandContext ctx, Command cmd) {
+        CommandContext.Reply thisLevelReply = this.flushHandle(ctx, cmd);
+        if (thisLevelReply != null && thisLevelReply.isHandled()) {
+            return thisLevelReply;
+        }
+        return PooledMessageChainHandler.flushUpChain(this, ctx, cmd);
+    }
+
+    public static CommandContext.Reply flushUpChain(MessageChainHandler presentChainHandler, CommandContext ctx,
+            Command msg) {
+        if (ctx == null) {
+            ctx = new CommandContext();
+        }
+        if (presentChainHandler == null) {
+            return ctx.failhandle();
+        }
+        ctx = presentChainHandler.addSelfToContext(ctx);
+        ctx = PooledMessageChainHandler.addHelps(presentChainHandler.getCommands(ctx), ctx);
+        MessageChainHandler currentChainHandler = presentChainHandler.getSuccessor();
+        while (currentChainHandler != null) {
+            CommandContext.Reply thisLevelReply = null;
+            if (currentChainHandler instanceof PooledMessageChainHandler<?> pooledChainHandler) {
+                thisLevelReply = pooledChainHandler.flushHandle(ctx, msg);
+            } else {
+                thisLevelReply = currentChainHandler.handle(ctx, msg);
+            }
+            if (thisLevelReply != null && thisLevelReply.isHandled()) {
+                return thisLevelReply;
+            }
+            currentChainHandler = currentChainHandler.getSuccessor();
+        }
+        presentChainHandler.log(Level.INFO,
+                String.format("No successor handled message: %s\n%s", ctx.toString(), ctx.getHelps()));
         return ctx.failhandle();
     }
 }
