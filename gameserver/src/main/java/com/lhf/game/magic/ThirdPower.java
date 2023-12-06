@@ -78,7 +78,8 @@ public class ThirdPower implements MessageChainHandler {
     }
 
     public interface ThirdPowerCommandHandler extends Dungeon.DungeonCommandHandler {
-        final static Predicate<CommandContext> defaultThirdPowerPredicate = ThirdPowerCommandHandler.defaultDungeonPredicate
+        final static Predicate<CommandContext> defaultThirdPowerPredicate = ThirdPowerCommandHandler.defaultRoomPredicate
+                .and(ctx -> ctx.getDungeon() != null || ctx.getRoom() instanceof DMRoom)
                 .and(ctx -> {
                     Creature attempter = ctx.getCreature();
                     if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {

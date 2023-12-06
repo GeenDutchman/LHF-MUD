@@ -1009,7 +1009,8 @@ public abstract class Creature
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("Creature [name=").append(name).append(", health=").append(this.getHealthBucket())
+        builder.append(this.getClass().getSimpleName()).append(" [name=").append(name)
+                .append(", health=").append(this.getHealthBucket())
                 .append(", faction=").append(faction).append(", vocation=")
                 .append(vocation).append("]");
         return builder.toString();

@@ -276,7 +276,8 @@ public class Bed extends InteractObject implements CreatureContainerMessageHandl
                     .setDescription("You got out of the bed!").setPerformed().Build());
             found.cancel();
             found.occupant.setSuccessor(found.successor);
-            this.logger.log(Level.FINER, () -> String.format("%s is done sleeping", doneSleeping.getName()));
+            this.logger.log(Level.FINER, () -> String.format("%s is done sleeping and will participate in %s",
+                    doneSleeping.getName(), found.successor));
             return this.occupants.remove(found);
         }
         return false;
