@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.CreatureContainerMessageHandler;
+import com.lhf.game.CreatureContainer;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.Creature.CreatureCommandHandler;
@@ -33,7 +33,7 @@ import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.user.UserID;
 
-public class Bed extends InteractObject implements CreatureContainerMessageHandler {
+public class Bed extends InteractObject implements CreatureContainer, MessageChainHandler {
     protected final Logger logger;
     protected final ScheduledThreadPoolExecutor executor;
     protected final int sleepSeconds;

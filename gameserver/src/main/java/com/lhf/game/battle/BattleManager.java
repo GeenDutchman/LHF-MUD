@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.CreatureContainerMessageHandler;
+import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
@@ -40,6 +40,8 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.MessageChainHandler.CommandHandler;
+import com.lhf.messages.PooledMessageChainHandler;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.PassMessage;
@@ -62,7 +64,7 @@ import com.lhf.messages.out.StatsOutMessage;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
 
-public class BattleManager implements CreatureContainerMessageHandler {
+public class BattleManager implements CreatureContainer, PooledMessageChainHandler<Creature> {
     private final int turnBarrierWaitCount;
     private final TimeUnit turnBarrierWaitUnit;
     private AtomicReference<TurnThread> battleThread;

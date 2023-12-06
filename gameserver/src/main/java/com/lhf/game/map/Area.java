@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.lhf.game.AffectableEntity;
-import com.lhf.game.CreatureContainerMessageHandler;
+import com.lhf.game.CreatureContainer;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.Creature;
@@ -20,7 +20,7 @@ import com.lhf.messages.out.TickMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 
 public interface Area
-        extends ItemContainer, CreatureContainerMessageHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
+        extends ItemContainer, CreatureContainer, MessageChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
 
     public interface AreaBuilder {
         public abstract String getName();

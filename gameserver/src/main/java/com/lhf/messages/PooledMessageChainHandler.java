@@ -121,7 +121,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
         ctx = this.addSelfToContext(ctx);
         Key key = this.keyFromContext(ctx);
         if (key == null) {
-            this.log(Level.WARNING, () -> String.format("key is null and cannot empool, generated from %s", ctx));
+            this.log(Level.WARNING, String.format("key is null and cannot empool, generated from %s", ctx));
             return false;
         }
         return this.empool(key, new PoolEntry(ctx, cmd));
