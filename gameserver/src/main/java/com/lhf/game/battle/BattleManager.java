@@ -21,7 +21,6 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -57,7 +56,8 @@ import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.UseMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.messages.out.BattleTurnMessage;
+import com.lhf.messages.out.BattleRoundMessage;
+import com.lhf.messages.out.BattleRoundMessage.RoundAcceptance;
 import com.lhf.messages.out.FightOverMessage;
 import com.lhf.messages.out.FleeMessage;
 import com.lhf.messages.out.JoinBattleMessage;
@@ -172,8 +172,10 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             while (this.isRunning.get() && !this.roundPhaser.isTerminated()) {
                 this.roundPhaser.bulkRegister(BattleManager.this.actionPools.size());
                 this.threadLogger.log(Level.INFO, () -> String.format("Phase: %d", this.roundPhaser.getPhase()));
-                BattleManager.this.announce(BattleTurnMessage.getBuilder().setYesTurn(true)
-                        .Build()); // TODO: change to a proper prompt
+                BattleManager.this.announce(
+                        BattleRoundMessage.getBuilder().setNeedSubmission(BattleRoundMessage.RoundAcceptance.NEEDED)
+                                .setNotBroadcast().setRoundCount(this.roundPhaser.getPhase())
+                                .Build());
                 ScheduledFuture<?> timerFuture = timerExecutor.schedule(this::endRound,
                         BattleManager.this.getTurnWaitCount(), BattleManager.this.getTurnWaitUnit());
 
@@ -637,9 +639,26 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     public interface BattleManagerCommandHandler extends Creature.CreatureCommandHandler {
         static final Predicate<CommandContext> defaultBattlePredicate = Creature.CreatureCommandHandler.defaultCreaturePredicate
                 .and(ctx -> ctx.getBattleManager() != null && ctx.getCreature().isInBattle());
+
+    }
+
+    public interface PooledBattleManagerCommandHandler extends PooledCommandHandler {
         static final Predicate<CommandContext> defaultTurnPredicate = BattleManagerCommandHandler.defaultBattlePredicate
                 .and(ctx -> ctx.getBattleManager().isBattleOngoing());
 
+        @Override
+        public default Predicate<CommandContext> getPoolingPredicate() {
+            return UseHandler.defaultTurnPredicate;
+        }
+
+        @Override
+        public default Reply prePoolHandle(CommandContext ctx, Command cmd) {
+            ctx.sendMsg(BattleRoundMessage.getBuilder().setAboutCreature(ctx.getCreature()).setNotBroadcast()
+                    .setNeedSubmission(
+                            ctx.getBattleManager().empool(ctx, cmd) ? RoundAcceptance.ACCEPTED
+                                    : RoundAcceptance.REJECTED));
+            return ctx.handled();
+        }
     }
 
     private class StatsHandler implements BattleManagerCommandHandler {
@@ -673,20 +692,15 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
     }
 
-    private class UseHandler implements BattleManagerCommandHandler {
+    private class UseHandler implements PooledBattleManagerCommandHandler {
         private final static Predicate<CommandContext> enabledPredicate = UseHandler.defaultTurnPredicate.and(
                 ctx -> ctx.getCreature().getItems().stream().anyMatch(item -> item != null && item instanceof Usable));
-        private static String helpString;
-
-        static {
-            StringJoiner sj = new StringJoiner(" ");
-            sj.add("\"use [itemname]\"").add("Uses an item that you have on yourself, if applicable.")
-                    .add("Like \"use potion\"").add("\r\n");
-            sj.add("\"use [itemname] on [otherthing]\"")
-                    .add("Uses an item that you have on something or someone else, if applicable.")
-                    .add("Like \"use potion on Bob\"");
-            UseHandler.helpString = sj.toString();
-        }
+        private final static String helpString = new StringJoiner(" ")
+                .add("\"use [itemname]\"").add("Uses an item that you have on yourself, if applicable.")
+                .add("Like \"use potion\"").add("\r\n")
+                .add("\"use [itemname] on [otherthing]\"")
+                .add("Uses an item that you have on something or someone else, if applicable.")
+                .add("Like \"use potion on Bob\"").toString();
 
         @Override
         public CommandMessage getHandleType() {
@@ -708,9 +722,6 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             // TODO: #127 test me!
             if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof UseMessage useMessage) {
                 Reply reply = MessageChainHandler.passUpChain(BattleManager.this, ctx, useMessage);
-                if (reply.isHandled()) {
-                    BattleManager.this.endTurn(ctx.getCreature());
-                }
                 return reply;
             }
             return ctx.failhandle();
@@ -723,7 +734,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
     }
 
-    private class PassHandler implements BattleManagerCommandHandler {
+    private class PassHandler implements PooledBattleManagerCommandHandler {
 
         private static String helpString = "\"pass\" Skips your turn in battle!";
 
@@ -745,7 +756,6 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         @Override
         public Reply handle(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof PassMessage passMessage) {
-                BattleManager.this.endTurn(ctx.getCreature());
                 return ctx.handled();
             }
             return ctx.failhandle();
@@ -795,7 +805,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
     }
 
-    private class GoHandler implements BattleManagerCommandHandler {
+    private class GoHandler implements PooledBattleManagerCommandHandler {
         private final static String helpString = "\"go [direction]\" Try to move in the desired direction and flee the battle, if that direction exists.  Like \"go east\"";
         private final static Predicate<CommandContext> enabledPredicate = BattleManagerCommandHandler.defaultBattlePredicate
                 .and(ctx -> {
@@ -874,18 +884,18 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
     /**
      * Collect the targeted creatures from the room.
-     * Returns null if there was a problem collecting targets.
+     * If it is unclear which target is meant, it will skip that name.
+     * If the self is targeted, then it will be skipped.
      * 
      * @param attacker Creature who selected the targets
      * @param names    names of the targets
-     * @return null if there was a problem, otherwise List<Creature> with size >= 1
+     * @return Best effort list of Creatures, possibly size 0
      */
     private List<Creature> collectTargetsFromRoom(Creature attacker, List<String> names) {
         List<Creature> targets = new ArrayList<>();
         BadTargetSelectedMessage.Builder btMessBuilder = BadTargetSelectedMessage.getBuilder().setNotBroadcast();
         if (names == null || names.size() == 0) {
-            attacker.sendMsg(btMessBuilder.setBde(BadTargetOption.NOTARGET).Build());
-            return null;
+            return targets;
         }
         for (String targetName : names) {
             btMessBuilder.setBadTarget(targetName);
@@ -894,7 +904,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 Creature targeted = possTargets.get(0);
                 if (targeted.equals(attacker)) {
                     attacker.sendMsg(btMessBuilder.setBde(BadTargetOption.SELF).Build());
-                    return null;
+                    continue; // go to next name
                 }
                 targets.add(targeted);
             } else {
@@ -904,19 +914,19 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 } else {
                     attacker.sendMsg(btMessBuilder.setBde(BadTargetOption.UNCLEAR).Build());
                 }
-                return null;
+                continue; // go to next name
             }
         }
         return targets;
     }
 
-    private class AttackHandler implements BattleManagerCommandHandler {
+    private class AttackHandler implements PooledBattleManagerCommandHandler {
         private final static String helpString = new StringJoiner(" ")
                 .add("\"attack [name]\"").add("Attacks a creature").add("\r\n")
                 .add("\"attack [name] with [weapon]\"").add("Attack the named creature with a weapon that you have.")
                 .add("In the unlikely event that either the creature or the weapon's name contains 'with', enclose the name in quotation marks.")
                 .toString();
-        private final static Predicate<CommandContext> enabledPredicate = AttackHandler.defaultCreaturePredicate
+        private final static Predicate<CommandContext> enabledPredicate = Creature.CreatureCommandHandler.defaultCreaturePredicate
                 .and(ctx -> {
                     BattleManager bm = ctx.getBattleManager();
                     if (bm == null) {
@@ -927,6 +937,24 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                     }
                     return bm.room.getCreatures().size() > 1 || bm.getCreatures().size() > 1;
                 });
+
+        @Override
+        public Predicate<CommandContext> getPoolingPredicate() {
+            return AttackHandler.enabledPredicate;
+        }
+
+        @Override
+        public Reply prePoolHandle(CommandContext ctx, Command cmd) {
+            if (cmd == null || !(cmd instanceof AttackMessage)) {
+                return ctx.failhandle();
+            }
+            if (!BattleManager.this.isBattleOngoing()) {
+                Creature attacker = ctx.getCreature();
+                BattleManager.this.startBattle(attacker,
+                        BattleManager.this.collectTargetsFromRoom(attacker, ((AttackMessage) cmd).getTargets()));
+            }
+            return PooledBattleManagerCommandHandler.super.prePoolHandle(ctx, cmd);
+        }
 
         @Override
         public CommandMessage getHandleType() {
@@ -1017,10 +1045,6 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
                 Creature attacker = ctx.getCreature();
 
-                if (!BattleManager.this.checkTurn(attacker)) {
-                    return ctx.handled();
-                }
-
                 BadTargetSelectedMessage.Builder btMessBuilder = BadTargetSelectedMessage.getBuilder()
                         .setNotBroadcast();
 
@@ -1053,14 +1077,11 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
                 Weapon weapon = this.getDesignatedWeapon(attacker, aMessage.getWeapon());
                 if (weapon == null) {
+                    this.log(Level.SEVERE, () -> String.format("No weapon found! %s %s", ctx, cmd));
                     return ctx.handled();
                 }
 
-                if (!BattleManager.this.isBattleOngoing()) {
-                    BattleManager.this.startBattle(attacker, targets);
-                }
                 this.applyAttacks(attacker, weapon, targets);
-                BattleManager.this.endTurn(attacker);
                 return ctx.handled();
             }
             return ctx.failhandle();

@@ -2,28 +2,27 @@ package com.lhf.messages.out;
 
 import java.util.StringJoiner;
 
-import com.lhf.game.creature.Creature;
 import com.lhf.messages.OutMessageType;
 
-public class BattleTurnWastedMessage extends OutMessage {
-    private final Creature waster;
+public class BattleRoundWastedMessage extends BattleRoundMessage {
     private final int wastedPenalty;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
-        private Creature waster;
+    public static class Builder extends BattleRoundMessage.Builder {
         private int wastedPenalty;
 
         protected Builder() {
             super(OutMessageType.BATTLE_TURN_WASTED);
+            super.setNeedSubmission(RoundAcceptance.MISSING);
         }
 
-        public Builder setWaster(Creature waster) {
-            this.waster = waster;
+        @Override
+        public Builder setNeedSubmission(RoundAcceptance isSubmissionNeeded) {
+            if (isSubmissionNeeded != RoundAcceptance.MISSING) {
+                throw new IllegalArgumentException(
+                        "Cannot set RoundAcceptance to anything other than Missing for this type");
+            }
+            super.setNeedSubmission(RoundAcceptance.MISSING);
             return this;
-        }
-
-        public Creature getWaster() {
-            return this.waster;
         }
 
         // Will coerce it to a value <= 0
@@ -42,8 +41,8 @@ public class BattleTurnWastedMessage extends OutMessage {
         }
 
         @Override
-        public BattleTurnWastedMessage Build() {
-            return new BattleTurnWastedMessage(this);
+        public BattleRoundWastedMessage Build() {
+            return new BattleRoundWastedMessage(this);
         }
     }
 
@@ -51,14 +50,9 @@ public class BattleTurnWastedMessage extends OutMessage {
         return new Builder();
     }
 
-    public BattleTurnWastedMessage(Builder builder) {
+    public BattleRoundWastedMessage(Builder builder) {
         super(builder);
         this.wastedPenalty = builder.getWastedPenalty();
-        this.waster = builder.getWaster();
-    }
-
-    public Creature getWaster() {
-        return waster;
     }
 
     public int getWastedPenalty() {
@@ -73,18 +67,11 @@ public class BattleTurnWastedMessage extends OutMessage {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ").setEmptyValue("This is a turn notification");
-        if (this.isBroadcast()) {
-            if (this.waster != null) {
-                sj.add(this.waster.getColorTaggedName());
-            } else {
-                sj.add("Someone here");
-            }
-        } else {
-            sj.add("You");
-        }
-        sj.add("wasted a turn");
+        sj.add(super.toString());
+
         if (this.wastedPenalty != 0) {
-            sj.add("and incurred a penalty of").add(Integer.toString(this.wastedPenalty)).add("damage");
+            sj.add(this.addressCreature(this.about, true)).add("incurred a penalty of")
+                    .add(Integer.toString(this.wastedPenalty)).add("damage");
         }
         return sj.toString() + "!";
     }
