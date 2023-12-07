@@ -13,9 +13,10 @@ import com.lhf.game.enums.HealType;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.interfaces.UseAction;
-import com.lhf.messages.out.BattleTurnMessage;
+import com.lhf.messages.out.BattleRoundMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.UseOutMessage;
+import com.lhf.messages.out.BattleRoundMessage.RoundAcceptance;
 import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
 
 public class HealPotion extends Usable {
@@ -40,8 +41,9 @@ public class HealPotion extends Usable {
                     BattleManager bm = ctx.getBattleManager();
                     if (bm.hasCreature(target) && !bm.hasCreature(ctx.getCreature())) {
                         // give out of turn message
-                        ctx.sendMsg(BattleTurnMessage.getBuilder().setYesTurn(false).setNotBroadcast().Build());
                         bm.addCreature(ctx.getCreature());
+                        ctx.sendMsg(BattleRoundMessage.getBuilder().setNeedSubmission(RoundAcceptance.REJECTED)
+                                .setNotBroadcast().Build());
                         return false;
                     }
                     ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.OK).Build());

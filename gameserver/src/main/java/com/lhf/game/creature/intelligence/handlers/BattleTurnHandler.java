@@ -33,10 +33,11 @@ import com.lhf.game.map.Directions;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.OutMessageType;
-import com.lhf.messages.out.BattleTurnMessage;
+import com.lhf.messages.out.BattleRoundMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpellEntryMessage;
 import com.lhf.messages.out.StatsOutMessage;
+import com.lhf.messages.out.BattleRoundMessage.RoundAcceptance;
 
 public class BattleTurnHandler extends AIHandler {
 
@@ -48,7 +49,7 @@ public class BattleTurnHandler extends AIHandler {
     private final DiceD100 roller;
 
     public BattleTurnHandler() {
-        super(OutMessageType.BATTLE_TURN);
+        super(OutMessageType.BATTLE_ROUND);
         this.roller = new DiceD100(1);
         this.targetChoosers = new TreeSet<>();
 
@@ -239,7 +240,7 @@ public class BattleTurnHandler extends AIHandler {
         if (!this.outMessageType.equals(msg.getOutType()) || !bai.getNpc().isInBattle()) {
             return;
         }
-        BattleTurnMessage btm = (BattleTurnMessage) msg;
+        BattleRoundMessage btm = (BattleRoundMessage) msg;
         Reply reply = bai.ProcessString("STATS");
         Optional<StatsOutMessage> statsOutOpt = reply.getMessages().stream()
                 .filter(outMessage -> outMessage != null && OutMessageType.STATS.equals(outMessage.getOutType()))
@@ -258,7 +259,7 @@ public class BattleTurnHandler extends AIHandler {
 
         HarmMemories harmMemories = bai.getNpc().getHarmMemories();
         CreatureFaction myFaction = bai.getNpc().getFaction();
-        if (btm.isYesTurn() && bai.getNpc().equals(btm.getMyTurn())) {
+        if (RoundAcceptance.NEEDED.equals(btm.getNeedSubmission())) {
 
             Optional<String> command = processFlee(statsOutOpt,
                     harmMemories,
