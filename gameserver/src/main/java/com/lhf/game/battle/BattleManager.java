@@ -653,10 +653,17 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
         @Override
         public default Reply prePoolHandle(CommandContext ctx, Command cmd) {
+            boolean empooledresult = ctx.getBattleManager().empool(ctx, cmd);
             ctx.sendMsg(BattleRoundMessage.getBuilder().setAboutCreature(ctx.getCreature()).setNotBroadcast()
                     .setNeedSubmission(
-                            ctx.getBattleManager().empool(ctx, cmd) ? RoundAcceptance.ACCEPTED
+                            empooledresult ? RoundAcceptance.ACCEPTED
                                     : RoundAcceptance.REJECTED));
+            if (empooledresult) {
+                RoundThread thread = ctx.getBattleManager().battleThread.get();
+                if (thread != null) {
+                    thread.roundPhaser.arriveAndDeregister();
+                }
+            }
             return ctx.handled();
         }
     }
