@@ -223,10 +223,6 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         return this.roundDurationMilliseconds;
     }
 
-    protected int getMaxPokesPerAction() {
-        return 2;
-    }
-
     private Map<CommandMessage, CommandHandler> buildCommands() {
         Map<CommandMessage, CommandHandler> cmds = new EnumMap<>(CommandMessage.class);
         cmds.put(CommandMessage.SEE, new SeeHandler());
@@ -276,7 +272,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     public boolean isReadyToFlush() {
         return this.actionPools.entrySet().stream().allMatch(entry -> {
             Deque<IPoolEntry> pool = entry.getValue();
-            return pool == null || pool.size() >= 1; // maybe check for how many attacks can be made?
+            return pool == null || pool.size() >= 1;
         });
     }
 
@@ -371,7 +367,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
     @Override
     public boolean addCreature(Creature c) {
-        if (!c.isInBattle() && !this.hasCreature(c)) {
+        if (c != null && !c.isInBattle() && !this.hasCreature(c)) {
             if (this.actionPools.putIfAbsent(c, new LinkedBlockingDeque<>(MAX_POOLED_ACTIONS)) == null) {
                 c.setInBattle(true);
                 c.setSuccessor(this);
