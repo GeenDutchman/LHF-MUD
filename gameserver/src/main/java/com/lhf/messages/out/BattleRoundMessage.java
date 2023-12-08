@@ -48,7 +48,7 @@ public class BattleRoundMessage extends OutMessage implements ITickMessage {
             return this;
         }
 
-        public int getRoundCount() {
+        public Integer getRoundCount() {
             return roundCount;
         }
 
