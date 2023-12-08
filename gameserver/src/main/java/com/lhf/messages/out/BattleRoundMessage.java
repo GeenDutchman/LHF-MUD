@@ -38,6 +38,11 @@ public class BattleRoundMessage extends OutMessage implements ITickMessage {
             return needSubmission;
         }
 
+        public Builder setNeeded() {
+            this.needSubmission = RoundAcceptance.NEEDED;
+            return this;
+        }
+
         public Builder setRoundCount(int roundCount) {
             this.roundCount = roundCount;
             return this;
