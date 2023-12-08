@@ -75,8 +75,9 @@ import com.lhf.server.interfaces.NotNull;
 
 public class BattleManager implements CreatureContainer, PooledMessageChainHandler<Creature> {
     private final static int MAX_POOLED_ACTIONS = 1;
-    private final int turnBarrierWaitCount;
-    private final TimeUnit turnBarrierWaitUnit;
+    private final static int MAX_MILLISECONDS = 120000;
+    private final static int DEFAULT_MILLISECONDS = 90000;
+    private final int roundDurationMilliseconds;
     private AtomicReference<RoundThread> battleThread;
     private NavigableMap<Creature, Deque<IPoolEntry>> actionPools;
     private BattleStats battleStats;
@@ -87,8 +88,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     private transient Set<UUID> sentMessage;
 
     public static class Builder {
-        private int waitCount;
-        private TimeUnit waitUnit;
+        private int waitMilliseconds;
         private NavigableMap<Creature, Deque<IPoolEntry>> actionPools;
 
         public static Builder getInstance() {
@@ -96,18 +96,12 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
 
         private Builder() {
-            this.waitCount = 1;
-            this.waitUnit = TimeUnit.MINUTES;
+            this.waitMilliseconds = BattleManager.DEFAULT_MILLISECONDS;
             this.actionPools = new TreeMap<>();
         }
 
-        public Builder setWaitCount(int count) {
-            this.waitCount = count <= 0 ? 1 : count;
-            return this;
-        }
-
-        public Builder setUnit(TimeUnit unit) {
-            this.waitUnit = unit != null ? unit : TimeUnit.MINUTES;
+        public Builder setWaitMilliseconds(int count) {
+            this.waitMilliseconds = Integer.min(BattleManager.MAX_MILLISECONDS, Integer.max(1, count));
             return this;
         }
 
@@ -142,12 +136,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             return new BattleManager(room, this);
         }
 
-        public int getWaitCount() {
-            return waitCount;
-        }
-
-        public TimeUnit getWaitUnit() {
-            return waitUnit;
+        public int getWaitMilliseconds() {
+            return waitMilliseconds;
         }
 
     }
@@ -178,7 +168,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                                 .setNotBroadcast().setRoundCount(this.roundPhaser.getPhase())
                                 .Build());
                 ScheduledFuture<?> timerFuture = timerExecutor.schedule(this::endRound,
-                        BattleManager.this.getTurnWaitCount(), BattleManager.this.getTurnWaitUnit());
+                        BattleManager.this.getTurnWaitCount(), TimeUnit.MILLISECONDS);
 
                 this.roundPhaser.arriveAndAwaitAdvance();
 
@@ -218,8 +208,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         this.battleStats = new BattleStats().initialize(builder.getActionPools().keySet());
         this.room = room;
         this.successor = this.room;
-        this.turnBarrierWaitCount = builder.waitCount;
-        this.turnBarrierWaitUnit = builder.waitUnit;
+        this.roundDurationMilliseconds = builder.waitMilliseconds;
         this.sentMessage = new TreeSet<>();
         this.init();
     }
@@ -231,11 +220,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     protected int getTurnWaitCount() {
-        return this.turnBarrierWaitCount;
-    }
-
-    protected TimeUnit getTurnWaitUnit() {
-        return this.turnBarrierWaitUnit;
+        return this.roundDurationMilliseconds;
     }
 
     protected int getMaxPokesPerAction() {
