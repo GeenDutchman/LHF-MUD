@@ -166,7 +166,10 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 BattleManager.this.announce(
                         BattleRoundMessage.getBuilder().setNeedSubmission(BattleRoundMessage.RoundAcceptance.NEEDED)
                                 .setNotBroadcast().setRoundCount(this.roundPhaser.getPhase())
-                                .Build());
+                                .Build(),
+                        BattleManager.this.getCreatures().stream()
+                                .filter(creature -> creature != null && BattleManager.this.isReadyToFlush(creature))
+                                .collect(Collectors.toSet()));
                 ScheduledFuture<?> timerFuture = timerExecutor.schedule(this::endRound,
                         BattleManager.this.getTurnWaitCount(), TimeUnit.MILLISECONDS);
 
@@ -269,11 +272,9 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public boolean isReadyToFlush() {
-        return this.actionPools.entrySet().stream().allMatch(entry -> {
-            Deque<IPoolEntry> pool = entry.getValue();
-            return pool == null || pool.size() >= 1;
-        });
+    public boolean isReadyToFlush(Creature key) {
+        Deque<IPoolEntry> pool = this.actionPools.get(key);
+        return pool == null || pool.size() >= MAX_POOLED_ACTIONS;
     }
 
     @Override
@@ -459,6 +460,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             if (victims != null) {
                 for (Creature c : victims) {
                     this.addCreature(c);
+                    BattleManager.this.checkAndHandleTurnRenegade(instigator, c);
                 }
             }
             StartFightMessage.Builder startMessage = StartFightMessage.getBuilder().setInstigator(instigator)
@@ -522,9 +524,9 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             turned.sendMsg(builder.setNotBroadcast().Build());
             builder.setBroacast();
             if (this.room != null) {
-                room.announce(builder.Build());
+                room.announce(builder.Build(), turned);
             } else {
-                this.announce(builder.Build());
+                this.announce(builder.Build(), turned);
             }
         }
     }

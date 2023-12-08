@@ -144,11 +144,25 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
     public Key keyFromContext(CommandContext ctx);
 
     /**
+     * Checks if this key's pool is ready to flush.
+     * 
+     * @param key
+     * @return
+     */
+    public boolean isReadyToFlush(Key key);
+
+    /**
      * Check if the all the pools are ready to flush. Should have no side effects.
      * 
      * @return true if ready, false if not
      */
-    public boolean isReadyToFlush();
+    public default boolean isReadyToFlush() {
+        NavigableMap<Key, Deque<IPoolEntry>> pools = this.getPools();
+        if (pools == null) {
+            return true;
+        }
+        return pools.keySet().stream().allMatch(key -> this.isReadyToFlush(key));
+    }
 
     /**
      * Goes through all the pools and handles each Command.
