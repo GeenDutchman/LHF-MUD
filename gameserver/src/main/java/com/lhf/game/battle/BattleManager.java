@@ -173,18 +173,22 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 ScheduledFuture<?> timerFuture = timerExecutor.schedule(this::endRound,
                         BattleManager.this.getTurnWaitCount(), TimeUnit.MILLISECONDS);
 
+                this.threadLogger.log(Level.FINE, () -> String.format("Waiting for actions from: %s", BattleManager.this
+                        .getCreatures().stream().filter(c -> c != null && !BattleManager.this.isReadyToFlush(c))));
                 this.roundPhaser.arriveAndAwaitAdvance();
 
+                this.threadLogger.log(Level.FINE, "Actions received");
                 if (!timerFuture.isDone()) {
                     this.endRound();
                     timerFuture.cancel(true);
                 }
-
+                this.threadLogger.log(Level.FINE, "Ending Phase");
             }
             threadLogger.exiting(this.getClass().getName(), "run()");
         }
 
         public void endRound() {
+            this.threadLogger.log(Level.FINE, "Ending Round");
             BattleManager.this.flush();
 
             BattleManager.this.clearDead();
@@ -644,16 +648,17 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
         @Override
         default boolean onEmpool(CommandContext ctx, boolean empoolResult) {
-            ctx.sendMsg(BattleRoundMessage.getBuilder().setAboutCreature(ctx.getCreature()).setNotBroadcast()
-                    .setNeedSubmission(
-                            empoolResult ? RoundAcceptance.ACCEPTED
-                                    : RoundAcceptance.REJECTED));
-            if (empoolResult) {
-                RoundThread thread = ctx.getBattleManager().battleThread.get();
-                if (thread != null) {
+            RoundThread thread = ctx.getBattleManager().battleThread.get();
+            BattleRoundMessage.Builder roundMessage = BattleRoundMessage.getBuilder()
+                    .setAboutCreature(ctx.getCreature()).setNotBroadcast()
+                    .setNeedSubmission(empoolResult ? RoundAcceptance.ACCEPTED : RoundAcceptance.REJECTED);
+            if (thread != null) {
+                roundMessage.setRoundCount(thread.roundPhaser.getPhase());
+                if (empoolResult) {
                     thread.roundPhaser.arriveAndDeregister();
                 }
             }
+            ctx.sendMsg(roundMessage);
             return empoolResult;
         }
 

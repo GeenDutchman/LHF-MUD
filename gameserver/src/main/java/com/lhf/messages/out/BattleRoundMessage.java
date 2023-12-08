@@ -13,12 +13,12 @@ public class BattleRoundMessage extends OutMessage implements ITickMessage {
     }
 
     private final RoundAcceptance needSubmission;
-    private final int roundCount;
+    private final Integer roundCount;
     protected final Creature about;
 
     public static class Builder extends OutMessage.Builder<Builder> {
         private RoundAcceptance needSubmission;
-        private int roundCount;
+        private Integer roundCount;
         private Creature aboutCreature;
 
         protected Builder() {
@@ -43,7 +43,7 @@ public class BattleRoundMessage extends OutMessage implements ITickMessage {
             return this;
         }
 
-        public Builder setRoundCount(int roundCount) {
+        public Builder setRoundCount(Integer roundCount) {
             this.roundCount = roundCount;
             return this;
         }
@@ -89,7 +89,7 @@ public class BattleRoundMessage extends OutMessage implements ITickMessage {
 
         StringJoiner sj = new StringJoiner(" ").setEmptyValue("This is a round notification");
 
-        if (this.roundCount > 0) {
+        if (this.roundCount != null) {
             sj.add("It is round").add(Integer.toString(this.roundCount));
             sj.add("of the fight.");
         }
@@ -129,7 +129,7 @@ public class BattleRoundMessage extends OutMessage implements ITickMessage {
         return this.toString();
     }
 
-    public int getRoundCount() {
+    public Integer getRoundCount() {
         return roundCount;
     }
 
