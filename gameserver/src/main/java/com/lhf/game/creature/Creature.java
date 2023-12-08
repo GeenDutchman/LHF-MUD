@@ -260,9 +260,9 @@ public abstract class Creature
                 }
                 next = next.getSuccessor();
             }
+            // if it gets to here, welcome to undeath (not literally)
+            this.log(Level.WARNING, "died while not in a `CreatureContainer`!");
         }
-        // if it gets to here, welcome to undeath (not literally)
-        this.log(Level.WARNING, "died while not in a `CreatureContainer`!");
     }
 
     public void updateAc(int value) {
