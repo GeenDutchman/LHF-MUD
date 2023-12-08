@@ -195,7 +195,14 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
          */
         public default boolean isPoolingEnabled(CommandContext ctx) {
             Predicate<CommandContext> predicate = this.getPoolingPredicate();
-            return predicate == null ? false : predicate.test(ctx);
+            if (predicate == null) {
+                // this.log(Level.FINEST, "No pooling predicate found, thus disabled");
+                return false;
+            }
+            boolean testResult = predicate.test(ctx);
+            // this.log(Level.FINEST, () -> String.format("Pooling enabled %b per context:
+            // %s", testResult, ctx));
+            return testResult;
         }
 
         /**
@@ -206,6 +213,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
          * @return
          */
         public default boolean onEmpool(CommandContext ctx, boolean empoolResult) {
+            this.log(Level.FINEST, () -> String.format("Empooling %b for context %s", empoolResult, ctx));
             return empoolResult;
         }
 
@@ -233,6 +241,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
                 }
                 this.log(Level.FINE, () -> String.format("No PooledChainHandler available per context: %s", ctx));
             }
+            this.log(Level.FINE, "Proceeding from handle() -> flushHandle()");
             return this.flushHandle(ctx, cmd);
         }
 

@@ -236,10 +236,11 @@ public class BattleTurnHandler extends AIHandler {
 
     @Override
     public void handle(BasicAI bai, OutMessage msg) {
-        bai.ProcessString("SEE");
-        if (!this.outMessageType.equals(msg.getOutType()) || !bai.getNpc().isInBattle()) {
-            return;
-        }
+        // bai.ProcessString("SEE");
+        // if (!this.outMessageType.equals(msg.getOutType()) ||
+        // !bai.getNpc().isInBattle()) {
+        // return;
+        // }
         BattleRoundMessage btm = (BattleRoundMessage) msg;
         Reply reply = bai.ProcessString("STATS");
         Optional<StatsOutMessage> statsOutOpt = reply.getMessages().stream()

@@ -26,7 +26,14 @@ public interface MessageChainHandler {
 
         public default boolean isEnabled(CommandContext ctx) {
             Predicate<CommandContext> predicate = this.getEnabledPredicate();
-            return predicate == null ? false : predicate.test(ctx);
+            if (predicate == null) {
+                // this.log(Level.FINEST, "No enabling predicate found, thus disabled");
+                return false;
+            }
+            boolean testResult = predicate.test(ctx);
+            // this.log(Level.FINEST, () -> String.format("Predicate enabled %b per context:
+            // %s", testResult, ctx));
+            return testResult;
         }
 
         public Optional<String> getHelp(CommandContext ctx);

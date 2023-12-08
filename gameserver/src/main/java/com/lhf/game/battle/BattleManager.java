@@ -174,7 +174,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                         BattleManager.this.getTurnWaitCount(), TimeUnit.MILLISECONDS);
 
                 this.threadLogger.log(Level.FINE, () -> String.format("Waiting for actions from: %s", BattleManager.this
-                        .getCreatures().stream().filter(c -> c != null && !BattleManager.this.isReadyToFlush(c))));
+                        .getCreatures().stream().filter(c -> c != null && !BattleManager.this.isReadyToFlush(c))
+                        .collect(Collectors.toSet())));
                 this.roundPhaser.arriveAndAwaitAdvance();
 
                 this.threadLogger.log(Level.FINE, "Actions received");
@@ -302,7 +303,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 if (arg0 == this) {
                     return 0;
                 }
-                return Integer.compare(this.roll, arg0.roll);
+                return Integer.compare(arg0.roll, this.roll); // highest first
             }
 
         }
@@ -951,13 +952,15 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 return ctx.failhandle();
             }
             if (!BattleManager.this.isBattleOngoing()) {
+                this.log(Level.FINE, "No current battle detected, starting battle");
                 Creature attacker = ctx.getCreature();
                 BattleManager.this.startBattle(attacker,
                         BattleManager.this.collectTargetsFromRoom(attacker, ((AttackMessage) cmd).getTargets()));
-                this.onEmpool(ctx, BattleManager.this.empool(ctx, cmd));
-                return ctx.handled();
+            } else {
+                this.log(Level.FINE, "Battle detected, empooling command");
             }
-            return this.flushHandle(ctx, cmd);
+            this.onEmpool(ctx, BattleManager.this.empool(ctx, cmd));
+            return ctx.handled();
         }
 
         @Override
