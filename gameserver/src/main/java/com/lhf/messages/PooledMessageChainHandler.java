@@ -185,13 +185,57 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
         }
 
         /**
-         * Used as a hook for events to happen before pooling.
+         * An overrideable method for when the empooling happens
+         * 
+         * @param ctx
+         * @param empoolResult
+         * @return
+         */
+        public default boolean onEmpool(CommandContext ctx, boolean empoolResult) {
+            return empoolResult;
+        }
+
+        /**
+         * If the result of {@link #isPoolingEnabled(CommandContext)} is true and a
+         * {@link com.lhf.messages.PooledMessageChainHandler PooledMessageChainHandler}
+         * is available, then it
+         * will call {@link #empool(CommandContext, Command)} and return a handled
+         * reply.
+         * Otherwise, then it will call
+         * {@link #flushHandle(CommandContext, Command)} which should hold the actual
+         * logic for processing the command and return that resulting reply.
+         * 
+         * @param ctx
+         * @param cmd
+         * @return a Reply
+         */
+        @Override
+        default Reply handle(CommandContext ctx, Command cmd) {
+            if (this.isPoolingEnabled(ctx)) {
+                PooledMessageChainHandler<?> pooledChainHandler = this.getPooledChainHandler(ctx);
+                if (pooledChainHandler != null) {
+                    this.onEmpool(ctx, pooledChainHandler.empool(ctx, cmd));
+                    return ctx.handled();
+                }
+                this.log(Level.FINE, () -> String.format("No PooledChainHandler available per context: %s", ctx));
+            }
+            return this.flushHandle(ctx, cmd);
+        }
+
+        /**
+         * Holds the actual logic for handling the command with its context.
          * 
          * @param ctx
          * @param cmd
          * @return
          */
-        public CommandContext.Reply prePoolHandle(CommandContext ctx, Command cmd);
+        public CommandContext.Reply flushHandle(CommandContext ctx, Command cmd);
+
+        /**
+         * Retrieves the PooledChainHandler, potentially using the context
+         */
+        public PooledMessageChainHandler<?> getPooledChainHandler(CommandContext ctx);
+
     }
 
     private static CommandContext addHelps(Map<CommandMessage, CommandHandler> handlers, CommandContext ctx) {
@@ -212,7 +256,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
         return ctx;
     }
 
-    private Reply innerHandle(CommandContext ctx, Command cmd, boolean pool) {
+    public default Reply flushHandle(CommandContext ctx, Command cmd) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
@@ -226,12 +270,8 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
                         () -> String.format("No CommandHandler for type %s at this level", cmd.getType()));
             } else if (handler.isEnabled(ctx)) {
                 CommandContext.Reply reply = null;
-                if (pool && handler instanceof PooledCommandHandler pooledCommandHandler
-                        && pooledCommandHandler.isPoolingEnabled(ctx)) {
-                    reply = pooledCommandHandler.prePoolHandle(ctx, cmd);
-                    if (reply != null && this.empool(ctx, cmd) && !reply.isHandled()) {
-                        reply = reply.resolve();
-                    }
+                if (handler instanceof PooledCommandHandler pooledCommandHandler) {
+                    reply = pooledCommandHandler.flushHandle(ctx, cmd);
                 } else {
                     reply = handler.handle(ctx, cmd);
                 }
@@ -244,15 +284,6 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
             }
         }
         return ctx.failhandle();
-    }
-
-    @Override
-    public default Reply handle(CommandContext ctx, Command cmd) {
-        return this.innerHandle(ctx, cmd, true);
-    }
-
-    public default Reply flushHandle(CommandContext ctx, Command cmd) {
-        return this.innerHandle(ctx, cmd, false);
     }
 
     default Reply handleFlushChain(CommandContext ctx, Command cmd) {
