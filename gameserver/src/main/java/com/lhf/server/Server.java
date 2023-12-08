@@ -237,7 +237,7 @@ public class Server implements ServerInterface, ConnectionListener {
         @Override
         public Reply handle(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof CreateInMessage msg) {
-                if (Server.this.userManager.getAllUsernames().contains(msg.getUsername())) {
+                if (Server.this.userManager.getForbiddenUsernames().contains(msg.getUsername())) {
                     ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
                     return ctx.handled();
                 }
