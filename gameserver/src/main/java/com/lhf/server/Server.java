@@ -50,7 +50,7 @@ public class Server implements ServerInterface, ConnectionListener {
         this.acceptedCommands.put(CommandMessage.CREATE, new CreateHandler());
         this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
         this.game = new Game(this, this.userManager);
-        this.logger.exiting(this.getClass().getName(), "NoArgConstructor");
+        this.logger.exiting(this.getClass().getName(), "NoArgConstructor", "NoArgConstructor");
     }
 
     public Server(@NotNull UserManager userManager, @NotNull ClientManager clientManager, @NotNull Game game) {
@@ -66,7 +66,7 @@ public class Server implements ServerInterface, ConnectionListener {
         if (game != null) {
             game.setServer(this);
         }
-        this.logger.exiting(this.getClass().getName(), "ArgConstructor");
+        this.logger.exiting(this.getClass().getName(), "ArgConstructor", "ArgConstructor");
     }
 
     public Client startClient(Client client) {

@@ -338,7 +338,7 @@ public class ServerTest {
 
     @Test
     void testAttack() {
-        this.comm.create("Tester");
+        this.comm.create("AttackTester");
         String extract = this.comm.handleCommand("go east", OutMessageType.SEE);
         Truth.assertThat(extract).ignoringCase().contains("<monster>");
         int creature_index = extract.indexOf("<monster>");
@@ -352,7 +352,7 @@ public class ServerTest {
         for (int i = 1; i < 15 && room.contains("<monster>" + extract + "</monster>"); i++) {
             this.comm.handleCommand("attack " + extract);
 
-            Mockito.verify(this.comm.sssb, Mockito.timeout(2000).atLeast(i))
+            Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
                     .send(Mockito.argThat((outMessage) -> {
                         return battleTurn.matches(outMessage) || fightOver.matches(outMessage);
                     }));

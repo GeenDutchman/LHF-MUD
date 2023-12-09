@@ -241,27 +241,27 @@ public class BattleTurnHandler extends AIHandler {
         // !bai.getNpc().isInBattle()) {
         // return;
         // }
+
         BattleRoundMessage btm = (BattleRoundMessage) msg;
-        Reply reply = bai.ProcessString("STATS");
-        Optional<StatsOutMessage> statsOutOpt = reply.getMessages().stream()
-                .filter(outMessage -> outMessage != null && OutMessageType.STATS.equals(outMessage.getOutType()))
-                .map(outMessage -> ((StatsOutMessage) outMessage)).findFirst();
-
-        if (statsOutOpt.isEmpty()) {
-            this.logger.warning(() -> String
-                    .format("%s cannot get battle stats, and thus cannot battle: attempting PASS", bai.toString()));
-            reply = bai.ProcessString("PASS");
-            if (!reply.isHandled()) {
-                String logMessage = String.format("PASS not handled: %s", reply.toString());
-                this.logger.warning(logMessage);
-            }
-            return;
-        }
-
-        HarmMemories harmMemories = bai.getNpc().getHarmMemories();
-        CreatureFaction myFaction = bai.getNpc().getFaction();
         if (RoundAcceptance.NEEDED.equals(btm.getNeedSubmission())) {
+            Reply reply = bai.ProcessString("STATS");
+            Optional<StatsOutMessage> statsOutOpt = reply.getMessages().stream()
+                    .filter(outMessage -> outMessage != null && OutMessageType.STATS.equals(outMessage.getOutType()))
+                    .map(outMessage -> ((StatsOutMessage) outMessage)).findFirst();
 
+            if (statsOutOpt.isEmpty()) {
+                this.logger.warning(() -> String
+                        .format("%s cannot get battle stats, and thus cannot battle: attempting PASS", bai.toString()));
+                reply = bai.ProcessString("PASS");
+                if (!reply.isHandled()) {
+                    String logMessage = String.format("PASS not handled: %s", reply.toString());
+                    this.logger.warning(logMessage);
+                }
+                return;
+            }
+
+            HarmMemories harmMemories = bai.getNpc().getHarmMemories();
+            CreatureFaction myFaction = bai.getNpc().getFaction();
             Optional<String> command = processFlee(statsOutOpt,
                     harmMemories,
                     myFaction);
