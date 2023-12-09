@@ -375,8 +375,14 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             Deque<IPoolEntry> poolEntries = ordering.entry;
             this.log(Level.FINEST, () -> String.format("Flush Initiative: %d, Actions: %d, Creature: %s",
                     ordering.roll, poolEntries != null ? poolEntries.size() : 0, ordering.creature));
+            if (ordering.creature == null || (!ordering.creature.isAlive() && ordering.creature.isInBattle())) {
+                this.log(Level.WARNING,
+                        () -> String.format("Creature %s is dead or not in battle, cannot perform action",
+                                ordering.creature));
+                return;
+            }
             if (poolEntries != null && poolEntries.size() > 0) {
-                while (poolEntries.size() > 0) {
+                while (poolEntries.size() > 0 && ordering.creature.isAlive() && ordering.creature.isInBattle()) {
                     IPoolEntry poolEntry = poolEntries.pollFirst();
                     if (poolEntry != null) {
                         this.handleFlushChain(poolEntry.getContext(), poolEntry.getCommand());
@@ -387,8 +393,9 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 if (ordering.creature != null && penalties != null && penalties.size() > 0) {
                     this.log(Level.INFO, () -> String.format("Penalties: %s, earned by Creature: %s", penalties,
                             ordering.creature));
-                    for (CreatureEffect effect : penalties) {
-                        this.announce(ordering.creature.applyEffect(effect));
+                    for (Iterator<CreatureEffect> effectIterator = penalties.iterator(); effectIterator.hasNext()
+                            && ordering.creature.isAlive();) {
+                        this.announce(ordering.creature.applyEffect(effectIterator.next()));
                     }
                 }
             }
