@@ -23,6 +23,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -323,10 +324,12 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             this.log(Level.WARNING, "Cannot emplace with null key or pool");
             return false;
         }
-        this.addCreature(key);
-        Deque<IPoolEntry> queue = this.actionPools.get(key);
-        if (queue != null) {
-            return queue.offerLast(entry);
+        synchronized (this.actionPools) {
+            this.addCreature(key);
+            Deque<IPoolEntry> queue = this.actionPools.get(key);
+            if (queue != null) {
+                return queue.offerLast(entry);
+            }
         }
         return false;
     }
@@ -367,36 +370,42 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             }
 
         }
-        this.log(Level.FINER, "Now flushing actionpool");
-        this.actionPools.entrySet().stream().map(
-                entry -> new Ordering(entry.getKey().check(Attributes.DEX).getRoll(), entry.getKey(), entry.getValue()))
-                .sorted().forEachOrdered(ordering -> {
-                    Deque<IPoolEntry> poolEntries = ordering.entry;
-                    this.log(Level.FINEST, () -> String.format("Flush Initiative: %d, Actions: %d, Creature: %s",
-                            ordering.roll, poolEntries != null ? poolEntries.size() : 0, ordering.creature));
-                    if (poolEntries != null && poolEntries.size() > 0) {
-                        while (poolEntries.size() > 0) {
-                            IPoolEntry poolEntry = poolEntries.pollFirst();
-                            if (poolEntry != null) {
-                                this.handleFlushChain(poolEntry.getContext(), poolEntry.getCommand());
-                            }
-                        }
-                    } else {
-                        Set<CreatureEffect> penalties = this.calculateWastePenalty(ordering.creature);
-                        if (ordering.creature != null && penalties != null && penalties.size() > 0) {
-                            this.log(Level.INFO, () -> String.format("Penalties: %s, earned by Creature: %s", penalties,
-                                    ordering.creature));
-                            for (CreatureEffect effect : penalties) {
-                                this.announce(ordering.creature.applyEffect(effect));
-                            }
-                        }
+
+        final Consumer<? super Ordering> flushProcessor = ordering -> {
+            Deque<IPoolEntry> poolEntries = ordering.entry;
+            this.log(Level.FINEST, () -> String.format("Flush Initiative: %d, Actions: %d, Creature: %s",
+                    ordering.roll, poolEntries != null ? poolEntries.size() : 0, ordering.creature));
+            if (poolEntries != null && poolEntries.size() > 0) {
+                while (poolEntries.size() > 0) {
+                    IPoolEntry poolEntry = poolEntries.pollFirst();
+                    if (poolEntry != null) {
+                        this.handleFlushChain(poolEntry.getContext(), poolEntry.getCommand());
                     }
-                });
+                }
+            } else {
+                Set<CreatureEffect> penalties = this.calculateWastePenalty(ordering.creature);
+                if (ordering.creature != null && penalties != null && penalties.size() > 0) {
+                    this.log(Level.INFO, () -> String.format("Penalties: %s, earned by Creature: %s", penalties,
+                            ordering.creature));
+                    for (CreatureEffect effect : penalties) {
+                        this.announce(ordering.creature.applyEffect(effect));
+                    }
+                }
+            }
+        };
+
+        synchronized (this.actionPools) {
+            this.log(Level.FINER, "Now flushing actionpool");
+            this.actionPools.entrySet().stream().map(
+                    entry -> new Ordering(entry.getKey().check(Attributes.DEX).getRoll(), entry.getKey(),
+                            entry.getValue()))
+                    .sorted().forEachOrdered(flushProcessor);
+        }
     }
 
     @Override
     public Collection<Creature> getCreatures() {
-        return this.actionPools.keySet();
+        return this.getPools().keySet();
     }
 
     @Override
@@ -432,54 +441,58 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public boolean addCreature(Creature c) {
-        if (c != null && !c.isInBattle() && !this.hasCreature(c)) {
-            if (this.actionPools.putIfAbsent(c, new LinkedBlockingDeque<>(MAX_POOLED_ACTIONS)) == null) {
-                c.setInBattle(true);
-                c.setSuccessor(this);
-                this.battleStats.initialize(this.getCreatures());
-                boolean ongoing = this.isBattleOngoing();
-                JoinBattleMessage.Builder joinedMessage = JoinBattleMessage.getBuilder().setJoiner(c)
-                        .setOngoing(ongoing).setBroacast();// new JoinBattleMessage(c, this.isBattleOngoing(),
-                                                           // false);
-                if (this.room != null) {
-                    this.room.announce(joinedMessage.Build(), c);
-                } else {
-                    this.announce(joinedMessage.Build(), c);
-                }
-                c.sendMsg(joinedMessage.setNotBroadcast().Build());
-                if (ongoing) {
-                    RoundThread thread = this.battleThread.get();
-                    if (thread != null) {
-                        synchronized (thread) {
-                            thread.register(c);
+    public synchronized boolean addCreature(Creature c) {
+        synchronized (this.actionPools) {
+            if (c != null && !c.isInBattle() && !this.hasCreature(c)) {
+                if (this.actionPools.putIfAbsent(c, new LinkedBlockingDeque<>(MAX_POOLED_ACTIONS)) == null) {
+                    c.setInBattle(true);
+                    c.setSuccessor(this);
+                    this.battleStats.initialize(this.getCreatures());
+                    boolean ongoing = this.isBattleOngoing();
+                    JoinBattleMessage.Builder joinedMessage = JoinBattleMessage.getBuilder().setJoiner(c)
+                            .setOngoing(ongoing).setBroacast();// new JoinBattleMessage(c, this.isBattleOngoing(),
+                                                               // false);
+                    if (this.room != null) {
+                        this.room.announce(joinedMessage.Build(), c);
+                    } else {
+                        this.announce(joinedMessage.Build(), c);
+                    }
+                    c.sendMsg(joinedMessage.setNotBroadcast().Build());
+                    if (ongoing) {
+                        RoundThread thread = this.battleThread.get();
+                        if (thread != null) {
+                            synchronized (thread) {
+                                thread.register(c);
+                            }
                         }
                     }
+                    return true;
                 }
-                return true;
             }
+            return false;
         }
-        return false;
     }
 
     @Override
-    public boolean removeCreature(Creature c) {
-        if (this.actionPools.remove(c) != null) {
-            c.setInBattle(false);
-            c.setSuccessor(this.successor);
-            this.battleStats.remove(c.getName());
-            RoundThread thread = BattleManager.this.battleThread.get();
-            if (thread != null) {
-                synchronized (thread) {
-                    thread.arriveAndDeregister(c);
+    public synchronized boolean removeCreature(Creature c) {
+        synchronized (this.actionPools) {
+            if (this.actionPools.remove(c) != null) {
+                c.setInBattle(false);
+                c.setSuccessor(this.successor);
+                this.battleStats.remove(c.getName());
+                RoundThread thread = BattleManager.this.battleThread.get();
+                if (thread != null) {
+                    synchronized (thread) {
+                        thread.arriveAndDeregister(c);
+                    }
                 }
+                if (!this.checkCompetingFactionsPresent()) {
+                    endBattle();
+                }
+                return true;
             }
-            if (!this.checkCompetingFactionsPresent()) {
-                endBattle();
-            }
-            return true;
+            return false;
         }
-        return false;
     }
 
     private boolean checkCompetingFactionsPresent() {
@@ -570,6 +583,10 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
     @Override
     public boolean onCreatureDeath(Creature creature) {
+        if (creature == null) {
+            return false;
+        }
+        this.log(Level.FINE, () -> String.format("Event onCreatureDeath(%s)", creature));
         boolean removed = this.removeCreature(creature);
         if (this.room != null) {
             removed = this.room.onCreatureDeath(creature) || removed;
