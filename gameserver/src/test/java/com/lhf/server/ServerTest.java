@@ -348,13 +348,19 @@ public class ServerTest {
         String room = this.comm.handleCommand("see", OutMessageType.SEE);
         ArgumentMatcher<OutMessage> battleTurn = new MessageMatcher(OutMessageType.BATTLE_ROUND,
                 "should enter an action to take for the round");
+        ArgumentMatcher<OutMessage> battleTurnAccepted = new MessageMatcher(OutMessageType.BATTLE_ROUND,
+                "action has been submitted for the round");
         ArgumentMatcher<OutMessage> fightOver = new MessageMatcher(OutMessageType.FIGHT_OVER);
+        ArgumentMatcher<OutMessage> reincarnated = new MessageMatcher(OutMessageType.REINCARNATION);
         for (int i = 1; i < 15 && room.contains("<monster>" + extract + "</monster>"); i++) {
             this.comm.handleCommand("attack " + extract);
+            Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
+                    .send(Mockito.argThat(battleTurnAccepted));
 
             Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
                     .send(Mockito.argThat((outMessage) -> {
-                        return battleTurn.matches(outMessage) || fightOver.matches(outMessage);
+                        return battleTurn.matches(outMessage) || fightOver.matches(outMessage)
+                                || reincarnated.matches(outMessage);
                     }));
             room = this.comm.handleCommand("see");
 
@@ -398,18 +404,25 @@ public class ServerTest {
         attacker.handleCommand("status");
 
         ArgumentMatcher<OutMessage> battleTurn = new MessageMatcher(OutMessageType.BATTLE_ROUND,
-                "should enter an action to take for the round").setPrint(true);
-        ArgumentMatcher<OutMessage> fightOver = new MessageMatcher(OutMessageType.FIGHT_OVER);
+                "should enter an action to take for the round");
+        ArgumentMatcher<OutMessage> battleTurnAccepted = new MessageMatcher(OutMessageType.BATTLE_ROUND,
+                "action has been submitted for the round");
+
         attacker.handleCommand("attack Tester");
         this.comm.handleCommand("PASS");
         for (int i = 1; i < 30 && this.comm.outCaptor.getAllValues().stream()
                 .noneMatch(outy -> outy != null && OutMessageType.REINCARNATION.equals(outy.getOutType())); i++) {
             Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
                     .send(Mockito.argThat(battleTurn));
-            Mockito.verify(attacker.sssb, Mockito.timeout(500).atLeast(i))
+            Mockito.verify(attacker.sssb, Mockito.timeout(500).atLeast(i - 1)) // minus one because the first one is
+                                                                               // already submitted
                     .send(Mockito.argThat(battleTurn));
             attacker.handleCommand("attack Tester");
             this.comm.handleCommand("PASS");
+            Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
+                    .send(Mockito.argThat(battleTurnAccepted));
+            Mockito.verify(attacker.sssb, Mockito.timeout(500).atLeast(i))
+                    .send(Mockito.argThat(battleTurnAccepted));
 
         }
         Truth.assertThat(attacker.handleCommand("SEE")).doesNotContain("Tester");
