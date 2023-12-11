@@ -50,7 +50,7 @@ public class Server implements ServerInterface, ConnectionListener {
         this.acceptedCommands.put(CommandMessage.CREATE, new CreateHandler());
         this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
         this.game = new Game(this, this.userManager);
-        this.logger.exiting(this.getClass().getName(), "NoArgConstructor");
+        this.logger.exiting(this.getClass().getName(), "NoArgConstructor", "NoArgConstructor");
     }
 
     public Server(@NotNull UserManager userManager, @NotNull ClientManager clientManager, @NotNull Game game) {
@@ -66,7 +66,7 @@ public class Server implements ServerInterface, ConnectionListener {
         if (game != null) {
             game.setServer(this);
         }
-        this.logger.exiting(this.getClass().getName(), "ArgConstructor");
+        this.logger.exiting(this.getClass().getName(), "ArgConstructor", "ArgConstructor");
     }
 
     public Client startClient(Client client) {
@@ -237,7 +237,7 @@ public class Server implements ServerInterface, ConnectionListener {
         @Override
         public Reply handle(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof CreateInMessage msg) {
-                if (Server.this.userManager.getAllUsernames().contains(msg.getUsername())) {
+                if (Server.this.userManager.getForbiddenUsernames().contains(msg.getUsername())) {
                     ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
                     return ctx.handled();
                 }

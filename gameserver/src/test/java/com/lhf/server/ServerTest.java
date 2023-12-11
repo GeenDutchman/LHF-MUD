@@ -338,7 +338,7 @@ public class ServerTest {
 
     @Test
     void testAttack() {
-        this.comm.create("Tester");
+        this.comm.create("AttackTester");
         String extract = this.comm.handleCommand("go east", OutMessageType.SEE);
         Truth.assertThat(extract).ignoringCase().contains("<monster>");
         int creature_index = extract.indexOf("<monster>");
@@ -346,15 +346,21 @@ public class ServerTest {
         extract = extract.substring(creature_index + "<monster>".length(), endcreature_index);
         System.out.println(extract);
         String room = this.comm.handleCommand("see", OutMessageType.SEE);
-        ArgumentMatcher<OutMessage> battleTurn = new MessageMatcher(OutMessageType.BATTLE_TURN,
-                "It is now your turn to fight!");
+        ArgumentMatcher<OutMessage> battleTurn = new MessageMatcher(OutMessageType.BATTLE_ROUND,
+                "should enter an action to take for the round");
+        ArgumentMatcher<OutMessage> battleTurnAccepted = new MessageMatcher(OutMessageType.BATTLE_ROUND,
+                "action has been submitted for the round");
         ArgumentMatcher<OutMessage> fightOver = new MessageMatcher(OutMessageType.FIGHT_OVER);
+        ArgumentMatcher<OutMessage> reincarnated = new MessageMatcher(OutMessageType.REINCARNATION);
         for (int i = 1; i < 15 && room.contains("<monster>" + extract + "</monster>"); i++) {
             this.comm.handleCommand("attack " + extract);
+            Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
+                    .send(Mockito.argThat(battleTurnAccepted));
 
-            Mockito.verify(this.comm.sssb, Mockito.timeout(2000).atLeast(i))
+            Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
                     .send(Mockito.argThat((outMessage) -> {
-                        return battleTurn.matches(outMessage) || fightOver.matches(outMessage);
+                        return battleTurn.matches(outMessage) || fightOver.matches(outMessage)
+                                || reincarnated.matches(outMessage);
                     }));
             room = this.comm.handleCommand("see");
 
@@ -380,6 +386,7 @@ public class ServerTest {
     @Test
     void testReincarnation() throws IOException {
         this.comm.create("Tester");
+        this.comm.handleCommand("go east");
         String status = this.comm.handleCommand("status");
         String inventory = this.comm.handleCommand("inventory");
 
@@ -390,30 +397,35 @@ public class ServerTest {
 
         ServerClientComBundle attacker = new ServerClientComBundle(this.server);
         attacker.create("Attacker");
+        attacker.handleCommand("go east");
         attacker.handleCommand("equip armor");
         attacker.handleCommand("equip sword");
         attacker.handleCommand("equip shield");
         attacker.handleCommand("status");
 
-        OutMessage outMessage = null;
-        for (int i = 0; i < 30 && outMessage == null; i++) {
+        ArgumentMatcher<OutMessage> battleTurn = new MessageMatcher(OutMessageType.BATTLE_ROUND,
+                "should enter an action to take for the round");
+        ArgumentMatcher<OutMessage> battleTurnAccepted = new MessageMatcher(OutMessageType.BATTLE_ROUND,
+                "action has been submitted for the round");
+
+        attacker.handleCommand("attack Tester");
+        this.comm.handleCommand("PASS");
+        for (int i = 1; i < 30 && this.comm.outCaptor.getAllValues().stream()
+                .noneMatch(outy -> outy != null && OutMessageType.REINCARNATION.equals(outy.getOutType())); i++) {
+            Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
+                    .send(Mockito.argThat(battleTurn));
+            Mockito.verify(attacker.sssb, Mockito.timeout(500).atLeast(i - 1)) // minus one because the first one is
+                                                                               // already submitted
+                    .send(Mockito.argThat(battleTurn));
             attacker.handleCommand("attack Tester");
-            for (OutMessage outy : this.comm.outCaptor.getAllValues()) {
-                if (outy != null && outy.getOutType() == OutMessageType.REINCARNATION) {
-                    outMessage = outy;
-                }
-            }
-            // message = this.comm.read();
-            if (outMessage != null) {
-                break;
-            }
             this.comm.handleCommand("PASS");
-            for (OutMessage outy : this.comm.outCaptor.getAllValues()) {
-                if (outy != null && outy.getOutType() == OutMessageType.REINCARNATION) {
-                    outMessage = outy;
-                }
-            }
+            Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
+                    .send(Mockito.argThat(battleTurnAccepted));
+            Mockito.verify(attacker.sssb, Mockito.timeout(500).atLeast(i))
+                    .send(Mockito.argThat(battleTurnAccepted));
+
         }
+        Truth.assertThat(attacker.handleCommand("SEE")).doesNotContain("Tester");
         Truth.assertThat(this.comm.handleCommand("inventory")).isEqualTo(inventory);
         Truth.assertThat(this.comm.handleCommand("status")).isEqualTo(status);
     }

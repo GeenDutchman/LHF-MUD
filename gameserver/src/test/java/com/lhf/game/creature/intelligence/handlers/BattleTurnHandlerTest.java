@@ -27,7 +27,7 @@ import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.messages.out.BattleTurnMessage;
+import com.lhf.messages.out.BattleRoundMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
 public class BattleTurnHandlerTest {
@@ -99,7 +99,7 @@ public class BattleTurnHandlerTest {
         searcher.npc.intercept(interceptor);
 
         // trigger it
-        searcher.npc.sendMsg(BattleTurnMessage.getBuilder().setCurrentCreature(searcher.npc).setYesTurn(true)
+        searcher.npc.sendMsg(BattleRoundMessage.getBuilder().setAboutCreature(searcher.npc).setNeeded()
                 .Build());
 
         Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();

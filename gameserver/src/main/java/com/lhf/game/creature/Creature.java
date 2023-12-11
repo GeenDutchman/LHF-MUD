@@ -260,9 +260,9 @@ public abstract class Creature
                 }
                 next = next.getSuccessor();
             }
+            // if it gets to here, welcome to undeath (not literally)
+            this.log(Level.WARNING, "died while not in a `CreatureContainer`!");
         }
-        // if it gets to here, welcome to undeath (not literally)
-        this.log(Level.WARNING, "died while not in a `CreatureContainer`!");
     }
 
     public void updateAc(int value) {
@@ -1009,7 +1009,8 @@ public abstract class Creature
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("Creature [name=").append(name).append(", health=").append(this.getHealthBucket())
+        builder.append(this.getClass().getSimpleName()).append(" [name=").append(name)
+                .append(", health=").append(this.getHealthBucket())
                 .append(", faction=").append(faction).append(", vocation=")
                 .append(vocation).append("]");
         return builder.toString();

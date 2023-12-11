@@ -28,6 +28,11 @@ public class UserManager {
         for (User user : users) {
             usernames.add(user.getUsername());
         }
+        return usernames;
+    }
+
+    public List<String> getForbiddenUsernames() {
+        List<String> usernames = this.getAllUsernames();
         usernames.add("Someone");
         usernames.add("someone");
         usernames.add("You");

@@ -1111,6 +1111,12 @@ public class Room implements Area {
                 Collection<Creature> maybeCreature = Room.this.getCreaturesLike(useMessage.getTarget());
                 if (maybeCreature.size() == 1) {
                     List<Creature> creatureList = new ArrayList<>(maybeCreature);
+                    Creature targetCreature = creatureList.get(0);
+                    // if we aren't in battle, but our target is in battle, join the battle
+                    if (!ctx.getCreature().isInBattle() && targetCreature.isInBattle()) {
+                        Room.this.battleManager.addCreature(ctx.getCreature());
+                        return Room.this.battleManager.handleChain(ctx, cmd);
+                    }
                     usable.doUseAction(ctx, creatureList.get(0));
                     return ctx.handled();
                 } else if (maybeCreature.size() > 1) {

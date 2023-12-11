@@ -192,6 +192,7 @@ public class DMRoom extends Room {
         boolean added = this.users.add(user);
         if (added) {
             user.setSuccessor(this);
+            this.log(Level.FINE, () -> String.format("User %s entered DMRoom", user));
             this.announce(RoomEnteredOutMessage.getBuilder().setNewbie(user).setBroacast().Build());
         }
         return added;
@@ -282,6 +283,10 @@ public class DMRoom extends Room {
     }
 
     protected class SayHandler extends Room.SayHandler {
+        private static final Predicate<CommandContext> enabledPredicate = SayHandler.defaultPredicate
+                .and(ctx -> ctx.getUser() != null).and(ctx -> ctx.getRoom() != null)
+                .or(SayHandler.defaultRoomPredicate);
+
         @Override
         public Reply handle(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.SAY && cmd instanceof SayMessage sayMessage) {
@@ -307,6 +312,11 @@ public class DMRoom extends Room {
                 }
             }
             return super.handle(ctx, cmd);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return SayHandler.enabledPredicate;
         }
 
         @Override
