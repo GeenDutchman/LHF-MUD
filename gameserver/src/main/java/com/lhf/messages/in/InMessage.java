@@ -74,6 +74,8 @@ public class InMessage {
                 return new SpellbookMessage(arguments);
             case STATS:
                 return new StatsInMessage(arguments);
+            case REPEAT:
+                return new RepeatInMessage(arguments);
             default:
                 return new HelpInMessage(arguments);
 

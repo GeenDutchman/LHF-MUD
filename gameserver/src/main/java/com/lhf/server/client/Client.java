@@ -50,7 +50,7 @@ public class Client implements MessageChainHandler, ClientMessenger {
         if (cmd.isValid()) {
             this.log(Level.FINEST, "the message received was deemed" + cmd.getClass().toString());
             this.log(Level.FINER, "Post Processing:" + cmd);
-            accepted = MessageChainHandler.passUpChain(this, ctx, cmd);
+            accepted = this.handleChain(ctx, cmd);
             if (!accepted.isHandled()) {
                 this.log(Level.WARNING, "Command not accepted:" + cmd.getWhole());
                 accepted = this.handleHelpMessage(cmd, BadMessageType.UNHANDLED, accepted);
