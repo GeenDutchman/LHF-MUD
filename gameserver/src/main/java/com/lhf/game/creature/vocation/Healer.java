@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.resourcepools.IntegerResourcePool;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
-import com.lhf.game.dice.DiceD20;
-import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.ResourceCost;
@@ -52,17 +50,6 @@ public class Healer extends Vocation implements CubeHolder {
     @Override
     public String getCasterVocation() {
         return this.getName();
-    }
-
-    @Override
-    public Integer getCasterDifficulty() {
-        return 13; // TODO: #128 actual difficulty
-    }
-
-    @Override
-    public MultiRollResult spellAttack() {
-        return new MultiRollResult.Builder().addRollResults(new DiceD20(1).rollDice()).Build(); // TODO: #128 actual
-                                                                                                // attack
     }
 
     @Override

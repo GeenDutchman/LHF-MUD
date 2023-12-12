@@ -138,6 +138,8 @@ public class ThirdPower implements MessageChainHandler {
                 Collection<Creature> targets) {
             final Creature caster = ctx.getCreature();
             final BattleManager battleManager = ctx.getBattleManager();
+            final CubeHolder vocation = caster.getVocation() instanceof CubeHolder ? (CubeHolder) caster.getVocation()
+                    : null;
 
             for (Creature target : targets) {
                 if (spell.isOffensive() && battleManager != null) {
@@ -153,7 +155,8 @@ public class ThirdPower implements MessageChainHandler {
                     MultiRollResult casterResult = null;
                     MultiRollResult targetResult = null;
                     if (resistance != null) {
-                        casterResult = resistance.actorEffort(caster, 0);
+                        casterResult = resistance.actorEffort(caster,
+                                vocation != null ? vocation.getCastingBonus(effect) : 0);
                         targetResult = resistance.targetEffort(target, 0);
                     }
 
