@@ -75,7 +75,7 @@ import com.lhf.server.interfaces.NotNull;
 public class BattleManager implements CreatureContainer, PooledMessageChainHandler<Creature> {
     private final static int MAX_POOLED_ACTIONS = 1;
     private final static int MAX_MILLISECONDS = 120000;
-    private final static int DEFAULT_MILLISECONDS = 40000 / 2;// 90000;
+    private final static int DEFAULT_MILLISECONDS = 90000;
     private final int roundDurationMilliseconds;
     private final AtomicReference<RoundThread> battleThread;
     private NavigableMap<Creature, Deque<IPoolEntry>> actionPools;
