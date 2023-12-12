@@ -596,6 +596,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
     public void endBattle() {
         this.battleLogger.log(Level.INFO, "Ending battle");
+        this.battleStats.reset();
         FightOverMessage.Builder foverBuilder = FightOverMessage.getBuilder().setNotBroadcast();
         this.announce(foverBuilder.Build());
         if (this.room != null) {
