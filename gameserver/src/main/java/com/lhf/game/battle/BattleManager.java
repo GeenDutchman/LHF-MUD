@@ -76,7 +76,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     private final static int MAX_MILLISECONDS = 120000;
     private final static int DEFAULT_MILLISECONDS = 40000 / 2;// 90000;
     private final int roundDurationMilliseconds;
-    private AtomicReference<RoundThread> battleThread;
+    private final AtomicReference<RoundThread> battleThread;
     private NavigableMap<Creature, Deque<IPoolEntry>> actionPools;
     private BattleStats battleStats;
     private Area room;
@@ -287,10 +287,6 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         this.successor = this.room;
         this.roundDurationMilliseconds = builder.waitMilliseconds;
         this.sentMessage = new TreeSet<>();
-        this.init();
-    }
-
-    private void init() {
         this.cmds = this.buildCommands();
         this.battleThread = new AtomicReference<BattleManager.RoundThread>(null);
         this.battleLogger = Logger.getLogger(this.getClass().getName() + "." + this.getName().replaceAll("\\W", "_"));
@@ -604,8 +600,11 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
         RoundThread thread = this.battleThread.get();
         if (thread != null) {
-            thread.killIt();
+            synchronized (thread) {
+                thread.killIt();
+            }
         }
+        this.battleThread.set(null);
     }
 
     @Override
