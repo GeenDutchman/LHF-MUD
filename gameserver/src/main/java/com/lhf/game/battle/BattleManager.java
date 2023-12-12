@@ -20,6 +20,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -494,21 +495,10 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         if (c == null) {
             return false;
         }
-        synchronized (this.actionPools) {
-            if (this.actionPools.remove(c) != null) {
-                c.setInBattle(false);
-                c.setSuccessor(this.successor);
-                this.battleStats.remove(c.getName());
-                RoundThread thread = BattleManager.this.battleThread.get();
-                if (thread != null) {
-                    synchronized (thread) {
-                        thread.arriveAndDeregister(c);
-                    }
-                }
-                return true;
-            }
-            return false;
-        }
+        final AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+        this.clearCreatures(creature -> creature != null && creature.equals(c), true,
+                creature -> atomicBoolean.set(true));
+        return atomicBoolean.get();
     }
 
     private boolean checkCompetingFactionsPresent(final String whochecks) {
@@ -605,6 +595,11 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             }
         }
         this.battleThread.set(null);
+        this.clearCreatures(creature -> true, false, creature -> {
+            if (creature != null && !creature.isAlive() && this.room != null) {
+                this.room.onCreatureDeath(creature);
+            }
+        });
     }
 
     @Override
@@ -612,35 +607,53 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         if (creature == null) {
             return false;
         }
-        this.log(Level.FINE,
-                () -> String.format("Event onCreatureDeath(%s) ignored until clearDead() sweeps", creature));
+        RoundThread thread = BattleManager.this.battleThread.get();
+        if (thread != null && thread.isAlive()) {
+            this.log(Level.FINE,
+                    () -> String.format("Event onCreatureDeath(%s) ignored until clearDead() sweeps", creature));
+        } else {
+            this.clearCreatures(c -> c != null && creature.equals(c), true,
+                    this.room != null ? c -> this.room.onCreatureDeath(c) : null);
+        }
         return true;
+    }
+
+    private void clearCreatures(Predicate<Creature> clearPredicate, boolean firstOnly, Consumer<Creature> callback) {
+        if (clearPredicate == null) {
+            return;
+        }
+        synchronized (this.actionPools) {
+            for (Iterator<Creature> iterator = this.actionPools.keySet().iterator(); iterator.hasNext();) {
+                Creature creature = iterator.next();
+                if (creature == null) {
+                    iterator.remove();
+                } else if (clearPredicate.test(creature)) {
+                    iterator.remove();
+                    creature.setInBattle(false);
+                    creature.setSuccessor(this.successor);
+                    this.battleStats.remove(creature.getName());
+                    RoundThread thread = BattleManager.this.battleThread.get();
+                    if (thread != null && thread.isAlive()) {
+                        synchronized (thread) {
+                            thread.arriveAndDeregister(creature);
+                        }
+                    }
+                    if (callback != null) {
+                        callback.accept(creature);
+                    }
+                    if (firstOnly) {
+                        return;
+                    }
+                }
+            }
+        }
     }
 
     private void clearDead() {
         synchronized (this.actionPools) {
             this.log(Level.FINE, () -> "Clearing the dead");
-            for (Iterator<Map.Entry<Creature, Deque<IPoolEntry>>> iterator = this.actionPools.entrySet()
-                    .iterator(); iterator.hasNext();) {
-                Creature creature = iterator.next().getKey();
-                if (!creature.isAlive()) {
-                    iterator.remove();
-                    // repeat all the stuff in `{@link #removeCreature(Creature c)}` to avoid
-                    // concurrent modification
-                    creature.setInBattle(false);
-                    creature.setSuccessor(this.successor);
-                    this.battleStats.remove(creature.getName());
-                    RoundThread thread = BattleManager.this.battleThread.get();
-                    if (thread != null) {
-                        synchronized (thread) {
-                            thread.arriveAndDeregister(creature);
-                        }
-                    }
-                    if (this.room != null) {
-                        this.room.onCreatureDeath(creature);
-                    }
-                }
-            }
+            this.clearCreatures(creature -> creature != null && !creature.isAlive(), false,
+                    this.room != null ? creature -> this.room.onCreatureDeath(creature) : null);
         }
     }
 
