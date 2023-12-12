@@ -14,7 +14,7 @@ public interface ClientMessengerHub {
     /** Returns true if the message has been sent, false if not **/
     public boolean checkMessageSent(OutMessage outMessage);
 
-    public default boolean announceDirect(OutMessage outMessage, Collection<ClientMessenger> recipients) {
+    public default boolean announceDirect(OutMessage outMessage, Collection<? extends ClientMessenger> recipients) {
         if (outMessage == null || recipients == null) {
             return false;
         }
@@ -39,7 +39,7 @@ public interface ClientMessengerHub {
         return this.announceDirect(outMessage, Arrays.asList(recipients));
     }
 
-    public default boolean announce(OutMessage outMessage, Set<ClientMessenger> deafened) {
+    public default boolean announce(OutMessage outMessage, Set<? extends ClientMessenger> deafened) {
         Collection<ClientMessenger> subscribedC = this.getClientMessengers();
         List<ClientMessenger> filteredList = subscribedC.stream()
                 .filter(messenger -> messenger != null && messenger instanceof ClientMessenger)
@@ -47,7 +47,7 @@ public interface ClientMessengerHub {
         return this.announceDirect(outMessage, filteredList);
     }
 
-    public default boolean announce(OutMessage.Builder<?> builder, Set<ClientMessenger> deafened) {
+    public default boolean announce(OutMessage.Builder<?> builder, Set<? extends ClientMessenger> deafened) {
         return this.announce(builder.Build(), deafened);
     }
 

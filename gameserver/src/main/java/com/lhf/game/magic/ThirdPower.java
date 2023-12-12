@@ -204,7 +204,7 @@ public class ThirdPower implements MessageChainHandler {
             }
 
             BattleManager bm = ctx.getBattleManager();
-            if (bm != null && !bm.isBattleOngoing() && spell.isOffensive()) {
+            if (bm != null && !bm.isBattleOngoing("handleCastCreatureTargeting()") && spell.isOffensive()) {
                 CastHandler.logger.log(Level.INFO,
                         () -> String.format("Starting battle with offensive spell %s", spell));
                 bm.startBattle(caster, possTargets);
@@ -266,7 +266,7 @@ public class ThirdPower implements MessageChainHandler {
             }
 
             BattleManager bm = ctx.getBattleManager();
-            if (bm != null && !bm.isBattleOngoing() && spell.isOffensive()) {
+            if (bm != null && !bm.isBattleOngoing("handleCastCreatureAOETargeting()") && spell.isOffensive()) {
                 CastHandler.logger.log(Level.INFO,
                         () -> String.format("Starting battle with offensive AOE spell %s", spell));
                 bm.startBattle(caster, targets);
@@ -482,7 +482,7 @@ public class ThirdPower implements MessageChainHandler {
                     }
                     return ctx.handled();
                 } else if (!attempter.isInBattle() && ctx.getBattleManager() != null
-                        && ctx.getBattleManager().isBattleOngoing()) {
+                        && ctx.getBattleManager().isBattleOngoing("ThirdPower.CastHandler.flushHandle()")) {
                     BattleManager bm = ctx.getBattleManager();
                     bm.addCreature(attempter);
                     return bm.handleChain(ctx, castmessage);
@@ -564,7 +564,7 @@ public class ThirdPower implements MessageChainHandler {
             return;
         }
         BattleManager bm = ctx.getBattleManager();
-        if (includeBattle && bm != null && bm.isBattleOngoing()) {
+        if (includeBattle && bm != null && bm.isBattleOngoing("ThirdPower.channelizeMessage()")) {
             bm.announce(message);
         } else if (ctx.getRoom() != null) {
             ctx.getRoom().announce(message);

@@ -16,12 +16,10 @@ import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Phaser;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -76,7 +74,7 @@ import com.lhf.server.interfaces.NotNull;
 public class BattleManager implements CreatureContainer, PooledMessageChainHandler<Creature> {
     private final static int MAX_POOLED_ACTIONS = 1;
     private final static int MAX_MILLISECONDS = 120000;
-    private final static int DEFAULT_MILLISECONDS = 90000;
+    private final static int DEFAULT_MILLISECONDS = 40000 / 2;// 90000;
     private final int roundDurationMilliseconds;
     private AtomicReference<RoundThread> battleThread;
     private NavigableMap<Creature, Deque<IPoolEntry>> actionPools;
@@ -146,12 +144,10 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         private Phaser parentPhaser;
         private Phaser roundPhaser;
         protected Logger threadLogger;
-        private final ScheduledExecutorService timerExecutor;
 
         protected RoundThread() {
             this.parentPhaser = new Phaser();
             this.roundPhaser = new Phaser(this.parentPhaser, BattleManager.this.actionPools.size());
-            this.timerExecutor = Executors.newScheduledThreadPool(1);
             this.threadLogger = Logger
                     .getLogger(this.getClass().getName() + "." + BattleManager.this.getName().replaceAll("\\W", "_"));
             this.threadLogger.log(Level.FINEST, () -> String.format("Created like so: %s", this));
@@ -164,31 +160,38 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 this.threadLogger.log(Level.INFO, "Running");
                 while (!parentPhaser.isTerminated() && !this.roundPhaser.isTerminated()) {
                     this.threadLogger.log(Level.INFO, () -> String.format("Phase start: %s", this));
+                    Map<Boolean, Set<Creature>> partitions = BattleManager.this.getCreatures().stream()
+                            .filter(c -> c != null).collect(Collectors.partitioningBy(
+                                    creature -> BattleManager.this.isReadyToFlush(creature), Collectors.toSet()));
                     BattleManager.this.announce(
                             BattleRoundMessage.getBuilder().setNeedSubmission(BattleRoundMessage.RoundAcceptance.NEEDED)
-                                    .setNotBroadcast().setRoundCount(this.roundPhaser.getPhase())
+                                    .setNotBroadcast().setRoundCount(this.parentPhaser.getPhase())
                                     .Build(),
-                            BattleManager.this.getCreatures().stream()
-                                    .filter(creature -> creature != null && BattleManager.this.isReadyToFlush(creature))
-                                    .collect(Collectors.toSet()));
-                    ScheduledFuture<?> timerFuture = timerExecutor.schedule(this::endRound,
-                            BattleManager.this.getTurnWaitCount(), TimeUnit.MILLISECONDS);
+                            partitions.getOrDefault(partitions, null));
 
                     this.threadLogger.log(Level.FINE,
-                            () -> String.format("Waiting for actions from: %s", BattleManager.this
-                                    .getCreatures().stream()
-                                    .filter(c -> c != null && !BattleManager.this.isReadyToFlush(c))
-                                    .collect(Collectors.toSet())));
-                    this.parentPhaser.arriveAndAwaitAdvance();
-
-                    this.threadLogger.log(Level.FINE,
-                            () -> String.format("Actions received -> Phase Update: %s", this));
-                    if (!timerFuture.isDone()) {
-                        timerFuture.cancel(true);
+                            () -> String.format("Waiting for actions from: %s", partitions.get(false)));
+                    try {
+                        this.parentPhaser.awaitAdvanceInterruptibly(this.parentPhaser.arrive(),
+                                BattleManager.this.getTurnWaitCount(), TimeUnit.MILLISECONDS);
+                        this.threadLogger.log(Level.FINE,
+                                () -> String.format("Actions received -> Phase Update: %s", this));
+                    } catch (TimeoutException e) {
+                        synchronized (this.roundPhaser) {
+                            for (int i = this.roundPhaser.getUnarrivedParties(); i > 0; i--) {
+                                this.roundPhaser.arrive();
+                            }
+                            this.threadLogger.log(Level.INFO,
+                                    () -> String.format("Timer ended round: %s, Thread: %s",
+                                            BattleManager.this.actionPools.toString(), this.toString()));
+                        }
+                    } finally {
                         this.endRound();
                     }
-                    this.threadLogger.log(Level.FINE, "Ending Phase");
                 }
+            } catch (InterruptedException e) {
+                this.threadLogger.log(Level.WARNING, e, () -> String.format("Thread interrupted! %s %s",
+                        this.toString(), BattleManager.this.toString()));
             } finally {
                 threadLogger.exiting(this.getClass().getName(), "run()", this.toString());
                 BattleManager.this.endBattle();
@@ -200,7 +203,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             BattleManager.this.flush();
 
             BattleManager.this.clearDead();
-            if (!BattleManager.this.checkCompetingFactionsPresent()) {
+            if (!BattleManager.this.checkCompetingFactionsPresent("endRound()")) {
                 this.roundPhaser.forceTermination();
                 return;
             }
@@ -250,11 +253,11 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
 
         public synchronized int getPhase() {
-            if (this.roundPhaser == null) {
+            if (this.parentPhaser == null) {
                 return -1;
             }
-            synchronized (this.roundPhaser) {
-                return this.roundPhaser.getPhase();
+            synchronized (this.parentPhaser) {
+                return this.parentPhaser.getPhase();
             }
         }
 
@@ -380,7 +383,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             Deque<IPoolEntry> poolEntries = ordering.entry;
             this.log(Level.FINEST, () -> String.format("Flush Initiative: %d, Actions: %d, Creature: %s",
                     ordering.roll, poolEntries != null ? poolEntries.size() : 0, ordering.creature));
-            if (!this.isBattleOngoing()) {
+            if (!this.isBattleOngoing("flushProcessor")) {
                 this.log(Level.FINE,
                         () -> String.format("The battle is over but %s still tried to go!", ordering.creature));
                 return;
@@ -465,7 +468,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                     c.setInBattle(true);
                     c.setSuccessor(this);
                     this.battleStats.initialize(this.getCreatures());
-                    boolean ongoing = this.isBattleOngoing();
+                    boolean ongoing = this.isBattleOngoing("addCreature()");
                     JoinBattleMessage.Builder joinedMessage = JoinBattleMessage.getBuilder().setJoiner(c)
                             .setOngoing(ongoing).setBroacast();// new JoinBattleMessage(c, this.isBattleOngoing(),
                                                                // false);
@@ -512,10 +515,11 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
     }
 
-    private boolean checkCompetingFactionsPresent() {
+    private boolean checkCompetingFactionsPresent(final String whochecks) {
         Collection<Creature> battlers = this.getCreatures();
         if (battlers == null || battlers.size() <= 1) {
-            this.battleLogger.log(Level.FINER, () -> "Checking for competing factions ... No or too few battlers");
+            this.battleLogger.log(Level.FINER,
+                    () -> String.format("%s Checking for competing factions ... No or too few battlers", whochecks));
             return false;
         }
         HashMap<CreatureFaction, Integer> factionCounts = new HashMap<>();
@@ -528,7 +532,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             }
         }
         this.battleLogger.log(Level.FINER, () -> {
-            StringJoiner sj = new StringJoiner(" ", "Checking for competing factions...", "")
+            StringJoiner sj = new StringJoiner(" ", String.format("%s Checking for competing factions...", whochecks),
+                    "")
                     .setEmptyValue("No factions found");
             if (factionCounts.size() > 0) {
                 sj.add("Factions found:");
@@ -550,13 +555,13 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         return false;
     }
 
-    public boolean isBattleOngoing() {
+    public boolean isBattleOngoing(final String whochecks) {
         RoundThread thread = this.battleThread.get();
         if (thread == null) {
-            this.log(Level.FINE, "Null thread, no battle ongoing");
+            this.log(Level.FINE, String.format("%s found Null thread, no battle ongoing", whochecks));
             return false;
         }
-        return thread.getIsRunning() && this.checkCompetingFactionsPresent();
+        return thread.getIsRunning() && this.checkCompetingFactionsPresent(whochecks);
     }
 
     public synchronized RoundThread startBattle(Creature instigator, Collection<Creature> victims) {
@@ -689,7 +694,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     public String toString() {
         StringBuilder builder2 = new StringBuilder();
         builder2.append("BattleManager [participants=").append(this.actionPools.keySet()).append(", room=").append(room)
-                .append(", ongoing=").append(this.isBattleOngoing()).append("]");
+                .append(", ongoing=").append(this.isBattleOngoing("toString()")).append("]");
         return builder2.toString();
     }
 
@@ -704,7 +709,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     @Override
     public String printDescription() {
         StringBuilder sb = new StringBuilder();
-        if (this.isBattleOngoing()) {
+        if (this.isBattleOngoing("printDescription()")) {
             sb.append("The battle is on! ");
             // TODO: round count?
         } else {
@@ -757,7 +762,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
     public interface PooledBattleManagerCommandHandler extends PooledCommandHandler {
         static final Predicate<CommandContext> defaultTurnPredicate = BattleManagerCommandHandler.defaultBattlePredicate
-                .and(ctx -> ctx.getBattleManager().isBattleOngoing());
+                .and(ctx -> ctx.getBattleManager().isBattleOngoing(".defaultTurnPredicate"));
 
         @Override
         public default Predicate<CommandContext> getPoolingPredicate() {
@@ -1072,7 +1077,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             if (cmd == null || !(cmd instanceof AttackMessage)) {
                 return ctx.failhandle();
             }
-            if (!BattleManager.this.isBattleOngoing()) {
+            if (!BattleManager.this.isBattleOngoing("AttackHandler.handle()")) {
                 Creature attacker = ctx.getCreature();
                 List<Creature> collected = BattleManager.this.collectTargetsFromRoom(attacker,
                         ((AttackMessage) cmd).getTargets());

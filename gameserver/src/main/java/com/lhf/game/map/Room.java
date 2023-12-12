@@ -276,7 +276,7 @@ public class Room implements Area {
             c.sendMsg(this.produceMessage());
             this.announce(RoomEnteredOutMessage.getBuilder().setNewbie(c).setBroacast().Build(), c);
         }
-        if (this.battleManager.isBattleOngoing() && !CreatureFaction.NPC.equals(c.getFaction())) {
+        if (this.battleManager.isBattleOngoing("Room.addCreature()") && !CreatureFaction.NPC.equals(c.getFaction())) {
             this.battleManager.addCreature(c);
         }
         return added;
@@ -467,7 +467,7 @@ public class Room implements Area {
         SeeOutMessage.Builder seeOutMessage = (SeeOutMessage.Builder) Area.super.produceMessage(seeInvisible,
                 seeDirections).copyBuilder();
 
-        if (this.battleManager.isBattleOngoing()) {
+        if (this.battleManager.isBattleOngoing("Room.produceMessage()")) {
             seeOutMessage.addExtraInfo("There is a battle going on!");
         }
         return seeOutMessage.Build();
