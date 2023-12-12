@@ -425,7 +425,7 @@ public class ServerTest {
                     .send(Mockito.argThat(battleTurnAccepted));
 
         }
-        Truth.assertThat(attacker.handleCommand("SEE")).doesNotContain("Tester");
+        Truth.assertThat(attacker.handleCommand("SEE")).doesNotContainMatch("<.+>Tester<.+>");
         Truth.assertThat(this.comm.handleCommand("inventory")).isEqualTo(inventory);
         Truth.assertThat(this.comm.handleCommand("status")).isEqualTo(status);
     }

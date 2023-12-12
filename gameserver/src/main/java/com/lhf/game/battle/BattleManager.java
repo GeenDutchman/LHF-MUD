@@ -168,7 +168,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                             BattleRoundMessage.getBuilder().setNeedSubmission(BattleRoundMessage.RoundAcceptance.NEEDED)
                                     .setNotBroadcast().setRoundCount(this.parentPhaser.getPhase())
                                     .Build(),
-                            partitions.getOrDefault(partitions, null));
+                            partitions.getOrDefault(true, null));
 
                     this.threadLogger.log(Level.FINE,
                             () -> String.format("Waiting for actions from: %s", partitions.get(false)));
@@ -547,12 +547,12 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             this.log(Level.FINE, String.format("%s found Null thread, no battle ongoing", whochecks));
             return false;
         }
-        return thread.getIsRunning() && this.checkCompetingFactionsPresent(whochecks);
+        return thread.getIsRunning();
     }
 
     public synchronized RoundThread startBattle(Creature instigator, Collection<Creature> victims) {
         RoundThread curThread = this.battleThread.get();
-        if (this.battleThread.get() == null || !curThread.getIsRunning()) {
+        if (curThread == null || !curThread.getIsRunning()) {
             this.battleLogger.log(Level.FINER, () -> String.format("%s starts a fight", instigator.getName()));
             this.addCreature(instigator);
             if (victims != null) {
