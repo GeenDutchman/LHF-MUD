@@ -3,7 +3,7 @@ package com.lhf.game.magic;
 import java.util.EnumSet;
 
 import com.lhf.Taggable;
-import com.lhf.game.dice.MultiRollResult;
+import com.lhf.game.EntityEffect;
 import com.lhf.game.enums.ResourceCost;
 
 public interface CubeHolder extends Taggable {
@@ -11,9 +11,9 @@ public interface CubeHolder extends Taggable {
 
     public String getCasterVocation();
 
-    public Integer getCasterDifficulty();
-
-    public MultiRollResult spellAttack();
+    public default int getCastingBonus(final EntityEffect effect) {
+        return 0;
+    }
 
     public String printMagnitudes();
 

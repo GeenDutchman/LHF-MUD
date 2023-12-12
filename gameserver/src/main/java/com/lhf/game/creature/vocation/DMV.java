@@ -2,11 +2,10 @@ package com.lhf.game.creature.vocation;
 
 import java.util.EnumSet;
 
+import com.lhf.game.EntityEffect;
 import com.lhf.game.battle.MultiAttacker;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
-import com.lhf.game.dice.DiceD20;
-import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.ResourceCost;
@@ -93,16 +92,8 @@ public class DMV extends Vocation implements CubeHolder, MultiAttacker {
     }
 
     @Override
-    public Integer getCasterDifficulty() {
-        return Integer.MAX_VALUE / 3;
-    }
-
-    @Override
-    public MultiRollResult spellAttack() {
-        return new MultiRollResult.Builder()
-                .addRollResults(new DiceD20(1).rollDice())
-                .addBonuses(Integer.MAX_VALUE / 15).Build(); // TODO: #128 actual attack
-
+    public int getCastingBonus(final EntityEffect effect) {
+        return Integer.MAX_VALUE / 15;
     }
 
     @Override
