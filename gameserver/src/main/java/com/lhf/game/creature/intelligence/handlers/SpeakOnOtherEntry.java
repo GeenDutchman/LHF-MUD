@@ -51,7 +51,7 @@ public class SpeakOnOtherEntry extends AIHandler {
                         "say \"" + sayit + "\" to " + name);
                 CommandBuilder.addDirect(say, sayit);
                 CommandBuilder.addIndirect(say, "to", name);
-                bai.handleMessage(null, say);
+                bai.handleChain(null, say);
             }
         }
 

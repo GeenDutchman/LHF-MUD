@@ -1,8 +1,12 @@
 package com.lhf.game;
 
 import java.io.FileNotFoundException;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,8 +22,9 @@ import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.out.ListPlayersMessage;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
@@ -28,14 +33,15 @@ import com.lhf.server.interfaces.NotNull;
 import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
 
-public class Game implements UserListener, MessageHandler {
-	private transient MessageHandler successor;
+public class Game implements UserListener, MessageChainHandler {
+	private transient MessageChainHandler successor;
 	private ServerInterface server;
 	private UserManager userManager;
 	private Logger logger;
 	private ThirdPower thirdPower;
 	private DMRoom controlRoom;
 	private AIRunner aiRunner;
+	private Map<CommandMessage, CommandHandler> commands;
 
 	public Game(ServerInterface server, UserManager userManager) throws FileNotFoundException {
 		this.logger = Logger.getLogger(this.getClass().getName());
@@ -52,6 +58,8 @@ public class Game implements UserListener, MessageHandler {
 		}
 		this.userManager = userManager;
 		this.logger.log(Level.INFO, "Created Game");
+		this.commands = new EnumMap<>(CommandMessage.class);
+		this.commands.put(CommandMessage.PLAYERS, new PlayersHandler());
 	}
 
 	public Game(ServerInterface server, UserManager userManager, AIRunner aiRunner, @NotNull Dungeon dungeon)
@@ -69,6 +77,8 @@ public class Game implements UserListener, MessageHandler {
 		}
 		this.userManager = userManager;
 		this.logger.log(Level.INFO, "Created Game");
+		this.commands = new EnumMap<>(CommandMessage.class);
+		this.commands.put(CommandMessage.PLAYERS, new PlayersHandler());
 	}
 
 	@Override
@@ -98,40 +108,65 @@ public class Game implements UserListener, MessageHandler {
 		this.controlRoom.addUser(user);
 	}
 
-	private CommandContext.Reply handleListPlayersMessage(CommandContext ctx, Command cmd) {
-		ctx.sendMsg(ListPlayersMessage.getBuilder().setPlayerNames(this.userManager.getAllUsernames()));
-		return ctx.handled();
-	}
-
 	@Override
-	public void setSuccessor(MessageHandler successor) {
+	public void setSuccessor(MessageChainHandler successor) {
 		this.successor = successor;
 	}
 
 	@Override
-	public MessageHandler getSuccessor() {
+	public MessageChainHandler getSuccessor() {
 		return this.successor;
 	}
 
+	protected class PlayersHandler implements CommandHandler {
+		private static final String helpString = "List the players currently in the game.";
+
+		@Override
+		public CommandMessage getHandleType() {
+			return CommandMessage.PLAYERS;
+		}
+
+		@Override
+		public Optional<String> getHelp(CommandContext ctx) {
+			return Optional.of(PlayersHandler.helpString);
+		}
+
+		@Override
+		public Predicate<CommandContext> getEnabledPredicate() {
+			return PlayersHandler.defaultPredicate;
+		}
+
+		@Override
+		public Reply handle(CommandContext ctx, Command cmd) {
+			ctx.sendMsg(ListPlayersMessage.getBuilder().setPlayerNames(Game.this.userManager.getAllUsernames()));
+			return ctx.handled();
+		}
+
+		@Override
+		public MessageChainHandler getChainHandler() {
+			return Game.this;
+		}
+
+	}
+
 	@Override
-	public Map<CommandMessage, String> getCommands(CommandContext ctx) {
-		Map<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
-		helps.put(CommandMessage.PLAYERS, "List the players currently in the game.");
-		return ctx.addHelps(helps);
+	public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+		return Collections.unmodifiableMap(this.commands);
+	}
+
+	@Override
+	public synchronized void log(Level logLevel, String logMessage) {
+		this.logger.log(logLevel, logMessage);
+	}
+
+	@Override
+	public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+		this.logger.log(logLevel, logMessageSupplier);
 	}
 
 	@Override
 	public CommandContext addSelfToContext(CommandContext ctx) {
 		return ctx;
-	}
-
-	@Override
-	public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-		ctx = this.addSelfToContext(ctx);
-		if (msg.getType() == CommandMessage.PLAYERS) {
-			return this.handleListPlayersMessage(ctx, msg);
-		}
-		return MessageHandler.super.handleMessage(ctx, msg);
 	}
 
 	public void setServer(ServerInterface server) {

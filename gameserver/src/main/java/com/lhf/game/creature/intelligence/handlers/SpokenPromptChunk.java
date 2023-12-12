@@ -52,7 +52,7 @@ public class SpokenPromptChunk extends AIHandler {
                         "say \"" + result.getBody() + "\" to " + name);
                 CommandBuilder.addDirect(say, result.getBody());
                 CommandBuilder.addIndirect(say, "to", name);
-                bai.handleMessage(null, say);
+                bai.handleChain(null, say);
             }
             if (result != null && result.getPrompts() != null) {
                 for (String prompt : result.getPrompts()) {
@@ -73,7 +73,7 @@ public class SpokenPromptChunk extends AIHandler {
                     this.logger.log(Level.FINE,
                             String.format("Result has prompt \"%s\" for %s", prompt, bai.toString()));
                     Command cmd = CommandBuilder.parse(prompt);
-                    CommandContext.Reply handled = bai.handleMessage(null, cmd);
+                    CommandContext.Reply handled = bai.handleChain(null, cmd);
                     this.logger.log(Level.FINER,
                             () -> String.format("%s: prompted command \"%s\" handled: %s", bai.toString(),
                                     cmd.toString(), handled));
@@ -98,7 +98,7 @@ public class SpokenPromptChunk extends AIHandler {
                                 sm.getSayer().getColorTaggedName(),
                                 bai.getNpc() != null ? bai.getNpc().getName() : bai.getColorTaggedName()));
                         Command cmd = CommandBuilder.parse(prompt);
-                        bai.handleMessage(null, cmd);
+                        bai.handleChain(null, cmd);
                     } else {
                         basicHandle(bai, sm);
                     }

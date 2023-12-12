@@ -24,10 +24,10 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.messages.out.BattleTurnMessage;
+import com.lhf.messages.out.BattleRoundMessage;
 import com.lhf.messages.out.StatsOutMessage;
 
 public class BattleTurnHandlerTest {
@@ -67,11 +67,11 @@ public class BattleTurnHandlerTest {
         AIComBundle searcher = new AIComBundle();
         searcher.npc.setInBattle(true);
 
-        MessageHandler interceptor = Mockito.mock(MessageHandler.class);
+        MessageChainHandler interceptor = Mockito.mock(MessageChainHandler.class);
         Mockito.doNothing().when(interceptor).setSuccessor(Mockito.any());
         Mockito.when(interceptor.getSuccessor()).thenReturn(searcher);
-        Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(MessageHandler.class));
-        Mockito.when(interceptor.handleMessage(Mockito.any(CommandContext.class), Mockito.any(Command.class)))
+        Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(MessageChainHandler.class));
+        Mockito.when(interceptor.handle(Mockito.any(CommandContext.class), Mockito.any(Command.class)))
                 .thenAnswer(new Answer<CommandContext.Reply>() {
 
                     @Override
@@ -91,7 +91,7 @@ public class BattleTurnHandlerTest {
                         if (cmd.getType().equals(CommandMessage.SEE)) {
                             return ctx.handled();
                         }
-                        return interceptor.getSuccessor().handleMessage(ctx, cmd);
+                        return interceptor.getSuccessor().handleChain(ctx, cmd);
                     }
 
                 });
@@ -99,11 +99,11 @@ public class BattleTurnHandlerTest {
         searcher.npc.intercept(interceptor);
 
         // trigger it
-        searcher.npc.sendMsg(BattleTurnMessage.getBuilder().setCurrentCreature(searcher.npc).setYesTurn(true)
+        searcher.npc.sendMsg(BattleRoundMessage.getBuilder().setAboutCreature(searcher.npc).setNeeded()
                 .Build());
 
         Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();
-        Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handleMessage(Mockito.any(),
+        Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains("PASS")));
     }
 

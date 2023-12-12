@@ -17,7 +17,7 @@ sequenceDiagram
                 loop while processing
                     opt send message
                         AIChunk ->>+ BasicAI: CommandMessage
-                        BasicAI ->> MessageHandler: handleMessage(CommandMessage)
+                        BasicAI ->> MessageChainHandler: handleMessage(CommandMessage)
                         deactivate BasicAI
                     end
                 end

@@ -22,7 +22,7 @@ public abstract class ComBundle {
         }).when(this.sssb).send(Mockito.any(OutMessage.class));
     }
 
-    protected void print(String buffer, boolean sending) {
+    protected synchronized void print(String buffer, boolean sending) {
         System.out.println("***********************" + this.getName() + "**********************");
         for (String part : buffer.split("\n")) {
             System.out.print(sending ? ">>> " : "<<< ");

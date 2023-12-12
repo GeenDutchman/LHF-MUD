@@ -3,6 +3,7 @@ package com.lhf.messages.out;
 import java.util.StringJoiner;
 
 import com.lhf.game.creature.Creature;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.messages.OutMessageType;
 
 public class SpellFizzleMessage extends OutMessage {
@@ -12,10 +13,14 @@ public class SpellFizzleMessage extends OutMessage {
 
     private final SpellFizzleType subType;
     private final Creature attempter;
+    private final MultiRollResult offense;
+    private final MultiRollResult defense;
 
     public static class Builder extends OutMessage.Builder<Builder> {
         private SpellFizzleType subType;
         private Creature attempter;
+        private MultiRollResult offense;
+        private MultiRollResult defense;
 
         protected Builder() {
             super(OutMessageType.FIZZLE);
@@ -39,6 +44,24 @@ public class SpellFizzleMessage extends OutMessage {
             return this;
         }
 
+        public MultiRollResult getOffense() {
+            return offense;
+        }
+
+        public Builder setOffense(MultiRollResult offense) {
+            this.offense = offense;
+            return this;
+        }
+
+        public MultiRollResult getDefense() {
+            return defense;
+        }
+
+        public Builder setDefense(MultiRollResult defense) {
+            this.defense = defense;
+            return this;
+        }
+
         @Override
         public Builder getThis() {
             return this;
@@ -59,12 +82,14 @@ public class SpellFizzleMessage extends OutMessage {
         super(builder);
         this.subType = builder.getSubType();
         this.attempter = builder.getAttempter();
+        this.offense = builder.getOffense();
+        this.defense = builder.getDefense();
     }
 
     @Override
     public String toString() {
+        StringJoiner sj = new StringJoiner(" ");
         if (this.isBroadcast()) {
-            StringJoiner sj = new StringJoiner(" ");
             if (this.attempter != null) {
                 sj.add(this.attempter.getColorTaggedName());
             } else {
@@ -74,21 +99,29 @@ public class SpellFizzleMessage extends OutMessage {
             return sj.toString();
         }
         if (this.subType == null) {
-            return "Weird, that spell should have done something.";
+            sj.add("Weird, that spell should have done something.");
+        } else {
+            switch (this.subType) {
+                case NOT_CASTER:
+                    sj.add("You are not a caster type, so you cannot cast spells.");
+                case BAD_POWER:
+                    sj.add("You have insufficient power to cast that spell.");
+                case NOT_SPELL:
+                    sj.add("That is not a spell that you can cast.");
+                case MISPRONOUNCE:
+                    sj.add("You did not invoke a spell properly");
+                case OTHER:
+                default:
+                    sj.add("Weird, that spell should have done something.");
+            }
         }
-        switch (this.subType) {
-            case NOT_CASTER:
-                return "You are not a caster type, so you cannot cast spells.";
-            case BAD_POWER:
-                return "You have insufficient power to cast that spell.";
-            case NOT_SPELL:
-                return "That is not a spell that you can cast.";
-            case MISPRONOUNCE:
-                return "You did not invoke a spell properly";
-            case OTHER:
-            default:
-                return "Weird, that spell should have done something.";
+        if (this.offense != null) {
+            sj.add("The attempt was so good:").add(this.offense.toString());
         }
+        if (this.defense != null) {
+            sj.add("The defense was like so:").add(this.defense.toString());
+        }
+        return sj.toString();
     }
 
     public SpellFizzleType getSubType() {
@@ -97,6 +130,14 @@ public class SpellFizzleMessage extends OutMessage {
 
     public Creature getAttempter() {
         return attempter;
+    }
+
+    public MultiRollResult getOffense() {
+        return offense;
+    }
+
+    public MultiRollResult getDefense() {
+        return defense;
     }
 
     @Override

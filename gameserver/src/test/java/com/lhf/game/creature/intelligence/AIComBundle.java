@@ -3,6 +3,8 @@ package com.lhf.game.creature.intelligence;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import java.util.logging.Level;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -11,10 +13,11 @@ import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandContext.Reply;
 import com.lhf.server.client.ComBundle;
 
-public class AIComBundle extends ComBundle implements MessageHandler {
+public class AIComBundle extends ComBundle implements MessageChainHandler {
     public static AIRunner aiRunner;
 
     public static AIRunner getAIRunner() {
@@ -32,11 +35,11 @@ public class AIComBundle extends ComBundle implements MessageHandler {
     public NonPlayerCharacter npc;
     public BasicAI brain;
     @Mock
-    public MessageHandler mockedWrappedHandler;
+    public MessageChainHandler mockedWrappedHandler;
 
     public AIComBundle() {
         super();
-        this.mockedWrappedHandler = Mockito.mock(MessageHandler.class);
+        this.mockedWrappedHandler = Mockito.mock(MessageChainHandler.class);
 
         this.npc = NonPlayerCharacter.getNPCBuilder(AIComBundle.getAIRunner()).build();
         this.brain = AIComBundle.getAIRunner().register(this.npc);
@@ -51,18 +54,28 @@ public class AIComBundle extends ComBundle implements MessageHandler {
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(MessageChainHandler successor) {
         // no -op
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public MessageChainHandler getSuccessor() {
         return null;
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return new EnumMap<>(CommandMessage.class);
+    }
+
+    @Override
+    public void log(Level logLevel, String logMessage) {
+        this.npc.log(logLevel, logMessage);
+    }
+
+    @Override
+    public void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        this.npc.log(logLevel, logMessageSupplier);
     }
 
     @Override
@@ -71,10 +84,14 @@ public class AIComBundle extends ComBundle implements MessageHandler {
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-        this.print(msg.toString(), true);
-        this.mockedWrappedHandler.handleMessage(ctx, msg);
-        return ctx.handled();
+    public Reply handleChain(CommandContext ctx, Command cmd) {
+        return this.mockedWrappedHandler.handleChain(ctx, cmd);
+    }
+
+    @Override
+    public Reply handle(CommandContext ctx, Command cmd) {
+        this.print(cmd.toString(), true);
+        return this.mockedWrappedHandler.handle(ctx, cmd);
     }
 
 }

@@ -3,20 +3,23 @@ package com.lhf.server.client.user;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.lhf.messages.ClientMessenger;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
-public class User implements MessageHandler, ClientMessenger, Comparable<User> {
+public class User implements MessageChainHandler, ClientMessenger, Comparable<User> {
     private UserID id;
     private String username;
-    private transient MessageHandler successor;
+    private transient MessageChainHandler successor;
+    private transient final Logger logger;
 
     // private String password;
     private ClientMessenger client;
@@ -26,6 +29,7 @@ public class User implements MessageHandler, ClientMessenger, Comparable<User> {
         username = msg.getUsername();
         // password = msg.getPassword();
         this.client = client;
+        this.logger = Logger.getLogger(String.format("User.%s", this.username));
     }
 
     public UserID getUserID() {
@@ -56,18 +60,28 @@ public class User implements MessageHandler, ClientMessenger, Comparable<User> {
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(MessageChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public MessageChainHandler getSuccessor() {
         return this.successor;
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
+    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return new EnumMap<>(CommandMessage.class);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, String logMessage) {
+        this.logger.log(logLevel, logMessage);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        this.logger.log(logLevel, logMessageSupplier);
     }
 
     @Override
@@ -96,12 +110,6 @@ public class User implements MessageHandler, ClientMessenger, Comparable<User> {
         }
         User other = (User) obj;
         return Objects.equals(id, other.id) && Objects.equals(username, other.username);
-    }
-
-    @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-        ctx = this.addSelfToContext(ctx);
-        return MessageHandler.super.handleMessage(ctx, msg);
     }
 
     @Override

@@ -60,7 +60,7 @@ public class RenegadeAnnouncement extends OutMessage {
                     "You may lose bonuses that you previously had, and consequences for attacking you are removed.")
                     .append("\n");
             sb.append(
-                    "If you want to rejoin a faction, some casters have spells that can join you to a faction.");
+                    "If you want to rejoin a faction, some Cube Holders have spells that can join you to a faction.");
         }
         return sb.toString();
     }

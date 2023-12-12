@@ -76,7 +76,7 @@ public class LewdAIHandler extends AIHandler {
                     this.logger.log(Level.WARNING, String.format("%s proposed to lewd %s, but they aren't a parnter!",
                             lom.getCreature().getName(), bai.toString()));
                     Command cmd = CommandBuilder.parse("pass"); // then don't!
-                    bai.handleMessage(null, cmd);
+                    bai.handleChain(null, cmd);
                     return;
                 }
             }
@@ -84,7 +84,7 @@ public class LewdAIHandler extends AIHandler {
         }
         this.logger.log(Level.FINEST, String.format("%s agreed to lewd %s", bai.toString(), sj.toString()));
         Command cmd = CommandBuilder.parse("lewd " + sj.toString());
-        bai.handleMessage(null, cmd);
+        bai.handleChain(null, cmd);
     }
 
     public void handleDunnit(BasicAI bai, LewdOutMessage lom) {
@@ -94,7 +94,7 @@ public class LewdAIHandler extends AIHandler {
 
         if (!this.stayInAfter) {
             Command cmd = CommandBuilder.parse("GO UP");
-            bai.handleMessage(null, cmd);
+            bai.handleChain(null, cmd);
         }
     }
 

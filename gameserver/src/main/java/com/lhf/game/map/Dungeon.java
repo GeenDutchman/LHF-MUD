@@ -1,7 +1,22 @@
 package com.lhf.game.map;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableSet;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Creature;
@@ -10,8 +25,9 @@ import com.lhf.game.map.DoorwayFactory.DoorwayType;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageHandler;
+import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.ShoutMessage;
 import com.lhf.messages.out.BadGoMessage;
@@ -49,12 +65,14 @@ public class Dungeon implements Land {
 
     private Map<UUID, Land.AreaDirectionalLinks> mapping;
     private Area startingRoom = null;
-    private transient MessageHandler successor;
-    private Map<CommandMessage, String> commands;
+    private transient MessageChainHandler successor;
+    private Map<CommandMessage, CommandHandler> commands;
     private transient TreeSet<DungeonEffect> effects;
     private transient Set<UUID> sentMessage;
+    private transient final Logger logger;
 
     Dungeon(Land.LandBuilder builder) {
+        this.logger = Logger.getLogger(String.format("%s.%s", this.getClass().getName(), this.getName()));
         this.startingRoom = builder.getStartingArea();
         this.mapping = builder.getAtlas();
         this.successor = builder.getSuccessor();
@@ -80,15 +98,11 @@ public class Dungeon implements Land {
         return this.startingRoom;
     }
 
-    private Map<CommandMessage, String> buildCommands() {
-        StringBuilder sb = new StringBuilder();
-        Map<CommandMessage, String> cmds = new EnumMap<>(CommandMessage.class);
-        sb.append("\"shout [message]\" ").append("Tells everyone in the dungeon your message!");
-        cmds.put(CommandMessage.SHOUT, sb.toString());
-        sb.setLength(0);
-        sb.append("\"go [direction]\"")
-                .append("Move in the desired direction, if that direction exists.  Like \"go east\"");
-        cmds.put(CommandMessage.GO, sb.toString());
+    private Map<CommandMessage, CommandHandler> buildCommands() {
+        Map<CommandMessage, CommandHandler> cmds = new EnumMap<>(CommandMessage.class);
+        cmds.put(CommandMessage.SHOUT, new ShoutHandler());
+        cmds.put(CommandMessage.GO, new GoHandler());
+        cmds.put(CommandMessage.SEE, new SeeHandler());
         return cmds;
     }
 
@@ -262,137 +276,207 @@ public class Dungeon implements Land {
         room.announce(msg, deafened);
     }
 
-    private CommandContext.Reply handleShout(CommandContext ctx, Command cmd) {
-        if (cmd.getType() == CommandMessage.SHOUT) {
-            if (ctx.getCreature() == null) {
-                ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(ctx.getHelps()).setCommand(cmd).Build());
-                return ctx.handled();
-            }
-            ShoutMessage shoutMessage = (ShoutMessage) cmd;
-            this.announceDirect(
-                    SpeakingMessage.getBuilder().setSayer(ctx.getCreature()).setShouting(true)
-                            .setMessage(shoutMessage.getMessage()).Build(),
-                    this.getPlayers().stream().filter(player -> player != null).map(player -> (ClientMessenger) player)
-                            .toList());
-            return ctx.handled();
-        }
-        return ctx.failhandle();
+    public interface DungeonCommandHandler extends Room.RoomCommandHandler {
+        final static Predicate<CommandContext> defaultDungeonPredicate = DungeonCommandHandler.defaultRoomPredicate
+                .and(ctx -> ctx.getDungeon() != null);
     }
 
-    private CommandContext.Reply handleGo(CommandContext ctx, Command msg) {
-        if (msg.getType() == CommandMessage.GO) {
-            if (ctx.getCreature() == null) {
-                ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(ctx.getHelps()).setCommand(msg).Build());
-                return ctx.handled();
-            }
-            GoMessage goMessage = (GoMessage) msg;
-            Directions toGo = goMessage.getDirection();
-            if (ctx.getRoom() == null) {
-                ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(toGo).Build());
-                return ctx.handled();
-            }
-            Room presentRoom = ctx.getRoom();
-            if (this.mapping.containsKey(presentRoom.getUuid())) {
-                AreaDirectionalLinks roomAndDirs = this.mapping.get(presentRoom.getUuid());
-                Map<Directions, Doorway> exits = roomAndDirs.getExits();
-                if (exits == null || exits.size() == 0
-                        || !exits.containsKey(toGo)
-                        || exits.get(toGo) == null) {
-                    ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
-                    return ctx.handled();
-                }
-                Doorway doorway = exits.get(toGo);
-                if (!doorway.canTraverse(ctx.getCreature(), toGo)) {
-                    ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo)
-                            .setAvailable(exits.keySet()).Build());
-                    return ctx.handled();
-                }
-                UUID nextRoomUuid = doorway.getRoomAccross(presentRoom.getUuid());
-                AreaDirectionalLinks nextRandD = this.mapping.get(nextRoomUuid);
-                if (nextRoomUuid == null || nextRandD == null) {
-                    ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
-                            .setAvailable(exits.keySet()).Build());
-                    return ctx.handled();
-                }
-                Area nextRoom = nextRandD.getArea();
-                if (nextRoom == null) {
-                    ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
-                            .setAvailable(exits.keySet()).Build());
-                    return ctx.handled();
-                }
+    protected class ShoutHandler implements DungeonCommandHandler {
+        private final static String helpString = "\"shout [message]\" Tells everyone in the dungeon your message!";
 
-                ctx.getCreature().setSuccessor(nextRoom);
-                nextRoom.addCreature(ctx.getCreature());
-                presentRoom.removeCreature(ctx.getCreature(), toGo);
-                return ctx.handled();
-            } else {
-                ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.NO_ROOM)
-                        .setAttempted(goMessage.getDirection()).Build());
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.SHOUT;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(ShoutHandler.helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return ShoutHandler.defaultDungeonPredicate;
+        }
+
+        @Override
+        public Reply handle(CommandContext ctx, Command cmd) {
+            if (cmd != null && cmd.getType() == CommandMessage.SHOUT && cmd instanceof ShoutMessage shoutMessage) {
+                if (ctx.getCreature() == null) {
+                    ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                            .setHelps(ctx.getHelps()).setCommand(cmd).Build());
+                    return ctx.handled();
+                }
+                Dungeon.this.announceDirect(
+                        SpeakingMessage.getBuilder().setSayer(ctx.getCreature()).setShouting(true)
+                                .setMessage(shoutMessage.getMessage()).Build(),
+                        Dungeon.this.getPlayers().stream().filter(player -> player != null)
+                                .map(player -> (ClientMessenger) player)
+                                .toList());
                 return ctx.handled();
             }
+            return ctx.failhandle();
         }
-        return ctx.failhandle();
+
+        @Override
+        public MessageChainHandler getChainHandler() {
+            return Dungeon.this;
+        }
+
     }
 
-    private CommandContext.Reply handleSee(CommandContext ctx, Command msg) {
-        if (msg.getType() == CommandMessage.SEE) {
-            Room presentRoom = ctx.getRoom();
-            if (presentRoom != null) {
-                SeeOutMessage roomSeen = presentRoom.produceMessage();
-                ctx.sendMsg(roomSeen);
-                return ctx.handled();
-            }
+    protected class GoHandler implements DungeonCommandHandler {
+        private final static String helpString = "\"go [direction]\" Move in the desired direction, if that direction exists.  Like \"go east\"";
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.GO;
         }
-        return ctx.failhandle();
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(GoHandler.helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return GoHandler.defaultDungeonPredicate;
+        }
+
+        @Override
+        public Reply handle(CommandContext ctx, Command cmd) {
+            if (cmd != null && cmd.getType() == CommandMessage.GO && cmd instanceof GoMessage goMessage) {
+                if (ctx.getCreature() == null) {
+                    ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                            .setHelps(ctx.getHelps()).setCommand(cmd).Build());
+                    return ctx.handled();
+                }
+                Directions toGo = goMessage.getDirection();
+                if (ctx.getRoom() == null) {
+                    ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(toGo).Build());
+                    return ctx.handled();
+                }
+                Room presentRoom = ctx.getRoom();
+                if (Dungeon.this.mapping.containsKey(presentRoom.getUuid())) {
+                    AreaDirectionalLinks roomAndDirs = Dungeon.this.mapping.get(presentRoom.getUuid());
+                    Map<Directions, Doorway> exits = roomAndDirs.getExits();
+                    if (exits == null || exits.size() == 0
+                            || !exits.containsKey(toGo)
+                            || exits.get(toGo) == null) {
+                        ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
+                        return ctx.handled();
+                    }
+                    Doorway doorway = exits.get(toGo);
+                    if (!doorway.canTraverse(ctx.getCreature(), toGo)) {
+                        ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo)
+                                .setAvailable(exits.keySet()).Build());
+                        return ctx.handled();
+                    }
+                    UUID nextRoomUuid = doorway.getRoomAccross(presentRoom.getUuid());
+                    AreaDirectionalLinks nextRandD = Dungeon.this.mapping.get(nextRoomUuid);
+                    if (nextRoomUuid == null || nextRandD == null) {
+                        ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
+                                .setAvailable(exits.keySet()).Build());
+                        return ctx.handled();
+                    }
+                    Area nextRoom = nextRandD.getArea();
+                    if (nextRoom == null) {
+                        ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
+                                .setAvailable(exits.keySet()).Build());
+                        return ctx.handled();
+                    }
+
+                    ctx.getCreature().setSuccessor(nextRoom);
+                    nextRoom.addCreature(ctx.getCreature());
+                    presentRoom.removeCreature(ctx.getCreature(), toGo);
+                    return ctx.handled();
+                } else {
+                    ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.NO_ROOM)
+                            .setAttempted(goMessage.getDirection()).Build());
+                    return ctx.handled();
+                }
+            }
+            return ctx.failhandle();
+        }
+
+        @Override
+        public MessageChainHandler getChainHandler() {
+            return Dungeon.this;
+        }
+
+    }
+
+    protected class SeeHandler implements DungeonCommandHandler {
+        private final static String helpString = new StringJoiner(" ")
+                .add("\"see\"").add("Will give you some information about your surroundings.\r\n")
+                .add("\"see [name]\"").add("May tell you more about the object with that name.")
+                .toString();
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.SEE;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(SeeHandler.helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return SeeHandler.defaultDungeonPredicate;
+        }
+
+        @Override
+        public Reply handle(CommandContext ctx, Command cmd) {
+            if (cmd != null && cmd.getType() == CommandMessage.SEE) {
+                Room presentRoom = ctx.getRoom();
+                if (presentRoom != null) {
+                    SeeOutMessage roomSeen = presentRoom.produceMessage();
+                    ctx.sendMsg(roomSeen);
+                    return ctx.handled();
+                }
+            }
+            return ctx.failhandle();
+        }
+
+        @Override
+        public MessageChainHandler getChainHandler() {
+            return Dungeon.this;
+        }
+
     }
 
     @Override
-    public void setSuccessor(MessageHandler successor) {
+    public void setSuccessor(MessageChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageHandler getSuccessor() {
+    public MessageChainHandler getSuccessor() {
         return this.successor;
     }
 
     @Override
     public CommandContext addSelfToContext(CommandContext ctx) {
+        ctx.setDungeon(this);
         return ctx;
     }
 
     @Override
-    public Map<CommandMessage, String> getCommands(CommandContext ctx) {
-        Map<CommandMessage, String> gathered = new EnumMap<>(this.commands);
-        if (ctx.getCreature() == null) {
-            gathered.remove(CommandMessage.SHOUT);
-            gathered.remove(CommandMessage.GO);
-        }
-        if (ctx.getRoom() == null) {
-            gathered.remove(CommandMessage.GO);
-        }
-        return ctx.addHelps(gathered);
+    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+        return Collections.unmodifiableMap(this.commands);
     }
 
     @Override
-    public CommandContext.Reply handleMessage(CommandContext ctx, Command msg) {
-        CommandContext.Reply performed = ctx.failhandle();
-        ctx = this.addSelfToContext(ctx);
-        if (this.getCommands(ctx).containsKey(msg.getType())) {
-            if (msg.getType() == CommandMessage.SHOUT) {
-                performed = this.handleShout(ctx, msg);
-            } else if (msg.getType() == CommandMessage.GO) {
-                performed = this.handleGo(ctx, msg);
-            } else if (msg.getType() == CommandMessage.SEE) {
-                performed = this.handleSee(ctx, msg);
-            }
-            if (performed.isHandled()) {
-                return performed;
-            }
-        }
-        return Land.super.handleMessage(ctx, msg);
+    public synchronized void log(Level logLevel, String logMessage) {
+        this.logger.log(logLevel, logMessage);
+
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        this.logger.log(logLevel, logMessageSupplier);
     }
 
     @Override

@@ -33,10 +33,11 @@ import com.lhf.game.map.Directions;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.OutMessageType;
-import com.lhf.messages.out.BattleTurnMessage;
+import com.lhf.messages.out.BattleRoundMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpellEntryMessage;
 import com.lhf.messages.out.StatsOutMessage;
+import com.lhf.messages.out.BattleRoundMessage.RoundAcceptance;
 
 public class BattleTurnHandler extends AIHandler {
 
@@ -48,7 +49,7 @@ public class BattleTurnHandler extends AIHandler {
     private final DiceD100 roller;
 
     public BattleTurnHandler() {
-        super(OutMessageType.BATTLE_TURN);
+        super(OutMessageType.BATTLE_ROUND);
         this.roller = new DiceD100(1);
         this.targetChoosers = new TreeSet<>();
 
@@ -235,31 +236,32 @@ public class BattleTurnHandler extends AIHandler {
 
     @Override
     public void handle(BasicAI bai, OutMessage msg) {
-        bai.ProcessString("SEE");
-        if (!this.outMessageType.equals(msg.getOutType()) || !bai.getNpc().isInBattle()) {
-            return;
-        }
-        BattleTurnMessage btm = (BattleTurnMessage) msg;
-        Reply reply = bai.ProcessString("STATS");
-        Optional<StatsOutMessage> statsOutOpt = reply.getMessages().stream()
-                .filter(outMessage -> outMessage != null && OutMessageType.STATS.equals(outMessage.getOutType()))
-                .map(outMessage -> ((StatsOutMessage) outMessage)).findFirst();
+        // bai.ProcessString("SEE");
+        // if (!this.outMessageType.equals(msg.getOutType()) ||
+        // !bai.getNpc().isInBattle()) {
+        // return;
+        // }
 
-        if (statsOutOpt.isEmpty()) {
-            this.logger.warning(() -> String
-                    .format("%s cannot get battle stats, and thus cannot battle: attempting PASS", bai.toString()));
-            reply = bai.ProcessString("PASS");
-            if (!reply.isHandled()) {
-                String logMessage = String.format("PASS not handled: %s", reply.toString());
-                this.logger.warning(logMessage);
+        BattleRoundMessage btm = (BattleRoundMessage) msg;
+        if (RoundAcceptance.NEEDED.equals(btm.getNeedSubmission())) {
+            Reply reply = bai.ProcessString("STATS");
+            Optional<StatsOutMessage> statsOutOpt = reply.getMessages().stream()
+                    .filter(outMessage -> outMessage != null && OutMessageType.STATS.equals(outMessage.getOutType()))
+                    .map(outMessage -> ((StatsOutMessage) outMessage)).findFirst();
+
+            if (statsOutOpt.isEmpty()) {
+                this.logger.warning(() -> String
+                        .format("%s cannot get battle stats, and thus cannot battle: attempting PASS", bai.toString()));
+                reply = bai.ProcessString("PASS");
+                if (!reply.isHandled()) {
+                    String logMessage = String.format("PASS not handled: %s", reply.toString());
+                    this.logger.warning(logMessage);
+                }
+                return;
             }
-            return;
-        }
 
-        HarmMemories harmMemories = bai.getNpc().getHarmMemories();
-        CreatureFaction myFaction = bai.getNpc().getFaction();
-        if (btm.isYesTurn() && bai.getNpc().equals(btm.getMyTurn())) {
-
+            HarmMemories harmMemories = bai.getNpc().getHarmMemories();
+            CreatureFaction myFaction = bai.getNpc().getFaction();
             Optional<String> command = processFlee(statsOutOpt,
                     harmMemories,
                     myFaction);

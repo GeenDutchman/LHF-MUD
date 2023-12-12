@@ -5,7 +5,9 @@ import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler;
@@ -29,14 +31,17 @@ public class BasicAI extends Client {
 
     protected BasicAI(NonPlayerCharacter npc, AIRunner runner) {
         super();
+        this.queue = new ArrayBlockingQueue<>(32, true);
         this.npc = npc;
+        if (npc != null) {
+            this.logger = Logger.getLogger(this.logger.getName() + "." + npc.getName().replaceAll("\\W", "_"));
+        }
         this.npc.setController(this);
         this.setSuccessor(npc);
         this.SetOut(new DoNothingSendStrategy());
         this.handlers = new TreeMap<>();
         this.initBasicHandlers();
         this.runner = runner;
-        this.queue = new ArrayBlockingQueue<>(32, true);
     }
 
     public OutMessage peek() {
@@ -57,7 +62,7 @@ public class BasicAI extends Client {
             if (ai != null) {
                 ai.handle(this, msg);
             } else {
-                this.logger.log(Level.WARNING, () -> String.format("%s: No handler found for %s: %s", this.toString(),
+                this.log(Level.WARNING, () -> String.format("No handler found for %s: %s",
                         msg.getOutType(), msg.print()));
             }
         }
@@ -86,8 +91,9 @@ public class BasicAI extends Client {
         this.handlers.put(OutMessageType.BAD_TARGET_SELECTED, (BasicAI bai, OutMessage msg) -> {
             if (msg.getOutType().equals(OutMessageType.BAD_TARGET_SELECTED) && bai.getNpc().isInBattle()) {
                 BadTargetSelectedMessage btsm = (BadTargetSelectedMessage) msg;
-                this.logger.warning(() -> String.format("%s selected a bad target: %s with possible targets", bai, btsm,
-                        btsm.getPossibleTargets()));
+                this.log(Level.WARNING,
+                        () -> String.format("Selected a bad target: %s with possible targets", btsm,
+                                btsm.getPossibleTargets()));
             }
         });
 
@@ -119,7 +125,7 @@ public class BasicAI extends Client {
             if (this.queue.offer(msg, 30, TimeUnit.SECONDS)) {
                 this.runner.getAttention(this);
             } else {
-                System.err.println("Unable to queue: " + msg.toString());
+                this.log(Level.SEVERE, "Unable to queue: " + msg.toString());
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -133,8 +139,30 @@ public class BasicAI extends Client {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("BasicAI [npc=").append(npc).append(", queuesize=").append(queue.size()).append("]");
+        builder.append("BasicAI [npc=").append(npc).append(", queuesize=").append(this.queue != null ? queue.size() : 0)
+                .append("]");
         return builder.toString();
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, String logMessage) {
+        String composed = this.toString() + ": " + logMessage;
+        if (this.npc != null) {
+            this.npc.log(logLevel, composed);
+            return;
+        }
+        super.log(logLevel, composed);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        Supplier<String> composed = () -> this.toString()
+                + (logMessageSupplier != null ? ": " + logMessageSupplier.get() : "");
+        if (this.npc != null) {
+            this.npc.log(logLevel, composed);
+            return;
+        }
+        super.log(logLevel, composed);
     }
 
 }

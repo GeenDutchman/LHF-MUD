@@ -19,13 +19,13 @@ import com.google.common.truth.Truth;
 @ExtendWith(MockitoExtension.class)
 public class MessageHandlerTest {
     @Mock
-    private MessageHandler leafNodeOne;
+    private MessageChainHandler leafNodeOne;
     @Mock
-    private MessageHandler leafNodeTwo;
+    private MessageChainHandler leafNodeTwo;
     @Mock
-    private MessageHandler branchNode;
+    private MessageChainHandler branchNode;
     @Mock
-    private MessageHandler rootNode;
+    private MessageChainHandler rootNode;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -39,40 +39,48 @@ public class MessageHandlerTest {
         when(this.leafNodeTwo.getSuccessor()).thenReturn(this.branchNode);
 
         /**
-        // when(this.rootNode.addSelfToContext(Mockito.isA(CommandContext.class))).thenAnswer(i -> {
-        //     CommandContext a = i.getArgument(0);
-        //     if (a == null) {
-        //         return new CommandContext();
-        //     }
-        //     return a;
-        // });
-        // when(this.branchNode.addSelfToContext(Mockito.isA(CommandContext.class))).thenAnswer(i -> {
-        //     CommandContext a = i.getArgument(0);
-        //     if (a == null) {
-        //         return new CommandContext();
-        //     }
-        //     return a;
-        // });
-        // when(this.leafNodeOne.addSelfToContext(Mockito.isA(CommandContext.class))).thenAnswer(i -> {
-        //     CommandContext a = i.getArgument(0);
-        //     if (a == null) {
-        //         return new CommandContext();
-        //     }
-        //     return a;
-        // });
-        // when(this.leafNodeTwo.addSelfToContext(Mockito.isA(CommandContext.class))).thenAnswer(i -> {
-        //     CommandContext a = i.getArgument(0);
-        //     if (a == null) {
-        //         return new CommandContext();
-        //     }
-        //     return a;
-        // });
+         * //
+         * when(this.rootNode.addSelfToContext(Mockito.isA(CommandContext.class))).thenAnswer(i
+         * -> {
+         * // CommandContext a = i.getArgument(0);
+         * // if (a == null) {
+         * // return new CommandContext();
+         * // }
+         * // return a;
+         * // });
+         * //
+         * when(this.branchNode.addSelfToContext(Mockito.isA(CommandContext.class))).thenAnswer(i
+         * -> {
+         * // CommandContext a = i.getArgument(0);
+         * // if (a == null) {
+         * // return new CommandContext();
+         * // }
+         * // return a;
+         * // });
+         * //
+         * when(this.leafNodeOne.addSelfToContext(Mockito.isA(CommandContext.class))).thenAnswer(i
+         * -> {
+         * // CommandContext a = i.getArgument(0);
+         * // if (a == null) {
+         * // return new CommandContext();
+         * // }
+         * // return a;
+         * // });
+         * //
+         * when(this.leafNodeTwo.addSelfToContext(Mockito.isA(CommandContext.class))).thenAnswer(i
+         * -> {
+         * // CommandContext a = i.getArgument(0);
+         * // if (a == null) {
+         * // return new CommandContext();
+         * // }
+         * // return a;
+         * // });
          */
 
         Map<CommandMessage, String> leafNodeOneHelps = new HashMap<>();
         leafNodeOneHelps.put(CommandMessage.HELP, "When you need help");
         leafNodeOneHelps.put(CommandMessage.INVENTORY, "When you need to know what you have");
-        when(this.leafNodeOne.getCommands(Mockito.isA(CommandContext.class))).thenAnswer( i -> {
+        when(this.leafNodeOne.getCommands(Mockito.isA(CommandContext.class))).thenAnswer(i -> {
             CommandContext cc = i.getArgument(0);
             if (cc != null) {
                 cc.addHelps(leafNodeOneHelps);
@@ -82,7 +90,7 @@ public class MessageHandlerTest {
 
         Map<CommandMessage, String> leafNodeTwoHelps = new HashMap<>();
         leafNodeTwoHelps.put(CommandMessage.CAST, "If you are a caster");
-        when(this.leafNodeTwo.getCommands(Mockito.isA(CommandContext.class))).thenAnswer( i -> {
+        when(this.leafNodeTwo.getCommands(Mockito.isA(CommandContext.class))).thenAnswer(i -> {
             CommandContext cc = i.getArgument(0);
             if (cc != null) {
                 cc.addHelps(leafNodeTwoHelps);
@@ -93,25 +101,24 @@ public class MessageHandlerTest {
         Map<CommandMessage, String> branchNodeHelps = new HashMap<>();
         branchNodeHelps.put(CommandMessage.HELP, "When you get higher help");
         branchNodeHelps.put(CommandMessage.SEE, "I added something!");
-        when(this.branchNode.getCommands(Mockito.isA(CommandContext.class))).thenAnswer( i -> {
+        when(this.branchNode.getCommands(Mockito.isA(CommandContext.class))).thenAnswer(i -> {
             CommandContext cc = i.getArgument(0);
             if (cc != null) {
                 cc.addHelps(branchNodeHelps);
             }
             return branchNodeHelps;
         });
-        
 
         // root node does nothing
         when(this.rootNode.getCommands(any())).thenReturn(null);
 
     }
 
-    private CommandContext follow(MessageHandler mh, CommandContext ctx) {
+    private CommandContext follow(MessageChainHandler mh, CommandContext ctx) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
-        MessageHandler following = mh;
+        MessageChainHandler following = mh;
         while (following != null) {
             following.getCommands(ctx);
             following = following.getSuccessor();
