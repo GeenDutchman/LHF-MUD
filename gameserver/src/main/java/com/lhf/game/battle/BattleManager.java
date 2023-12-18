@@ -632,7 +632,9 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                     iterator.remove();
                     creature.setInBattle(false);
                     creature.setSuccessor(this.successor);
-                    this.battleStats.setDead(creature.getName());
+                    if (!creature.isAlive()) {
+                        this.battleStats.setDead(creature.getName());
+                    }
                     RoundThread thread = BattleManager.this.battleThread.get();
                     if (thread != null && thread.isAlive()) {
                         synchronized (thread) {
