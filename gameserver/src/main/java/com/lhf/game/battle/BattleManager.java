@@ -202,7 +202,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         public synchronized void endRound() {
             this.threadLogger.log(Level.FINE, "Ending Round");
             BattleManager.this.flush();
-
+            BattleManager.this.battleStats.initialize(getCreatures());
             BattleManager.this.clearDead();
             if (!BattleManager.this.checkCompetingFactionsPresent("endRound()")) {
                 this.roundPhaser.forceTermination();
