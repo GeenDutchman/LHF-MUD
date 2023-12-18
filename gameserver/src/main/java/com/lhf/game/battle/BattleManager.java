@@ -554,6 +554,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         RoundThread curThread = this.battleThread.get();
         if (curThread == null || !curThread.getIsRunning()) {
             this.battleLogger.log(Level.FINER, () -> String.format("%s starts a fight", instigator.getName()));
+            this.battleStats.reset();
             this.addCreature(instigator);
             if (victims != null) {
                 for (Creature c : victims) {
@@ -631,7 +632,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                     iterator.remove();
                     creature.setInBattle(false);
                     creature.setSuccessor(this.successor);
-                    this.battleStats.remove(creature.getName());
+                    this.battleStats.setDead(creature.getName());
                     RoundThread thread = BattleManager.this.battleThread.get();
                     if (thread != null && thread.isAlive()) {
                         synchronized (thread) {

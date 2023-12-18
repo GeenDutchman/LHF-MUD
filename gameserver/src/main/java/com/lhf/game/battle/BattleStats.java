@@ -265,6 +265,14 @@ public class BattleStats implements ClientMessenger {
         return this;
     }
 
+    public BattleStats setDead(String creatureName) {
+        BattleStatRecord stat = this.battleStats.get(creatureName);
+        if (stat != null) {
+            stat.setDead();
+        }
+        return this;
+    }
+
     public final Map<String, BattleStatRecord> getBattleStats(boolean onlyLiving) {
         if (!onlyLiving) {
             return Collections.unmodifiableMap(this.battleStats);
