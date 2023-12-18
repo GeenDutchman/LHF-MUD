@@ -265,18 +265,12 @@ public abstract class Creature
         }
     }
 
-    public void updateAc(int value) {
-        int current = this.statblock.getStats().get(Stats.AC);
-        current += value;
-        this.statblock.getStats().replace(Stats.AC, current);
-    }
-
     public void updateXp(int value) {
         int current = this.statblock.getStats().get(Stats.XPEARNED);
         current += value;
         this.statblock.getStats().replace(Stats.XPEARNED, current);
-        if (this.canLevelUp(current, current - value)) {
-            // this.levelUp();
+        if (this.vocation != null) {
+            this.vocation.addExperience(value);
         }
     }
 
@@ -299,7 +293,15 @@ public abstract class Creature
 
     private void updateStat(Stats stat, int value) {
         Map<Stats, Integer> stats = this.statblock.getStats();
-        stats.put(stat, stats.get(stat) + value);
+        stats.merge(stat, value, (a, b) -> {
+            if (a != null && b != null) {
+                return a + b;
+            }
+            return a != null ? a : b;
+        });
+        if (Stats.XPEARNED.equals(stat) && this.vocation != null) {
+            this.vocation.addExperience(value);
+        }
     }
 
     /* start getters */
@@ -578,15 +580,6 @@ public abstract class Creature
 
     public void setInBattle(boolean inBattle) {
         this.inBattle = inBattle;
-    }
-
-    private boolean canLevelUp(int current, int former) {
-        // if former is below threshold and current is above or equal.. do things
-        // in normal 5e this is where we would add abilities and ASI
-        // probablly we would pull them into a pocket dimension and explain
-        // what leveling up means for them, allowing them to ASI and
-        // any other relevant choices they need to make
-        return false;
     }
 
     public static Corpse die(Creature deadCreature) {
