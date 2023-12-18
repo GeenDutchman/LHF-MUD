@@ -828,7 +828,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
         @Override
         public Reply handle(CommandContext ctx, Command cmd) {
-            ctx.sendMsg(StatsOutMessage.getBuilder().addRecords(BattleManager.this.battleStats.getBattleStatSet())
+            ctx.sendMsg(StatsOutMessage.getBuilder().addRecords(BattleManager.this.battleStats.getBattleStatSet(true))
                     .setNotBroadcast());
             return ctx.handled();
         }
