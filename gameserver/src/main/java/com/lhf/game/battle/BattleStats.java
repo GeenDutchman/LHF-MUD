@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
 import com.lhf.game.creature.Creature;
@@ -49,6 +50,7 @@ public class BattleStats implements ClientMessenger {
         private Vocation vocation;
         private HealthBuckets bucket;
         private EnumMap<BattleStat, Integer> stats;
+        private boolean dead;
 
         public BattleStatRecord(String targetName, CreatureFaction faction, Vocation vocation,
                 HealthBuckets bucket) {
@@ -60,6 +62,7 @@ public class BattleStats implements ClientMessenger {
             for (BattleStat stat : BattleStat.values()) {
                 this.stats.put(stat, 0);
             }
+            this.dead = false;
         }
 
         // returns immutable map of stats
@@ -120,11 +123,23 @@ public class BattleStats implements ClientMessenger {
             return this.get(stat);
         }
 
+        public boolean isDead() {
+            return this.dead;
+        }
+
+        public BattleStatRecord setDead() {
+            this.dead = true;
+            return this;
+        }
+
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append("BattleStats [targetName=").append(targetName).append(", faction=").append(faction)
-                    .append(", vocation=").append(vocation).append(", bucket=").append(bucket);
+            builder.append("BattleStats [targetName=").append(targetName)
+                    .append(", dead=").append(this.dead)
+                    .append(", faction=").append(faction)
+                    .append(", vocation=").append(vocation)
+                    .append(", bucket=").append(bucket);
             this.stats.entrySet().stream()
                     .forEach(entry -> builder.append(", ").append(entry.getKey()).append("=").append(entry.getValue()));
             builder.append("]");
@@ -250,12 +265,18 @@ public class BattleStats implements ClientMessenger {
         return this;
     }
 
-    public Map<String, BattleStatRecord> getBattleStats() {
-        return Collections.unmodifiableMap(this.battleStats);
+    public final Map<String, BattleStatRecord> getBattleStats(boolean onlyLiving) {
+        if (!onlyLiving) {
+            return Collections.unmodifiableMap(this.battleStats);
+        }
+        return Collections.unmodifiableMap(this.battleStats.entrySet().stream().filter(entry -> {
+            BattleStatRecord record = entry.getValue();
+            return record != null && !record.isDead();
+        }).collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue())));
     }
 
-    public Collection<BattleStatRecord> getBattleStatSet() {
-        return Collections.unmodifiableCollection(this.battleStats.values());
+    public final Collection<BattleStatRecord> getBattleStatSet(boolean onlyLiving) {
+        return this.getBattleStats(onlyLiving).values();
     }
 
     @Override
