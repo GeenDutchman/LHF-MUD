@@ -189,6 +189,10 @@ public class BattleStats implements ClientMessenger {
             return this.stats.getOrDefault(BattleStat.HEALING_PERFORMED, 0);
         }
 
+        public int getXPEarned() {
+            return this.stats.getOrDefault(BattleStat.XP_EARNED, 0);
+        }
+
         public int get(BattleStat stat) {
             if (stat == null) {
                 return 0;
@@ -253,9 +257,11 @@ public class BattleStats implements ClientMessenger {
 
     private Map<String, BattleStatRecord> battleStats;
     private ClientID clientID = new ClientID();
+    private int deadXP;
 
     public BattleStats() {
         this.battleStats = new TreeMap<>();
+        this.deadXP = 0;
     }
 
     public BattleStats(Map<String, BattleStatRecord> seedStats) {
@@ -332,6 +338,21 @@ public class BattleStats implements ClientMessenger {
             found.stats.merge(key, value, adder);
         });
 
+        Creature targeted = ca.getAffected();
+        if (targeted != null && !targeted.isAlive()) {
+            BattleStatRecord targetRecord = this.battleStats.get(targeted.getName());
+            if (targetRecord != null) {
+                Integer targetEarned = targetRecord.stats.remove(BattleStat.XP_EARNED);
+                if (targetEarned == null) {
+                    targetEarned = 0;
+                }
+                targetEarned = targetEarned
+                        / Integer.max(1, targetRecord.getVocation() != null ? targetRecord.getVocation().getLevel()
+                                : targetRecord.getNumDamgages());
+                found.stats.merge(BattleStat.XP_EARNED, targetEarned, adder);
+            }
+        }
+
         return this;
     }
 
@@ -363,12 +384,21 @@ public class BattleStats implements ClientMessenger {
         return this;
     }
 
-    public BattleStats setDead(String creatureName) {
+    public BattleStatRecord getRecord(String creatureName) {
+        return this.battleStats.get(creatureName);
+    }
+
+    public BattleStats setDead(String creatureName, int worth) {
         BattleStatRecord stat = this.battleStats.get(creatureName);
         if (stat != null) {
             stat.setDead();
         }
+        this.deadXP += worth;
         return this;
+    }
+
+    public int getDeadXP() {
+        return this.deadXP;
     }
 
     public enum BattleStatsQuery {
