@@ -498,32 +498,13 @@ public abstract class Creature implements ICreature {
         return toRemove;
     }
 
+    @Override
     public ClientMessenger getController() {
         return this.controller;
     }
 
     public void setController(ClientMessenger cont) {
         this.controller = cont;
-    }
-
-    @Override
-    public void sendMsg(OutMessage msg) {
-        if (msg != null && msg instanceof ITickMessage) {
-            this.tick(((ITickMessage) msg).getTickType());
-        }
-        if (this.getController() != null) {
-            this.getController().sendMsg(msg);
-            return;
-        }
-        // Does nothing silently
-    }
-
-    @Override
-    public ClientID getClientID() {
-        if (this.getController() != null) {
-            return this.getController().getClientID();
-        }
-        return null;
     }
 
     @Override

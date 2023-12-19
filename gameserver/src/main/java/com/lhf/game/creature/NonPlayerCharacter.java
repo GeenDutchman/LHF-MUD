@@ -24,12 +24,13 @@ import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
 import com.lhf.messages.out.CreatureAffectedMessage;
 
-public class NonPlayerCharacter extends ICreature {
+public class NonPlayerCharacter extends Creature {
     public static class BlessedFist extends Weapon {
         private final static CreatureEffectSource source = new CreatureEffectSource("Blessed Punch",
                 new EffectPersistence(TickType.INSTANT),
@@ -52,7 +53,7 @@ public class NonPlayerCharacter extends ICreature {
         }
     }
 
-    private final Weapon defaultWeapon = new BlessedFist(this);
+    private final Weapon blessedFist = new BlessedFist(this);
     private ConversationTree convoTree = null;
     public static final String defaultConvoTreeName = "verbal_default";
 
@@ -242,14 +243,18 @@ public class NonPlayerCharacter extends ICreature {
     }
 
     @Override
-    public Weapon getWeapon() {
+    public Weapon defaultWeapon() {
         if (this.getEquipped(EquipmentSlots.ARMOR) != null) {
             this.removeEffectByName(DMBlessing.name);
         }
         if (this.hasEffect(DMBlessing.name)) {
-            return this.defaultWeapon;
+            return this.blessedFist;
         }
-        return super.getWeapon();
+        Equipable found = this.getEquipped(EquipmentSlots.WEAPON);
+        if (found != null && found instanceof Weapon weapon) {
+            return weapon;
+        }
+        return ICreature.defaultFist;
     }
 
     public void setConvoTree(ConversationTree tree) {

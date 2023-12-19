@@ -39,11 +39,31 @@ import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ITickMessage;
 import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.StatusOutMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
+import com.lhf.messages.out.StatusOutMessage;
+import com.lhf.server.client.ClientID;
 
+/**
+ * An interface for all things Creature. This way we can create wrappers, mocks,
+ * and other fun stuff.
+ * 
+ * Mostly acts like a {@link com.lhf.game.creature.statblock.Statblock
+ * Statblock} "Owner" interface, along with providing some default
+ * implementations for a few other interfaces.
+ * 
+ * @see com.lhf.game.creature.inventory.InventoryOwner
+ * @see com.lhf.game.creature.inventory.EquipmentOwner
+ * @see com.lhf.messages.ClientMessenger
+ * @see com.lhf.messages.MessageChainHandler
+ * @see com.lhf.game.AffectableEntity
+ * @see com.lhf.game.creature.CreatureEffect
+ * 
+ * @see java.lang.Comparable
+ */
 public interface ICreature
         extends InventoryOwner, EquipmentOwner, ClientMessenger, MessageChainHandler, Comparable<ICreature>,
         AffectableEntity<CreatureEffect> {
@@ -91,6 +111,9 @@ public interface ICreature
         return Objects.requireNonNullElseGet(weapon, () -> ICreature.defaultFist);
     }
 
+    /**
+     * Builder pattern root for Creature
+     */
     public abstract static class CreatureBuilder<T extends CreatureBuilder<T>> {
         protected T thisObject;
         private String name;
@@ -188,16 +211,86 @@ public interface ICreature
 
     }
 
+    /**
+     * Gets the Controller/{@link com.lhf.messages.ClientMessenger ClientMessenger}
+     * for this Creature
+     * 
+     * @return {@link com.lhf.messages.ClientMessenger ClientMessenger}
+     */
+    public abstract ClientMessenger getController();
+
+    @Override
+    public default ClientID getClientID() {
+        if (this.getController() != null) {
+            return this.getController().getClientID();
+        }
+        return null;
+    }
+
+    @Override
+    public default void sendMsg(OutMessage msg) {
+        if (msg != null && msg instanceof ITickMessage) {
+            this.tick(((ITickMessage) msg).getTickType());
+        }
+        if (this.getController() != null) {
+            this.getController().sendMsg(msg);
+            return;
+        }
+        // Does nothing silently
+    }
+
+    /**
+     * Returns a {@link com.lhf.game.enums.HealthBuckets HealthBucket} as an
+     * approximation of Health
+     * 
+     * @return
+     */
     public abstract HealthBuckets getHealthBucket();
 
+    /**
+     * Checks to see if the Creature is alive
+     * 
+     * @return
+     */
     public abstract boolean isAlive();
 
+    /**
+     * Updates the Creature's XP
+     * 
+     * @param value
+     */
     public abstract void updateXp(int value);
 
+    /**
+     * Retrieves the {@link com.lhf.game.creature.statblock.AttributeBlock
+     * AttributeBlock} for the Creature
+     * 
+     * @return
+     */
     public abstract AttributeBlock getAttributes();
 
+    /**
+     * Sets the Attribute block for the creature
+     * 
+     * @deprecated
+     *             Changing the attributes wholesale during run is not good.
+     *             <p>
+     *             Use {@link com.lhf.game.creature.ICreature.CreatureBuilder
+     *             CreatureBuilder} to change the attributes of a Creature being
+     *             built
+     * @param attributes
+     */
+    @Deprecated
     public abstract void setAttributes(AttributeBlock attributes);
 
+    /**
+     * Makes a check for the Creature, using the slected
+     * {@link com.lhf.game.enums.Attributes Attribute} modifier.
+     * Will just do a straight roll if attribute is null
+     * 
+     * @param attribute
+     * @return {@link com.lhf.game.dice.MultiRollResult MultiRollResult}
+     */
     public default MultiRollResult check(Attributes attribute) {
         Dice d20 = new DiceD20(1);
         MultiRollResult result = new MultiRollResult.Builder().addRollResults(d20.rollDice())
@@ -205,6 +298,12 @@ public interface ICreature
         return result;
     }
 
+    /**
+     * Updates an {@link com.lhf.game.enums.Attributes Attribute} modifier
+     * 
+     * @param modifier
+     * @param value
+     */
     public default void updateModifier(Attributes modifier, int value) {
         AttributeBlock retrieved = this.getAttributes();
         if (retrieved == null) {
@@ -444,6 +543,9 @@ public interface ICreature
         return deadCorpse;
     }
 
+    /**
+     * Prints a description of the Creature
+     */
     @Override
     public default String printDescription() {
         StringBuilder sb = new StringBuilder();
@@ -464,6 +566,11 @@ public interface ICreature
         return sb.toString();
     }
 
+    /**
+     * Produces a {@link com.lhf.messages.out.SeeOutMessage SeeOutMessage}
+     * describing this Creature and any {@link com.lhf.game.creature.CreatureEffect
+     * Effects} upon it.
+     */
     @Override
     public default SeeOutMessage produceMessage(SeeOutMessage.Builder seeOutMessage) {
         if (seeOutMessage == null) {
