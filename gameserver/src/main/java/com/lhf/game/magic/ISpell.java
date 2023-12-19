@@ -3,15 +3,15 @@ package com.lhf.game.magic;
 import java.util.Objects;
 import java.util.Set;
 
-import com.lhf.Examinable;
 import com.lhf.Taggable;
+import com.lhf.TaggedExaminable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class ISpell<T extends EntityEffect>
-        implements Comparable<ISpell<?>>, Iterable<T>, Taggable, Examinable {
+        implements Comparable<ISpell<?>>, Iterable<T>, TaggedExaminable {
     private final String className;
     protected final SpellEntry entry;
     protected transient ICreature caster;

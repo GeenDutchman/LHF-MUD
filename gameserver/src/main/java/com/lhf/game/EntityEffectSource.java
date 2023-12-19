@@ -2,11 +2,10 @@ package com.lhf.game;
 
 import java.util.Objects;
 
-import com.lhf.Examinable;
-import com.lhf.Taggable;
+import com.lhf.TaggedExaminable;
 import com.lhf.messages.out.SeeOutMessage;
 
-public abstract class EntityEffectSource implements Taggable, Examinable {
+public abstract class EntityEffectSource implements TaggedExaminable {
     protected final String className;
     protected final String name;
     protected final EffectPersistence persistence;
