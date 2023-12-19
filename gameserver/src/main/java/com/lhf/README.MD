@@ -156,9 +156,9 @@ classDiagram
 
     User <-- Client
     Player <-- User
-    Room <.. Player
+    Room <-- Player
     Room <-- BattleManager
-    BattleManager <.. Player
+    BattleManager <-- Player: If Player in Battle
     Dungeon <-- Room
     ThirdPower <-- Dungeon
     Game <-- ThirdPower

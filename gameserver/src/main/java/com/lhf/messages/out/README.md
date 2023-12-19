@@ -1,3 +1,5 @@
+# Messages
+
 Messages usually have to do with a Creature, an Item, a Command, Lewdness, Battle, Spells, Effects, or a group.
 
 Messages could be broadcastable.
@@ -42,7 +44,6 @@ CreatureAffectedMessage.java
 ReincarnateMessage.java
 RenegadeAnnouncement.java
 
-
 ## Unsorted
 
 LewdOutMessage.java
@@ -65,7 +66,6 @@ UnequipOutMessage.java
 UseOutMessage.java
 UserLeftMessage.java
 WelcomeMessage.java
-
 
 ## Mermaid
 
