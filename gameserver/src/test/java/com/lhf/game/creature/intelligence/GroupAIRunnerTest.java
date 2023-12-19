@@ -11,7 +11,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
-import com.lhf.game.creature.INonPlayerCharacter;
+import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.messages.out.FatalMessage;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.WelcomeMessage;
@@ -22,7 +22,7 @@ public class GroupAIRunnerTest {
     @Test
     void testProcessLeavesSome() throws InterruptedException {
         GroupAIRunner runner = Mockito.spy(new GroupAIRunner(false, 2));
-        BasicAI qAi = runner.register(INonPlayerCharacter.getNPCBuilder(runner).build());
+        BasicAI qAi = runner.register(NonPlayerCharacter.getNPCBuilder(runner).build());
         qAi.sendMsg(SeeOutMessage.getBuilder().setDeniedReason("denied once").Build());
         qAi.sendMsg(WelcomeMessage.getWelcomeBuilder().Build());
         qAi.sendMsg(FatalMessage.getBuilder().Build());

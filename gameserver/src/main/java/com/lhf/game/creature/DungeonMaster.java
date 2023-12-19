@@ -3,7 +3,7 @@ package com.lhf.game.creature;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.vocation.DMV;
 
-public class DungeonMaster extends INonPlayerCharacter {
+public class DungeonMaster extends NonPlayerCharacter {
 
     public static class DungeonMasterBuilder extends INonPlayerCharacter.AbstractNPCBuilder<DungeonMasterBuilder> {
         private DungeonMasterBuilder(AIRunner aiRunner) {
@@ -22,8 +22,14 @@ public class DungeonMaster extends INonPlayerCharacter {
             return new DungeonMasterBuilder(aiRunner);
         }
 
+        @Override
         public DungeonMaster build() {
-            return this.register(new DungeonMaster(this));
+            return this.register(this.preEnforcedRegistrationBuild());
+        }
+
+        @Override
+        protected DungeonMaster preEnforcedRegistrationBuild() {
+            return new DungeonMaster(this);
         }
     }
 

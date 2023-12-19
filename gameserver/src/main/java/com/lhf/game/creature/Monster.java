@@ -8,7 +8,7 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.MonsterAI;
 
-public class Monster extends INonPlayerCharacter {
+public class Monster extends NonPlayerCharacter {
     public static final String defaultConvoTreeName = "non_verbal_default";
     private final long monsterNumber;
     private boolean activelyHostile;
@@ -72,8 +72,13 @@ public class Monster extends INonPlayerCharacter {
 
         @Override
         public Monster build() {
+            return this.register(this.preEnforcedRegistrationBuild());
+        }
+
+        @Override
+        protected Monster preEnforcedRegistrationBuild() {
             this.nextSerial();
-            return this.register(new Monster(this));
+            return new Monster(this);
         }
     }
 

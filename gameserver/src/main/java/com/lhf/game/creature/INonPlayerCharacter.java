@@ -9,7 +9,6 @@ import java.util.Set;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
-import com.lhf.game.EntityEffect;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
@@ -28,6 +27,7 @@ import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.server.interfaces.NotNull;
 
@@ -246,5 +246,7 @@ public interface INonPlayerCharacter extends ICreature {
     }
 
     public abstract HarmMemories getHarmMemories();
+
+    public abstract void setController(ClientMessenger cont);
 
 }
