@@ -5,24 +5,24 @@ import java.util.Objects;
 import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EffectPersistence.Ticker;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.messages.out.SeeOutMessage;
 
 public abstract class EntityEffect implements Examinable, Taggable, Comparable<EntityEffect> {
 
     protected final EntityEffectSource source;
-    protected Creature creatureResponsible;
+    protected ICreature creatureResponsible;
     protected Taggable generatedBy;
     protected Ticker ticker;
 
-    public EntityEffect(EntityEffectSource source, Creature creatureResponsible, Taggable generatedBy) {
+    public EntityEffect(EntityEffectSource source, ICreature creatureResponsible, Taggable generatedBy) {
         this.source = source;
         this.creatureResponsible = creatureResponsible;
         this.generatedBy = generatedBy;
         this.ticker = null;
     }
 
-    public Creature creatureResponsible() {
+    public ICreature creatureResponsible() {
         return this.creatureResponsible;
     }
 

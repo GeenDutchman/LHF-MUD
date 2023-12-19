@@ -2,7 +2,7 @@ package com.lhf.game.lewd;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.Attributes;
@@ -18,7 +18,7 @@ public class AfterGlow extends CreatureEffectSource implements LewdProduct {
     }
 
     public void onLewd(Area room, VrijPartij party) {
-        for (Creature participant : party.getParticipants()) {
+        for (ICreature participant : party.getParticipants()) {
             participant.applyEffect(new CreatureEffect(this, participant, this));
         }
     }

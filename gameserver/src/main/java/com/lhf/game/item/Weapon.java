@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.lhf.game.battle.Attack;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.dice.DamageDice;
@@ -28,11 +28,11 @@ public class Weapon extends Equipable {
         this.subtype = subtype;
     }
 
-    public Attack generateAttack(Creature attacker) {
+    public Attack generateAttack(ICreature attacker) {
         return this.generateAttack(attacker, null);
     }
 
-    protected Attack generateAttack(Creature attacker, Set<CreatureEffectSource> extraSources) {
+    protected Attack generateAttack(ICreature attacker, Set<CreatureEffectSource> extraSources) {
         Set<CreatureEffect> effects = new HashSet<>();
         for (CreatureEffectSource source : this.effectSources) {
             effects.add(new CreatureEffect(source, attacker, this));

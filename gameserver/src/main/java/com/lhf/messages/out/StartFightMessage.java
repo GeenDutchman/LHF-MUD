@@ -1,23 +1,23 @@
 package com.lhf.messages.out;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.messages.OutMessageType;
 
 public class StartFightMessage extends OutMessage {
-    private final Creature instigator;
+    private final ICreature instigator;
 
     public static class Builder extends OutMessage.Builder<Builder> {
-        private Creature instigator;
+        private ICreature instigator;
 
         protected Builder() {
             super(OutMessageType.START_FIGHT);
         }
 
-        public Creature getInstigator() {
+        public ICreature getInstigator() {
             return instigator;
         }
 
-        public Builder setInstigator(Creature instigator) {
+        public Builder setInstigator(ICreature instigator) {
             this.instigator = instigator;
             return this;
         }
@@ -50,7 +50,7 @@ public class StartFightMessage extends OutMessage {
         return this.instigator.getColorTaggedName() + " started a fight!";
     }
 
-    public Creature getInstigator() {
+    public ICreature getInstigator() {
         return instigator;
     }
 

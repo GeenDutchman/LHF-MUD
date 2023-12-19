@@ -2,21 +2,21 @@ package com.lhf.messages.out;
 
 import java.util.StringJoiner;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD4;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.messages.OutMessageType;
 
 public class MissMessage extends OutMessage {
-    private final Creature attacker;
-    private final Creature target;
+    private final ICreature attacker;
+    private final ICreature target;
     private final MultiRollResult offense;
     private final MultiRollResult defense;
 
     public static class Builder extends OutMessage.Builder<Builder> {
-        private Creature attacker;
-        private Creature target;
+        private ICreature attacker;
+        private ICreature target;
         private MultiRollResult offense;
         private MultiRollResult defense;
 
@@ -24,20 +24,20 @@ public class MissMessage extends OutMessage {
             super(OutMessageType.MISS);
         }
 
-        public Creature getAttacker() {
+        public ICreature getAttacker() {
             return attacker;
         }
 
-        public Builder setAttacker(Creature attacker) {
+        public Builder setAttacker(ICreature attacker) {
             this.attacker = attacker;
             return this;
         }
 
-        public Creature getTarget() {
+        public ICreature getTarget() {
             return target;
         }
 
-        public Builder setTarget(Creature target) {
+        public Builder setTarget(ICreature target) {
             this.target = target;
             return this;
         }
@@ -139,11 +139,11 @@ public class MissMessage extends OutMessage {
         return output.toString();
     }
 
-    public Creature getAttacker() {
+    public ICreature getAttacker() {
         return attacker;
     }
 
-    public Creature getTarget() {
+    public ICreature getTarget() {
         return target;
     }
 

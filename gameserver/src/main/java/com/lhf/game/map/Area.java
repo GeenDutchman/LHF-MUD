@@ -8,7 +8,7 @@ import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.TickType;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.Player;
@@ -31,7 +31,7 @@ public interface Area
 
         public abstract Collection<Item> getItems();
 
-        public abstract Collection<Creature> getCreatures();
+        public abstract Collection<ICreature> getCreatures();
 
         public abstract MessageChainHandler getSuccessor();
 
@@ -40,7 +40,7 @@ public interface Area
 
     public abstract UUID getUuid();
 
-    public abstract Creature removeCreature(Creature c, Directions dir);
+    public abstract ICreature removeCreature(ICreature c, Directions dir);
 
     public abstract Land getLand();
 
@@ -66,7 +66,7 @@ public interface Area
                 }
             }
         }
-        for (Creature c : this.getCreatures()) {
+        for (ICreature c : this.getCreatures()) {
             if (c instanceof Player) {
                 seen.addSeen(SeeCategory.PLAYER, c);
             } else if (c instanceof Monster) {

@@ -1,7 +1,7 @@
 package com.lhf.game.battle;
 
 import com.lhf.Taggable;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.dice.DamageDice;
@@ -109,7 +109,7 @@ public interface MultiAttacker extends Taggable {
 
     /** Modifies an attack */
     public default Attack modifyAttack(Attack attack, boolean extraAggro) {
-        Creature attacker = attack.getAttacker();
+        ICreature attacker = attack.getAttacker();
         if (attacker != null) {
             int chaMod = Integer.max(attacker.getAttributes().getMod(this.getAggrovationAttribute()), 1);
             if (extraAggro) {

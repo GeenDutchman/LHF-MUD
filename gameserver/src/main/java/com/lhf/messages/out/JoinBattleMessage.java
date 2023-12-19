@@ -2,26 +2,26 @@ package com.lhf.messages.out;
 
 import java.util.StringJoiner;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.messages.OutMessageType;
 
 public class JoinBattleMessage extends OutMessage {
-    private final Creature joiner;
+    private final ICreature joiner;
     private final boolean ongoing;
 
     public static class Builder extends OutMessage.Builder<Builder> {
-        private Creature joiner;
+        private ICreature joiner;
         private boolean ongoing;
 
         protected Builder() {
             super(OutMessageType.JOIN_BATTLE);
         }
 
-        public Creature getJoiner() {
+        public ICreature getJoiner() {
             return joiner;
         }
 
-        public Builder setJoiner(Creature joiner) {
+        public Builder setJoiner(ICreature joiner) {
             this.joiner = joiner;
             return this;
         }
@@ -69,7 +69,7 @@ public class JoinBattleMessage extends OutMessage {
         return sj.toString();
     }
 
-    public Creature getJoiner() {
+    public ICreature getJoiner() {
         return joiner;
     }
 

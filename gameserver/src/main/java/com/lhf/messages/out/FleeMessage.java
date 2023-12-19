@@ -1,16 +1,16 @@
 package com.lhf.messages.out;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.messages.OutMessageType;
 
 public class FleeMessage extends OutMessage {
-    private final Creature runner;
+    private final ICreature runner;
     private final MultiRollResult roll;
     private final boolean fled;
 
     public static class Builder extends OutMessage.Builder<Builder> {
-        private Creature runner;
+        private ICreature runner;
         private MultiRollResult roll;
         private boolean fled;
 
@@ -18,11 +18,11 @@ public class FleeMessage extends OutMessage {
             super(OutMessageType.FLEE);
         }
 
-        public Creature getRunner() {
+        public ICreature getRunner() {
             return runner;
         }
 
-        public Builder setRunner(Creature runner) {
+        public Builder setRunner(ICreature runner) {
             this.runner = runner;
             return this;
         }
@@ -90,7 +90,7 @@ public class FleeMessage extends OutMessage {
         return this.toString();
     }
 
-    public Creature getRunner() {
+    public ICreature getRunner() {
         return runner;
     }
 

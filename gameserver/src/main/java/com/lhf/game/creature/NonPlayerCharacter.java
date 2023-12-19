@@ -29,7 +29,7 @@ import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
 import com.lhf.messages.out.CreatureAffectedMessage;
 
-public class NonPlayerCharacter extends Creature {
+public class NonPlayerCharacter extends ICreature {
     public static class BlessedFist extends Weapon {
         private final static CreatureEffectSource source = new CreatureEffectSource("Blessed Punch",
                 new EffectPersistence(TickType.INSTANT),
@@ -115,7 +115,7 @@ public class NonPlayerCharacter extends Creature {
     private transient HarmMemories harmMemories = new HarmMemories();
 
     protected static abstract class AbstractNPCBuilder<T extends AbstractNPCBuilder<T>>
-            extends Creature.CreatureBuilder<T> {
+            extends ICreature.CreatureBuilder<T> {
         private ConversationTree conversationTree = null;
         private AIRunner aiRunner;
         private List<AIHandler> aiHandlers;

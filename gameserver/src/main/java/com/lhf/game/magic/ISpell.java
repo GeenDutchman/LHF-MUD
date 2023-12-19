@@ -6,7 +6,7 @@ import java.util.Set;
 import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.messages.out.SeeOutMessage;
 
@@ -14,15 +14,15 @@ public abstract class ISpell<T extends EntityEffect>
         implements Comparable<ISpell<?>>, Iterable<T>, Taggable, Examinable {
     private final String className;
     protected final SpellEntry entry;
-    protected transient Creature caster;
+    protected transient ICreature caster;
 
-    public ISpell(SpellEntry entry, Creature caster) {
+    public ISpell(SpellEntry entry, ICreature caster) {
         this.className = this.getClass().getName();
         this.entry = entry;
         this.caster = caster;
     }
 
-    public ISpell<T> setCaster(Creature caster) {
+    public ISpell<T> setCaster(ICreature caster) {
         this.caster = caster;
         return this;
     }
@@ -31,7 +31,7 @@ public abstract class ISpell<T extends EntityEffect>
         return this.className;
     }
 
-    public Creature getCaster() {
+    public ICreature getCaster() {
         return this.caster;
     }
 
@@ -63,7 +63,7 @@ public abstract class ISpell<T extends EntityEffect>
         return this.entry.printDescription();
     }
 
-    public Creature creatureResponsible() {
+    public ICreature creatureResponsible() {
         return this.caster;
     }
 

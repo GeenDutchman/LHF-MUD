@@ -10,9 +10,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.CreatureContainer;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
-import com.lhf.game.creature.Creature.CreatureCommandHandler;
+import com.lhf.game.creature.ICreature.CreatureCommandHandler;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.item.InteractObject;
@@ -43,11 +43,11 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
     protected transient EnumMap<CommandMessage, CommandHandler> commands;
 
     protected class BedTime implements Runnable, Comparable<Bed.BedTime> {
-        protected Creature occupant;
+        protected ICreature occupant;
         protected MessageChainHandler successor;
         protected ScheduledFuture<?> future;
 
-        protected BedTime(Creature occupant) {
+        protected BedTime(ICreature occupant) {
             this.occupant = occupant;
             this.successor = occupant.getSuccessor();
             this.occupant.setSuccessor(Bed.this);
@@ -120,7 +120,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
         private String name;
         private int sleepSeconds;
         private int capacity;
-        private Set<Creature> occupants;
+        private Set<ICreature> occupants;
 
         private Builder() {
             this.name = "Bed";
@@ -148,7 +148,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
             return this;
         }
 
-        public Builder addOccupant(Creature occupant) {
+        public Builder addOccupant(ICreature occupant) {
             if (occupant != null) {
                 if (this.occupants == null) {
                     this.occupants = new TreeSet<>();
@@ -160,7 +160,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
 
         public Bed build(Area room) {
             Bed madeBed = new Bed(room, this);
-            for (Creature occupant : this.occupants) {
+            for (ICreature occupant : this.occupants) {
                 madeBed.addCreature(occupant);
             }
             return madeBed;
@@ -180,7 +180,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
         this.executor.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
 
         this.occupants = Collections.synchronizedSortedSet(new TreeSet<>());
-        for (Creature alreadyThere : builder.occupants) {
+        for (ICreature alreadyThere : builder.occupants) {
             this.addCreature(alreadyThere);
         }
 
@@ -196,7 +196,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
         commands.put(CommandMessage.SHOUT, new ShoutHandler());
     }
 
-    protected OutMessage bedAction(Creature creature, InteractObject triggerObject, Map<String, Object> args) {
+    protected OutMessage bedAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
         if (creature == null) {
             return InteractOutMessage.getBuilder().setTaggable(triggerObject).setSubType(InteractOutMessageType.CANNOT)
                     .Build();
@@ -218,7 +218,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
     }
 
     @Override
-    public boolean addCreature(Creature creature) {
+    public boolean addCreature(ICreature creature) {
         BedTime bedTime = this.getBedTime(creature);
         if (bedTime == null) {
             bedTime = new BedTime(creature);
@@ -244,8 +244,8 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
     }
 
     @Override
-    public Collection<Creature> getCreatures() {
-        Set<Creature> creatures = new TreeSet<>();
+    public Collection<ICreature> getCreatures() {
+        Set<ICreature> creatures = new TreeSet<>();
         for (BedTime bedTime : this.occupants) {
             creatures.add(bedTime.occupant);
         }
@@ -253,15 +253,15 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
     }
 
     @Override
-    public boolean onCreatureDeath(Creature creature) {
+    public boolean onCreatureDeath(ICreature creature) {
         boolean removed = this.removeCreature(creature);
         removed = this.room.onCreatureDeath(creature) || removed;
         return removed;
     }
 
     @Override
-    public Optional<Creature> removeCreature(String name) {
-        Optional<Creature> found = this.getCreature(name);
+    public Optional<ICreature> removeCreature(String name) {
+        Optional<ICreature> found = this.getCreature(name);
         if (found.isPresent()) {
             this.removeCreature(found.get());
         }
@@ -269,7 +269,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
     }
 
     @Override
-    public boolean removeCreature(Creature doneSleeping) {
+    public boolean removeCreature(ICreature doneSleeping) {
         BedTime found = this.getBedTime(doneSleeping);
         if (found != null) {
             found.occupant.sendMsg(InteractOutMessage.getBuilder().setTaggable(this)
@@ -307,12 +307,12 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
     }
 
     @Override
-    public ArrayList<Creature> getCreaturesLike(String creatureName) {
-        ArrayList<Creature> match = new ArrayList<>();
-        ArrayList<Creature> closeMatch = new ArrayList<>();
+    public ArrayList<ICreature> getCreaturesLike(String creatureName) {
+        ArrayList<ICreature> match = new ArrayList<>();
+        ArrayList<ICreature> closeMatch = new ArrayList<>();
 
         for (BedTime bedTime : this.occupants) {
-            Creature c = bedTime.occupant;
+            ICreature c = bedTime.occupant;
             if (c.CheckNameRegex(creatureName, 3)) {
                 match.add(c);
             }
@@ -325,14 +325,14 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
         return match;
     }
 
-    protected boolean isInRoom(Creature creature) {
+    protected boolean isInRoom(ICreature creature) {
         if (this.room == null) {
             return false;
         }
         return this.room.hasCreature(creature);
     }
 
-    protected BedTime getBedTime(Creature creature) {
+    protected BedTime getBedTime(ICreature creature) {
         for (BedTime bedTime : this.occupants) {
             if (bedTime.occupant == creature) {
                 return bedTime;
@@ -341,7 +341,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
         return null;
     }
 
-    public boolean isInBed(Creature creature) {
+    public boolean isInBed(ICreature creature) {
         return this.getBedTime(creature) != null;
     }
 

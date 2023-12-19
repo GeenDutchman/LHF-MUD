@@ -10,7 +10,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.messages.OutMessageType;
 import com.lhf.messages.out.LewdOutMessage;
@@ -22,12 +22,12 @@ public class VrijPartijTest {
     @Test
     void testAccept() {
         AIComBundle first = new AIComBundle();
-        TreeSet<Creature> party = new TreeSet<>();
+        TreeSet<ICreature> party = new TreeSet<>();
         AIComBundle second = new AIComBundle();
         party.add(second.npc);
         VrijPartij vrijPartij = new VrijPartij(first.npc, party);
 
-        Set<Creature> participants = vrijPartij.getParticipants();
+        Set<ICreature> participants = vrijPartij.getParticipants();
         Truth.assertThat(participants).hasSize(1);
         Truth.assertThat(participants).contains(first.npc);
         Truth.assertThat(participants).doesNotContain(second.npc);
@@ -108,14 +108,14 @@ public class VrijPartijTest {
     @Test
     void testAcceptAndCheck() {
         AIComBundle first = new AIComBundle();
-        TreeSet<Creature> party = new TreeSet<>();
+        TreeSet<ICreature> party = new TreeSet<>();
         AIComBundle second = new AIComBundle();
         party.add(second.npc);
         AIComBundle third = new AIComBundle();
         party.add(third.npc);
         VrijPartij vrijPartij = new VrijPartij(first.npc, party);
 
-        Set<Creature> participants = vrijPartij.getParticipants();
+        Set<ICreature> participants = vrijPartij.getParticipants();
         Truth.assertThat(participants).hasSize(1);
         Truth.assertThat(participants).contains(first.npc);
         Truth.assertThat(participants).doesNotContain(second.npc);
@@ -215,14 +215,14 @@ public class VrijPartijTest {
     @Test
     void testPass() {
         AIComBundle first = new AIComBundle();
-        TreeSet<Creature> party = new TreeSet<>();
+        TreeSet<ICreature> party = new TreeSet<>();
         AIComBundle second = new AIComBundle();
         party.add(second.npc);
         AIComBundle third = new AIComBundle();
         party.add(third.npc);
         VrijPartij vrijPartij = new VrijPartij(first.npc, party);
 
-        Set<Creature> participants = vrijPartij.getParticipants();
+        Set<ICreature> participants = vrijPartij.getParticipants();
         Truth.assertThat(participants).hasSize(1);
         Truth.assertThat(participants).contains(first.npc);
         Truth.assertThat(participants).doesNotContain(second.npc);

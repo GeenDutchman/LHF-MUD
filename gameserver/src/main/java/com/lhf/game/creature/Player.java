@@ -4,10 +4,10 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 
-public class Player extends Creature {
+public class Player extends ICreature {
     private User user;
 
-    public static class PlayerBuilder extends Creature.CreatureBuilder<PlayerBuilder> {
+    public static class PlayerBuilder extends ICreature.CreatureBuilder<PlayerBuilder> {
         private User user;
 
         private PlayerBuilder(User user) {

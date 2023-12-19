@@ -8,7 +8,7 @@ import java.util.StringJoiner;
 import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffectSource;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.messages.out.CastingMessage;
@@ -104,7 +104,7 @@ public abstract class SpellEntry implements Taggable, Examinable, Comparable<Spe
         return this.effectSources;
     }
 
-    abstract public CastingMessage Cast(Creature caster, ResourceCost castLevel, List<? extends Taggable> targets);
+    abstract public CastingMessage Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets);
 
     @Override
     public String getColorTaggedName() {

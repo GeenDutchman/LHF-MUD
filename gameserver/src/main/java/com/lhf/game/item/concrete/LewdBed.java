@@ -12,7 +12,7 @@ import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.lewd.LewdProduct;
@@ -65,7 +65,7 @@ public class LewdBed extends Bed {
             return this;
         }
 
-        public Builder addOccupant(Creature occupant) {
+        public Builder addOccupant(ICreature occupant) {
             this.subBuilder = subBuilder.addOccupant(occupant);
             return this;
         }
@@ -208,7 +208,7 @@ public class LewdBed extends Bed {
 
     }
 
-    protected boolean handleJoin(Creature joiner, int index) {
+    protected boolean handleJoin(ICreature joiner, int index) {
         LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder().setCreature(joiner).setNotBroadcast();
         if (!this.isInBed(joiner)) {
             joiner.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).Build());
@@ -232,7 +232,7 @@ public class LewdBed extends Bed {
         return true;
     }
 
-    protected boolean handleEmptyJoin(Creature joiner) {
+    protected boolean handleEmptyJoin(ICreature joiner) {
         LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder().setCreature(joiner).setNotBroadcast();
         if (!this.isInBed(joiner)) {
             joiner.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).Build());
@@ -249,16 +249,16 @@ public class LewdBed extends Bed {
         return true;
     }
 
-    protected boolean handlePopulatedJoin(Creature joiner, Set<String> possPartners, Set<String> babyNames) {
+    protected boolean handlePopulatedJoin(ICreature joiner, Set<String> possPartners, Set<String> babyNames) {
         LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder().setCreature(joiner);
         if (!this.isInBed(joiner)) {
             joiner.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
             return true;
         }
-        Set<Creature> invited = new HashSet<>();
+        Set<ICreature> invited = new HashSet<>();
         if (possPartners != null) {
             for (String possName : possPartners) {
-                List<Creature> possibles = this.getCreaturesLike(possName);
+                List<ICreature> possibles = this.getCreaturesLike(possName);
                 if (possibles.size() == 0) {
                     this.logger.log(Level.WARNING,
                             String.format("%s wanted to lewd someone named %s, but DNE", joiner.getName(), possName));
@@ -303,7 +303,7 @@ public class LewdBed extends Bed {
     }
 
     @Override
-    public boolean removeCreature(Creature doneSleeping) {
+    public boolean removeCreature(ICreature doneSleeping) {
         if (super.removeCreature(doneSleeping)) {
             for (VrijPartij party : this.vrijPartijen.values()) {
                 party.remove(doneSleeping);
@@ -314,7 +314,7 @@ public class LewdBed extends Bed {
     }
 
     @Override
-    protected OutMessage bedAction(Creature creature, InteractObject triggerObject, Map<String, Object> args) {
+    protected OutMessage bedAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
         InteractOutMessage.Builder interactOutMessage = InteractOutMessage.getBuilder().setTaggable(triggerObject);
         if (creature == null) {
             return interactOutMessage.setSubType(InteractOutMessageType.CANNOT).Build();

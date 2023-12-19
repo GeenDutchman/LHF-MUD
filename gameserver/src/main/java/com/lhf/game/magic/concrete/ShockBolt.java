@@ -8,7 +8,7 @@ import com.lhf.Taggable;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
@@ -33,7 +33,7 @@ public class ShockBolt extends CreatureTargetingSpellEntry {
     }
 
     @Override
-    public CastingMessage Cast(Creature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
+    public CastingMessage Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
         StringBuilder sb = new StringBuilder();
         for (Taggable target : targets) {
             sb.append("A small spark zips from").append(caster.getColorTaggedName())

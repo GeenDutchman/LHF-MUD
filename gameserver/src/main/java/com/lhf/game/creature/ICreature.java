@@ -64,8 +64,8 @@ import com.lhf.messages.out.StatusOutMessage;
 import com.lhf.messages.out.UnequipOutMessage;
 import com.lhf.server.client.ClientID;
 
-public abstract class Creature
-        implements InventoryOwner, EquipmentOwner, ClientMessenger, MessageChainHandler, Comparable<Creature>,
+public abstract class ICreature
+        implements InventoryOwner, EquipmentOwner, ClientMessenger, MessageChainHandler, Comparable<ICreature>,
         AffectableEntity<CreatureEffect> {
 
     public class Fist extends Weapon {
@@ -80,7 +80,7 @@ public abstract class Creature
 
             this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
             this.slots = List.of(EquipmentSlots.WEAPON);
-            this.descriptionString = "This is a " + getName() + " attached to a " + Creature.this.getName() + "\n";
+            this.descriptionString = "This is a " + getName() + " attached to a " + ICreature.this.getName() + "\n";
         }
 
     }
@@ -192,12 +192,12 @@ public abstract class Creature
             return this.corpse;
         }
 
-        public abstract Creature build();
+        public abstract ICreature build();
 
     }
 
     // Default constructor
-    protected Creature(Creature.CreatureBuilder<?> builder) {
+    protected ICreature(ICreature.CreatureBuilder<?> builder) {
         this.cmds = this.buildCommands();
         // Instantiate creature with no name and type Monster
         this.name = builder.getName();
@@ -589,7 +589,7 @@ public abstract class Creature
         return false;
     }
 
-    public static Corpse die(Creature deadCreature) {
+    public static Corpse die(ICreature deadCreature) {
         deadCreature.log(Level.INFO, () -> "Died.  ^_^   ->   x_x ");
         for (EquipmentSlots slot : EquipmentSlots.values()) {
             if (deadCreature.getEquipmentSlots().containsKey(slot)) {
@@ -603,10 +603,10 @@ public abstract class Creature
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Creature)) {
+        if (!(obj instanceof ICreature)) {
             return false;
         }
-        Creature c = (Creature) obj;
+        ICreature c = (ICreature) obj;
         return c.getName().equals(getName());
     }
 
@@ -869,8 +869,8 @@ public abstract class Creature
         @Override
         public Reply handle(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof EquipMessage equipMessage) {
-                Creature.this.equipItem(equipMessage.getItemName(), equipMessage.getEquipSlot());
-                Creature.this.tick(TickType.ACTION);
+                ICreature.this.equipItem(equipMessage.getItemName(), equipMessage.getEquipSlot());
+                ICreature.this.tick(TickType.ACTION);
                 return ctx.handled();
             }
             return ctx.failhandle();
@@ -878,7 +878,7 @@ public abstract class Creature
 
         @Override
         public MessageChainHandler getChainHandler() {
-            return Creature.this;
+            return ICreature.this;
         }
 
     }
@@ -915,9 +915,9 @@ public abstract class Creature
         @Override
         public Reply handle(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof UnequipMessage unequipMessage) {
-                Creature.this.unequipItem(EquipmentSlots.getEquipmentSlot(unequipMessage.getUnequipWhat()),
+                ICreature.this.unequipItem(EquipmentSlots.getEquipmentSlot(unequipMessage.getUnequipWhat()),
                         unequipMessage.getUnequipWhat());
-                Creature.this.tick(TickType.ACTION);
+                ICreature.this.tick(TickType.ACTION);
                 return ctx.handled();
             }
             return ctx.failhandle();
@@ -925,7 +925,7 @@ public abstract class Creature
 
         @Override
         public MessageChainHandler getChainHandler() {
-            return Creature.this;
+            return ICreature.this;
         }
 
     }
@@ -952,8 +952,8 @@ public abstract class Creature
         public Reply handle(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof StatusMessage statusMessage) {
                 ctx.sendMsg(
-                        StatusOutMessage.getBuilder().setNotBroadcast().setFromCreature(Creature.this, true).Build());
-                Creature.this.tick(TickType.ACTION);
+                        StatusOutMessage.getBuilder().setNotBroadcast().setFromCreature(ICreature.this, true).Build());
+                ICreature.this.tick(TickType.ACTION);
                 return ctx.handled();
             }
             return ctx.failhandle();
@@ -961,7 +961,7 @@ public abstract class Creature
 
         @Override
         public MessageChainHandler getChainHandler() {
-            return Creature.this;
+            return ICreature.this;
         }
 
     }
@@ -987,8 +987,8 @@ public abstract class Creature
         @Override
         public Reply handle(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof InventoryMessage inventoryMessage) {
-                ctx.sendMsg(Creature.this.getInventory().getInventoryOutMessage(Creature.this.getEquipmentSlots()));
-                Creature.this.tick(TickType.ACTION);
+                ctx.sendMsg(ICreature.this.getInventory().getInventoryOutMessage(ICreature.this.getEquipmentSlots()));
+                ICreature.this.tick(TickType.ACTION);
                 return ctx.handled();
             }
             return ctx.failhandle();
@@ -996,13 +996,13 @@ public abstract class Creature
 
         @Override
         public MessageChainHandler getChainHandler() {
-            return Creature.this;
+            return ICreature.this;
         }
 
     }
 
     @Override
-    public int compareTo(Creature other) {
+    public int compareTo(ICreature other) {
         return this.getName().compareTo(other.getName());
     }
 

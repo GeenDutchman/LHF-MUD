@@ -3,7 +3,7 @@ package com.lhf.messages.out;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.Usable;
 import com.lhf.messages.OutMessageType;
 
@@ -13,14 +13,14 @@ public class UseOutMessage extends OutMessage {
     }
 
     private final UseOutMessageOption subType;
-    private final Creature itemUser;
+    private final ICreature itemUser;
     private final Usable usable;
     private final Taggable target;
     private final String message;
 
     public static class Builder extends OutMessage.Builder<Builder> {
         private UseOutMessageOption subType;
-        private Creature itemUser;
+        private ICreature itemUser;
         private Usable usable;
         private Taggable target;
         private String message;
@@ -38,11 +38,11 @@ public class UseOutMessage extends OutMessage {
             return this;
         }
 
-        public Creature getItemUser() {
+        public ICreature getItemUser() {
             return itemUser;
         }
 
-        public Builder setItemUser(Creature itemUser) {
+        public Builder setItemUser(ICreature itemUser) {
             this.itemUser = itemUser;
             return this;
         }
@@ -103,7 +103,7 @@ public class UseOutMessage extends OutMessage {
         return subType;
     }
 
-    public Creature getItemUser() {
+    public ICreature getItemUser() {
         return itemUser;
     }
 

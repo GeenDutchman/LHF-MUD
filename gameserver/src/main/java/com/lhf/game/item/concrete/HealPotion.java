@@ -3,7 +3,7 @@ package com.lhf.game.item.concrete;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleManager;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.dice.DamageDice;
@@ -31,8 +31,8 @@ public class HealPotion extends Usable {
                 ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
                         .setMessage("That is not a valid target at all!").Build());
                 return true;
-            } else if (object instanceof Creature) {
-                Creature target = (Creature) object;
+            } else if (object instanceof ICreature) {
+                ICreature target = (ICreature) object;
                 useOutMessage.setTarget(target);
                 CreatureEffectSource bce = new CreatureEffectSource(this.healtype.toString() + " healing",
                         new EffectPersistence(TickType.INSTANT), null, "Heals you a little bit", false);
@@ -67,7 +67,7 @@ public class HealPotion extends Usable {
                     .setMessage("You cannot use a " + this.getName() + " on that."));
             return true;
         };
-        this.setUseAction(Creature.class.getName(), useAction);
+        this.setUseAction(ICreature.class.getName(), useAction);
     }
 
     public HealPotion(boolean isVisible) {

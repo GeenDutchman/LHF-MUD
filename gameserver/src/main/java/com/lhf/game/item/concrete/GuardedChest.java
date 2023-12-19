@@ -5,11 +5,11 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.inventory.InventoryOwner;
 
 public class GuardedChest extends Chest {
-    protected final Set<Creature> guards = new TreeSet<>();
+    protected final Set<ICreature> guards = new TreeSet<>();
 
     public GuardedChest(ChestDescriptor descriptor, boolean isVisible, boolean removeOnEmpty) {
         super(descriptor, isVisible, false, removeOnEmpty);
@@ -20,8 +20,8 @@ public class GuardedChest extends Chest {
     }
 
     private void updateGuards() {
-        for (Iterator<Creature> guardIterator = this.guards.iterator(); guardIterator.hasNext();) {
-            Creature guard = guardIterator.next();
+        for (Iterator<ICreature> guardIterator = this.guards.iterator(); guardIterator.hasNext();) {
+            ICreature guard = guardIterator.next();
             if (guard == null || !guard.isAlive()) {
                 guardIterator.remove();
             }
@@ -39,7 +39,7 @@ public class GuardedChest extends Chest {
      * @param guard
      * @return this for builder chaining
      */
-    public GuardedChest addGuard(Creature guard) {
+    public GuardedChest addGuard(ICreature guard) {
         if (guard != null && guard.isAlive()) {
             this.guards.add(guard);
         }

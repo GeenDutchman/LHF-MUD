@@ -2,7 +2,7 @@ package com.lhf.game.map;
 
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.Room.RoomBuilder;
 
 public class DungeonEffect extends EntityEffect {
@@ -15,7 +15,7 @@ public class DungeonEffect extends EntityEffect {
         this.createdRoomDescription = "Created by " + this.creatureResponsible().getColorTaggedName();
     }
 
-    public DungeonEffect(DungeonEffectSource source, Creature creatureResponsible, Taggable generatedBy,
+    public DungeonEffect(DungeonEffectSource source, ICreature creatureResponsible, Taggable generatedBy,
             String createdRoomName, Directions toCreatedRoom) {
         super(source, creatureResponsible, generatedBy);
         this.createdRoomName = createdRoomName;
@@ -24,7 +24,7 @@ public class DungeonEffect extends EntityEffect {
         this.setDefaultDescription();
     }
 
-    public DungeonEffect(DungeonEffectSource source, Creature creatureResponsible, Taggable generatedBy,
+    public DungeonEffect(DungeonEffectSource source, ICreature creatureResponsible, Taggable generatedBy,
             String createdRoomName, Directions toCreatedRoom, String createdRoomDescription) {
         super(source, creatureResponsible, generatedBy);
         this.createdRoomName = createdRoomName;

@@ -10,7 +10,7 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice;
@@ -51,7 +51,7 @@ public class Whimsystick extends Weapon {
         }
 
         @Override
-        public Attack generateAttack(Creature attacker) {
+        public Attack generateAttack(ICreature attacker) {
                 Set<CreatureEffectSource> extraSources = new HashSet<>();
                 Dice chooser = new DiceD6(1);
                 if (chooser.rollDice().getRoll() <= 2) {

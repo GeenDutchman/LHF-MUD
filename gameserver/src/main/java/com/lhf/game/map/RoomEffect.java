@@ -6,7 +6,7 @@ import java.util.Set;
 
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.Item;
 import com.lhf.server.interfaces.NotNull;
 
@@ -16,7 +16,7 @@ public class RoomEffect extends EntityEffect {
         super(other.source, other.creatureResponsible, other.generatedBy);
     }
 
-    public RoomEffect(RoomEffectSource source, Creature creatureResponsible, Taggable generatedBy) {
+    public RoomEffect(RoomEffectSource source, ICreature creatureResponsible, Taggable generatedBy) {
         super(source, creatureResponsible, generatedBy);
     }
 
@@ -33,11 +33,11 @@ public class RoomEffect extends EntityEffect {
 
     }
 
-    public Set<Creature> getCreaturesToSummon() {
+    public Set<ICreature> getCreaturesToSummon() {
         return Collections.unmodifiableSet(this.getSource().getCreaturesToSummon());
     }
 
-    public Set<Creature> getCreaturesToBanish() {
+    public Set<ICreature> getCreaturesToBanish() {
         return Collections.unmodifiableSet(this.getSource().getCreaturesToBanish());
 
     }

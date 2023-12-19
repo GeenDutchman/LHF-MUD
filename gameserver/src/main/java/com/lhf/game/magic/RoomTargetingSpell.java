@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.lhf.game.EntityEffectSource;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.Item;
 import com.lhf.game.map.RoomEffect;
 import com.lhf.game.map.RoomEffectSource;
@@ -17,8 +17,8 @@ public class RoomTargetingSpell extends ISpell<RoomEffect> {
     protected Set<RoomEffect> effects;
     protected List<Item> itemsToSummon;
     protected List<Item> itemsToBanish;
-    protected Set<Creature> creaturesToSummon;
-    protected Set<Creature> creaturesToBanish;
+    protected Set<ICreature> creaturesToSummon;
+    protected Set<ICreature> creaturesToBanish;
 
     private void init() {
         this.itemsToSummon = new ArrayList<>();
@@ -27,7 +27,7 @@ public class RoomTargetingSpell extends ISpell<RoomEffect> {
         this.creaturesToBanish = new TreeSet<>();
     }
 
-    public RoomTargetingSpell(RoomTargetingSpellEntry entry, Creature caster) {
+    public RoomTargetingSpell(RoomTargetingSpellEntry entry, ICreature caster) {
         super(entry, caster);
         this.init();
     }
@@ -46,12 +46,12 @@ public class RoomTargetingSpell extends ISpell<RoomEffect> {
         return this;
     }
 
-    public RoomTargetingSpell addCreatureToSummon(Creature creature) {
+    public RoomTargetingSpell addCreatureToSummon(ICreature creature) {
         this.creaturesToSummon.add(creature);
         return this;
     }
 
-    public RoomTargetingSpell addCreatureToBanish(Creature creature) {
+    public RoomTargetingSpell addCreatureToBanish(ICreature creature) {
         // TODO: limit this number somehow
         this.creaturesToBanish.add(creature);
         return this;
@@ -65,11 +65,11 @@ public class RoomTargetingSpell extends ISpell<RoomEffect> {
         return itemsToBanish;
     }
 
-    public Set<Creature> getCreaturesToSummon() {
+    public Set<ICreature> getCreaturesToSummon() {
         return creaturesToSummon;
     }
 
-    public Set<Creature> getCreaturesToBanish() {
+    public Set<ICreature> getCreaturesToBanish() {
         return creaturesToBanish;
     }
 

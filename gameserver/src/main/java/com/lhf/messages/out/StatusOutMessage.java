@@ -1,6 +1,6 @@
 package com.lhf.messages.out;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
@@ -38,7 +38,7 @@ public class StatusOutMessage extends OutMessage {
             super(OutMessageType.STATUS);
         }
 
-        public Builder setFromCreature(Creature creature, boolean full) {
+        public Builder setFromCreature(ICreature creature, boolean full) {
             this.full = full;
             this.name = creature.getName();
             this.colorTaggedName = creature.getColorTaggedName();

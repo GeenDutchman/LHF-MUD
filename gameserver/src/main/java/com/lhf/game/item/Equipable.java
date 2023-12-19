@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.lhf.game.TickType;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.EquipmentSlots;
@@ -74,13 +74,13 @@ public class Equipable extends Usable {
         return seeOutMessage.Build();
     }
 
-    public void onEquippedBy(Creature equipper) {
+    public void onEquippedBy(ICreature equipper) {
         for (CreatureEffectSource effector : this.getEquippingEffects(true)) {
             equipper.sendMsg(equipper.applyEffect(new CreatureEffect(effector, equipper, this)));
         }
     }
 
-    public void onUnequippedBy(Creature unequipper) {
+    public void onUnequippedBy(ICreature unequipper) {
         for (CreatureEffectSource effector : this.getEquippingEffects(true)) {
             if (effector.getPersistence() != null
                     && TickType.CONDITIONAL.equals(effector.getPersistence().getTickSize())) {

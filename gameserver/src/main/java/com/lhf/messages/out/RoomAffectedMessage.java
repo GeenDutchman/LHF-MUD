@@ -2,7 +2,7 @@ package com.lhf.messages.out;
 
 import java.util.StringJoiner;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.Item;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomEffect;
@@ -125,7 +125,7 @@ public class RoomAffectedMessage extends OutMessage {
         if (this.effect.getCreaturesToSummon().size() > 0) {
             lister = new StringJoiner(", ", "", this.reversed ? " are de-summoned.\r\n" : " are summoned.\r\n")
                     .setEmptyValue("No creatures ");
-            for (Creature creature : this.effect.getCreaturesToSummon()) {
+            for (ICreature creature : this.effect.getCreaturesToSummon()) {
                 lister.add(creature.getColorTaggedName());
             }
             sj.add(lister.toString());
@@ -133,7 +133,7 @@ public class RoomAffectedMessage extends OutMessage {
         if (this.effect.getCreaturesToBanish().size() > 0) {
             lister = new StringJoiner(", ", "", this.reversed ? " are de-banished.\r\n" : " are banished.\r\n")
                     .setEmptyValue("No creatures ");
-            for (Creature creature : this.effect.getCreaturesToBanish()) {
+            for (ICreature creature : this.effect.getCreaturesToBanish()) {
                 lister.add(creature.getColorTaggedName());
             }
             sj.add(lister.toString());

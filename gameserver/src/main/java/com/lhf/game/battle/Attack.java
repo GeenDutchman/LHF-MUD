@@ -3,22 +3,22 @@ package com.lhf.game.battle;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.item.Weapon;
 
 public class Attack implements Iterable<CreatureEffect> {
-    private Creature attacker;
+    private ICreature attacker;
     private Weapon weapon;
     private Set<CreatureEffect> effects;
 
-    public Attack(Creature attacker, Weapon weapon, Set<CreatureEffect> effects) {
+    public Attack(ICreature attacker, Weapon weapon, Set<CreatureEffect> effects) {
         this.attacker = attacker;
         this.weapon = weapon;
         this.effects = Set.copyOf(effects);
     }
 
-    public Creature getAttacker() {
+    public ICreature getAttacker() {
         return attacker;
     }
 
@@ -26,7 +26,7 @@ public class Attack implements Iterable<CreatureEffect> {
         return weapon;
     }
 
-    public Attack setAttacker(Creature attacker) {
+    public Attack setAttacker(ICreature attacker) {
         this.attacker = attacker;
         return this;
     }

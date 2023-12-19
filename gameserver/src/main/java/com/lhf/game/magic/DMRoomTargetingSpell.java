@@ -9,7 +9,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.lhf.game.EntityEffectSource;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.item.Item;
 import com.lhf.game.map.DMRoomEffect;
@@ -22,7 +22,7 @@ public class DMRoomTargetingSpell extends ISpell<DMRoomEffect> {
     protected RoomTargetingSpell inner;
     protected Set<DMRoomEffect> effects;
 
-    public DMRoomTargetingSpell(DMRoomTargetingSpellEntry entry, Creature caster) {
+    public DMRoomTargetingSpell(DMRoomTargetingSpellEntry entry, ICreature caster) {
         super(entry, caster);
         this.usernamesToEnsoul = new TreeMap<>();
         this.playersToSendOff = new TreeSet<>();
@@ -61,12 +61,12 @@ public class DMRoomTargetingSpell extends ISpell<DMRoomEffect> {
         return this;
     }
 
-    public DMRoomTargetingSpell addCreatureToSummon(Creature creature) {
+    public DMRoomTargetingSpell addCreatureToSummon(ICreature creature) {
         this.inner.addCreatureToSummon(creature);
         return this;
     }
 
-    public DMRoomTargetingSpell addCreatureToBanish(Creature creature) {
+    public DMRoomTargetingSpell addCreatureToBanish(ICreature creature) {
         this.inner.addCreatureToBanish(creature);
         return this;
     }
@@ -79,11 +79,11 @@ public class DMRoomTargetingSpell extends ISpell<DMRoomEffect> {
         return this.inner.getItemsToBanish();
     }
 
-    public Set<Creature> getCreaturesToSummon() {
+    public Set<ICreature> getCreaturesToSummon() {
         return this.inner.getCreaturesToSummon();
     }
 
-    public Set<Creature> getCreaturesToBanish() {
+    public Set<ICreature> getCreaturesToBanish() {
         return this.inner.getCreaturesToBanish();
     }
 

@@ -3,7 +3,7 @@ package com.lhf.game.map;
 import java.util.UUID;
 
 import com.lhf.game.Lockable;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 
 class KeyedDoorway extends CloseableDoorway implements Lockable {
@@ -41,7 +41,7 @@ class KeyedDoorway extends CloseableDoorway implements Lockable {
     }
 
     @Override
-    public boolean canTraverse(Creature creature, Directions whichWay) {
+    public boolean canTraverse(ICreature creature, Directions whichWay) {
         if (!this.canAccess(creature)) {
             return false;
         }

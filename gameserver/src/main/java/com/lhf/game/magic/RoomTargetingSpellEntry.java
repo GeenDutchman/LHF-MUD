@@ -7,7 +7,7 @@ import java.util.StringJoiner;
 import java.util.TreeMap;
 
 import com.lhf.Taggable;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
@@ -74,7 +74,7 @@ public class RoomTargetingSpellEntry extends SpellEntry {
         return this.addCreatureToSummon(statblock.getCreatureRace(), statblock.getCreatureRace(), count);
     }
 
-    public RoomTargetingSpellEntry addCreatureToSummon(Creature creature, int count) {
+    public RoomTargetingSpellEntry addCreatureToSummon(ICreature creature, int count) {
         return this.addCreatureToSummon(creature.getCreatureRace(), creature.getCreatureRace(), count);
     }
 
@@ -95,7 +95,7 @@ public class RoomTargetingSpellEntry extends SpellEntry {
     }
 
     @Override
-    public CastingMessage Cast(Creature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
+    public CastingMessage Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
         StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("nothing");
         if (targets != null) {
             for (Taggable taggable : targets) {

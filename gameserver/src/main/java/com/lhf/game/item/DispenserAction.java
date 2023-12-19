@@ -3,7 +3,7 @@ package com.lhf.game.item;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.Room;
@@ -13,7 +13,7 @@ import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 
 public class DispenserAction implements InteractAction {
     @Override
-    public OutMessage doAction(Creature creature, InteractObject triggerObject, Map<String, Object> args) {
+    public OutMessage doAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
         InteractOutMessage.Builder interactOutMessage = InteractOutMessage.getBuilder().setTaggable(triggerObject);
         Object o1 = args.get("room");
         if (!(o1 instanceof Room)) {

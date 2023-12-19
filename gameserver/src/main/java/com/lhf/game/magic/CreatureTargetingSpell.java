@@ -5,14 +5,14 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.lhf.game.EntityEffectSource;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 
 public class CreatureTargetingSpell extends ISpell<CreatureEffect> {
     protected Set<CreatureEffect> effects;
 
-    protected CreatureTargetingSpell(CreatureTargetingSpellEntry entry, Creature caster) {
+    protected CreatureTargetingSpell(CreatureTargetingSpellEntry entry, ICreature caster) {
         super(entry, caster);
         this.effects = null;
     }

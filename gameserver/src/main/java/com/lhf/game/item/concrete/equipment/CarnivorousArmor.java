@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.EquipmentSlots;
@@ -52,7 +52,7 @@ public class CarnivorousArmor extends Equipable {
     }
 
     @Override
-    public void onEquippedBy(Creature newOwner) {
+    public void onEquippedBy(ICreature newOwner) {
         this.equipped = true;
         this.equippedAndUsed = false;
 
@@ -66,8 +66,8 @@ public class CarnivorousArmor extends Equipable {
             if (object == null) {
                 ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
                 return true;
-            } else if (object instanceof Creature) {
-                Creature target = (Creature) object;
+            } else if (object instanceof ICreature) {
+                ICreature target = (ICreature) object;
                 useOutMessage.setTarget(target);
                 if (equippedAndUsed) {
                     String snuggle = "The " + this.getColorTaggedName()
@@ -103,7 +103,7 @@ public class CarnivorousArmor extends Equipable {
     }
 
     @Override
-    public void onUnequippedBy(Creature disowner) {
+    public void onUnequippedBy(ICreature disowner) {
         super.onUnequippedBy(disowner);
         if (equippedAndUsed) {
             disowner.sendMsg(disowner.applyEffect(new CreatureEffect(this.lastBite, disowner, this)));

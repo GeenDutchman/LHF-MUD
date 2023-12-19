@@ -1,24 +1,24 @@
 package com.lhf.messages.out;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.messages.OutMessageType;
 
 public class RenegadeAnnouncement extends OutMessage {
-    private final Creature turned;
+    private final ICreature turned;
 
     public static class Builder extends OutMessage.Builder<Builder> {
-        private Creature turned;
+        private ICreature turned;
 
-        protected Builder(Creature turned) {
+        protected Builder(ICreature turned) {
             super(OutMessageType.RENEGADE_ANNOUNCEMENT);
             this.turned = turned;
         }
 
-        public Creature getTurned() {
+        public ICreature getTurned() {
             return turned;
         }
 
-        public Builder setTurned(Creature turned) {
+        public Builder setTurned(ICreature turned) {
             this.turned = turned;
             return this;
         }
@@ -35,7 +35,7 @@ public class RenegadeAnnouncement extends OutMessage {
 
     }
 
-    public static Builder getBuilder(Creature turned) {
+    public static Builder getBuilder(ICreature turned) {
         return new Builder(turned);
     }
 
@@ -65,7 +65,7 @@ public class RenegadeAnnouncement extends OutMessage {
         return sb.toString();
     }
 
-    public Creature getTurned() {
+    public ICreature getTurned() {
         return this.turned;
     }
 

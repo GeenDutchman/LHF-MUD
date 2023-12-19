@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.lewd.LewdAnswer;
 import com.lhf.messages.OutMessageType;
@@ -16,14 +16,14 @@ public class LewdOutMessage extends OutMessage {
     }
 
     private final LewdOutMessageType subType;
-    private final Map<Creature, LewdAnswer> party;
-    private final Creature creature;
+    private final Map<ICreature, LewdAnswer> party;
+    private final ICreature creature;
     private final Set<String> babyNames;
 
     public static class Builder extends OutMessage.Builder<Builder> {
         private LewdOutMessageType subType;
-        private Map<Creature, LewdAnswer> party = Map.of();
-        private Creature creature;
+        private Map<ICreature, LewdAnswer> party = Map.of();
+        private ICreature creature;
         private Set<String> babyNames = Set.of();
 
         protected Builder() {
@@ -39,20 +39,20 @@ public class LewdOutMessage extends OutMessage {
             return this;
         }
 
-        public Map<Creature, LewdAnswer> getParty() {
+        public Map<ICreature, LewdAnswer> getParty() {
             return Collections.unmodifiableMap(party);
         }
 
-        public Builder setParty(Map<Creature, LewdAnswer> party) {
+        public Builder setParty(Map<ICreature, LewdAnswer> party) {
             this.party = party != null ? party : Map.of();
             return this;
         }
 
-        public Creature getCreature() {
+        public ICreature getCreature() {
             return creature;
         }
 
-        public Builder setCreature(Creature creature) {
+        public Builder setCreature(ICreature creature) {
             this.creature = creature;
             return this;
         }
@@ -93,7 +93,7 @@ public class LewdOutMessage extends OutMessage {
     private String statusString() {
         StringJoiner sj = new StringJoiner(", ");
         if (this.party != null && this.party.size() > 0) {
-            for (Creature creature : this.party.keySet()) {
+            for (ICreature creature : this.party.keySet()) {
                 sj.add(creature.getColorTaggedName() + ":"
                         + this.party.getOrDefault(creature, LewdAnswer.ASKED).name());
             }
@@ -103,12 +103,12 @@ public class LewdOutMessage extends OutMessage {
         }
     }
 
-    private String acceptedNamesString(Creature skip) {
+    private String acceptedNamesString(ICreature skip) {
         StringJoiner sj = new StringJoiner(" and ");
         sj.setEmptyValue(" no one ");
 
         if (this.party != null && this.party.size() > 1) {
-            for (Creature creature : this.party.keySet()) {
+            for (ICreature creature : this.party.keySet()) {
                 if (skip != null && creature == skip) {
                     continue;
                 }
@@ -120,12 +120,12 @@ public class LewdOutMessage extends OutMessage {
         return sj.toString();
     }
 
-    private String notDeniedNamesString(Creature skip) {
+    private String notDeniedNamesString(ICreature skip) {
         StringJoiner sj = new StringJoiner(" and ");
         sj.setEmptyValue(" no one ");
 
         if (this.party != null && this.party.size() > 1) {
-            for (Creature creature : this.party.keySet()) {
+            for (ICreature creature : this.party.keySet()) {
                 if (skip != null && creature == skip) {
                     continue;
                 }
@@ -205,14 +205,14 @@ public class LewdOutMessage extends OutMessage {
         return subType;
     }
 
-    public Map<Creature, LewdAnswer> getParticipants() {
+    public Map<ICreature, LewdAnswer> getParticipants() {
         if (party == null) {
             return Map.of();
         }
         return Map.copyOf(party);
     }
 
-    public Creature getCreature() {
+    public ICreature getCreature() {
         return creature;
     }
 

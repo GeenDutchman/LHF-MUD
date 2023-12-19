@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
@@ -188,7 +188,7 @@ public class BattleStats implements ClientMessenger {
         if (ca.getEffect() == null) {
             return this;
         }
-        Creature responsible = ca.getEffect().creatureResponsible();
+        ICreature responsible = ca.getEffect().creatureResponsible();
         if (responsible == null) {
             return this;
         }
@@ -222,8 +222,8 @@ public class BattleStats implements ClientMessenger {
         return this;
     }
 
-    public BattleStats initialize(Iterable<Creature> creatures) {
-        for (Creature creature : creatures) {
+    public BattleStats initialize(Iterable<ICreature> creatures) {
+        for (ICreature creature : creatures) {
             if (creature != null) {
                 if (!this.battleStats.containsKey(creature.getName())) {
                     this.battleStats.put(creature.getName(),

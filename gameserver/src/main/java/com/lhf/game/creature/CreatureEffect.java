@@ -14,7 +14,7 @@ import com.lhf.game.enums.Stats;
 public class CreatureEffect extends EntityEffect {
     protected MultiRollResult damageResult;
 
-    public CreatureEffect(CreatureEffectSource source, Creature creatureResponsible, Taggable generatedBy) {
+    public CreatureEffect(CreatureEffectSource source, ICreature creatureResponsible, Taggable generatedBy) {
         super(source, creatureResponsible, generatedBy);
         this.damageResult = null;
     }

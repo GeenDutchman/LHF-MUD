@@ -1,24 +1,24 @@
 package com.lhf.messages.out;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.OutMessageType;
 
 public class ReinforcementsCall extends OutMessage {
-    private final Creature caller;
+    private final ICreature caller;
 
     public static class Builder extends OutMessage.Builder<Builder> {
-        private Creature caller;
+        private ICreature caller;
 
         protected Builder() {
             super(OutMessageType.REINFORCEMENTS_CALL);
         }
 
-        public Creature getCaller() {
+        public ICreature getCaller() {
             return caller;
         }
 
-        public Builder setCaller(Creature caller) {
+        public Builder setCaller(ICreature caller) {
             this.caller = caller;
             return this;
         }
@@ -65,7 +65,7 @@ public class ReinforcementsCall extends OutMessage {
         }
     }
 
-    public Creature getCaller() {
+    public ICreature getCaller() {
         return caller;
     }
 

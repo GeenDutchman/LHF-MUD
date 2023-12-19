@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.lhf.game.EntityEffectSource;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
@@ -14,7 +14,7 @@ public class CreatureAOESpell extends ISpell<CreatureEffect> {
     protected Set<CreatureEffect> effects;
     protected final AutoTargeted safe;
 
-    protected CreatureAOESpell(CreatureAOESpellEntry entry, Creature caster, AutoTargeted overrides) {
+    protected CreatureAOESpell(CreatureAOESpellEntry entry, ICreature caster, AutoTargeted overrides) {
         super(entry, caster);
         this.effects = null;
         this.safe = AutoTargeted.override(this.getOriginalSafe(), overrides, this.isOffensive());

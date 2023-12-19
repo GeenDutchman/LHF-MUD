@@ -1,6 +1,6 @@
 package com.lhf.game.item;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.OutMessage;
@@ -31,7 +31,7 @@ public class InteractObject extends Item {
         interactItems.put(key, obj);
     }
 
-    public OutMessage doUseAction(Creature creature) {
+    public OutMessage doUseAction(ICreature creature) {
         if (method == null) {
             return InteractOutMessage.getBuilder().setTaggable(this).setSubType(InteractOutMessageType.NO_METHOD)
                     .Build();
