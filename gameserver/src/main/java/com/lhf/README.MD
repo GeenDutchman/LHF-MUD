@@ -1,5 +1,7 @@
 # Basic Structure
 
+## Main elements of gameplay
+
 ```mermaid
 classDiagram
 
@@ -109,13 +111,13 @@ classDiagram
 
 ```
 
-## More information
+### More information
 
 * [Dice](gameserver/src/main/java/com/lhf/game/dice/README.md) - one example of something `Taggable` but NOT `Examinable`
 
-# Server Design
+## Server Design
 
-## Chain of Command
+### Chain of Command
 
 ```mermaid
 classDiagram
@@ -176,7 +178,7 @@ classDiagram
 
 ```
 
-### More information
+#### Chain of command - More information
 
 * [Magic](./game/magic/README.md) - what the `ThirdPower` is all about
 * [AI](./game/creature/intelligence/README.md) - The `NonPlayerCharacter`s artificial intelligence
@@ -234,7 +236,7 @@ sequenceDiagram
 
 ```
 
-### More Information
+### Messages - More Information
 
 * [Commands](./messages/README.md)
 * [Out Messages](./messages/out/README.md)
