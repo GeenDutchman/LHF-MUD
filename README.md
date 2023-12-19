@@ -19,60 +19,83 @@ See our class wiki <https://github.com/cs428TAs/f2019/wiki/L.H.F.-M.U.D.>  page.
 
 ```mermaid
 classDiagram
+
   class Examinable
+  <<interface>> Examinable
   class Taggable
-  class Container
+  <<interface>> Taggable
+
+  class TaggedExaminable
+  <<interface>> TaggedExaminable
+
+  Taggable <|-- TaggedExaminable
+  Examinable <|-- TaggedExaminable
+
+  note for TaggedExaminable "Not all things inherit from this,\n which is why Examinable and Tagged \nare still separate"
+
+  class ItemContainer
+  <<interface>> ItemContainer
+  class CreatureContainer
+  <<interface>> CreatureContainer
   class Item
+  <<abstract>> Item
   class Takeable
   class Usable
   class Equipable
   class Stackable
-  class Interactable
+  class InteractObject
   class Weapon
 
-  Container o.. Item
-  Examinable <-- Item
-  Taggable <-- Item
+  ItemContainer o-- Item
+  TaggedExaminable <|-- Item
+  Item <|.. Takeable
+  Item <|.. InteractObject
+  Takeable <|-- Usable
+  Usable <|-- Equipable
+  Usable <|-- Stackable
+  Equipable <|-- Weapon
 
-  Item <-- Takeable
-%%   Item <-- Usable
-%%   Item <-- Equipable
-%%   Item <-- Stackable
-  Item <-- Interactable
-%%   Item <-- Weapon
+  ItemContainer <|.. Inventory
 
-  Takeable <-- Usable
-
-%%   Takeable <-- Equipable
-  Usable <-- Equipable
-
-%%   Takeable <-- Stackable
-  Usable <-- Stackable
-
-%%   Takeable <-- Weapon
-%%   Usable <-- Weapon
-  Equipable <-- Weapon
 
   class Room
-  Container <-- Room
-%%   Room o-- Interactable
+  CreatureContainer <|.. Room
+  ItemContainer <|.. Room
 
-Examinable <-- Container
-Taggable <-- Container
+  TaggedExaminable <|-- CreatureContainer
+  TaggedExaminable <|-- ItemContainer
 
-class Creature
-class Player
-class Monster
+  class ICreature
+  <<interface>> ICreature
+  class INonPlayerCharacter
+  <<interface>> INonPlayerCharacter
+  class IMonster
+  <<interface>> IMonster
 
-Examinable <-- Creature
-Taggable <-- Creature
-Room o-- Creature
+  TaggedExaminable <|-- ICreature
 
-Creature <-- Player
-Creature <-- Monster
+  ICreature <|-- INonPlayerCharacter
+  INonPlayerCharacter <|-- IMonster
 
-Container <-- Inventory
-Inventory <-- Creature
+  class Creature
+  <<abstract>> Creature
+  class NonPlayerCharacter
+  class Monster
+  class DungeonMaster
+  class Player
+
+  ICreature <|.. Creature
+  CreatureContainer o-- ICreature
+
+
+  Creature <|.. Player
+  Creature <|.. NonPlayerCharacter
+  INonPlayerCharacter <|.. NonPlayerCharacter
+  NonPlayerCharacter <|-- Monster
+  IMonster <|.. Monster
+  NonPlayerCharacter <|-- DungeonMaster
+
+  Inventory --* ICreature
 
 
 ```
