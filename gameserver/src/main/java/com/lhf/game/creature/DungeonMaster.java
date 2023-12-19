@@ -5,7 +5,7 @@ import com.lhf.game.creature.vocation.DMV;
 
 public class DungeonMaster extends NonPlayerCharacter {
 
-    public static class DungeonMasterBuilder extends NonPlayerCharacter.AbstractNPCBuilder<DungeonMasterBuilder> {
+    public static class DungeonMasterBuilder extends INonPlayerCharacter.AbstractNPCBuilder<DungeonMasterBuilder> {
         private DungeonMasterBuilder(AIRunner aiRunner) {
             super(aiRunner);
             this.setVocation(new DMV());
@@ -22,8 +22,14 @@ public class DungeonMaster extends NonPlayerCharacter {
             return new DungeonMasterBuilder(aiRunner);
         }
 
+        @Override
         public DungeonMaster build() {
-            return this.register(new DungeonMaster(this));
+            return this.register(this.preEnforcedRegistrationBuild());
+        }
+
+        @Override
+        protected DungeonMaster preEnforcedRegistrationBuild() {
+            return new DungeonMaster(this);
         }
     }
 

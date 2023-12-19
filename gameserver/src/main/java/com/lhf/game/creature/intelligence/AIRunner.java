@@ -1,6 +1,6 @@
 package com.lhf.game.creature.intelligence;
 
-import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.INonPlayerCharacter;
 
 /**
  * This interface is meant to give a thread control of a BasicAI.
@@ -50,5 +50,5 @@ public interface AIRunner extends Runnable {
      * @return null if cannot be registered, or populated if can be or is already
      *         registered
      */
-    public BasicAI register(NonPlayerCharacter npc, AIHandler... handlers);
+    public BasicAI register(INonPlayerCharacter npc, AIHandler... handlers);
 }

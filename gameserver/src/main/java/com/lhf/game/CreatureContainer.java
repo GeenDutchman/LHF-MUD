@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.lhf.Examinable;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
@@ -24,15 +24,15 @@ public interface CreatureContainer extends Examinable, ClientMessengerHub {
      * 
      * @return Immutable Collection
      */
-    public abstract Collection<Creature> getCreatures();
+    public abstract Collection<ICreature> getCreatures();
 
-    public abstract boolean onCreatureDeath(Creature creature);
+    public abstract boolean onCreatureDeath(ICreature creature);
 
-    public abstract boolean addCreature(Creature creature);
+    public abstract boolean addCreature(ICreature creature);
 
-    public abstract Optional<Creature> removeCreature(String name);
+    public abstract Optional<ICreature> removeCreature(String name);
 
-    public abstract boolean removeCreature(Creature creature);
+    public abstract boolean removeCreature(ICreature creature);
 
     public abstract boolean addPlayer(Player player);
 
@@ -46,10 +46,10 @@ public interface CreatureContainer extends Examinable, ClientMessengerHub {
         NAME, FACTION, VOCATION, TYPE, BATTLING;
     }
 
-    public default Collection<Creature> filterCreatures(EnumSet<Filters> filters, String name, Integer nameRegexLen,
-            CreatureFaction faction, VocationName vocation, Class<? extends Creature> clazz, Boolean isBattling) {
-        Collection<Creature> retrieved = this.getCreatures();
-        Supplier<Collection<Creature>> sortSupplier = () -> new TreeSet<Creature>();
+    public default Collection<ICreature> filterCreatures(EnumSet<Filters> filters, String name, Integer nameRegexLen,
+            CreatureFaction faction, VocationName vocation, Class<? extends ICreature> clazz, Boolean isBattling) {
+        Collection<ICreature> retrieved = this.getCreatures();
+        Supplier<Collection<ICreature>> sortSupplier = () -> new TreeSet<ICreature>();
         return Collections.unmodifiableCollection(retrieved.stream()
                 .filter(creature -> creature != null)
                 .filter(creature -> !filters.contains(Filters.NAME)
@@ -71,20 +71,20 @@ public interface CreatureContainer extends Examinable, ClientMessengerHub {
                 .collect(Collectors.toCollection(sortSupplier)));
     }
 
-    public default Optional<Creature> getCreature(String name) {
+    public default Optional<ICreature> getCreature(String name) {
         return this.filterCreatures(EnumSet.of(Filters.NAME), name, null, null, null, null, null).stream().findFirst();
     }
 
-    public default Collection<Creature> getCreaturesLike(String name) {
+    public default Collection<ICreature> getCreaturesLike(String name) {
         return this.filterCreatures(EnumSet.of(Filters.NAME), name, null, null, null, null, null);
     }
 
-    public default Collection<Creature> getPlayers() {
+    public default Collection<ICreature> getPlayers() {
         return this.filterCreatures(EnumSet.of(Filters.TYPE), null, null, null, null, Player.class, null);
     }
 
     public default Optional<Player> getPlayer(UserID id) {
-        Optional<Creature> asCreature = this.getPlayers().stream().filter(
+        Optional<ICreature> asCreature = this.getPlayers().stream().filter(
                 creature -> creature != null && creature instanceof Player && ((Player) creature).getId().equals(id))
                 .findFirst();
         if (asCreature.isPresent()) {
@@ -94,7 +94,7 @@ public interface CreatureContainer extends Examinable, ClientMessengerHub {
     }
 
     public default Optional<Player> getPlayer(String name) {
-        Optional<Creature> asCreature = this
+        Optional<ICreature> asCreature = this
                 .filterCreatures(EnumSet.of(Filters.TYPE, Filters.NAME), name, null, null, null, Player.class, null)
                 .stream().findFirst();
         if (asCreature.isPresent()) {
@@ -111,7 +111,7 @@ public interface CreatureContainer extends Examinable, ClientMessengerHub {
         return this.hasCreature(name, 3);
     }
 
-    public default boolean hasCreature(Creature creature) {
+    public default boolean hasCreature(ICreature creature) {
         return this.getCreatures().contains(creature);
     }
 

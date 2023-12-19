@@ -3,7 +3,7 @@ package com.lhf.messages.out;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
@@ -11,12 +11,12 @@ import com.lhf.game.enums.Stats;
 import com.lhf.messages.OutMessageType;
 
 public class CreatureAffectedMessage extends OutMessage {
-    private final Creature affected;
+    private final ICreature affected;
     private final CreatureEffect effect;
     private final boolean reversed;
 
     public static class Builder extends OutMessage.Builder<Builder> {
-        private Creature affected;
+        private ICreature affected;
         private CreatureEffect effect;
         private boolean reversed;
 
@@ -24,11 +24,11 @@ public class CreatureAffectedMessage extends OutMessage {
             super(OutMessageType.CREATURE_AFFECTED);
         }
 
-        public Creature getAffected() {
+        public ICreature getAffected() {
             return affected;
         }
 
-        public Builder setAffected(Creature affected) {
+        public Builder setAffected(ICreature affected) {
             this.affected = affected;
             return this;
         }
@@ -78,7 +78,7 @@ public class CreatureAffectedMessage extends OutMessage {
         return !this.affected.isAlive();
     }
 
-    public Creature getAffected() {
+    public ICreature getAffected() {
         return affected;
     }
 

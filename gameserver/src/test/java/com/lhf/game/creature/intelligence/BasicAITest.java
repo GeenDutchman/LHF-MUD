@@ -19,7 +19,7 @@ import com.google.common.truth.Truth8;
 import com.lhf.Taggable;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.CreatureEffect;
-import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.enums.CreatureFaction;
@@ -53,7 +53,7 @@ public class BasicAITest {
         @Test
         void testBasicConversation() {
                 AIComBundle listener = new AIComBundle();
-                ClientMessenger speaker = Mockito.mock(NonPlayerCharacter.class);
+                ClientMessenger speaker = Mockito.mock(INonPlayerCharacter.class);
                 Mockito.when(speaker.getColorTaggedName()).thenReturn("<npc>Joe Speaker</npc>");
                 Mockito.when(speaker.getStartTag()).thenReturn("<npc>");
                 Mockito.when(speaker.getEndTag()).thenReturn("</npc>");
@@ -81,7 +81,7 @@ public class BasicAITest {
                 AIComBundle attacker = new AIComBundle();
                 attacker.npc.setFaction(CreatureFaction.RENEGADE);
 
-                Attack attack = attacker.npc.attack(attacker.npc.getWeapon());
+                Attack attack = attacker.npc.attack(attacker.npc.defaultWeapon());
                 CreatureEffect effect = attack.getEffects().stream().findFirst().get();
                 CreatureAffectedMessage adm = CreatureAffectedMessage.getBuilder().setAffected(victim.npc)
                                 .setEffect(effect)

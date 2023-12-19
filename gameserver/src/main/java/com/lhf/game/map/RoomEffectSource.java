@@ -9,7 +9,7 @@ import java.util.StringJoiner;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffectSource;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.Item;
 
 public class RoomEffectSource extends EntityEffectSource {
@@ -18,9 +18,9 @@ public class RoomEffectSource extends EntityEffectSource {
 
     protected List<Item> itemsToBanish;
 
-    protected Set<Creature> creaturesToSummon;
+    protected Set<ICreature> creaturesToSummon;
 
-    protected Set<Creature> creaturesToBanish;
+    protected Set<ICreature> creaturesToBanish;
 
     public RoomEffectSource(RoomEffectSource other) {
         super(other.name, other.persistence, other.resistance, other.description);
@@ -49,12 +49,12 @@ public class RoomEffectSource extends EntityEffectSource {
         return this;
     }
 
-    public RoomEffectSource addCreatureToSummon(Creature toSummon) {
+    public RoomEffectSource addCreatureToSummon(ICreature toSummon) {
         this.creaturesToSummon.add(toSummon);
         return this;
     }
 
-    public RoomEffectSource addCreatureToBanish(Creature toBanish) {
+    public RoomEffectSource addCreatureToBanish(ICreature toBanish) {
         this.creaturesToBanish.add(toBanish);
         return this;
     }
@@ -67,11 +67,11 @@ public class RoomEffectSource extends EntityEffectSource {
         return itemsToBanish;
     }
 
-    public Set<Creature> getCreaturesToSummon() {
+    public Set<ICreature> getCreaturesToSummon() {
         return creaturesToSummon;
     }
 
-    public Set<Creature> getCreaturesToBanish() {
+    public Set<ICreature> getCreaturesToBanish() {
         return creaturesToBanish;
     }
 
@@ -89,11 +89,11 @@ public class RoomEffectSource extends EntityEffectSource {
                 (this.creaturesToSummon != null ? this.creaturesToSummon.size() : 0);
     }
 
-    private void printCreatures(StringBuilder sb, Set<Creature> creatures, String action) {
+    private void printCreatures(StringBuilder sb, Set<ICreature> creatures, String action) {
         if (creatures.size() > 0) {
             sb.append("Creatures it will ").append(action).append(":\r\n");
             StringJoiner sj = new StringJoiner(", ");
-            for (Creature creature : creatures) {
+            for (ICreature creature : creatures) {
                 sj.add(creature.getColorTaggedName());
             }
             sb.append(sj.toString()).append("\r\n");

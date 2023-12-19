@@ -29,7 +29,7 @@ import com.lhf.game.ItemContainer;
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleManager;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.InteractObject;
@@ -80,7 +80,7 @@ public class Room implements Area {
     private String description;
     private String name;
     private BattleManager battleManager;
-    private Set<Creature> allCreatures;
+    private Set<ICreature> allCreatures;
     private transient Land dungeon;
     private transient TreeSet<RoomEffect> effects;
     private transient Set<UUID> sentMessage;
@@ -93,7 +93,7 @@ public class Room implements Area {
         private String name;
         private String description;
         private List<Item> items;
-        private Set<Creature> creatures;
+        private Set<ICreature> creatures;
         private Land dungeon;
         private MessageChainHandler successor;
         private BattleManager.Builder battleManagerBuilder;
@@ -131,7 +131,7 @@ public class Room implements Area {
             return this;
         }
 
-        public RoomBuilder addCreature(Creature creature) {
+        public RoomBuilder addCreature(ICreature creature) {
             if (this.creatures == null) {
                 this.creatures = new HashSet<>();
             }
@@ -152,7 +152,7 @@ public class Room implements Area {
         }
 
         @Override
-        public Collection<Creature> getCreatures() {
+        public Collection<ICreature> getCreatures() {
             return this.creatures;
         }
 
@@ -196,7 +196,7 @@ public class Room implements Area {
         this.description = builder.getDescription() != null ? builder.getDescription() : builder.getName();
         this.items = new ArrayList<>(builder.getItems());
         this.allCreatures = new TreeSet<>(builder.getCreatures());
-        for (Creature c : this.allCreatures) {
+        for (ICreature c : this.allCreatures) {
             c.setSuccessor(this);
         }
         this.dungeon = builder.getLand();
@@ -263,12 +263,12 @@ public class Room implements Area {
     }
 
     @Override
-    public Set<Creature> getCreatures() {
+    public Set<ICreature> getCreatures() {
         return Collections.unmodifiableSet(this.allCreatures);
     }
 
     @Override
-    public boolean addCreature(Creature c) {
+    public boolean addCreature(ICreature c) {
         c.setSuccessor(this);
         boolean added = this.allCreatures.add(c);
         if (added) {
@@ -283,8 +283,8 @@ public class Room implements Area {
     }
 
     @Override
-    public Optional<Creature> removeCreature(String name) {
-        Optional<Creature> found = this.getCreature(name);
+    public Optional<ICreature> removeCreature(String name) {
+        Optional<ICreature> found = this.getCreature(name);
         if (found.isPresent()) {
             this.removeCreature(found.get());
         }
@@ -292,7 +292,7 @@ public class Room implements Area {
     }
 
     @Override
-    public boolean removeCreature(Creature c) {
+    public boolean removeCreature(ICreature c) {
         if (this.battleManager.hasCreature(c)) {
             this.battleManager.removeCreature(c);
             c.setInBattle(false);
@@ -307,7 +307,7 @@ public class Room implements Area {
     }
 
     @Override
-    public Creature removeCreature(Creature c, Directions dir) {
+    public ICreature removeCreature(ICreature c, Directions dir) {
         boolean removed = removeCreature(c);
         if (removed) {
             this.announce(SomeoneLeftRoom.getBuilder().setLeaveTaker(c).setWhichWay(dir).Build());
@@ -344,11 +344,11 @@ public class Room implements Area {
     }
 
     @Override
-    public boolean onCreatureDeath(Creature creature) {
+    public boolean onCreatureDeath(ICreature creature) {
         boolean removed = this.removeCreature(creature);
         if (removed) {
             this.logger.log(Level.FINER, () -> String.format("The creature '%s' has died", creature.getName()));
-            Corpse corpse = Creature.die(creature);
+            Corpse corpse = ICreature.die(creature);
             this.addItem(corpse);
         }
         removed = this.dungeon.onCreatureDeath(creature) || removed;
@@ -493,7 +493,7 @@ public class Room implements Area {
         for (Item item : roomEffect.getItemsToSummon()) {
             this.addItem(item);
         }
-        for (Creature creature : roomEffect.getCreaturesToSummon()) {
+        for (ICreature creature : roomEffect.getCreaturesToSummon()) {
             this.addCreature(creature);
         }
         return RoomAffectedMessage.getBuilder().setRoom(this).setEffect(roomEffect).Build();
@@ -545,8 +545,8 @@ public class Room implements Area {
         return ctx;
     }
 
-    public interface RoomCommandHandler extends Creature.CreatureCommandHandler {
-        final static Predicate<CommandContext> defaultRoomPredicate = Creature.CreatureCommandHandler.defaultCreaturePredicate
+    public interface RoomCommandHandler extends ICreature.CreatureCommandHandler {
+        final static Predicate<CommandContext> defaultRoomPredicate = ICreature.CreatureCommandHandler.defaultCreaturePredicate
                 .and(ctx -> ctx.getRoom() != null);
         final static Predicate<CommandContext> defaultNoBattlePredicate = RoomCommandHandler.defaultRoomPredicate
                 .and(ctx -> !ctx.getCreature().isInBattle());
@@ -930,10 +930,10 @@ public class Room implements Area {
             if (cmd != null && cmd.getType() == CommandMessage.SEE && cmd instanceof SeeMessage sMessage) {
                 if (sMessage.getThing() != null && !sMessage.getThing().isBlank()) {
                     String name = sMessage.getThing();
-                    Collection<Creature> found = Room.this.getCreaturesLike(name);
+                    Collection<ICreature> found = Room.this.getCreaturesLike(name);
                     // we should be able to see people in a fight
                     if (found.size() == 1) {
-                        ArrayList<Creature> foundList = new ArrayList<Creature>(found);
+                        ArrayList<ICreature> foundList = new ArrayList<ICreature>(found);
                         ctx.sendMsg(((SeeOutMessage.Builder) foundList.get(0).produceMessage().copyBuilder())
                                 .addExtraInfo("They are in the room with you. ").Build());
                         return ctx.handled();
@@ -955,7 +955,7 @@ public class Room implements Area {
                     }
 
                     if (ctx.getCreature() != null) {
-                        Creature creature = ctx.getCreature();
+                        ICreature creature = ctx.getCreature();
                         for (Item thing : creature.getEquipmentSlots().values()) {
                             if (thing.CheckNameRegex(name, 3)) {
                                 if (thing instanceof Examinable) {
@@ -1033,7 +1033,7 @@ public class Room implements Area {
                         .setMessage(sMessage.getMessage());
                 if (sMessage.getTarget() != null) {
                     boolean sent = false;
-                    Optional<Creature> optTarget = Room.this.getCreature(sMessage.getTarget());
+                    Optional<ICreature> optTarget = Room.this.getCreature(sMessage.getTarget());
                     if (optTarget.isPresent()) {
                         ClientMessenger sayer = ctx;
                         if (ctx.getCreature() != null) {
@@ -1041,7 +1041,7 @@ public class Room implements Area {
                         } else if (ctx.getUser() != null) {
                             sayer = ctx.getUser();
                         }
-                        Creature target = optTarget.get();
+                        ICreature target = optTarget.get();
                         speakMessage.setSayer(sayer).setHearer(target);
                         target.sendMsg(speakMessage.Build());
                         sent = true;
@@ -1108,10 +1108,10 @@ public class Room implements Area {
                     usable.doUseAction(ctx, ctx.getCreature());
                     return ctx.handled();
                 }
-                Collection<Creature> maybeCreature = Room.this.getCreaturesLike(useMessage.getTarget());
+                Collection<ICreature> maybeCreature = Room.this.getCreaturesLike(useMessage.getTarget());
                 if (maybeCreature.size() == 1) {
-                    List<Creature> creatureList = new ArrayList<>(maybeCreature);
-                    Creature targetCreature = creatureList.get(0);
+                    List<ICreature> creatureList = new ArrayList<>(maybeCreature);
+                    ICreature targetCreature = creatureList.get(0);
                     // if we aren't in battle, but our target is in battle, join the battle
                     if (!ctx.getCreature().isInBattle() && targetCreature.isInBattle()) {
                         Room.this.battleManager.addCreature(ctx.getCreature());

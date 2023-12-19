@@ -3,7 +3,7 @@ package com.lhf.messages.out;
 import java.util.Objects;
 import java.util.UUID;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.messages.OutMessageType;
 
 public abstract class OutMessage implements Comparable<OutMessage> {
@@ -71,7 +71,7 @@ public abstract class OutMessage implements Comparable<OutMessage> {
         return this.broadcast;
     }
 
-    protected String addressCreature(Creature creature, boolean capitalize) {
+    protected String addressCreature(ICreature creature, boolean capitalize) {
         if (!this.isBroadcast()) {
             return capitalize ? "You" : "you";
         } else if (creature != null) {
@@ -81,7 +81,7 @@ public abstract class OutMessage implements Comparable<OutMessage> {
         }
     }
 
-    protected String possesiveCreature(Creature creature, boolean capitalize) {
+    protected String possesiveCreature(ICreature creature, boolean capitalize) {
         if (!this.isBroadcast()) {
             return capitalize ? "Your" : "your";
         } else if (creature != null) {

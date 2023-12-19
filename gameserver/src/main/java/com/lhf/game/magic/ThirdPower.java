@@ -21,7 +21,7 @@ import com.lhf.Taggable;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.battle.BattleManager.PooledBattleManagerCommandHandler;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.VocationFactory;
@@ -95,7 +95,7 @@ public class ThirdPower implements MessageChainHandler {
             if (!(ctx.getDungeon() != null || ctx.getRoom() instanceof DMRoom)) {
                 return false;
             }
-            Creature attempter = ctx.getCreature();
+            ICreature attempter = ctx.getCreature();
             if (attempter == null) {
                 return false;
             }
@@ -135,13 +135,13 @@ public class ThirdPower implements MessageChainHandler {
         }
 
         private CommandContext.Reply affectCreatures(CommandContext ctx, ISpell<CreatureEffect> spell,
-                Collection<Creature> targets) {
-            final Creature caster = ctx.getCreature();
+                Collection<ICreature> targets) {
+            final ICreature caster = ctx.getCreature();
             final BattleManager battleManager = ctx.getBattleManager();
             final CubeHolder vocation = caster.getVocation() instanceof CubeHolder ? (CubeHolder) caster.getVocation()
                     : null;
 
-            for (Creature target : targets) {
+            for (ICreature target : targets) {
                 if (spell.isOffensive() && battleManager != null) {
                     battleManager.checkAndHandleTurnRenegade(caster, target);
                     if (!battleManager.hasCreature(target)) {
@@ -181,7 +181,7 @@ public class ThirdPower implements MessageChainHandler {
                 CastHandler.logger.log(Level.SEVERE, "Cannot target creatures with null message or entry");
                 return ctx.failhandle();
             }
-            Creature caster = ctx.getCreature();
+            ICreature caster = ctx.getCreature();
             Room localRoom = ctx.getRoom();
             if (caster == null || localRoom == null) {
                 ctx.sendMsg(SpellFizzleMessage.getBuilder().setAttempter(caster)
@@ -190,9 +190,9 @@ public class ThirdPower implements MessageChainHandler {
             }
             final CreatureTargetingSpell spell = new CreatureTargetingSpell(entry, caster);
 
-            List<Creature> possTargets = new ArrayList<>();
+            List<ICreature> possTargets = new ArrayList<>();
             for (String targetName : casting.getTargets()) {
-                List<Creature> found = new ArrayList<>(localRoom.getCreaturesLike(targetName));
+                List<ICreature> found = new ArrayList<>(localRoom.getCreaturesLike(targetName));
                 if (found.size() > 1 || found.size() == 0) {
                     CastHandler.logger.log(Level.WARNING,
                             () -> String.format("Searching for '%s' got '%s', cannot continue selecting targets",
@@ -232,7 +232,7 @@ public class ThirdPower implements MessageChainHandler {
                 CastHandler.logger.log(Level.SEVERE, "Cannot target creatures AOE with null message or entry");
                 return ctx.failhandle();
             }
-            final Creature caster = ctx.getCreature();
+            final ICreature caster = ctx.getCreature();
             final Room localRoom = ctx.getRoom();
             if (caster == null || localRoom == null) {
                 ctx.sendMsg(SpellFizzleMessage.getBuilder().setAttempter(caster)
@@ -246,8 +246,8 @@ public class ThirdPower implements MessageChainHandler {
                     entry.isOffensive());
             CreatureAOESpell spell = new CreatureAOESpell(entry, caster, upcasted);
 
-            Set<Creature> targets = new HashSet<>();
-            for (Creature possTarget : localRoom.getCreatures()) {
+            Set<ICreature> targets = new HashSet<>();
+            for (ICreature possTarget : localRoom.getCreatures()) {
                 if (possTarget.equals(caster)) {
                     if (upcasted.isCasterTargeted()) {
                         targets.add(caster);
@@ -289,7 +289,7 @@ public class ThirdPower implements MessageChainHandler {
         }
 
         private CommandContext.Reply affectRoom(CommandContext ctx, ISpell<? extends RoomEffect> spell) {
-            final Creature caster = ctx.getCreature();
+            final ICreature caster = ctx.getCreature();
 
             CastHandler.logger.log(Level.FINE, "Applying individual effects");
             for (RoomEffect effect : spell) {
@@ -322,7 +322,7 @@ public class ThirdPower implements MessageChainHandler {
                 return ctx.failhandle();
             }
 
-            final Creature caster = ctx.getCreature();
+            final ICreature caster = ctx.getCreature();
             final Room localRoom = ctx.getRoom();
             if (caster == null || localRoom == null || !(localRoom instanceof DMRoom)) {
                 ctx.sendMsg(SpellFizzleMessage.getBuilder().setAttempter(caster)
@@ -393,7 +393,7 @@ public class ThirdPower implements MessageChainHandler {
                 CastHandler.logger.log(Level.SEVERE, "Cannot target Room with null message or entry");
                 return ctx.handled();
             }
-            final Creature caster = ctx.getCreature();
+            final ICreature caster = ctx.getCreature();
             final Room localRoom = ctx.getRoom();
             if (caster == null || localRoom == null) {
                 ctx.sendMsg(SpellFizzleMessage.getBuilder().setAttempter(caster)
@@ -417,7 +417,7 @@ public class ThirdPower implements MessageChainHandler {
         }
 
         private SpellEntry getEntry(CommandContext ctx, CastMessage casting) {
-            final Creature caster = ctx.getCreature();
+            final ICreature caster = ctx.getCreature();
             final Vocation casterVocation = caster.getVocation();
 
             NavigableSet<SpellEntry> foundByInvocation = ThirdPower.this.spellbook.filter(
@@ -438,7 +438,7 @@ public class ThirdPower implements MessageChainHandler {
         }
 
         private CommandContext.Reply handleCast(CommandContext ctx, CastMessage casting) {
-            Creature caster = ctx.getCreature();
+            ICreature caster = ctx.getCreature();
 
             SpellEntry entry = this.getEntry(ctx, casting);
             if (entry == null) {
@@ -475,7 +475,7 @@ public class ThirdPower implements MessageChainHandler {
                             .setHelps(ctx.getHelps()).setCommand(castmessage).Build());
                     return ctx.handled();
                 }
-                Creature attempter = ctx.getCreature();
+                ICreature attempter = ctx.getCreature();
                 if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
                     SpellFizzleMessage.Builder spellFizzle = SpellFizzleMessage.getBuilder()
                             .setSubType(SpellFizzleType.NOT_CASTER).setAttempter(attempter).setNotBroadcast();
@@ -529,7 +529,7 @@ public class ThirdPower implements MessageChainHandler {
         @Override
         public Reply handle(CommandContext ctx, Command cmd) {
             SpellbookMessage spellbookMessage = (SpellbookMessage) cmd;
-            Creature caster = ctx.getCreature();
+            ICreature caster = ctx.getCreature();
             if (caster.getVocation() == null || !(caster.getVocation() instanceof CubeHolder)) {
                 SpellEntryMessage.Builder notCaster = SpellEntryMessage.getBuilder().setNotCubeHolder()
                         .setNotBroadcast();

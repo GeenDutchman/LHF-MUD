@@ -19,7 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.EntityEffect;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 import com.lhf.messages.ClientMessenger;
@@ -148,14 +148,14 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public boolean addCreature(Creature creature) {
+    public boolean addCreature(ICreature creature) {
         this.startingRoom
                 .announce(SpawnMessage.getBuilder().setUsername(creature.getColorTaggedName()).setBroacast().Build());
         creature.setSuccessor(this);
         return startingRoom.addCreature(creature);
     }
 
-    public boolean addCreature(Creature creature, UUID roomUUID) {
+    public boolean addCreature(ICreature creature, UUID roomUUID) {
         if (this.mapping.containsKey(roomUUID)) {
             AreaDirectionalLinks roomAndDirs = this.mapping.get(roomUUID);
             roomAndDirs.getArea()
@@ -167,7 +167,7 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public Optional<Creature> removeCreature(String name) {
+    public Optional<ICreature> removeCreature(String name) {
         Area room = this.getCreatureArea(name);
         if (room == null) {
             return Optional.empty();
@@ -176,7 +176,7 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public boolean removeCreature(Creature creature) {
+    public boolean removeCreature(ICreature creature) {
         Area room = this.getCreatureArea(creature);
         if (room == null) {
             return false;
@@ -196,7 +196,7 @@ public class Dungeon implements Land {
     }
 
     public Set<UserID> getPlayersInRoom(UserID id) {
-        Collection<Creature> players = Objects.requireNonNull(getPlayerArea(id)).getPlayers();
+        Collection<ICreature> players = Objects.requireNonNull(getPlayerArea(id)).getPlayers();
         Set<UserID> ids = new TreeSet<>();
         players.forEach(player -> {
             if (player instanceof Player) {
@@ -207,7 +207,7 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public boolean onCreatureDeath(Creature creature) {
+    public boolean onCreatureDeath(ICreature creature) {
         boolean removed = this.removeCreature(creature);
 
         if (creature != null && creature instanceof Player) {

@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.logging.Level;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.Command;
@@ -16,7 +16,7 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
 
 public class LewdAIHandler extends AIHandler {
-    private Set<Creature> partners;
+    private Set<ICreature> partners;
     private boolean partnersOnly;
     private boolean stayInAfter;
 
@@ -27,7 +27,7 @@ public class LewdAIHandler extends AIHandler {
         this.stayInAfter = false;
     }
 
-    public LewdAIHandler(Set<Creature> partners) {
+    public LewdAIHandler(Set<ICreature> partners) {
         super(OutMessageType.LEWD);
         this.partners = partners;
         this.partnersOnly = true;
@@ -54,7 +54,7 @@ public class LewdAIHandler extends AIHandler {
         return this;
     }
 
-    public LewdAIHandler addPartner(Creature partner) {
+    public LewdAIHandler addPartner(ICreature partner) {
         if (partner != null) {
             this.partners.add(partner);
         }
@@ -69,7 +69,7 @@ public class LewdAIHandler extends AIHandler {
             return; // we're the one who sent it
         }
         StringJoiner sj = new StringJoiner(", ");
-        for (Creature partyCreature : lom.getParticipants().keySet()) {
+        for (ICreature partyCreature : lom.getParticipants().keySet()) {
             if (this.partnersOnly) {
                 if (!this.partners.contains(partyCreature) // if they aren't our partner
                         && partyCreature != bai.getNpc()) { // or us

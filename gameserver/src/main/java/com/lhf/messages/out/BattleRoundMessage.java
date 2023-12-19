@@ -5,7 +5,7 @@ import java.util.StringJoiner;
 import com.lhf.messages.ITickMessage;
 import com.lhf.messages.OutMessageType;
 import com.lhf.game.TickType;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 
 public class BattleRoundMessage extends OutMessage implements ITickMessage {
     public enum RoundAcceptance {
@@ -14,12 +14,12 @@ public class BattleRoundMessage extends OutMessage implements ITickMessage {
 
     private final RoundAcceptance needSubmission;
     private final Integer roundCount;
-    protected final Creature about;
+    protected final ICreature about;
 
     public static class Builder extends OutMessage.Builder<Builder> {
         private RoundAcceptance needSubmission;
         private Integer roundCount;
-        private Creature aboutCreature;
+        private ICreature aboutCreature;
 
         protected Builder() {
             super(OutMessageType.BATTLE_ROUND);
@@ -52,11 +52,11 @@ public class BattleRoundMessage extends OutMessage implements ITickMessage {
             return roundCount;
         }
 
-        public Creature getAboutCreature() {
+        public ICreature getAboutCreature() {
             return aboutCreature;
         }
 
-        public Builder setAboutCreature(Creature aboutCreature) {
+        public Builder setAboutCreature(ICreature aboutCreature) {
             this.aboutCreature = aboutCreature;
             return this;
         }
@@ -162,7 +162,7 @@ public class BattleRoundMessage extends OutMessage implements ITickMessage {
         return needSubmission;
     }
 
-    public Creature getAbout() {
+    public ICreature getAbout() {
         return about;
     }
 

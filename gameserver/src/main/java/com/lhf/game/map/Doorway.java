@@ -2,7 +2,7 @@ package com.lhf.game.map;
 
 import java.util.UUID;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 
 class Doorway {
@@ -41,7 +41,7 @@ class Doorway {
         return null;
     }
 
-    public boolean canTraverse(Creature creature, Directions whichWay) {
+    public boolean canTraverse(ICreature creature, Directions whichWay) {
         return true;
     }
 

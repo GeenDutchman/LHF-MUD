@@ -3,7 +3,7 @@ package com.lhf.game.map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 
 class CloseableDoorway extends Doorway {
@@ -37,7 +37,7 @@ class CloseableDoorway extends Doorway {
     }
 
     @Override
-    public boolean canTraverse(Creature creature, Directions whichWay) {
+    public boolean canTraverse(ICreature creature, Directions whichWay) {
         if (!this.isOpen()) {
             return false;
         }

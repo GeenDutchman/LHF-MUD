@@ -3,7 +3,7 @@ package com.lhf.game.item;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.interfaces.UseAction;
 import com.lhf.game.map.Room;
 import com.lhf.messages.CommandContext;
@@ -69,16 +69,16 @@ public class Usable extends Takeable {
                 // general to all Items
                 method = methods.get(Item.class.getName());
             }
-        } else if (usingOn instanceof Creature) {
+        } else if (usingOn instanceof ICreature) {
             // specific to that Creature
-            method = methods.get(((Creature) usingOn).getName());
+            method = methods.get(((ICreature) usingOn).getName());
             if (method == null) {
                 // specific to CreatureType
-                method = methods.get(((Creature) usingOn).getFaction().toString());
+                method = methods.get(((ICreature) usingOn).getFaction().toString());
             }
             if (method == null) {
                 // general to all Creatures
-                method = methods.get(Creature.class.getName());
+                method = methods.get(ICreature.class.getName());
             }
         } else if (usingOn instanceof Room) {
             // specific to that Room

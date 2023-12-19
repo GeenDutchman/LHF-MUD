@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.lhf.game.EntityEffectSource;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.Directions;
 import com.lhf.game.map.DungeonEffect;
 import com.lhf.game.map.DungeonEffectSource;
@@ -18,7 +18,7 @@ public class DungeonTargetingSpell extends ISpell<DungeonEffect> {
     protected String createdRoomDescription;
     protected Room createdRoom;
 
-    public DungeonTargetingSpell(DungeonTargetingSpellEntry entry, Creature caster, String createdRoomName,
+    public DungeonTargetingSpell(DungeonTargetingSpellEntry entry, ICreature caster, String createdRoomName,
             Directions toCreatedRoom) {
         super(entry, caster);
         this.createdRoomName = createdRoomName;
@@ -27,7 +27,7 @@ public class DungeonTargetingSpell extends ISpell<DungeonEffect> {
         this.createdRoom = null;
     }
 
-    public DungeonTargetingSpell(DungeonTargetingSpellEntry entry, Creature caster, String createdRoomName,
+    public DungeonTargetingSpell(DungeonTargetingSpellEntry entry, ICreature caster, String createdRoomName,
             Directions toCreatedRoom,
             String createdRoomDescription) {
         super(entry, caster);

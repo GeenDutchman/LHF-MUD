@@ -1,14 +1,14 @@
 package com.lhf.game.map;
 
 import com.lhf.Taggable;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation;
 
 public class DMRoomEffect extends RoomEffect {
     private final String ensoulUsername;
     private final Vocation vocation;
 
-    public DMRoomEffect(DMRoomEffectSource source, Creature creatureResponsible, Taggable generatedBy,
+    public DMRoomEffect(DMRoomEffectSource source, ICreature creatureResponsible, Taggable generatedBy,
             String ensoulUsername, Vocation vocation) {
         super(source, creatureResponsible, generatedBy);
         if (source.isEnsoulsUserAndSend()) {

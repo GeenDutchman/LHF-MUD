@@ -6,17 +6,11 @@ import java.util.Objects;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.game.enums.MonsterAI;
 
-public class Monster extends NonPlayerCharacter {
-    public static final String defaultConvoTreeName = "non_verbal_default";
+public class Monster extends NonPlayerCharacter implements IMonster {
     private final long monsterNumber;
-    private boolean activelyHostile;
 
-    private MonsterAI aiType;
-
-    public static class MonsterBuilder extends NonPlayerCharacter.AbstractNPCBuilder<MonsterBuilder> {
-        private boolean activelyHostile;
+    public static class MonsterBuilder extends INonPlayerCharacter.AbstractNPCBuilder<MonsterBuilder> {
         private static long serialNumber = 0;
         private long monsterNumber = 0;
 
@@ -37,18 +31,9 @@ public class Monster extends NonPlayerCharacter {
         @Override
         public MonsterBuilder useDefaultConversation(ConversationManager convoManager) throws FileNotFoundException {
             if (convoManager != null) {
-                this.setConversationTree(convoManager.convoTreeFromFile(Monster.defaultConvoTreeName));
+                this.setConversationTree(convoManager.convoTreeFromFile(IMonster.defaultConvoTreeName));
             }
             return this.getThis();
-        }
-
-        public MonsterBuilder setHostility(boolean activelyHostile) {
-            this.activelyHostile = activelyHostile;
-            return this.getThis();
-        }
-
-        public boolean getHostility() {
-            return this.activelyHostile;
         }
 
         private synchronized void nextSerial() {
@@ -63,7 +48,7 @@ public class Monster extends NonPlayerCharacter {
             return this.monsterNumber;
         }
 
-        protected Monster register(Monster npc) {
+        protected IMonster register(IMonster npc) {
             if (this.getAiRunner() != null) {
                 this.getAiRunner().register(npc, this.getAiHandlersAsArray());
             }
@@ -71,39 +56,25 @@ public class Monster extends NonPlayerCharacter {
         }
 
         @Override
-        public Monster build() {
+        public IMonster build() {
+            return this.register(this.preEnforcedRegistrationBuild());
+        }
+
+        @Override
+        protected IMonster preEnforcedRegistrationBuild() {
             this.nextSerial();
-            return this.register(new Monster(this));
+            return new Monster(this);
         }
     }
 
     public Monster(MonsterBuilder builder) {
         super(builder);
-        this.activelyHostile = builder.getHostility();
         this.monsterNumber = builder.getMonsterNumber();
-        this.aiType = MonsterAI.RANDOM;
         this.setFaction(CreatureFaction.MONSTER);
     }
 
     public static MonsterBuilder getMonsterBuilder(AIRunner aiRunner) {
         return new MonsterBuilder(aiRunner);
-    }
-
-    @Override
-    public void restoreFaction() {
-        this.setFaction(CreatureFaction.MONSTER);
-    }
-
-    public void setAiType(MonsterAI newType) {
-        this.aiType = newType;
-    }
-
-    public void setActivelyHostile(boolean setting) {
-        this.activelyHostile = setting;
-    }
-
-    public boolean isActivelyHostile() {
-        return this.activelyHostile;
     }
 
     @Override
@@ -114,13 +85,18 @@ public class Monster extends NonPlayerCharacter {
             return false;
         if (!super.equals(o))
             return false;
-        Monster monster = (Monster) o;
-        return monsterNumber == monster.monsterNumber;
+        IMonster monster = (IMonster) o;
+        return monsterNumber == monster.getMonsterNumber();
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(monsterNumber) + Objects.hash(this.getName()) * 13;
+    }
+
+    @Override
+    public long getMonsterNumber() {
+        return this.monsterNumber;
     }
 
 }

@@ -8,16 +8,16 @@ import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.TickType;
-import com.lhf.game.creature.Creature;
-import com.lhf.game.creature.Monster;
-import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.IMonster;
+import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.Player;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.TickMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
+import com.lhf.messages.out.TickMessage;
 
 public interface Area
         extends ItemContainer, CreatureContainer, MessageChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
@@ -31,7 +31,7 @@ public interface Area
 
         public abstract Collection<Item> getItems();
 
-        public abstract Collection<Creature> getCreatures();
+        public abstract Collection<ICreature> getCreatures();
 
         public abstract MessageChainHandler getSuccessor();
 
@@ -40,7 +40,7 @@ public interface Area
 
     public abstract UUID getUuid();
 
-    public abstract Creature removeCreature(Creature c, Directions dir);
+    public abstract ICreature removeCreature(ICreature c, Directions dir);
 
     public abstract Land getLand();
 
@@ -66,12 +66,12 @@ public interface Area
                 }
             }
         }
-        for (Creature c : this.getCreatures()) {
+        for (ICreature c : this.getCreatures()) {
             if (c instanceof Player) {
                 seen.addSeen(SeeCategory.PLAYER, c);
-            } else if (c instanceof Monster) {
+            } else if (c instanceof IMonster) {
                 seen.addSeen(SeeCategory.MONSTER, c);
-            } else if (c instanceof NonPlayerCharacter) {
+            } else if (c instanceof INonPlayerCharacter) {
                 seen.addSeen(SeeCategory.NPC, c);
             } else {
                 seen.addSeen(SeeCategory.CREATURE, c);

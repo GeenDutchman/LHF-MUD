@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.lhf.game.battle.BattleManager;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.Room;
 import com.lhf.messages.out.OutMessage;
@@ -18,7 +18,7 @@ import com.lhf.server.client.user.UserID;
 public class CommandContext implements ClientMessenger {
     protected ClientMessenger client;
     protected User user;
-    protected Creature creature;
+    protected ICreature creature;
     protected Room room;
     protected BattleManager bManager;
     protected Dungeon dungeon;
@@ -142,11 +142,11 @@ public class CommandContext implements ClientMessenger {
         return this.client;
     }
 
-    public Creature getCreature() {
+    public ICreature getCreature() {
         return creature;
     }
 
-    public void setCreature(Creature creature) {
+    public void setCreature(ICreature creature) {
         this.creature = creature;
     }
 

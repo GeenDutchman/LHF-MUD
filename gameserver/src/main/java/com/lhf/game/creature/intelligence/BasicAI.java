@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler;
 import com.lhf.game.creature.intelligence.handlers.ForgetOnOtherExit;
 import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
@@ -24,12 +24,12 @@ import com.lhf.server.client.DoNothingSendStrategy;
 import com.lhf.server.interfaces.NotNull;
 
 public class BasicAI extends Client {
-    protected NonPlayerCharacter npc;
+    protected INonPlayerCharacter npc;
     protected Map<OutMessageType, AIChunk> handlers;
     protected BlockingQueue<OutMessage> queue;
     protected AIRunner runner;
 
-    protected BasicAI(NonPlayerCharacter npc, AIRunner runner) {
+    protected BasicAI(INonPlayerCharacter npc, AIRunner runner) {
         super();
         this.queue = new ArrayBlockingQueue<>(32, true);
         this.npc = npc;
@@ -132,7 +132,7 @@ public class BasicAI extends Client {
         }
     }
 
-    public NonPlayerCharacter getNpc() {
+    public INonPlayerCharacter getNpc() {
         return npc;
     }
 

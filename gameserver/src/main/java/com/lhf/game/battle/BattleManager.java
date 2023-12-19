@@ -31,9 +31,9 @@ import java.util.stream.Collectors;
 
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectResistance;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.battle.BattleStats.BattleStatsQuery;
-import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.vocation.Vocation;
@@ -75,13 +75,13 @@ import com.lhf.messages.out.StatsOutMessage;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
 
-public class BattleManager implements CreatureContainer, PooledMessageChainHandler<Creature> {
+public class BattleManager implements CreatureContainer, PooledMessageChainHandler<ICreature> {
     private final static int MAX_POOLED_ACTIONS = 1;
     private final static int MAX_MILLISECONDS = 120000;
     private final static int DEFAULT_MILLISECONDS = 90000;
     private final int roundDurationMilliseconds;
     private final AtomicReference<RoundThread> battleThread;
-    private NavigableMap<Creature, Deque<IPoolEntry>> actionPools;
+    private NavigableMap<ICreature, Deque<IPoolEntry>> actionPools;
     private BattleStats battleStats;
     private Area room;
     private transient MessageChainHandler successor;
@@ -91,7 +91,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
     public static class Builder {
         private int waitMilliseconds;
-        private NavigableMap<Creature, Deque<IPoolEntry>> actionPools;
+        private NavigableMap<ICreature, Deque<IPoolEntry>> actionPools;
 
         public static Builder getInstance() {
             return new Builder();
@@ -107,14 +107,14 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             return this;
         }
 
-        public Builder addCreature(Creature creature) {
+        public Builder addCreature(ICreature creature) {
             if (creature != null) {
                 this.actionPools.put(creature, new LinkedBlockingDeque<>(BattleManager.MAX_POOLED_ACTIONS));
             }
             return this;
         }
 
-        public Builder empool(Creature creature, CommandContext ctx, Command cmd) {
+        public Builder empool(ICreature creature, CommandContext ctx, Command cmd) {
             if (creature != null) {
                 this.addCreature(creature);
                 Deque<IPoolEntry> pool = this.actionPools.get(creature);
@@ -130,7 +130,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             return this;
         }
 
-        public NavigableMap<Creature, Deque<IPoolEntry>> getActionPools() {
+        public NavigableMap<ICreature, Deque<IPoolEntry>> getActionPools() {
             return actionPools;
         }
 
@@ -164,7 +164,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 this.threadLogger.log(Level.INFO, "Running");
                 while (!parentPhaser.isTerminated() && !this.roundPhaser.isTerminated()) {
                     this.threadLogger.log(Level.INFO, () -> String.format("Phase start: %s", this));
-                    Map<Boolean, Set<Creature>> partitions = BattleManager.this.getCreatures().stream()
+                    Map<Boolean, Set<ICreature>> partitions = BattleManager.this.getCreatures().stream()
                             .filter(c -> c != null).collect(Collectors.partitioningBy(
                                     creature -> BattleManager.this.isReadyToFlush(creature), Collectors.toSet()));
                     BattleManager.this.announce(
@@ -213,7 +213,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             }
         }
 
-        public synchronized void register(Creature c) {
+        public synchronized void register(ICreature c) {
             if (c == null || this.roundPhaser == null) {
                 this.threadLogger.log(Level.SEVERE,
                         String.format("Registration has nulls for Creature %s or Phaser %s", c, this));
@@ -226,7 +226,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             }
         }
 
-        public synchronized void arrive(Creature c) {
+        public synchronized void arrive(ICreature c) {
             if (c == null || this.roundPhaser == null) {
                 this.threadLogger.log(Level.SEVERE,
                         String.format("Arrivalhas nulls for Creature %s or Phaser %s", c, this));
@@ -241,7 +241,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             }
         }
 
-        public synchronized void arriveAndDeregister(Creature c) {
+        public synchronized void arriveAndDeregister(ICreature c) {
             if (c == null || this.roundPhaser == null) {
                 this.threadLogger.log(Level.SEVERE,
                         String.format("Deregistration has nulls for Creature %s or Phaser %s", c, this));
@@ -322,12 +322,12 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public NavigableMap<Creature, Deque<IPoolEntry>> getPools() {
+    public NavigableMap<ICreature, Deque<IPoolEntry>> getPools() {
         return Collections.unmodifiableNavigableMap(this.actionPools);
     }
 
     @Override
-    public boolean empool(Creature key, IPoolEntry entry) {
+    public boolean empool(ICreature key, IPoolEntry entry) {
         if (key == null || entry == null) {
             this.log(Level.WARNING, "Cannot emplace with null key or pool");
             return false;
@@ -343,12 +343,12 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public Creature keyFromContext(CommandContext ctx) {
+    public ICreature keyFromContext(CommandContext ctx) {
         return ctx.getCreature();
     }
 
     @Override
-    public boolean isReadyToFlush(Creature key) {
+    public boolean isReadyToFlush(ICreature key) {
         Deque<IPoolEntry> pool = this.actionPools.get(key);
         return pool == null || pool.size() >= MAX_POOLED_ACTIONS;
     }
@@ -357,10 +357,10 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     public synchronized void flush() {
         final class Ordering implements Comparable<Ordering> {
             int roll;
-            Creature creature;
+            ICreature creature;
             Deque<IPoolEntry> entry;
 
-            public Ordering(int roll, Creature creature, Deque<IPoolEntry> entry) {
+            public Ordering(int roll, ICreature creature, Deque<IPoolEntry> entry) {
                 this.roll = roll;
                 this.creature = creature;
                 this.entry = entry;
@@ -424,13 +424,13 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public Collection<Creature> getCreatures() {
+    public Collection<ICreature> getCreatures() {
         return this.getPools().keySet();
     }
 
     @Override
-    public Optional<Creature> removeCreature(String name) {
-        Optional<Creature> found = this.getCreature(name);
+    public Optional<ICreature> removeCreature(String name) {
+        Optional<ICreature> found = this.getCreature(name);
         if (found.isPresent()) {
             this.removeCreature(found.get());
         }
@@ -461,7 +461,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public synchronized boolean addCreature(Creature c) {
+    public synchronized boolean addCreature(ICreature c) {
         synchronized (this.actionPools) {
             if (c != null && !c.isInBattle() && !this.hasCreature(c)) {
                 if (this.actionPools.putIfAbsent(c, new LinkedBlockingDeque<>(MAX_POOLED_ACTIONS)) == null) {
@@ -494,7 +494,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public synchronized boolean removeCreature(Creature c) {
+    public synchronized boolean removeCreature(ICreature c) {
         if (c == null) {
             return false;
         }
@@ -508,14 +508,14 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     private boolean checkCompetingFactionsPresent(final String whochecks) {
-        Collection<Creature> battlers = this.getCreatures();
+        Collection<ICreature> battlers = this.getCreatures();
         if (battlers == null || battlers.size() <= 1) {
             this.battleLogger.log(Level.FINER,
                     () -> String.format("%s Checking for competing factions ... No or too few battlers", whochecks));
             return false;
         }
         HashMap<CreatureFaction, Integer> factionCounts = new HashMap<>();
-        for (Creature creature : battlers) {
+        for (ICreature creature : battlers) {
             CreatureFaction thatone = creature.getFaction();
             if (factionCounts.containsKey(thatone)) {
                 factionCounts.put(thatone, factionCounts.get(thatone) + 1);
@@ -556,14 +556,14 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         return thread.getIsRunning();
     }
 
-    public synchronized RoundThread startBattle(Creature instigator, Collection<Creature> victims) {
+    public synchronized RoundThread startBattle(ICreature instigator, Collection<ICreature> victims) {
         RoundThread curThread = this.battleThread.get();
         if (curThread == null || !curThread.getIsRunning()) {
             this.battleLogger.log(Level.FINER, () -> String.format("%s starts a fight", instigator.getName()));
             this.battleStats.reset();
             this.addCreature(instigator);
             if (victims != null) {
-                for (Creature c : victims) {
+                for (ICreature c : victims) {
                     this.addCreature(c);
                     BattleManager.this.checkAndHandleTurnRenegade(instigator, c);
                 }
@@ -626,7 +626,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public boolean onCreatureDeath(Creature creature) {
+    public boolean onCreatureDeath(ICreature creature) {
         if (creature == null) {
             return false;
         }
@@ -641,13 +641,13 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         return true;
     }
 
-    private void clearCreatures(Predicate<Creature> clearPredicate, boolean firstOnly, Consumer<Creature> callback) {
+    private void clearCreatures(Predicate<ICreature> clearPredicate, boolean firstOnly, Consumer<ICreature> callback) {
         if (clearPredicate == null) {
             return;
         }
         synchronized (this.actionPools) {
-            for (Iterator<Creature> iterator = this.actionPools.keySet().iterator(); iterator.hasNext();) {
-                Creature creature = iterator.next();
+            for (Iterator<ICreature> iterator = this.actionPools.keySet().iterator(); iterator.hasNext();) {
+                ICreature creature = iterator.next();
                 if (creature == null) {
                     iterator.remove();
                 } else if (clearPredicate.test(creature)) {
@@ -683,7 +683,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
     }
 
-    public void handleTurnRenegade(Creature turned) {
+    public void handleTurnRenegade(ICreature turned) {
         if (!CreatureFaction.RENEGADE.equals(turned.getFaction())) {
             turned.setFaction(CreatureFaction.RENEGADE);
             RenegadeAnnouncement.Builder builder = RenegadeAnnouncement.getBuilder(turned);
@@ -697,7 +697,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
     }
 
-    public boolean checkAndHandleTurnRenegade(Creature attacker, Creature target) {
+    public boolean checkAndHandleTurnRenegade(ICreature attacker, ICreature target) {
         if (!CreatureFaction.RENEGADE.equals(target.getFaction())
                 && !CreatureFaction.RENEGADE.equals(attacker.getFaction())
                 && attacker.getFaction() != null
@@ -715,7 +715,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
      * @param waster
      * @return Set<CreatureEffect>
      */
-    private Set<CreatureEffect> calculateWastePenalty(Creature waster) {
+    private Set<CreatureEffect> calculateWastePenalty(ICreature waster) {
         // int penalty = -1;
         // if (waster.getVocation() != null) {
         // int wasterLevel = waster.getVocation().getLevel();
@@ -793,8 +793,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         return ctx;
     }
 
-    public interface BattleManagerCommandHandler extends Creature.CreatureCommandHandler {
-        static final Predicate<CommandContext> defaultBattlePredicate = Creature.CreatureCommandHandler.defaultCreaturePredicate
+    public interface BattleManagerCommandHandler extends ICreature.CreatureCommandHandler {
+        static final Predicate<CommandContext> defaultBattlePredicate = ICreature.CreatureCommandHandler.defaultCreaturePredicate
                 .and(ctx -> ctx.getBattleManager() != null);
 
     }
@@ -1065,17 +1065,17 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
      * @param names    names of the targets
      * @return Best effort list of Creatures, possibly size 0
      */
-    private List<Creature> collectTargetsFromRoom(Creature attacker, List<String> names) {
-        List<Creature> targets = new ArrayList<>();
+    private List<ICreature> collectTargetsFromRoom(ICreature attacker, List<String> names) {
+        List<ICreature> targets = new ArrayList<>();
         BadTargetSelectedMessage.Builder btMessBuilder = BadTargetSelectedMessage.getBuilder().setNotBroadcast();
         if (names == null || names.size() == 0) {
             return targets;
         }
         for (String targetName : names) {
             btMessBuilder.setBadTarget(targetName);
-            List<Creature> possTargets = new ArrayList<>(this.room.getCreaturesLike(targetName));
+            List<ICreature> possTargets = new ArrayList<>(this.room.getCreaturesLike(targetName));
             if (possTargets.size() == 1) {
-                Creature targeted = possTargets.get(0);
+                ICreature targeted = possTargets.get(0);
                 if (targeted.equals(attacker)) {
                     attacker.sendMsg(btMessBuilder.setBde(BadTargetOption.SELF).Build());
                     continue; // go to next name
@@ -1100,7 +1100,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 .add("\"attack [name] with [weapon]\"").add("Attack the named creature with a weapon that you have.")
                 .add("In the unlikely event that either the creature or the weapon's name contains 'with', enclose the name in quotation marks.")
                 .toString();
-        private final static Predicate<CommandContext> enabledPredicate = Creature.CreatureCommandHandler.defaultCreaturePredicate
+        private final static Predicate<CommandContext> enabledPredicate = ICreature.CreatureCommandHandler.defaultCreaturePredicate
                 .and(ctx -> {
                     BattleManager bm = ctx.getBattleManager();
                     if (bm == null) {
@@ -1118,8 +1118,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 return ctx.failhandle();
             }
             if (!BattleManager.this.isBattleOngoing("AttackHandler.handle()")) {
-                Creature attacker = ctx.getCreature();
-                List<Creature> collected = BattleManager.this.collectTargetsFromRoom(attacker,
+                ICreature attacker = ctx.getCreature();
+                List<ICreature> collected = BattleManager.this.collectTargetsFromRoom(attacker,
                         ((AttackMessage) cmd).getTargets());
                 if (collected == null || collected.size() == 0) {
                     ctx.sendMsg(BadTargetSelectedMessage.getBuilder()
@@ -1175,7 +1175,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
          * @param weaponName The name of a weapon
          * @return a weapon or NULL if the item found is not a weapon or is not found
          */
-        private Weapon getDesignatedWeapon(Creature attacker, String weaponName) {
+        private Weapon getDesignatedWeapon(ICreature attacker, String weaponName) {
             if (weaponName != null && weaponName.length() > 0) {
                 Optional<Item> inventoryItem = attacker.getItem(weaponName);
                 NotPossessedMessage.Builder builder = NotPossessedMessage.getBuilder().setNotBroadcast()
@@ -1190,12 +1190,12 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                     return (Weapon) inventoryItem.get();
                 }
             } else {
-                return attacker.getWeapon();
+                return attacker.defaultWeapon();
             }
         }
 
-        private void applyAttacks(Creature attacker, Weapon weapon, Collection<Creature> targets) {
-            for (Creature target : targets) {
+        private void applyAttacks(ICreature attacker, Weapon weapon, Collection<ICreature> targets) {
+            for (ICreature target : targets) {
                 this.log(Level.FINEST,
                         () -> String.format("Applying attack from %s on %s", attacker.getName(), target.getName()));
                 BattleManager.this.checkAndHandleTurnRenegade(attacker, target);
@@ -1238,7 +1238,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 BattleManager.this.battleLogger.log(Level.INFO,
                         ctx.getCreature().getName() + " attempts attacking " + aMessage.getTargets());
 
-                Creature attacker = ctx.getCreature();
+                ICreature attacker = ctx.getCreature();
 
                 BadTargetSelectedMessage.Builder btMessBuilder = BadTargetSelectedMessage.getBuilder()
                         .setNotBroadcast();
@@ -1260,7 +1260,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                     return ctx.handled();
                 }
 
-                List<Creature> targets = BattleManager.this.collectTargetsFromRoom(attacker, aMessage.getTargets());
+                List<ICreature> targets = BattleManager.this.collectTargetsFromRoom(attacker, aMessage.getTargets());
                 if (targets == null || targets.size() == 0) {
                     ctx.sendMsg(btMessBuilder.setBde(BadTargetOption.NOTARGET).Build());
                     return ctx.handled();
@@ -1299,7 +1299,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
      * @param attackingCreature
      * @param targetCreature
      */
-    public void callReinforcements(@NotNull Creature attackingCreature, @NotNull Creature targetCreature) {
+    public void callReinforcements(@NotNull ICreature attackingCreature, @NotNull ICreature targetCreature) {
         ReinforcementsCall.Builder reBuilder = ReinforcementsCall.getBuilder();
         if (targetCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(targetCreature.getFaction())) {
             targetCreature
@@ -1309,7 +1309,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         if (this.room == null) {
             return;
         }
-        Map<CreatureFaction, Set<Creature>> remainingCreatures = this.room.getCreatures().stream()
+        Map<CreatureFaction, Set<ICreature>> remainingCreatures = this.room.getCreatures().stream()
                 .filter(creature -> creature != null && !this.actionPools.keySet().contains(creature))
                 .collect(Collectors.groupingBy(creature -> {
                     CreatureFaction faction = creature.getFaction();
@@ -1322,12 +1322,12 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         if (remainingCreatures == null || remainingCreatures.size() == 0) {
             return;
         }
-        Set<Creature> allies = remainingCreatures.get(targetCreature.getFaction());
+        Set<ICreature> allies = remainingCreatures.get(targetCreature.getFaction());
         if (allies == null || allies.size() == 0) {
             return;
         }
         this.room.announce(reBuilder.setCaller(targetCreature).setBroacast().Build());
-        for (Creature c : allies) {
+        for (ICreature c : allies) {
             this.addCreature(c);
         }
 
@@ -1337,12 +1337,12 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             return;
         }
         if (!CreatureFaction.NPC.equals(targetCreature.getFaction())) {
-            Set<Creature> enemies = remainingCreatures.get(attackingCreature.getFaction());
+            Set<ICreature> enemies = remainingCreatures.get(attackingCreature.getFaction());
             if (enemies == null || enemies.size() == 0) {
                 return;
             }
             this.room.announce(reBuilder.setBroacast().setCaller(attackingCreature).Build());
-            for (Creature c : enemies) {
+            for (ICreature c : enemies) {
                 this.addCreature(c);
             }
         }

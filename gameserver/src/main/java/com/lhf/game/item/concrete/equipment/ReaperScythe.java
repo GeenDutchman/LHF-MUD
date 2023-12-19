@@ -9,7 +9,7 @@ import com.lhf.game.EffectResistance.TargetResistAmount;
 import com.lhf.game.TickType;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.battle.Attack;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
@@ -38,7 +38,7 @@ public class ReaperScythe extends Weapon {
     }
 
     @Override
-    public Attack generateAttack(Creature attacker) {
+    public Attack generateAttack(ICreature attacker) {
         int actorDC = 10 + (attacker.getStats().getOrDefault(Stats.MAXHP, 0)
                 - attacker.getStats().getOrDefault(Stats.CURRENTHP, 0));
         Set<CreatureEffectSource> extraSources = Set

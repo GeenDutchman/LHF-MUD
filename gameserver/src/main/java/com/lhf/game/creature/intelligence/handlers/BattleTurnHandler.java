@@ -14,7 +14,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
-import com.lhf.game.creature.NonPlayerCharacter.HarmMemories;
+import com.lhf.game.creature.INonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;

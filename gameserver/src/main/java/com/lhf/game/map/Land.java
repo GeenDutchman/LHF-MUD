@@ -11,7 +11,7 @@ import java.util.UUID;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.TickType;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.out.TickMessage;
@@ -55,7 +55,7 @@ public interface Land extends CreatureContainer, MessageChainHandler, Affectable
         return links.getExits();
     }
 
-    public default Area getCreatureArea(Creature creature) {
+    public default Area getCreatureArea(ICreature creature) {
         for (AreaDirectionalLinks adl : this.getAtlas().values()) {
             Area adlArea = adl.getArea();
             if (adlArea != null) {
@@ -93,8 +93,8 @@ public interface Land extends CreatureContainer, MessageChainHandler, Affectable
     }
 
     @Override
-    public default Collection<Creature> getCreatures() {
-        Set<Creature> creatures = new TreeSet<>();
+    public default Collection<ICreature> getCreatures() {
+        Set<ICreature> creatures = new TreeSet<>();
         Area startingArea = this.getStartingArea();
         if (startingArea != null) {
             creatures.addAll(startingArea.getCreatures());

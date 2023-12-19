@@ -7,7 +7,7 @@ import java.util.logging.Level;
 
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
@@ -72,7 +72,7 @@ public class DMRoom extends Room {
             return this;
         }
 
-        public DMRoomBuilder addCreature(Creature creature) {
+        public DMRoomBuilder addCreature(ICreature creature) {
             this.delegate = delegate.addCreature(creature);
             return this;
         }
@@ -103,7 +103,7 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public Collection<Creature> getCreatures() {
+        public Collection<ICreature> getCreatures() {
             return this.delegate.getCreatures();
         }
 

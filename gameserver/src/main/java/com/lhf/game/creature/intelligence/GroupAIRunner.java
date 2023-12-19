@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.server.client.ClientID;
 
 // see https://gamedev.stackexchange.com/questions/12458/how-to-manage-all-the-npc-ai-objects-on-the-server/12512#12512
@@ -89,13 +89,13 @@ public class GroupAIRunner implements AIRunner {
         return this;
     }
 
-    private BasicAI produceAI(NonPlayerCharacter npc) {
+    private BasicAI produceAI(INonPlayerCharacter npc) {
         this.logger.log(Level.FINE, "Producing an AI for " + npc.getName());
         return new BasicAI(npc, this);
     }
 
     @Override
-    public synchronized BasicAI register(NonPlayerCharacter npc, AIHandler... handlers) {
+    public synchronized BasicAI register(INonPlayerCharacter npc, AIHandler... handlers) {
         this.logger.entering(this.getClass().getName(), "register()", npc.getName());
         if (npc.getController() == null) {
             this.logger.log(Level.FINE, "NPC " + npc.getName() + " does not have a controller");

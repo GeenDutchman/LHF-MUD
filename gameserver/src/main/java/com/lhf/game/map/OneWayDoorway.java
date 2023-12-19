@@ -2,7 +2,7 @@ package com.lhf.game.map;
 
 import java.util.UUID;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 
 class OneWayDoorway extends Doorway {
@@ -16,7 +16,7 @@ class OneWayDoorway extends Doorway {
         return DoorwayType.ONE_WAY;
     }
 
-    public boolean canTraverse(Creature creature, Directions whichWay) {
+    public boolean canTraverse(ICreature creature, Directions whichWay) {
         if (whichWay != this.getFromBtoA()) {
             return false;
         }

@@ -1,16 +1,16 @@
 package com.lhf.messages.out;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.magic.SpellEntry;
 import com.lhf.messages.OutMessageType;
 
 public class CastingMessage extends OutMessage {
-    private final Creature caster;
+    private final ICreature caster;
     private final SpellEntry spellEntry;
     private final String castEffects;
 
     public static class Builder extends OutMessage.Builder<Builder> {
-        private Creature caster;
+        private ICreature caster;
         private SpellEntry spellEntry;
         private String castEffects;
 
@@ -18,11 +18,11 @@ public class CastingMessage extends OutMessage {
             super(OutMessageType.CASTING);
         }
 
-        public Creature getCaster() {
+        public ICreature getCaster() {
             return caster;
         }
 
-        public Builder setCaster(Creature caster) {
+        public Builder setCaster(ICreature caster) {
             this.caster = caster;
             return this;
         }
@@ -93,7 +93,7 @@ public class CastingMessage extends OutMessage {
         return castEffects;
     }
 
-    public Creature getCaster() {
+    public ICreature getCaster() {
         return caster;
     }
 

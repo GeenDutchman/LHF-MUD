@@ -7,7 +7,7 @@ import java.util.StringJoiner;
 import com.lhf.Taggable;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.magic.DMRoomTargetingSpellEntry;
@@ -26,7 +26,7 @@ public class Ensouling extends DMRoomTargetingSpellEntry {
     }
 
     @Override
-    public CastingMessage Cast(Creature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
+    public CastingMessage Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
         StringBuilder sb = new StringBuilder();
         if (targets != null && targets.size() > 0) {
             sb.append(caster.getColorTaggedName()).append(" will now ensoul ");

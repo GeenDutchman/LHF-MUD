@@ -7,7 +7,7 @@ import com.lhf.server.client.user.UserID;
 public class Player extends Creature {
     private User user;
 
-    public static class PlayerBuilder extends Creature.CreatureBuilder<PlayerBuilder> {
+    public static class PlayerBuilder extends ICreature.CreatureBuilder<PlayerBuilder> {
         private User user;
 
         private PlayerBuilder(User user) {

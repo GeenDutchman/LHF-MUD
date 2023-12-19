@@ -3,7 +3,7 @@ package com.lhf.game;
 import java.util.EnumSet;
 import java.util.StringJoiner;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.DiceDC;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
@@ -201,7 +201,7 @@ public class EffectResistance {
         return sb.toString();
     }
 
-    public MultiRollResult actorEffort(Creature actor, int bonus) {
+    public MultiRollResult actorEffort(ICreature actor, int bonus) {
         MultiRollResult.Builder result = new MultiRollResult.Builder();
         if (actor != null && actorAttrs != null && actorAttrs.size() > 0) {
             Attributes highest = actor.getHighestAttributeBonus(actorAttrs);
@@ -220,7 +220,7 @@ public class EffectResistance {
         return result.Build();
     }
 
-    public MultiRollResult targetEffort(Creature target, int bonus) {
+    public MultiRollResult targetEffort(ICreature target, int bonus) {
         MultiRollResult.Builder result = new MultiRollResult.Builder();
         if (target != null && targetAttrs != null && targetAttrs.size() > 0) {
             Attributes highest = target.getHighestAttributeBonus(targetAttrs);

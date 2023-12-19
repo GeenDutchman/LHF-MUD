@@ -2,7 +2,7 @@ package com.lhf.messages.out;
 
 import java.util.StringJoiner;
 
-import com.lhf.game.creature.Creature;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.messages.OutMessageType;
 
@@ -12,13 +12,13 @@ public class SpellFizzleMessage extends OutMessage {
     }
 
     private final SpellFizzleType subType;
-    private final Creature attempter;
+    private final ICreature attempter;
     private final MultiRollResult offense;
     private final MultiRollResult defense;
 
     public static class Builder extends OutMessage.Builder<Builder> {
         private SpellFizzleType subType;
-        private Creature attempter;
+        private ICreature attempter;
         private MultiRollResult offense;
         private MultiRollResult defense;
 
@@ -35,11 +35,11 @@ public class SpellFizzleMessage extends OutMessage {
             return this;
         }
 
-        public Creature getAttempter() {
+        public ICreature getAttempter() {
             return attempter;
         }
 
-        public Builder setAttempter(Creature attempter) {
+        public Builder setAttempter(ICreature attempter) {
             this.attempter = attempter;
             return this;
         }
@@ -128,7 +128,7 @@ public class SpellFizzleMessage extends OutMessage {
         return subType;
     }
 
-    public Creature getAttempter() {
+    public ICreature getAttempter() {
         return attempter;
     }
 
