@@ -73,14 +73,17 @@ classDiagram
             <<interface>>
         }
         class Room
-
+        class DMRoom
     }
+    
     CreatureContainer <|-- Land
     Land <|.. Dungeon
     Area <|.. Room
+    Room <|-- DMRoom
     Land o-- Area
     CreatureContainer <|-- Area
     ItemContainer <|-- Area
+
 
     namespace Items {
         class Item {
