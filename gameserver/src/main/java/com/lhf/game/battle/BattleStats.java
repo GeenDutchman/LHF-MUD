@@ -371,18 +371,35 @@ public class BattleStats implements ClientMessenger {
         return this;
     }
 
-    public final Map<String, BattleStatRecord> getBattleStats(boolean onlyLiving) {
-        if (!onlyLiving) {
+    public enum BattleStatsQuery {
+        ONLY_LIVING, ONLY_DEAD, ALL;
+    }
+
+    public final Map<String, BattleStatRecord> getBattleStats(BattleStatsQuery query) {
+        if (query == null || BattleStatsQuery.ALL.equals(query)) {
             return Collections.unmodifiableMap(this.battleStats);
         }
         return Collections.unmodifiableMap(this.battleStats.entrySet().stream().filter(entry -> {
             BattleStatRecord record = entry.getValue();
-            return record != null && !record.isDead();
+            if (record == null) {
+                return false;
+            }
+            switch (query) {
+                case ALL:
+                    return true;
+                case ONLY_DEAD:
+                    return record.isDead();
+                case ONLY_LIVING:
+                    return !record.isDead();
+                default:
+                    return true;
+
+            }
         }).collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue())));
     }
 
-    public final Collection<BattleStatRecord> getBattleStatSet(boolean onlyLiving) {
-        return this.getBattleStats(onlyLiving).values();
+    public final Collection<BattleStatRecord> getBattleStatSet(BattleStatsQuery query) {
+        return this.getBattleStats(query).values();
     }
 
     @Override
