@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
@@ -23,13 +25,32 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
 public class BattleStats implements ClientMessenger {
+
+    private final BiFunction<Integer, Integer, Integer> adder = (a, b) -> {
+        if (a != null && b != null) {
+            return a + b;
+        }
+        return a != null ? a : b;
+    };
+
+    private final Function<EnumMap<BattleStat, Integer>, EnumMap<BattleStat, Integer>> xpLens = (deltas) -> {
+        if (deltas == null) {
+            return new EnumMap<>(BattleStat.class);
+        }
+        Integer numDamages = deltas.getOrDefault(BattleStat.NUM_DAMAGES, 0);
+        if (numDamages > 0) {
+            deltas.merge(BattleStat.XP_EARNED, numDamages, adder);
+        }
+        return deltas;
+    };
+
     /**
      *
      */
     public static class BattleStatRecord implements Comparable<BattleStatRecord> {
 
         public static enum BattleStat {
-            MAX_DAMAGE, AGGRO_DAMAGE, TOTAL_DAMAGE, NUM_DAMAGES, HEALING_PERFORMED, AVG_DAMAGE;
+            MAX_DAMAGE, AGGRO_DAMAGE, TOTAL_DAMAGE, NUM_DAMAGES, HEALING_PERFORMED, AVG_DAMAGE, XP_EARNED;
 
             public static BattleStat getBattleStat(String value) {
                 for (BattleStat stat : values()) {
@@ -223,16 +244,30 @@ public class BattleStats implements ClientMessenger {
             return this;
         }
         found.bucket = responsible.getHealthBucket();
-        found.stats.merge(BattleStat.NUM_DAMAGES, roll < 0 ? 1 : 0, (a, b) -> a + b);
-        found.stats.merge(BattleStat.TOTAL_DAMAGE, roll, (a, b) -> a + b);
-        found.stats.merge(BattleStat.MAX_DAMAGE, roll, (a, b) -> a > b ? a : b);
+
+        EnumMap<BattleStat, Integer> deltas = new EnumMap<>(BattleStat.class);
+        deltas.put(BattleStat.TOTAL_DAMAGE, roll);
+        if (roll > 0) {
+            deltas.put(BattleStat.NUM_DAMAGES, 1);
+            // the difference to the next running average
+            deltas.put(BattleStat.AVG_DAMAGE, (roll - found.getAverageDamage()) / (found.getNumDamgages() + 1));
+        }
+        if (found.getMaxDamage() < roll) {
+            deltas.put(BattleStat.MAX_DAMAGE, roll);
+        }
         int healingPerformed = ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.HEALING),
                 false);
-        found.stats.merge(BattleStat.HEALING_PERFORMED, healingPerformed, (a, b) -> a + b);
-        found.stats.put(BattleStat.AGGRO_DAMAGE,
-                ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.AGGRO), true));
-        found.stats.put(BattleStat.AVG_DAMAGE,
-                found.getNumDamgages() == 0 ? 0 : found.getTotalDamage() / found.getNumDamgages());
+        if (healingPerformed != 0) {
+            deltas.put(BattleStat.HEALING_PERFORMED, healingPerformed);
+        }
+        int aggroPerformed = ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.AGGRO), true);
+        if (aggroPerformed != 0) {
+            deltas.put(BattleStat.AGGRO_DAMAGE, aggroPerformed);
+        }
+
+        deltas.forEach((key, value) -> {
+            found.stats.merge(key, value, adder);
+        });
 
         return this;
     }
