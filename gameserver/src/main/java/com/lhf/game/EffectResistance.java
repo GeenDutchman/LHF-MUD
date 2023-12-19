@@ -210,7 +210,7 @@ public class EffectResistance {
             }
             result.addMultiRollResult(actor.check(highest));
         } else if (actor != null && actorStat != null) {
-            result.addRollResults((new DiceDC(actor.getStats().get(actorStat)).rollDice()));
+            result.addRollResults((new DiceDC(actor.getStats().getOrDefault(actorStat, 1)).rollDice()));
         } else if (actorDC != null) {
             result.addRollResults((new DiceDC(actorDC).rollDice()));
         }
@@ -229,7 +229,7 @@ public class EffectResistance {
             }
             result.addMultiRollResult(target.check(highest));
         } else if (target != null && targetStat != null) {
-            result.addRollResults(new DiceDC(target.getStats().get(targetStat)).rollDice());
+            result.addRollResults(new DiceDC(target.getStats().getOrDefault(targetStat, 1)).rollDice());
         } else if (targetDC != null) {
             result.addRollResults(new DiceDC(targetDC).rollDice());
         }

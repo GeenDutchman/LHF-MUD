@@ -75,7 +75,7 @@ public class CarnivorousArmor extends Equipable {
                     ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.OK).setMessage(snuggle).Build());
                     return true;
                 }
-                Integer currHealth = target.getStats().get(Stats.CURRENTHP);
+                Integer currHealth = target.getStats().getOrDefault(Stats.CURRENTHP, 0);
                 if (currHealth > eatsHealthTo) {
                     int diff = currHealth - eatsHealthTo;
                     this.eatingResults.addStatChange(Stats.CURRENTHP, -1 * diff);

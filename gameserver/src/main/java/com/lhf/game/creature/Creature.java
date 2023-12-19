@@ -235,11 +235,11 @@ public abstract class Creature
     }
 
     private int getHealth() {
-        return this.statblock.getStats().get(Stats.CURRENTHP);
+        return this.statblock.getStats().getOrDefault(Stats.CURRENTHP, 0);
     }
 
     public HealthBuckets getHealthBucket() {
-        return HealthBuckets.calculate(getHealth(), this.statblock.getStats().get(Stats.MAXHP));
+        return HealthBuckets.calculate(getHealth(), this.statblock.getStats().getOrDefault(Stats.MAXHP, 0));
     }
 
     public boolean isAlive() {
@@ -247,8 +247,8 @@ public abstract class Creature
     }
 
     public void updateHitpoints(int value) {
-        int current = this.statblock.getStats().get(Stats.CURRENTHP);
-        int max = this.statblock.getStats().get(Stats.MAXHP);
+        int current = this.statblock.getStats().getOrDefault(Stats.CURRENTHP, 0);
+        int max = this.statblock.getStats().getOrDefault(Stats.MAXHP, 0);
         current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
         this.statblock.getStats().replace(Stats.CURRENTHP, current);
         if (current <= 0) {
@@ -266,7 +266,7 @@ public abstract class Creature
     }
 
     public void updateXp(int value) {
-        int current = this.statblock.getStats().get(Stats.XPEARNED);
+        int current = this.statblock.getStats().getOrDefault(Stats.XPEARNED, 0);
         current += value;
         this.statblock.getStats().replace(Stats.XPEARNED, current);
         if (this.vocation != null) {

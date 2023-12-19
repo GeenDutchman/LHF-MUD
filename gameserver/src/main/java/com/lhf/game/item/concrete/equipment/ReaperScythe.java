@@ -39,7 +39,8 @@ public class ReaperScythe extends Weapon {
 
     @Override
     public Attack generateAttack(Creature attacker) {
-        int actorDC = 10 + (attacker.getStats().get(Stats.MAXHP) - attacker.getStats().get(Stats.CURRENTHP));
+        int actorDC = 10 + (attacker.getStats().getOrDefault(Stats.MAXHP, 0)
+                - attacker.getStats().getOrDefault(Stats.CURRENTHP, 0));
         Set<CreatureEffectSource> extraSources = Set
                 .of(new CreatureEffectSource("Necrotic Damage", new EffectPersistence(TickType.INSTANT),
                         new EffectResistance(null, null, actorDC, null, Stats.AC, null, TargetResistAmount.HALF),

@@ -92,7 +92,7 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
     }
 
     public String getName() {
-        return String.format("%s %s", this.name, this.level);
+        return this.name.toString();
     }
 
     public VocationName getVocationName() {
@@ -101,7 +101,7 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
     @Override
     public String getColorTaggedName() {
-        return this.getStartTag() + this.getName() + this.getEndTag();
+        return String.format("%s%s %s%s", this.getStartTag(), this.name, this.level, this.getEndTag());
     }
 
     @Override
