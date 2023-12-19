@@ -100,7 +100,7 @@ public class CreatureCreator {
 
     private static final AIRunner aiRunner = new GroupAIRunner(false);
 
-    public static Monster makeMonsterFromStatblock(CreatorAdaptor adapter) throws FileNotFoundException {
+    public static IMonster makeMonsterFromStatblock(CreatorAdaptor adapter) throws FileNotFoundException {
 
         String statblockname = adapter.buildStatblockName();
 

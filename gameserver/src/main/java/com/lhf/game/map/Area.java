@@ -9,15 +9,15 @@ import com.lhf.game.CreatureContainer;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.creature.Monster;
+import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.Player;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.TickMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
+import com.lhf.messages.out.TickMessage;
 
 public interface Area
         extends ItemContainer, CreatureContainer, MessageChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
@@ -69,7 +69,7 @@ public interface Area
         for (ICreature c : this.getCreatures()) {
             if (c instanceof Player) {
                 seen.addSeen(SeeCategory.PLAYER, c);
-            } else if (c instanceof Monster) {
+            } else if (c instanceof IMonster) {
                 seen.addSeen(SeeCategory.MONSTER, c);
             } else if (c instanceof INonPlayerCharacter) {
                 seen.addSeen(SeeCategory.NPC, c);

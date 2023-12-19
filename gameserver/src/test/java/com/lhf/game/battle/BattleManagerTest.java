@@ -8,7 +8,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
-import com.lhf.game.creature.Monster;
+import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
@@ -21,7 +21,7 @@ import com.lhf.server.client.ClientID;
 public class BattleManagerTest {
         @Test
         void testSimpleBattle() {
-                Monster monster = Mockito.mock(Monster.class);
+                IMonster monster = Mockito.mock(IMonster.class);
                 ClientID monstercClientID = new ClientID();
                 INonPlayerCharacter npc = Mockito.mock(INonPlayerCharacter.class);
                 ClientID npClientID = new ClientID();
@@ -54,7 +54,7 @@ public class BattleManagerTest {
 
         @Test
         void testWaitTooLong() throws InterruptedException {
-                Monster monster = Mockito.mock(Monster.class);
+                IMonster monster = Mockito.mock(IMonster.class);
                 ClientID monstercClientID = new ClientID();
                 INonPlayerCharacter npc = Mockito.mock(INonPlayerCharacter.class);
                 ClientID npClientID = new ClientID();
