@@ -4,9 +4,9 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.regex.PatternSyntaxException;
 
@@ -39,6 +39,7 @@ import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.ITickMessage;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.out.OutMessage;
@@ -107,8 +108,11 @@ public interface ICreature
      * @return {@link com.lhf.game.item.Weapon Weapon} that should not be null
      */
     public default Weapon defaultWeapon() {
-        Weapon weapon = (Weapon) this.getEquipped(EquipmentSlots.WEAPON);
-        return Objects.requireNonNullElseGet(weapon, () -> ICreature.defaultFist);
+        Equipable found = this.getEquipped(EquipmentSlots.WEAPON);
+        if (found != null && found instanceof Weapon weapon) {
+            return weapon;
+        }
+        return defaultFist;
     }
 
     /**
@@ -253,6 +257,14 @@ public interface ICreature
      * @return
      */
     public abstract boolean isAlive();
+
+    /**
+     * Updates the Creature's hitpoints by value.
+     * If the Creature is no longer {@link #isAlive()} then it may search for the
+     * nearest {@link com.lhf.game.CreatureContainer CreatureContainer} and notify
+     * them of the death.
+     */
+    public abstract void updateHitpoints(int value);
 
     /**
      * Updates the Creature's XP
@@ -611,6 +623,11 @@ public interface ICreature
     @Override
     public default int compareTo(ICreature other) {
         return this.getName().compareTo(other.getName());
+    }
+
+    public interface CreatureCommandHandler extends CommandHandler {
+        static final Predicate<CommandContext> defaultCreaturePredicate = CommandHandler.defaultPredicate
+                .and((ctx) -> ctx.getCreature() != null && ctx.getCreature().isAlive());
     }
 
 }

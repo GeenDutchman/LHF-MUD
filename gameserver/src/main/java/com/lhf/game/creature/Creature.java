@@ -39,7 +39,6 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.ITickMessage;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.InventoryMessage;
@@ -49,11 +48,9 @@ import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.EquipOutMessage;
 import com.lhf.messages.out.EquipOutMessage.EquipResultType;
 import com.lhf.messages.out.NotPossessedMessage;
-import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.StatusOutMessage;
 import com.lhf.messages.out.UnequipOutMessage;
 import com.lhf.messages.out.UnequipOutMessage.UnequipResultType;
-import com.lhf.server.client.ClientID;
 
 public abstract class Creature implements ICreature {
     private final String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
@@ -121,6 +118,7 @@ public abstract class Creature implements ICreature {
         return getHealth() > 0;
     }
 
+    @Override
     public void updateHitpoints(int value) {
         int current = this.statblock.getStats().get(Stats.CURRENTHP);
         int max = this.statblock.getStats().get(Stats.MAXHP);
@@ -538,11 +536,6 @@ public abstract class Creature implements ICreature {
             ctx.setCreature(this);
         }
         return ctx;
-    }
-
-    public interface CreatureCommandHandler extends CommandHandler {
-        static final Predicate<CommandContext> defaultCreaturePredicate = CommandHandler.defaultPredicate
-                .and((ctx) -> ctx.getCreature() != null && ctx.getCreature().isAlive());
     }
 
     protected class EquipHandler implements CreatureCommandHandler {

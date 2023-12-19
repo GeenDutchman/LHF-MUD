@@ -1163,7 +1163,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                     return (Weapon) inventoryItem.get();
                 }
             } else {
-                return attacker.getWeapon();
+                return attacker.defaultWeapon();
             }
         }
 

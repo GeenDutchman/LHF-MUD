@@ -81,7 +81,7 @@ public class BasicAITest {
                 AIComBundle attacker = new AIComBundle();
                 attacker.npc.setFaction(CreatureFaction.RENEGADE);
 
-                Attack attack = attacker.npc.attack(attacker.npc.getWeapon());
+                Attack attack = attacker.npc.attack(attacker.npc.defaultWeapon());
                 CreatureEffect effect = attack.getEffects().stream().findFirst().get();
                 CreatureAffectedMessage adm = CreatureAffectedMessage.getBuilder().setAffected(victim.npc)
                                 .setEffect(effect)
