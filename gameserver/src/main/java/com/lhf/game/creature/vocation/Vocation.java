@@ -83,12 +83,19 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
         return this.resourcePool;
     }
 
-    public int addExperience(int xpGain) {
+    /**
+     * Adds experience to the Vocation.
+     * 
+     * @param xpGain
+     * @return true if levelled up, false otherwise
+     */
+    public boolean addExperience(int xpGain) {
         this.experiencePoints += xpGain >= 0 ? xpGain : -1 * xpGain;
         if (this.experiencePoints >= (this.level + 1) * 100) {
             this.onLevel();
+            return true;
         }
-        return this.experiencePoints;
+        return false;
     }
 
     public String getName() {
