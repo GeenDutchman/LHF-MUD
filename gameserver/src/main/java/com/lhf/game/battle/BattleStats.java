@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealthBuckets;
@@ -26,16 +27,16 @@ import com.lhf.server.client.ClientID;
 
 public class BattleStats implements ClientMessenger {
 
-    private final BiFunction<Integer, Integer, Integer> adder = (a, b) -> {
+    private static final BiFunction<Integer, Integer, Integer> adder = (a, b) -> {
         if (a != null && b != null) {
             return a + b;
         }
         return a != null ? a : b;
     };
 
-    private final Function<EnumMap<BattleStat, Integer>, EnumMap<BattleStat, Integer>> xpLens = (deltas) -> {
+    private static final Function<EnumMap<BattleStat, Integer>, EnumMap<BattleStat, Integer>> xpLens = (deltas) -> {
         if (deltas == null) {
-            return new EnumMap<>(BattleStat.class);
+            deltas = new EnumMap<>(BattleStat.class);
         }
         Integer numDamages = deltas.getOrDefault(BattleStat.NUM_DAMAGES, 0);
         if (numDamages > 0) {
@@ -43,6 +44,62 @@ public class BattleStats implements ClientMessenger {
         }
         return deltas;
     };
+
+    public final static Function<EnumMap<BattleStat, Integer>, EnumMap<BattleStat, Integer>> getXPLens(
+            Vocation vocation) {
+        if (vocation == null) {
+            return xpLens;
+        }
+        VocationName vocationName = vocation.getVocationName();
+        if (vocationName == null) {
+            return xpLens;
+        }
+        switch (vocationName) {
+            case DUNGEON_MASTER:
+                return xpLens.andThen((deltas) -> {
+                    for (BattleStat stat : EnumSet.of(BattleStat.NUM_DAMAGES, BattleStat.MAX_DAMAGE)) {
+                        Integer value = deltas.getOrDefault(stat, 1);
+                        if (value > 0) {
+                            deltas.merge(stat, value, adder);
+                        }
+                    }
+                    return deltas;
+                });
+            case FIGHTER:
+                return xpLens.andThen((deltas) -> {
+                    for (BattleStat stat : EnumSet.of(BattleStat.TOTAL_DAMAGE, BattleStat.AGGRO_DAMAGE)) {
+                        Integer value = deltas.getOrDefault(stat, 0) / Integer.max(vocation.getLevel(), 1);
+                        if (value > 0) {
+                            deltas.merge(stat, value, adder);
+                        }
+                    }
+                    return deltas;
+                });
+            case HEALER:
+                return xpLens.andThen((deltas) -> {
+                    for (BattleStat stat : EnumSet.of(BattleStat.AVG_DAMAGE, BattleStat.HEALING_PERFORMED)) {
+                        Integer value = deltas.getOrDefault(stat, 0) / Integer.max(vocation.getLevel(), 1);
+                        if (value > 0) {
+                            deltas.merge(stat, value, adder);
+                        }
+                    }
+                    return deltas;
+                });
+            case MAGE:
+                return xpLens.andThen((deltas) -> {
+                    for (BattleStat stat : EnumSet.of(BattleStat.TOTAL_DAMAGE, BattleStat.AVG_DAMAGE)) {
+                        Integer value = deltas.getOrDefault(stat, 0) / Integer.max(vocation.getLevel(), 1);
+                        if (value > 0) {
+                            deltas.merge(stat, value, adder);
+                        }
+                    }
+                    return deltas;
+                });
+            default:
+                return xpLens;
+
+        }
+    }
 
     /**
      *
@@ -253,7 +310,7 @@ public class BattleStats implements ClientMessenger {
             deltas.put(BattleStat.AVG_DAMAGE, (roll - found.getAverageDamage()) / (found.getNumDamgages() + 1));
         }
         if (found.getMaxDamage() < roll) {
-            deltas.put(BattleStat.MAX_DAMAGE, roll);
+            deltas.put(BattleStat.MAX_DAMAGE, roll - found.getMaxDamage());
         }
         int healingPerformed = ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.HEALING),
                 false);
@@ -263,6 +320,12 @@ public class BattleStats implements ClientMessenger {
         int aggroPerformed = ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.AGGRO), true);
         if (aggroPerformed != 0) {
             deltas.put(BattleStat.AGGRO_DAMAGE, aggroPerformed);
+        }
+
+        Function<EnumMap<BattleStat, Integer>, EnumMap<BattleStat, Integer>> lens = BattleStats
+                .getXPLens(found.getVocation());
+        if (lens != null) {
+            deltas = lens.apply(deltas);
         }
 
         deltas.forEach((key, value) -> {
