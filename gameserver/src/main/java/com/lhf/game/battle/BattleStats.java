@@ -280,6 +280,7 @@ public class BattleStats implements ClientMessenger {
 
     public BattleStats reset() {
         this.battleStats.clear();
+        this.deadXP = 0;
         return this;
     }
 
