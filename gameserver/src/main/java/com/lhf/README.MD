@@ -3,87 +3,111 @@
 ```mermaid
 classDiagram
 
-  class Examinable
-  <<interface>> Examinable
-  class Taggable
-  <<interface>> Taggable
+    class Examinable {
+        <<interface>>
+    }
+    class Taggable {
+        <<interface>>
+    }
 
-  class TaggedExaminable
-  <<interface>> TaggedExaminable
+    class TaggedExaminable {
+        <<interface>>
+    }
 
-  Taggable <|-- TaggedExaminable
-  Examinable <|-- TaggedExaminable
+    Taggable <|-- TaggedExaminable
+    Examinable <|-- TaggedExaminable
 
-  note for TaggedExaminable "Not all things inherit from this,\n which is why Examinable and Tagged \nare still separate"
+    note for TaggedExaminable "Not all things inherit from this,\n which is why Examinable and Tagged \nare still separate"
 
-  class ItemContainer
-  <<interface>> ItemContainer
-  class CreatureContainer
-  <<interface>> CreatureContainer
-  class Item
-  <<abstract>> Item
-  class Takeable
-  class Usable
-  class Equipable
-  class Stackable
-  class InteractObject
-  class Weapon
+    class ItemContainer {
+        <<interface>>
+    }
+    class CreatureContainer {
+        <<interface>>
+    }
 
-  ItemContainer o-- Item
-  TaggedExaminable <|-- Item
-  Item <|.. Takeable
-  Item <|.. InteractObject
-  Takeable <|-- Usable
-  Usable <|-- Equipable
-  Usable <|-- Stackable
-  Equipable <|-- Weapon
+    TaggedExaminable <|-- CreatureContainer
+    TaggedExaminable <|-- ItemContainer
 
-  ItemContainer <|.. Inventory
-
-
-  class Room
-  CreatureContainer <|.. Room
-  ItemContainer <|.. Room
-
-  TaggedExaminable <|-- CreatureContainer
-  TaggedExaminable <|-- ItemContainer
-
-  class ICreature
-  <<interface>> ICreature
-  class INonPlayerCharacter
-  <<interface>> INonPlayerCharacter
-  class IMonster
-  <<interface>> IMonster
-
-  TaggedExaminable <|-- ICreature
-
-  ICreature <|-- INonPlayerCharacter
-  INonPlayerCharacter <|-- IMonster
-
-  class Creature
-  <<abstract>> Creature
-  class NonPlayerCharacter
-  class Monster
-  class DungeonMaster
-  class Player
-
-  ICreature <|.. Creature
-  CreatureContainer o-- ICreature
+    namespace Creatures {
+        class ICreature {
+            <<interface>>
+        }
+        class INonPlayerCharacter {
+            <<interface>>
+        }
+        class IMonster {
+            <<interface>>
+        }
+        class Creature {
+            <<abstract>>
+        }
+        class NonPlayerCharacter
+        class Monster
+        class DungeonMaster
+        class Player
+        class Inventory
+    }
 
 
-  Creature <|.. Player
-  Creature <|.. NonPlayerCharacter
-  INonPlayerCharacter <|.. NonPlayerCharacter
-  NonPlayerCharacter <|-- Monster
-  IMonster <|.. Monster
-  NonPlayerCharacter <|-- DungeonMaster
+    TaggedExaminable <|-- ICreature
+    ICreature <|-- INonPlayerCharacter
+    INonPlayerCharacter <|-- IMonster
+    ICreature <|.. Creature
+    CreatureContainer o-- ICreature
+    Creature <|.. Player
+    INonPlayerCharacter <|.. NonPlayerCharacter
+    Creature <|.. NonPlayerCharacter
+    IMonster <|.. Monster
+    NonPlayerCharacter <|-- Monster
+    NonPlayerCharacter <|-- DungeonMaster
+    Inventory --* Creature
+    ItemContainer <|.. Inventory
 
-  Inventory --* ICreature
+    namespace Map {
+        class Land {
+            <<interface>>
+        }
+        class Dungeon
+        class Area {
+            <<interface>>
+        }
+        class Room
+
+    }
+    CreatureContainer <|-- Land
+    Land <|.. Dungeon
+    Area <|.. Room
+    Land o-- Area
+    CreatureContainer <|-- Area
+    ItemContainer <|-- Area
+
+    namespace Items {
+        class Item {
+            <<abstract>>
+        }
+        class Takeable
+        class Usable
+        class Equipable
+        class Stackable
+        class InteractObject
+        class Weapon
+    }
+
+    ItemContainer o-- Item
+    TaggedExaminable <|-- Item
+    Item <|.. Takeable
+    Item <|.. InteractObject
+    Takeable <|-- Usable
+    Usable <|-- Equipable
+    Usable <|-- Stackable
+    Equipable <|-- Weapon
 
 
 ```
 
 ## More information
+
 * [Dice](gameserver/src/main/java/com/lhf/game/dice/README.md) - one example of something `Taggable` but NOT `Examinable`
 
 # Server Design
@@ -150,6 +174,7 @@ classDiagram
 ```
 
 ### More information
+
 * [Magic](./game/magic/README.md) - what the `ThirdPower` is all about
 * [AI](./game/creature/intelligence/README.md) - The `NonPlayerCharacter`s artificial intelligence
 
