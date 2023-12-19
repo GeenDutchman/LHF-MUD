@@ -8,10 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
 import com.lhf.game.creature.Creature;
 import com.lhf.game.creature.vocation.Vocation;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealthBuckets;
@@ -22,13 +26,88 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
 public class BattleStats implements ClientMessenger {
+
+    private static final BiFunction<Integer, Integer, Integer> adder = (a, b) -> {
+        if (a != null && b != null) {
+            return a + b;
+        }
+        return a != null ? a : b;
+    };
+
+    private static final Function<EnumMap<BattleStat, Integer>, EnumMap<BattleStat, Integer>> xpLens = (deltas) -> {
+        if (deltas == null) {
+            deltas = new EnumMap<>(BattleStat.class);
+        }
+        Integer numDamages = deltas.getOrDefault(BattleStat.NUM_DAMAGES, 0);
+        if (numDamages > 0) {
+            deltas.merge(BattleStat.XP_EARNED, numDamages, adder);
+        }
+        return deltas;
+    };
+
+    public final static Function<EnumMap<BattleStat, Integer>, EnumMap<BattleStat, Integer>> getXPLens(
+            Vocation vocation) {
+        if (vocation == null) {
+            return xpLens;
+        }
+        VocationName vocationName = vocation.getVocationName();
+        if (vocationName == null) {
+            return xpLens;
+        }
+        switch (vocationName) {
+            case DUNGEON_MASTER:
+                return xpLens.andThen((deltas) -> {
+                    for (BattleStat stat : EnumSet.of(BattleStat.NUM_DAMAGES, BattleStat.MAX_DAMAGE)) {
+                        Integer value = deltas.getOrDefault(stat, 1);
+                        if (value > 0) {
+                            deltas.merge(stat, value, adder);
+                        }
+                    }
+                    return deltas;
+                });
+            case FIGHTER:
+                return xpLens.andThen((deltas) -> {
+                    for (BattleStat stat : EnumSet.of(BattleStat.TOTAL_DAMAGE, BattleStat.AGGRO_DAMAGE)) {
+                        Integer value = deltas.getOrDefault(stat, 0) / Integer.max(vocation.getLevel(), 1);
+                        if (value > 0) {
+                            deltas.merge(stat, value, adder);
+                        }
+                    }
+                    return deltas;
+                });
+            case HEALER:
+                return xpLens.andThen((deltas) -> {
+                    for (BattleStat stat : EnumSet.of(BattleStat.AVG_DAMAGE, BattleStat.HEALING_PERFORMED)) {
+                        Integer value = deltas.getOrDefault(stat, 0) / Integer.max(vocation.getLevel(), 1);
+                        if (value > 0) {
+                            deltas.merge(stat, value, adder);
+                        }
+                    }
+                    return deltas;
+                });
+            case MAGE:
+                return xpLens.andThen((deltas) -> {
+                    for (BattleStat stat : EnumSet.of(BattleStat.TOTAL_DAMAGE, BattleStat.AVG_DAMAGE)) {
+                        Integer value = deltas.getOrDefault(stat, 0) / Integer.max(vocation.getLevel(), 1);
+                        if (value > 0) {
+                            deltas.merge(stat, value, adder);
+                        }
+                    }
+                    return deltas;
+                });
+            default:
+                return xpLens;
+
+        }
+    }
+
     /**
      *
      */
     public static class BattleStatRecord implements Comparable<BattleStatRecord> {
 
         public static enum BattleStat {
-            MAX_DAMAGE, AGGRO_DAMAGE, TOTAL_DAMAGE, NUM_DAMAGES, HEALING_PERFORMED, AVG_DAMAGE;
+            MAX_DAMAGE, AGGRO_DAMAGE, TOTAL_DAMAGE, NUM_DAMAGES, HEALING_PERFORMED, AVG_DAMAGE, XP_EARNED;
 
             public static BattleStat getBattleStat(String value) {
                 for (BattleStat stat : values()) {
@@ -49,6 +128,7 @@ public class BattleStats implements ClientMessenger {
         private Vocation vocation;
         private HealthBuckets bucket;
         private EnumMap<BattleStat, Integer> stats;
+        private boolean dead;
 
         public BattleStatRecord(String targetName, CreatureFaction faction, Vocation vocation,
                 HealthBuckets bucket) {
@@ -60,6 +140,7 @@ public class BattleStats implements ClientMessenger {
             for (BattleStat stat : BattleStat.values()) {
                 this.stats.put(stat, 0);
             }
+            this.dead = false;
         }
 
         // returns immutable map of stats
@@ -108,6 +189,10 @@ public class BattleStats implements ClientMessenger {
             return this.stats.getOrDefault(BattleStat.HEALING_PERFORMED, 0);
         }
 
+        public int getXPEarned() {
+            return this.stats.getOrDefault(BattleStat.XP_EARNED, 0);
+        }
+
         public int get(BattleStat stat) {
             if (stat == null) {
                 return 0;
@@ -120,11 +205,23 @@ public class BattleStats implements ClientMessenger {
             return this.get(stat);
         }
 
+        public boolean isDead() {
+            return this.dead;
+        }
+
+        public BattleStatRecord setDead() {
+            this.dead = true;
+            return this;
+        }
+
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append("BattleStats [targetName=").append(targetName).append(", faction=").append(faction)
-                    .append(", vocation=").append(vocation).append(", bucket=").append(bucket);
+            builder.append("BattleStats [targetName=").append(targetName)
+                    .append(", dead=").append(this.dead)
+                    .append(", faction=").append(faction)
+                    .append(", vocation=").append(vocation)
+                    .append(", bucket=").append(bucket);
             this.stats.entrySet().stream()
                     .forEach(entry -> builder.append(", ").append(entry.getKey()).append("=").append(entry.getValue()));
             builder.append("]");
@@ -160,9 +257,11 @@ public class BattleStats implements ClientMessenger {
 
     private Map<String, BattleStatRecord> battleStats;
     private ClientID clientID = new ClientID();
+    private int deadXP;
 
     public BattleStats() {
         this.battleStats = new TreeMap<>();
+        this.deadXP = 0;
     }
 
     public BattleStats(Map<String, BattleStatRecord> seedStats) {
@@ -181,6 +280,7 @@ public class BattleStats implements ClientMessenger {
 
     public BattleStats reset() {
         this.battleStats.clear();
+        this.deadXP = 0;
         return this;
     }
 
@@ -208,16 +308,51 @@ public class BattleStats implements ClientMessenger {
             return this;
         }
         found.bucket = responsible.getHealthBucket();
-        found.stats.merge(BattleStat.NUM_DAMAGES, roll < 0 ? 1 : 0, (a, b) -> a + b);
-        found.stats.merge(BattleStat.TOTAL_DAMAGE, roll, (a, b) -> a + b);
-        found.stats.merge(BattleStat.MAX_DAMAGE, roll, (a, b) -> a > b ? a : b);
+
+        EnumMap<BattleStat, Integer> deltas = new EnumMap<>(BattleStat.class);
+        deltas.put(BattleStat.TOTAL_DAMAGE, roll);
+        if (roll > 0) {
+            deltas.put(BattleStat.NUM_DAMAGES, 1);
+            // the difference to the next running average
+            deltas.put(BattleStat.AVG_DAMAGE, (roll - found.getAverageDamage()) / (found.getNumDamgages() + 1));
+        }
+        if (found.getMaxDamage() < roll) {
+            deltas.put(BattleStat.MAX_DAMAGE, roll - found.getMaxDamage());
+        }
         int healingPerformed = ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.HEALING),
                 false);
-        found.stats.merge(BattleStat.HEALING_PERFORMED, healingPerformed, (a, b) -> a + b);
-        found.stats.put(BattleStat.AGGRO_DAMAGE,
-                ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.AGGRO), true));
-        found.stats.put(BattleStat.AVG_DAMAGE,
-                found.getNumDamgages() == 0 ? 0 : found.getTotalDamage() / found.getNumDamgages());
+        if (healingPerformed != 0) {
+            deltas.put(BattleStat.HEALING_PERFORMED, healingPerformed);
+        }
+        int aggroPerformed = ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.AGGRO), true);
+        if (aggroPerformed != 0) {
+            deltas.put(BattleStat.AGGRO_DAMAGE, aggroPerformed);
+        }
+
+        Function<EnumMap<BattleStat, Integer>, EnumMap<BattleStat, Integer>> lens = BattleStats
+                .getXPLens(found.getVocation());
+        if (lens != null) {
+            deltas = lens.apply(deltas);
+        }
+
+        deltas.forEach((key, value) -> {
+            found.stats.merge(key, value, adder);
+        });
+
+        Creature targeted = ca.getAffected();
+        if (targeted != null && !targeted.isAlive()) {
+            BattleStatRecord targetRecord = this.battleStats.get(targeted.getName());
+            if (targetRecord != null) {
+                Integer targetEarned = targetRecord.stats.remove(BattleStat.XP_EARNED);
+                if (targetEarned == null) {
+                    targetEarned = 0;
+                }
+                targetEarned = targetEarned
+                        / Integer.max(1, targetRecord.getVocation() != null ? targetRecord.getVocation().getLevel()
+                                : targetRecord.getNumDamgages());
+                found.stats.merge(BattleStat.XP_EARNED, targetEarned, adder);
+            }
+        }
 
         return this;
     }
@@ -250,12 +385,52 @@ public class BattleStats implements ClientMessenger {
         return this;
     }
 
-    public Map<String, BattleStatRecord> getBattleStats() {
-        return Collections.unmodifiableMap(this.battleStats);
+    public BattleStatRecord getRecord(String creatureName) {
+        return this.battleStats.get(creatureName);
     }
 
-    public Collection<BattleStatRecord> getBattleStatSet() {
-        return Collections.unmodifiableCollection(this.battleStats.values());
+    public BattleStats setDead(String creatureName, int worth) {
+        BattleStatRecord stat = this.battleStats.get(creatureName);
+        if (stat != null) {
+            stat.setDead();
+        }
+        this.deadXP += worth;
+        return this;
+    }
+
+    public int getDeadXP() {
+        return this.deadXP;
+    }
+
+    public enum BattleStatsQuery {
+        ONLY_LIVING, ONLY_DEAD, ALL;
+    }
+
+    public final Map<String, BattleStatRecord> getBattleStats(BattleStatsQuery query) {
+        if (query == null || BattleStatsQuery.ALL.equals(query)) {
+            return Collections.unmodifiableMap(this.battleStats);
+        }
+        return Collections.unmodifiableMap(this.battleStats.entrySet().stream().filter(entry -> {
+            BattleStatRecord record = entry.getValue();
+            if (record == null) {
+                return false;
+            }
+            switch (query) {
+                case ALL:
+                    return true;
+                case ONLY_DEAD:
+                    return record.isDead();
+                case ONLY_LIVING:
+                    return !record.isDead();
+                default:
+                    return true;
+
+            }
+        }).collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue())));
+    }
+
+    public final Collection<BattleStatRecord> getBattleStatSet(BattleStatsQuery query) {
+        return this.getBattleStats(query).values();
     }
 
     @Override

@@ -16,6 +16,7 @@ import org.mockito.stubbing.Answer;
 import com.google.common.truth.Truth;
 import com.google.common.truth.Truth8;
 import com.lhf.game.battle.BattleStats;
+import com.lhf.game.battle.BattleStats.BattleStatsQuery;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler.TargetLists;
@@ -53,7 +54,8 @@ public class BattleTurnHandlerTest {
                 .initialize(List.of(finder.npc, attacker.npc, subAttacker.npc));
 
         TargetLists targets = handler.chooseTargets(
-                Optional.of(StatsOutMessage.getBuilder().addRecords(battleStats.getBattleStatSet())
+                Optional.of(StatsOutMessage.getBuilder()
+                        .addRecords(battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING))
                         .Build()),
                 finder.npc.getHarmMemories(),
                 finder.npc.getFaction());
