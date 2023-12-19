@@ -44,7 +44,7 @@ The `Player` can then navigate back to Jill and receive Experience Points and a 
 
 ## Technical Details
 
-See here for more: [Structure Information](gameserver/src/main/java/com/lhf/README.MD)
+See here for more: [Structure Information](gameserver/src/main/java/com/lhf/README.md)
 
 ## Credits
 
