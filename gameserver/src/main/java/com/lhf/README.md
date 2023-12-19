@@ -4,7 +4,6 @@
 
 ```mermaid
 classDiagram
-
     class Examinable {
         <<interface>>
     }
@@ -108,12 +107,11 @@ classDiagram
     Usable <|-- Stackable
     Equipable <|-- Weapon
 
-
 ```
 
 ### More information
 
-* [Dice](gameserver/src/main/java/com/lhf/game/dice/README.md) - one example of something `Taggable` but NOT `Examinable`
+* [Dice](./game/dice/README.md) - one example of something `Taggable` but NOT `Examinable`
 
 ## Server Design
 
@@ -135,7 +133,7 @@ classDiagram
     class Dungeon
     class Room
     class Player
-    class BattleManager    
+    class BattleManager
 
     Main *-- Server
     Server *-- ClientManager
@@ -162,7 +160,7 @@ classDiagram
     Dungeon <-- Room
     ThirdPower <-- Dungeon
     Game <-- ThirdPower
-    Server <-- Game    
+    Server <-- Game
 
     Room o-- BattleManager
     
