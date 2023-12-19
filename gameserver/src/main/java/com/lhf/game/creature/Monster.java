@@ -8,14 +8,14 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.MonsterAI;
 
-public class Monster extends NonPlayerCharacter {
+public class Monster extends INonPlayerCharacter {
     public static final String defaultConvoTreeName = "non_verbal_default";
     private final long monsterNumber;
     private boolean activelyHostile;
 
     private MonsterAI aiType;
 
-    public static class MonsterBuilder extends NonPlayerCharacter.AbstractNPCBuilder<MonsterBuilder> {
+    public static class MonsterBuilder extends INonPlayerCharacter.AbstractNPCBuilder<MonsterBuilder> {
         private boolean activelyHostile;
         private static long serialNumber = 0;
         private long monsterNumber = 0;

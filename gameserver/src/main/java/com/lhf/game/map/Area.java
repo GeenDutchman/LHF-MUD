@@ -10,7 +10,7 @@ import com.lhf.game.ItemContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Monster;
-import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.Player;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
@@ -71,7 +71,7 @@ public interface Area
                 seen.addSeen(SeeCategory.PLAYER, c);
             } else if (c instanceof Monster) {
                 seen.addSeen(SeeCategory.MONSTER, c);
-            } else if (c instanceof NonPlayerCharacter) {
+            } else if (c instanceof INonPlayerCharacter) {
                 seen.addSeen(SeeCategory.NPC, c);
             } else {
                 seen.addSeen(SeeCategory.CREATURE, c);

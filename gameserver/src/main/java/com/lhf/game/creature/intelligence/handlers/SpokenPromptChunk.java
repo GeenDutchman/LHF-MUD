@@ -6,7 +6,7 @@ import java.util.logging.Level;
 
 import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
 import com.lhf.game.creature.intelligence.AIHandler;
@@ -88,7 +88,7 @@ public class SpokenPromptChunk extends AIHandler {
     public void handle(BasicAI bai, OutMessage msg) {
         if (msg.getOutType().equals(OutMessageType.SPEAKING)) {
             SpeakingMessage sm = (SpeakingMessage) msg;
-            if (!sm.getShouting() && sm.getHearer() != null && sm.getHearer() instanceof NonPlayerCharacter) {
+            if (!sm.getShouting() && sm.getHearer() != null && sm.getHearer() instanceof INonPlayerCharacter) {
                 if (sm.getSayer() instanceof ICreature || (this.allowUsers && sm.getSayer() instanceof User)) {
                     if (sm.getMessage().startsWith("PROMPT") &&
                             (this.prompters.contains(sm.getSayer().getClientID())

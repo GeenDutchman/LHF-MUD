@@ -3,9 +3,9 @@ package com.lhf.game.creature;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.vocation.DMV;
 
-public class DungeonMaster extends NonPlayerCharacter {
+public class DungeonMaster extends INonPlayerCharacter {
 
-    public static class DungeonMasterBuilder extends NonPlayerCharacter.AbstractNPCBuilder<DungeonMasterBuilder> {
+    public static class DungeonMasterBuilder extends INonPlayerCharacter.AbstractNPCBuilder<DungeonMasterBuilder> {
         private DungeonMasterBuilder(AIRunner aiRunner) {
             super(aiRunner);
             this.setVocation(new DMV());

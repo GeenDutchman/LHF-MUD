@@ -14,7 +14,7 @@ import com.google.common.truth.Truth;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
 import com.lhf.server.client.ClientID;
 
@@ -27,7 +27,7 @@ public class ConversationTreeTest {
 
         @BeforeEach
         void init() {
-                this.talker = Mockito.mock(NonPlayerCharacter.class);
+                this.talker = Mockito.mock(INonPlayerCharacter.class);
                 this.talkerID = new ClientID();
         }
 
@@ -245,7 +245,7 @@ public class ConversationTreeTest {
                 Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
                 Mockito.when(this.talker.getColorTaggedName()).thenCallRealMethod();
 
-                ICreature unwelcome = Mockito.mock(NonPlayerCharacter.class);
+                ICreature unwelcome = Mockito.mock(INonPlayerCharacter.class);
                 ClientID id = new ClientID();
                 Mockito.when(unwelcome.getClientID()).thenReturn(id);
                 Mockito.when(unwelcome.getName()).thenReturn("Unwelcome Bob");
@@ -305,7 +305,7 @@ public class ConversationTreeTest {
                 Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
                 Mockito.when(this.talker.getColorTaggedName()).thenCallRealMethod();
 
-                ICreature unwelcome = Mockito.mock(NonPlayerCharacter.class);
+                ICreature unwelcome = Mockito.mock(INonPlayerCharacter.class);
                 ClientID id = new ClientID();
                 Mockito.when(unwelcome.getClientID()).thenReturn(id);
                 Mockito.when(unwelcome.getName()).thenReturn("Unwelcome Bob");

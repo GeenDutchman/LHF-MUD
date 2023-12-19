@@ -119,8 +119,8 @@ public class CreatureCreator {
         return builder.build();
     }
 
-    public static NonPlayerCharacter makeNPC() {
-        NonPlayerCharacter.NPCBuilder builder = NonPlayerCharacter.getNPCBuilder(aiRunner);
+    public static INonPlayerCharacter makeNPC() {
+        INonPlayerCharacter.NPCBuilder builder = INonPlayerCharacter.getNPCBuilder(aiRunner);
 
         return builder.build();
     }

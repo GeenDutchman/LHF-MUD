@@ -9,7 +9,7 @@ import java.util.logging.Level;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
-import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -32,7 +32,7 @@ public class AIComBundle extends ComBundle implements MessageChainHandler {
         return AIComBundle.aiRunner;
     }
 
-    public NonPlayerCharacter npc;
+    public INonPlayerCharacter npc;
     public BasicAI brain;
     @Mock
     public MessageChainHandler mockedWrappedHandler;
@@ -41,7 +41,7 @@ public class AIComBundle extends ComBundle implements MessageChainHandler {
         super();
         this.mockedWrappedHandler = Mockito.mock(MessageChainHandler.class);
 
-        this.npc = NonPlayerCharacter.getNPCBuilder(AIComBundle.getAIRunner()).build();
+        this.npc = INonPlayerCharacter.getNPCBuilder(AIComBundle.getAIRunner()).build();
         this.brain = AIComBundle.getAIRunner().register(this.npc);
         brain.SetOut(this.sssb);
         this.npc.setController(this.brain);
