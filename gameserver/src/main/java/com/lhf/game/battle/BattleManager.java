@@ -32,12 +32,15 @@ import java.util.stream.Collectors;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.battle.BattleStats.BattleStatRecord;
+import com.lhf.game.battle.BattleStats.BattleStatsQuery;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.Weapon;
@@ -202,7 +205,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         public synchronized void endRound() {
             this.threadLogger.log(Level.FINE, "Ending Round");
             BattleManager.this.flush();
-
+            BattleManager.this.battleStats.initialize(getCreatures());
             BattleManager.this.clearDead();
             if (!BattleManager.this.checkCompetingFactionsPresent("endRound()")) {
                 this.roundPhaser.forceTermination();
@@ -497,7 +500,10 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
         final AtomicBoolean atomicBoolean = new AtomicBoolean(false);
         this.clearCreatures(creature -> creature != null && creature.equals(c), true,
-                creature -> atomicBoolean.set(true));
+                creature -> {
+                    this.battleStats.remove(creature.getName());
+                    atomicBoolean.set(true);
+                });
         return atomicBoolean.get();
     }
 
@@ -554,6 +560,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         RoundThread curThread = this.battleThread.get();
         if (curThread == null || !curThread.getIsRunning()) {
             this.battleLogger.log(Level.FINER, () -> String.format("%s starts a fight", instigator.getName()));
+            this.battleStats.reset();
             this.addCreature(instigator);
             if (victims != null) {
                 for (ICreature c : victims) {
@@ -582,7 +589,6 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
     public void endBattle() {
         this.battleLogger.log(Level.INFO, "Ending battle");
-        this.battleStats.reset();
         FightOverMessage.Builder foverBuilder = FightOverMessage.getBuilder().setNotBroadcast();
         this.announce(foverBuilder.Build());
         if (this.room != null) {
@@ -595,11 +601,28 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             }
         }
         this.battleThread.set(null);
+        int participants = Integer.min(
+                (int) this.getCreatures().stream().filter(creature -> creature != null && creature.isAlive()).count(),
+                1);
+        int xpFromDeath = this.battleStats.getDeadXP() / participants;
         this.clearCreatures(creature -> true, false, creature -> {
-            if (creature != null && !creature.isAlive() && this.room != null) {
-                this.room.onCreatureDeath(creature);
+            if (creature == null) {
+                return;
+            }
+            if (!creature.isAlive()) {
+                if (this.room != null) {
+                    this.room.onCreatureDeath(creature);
+                }
+            } else {
+                int xpForCreature = xpFromDeath;
+                BattleStatRecord record = this.battleStats.getRecord(creature.getName());
+                if (record != null) {
+                    xpForCreature += record.getXPEarned();
+                }
+                creature.updateXp(xpForCreature);
             }
         });
+        this.battleStats.reset();
     }
 
     @Override
@@ -631,7 +654,10 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                     iterator.remove();
                     creature.setInBattle(false);
                     creature.setSuccessor(this.successor);
-                    this.battleStats.remove(creature.getName());
+                    if (!creature.isAlive()) {
+                        this.battleStats.setDead(creature.getName(),
+                                creature.getStats().getOrDefault(Stats.XPWORTH, 1));
+                    }
                     RoundThread thread = BattleManager.this.battleThread.get();
                     if (thread != null && thread.isAlive()) {
                         synchronized (thread) {
@@ -828,7 +854,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
         @Override
         public Reply handle(CommandContext ctx, Command cmd) {
-            ctx.sendMsg(StatsOutMessage.getBuilder().addRecords(BattleManager.this.battleStats.getBattleStatSet())
+            ctx.sendMsg(StatsOutMessage.getBuilder()
+                    .addRecords(BattleManager.this.battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING))
                     .setNotBroadcast());
             return ctx.handled();
         }

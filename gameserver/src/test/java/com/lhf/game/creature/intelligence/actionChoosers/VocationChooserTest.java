@@ -12,6 +12,7 @@ import org.mockito.Spy;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.battle.BattleStats;
+import com.lhf.game.battle.BattleStats.BattleStatsQuery;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
@@ -50,7 +51,8 @@ public class VocationChooserTest {
                                 .initialize(List.of(finder.npc, magi.npc, cleric.npc, barbarian.npc, supreme.npc));
 
                 SortedMap<String, Double> targets = chooser.choose(
-                                battleStats.getBattleStatSet().stream().collect(Collectors.toSet()),
+                                battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING).stream()
+                                                .collect(Collectors.toSet()),
                                 finder.npc.getHarmMemories(),
                                 List.of());
 

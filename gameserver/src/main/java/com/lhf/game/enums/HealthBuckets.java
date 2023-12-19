@@ -31,6 +31,9 @@ public enum HealthBuckets implements Taggable {
     }
 
     public static HealthBuckets calculate(int currentHealth, int totalHealth) {
+        if (totalHealth == 0) {
+            return HealthBuckets.DEAD;
+        }
         Double percent = currentHealth / (double) totalHealth;
 
         return HealthBuckets.fromPercent(percent);

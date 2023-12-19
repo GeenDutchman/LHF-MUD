@@ -105,12 +105,12 @@ public abstract class Creature implements ICreature {
     }
 
     private int getHealth() {
-        return this.statblock.getStats().get(Stats.CURRENTHP);
+        return this.statblock.getStats().getOrDefault(Stats.CURRENTHP, 0);
     }
 
     @Override
     public HealthBuckets getHealthBucket() {
-        return HealthBuckets.calculate(getHealth(), this.statblock.getStats().get(Stats.MAXHP));
+        return HealthBuckets.calculate(getHealth(), this.statblock.getStats().getOrDefault(Stats.MAXHP, 0));
     }
 
     @Override
@@ -120,8 +120,8 @@ public abstract class Creature implements ICreature {
 
     @Override
     public void updateHitpoints(int value) {
-        int current = this.statblock.getStats().get(Stats.CURRENTHP);
-        int max = this.statblock.getStats().get(Stats.MAXHP);
+        int current = this.statblock.getStats().getOrDefault(Stats.CURRENTHP, 0);
+        int max = this.statblock.getStats().getOrDefault(Stats.MAXHP, 0);
         current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
         this.statblock.getStats().replace(Stats.CURRENTHP, current);
         if (current <= 0) {
@@ -138,19 +138,13 @@ public abstract class Creature implements ICreature {
         }
     }
 
-    public void updateAc(int value) {
-        int current = this.statblock.getStats().get(Stats.AC);
-        current += value;
-        this.statblock.getStats().replace(Stats.AC, current);
-    }
-
     @Override
     public void updateXp(int value) {
-        int current = this.statblock.getStats().get(Stats.XPEARNED);
+        int current = this.statblock.getStats().getOrDefault(Stats.XPEARNED, 0);
         current += value;
         this.statblock.getStats().replace(Stats.XPEARNED, current);
-        if (this.canLevelUp(current, current - value)) {
-            // this.levelUp();
+        if (this.vocation != null) {
+            this.vocation.addExperience(value);
         }
     }
 
@@ -161,7 +155,15 @@ public abstract class Creature implements ICreature {
 
     private void updateStat(Stats stat, int value) {
         Map<Stats, Integer> stats = this.statblock.getStats();
-        stats.put(stat, stats.get(stat) + value);
+        stats.merge(stat, value, (a, b) -> {
+            if (a != null && b != null) {
+                return a + b;
+            }
+            return a != null ? a : b;
+        });
+        if (Stats.XPEARNED.equals(stat) && this.vocation != null) {
+            this.vocation.addExperience(value);
+        }
     }
 
     /* start getters */
@@ -370,15 +372,6 @@ public abstract class Creature implements ICreature {
     @Override
     public void setInBattle(boolean inBattle) {
         this.inBattle = inBattle;
-    }
-
-    private boolean canLevelUp(int current, int former) {
-        // if former is below threshold and current is above or equal.. do things
-        // in normal 5e this is where we would add abilities and ASI
-        // probablly we would pull them into a pocket dimension and explain
-        // what leveling up means for them, allowing them to ASI and
-        // any other relevant choices they need to make
-        return false;
     }
 
     @Override

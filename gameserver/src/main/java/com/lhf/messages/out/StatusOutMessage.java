@@ -20,6 +20,7 @@ public class StatusOutMessage extends OutMessage {
     private final Integer armorClass;
     private final AttributeBlock attributes;
     private final VocationName vocationName;
+    private final Integer vocationLevel;
 
     public static class Builder extends OutMessage.Builder<Builder> {
         private boolean full;
@@ -33,6 +34,7 @@ public class StatusOutMessage extends OutMessage {
         private Integer armorClass;
         private AttributeBlock attributes;
         private VocationName vocationName;
+        private Integer vocationLevel;
 
         protected Builder() {
             super(OutMessageType.STATUS);
@@ -44,9 +46,10 @@ public class StatusOutMessage extends OutMessage {
             this.colorTaggedName = creature.getColorTaggedName();
             this.race = creature.getCreatureRace();
             this.faction = creature.getFaction();
-            this.healthBucket = HealthBuckets.calculate(creature.getStats().get(Stats.CURRENTHP),
-                    creature.getStats().get(Stats.MAXHP));
+            this.healthBucket = HealthBuckets.calculate(creature.getStats().getOrDefault(Stats.CURRENTHP, 1),
+                    creature.getStats().getOrDefault(Stats.MAXHP, 0));
             this.vocationName = creature.getVocation() != null ? creature.getVocation().getVocationName() : null;
+            this.vocationLevel = creature.getVocation() != null ? creature.getVocation().getLevel() : null;
             if (this.full) {
                 this.currentHealth = creature.getStats().get(Stats.CURRENTHP);
                 this.maxHealth = creature.getStats().get(Stats.MAXHP);
@@ -103,6 +106,10 @@ public class StatusOutMessage extends OutMessage {
 
         public VocationName getVocationName() {
             return vocationName;
+        }
+
+        public Integer getVocationLevel() {
+            return vocationLevel;
         }
 
         /*
@@ -187,6 +194,7 @@ public class StatusOutMessage extends OutMessage {
         this.faction = builder.getFaction();
         this.healthBucket = builder.getHealthBucket();
         this.vocationName = builder.getVocationName();
+        this.vocationLevel = builder.getVocationLevel();
         this.currentHealth = builder.getCurrentHealth();
         this.maxHealth = builder.getMaxHealth();
         this.armorClass = builder.getArmorClass();
@@ -208,7 +216,11 @@ public class StatusOutMessage extends OutMessage {
             sb.append("Faction: ").append(this.faction.toString()).append("\r\n");
         }
         if (this.vocationName != null) {
-            sb.append("Vocation: ").append(this.vocationName.getColorTaggedName()).append("\r\n");
+            sb.append("Vocation: ").append(this.vocationName.getColorTaggedName());
+            if (this.vocationLevel != null) {
+                sb.append(" ").append(this.vocationLevel);
+            }
+            sb.append("\r\n");
         }
         if (this.healthBucket != null) {
             sb.append("Health: ").append(this.healthBucket.getColorTaggedName());
