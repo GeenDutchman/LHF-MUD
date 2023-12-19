@@ -2,11 +2,10 @@ package com.lhf.game.item;
 
 import java.util.regex.PatternSyntaxException;
 
-import com.lhf.Examinable;
-import com.lhf.Taggable;
+import com.lhf.TaggedExaminable;
 import com.lhf.messages.out.SeeOutMessage;
 
-public abstract class Item implements Examinable, Taggable {
+public abstract class Item implements TaggedExaminable {
     // Class name for discrimination
     private final String className;
     // Name it will be known by

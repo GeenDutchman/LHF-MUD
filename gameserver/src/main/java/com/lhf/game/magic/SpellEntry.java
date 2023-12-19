@@ -5,8 +5,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import com.lhf.Examinable;
 import com.lhf.Taggable;
+import com.lhf.TaggedExaminable;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
@@ -14,7 +14,7 @@ import com.lhf.game.enums.ResourceCost;
 import com.lhf.messages.out.CastingMessage;
 import com.lhf.messages.out.SeeOutMessage;
 
-public abstract class SpellEntry implements Taggable, Examinable, Comparable<SpellEntry> {
+public abstract class SpellEntry implements TaggedExaminable, Comparable<SpellEntry> {
     private final String className;
     protected final ResourceCost level;
     protected final String name;

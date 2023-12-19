@@ -2,13 +2,13 @@ package com.lhf.game;
 
 import java.util.Objects;
 
-import com.lhf.Examinable;
 import com.lhf.Taggable;
+import com.lhf.TaggedExaminable;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.out.SeeOutMessage;
 
-public abstract class EntityEffect implements Examinable, Taggable, Comparable<EntityEffect> {
+public abstract class EntityEffect implements TaggedExaminable, Comparable<EntityEffect> {
 
     protected final EntityEffectSource source;
     protected ICreature creatureResponsible;

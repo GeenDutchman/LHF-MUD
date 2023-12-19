@@ -1,4 +1,6 @@
-## Basics
+# Conversation
+
+## Conceptualization
 
 The first thing is that we need a sort of tree structure, potentially a DAG.
 
@@ -9,6 +11,7 @@ flowchart TB
     first -->|keywordTwo|that([that branch])
     that -.->|keywordThree|first
 ```
+
 When the conversation goes off an end, then we can set up a mechanism to go back to the start node (so thus not a DAG).
 
 So at the very least, each `node` of conversation should have some sort of `body` of text.  That `body` should contain or hint at (tag?) key words that can direct the conversation to a new `node`.
