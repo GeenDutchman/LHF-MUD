@@ -10,7 +10,7 @@ In a basic sense, the players go through the `Room`s of this `Dungeon` where the
 
 ### ASCII/Emoji Dungeon map with example
 
-```
+```plaintext
           +--------+
           |         |
           |   🧘    |
@@ -27,6 +27,7 @@ In a basic sense, the players go through the `Room`s of this `Dungeon` where the
 ```
 
 #### Example
+
 Commands are preceeded by an arrow `>`.  Also note that normally, there is no graphic available, just text that describes the Room that the `Player` is in.
 
 So the `Player` is on the left with the cowboy hat.  A `>SEE` command reveals that there is nothing in the room other than themselves, so they will `>GO EAST`.
@@ -41,28 +42,28 @@ In the following room, they see a `Chest` and inside it is a `Healing Potion`.  
 
 The `Player` can then navigate back to Jill and receive Experience Points and a Level for completing the quest.
 
-# Technical Details
+## Technical Details
 
 See here for more: [Structure Information](gameserver/src/main/java/com/lhf/README.MD)
 
-# Credits
+## Credits
 
 Again, this was once a group project at University, where we were supposed to take on "real world" roles for this project.  
 
 See our class wiki <https://github.com/cs428TAs/f2019/wiki/L.H.F.-M.U.D.>  page.
 
-## The Team:
+## The Team
 
 ### Project Manager - [GeenDutchman](https://github.com/GeenDutchman)
 
 * I come up with PBIs, keep track of tasks and generating reports, as well as hop in on the coding.
 
-### Front-end Specialist - [dnajarro](https://github.com/dnajarro) 
+### Front-end Specialist - [dnajarro](https://github.com/dnajarro)
 
 * Create client interface and make sure client can communicate with the server.
 * See [LHF-MUD-CLIENT](https://github.com/GeenDutchman/LHF-MUD-CLIENT)
 
-### Director of Quality Assurance - [twthender](https://github.com/twthender) 
+### Director of Quality Assurance - [twthender](https://github.com/twthender)
 
 * Oversee official testing, log and track bugs and issues. Develop forms of automated testing.
 
@@ -73,6 +74,7 @@ See our class wiki <https://github.com/cs428TAs/f2019/wiki/L.H.F.-M.U.D.>  page.
 ### Lead Gameplay Designer - Spencer
 
 (Unfortunately, I couldn't confirm his profile for sure, sorry Man)
+
 * Design and implement gameplay logic for the game server. Work alongside dungeon master to turn story ideas into implementation.
 
 ### Back End infastructor - [keeslinp](https://github.com/keeslinp)
@@ -80,4 +82,5 @@ See our class wiki <https://github.com/cs428TAs/f2019/wiki/L.H.F.-M.U.D.>  page.
 * Build the infrastructure for the backend so that the client can connect and communicate in order to interact with the gameplay logic. I'm also handling the setup and deployment of the server.
 
 ### Lore/Dungeon Master - [despaink](https://github.com/despaink)
+
 * World building, inputting creatures and objects in the database and general story line or lack there of :p
