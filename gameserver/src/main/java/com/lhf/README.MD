@@ -1,3 +1,95 @@
+# Basic Structure
+
+```mermaid
+classDiagram
+
+  class Examinable
+  <<interface>> Examinable
+  class Taggable
+  <<interface>> Taggable
+
+  class TaggedExaminable
+  <<interface>> TaggedExaminable
+
+  Taggable <|-- TaggedExaminable
+  Examinable <|-- TaggedExaminable
+
+  note for TaggedExaminable "Not all things inherit from this,\n which is why Examinable and Tagged \nare still separate"
+
+  class ItemContainer
+  <<interface>> ItemContainer
+  class CreatureContainer
+  <<interface>> CreatureContainer
+  class Item
+  <<abstract>> Item
+  class Takeable
+  class Usable
+  class Equipable
+  class Stackable
+  class InteractObject
+  class Weapon
+
+  ItemContainer o-- Item
+  TaggedExaminable <|-- Item
+  Item <|.. Takeable
+  Item <|.. InteractObject
+  Takeable <|-- Usable
+  Usable <|-- Equipable
+  Usable <|-- Stackable
+  Equipable <|-- Weapon
+
+  ItemContainer <|.. Inventory
+
+
+  class Room
+  CreatureContainer <|.. Room
+  ItemContainer <|.. Room
+
+  TaggedExaminable <|-- CreatureContainer
+  TaggedExaminable <|-- ItemContainer
+
+  class ICreature
+  <<interface>> ICreature
+  class INonPlayerCharacter
+  <<interface>> INonPlayerCharacter
+  class IMonster
+  <<interface>> IMonster
+
+  TaggedExaminable <|-- ICreature
+
+  ICreature <|-- INonPlayerCharacter
+  INonPlayerCharacter <|-- IMonster
+
+  class Creature
+  <<abstract>> Creature
+  class NonPlayerCharacter
+  class Monster
+  class DungeonMaster
+  class Player
+
+  ICreature <|.. Creature
+  CreatureContainer o-- ICreature
+
+
+  Creature <|.. Player
+  Creature <|.. NonPlayerCharacter
+  INonPlayerCharacter <|.. NonPlayerCharacter
+  NonPlayerCharacter <|-- Monster
+  IMonster <|.. Monster
+  NonPlayerCharacter <|-- DungeonMaster
+
+  Inventory --* ICreature
+
+
+```
+
+## More information
+* [Dice](gameserver/src/main/java/com/lhf/game/dice/README.md) - one example of something `Taggable` but NOT `Examinable`
+
+# Server Design
+
+## Chain of Command
+
 ```mermaid
 classDiagram
     class MessageChainHandler
@@ -57,6 +149,11 @@ classDiagram
 
 ```
 
+### More information
+* [Magic](./game/magic/README.md) - what the `ThirdPower` is all about
+* [AI](./game/creature/intelligence/README.md) - The `NonPlayerCharacter`s artificial intelligence
+
+## Sequence Diagram of Commands
 
 ```mermaid
 sequenceDiagram
@@ -108,3 +205,8 @@ sequenceDiagram
     Client --> enduser: done
 
 ```
+
+### More Information
+
+* [Commands](./messages/README.md)
+* [Out Messages](./messages/out/README.md)

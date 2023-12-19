@@ -37,6 +37,10 @@ The AIRunner interface allows for a separate thread to handle the processing of 
 
 A queued implementation of an AIRunner.
 
+## Conversation
+
+* [Conversation](../conversation/README.md)
+
 ## BasicAI
 
 ### Battle

@@ -41,91 +41,9 @@ In the following room, they see a `Chest` and inside it is a `Healing Potion`.  
 
 The `Player` can then navigate back to Jill and receive Experience Points and a Level for completing the quest.
 
-# Mermaids
+# Technical Details
 
-```mermaid
-classDiagram
-
-  class Examinable
-  <<interface>> Examinable
-  class Taggable
-  <<interface>> Taggable
-
-  class TaggedExaminable
-  <<interface>> TaggedExaminable
-
-  Taggable <|-- TaggedExaminable
-  Examinable <|-- TaggedExaminable
-
-  note for TaggedExaminable "Not all things inherit from this,\n which is why Examinable and Tagged \nare still separate"
-
-  class ItemContainer
-  <<interface>> ItemContainer
-  class CreatureContainer
-  <<interface>> CreatureContainer
-  class Item
-  <<abstract>> Item
-  class Takeable
-  class Usable
-  class Equipable
-  class Stackable
-  class InteractObject
-  class Weapon
-
-  ItemContainer o-- Item
-  TaggedExaminable <|-- Item
-  Item <|.. Takeable
-  Item <|.. InteractObject
-  Takeable <|-- Usable
-  Usable <|-- Equipable
-  Usable <|-- Stackable
-  Equipable <|-- Weapon
-
-  ItemContainer <|.. Inventory
-
-
-  class Room
-  CreatureContainer <|.. Room
-  ItemContainer <|.. Room
-
-  TaggedExaminable <|-- CreatureContainer
-  TaggedExaminable <|-- ItemContainer
-
-  class ICreature
-  <<interface>> ICreature
-  class INonPlayerCharacter
-  <<interface>> INonPlayerCharacter
-  class IMonster
-  <<interface>> IMonster
-
-  TaggedExaminable <|-- ICreature
-
-  ICreature <|-- INonPlayerCharacter
-  INonPlayerCharacter <|-- IMonster
-
-  class Creature
-  <<abstract>> Creature
-  class NonPlayerCharacter
-  class Monster
-  class DungeonMaster
-  class Player
-
-  ICreature <|.. Creature
-  CreatureContainer o-- ICreature
-
-
-  Creature <|.. Player
-  Creature <|.. NonPlayerCharacter
-  INonPlayerCharacter <|.. NonPlayerCharacter
-  NonPlayerCharacter <|-- Monster
-  IMonster <|.. Monster
-  NonPlayerCharacter <|-- DungeonMaster
-
-  Inventory --* ICreature
-
-
-```
-
+See here for more: [Structure Information](gameserver/src/main/java/com/lhf/README.MD)
 
 # Credits
 

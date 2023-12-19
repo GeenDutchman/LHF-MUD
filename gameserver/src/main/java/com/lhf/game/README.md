@@ -1,5 +1,7 @@
 # Effects
 
+* [Spells](./magic/README.md)
+
 ```mermaid
 classDiagram
     direction TB

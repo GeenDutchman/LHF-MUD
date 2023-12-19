@@ -1,4 +1,6 @@
 
+* [Effects](../README.md)
+
 spells can buff
 spells can debuff
 spells can damage
