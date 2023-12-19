@@ -26,15 +26,16 @@ In a basic sense, the players go through the `Room`s of this `Dungeon` where the
 +---------+---------+
 ```
 
-(Commands are preceeded by an arrow `>`)
+#### Example
+Commands are preceeded by an arrow `>`.  Also note that normally, there is no graphic available, just text that describes the Room that the `Player` is in.
 
-So the `Player` is on the left with the cowboy hat.  There is nothing in the room other than themselves, so they will `>GO EAST`.
+So the `Player` is on the left with the cowboy hat.  A `>SEE` command reveals that there is nothing in the room other than themselves, so they will `>GO EAST`.
 
 In the next room, they find a `Shield`.  They decide that they want to use it, so they will `>TAKE Shield` and then `>EQUIP Shield`.  That will make them tougher.  They see doors to the north and south, so they decide to `>GO NORTH`.  
 
-There they meet a `NonPlayerCharacter` named Jill.  Jill tells him that there are violent goblins nearby, and asks the `Player` to get rid of them.  The `Player` agrees, and does `>GO SOUTH` twice.
+There they meet a `NonPlayerCharacter` named Jill.  The `Player` will `>SAY "Hi" to Jill`.  Jill tells him that there are violent goblins nearby, and asks the `Player` to get rid of them.  The `Player` agrees by `>SAY "Yes I will" to Jill`, and does `>GO SOUTH` twice.
 
-In that room, the `Player` meets a pair of `Monster`s.  They battle it out, and the `Player` emerges hurt, but victorious!  The `Player` finds a nice `Longsword` on one of the goblins, so they `>TAKE Longsword from "Goblin's corpse"` and then `>EQUIP Longsword`. The `Player` sees another door and then does `>GO WEST`.
+In that room, the `Player` meets a pair of `Monster`s.  They battle it out with the `Player` using commands like `>ATTACK Goblin`. The battle ends and the `Player` emerges hurt, but victorious!  The `Player` finds a nice `Longsword` on one of the goblins with `>SEE "Goblin's corpse"`, so they `>TAKE Longsword from "Goblin's corpse"` and then `>EQUIP Longsword`. The `Player` sees another door and then does `>GO WEST`.
 
 In the following room, they see a `Chest` and inside it is a `Healing Potion`.  They then `>TAKE "Healing Potion" from "Chest"` and `USE Healing Potion` to heal their wounds from the earlier fight.  
 
