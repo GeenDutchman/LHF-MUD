@@ -339,7 +339,7 @@ public class BattleStats implements ClientMessenger {
             found.stats.merge(key, value, adder);
         });
 
-        Creature targeted = ca.getAffected();
+        ICreature targeted = ca.getAffected();
         if (targeted != null && !targeted.isAlive()) {
             BattleStatRecord targetRecord = this.battleStats.get(targeted.getName());
             if (targetRecord != null) {
