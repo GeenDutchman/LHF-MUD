@@ -6,16 +6,11 @@ import java.util.Objects;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.game.enums.MonsterAI;
 
 public class Monster extends NonPlayerCharacter implements IMonster {
     private final long monsterNumber;
-    private boolean activelyHostile;
-
-    private MonsterAI aiType;
 
     public static class MonsterBuilder extends INonPlayerCharacter.AbstractNPCBuilder<MonsterBuilder> {
-        private boolean activelyHostile;
         private static long serialNumber = 0;
         private long monsterNumber = 0;
 
@@ -39,15 +34,6 @@ public class Monster extends NonPlayerCharacter implements IMonster {
                 this.setConversationTree(convoManager.convoTreeFromFile(IMonster.defaultConvoTreeName));
             }
             return this.getThis();
-        }
-
-        public MonsterBuilder setHostility(boolean activelyHostile) {
-            this.activelyHostile = activelyHostile;
-            return this.getThis();
-        }
-
-        public boolean getHostility() {
-            return this.activelyHostile;
         }
 
         private synchronized void nextSerial() {
@@ -83,26 +69,12 @@ public class Monster extends NonPlayerCharacter implements IMonster {
 
     public Monster(MonsterBuilder builder) {
         super(builder);
-        this.activelyHostile = builder.getHostility();
         this.monsterNumber = builder.getMonsterNumber();
-        this.aiType = MonsterAI.RANDOM;
         this.setFaction(CreatureFaction.MONSTER);
     }
 
     public static MonsterBuilder getMonsterBuilder(AIRunner aiRunner) {
         return new MonsterBuilder(aiRunner);
-    }
-
-    public void setAiType(MonsterAI newType) {
-        this.aiType = newType;
-    }
-
-    public void setActivelyHostile(boolean setting) {
-        this.activelyHostile = setting;
-    }
-
-    public boolean isActivelyHostile() {
-        return this.activelyHostile;
     }
 
     @Override
