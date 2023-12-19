@@ -99,10 +99,13 @@ public interface ICreature
 
     /**
      * Returns some default {@link com.lhf.game.item.Weapon Weapon} for the
-     * Creature. It will first check to see what is in the
+     * Creature.
+     * <p>
+     * It will first check to see what is in the
      * {@link com.lhf.game.enums.EquipmentSlots#WEAPON Weapon} slot according to
      * {@link com.lhf.game.creature.inventory.EquipmentOwner#getEquipped(EquipmentSlots)
      * EquipmentOwner.getEquipped(EquipmentSlots)}.
+     * <p>
      * Defaults to {@link com.lhf.game.creature.ICreature.Fist Fist}.
      * 
      * @return {@link com.lhf.game.item.Weapon Weapon} that should not be null
