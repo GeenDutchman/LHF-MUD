@@ -313,6 +313,7 @@ public abstract class WrappedMonster implements IMonster {
     }
 
     @Override
+    @Deprecated
     public void setAttributes(AttributeBlock attributes) {
         innerMonster.setAttributes(attributes);
     }

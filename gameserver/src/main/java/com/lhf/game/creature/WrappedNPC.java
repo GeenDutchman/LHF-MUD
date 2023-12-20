@@ -311,6 +311,7 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
+    @Deprecated
     public void setAttributes(AttributeBlock attributes) {
         innerNPC.setAttributes(attributes);
     }
