@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
+import com.lhf.game.creature.Monster.MonsterBuilder;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.inventory.Inventory;
@@ -50,6 +51,10 @@ public abstract class WrappedMonster implements IMonster {
 
     protected WrappedMonster(@NotNull Monster monster) {
         this.innerMonster = monster;
+    }
+
+    protected WrappedMonster(@NotNull MonsterBuilder builder) {
+        this.innerMonster = builder.build();
     }
 
     public IMonster unwrap() {
@@ -117,11 +122,6 @@ public abstract class WrappedMonster implements IMonster {
     }
 
     @Override
-    public void intercept(MessageChainHandler interceptor) {
-        innerMonster.intercept(interceptor);
-    }
-
-    @Override
     public Collection<Item> getItems() {
         return innerMonster.getItems();
     }
@@ -134,11 +134,6 @@ public abstract class WrappedMonster implements IMonster {
     @Override
     public void setEquipmentSlots(EnumMap<EquipmentSlots, Equipable> equipmentSlots) {
         innerMonster.setEquipmentSlots(equipmentSlots);
-    }
-
-    @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
-        return innerMonster.addSelfToContext(ctx);
     }
 
     @Override

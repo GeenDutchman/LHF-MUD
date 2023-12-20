@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.AffectableEntity;
+import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.ItemContainer;
@@ -559,6 +560,27 @@ public interface ICreature
     }
 
     /**
+     * Finds the nearest CreatureContainer announces the death.
+     * 
+     * @param dead
+     */
+    static public void announceDeath(ICreature dead) {
+        if (dead == null) {
+            return;
+        }
+        MessageChainHandler next = dead.getSuccessor();
+        while (next != null) {
+            if (next instanceof CreatureContainer container) {
+                container.onCreatureDeath(dead); // the rest of the chain should be handled here as well
+                return; // break out of here, because it is handled
+            }
+            next = next.getSuccessor();
+        }
+        // if it gets to here, welcome to undeath (not literally)
+        dead.log(Level.WARNING, "died while not in a `CreatureContainer`!");
+    }
+
+    /**
      * Prints a description of the Creature
      */
     @Override
@@ -579,6 +601,14 @@ public interface ICreature
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public default CommandContext addSelfToContext(CommandContext ctx) {
+        if (ctx.getCreature() == null) {
+            ctx.setCreature(this);
+        }
+        return ctx;
     }
 
     /**

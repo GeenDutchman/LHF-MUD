@@ -55,6 +55,13 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
         this.innerNPC = npc;
     }
 
+    /**
+     * Note that this can mask a Monster
+     */
+    protected WrappedNPC(@NotNull AbstractNPCBuilder<?> builder) {
+        this.innerNPC = builder.build();
+    }
+
     public INonPlayerCharacter unwrap() {
         return this.innerNPC;
     }
@@ -115,11 +122,6 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
-    public void intercept(MessageChainHandler interceptor) {
-        innerNPC.intercept(interceptor);
-    }
-
-    @Override
     public Collection<Item> getItems() {
         return innerNPC.getItems();
     }
@@ -132,11 +134,6 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     @Override
     public void setEquipmentSlots(EnumMap<EquipmentSlots, Equipable> equipmentSlots) {
         innerNPC.setEquipmentSlots(equipmentSlots);
-    }
-
-    @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
-        return innerNPC.addSelfToContext(ctx);
     }
 
     @Override
