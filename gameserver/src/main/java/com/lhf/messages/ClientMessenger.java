@@ -1,6 +1,8 @@
 package com.lhf.messages;
 
 import java.util.Comparator;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
@@ -9,11 +11,40 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
 public interface ClientMessenger extends Taggable {
-    public void receive(OutMessage msg);
+    /**
+     * Accepts a ClientMessenger and an OutMessage. Utilizes
+     * {@link #getAcceptHook()} to find how the implementation wants to handle the
+     * event.
+     * <p>
+     * Does nothing if the ClientMessenger or OutMessage is null. If
+     * {@link #getAcceptHook()} returns null that is valid, but note that the event
+     * will be listed as being recieved by this ClientMessenger.
+     */
+    public static final BiConsumer<ClientMessenger, OutMessage> eventAccepter = (messenger, event) -> {
+        if (messenger == null || event == null) {
+            return;
+        }
+        Consumer<OutMessage> acceptHook = messenger.getAcceptHook();
+        if (acceptHook != null && event.isFirstRecieve(messenger.getClientID())) {
+            acceptHook.accept(event);
+        }
+    };
 
-    public default void receive(OutMessage.Builder<?> builder) {
-        this.receive(builder.Build());
-    }
+    /**
+     * Returns a {@link java.util.function.Consumer Consumer<OutMessage>} that
+     * should process the event on the behalf of the ClientMessenger.
+     * It is valid to return null and say that this ClientMessenger won't process
+     * it.
+     * 
+     * @return {@link java.util.function.Consumer Consumer<OutMessage>} or null
+     */
+    public abstract Consumer<OutMessage> getAcceptHook();
+
+    // public void receive(OutMessage msg);
+
+    // public default void receive(OutMessage.Builder<?> builder) {
+    // this.receive(builder.Build());
+    // }
 
     public abstract void log(Level logLevel, String logMessage);
 
@@ -22,27 +53,23 @@ public interface ClientMessenger extends Taggable {
     public ClientID getClientID();
 
     /**
-     * Accepts an event. Calls {@link #receive(OutMessage)} if the event shows that
-     * this is the first time that the event has come to this ClientID
+     * Accepts an event. Calls {@link #eventAccepter}.
      * 
      * @param messenger
      * @param event
      */
     public static void acceptEvent(ClientMessenger messenger, OutMessage event) {
-        if (event != null && messenger != null && event.isFirstRecieve(messenger.getClientID())) {
-            messenger.receive(event);
-        }
+        ClientMessenger.eventAccepter.accept(messenger, event);
     }
 
     /**
-     * Accepts an event. Calls {@link #receive(OutMessage)} if the event shows that
-     * this is the first time that the event has come to this ClientID
+     * Accepts an event. Calls {@link #eventAccepter}.
      * 
      * @param messenger
      * @param builder
      */
     public static void acceptEvent(ClientMessenger messenger, OutMessage.Builder<?> builder) {
-        ClientMessenger.acceptEvent(messenger, builder.Build());
+        ClientMessenger.eventAccepter.accept(messenger, builder.Build());
     }
 
     public static class ClientMessengerComparator implements Comparator<ClientMessenger> {

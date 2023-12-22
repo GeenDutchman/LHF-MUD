@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import com.lhf.messages.out.OutMessage;
@@ -16,8 +17,6 @@ public interface ClientMessengerHub extends ClientMessenger {
         if (outMessage == null || recipients == null) {
             return false;
         }
-
-        ClientMessenger.acceptEvent(this, outMessage);
 
         Set<ClientMessenger> sentSet = new TreeSet<>(ClientMessenger.getComparator());
 
@@ -66,10 +65,15 @@ public interface ClientMessengerHub extends ClientMessenger {
     }
 
     @Override
-    public default void receive(OutMessage msg) {
-        if (msg != null && !msg.isFirstRecieve(this.getClientID())) {
-            this.log(Level.FINE, "Received message, defaulting to announce it");
-            this.announceDirect(msg, this.getClientMessengers());
-        }
+    default Consumer<OutMessage> getAcceptHook() {
+        return (event) -> {
+            if (event == null || !event.isFirstRecieve(this.getClientID())) {
+                return;
+            }
+            this.log(Level.FINEST,
+                    () -> String.format("Received message %s, defaulting to announce it", event.getUuid()));
+            this.announceDirect(event, this.getClientMessengers());
+        };
     }
+
 }
