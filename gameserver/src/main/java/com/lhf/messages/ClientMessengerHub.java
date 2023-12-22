@@ -8,7 +8,7 @@ import java.util.TreeSet;
 
 import com.lhf.messages.out.OutMessage;
 
-public interface ClientMessengerHub {
+public interface ClientMessengerHub extends ClientMessenger {
     public Collection<ClientMessenger> getClientMessengers();
 
     /** Returns true if the message has been sent, false if not **/
