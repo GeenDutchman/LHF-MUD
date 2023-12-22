@@ -232,7 +232,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
          * @return a Reply
          */
         @Override
-        default Reply handle(CommandContext ctx, Command cmd) {
+        default Reply handleCommand(CommandContext ctx, Command cmd) {
             if (this.isPoolingEnabled(ctx)) {
                 PooledMessageChainHandler<?> pooledChainHandler = this.getPooledChainHandler(ctx);
                 if (pooledChainHandler != null) {
@@ -296,7 +296,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
                 if (handler instanceof PooledCommandHandler pooledCommandHandler) {
                     reply = pooledCommandHandler.flushHandle(ctx, cmd);
                 } else {
-                    reply = handler.handle(ctx, cmd);
+                    reply = handler.handleCommand(ctx, cmd);
                 }
                 if (reply == null) {
                     this.log(Level.SEVERE,

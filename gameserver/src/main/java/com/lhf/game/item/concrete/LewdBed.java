@@ -123,7 +123,7 @@ public class LewdBed extends Bed {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd == null || !CommandMessage.PASS.equals(cmd.getType())) {
                 return ctx.failhandle();
             }
@@ -163,7 +163,7 @@ public class LewdBed extends Bed {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder();
             if (cmd == null || cmd.getType() != CommandMessage.LEWD || !(cmd instanceof LewdInMessage)) {
                 return ctx.failhandle();

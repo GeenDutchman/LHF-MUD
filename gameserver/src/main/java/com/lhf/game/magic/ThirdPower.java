@@ -527,7 +527,7 @@ public class ThirdPower implements MessageChainHandler {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             SpellbookMessage spellbookMessage = (SpellbookMessage) cmd;
             ICreature caster = ctx.getCreature();
             if (caster.getVocation() == null || !(caster.getVocation() instanceof CubeHolder)) {

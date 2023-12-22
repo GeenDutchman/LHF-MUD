@@ -585,7 +585,7 @@ public class Room implements Area {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd == null || cmd.getType() != CommandMessage.ATTACK) {
                 return ctx.failhandle();
             }
@@ -623,7 +623,7 @@ public class Room implements Area {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             ctx.setBattleManager(Room.this.battleManager);
             if (ctx.getCreature() == null) {
                 ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
@@ -669,7 +669,7 @@ public class Room implements Area {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.TAKE && cmd instanceof TakeMessage tMessage) {
                 if (ctx.getCreature() == null) {
                     ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
@@ -783,7 +783,7 @@ public class Room implements Area {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.INTERACT && cmd instanceof InteractMessage intMessage) {
                 if (ctx.getCreature() == null) {
                     ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
@@ -842,7 +842,7 @@ public class Room implements Area {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.DROP && cmd instanceof DropMessage dMessage) {
                 if (ctx.getCreature() == null) {
                     ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
@@ -926,7 +926,7 @@ public class Room implements Area {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.SEE && cmd instanceof SeeMessage sMessage) {
                 if (sMessage.getThing() != null && !sMessage.getThing().isBlank()) {
                     String name = sMessage.getThing();
@@ -1027,7 +1027,7 @@ public class Room implements Area {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.SAY && cmd instanceof SayMessage sMessage) {
                 SpeakingMessage.Builder speakMessage = SpeakingMessage.getBuilder().setSayer(ctx.getCreature())
                         .setMessage(sMessage.getMessage());
@@ -1090,7 +1090,7 @@ public class Room implements Area {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.USE && cmd instanceof UseMessage useMessage) {
                 if (ctx.getCreature() == null) {
                     ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)

@@ -40,7 +40,7 @@ public interface MessageChainHandler {
 
         public Predicate<CommandContext> getEnabledPredicate();
 
-        public CommandContext.Reply handle(CommandContext ctx, Command cmd);
+        public CommandContext.Reply handleCommand(CommandContext ctx, Command cmd);
 
         public MessageChainHandler getChainHandler();
 
@@ -86,7 +86,7 @@ public interface MessageChainHandler {
                 this.log(Level.FINEST,
                         () -> String.format("No CommandHandler for type %s at this level", cmd.getType()));
             } else if (handler.isEnabled(ctx)) {
-                CommandContext.Reply reply = handler.handle(ctx, cmd);
+                CommandContext.Reply reply = handler.handleCommand(ctx, cmd);
                 if (reply == null) {
                     this.log(Level.SEVERE,
                             () -> String.format("No reply for handler of type %s", handler.getHandleType()));

@@ -562,7 +562,7 @@ public abstract class Creature implements ICreature {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof EquipMessage equipMessage) {
                 Creature.this.equipItem(equipMessage.getItemName(), equipMessage.getEquipSlot());
                 Creature.this.tick(TickType.ACTION);
@@ -608,7 +608,7 @@ public abstract class Creature implements ICreature {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof UnequipMessage unequipMessage) {
                 Creature.this.unequipItem(EquipmentSlots.getEquipmentSlot(unequipMessage.getUnequipWhat()),
                         unequipMessage.getUnequipWhat());
@@ -644,7 +644,7 @@ public abstract class Creature implements ICreature {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof StatusMessage statusMessage) {
                 ctx.sendMsg(
                         StatusOutMessage.getBuilder().setNotBroadcast().setFromCreature(Creature.this, true).Build());
@@ -680,7 +680,7 @@ public abstract class Creature implements ICreature {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof InventoryMessage inventoryMessage) {
                 ctx.sendMsg(Creature.this.getInventory().getInventoryOutMessage(Creature.this.getEquipmentSlots()));
                 Creature.this.tick(TickType.ACTION);

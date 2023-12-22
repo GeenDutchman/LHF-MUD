@@ -853,7 +853,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             ctx.sendMsg(StatsOutMessage.getBuilder()
                     .addRecords(BattleManager.this.battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING))
                     .setNotBroadcast());
@@ -961,7 +961,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.SEE && cmd instanceof SeeMessage seeMessage) {
                 if (seeMessage.getThing() != null) {
                     return MessageChainHandler.passUpChain(BattleManager.this, ctx, seeMessage);
@@ -1113,7 +1113,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 });
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd == null || !(cmd instanceof AttackMessage)) {
                 return ctx.failhandle();
             }

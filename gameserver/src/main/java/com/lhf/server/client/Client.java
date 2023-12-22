@@ -117,7 +117,7 @@ public class Client implements MessageChainHandler, ClientMessenger {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             Reply reply = MessageChainHandler.passUpChain(Client.this, ctx, null); // this will collect all the helps
             Client.this.sendMsg(HelpMessage.getHelpBuilder().setHelps(reply.getHelps()));
             return reply.resolve();

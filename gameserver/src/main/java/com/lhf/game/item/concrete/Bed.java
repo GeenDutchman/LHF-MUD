@@ -407,7 +407,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.GO && cmd instanceof GoMessage goMessage) {
                 if (Directions.UP.equals(goMessage.getDirection())) {
                     Bed.this.removeCreature(ctx.getCreature());
@@ -448,7 +448,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.EXIT) {
                 Bed.this.removeCreature(ctx.getCreature());
                 if (Bed.this.room != null) {
@@ -486,7 +486,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.INTERACT
                     && cmd instanceof InteractMessage interactMessage) {
                 if (Bed.this.getName().equalsIgnoreCase(interactMessage.getObject())) {
@@ -523,7 +523,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.SAY) {
                 if (Bed.this.room != null) {
                     return Bed.this.room.handleChain(ctx, cmd);
@@ -559,7 +559,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.SHOUT) {
                 if (Bed.this.room != null) {
                     return Bed.this.room.handleChain(ctx, cmd);

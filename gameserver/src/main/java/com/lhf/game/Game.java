@@ -137,7 +137,7 @@ public class Game implements UserListener, MessageChainHandler {
 		}
 
 		@Override
-		public Reply handle(CommandContext ctx, Command cmd) {
+		public Reply handleCommand(CommandContext ctx, Command cmd) {
 			ctx.sendMsg(ListPlayersMessage.getBuilder().setPlayerNames(Game.this.userManager.getAllUsernames()));
 			return ctx.handled();
 		}

@@ -183,7 +183,7 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.EXIT) {
                 Server.this.logger.log(Level.INFO, "client " + ctx.getClientID().toString() + " is exiting");
                 Client ch = Server.this.clientManager.getConnection(ctx.getClientID());
@@ -235,7 +235,7 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof CreateInMessage msg) {
                 if (Server.this.userManager.getForbiddenUsernames().contains(msg.getUsername())) {
                     ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());

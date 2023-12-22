@@ -77,7 +77,7 @@ public class ClientHandle extends Client implements Runnable {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             ClientMessenger client = ctx.getClientMessenger();
             if (client != null && client instanceof ClientHandle cHandle) {
                 String repeater = cHandle.getRepeatCommand();

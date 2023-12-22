@@ -292,7 +292,7 @@ public class DMRoom extends Room {
                 .or(SayHandler.defaultRoomPredicate);
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.SAY && cmd instanceof SayMessage sayMessage) {
                 if (sayMessage.getTarget() != null && !sayMessage.getTarget().isBlank()) {
                     boolean sent = false;
@@ -315,7 +315,7 @@ public class DMRoom extends Room {
                     }
                 }
             }
-            return super.handle(ctx, cmd);
+            return super.handleCommand(ctx, cmd);
         }
 
         @Override
