@@ -2,16 +2,19 @@ package com.lhf.server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.Game;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -33,6 +36,7 @@ import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
 
 public class Server implements ServerInterface, ConnectionListener {
+    protected final ClientID clientID;
     protected Game game;
     protected UserManager userManager;
     protected ClientManager clientManager;
@@ -41,6 +45,7 @@ public class Server implements ServerInterface, ConnectionListener {
     protected Map<CommandMessage, CommandHandler> acceptedCommands;
 
     public Server() throws IOException {
+        this.clientID = new ClientID();
         this.logger = Logger.getLogger(this.getClass().getName());
         this.userManager = new UserManager();
         this.userListeners = new ArrayList<>();
@@ -54,6 +59,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     public Server(@NotNull UserManager userManager, @NotNull ClientManager clientManager, @NotNull Game game) {
+        this.clientID = new ClientID();
         this.logger = Logger.getLogger(this.getClass().getName());
         this.userManager = userManager;
         this.userListeners = new ArrayList<>();
@@ -145,6 +151,11 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
+    public ClientID getClientID() {
+        return this.clientID;
+    }
+
+    @Override
     public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.acceptedCommands);
     }
@@ -162,6 +173,11 @@ public class Server implements ServerInterface, ConnectionListener {
     @Override
     public CommandContext addSelfToContext(CommandContext ctx) {
         return ctx;
+    }
+
+    @Override
+    public Collection<ClientMessenger> getClientMessengers() {
+        return Set.of(this.game);
     }
 
     protected class ExitHandler implements ServerCommandHandler {

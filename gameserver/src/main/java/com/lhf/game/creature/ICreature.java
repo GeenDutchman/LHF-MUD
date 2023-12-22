@@ -1,5 +1,6 @@
 package com.lhf.game.creature;
 
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
@@ -66,7 +67,7 @@ import com.lhf.server.client.ClientID;
  * @see java.lang.Comparable
  */
 public interface ICreature
-        extends InventoryOwner, EquipmentOwner, ClientMessenger, MessageChainHandler, Comparable<ICreature>,
+        extends InventoryOwner, EquipmentOwner, MessageChainHandler, Comparable<ICreature>,
         AffectableEntity<CreatureEffect> {
 
     /**
@@ -631,6 +632,11 @@ public interface ICreature
     public interface CreatureCommandHandler extends CommandHandler {
         static final Predicate<CommandContext> defaultCreaturePredicate = CommandHandler.defaultPredicate
                 .and((ctx) -> ctx.getCreature() != null && ctx.getCreature().isAlive());
+    }
+
+    @Override
+    public default Collection<ClientMessenger> getClientMessengers() {
+        return Set.of(this.getController());
     }
 
 }

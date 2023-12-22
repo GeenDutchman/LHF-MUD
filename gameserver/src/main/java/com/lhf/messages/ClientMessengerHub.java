@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Level;
 
 import com.lhf.messages.out.OutMessage;
 
@@ -62,5 +63,13 @@ public interface ClientMessengerHub extends ClientMessenger {
 
     public default boolean announce(OutMessage.Builder<?> builder) {
         return this.announceDirect(builder.Build(), this.getClientMessengers());
+    }
+
+    @Override
+    public default void receive(OutMessage msg) {
+        if (msg != null && !msg.isFirstRecieve(this.getClientID())) {
+            this.log(Level.FINE, "Received message, defaulting to announce it");
+            this.announceDirect(msg, this.getClientMessengers());
+        }
     }
 }

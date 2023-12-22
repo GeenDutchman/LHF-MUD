@@ -114,4 +114,19 @@ public interface Land extends CreatureContainer, MessageChainHandler, Affectable
         this.announce(TickMessage.getBuilder().setTickType(type).setBroacast());
     }
 
+    @Override
+    public default String getStartTag() {
+        return "<Land>";
+    }
+
+    @Override
+    public default String getEndTag() {
+        return "</Land>";
+    }
+
+    @Override
+    public default String getColorTaggedName() {
+        return this.getStartTag() + this.getName() + this.getEndTag();
+    }
+
 }

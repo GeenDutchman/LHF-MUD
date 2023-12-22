@@ -109,4 +109,19 @@ public interface Area
         }
         return this.getUuid().compareTo(o.getUuid());
     }
+
+    @Override
+    public default String getStartTag() {
+        return "<area>";
+    }
+
+    @Override
+    public default String getEndTag() {
+        return "</area>";
+    }
+
+    @Override
+    public default String getColorTaggedName() {
+        return this.getStartTag() + this.getName() + this.getEndTag();
+    }
 }

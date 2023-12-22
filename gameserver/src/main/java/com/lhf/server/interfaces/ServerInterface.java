@@ -17,4 +17,20 @@ public interface ServerInterface extends MessageChainHandler {
         static final Predicate<CommandContext> alreadyCreatedPredicate = CommandHandler.defaultPredicate
                 .and(ctx -> ctx.getUserID() == null);
     }
+
+    @Override
+    default String getColorTaggedName() {
+        return this.getStartTag() + "Server" + this.getEndTag();
+    }
+
+    @Override
+    default String getEndTag() {
+        return "</Server>";
+    }
+
+    @Override
+    default String getStartTag() {
+        return "<Server>";
+    }
+
 }

@@ -1,9 +1,11 @@
 package com.lhf.server.client;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -180,6 +182,11 @@ public class Client implements MessageChainHandler {
     @Override
     public String getColorTaggedName() {
         return this.getStartTag() + this.id.toString() + this.getEndTag();
+    }
+
+    @Override
+    public Collection<ClientMessenger> getClientMessengers() {
+        return Set.of();
     }
 
 }

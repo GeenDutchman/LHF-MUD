@@ -1,8 +1,10 @@
 package com.lhf.server.client.user;
 
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,7 +17,7 @@ import com.lhf.messages.in.CreateInMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
-public class User implements MessageChainHandler, ClientMessenger, Comparable<User> {
+public class User implements MessageChainHandler, Comparable<User> {
     private UserID id;
     private String username;
     private transient MessageChainHandler successor;
@@ -135,6 +137,11 @@ public class User implements MessageChainHandler, ClientMessenger, Comparable<Us
         StringBuilder builder = new StringBuilder();
         builder.append("User [id=").append(id).append(", username=").append(username).append("]");
         return builder.toString();
+    }
+
+    @Override
+    public Collection<ClientMessenger> getClientMessengers() {
+        return Set.of(this.client);
     }
 
 }

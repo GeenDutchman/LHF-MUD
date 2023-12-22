@@ -39,4 +39,8 @@ public final class ClientID implements Comparable<ClientID> {
         return this.uuid.compareTo(o.uuid);
     }
 
+    public UUID getUuid() {
+        return uuid;
+    }
+
 }

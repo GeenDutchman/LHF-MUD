@@ -31,15 +31,16 @@ import com.lhf.messages.out.BadGoMessage.BadGoType;
 import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.UserID;
 
 public class Bed extends InteractObject implements CreatureContainer, MessageChainHandler {
     protected final Logger logger;
+    protected final ClientID clientID;
     protected final ScheduledThreadPoolExecutor executor;
     protected final int sleepSeconds;
     protected Set<BedTime> occupants;
     protected transient Area room;
-    private transient Set<UUID> sentMessage;
     protected transient EnumMap<CommandMessage, CommandHandler> commands;
 
     protected class BedTime implements Runnable, Comparable<Bed.BedTime> {
@@ -169,9 +170,9 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
 
     public Bed(Area room, Builder builder) {
         super(builder.name, true, true, "It's a bed.");
-        this.logger = Logger.getLogger(this.getClass().getName());
+        this.clientID = new ClientID();
+        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.clientID.getUuid());
         this.sleepSeconds = builder.sleepSeconds;
-        this.sentMessage = new TreeSet<>();
         this.room = room;
 
         this.executor = new ScheduledThreadPoolExecutor(Integer.max(builder.capacity, 1));
@@ -346,11 +347,8 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
     }
 
     @Override
-    public boolean checkMessageSent(OutMessage outMessage) {
-        if (outMessage == null) {
-            return true; // yes we "sent" null
-        }
-        return !this.sentMessage.add(outMessage.getUuid());
+    public ClientID getClientID() {
+        return this.clientID;
     }
 
     @Override

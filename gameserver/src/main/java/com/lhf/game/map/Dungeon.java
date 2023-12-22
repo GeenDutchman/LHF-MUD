@@ -39,6 +39,7 @@ import com.lhf.messages.out.ReincarnateMessage;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SpawnMessage;
 import com.lhf.messages.out.SpeakingMessage;
+import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.UserID;
 
 public class Dungeon implements Land {
@@ -68,11 +69,12 @@ public class Dungeon implements Land {
     private transient MessageChainHandler successor;
     private Map<CommandMessage, CommandHandler> commands;
     private transient TreeSet<DungeonEffect> effects;
-    private transient Set<UUID> sentMessage;
     private transient final Logger logger;
+    private final ClientID clientID;
 
     Dungeon(Land.LandBuilder builder) {
         this.logger = Logger.getLogger(String.format("%s.%s", this.getClass().getName(), this.getName()));
+        this.clientID = new ClientID();
         this.startingRoom = builder.getStartingArea();
         this.mapping = builder.getAtlas();
         this.successor = builder.getSuccessor();
@@ -85,7 +87,6 @@ public class Dungeon implements Land {
         }
         this.commands = this.buildCommands();
         this.effects = new TreeSet<>();
-        this.sentMessage = new TreeSet<>();
     }
 
     @Override
@@ -107,11 +108,8 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public boolean checkMessageSent(OutMessage outMessage) {
-        if (outMessage == null) {
-            return true; // yes we "sent" null
-        }
-        return !this.sentMessage.add(outMessage.getUuid());
+    public ClientID getClientID() {
+        return this.clientID;
     }
 
     @Override
@@ -502,8 +500,19 @@ public class Dungeon implements Land {
     }
 
     @Override
+    public String getStartTag() {
+        return "<Dungeon>";
+    }
+
+    @Override
+    public String getEndTag() {
+        return "</Dungeon>";
+    }
+
+    @Override
     public String printDescription() {
-        return String.format("This Dungeon is called %s and it has %d rooms!", this.getName(), this.mapping.size());
+        return String.format("This Dungeon is called %s and it has %d rooms!", this.getColorTaggedName(),
+                this.mapping.size());
     }
 
     @Override

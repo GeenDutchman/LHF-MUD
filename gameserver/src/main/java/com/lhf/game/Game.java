@@ -1,10 +1,12 @@
 package com.lhf.game;
 
 import java.io.FileNotFoundException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -20,12 +22,14 @@ import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.out.ListPlayersMessage;
+import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
@@ -42,8 +46,10 @@ public class Game implements UserListener, MessageChainHandler {
 	private DMRoom controlRoom;
 	private AIRunner aiRunner;
 	private Map<CommandMessage, CommandHandler> commands;
+	private final ClientID clientID;
 
 	public Game(ServerInterface server, UserManager userManager) throws FileNotFoundException {
+		this.clientID = new ClientID();
 		this.logger = Logger.getLogger(this.getClass().getName());
 		this.aiRunner = new GroupAIRunner(true);
 		this.thirdPower = new ThirdPower(this, null);
@@ -64,6 +70,7 @@ public class Game implements UserListener, MessageChainHandler {
 
 	public Game(ServerInterface server, UserManager userManager, AIRunner aiRunner, @NotNull Dungeon dungeon)
 			throws FileNotFoundException {
+		this.clientID = new ClientID();
 		this.logger = Logger.getLogger(this.getClass().getName());
 		this.aiRunner = aiRunner;
 		this.thirdPower = new ThirdPower(this, null);
@@ -116,6 +123,16 @@ public class Game implements UserListener, MessageChainHandler {
 	@Override
 	public MessageChainHandler getSuccessor() {
 		return this.successor;
+	}
+
+	@Override
+	public ClientID getClientID() {
+		return this.clientID;
+	}
+
+	@Override
+	public Collection<ClientMessenger> getClientMessengers() {
+		return Set.of(this.controlRoom);
 	}
 
 	protected class PlayersHandler implements CommandHandler {
@@ -176,6 +193,21 @@ public class Game implements UserListener, MessageChainHandler {
 		if (this.server != null) {
 			this.server.registerCallback(this);
 		}
+	}
+
+	@Override
+	public String getColorTaggedName() {
+		return this.getStartTag() + "Game" + this.getEndTag();
+	}
+
+	@Override
+	public String getEndTag() {
+		return "</Game>";
+	}
+
+	@Override
+	public String getStartTag() {
+		return "<Game>";
 	}
 
 }

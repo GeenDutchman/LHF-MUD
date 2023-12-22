@@ -59,7 +59,6 @@ import com.lhf.messages.out.DropOutMessage.DropType;
 import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.NotPossessedMessage;
-import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.RoomAffectedMessage;
 import com.lhf.messages.out.RoomEnteredOutMessage;
 import com.lhf.messages.out.SeeOutMessage;
@@ -69,10 +68,12 @@ import com.lhf.messages.out.TakeOutMessage;
 import com.lhf.messages.out.TakeOutMessage.TakeOutType;
 import com.lhf.messages.out.UseOutMessage;
 import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
+import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.UserID;
 
 public class Room implements Area {
-    private UUID uuid = UUID.randomUUID();
+    private ClientID clientID = new ClientID();
+    private UUID uuid = clientID.getUuid();
     protected Logger logger;
     private List<Item> items;
     private transient Long takeableCount;
@@ -83,7 +84,6 @@ public class Room implements Area {
     private Set<ICreature> allCreatures;
     private transient Land dungeon;
     private transient TreeSet<RoomEffect> effects;
-    private transient Set<UUID> sentMessage;
 
     private transient Map<CommandMessage, CommandHandler> commands;
     private MessageChainHandler successor;
@@ -203,7 +203,6 @@ public class Room implements Area {
         this.successor = builder.getSuccessor();
         this.battleManager = builder.battleManagerBuilder.Build(this);
         this.commands = this.buildCommands();
-        this.sentMessage = new TreeSet<>();
     }
 
     protected Map<CommandMessage, CommandHandler> buildCommands() {
@@ -233,6 +232,16 @@ public class Room implements Area {
     }
 
     @Override
+    public String getStartTag() {
+        return "<room>";
+    }
+
+    @Override
+    public String getEndTag() {
+        return "</room>";
+    }
+
+    @Override
     public UUID getUuid() {
         return uuid;
     }
@@ -252,14 +261,6 @@ public class Room implements Area {
         return this.getCreatures().stream()
                 .filter(creature -> creature != null)
                 .map(creature -> (ClientMessenger) creature).toList();
-    }
-
-    @Override
-    public boolean checkMessageSent(OutMessage outMessage) {
-        if (outMessage == null) {
-            return true; // yes we "sent" null
-        }
-        return !this.sentMessage.add(outMessage.getUuid());
     }
 
     @Override
@@ -520,6 +521,11 @@ public class Room implements Area {
     @Override
     public MessageChainHandler getSuccessor() {
         return this.successor;
+    }
+
+    @Override
+    public ClientID getClientID() {
+        return this.clientID;
     }
 
     @Override

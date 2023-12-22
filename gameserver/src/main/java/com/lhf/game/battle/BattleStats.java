@@ -10,6 +10,9 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
@@ -256,20 +259,24 @@ public class BattleStats implements ClientMessenger {
     }
 
     private Map<String, BattleStatRecord> battleStats;
-    private ClientID clientID = new ClientID();
+    private final ClientID clientID = new ClientID();
     private int deadXP;
+    private final Logger logger;
 
     public BattleStats() {
+        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.clientID.getUuid());
         this.battleStats = new TreeMap<>();
         this.deadXP = 0;
     }
 
     public BattleStats(Map<String, BattleStatRecord> seedStats) {
+        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.clientID.getUuid());
         this.battleStats = seedStats != null ? new TreeMap<>(seedStats) : new TreeMap<>();
     }
 
     // note that any duplicates will overwrite each other!
     public BattleStats(Iterable<BattleStatRecord> seedRecords) {
+        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.clientID.getUuid());
         this.battleStats = new TreeMap<>();
         if (seedRecords != null) {
             for (BattleStatRecord record : seedRecords) {
@@ -431,6 +438,16 @@ public class BattleStats implements ClientMessenger {
 
     public final Collection<BattleStatRecord> getBattleStatSet(BattleStatsQuery query) {
         return this.getBattleStats(query).values();
+    }
+
+    @Override
+    public void log(Level logLevel, String logMessage) {
+        this.logger.log(logLevel, logMessage);
+    }
+
+    @Override
+    public void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        this.logger.log(logLevel, logMessageSupplier);
     }
 
     @Override

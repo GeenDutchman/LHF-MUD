@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.UUID;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
@@ -31,10 +30,10 @@ import java.util.stream.Collectors;
 
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectResistance;
-import com.lhf.game.creature.ICreature;
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.battle.BattleStats.BattleStatsQuery;
 import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.MultiRollResult;
@@ -72,6 +71,7 @@ import com.lhf.messages.out.RenegadeAnnouncement;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.StartFightMessage;
 import com.lhf.messages.out.StatsOutMessage;
+import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
 
@@ -87,7 +87,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     private transient MessageChainHandler successor;
     private transient Map<CommandMessage, CommandHandler> cmds;
     private Logger battleLogger;
-    private transient Set<UUID> sentMessage;
+    private final ClientID clientID;
 
     public static class Builder {
         private int waitMilliseconds;
@@ -290,9 +290,9 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         this.room = room;
         this.successor = this.room;
         this.roundDurationMilliseconds = builder.waitMilliseconds;
-        this.sentMessage = new TreeSet<>();
         this.cmds = this.buildCommands();
         this.battleThread = new AtomicReference<BattleManager.RoundThread>(null);
+        this.clientID = new ClientID();
         this.battleLogger = Logger.getLogger(this.getClass().getName() + "." + this.getName().replaceAll("\\W", "_"));
     }
 
@@ -314,6 +314,26 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     @Override
     public String getName() {
         return this.room != null ? this.room.getName() + " Battle" : "Battle";
+    }
+
+    @Override
+    public ClientID getClientID() {
+        return this.clientID;
+    }
+
+    @Override
+    public String getColorTaggedName() {
+        return this.getStartTag() + this.getName() + this.getEndTag();
+    }
+
+    @Override
+    public String getEndTag() {
+        return "</battle>";
+    }
+
+    @Override
+    public String getStartTag() {
+        return "<battle>";
     }
 
     @Override
@@ -1353,14 +1373,6 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         Collection<ClientMessenger> messengers = CreatureContainer.super.getClientMessengers();
         messengers.add(this.battleStats);
         return messengers;
-    }
-
-    @Override
-    public boolean checkMessageSent(OutMessage outMessage) {
-        if (outMessage == null) {
-            return true; // yes we "sent" null
-        }
-        return !this.sentMessage.add(outMessage.getUuid());
     }
 
 }

@@ -5,6 +5,9 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.ICreature;
@@ -148,6 +151,45 @@ public class CommandContext implements ClientMessenger {
 
     public void setCreature(ICreature creature) {
         this.creature = creature;
+    }
+
+    private ClientMessenger getHighestClientMessenger() {
+        ClientMessenger highestFound = this.client;
+        if (this.dungeon != null) {
+            highestFound = this.dungeon;
+        } else if (this.room != null) {
+            highestFound = this.room;
+        } else if (this.bManager != null) {
+            highestFound = this.bManager;
+        } else if (this.creature != null) {
+            highestFound = this.creature;
+        } else if (this.user != null) {
+            highestFound = this.user;
+        }
+        return highestFound;
+    }
+
+    @Override
+    public void log(Level logLevel, String logMessage) {
+        ClientMessenger logger = this.getHighestClientMessenger();
+        if (logger != null) {
+            logger.log(logLevel, String.format("%s :: %s", this.toString(), logMessage));
+        } else {
+            Logger.getLogger(String.format("%s.%d", this.getClass().getName(), this.hashCode())).log(logLevel,
+                    String.format("%s :: %s", this.toString(), logMessage));
+        }
+    }
+
+    @Override
+    public void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        ClientMessenger logger = this.getHighestClientMessenger();
+        Supplier<String> composed = () -> String.format("%s :: %s", this.toString(), logMessageSupplier.get());
+        if (logger != null) {
+            logger.log(logLevel, composed);
+        } else {
+            Logger.getLogger(String.format("%s.%d", this.getClass().getName(), this.hashCode())).log(logLevel,
+                    composed);
+        }
     }
 
     @Override

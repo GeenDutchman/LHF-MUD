@@ -52,6 +52,7 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpellEntryMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
+import com.lhf.server.client.ClientID;
 
 public class ThirdPower implements MessageChainHandler {
     // buff debuff
@@ -70,9 +71,11 @@ public class ThirdPower implements MessageChainHandler {
     private EnumMap<CommandMessage, CommandHandler> cmds;
     private Spellbook spellbook;
     private transient final Logger logger;
+    public final ClientID clientID;
 
     public ThirdPower(MessageChainHandler successor, Spellbook spellbook) {
         this.logger = Logger.getLogger(this.getClass().getName());
+        this.clientID = new ClientID();
         this.successor = successor;
         this.cmds = this.generateCommands();
         if (spellbook == null) {
@@ -594,6 +597,11 @@ public class ThirdPower implements MessageChainHandler {
     }
 
     @Override
+    public ClientID getClientID() {
+        return this.clientID;
+    }
+
+    @Override
     public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.cmds);
     }
@@ -607,6 +615,27 @@ public class ThirdPower implements MessageChainHandler {
     @Override
     public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
         this.logger.log(logLevel, logMessageSupplier);
+    }
+
+    @Override
+    public Collection<ClientMessenger> getClientMessengers() {
+        this.log(Level.FINE, "No client messengers here!");
+        return Set.of();
+    }
+
+    @Override
+    public String getColorTaggedName() {
+        return this.getStartTag() + "Third Power" + this.getEndTag();
+    }
+
+    @Override
+    public String getEndTag() {
+        return "</ThirdPower>";
+    }
+
+    @Override
+    public String getStartTag() {
+        return "<ThirdPower>";
     }
 
 }
