@@ -18,6 +18,7 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
 public class User implements MessageChainHandler, Comparable<User> {
+    private final ClientID clientID;
     private UserID id;
     private String username;
     private transient MessageChainHandler successor;
@@ -27,6 +28,7 @@ public class User implements MessageChainHandler, Comparable<User> {
     private ClientMessenger client;
 
     public User(CreateInMessage msg, ClientMessenger client) {
+        this.clientID = new ClientID();
         id = new UserID(msg);
         username = msg.getUsername();
         // password = msg.getPassword();
@@ -121,7 +123,7 @@ public class User implements MessageChainHandler, Comparable<User> {
 
     @Override
     public ClientID getClientID() {
-        return this.client.getClientID();
+        return this.clientID;
     }
 
     @Override

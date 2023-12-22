@@ -51,9 +51,11 @@ import com.lhf.messages.out.NotPossessedMessage;
 import com.lhf.messages.out.StatusOutMessage;
 import com.lhf.messages.out.UnequipOutMessage;
 import com.lhf.messages.out.UnequipOutMessage.UnequipResultType;
+import com.lhf.server.client.ClientID;
 
 public abstract class Creature implements ICreature {
     private final String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
+    private final ClientID clientID;
     private CreatureFaction faction; // See shared enum
     private Vocation vocation;
     // private MonsterType monsterType; // I dont know if we'll need this
@@ -68,6 +70,7 @@ public abstract class Creature implements ICreature {
     private transient final Logger logger;
 
     protected Creature(ICreature.CreatureBuilder<?> builder) {
+        this.clientID = new ClientID();
         this.cmds = this.buildCommands();
         // Instantiate creature with no name and type Monster
         this.name = builder.getName();
@@ -496,6 +499,11 @@ public abstract class Creature implements ICreature {
 
     public void setController(ClientMessenger cont) {
         this.controller = cont;
+    }
+
+    @Override
+    public final ClientID getClientID() {
+        return this.clientID;
     }
 
     @Override

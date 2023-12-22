@@ -47,7 +47,6 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.StatusOutMessage;
-import com.lhf.server.client.ClientID;
 
 /**
  * An interface for all things Creature. This way we can create wrappers, mocks,
@@ -226,14 +225,6 @@ public interface ICreature
      * @return {@link com.lhf.messages.ClientMessenger ClientMessenger}
      */
     public abstract ClientMessenger getController();
-
-    @Override
-    public default ClientID getClientID() {
-        if (this.getController() != null) {
-            return this.getController().getClientID();
-        }
-        return null;
-    }
 
     @Override
     public default void receive(OutMessage msg) {

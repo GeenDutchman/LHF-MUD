@@ -1,7 +1,9 @@
 package com.lhf.game.creature.intelligence;
 
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -11,11 +13,13 @@ import org.mockito.Mockito;
 
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.CommandContext.Reply;
+import com.lhf.server.client.ClientID;
 import com.lhf.server.client.ComBundle;
 
 public class AIComBundle extends ComBundle implements MessageChainHandler {
@@ -35,11 +39,13 @@ public class AIComBundle extends ComBundle implements MessageChainHandler {
 
     public INonPlayerCharacter npc;
     public BasicAI brain;
+    private final ClientID clientID;
     @Mock
     public MessageChainHandler mockedWrappedHandler;
 
     public AIComBundle() {
         super();
+        this.clientID = new ClientID();
         this.mockedWrappedHandler = Mockito.mock(MessageChainHandler.class);
 
         this.npc = NonPlayerCharacter.getNPCBuilder(AIComBundle.getAIRunner()).build();
@@ -55,6 +61,21 @@ public class AIComBundle extends ComBundle implements MessageChainHandler {
     }
 
     @Override
+    public String getColorTaggedName() {
+        return this.getStartTag() + this.getName() + this.getEndTag();
+    }
+
+    @Override
+    public String getEndTag() {
+        return "</AIComBundle>";
+    }
+
+    @Override
+    public String getStartTag() {
+        return "<AIComBundle>";
+    }
+
+    @Override
     public void setSuccessor(MessageChainHandler successor) {
         // no -op
     }
@@ -65,8 +86,18 @@ public class AIComBundle extends ComBundle implements MessageChainHandler {
     }
 
     @Override
+    public ClientID getClientID() {
+        return this.clientID;
+    }
+
+    @Override
     public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return new EnumMap<>(CommandMessage.class);
+    }
+
+    @Override
+    public Collection<ClientMessenger> getClientMessengers() {
+        return Set.of();
     }
 
     @Override
