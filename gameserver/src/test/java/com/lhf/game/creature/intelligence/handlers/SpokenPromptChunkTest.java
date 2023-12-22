@@ -42,7 +42,7 @@ public class SpokenPromptChunkTest {
                 AIComBundle speaker = new AIComBundle();
                 AIComBundle listener = new AIComBundle();
                 SpokenPromptChunk chunk = new SpokenPromptChunk();
-                chunk.addPrompter(speaker.brain.getClientID());
+                chunk.addPrompter(speaker.npc.getClientID());
                 listener.brain.addHandler(OutMessageType.SPEAKING, chunk);
 
                 String prompt = "NONOBJECT";
