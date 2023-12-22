@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
-public interface MessageChainHandler {
+public interface MessageChainHandler extends ClientMessengerHub {
 
     public void setSuccessor(MessageChainHandler successor);
 
