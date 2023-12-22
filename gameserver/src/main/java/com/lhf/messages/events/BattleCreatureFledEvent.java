@@ -4,7 +4,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.messages.GameEventType;
 
-public class CreatureFledEvent extends GameEvent {
+public class BattleCreatureFledEvent extends GameEvent {
     private final ICreature runner;
     private final MultiRollResult roll;
     private final boolean fled;
@@ -46,8 +46,8 @@ public class CreatureFledEvent extends GameEvent {
         }
 
         @Override
-        public CreatureFledEvent Build() {
-            return new CreatureFledEvent(this);
+        public BattleCreatureFledEvent Build() {
+            return new BattleCreatureFledEvent(this);
         }
 
         @Override
@@ -61,7 +61,7 @@ public class CreatureFledEvent extends GameEvent {
         return new Builder();
     }
 
-    public CreatureFledEvent(Builder builder) {
+    public BattleCreatureFledEvent(Builder builder) {
         super(builder);
         this.runner = builder.getRunner();
         this.roll = builder.getRoll();

@@ -2,7 +2,7 @@ package com.lhf.messages.events;
 
 import com.lhf.messages.GameEventType;
 
-public class CannotSpeakToTargetEvent extends GameEvent {
+public class BadSpeakingTargetEvent extends GameEvent {
     private final String creatureName;
     private final String taggedCreatureName;
     private final String msg;
@@ -49,8 +49,8 @@ public class CannotSpeakToTargetEvent extends GameEvent {
         }
 
         @Override
-        public CannotSpeakToTargetEvent Build() {
-            return new CannotSpeakToTargetEvent(this);
+        public BadSpeakingTargetEvent Build() {
+            return new BadSpeakingTargetEvent(this);
         }
 
     }
@@ -59,7 +59,7 @@ public class CannotSpeakToTargetEvent extends GameEvent {
         return new Builder();
     }
 
-    public CannotSpeakToTargetEvent(Builder builder) {
+    public BadSpeakingTargetEvent(Builder builder) {
         super(builder);
         this.creatureName = builder.getCreatureName();
         this.taggedCreatureName = builder.getTaggedCreatureName();

@@ -4,7 +4,7 @@ import com.lhf.game.TickType;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.ITickEvent;
 
-public class FightOverEvent extends GameEvent implements ITickEvent {
+public class BattleOverEvent extends GameEvent implements ITickEvent {
     public static class Builder extends GameEvent.Builder<Builder> {
 
         protected Builder() {
@@ -17,8 +17,8 @@ public class FightOverEvent extends GameEvent implements ITickEvent {
         }
 
         @Override
-        public FightOverEvent Build() {
-            return new FightOverEvent(this);
+        public BattleOverEvent Build() {
+            return new BattleOverEvent(this);
         }
 
     }
@@ -27,7 +27,7 @@ public class FightOverEvent extends GameEvent implements ITickEvent {
         return new Builder();
     }
 
-    public FightOverEvent(Builder builder) {
+    public BattleOverEvent(Builder builder) {
         super(builder);
     }
 

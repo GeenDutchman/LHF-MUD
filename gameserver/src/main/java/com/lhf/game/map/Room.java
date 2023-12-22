@@ -43,7 +43,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent;
-import com.lhf.messages.events.CannotSpeakToTargetEvent;
+import com.lhf.messages.events.BadSpeakingTargetEvent;
 import com.lhf.messages.events.ItemDroppedEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemNotPossessedEvent;
@@ -1053,7 +1053,7 @@ public class Room implements Area {
                         sent = true;
                     }
                     if (!sent) {
-                        ctx.receive(CannotSpeakToTargetEvent.getBuilder().setCreatureName(sMessage.getTarget()));
+                        ctx.receive(BadSpeakingTargetEvent.getBuilder().setCreatureName(sMessage.getTarget()));
                     }
                 } else {
                     Room.this.announce(speakMessage.Build());

@@ -12,7 +12,7 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.magic.DMRoomTargetingSpellEntry;
 import com.lhf.game.map.DMRoomEffectSource;
-import com.lhf.messages.events.CastingEvent;
+import com.lhf.messages.events.SpellCastingEvent;
 
 public class Ensouling extends DMRoomTargetingSpellEntry {
     private static final Set<DMRoomEffectSource> spellEffects = Set.of(new DMRoomEffectSource("Ensoul and send",
@@ -26,7 +26,7 @@ public class Ensouling extends DMRoomTargetingSpellEntry {
     }
 
     @Override
-    public CastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
+    public SpellCastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
         StringBuilder sb = new StringBuilder();
         if (targets != null && targets.size() > 0) {
             sb.append(caster.getColorTaggedName()).append(" will now ensoul ");
@@ -37,7 +37,8 @@ public class Ensouling extends DMRoomTargetingSpellEntry {
             sb.append(sj.toString()).append(".");
         }
 
-        return CastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sb.toString()).Build();
+        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sb.toString())
+                .Build();
     }
 
 }

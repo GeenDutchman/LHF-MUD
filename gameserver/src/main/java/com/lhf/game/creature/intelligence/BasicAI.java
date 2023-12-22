@@ -18,7 +18,7 @@ import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.BadTargetSelectedEvent;
-import com.lhf.messages.events.CreatureFledEvent;
+import com.lhf.messages.events.BattleCreatureFledEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.DoNothingSendStrategy;
@@ -81,7 +81,7 @@ public class BasicAI extends Client {
 
         this.handlers.put(GameEventType.FLEE, (BasicAI bai, GameEvent event) -> {
             if (event.getEventType().equals(GameEventType.FLEE)) {
-                CreatureFledEvent flee = (CreatureFledEvent) event;
+                BattleCreatureFledEvent flee = (BattleCreatureFledEvent) event;
                 if (flee.isFled() && flee.getRunner() != null) {
                     if (flee.getRunner() == bai.getNpc()) {
                         bai.npc.getHarmMemories().reset();

@@ -2,7 +2,7 @@ package com.lhf.messages.events;
 
 import com.lhf.messages.GameEventType;
 
-public class UserDuplicationEvent extends WelcomeEvent {
+public class BadUserDuplicationEvent extends WelcomeEvent {
 
     public static class Builder extends WelcomeEvent.AbstractBuilder<Builder> {
 
@@ -16,8 +16,8 @@ public class UserDuplicationEvent extends WelcomeEvent {
         }
 
         @Override
-        public UserDuplicationEvent Build() {
-            return new UserDuplicationEvent(this);
+        public BadUserDuplicationEvent Build() {
+            return new BadUserDuplicationEvent(this);
         }
     }
 
@@ -25,7 +25,7 @@ public class UserDuplicationEvent extends WelcomeEvent {
         return new Builder();
     }
 
-    public UserDuplicationEvent(Builder builder) {
+    public BadUserDuplicationEvent(Builder builder) {
         super(builder);
     }
 

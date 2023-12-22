@@ -53,10 +53,10 @@ import com.lhf.messages.events.BattleJoinedEvent;
 import com.lhf.messages.events.BattleRoundEvent;
 import com.lhf.messages.events.BattleStartedEvent;
 import com.lhf.messages.events.BattleStatsRequestedEvent;
-import com.lhf.messages.events.CreatureFledEvent;
+import com.lhf.messages.events.BattleCreatureFledEvent;
 import com.lhf.messages.events.FactionReinforcementsCallEvent;
 import com.lhf.messages.events.FactionRenegadeJoined;
-import com.lhf.messages.events.FightOverEvent;
+import com.lhf.messages.events.BattleOverEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemNotPossessedEvent;
 import com.lhf.messages.events.SeeEvent;
@@ -609,7 +609,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
     public void endBattle() {
         this.battleLogger.log(Level.INFO, "Ending battle");
-        FightOverEvent.Builder foverBuilder = FightOverEvent.getBuilder().setNotBroadcast();
+        BattleOverEvent.Builder foverBuilder = BattleOverEvent.getBuilder().setNotBroadcast();
         this.announce(foverBuilder.Build());
         if (this.room != null) {
             this.room.announce(foverBuilder.setBroacast().Build());
@@ -1043,7 +1043,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             if (cmd != null && cmd.getType() == CommandMessage.GO && cmd instanceof GoMessage goMessage) {
                 Integer check = 10 + BattleManager.this.actionPools.size();
                 MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
-                CreatureFledEvent.Builder builder = CreatureFledEvent.getBuilder().setRunner(ctx.getCreature())
+                BattleCreatureFledEvent.Builder builder = BattleCreatureFledEvent.getBuilder()
+                        .setRunner(ctx.getCreature())
                         .setRoll(result);
                 Reply reply = null;
                 if (result.getRoll() >= check) {

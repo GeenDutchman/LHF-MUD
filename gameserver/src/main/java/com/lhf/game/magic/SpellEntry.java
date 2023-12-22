@@ -11,7 +11,7 @@ import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
-import com.lhf.messages.events.CastingEvent;
+import com.lhf.messages.events.SpellCastingEvent;
 import com.lhf.messages.events.SeeEvent;
 
 public abstract class SpellEntry implements TaggedExaminable, Comparable<SpellEntry> {
@@ -104,7 +104,7 @@ public abstract class SpellEntry implements TaggedExaminable, Comparable<SpellEn
         return this.effectSources;
     }
 
-    abstract public CastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets);
+    abstract public SpellCastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets);
 
     @Override
     public String getColorTaggedName() {

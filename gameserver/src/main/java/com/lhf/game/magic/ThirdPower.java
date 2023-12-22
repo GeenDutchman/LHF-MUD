@@ -40,7 +40,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent;
-import com.lhf.messages.events.CastingEvent;
+import com.lhf.messages.events.SpellCastingEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SpellEntryRequestedEvent;
 import com.lhf.messages.events.SpellFizzledEvent;
@@ -224,7 +224,7 @@ public class ThirdPower implements MessageChainHandler {
                     && entry.getLevel().compareTo(ResourceCost.fromInt(casting.getLevel())) <= 0
                             ? ResourceCost.fromInt(casting.getLevel())
                             : entry.getLevel();
-            CastingEvent castingMessage = entry.Cast(caster, level, possTargets);
+            SpellCastingEvent castingMessage = entry.Cast(caster, level, possTargets);
             ThirdPower.this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
 
             return this.affectCreatures(ctx, spell, possTargets);
@@ -286,7 +286,7 @@ public class ThirdPower implements MessageChainHandler {
                     && entry.getLevel().compareTo(ResourceCost.fromInt(casting.getLevel())) <= 0
                             ? ResourceCost.fromInt(casting.getLevel())
                             : entry.getLevel();
-            CastingEvent castingMessage = entry.Cast(caster, level, new ArrayList<>(targets));
+            SpellCastingEvent castingMessage = entry.Cast(caster, level, new ArrayList<>(targets));
             ThirdPower.this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
 
             return this.affectCreatures(ctx, spell, targets);
@@ -385,7 +385,7 @@ public class ThirdPower implements MessageChainHandler {
                     && entry.getLevel().compareTo(ResourceCost.fromInt(casting.getLevel())) <= 0
                             ? ResourceCost.fromInt(casting.getLevel())
                             : entry.getLevel();
-            CastingEvent castingMessage = entry.Cast(caster, level, taggedTargets);
+            SpellCastingEvent castingMessage = entry.Cast(caster, level, taggedTargets);
             ThirdPower.this.channelizeMessage(ctx, castingMessage, spell.isOffensive());
 
             return this.affectRoom(ctx, spell);
@@ -414,7 +414,7 @@ public class ThirdPower implements MessageChainHandler {
                     && entry.getLevel().compareTo(ResourceCost.fromInt(casting.getLevel())) <= 0
                             ? ResourceCost.fromInt(casting.getLevel())
                             : entry.getLevel();
-            CastingEvent castingMessage = entry.Cast(caster, level, null);
+            SpellCastingEvent castingMessage = entry.Cast(caster, level, null);
             ThirdPower.this.channelizeMessage(ctx, castingMessage, spell.isOffensive());
 
             return this.affectRoom(ctx, spell);

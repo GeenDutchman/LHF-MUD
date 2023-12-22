@@ -12,7 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.NonPlayerCharacter;
-import com.lhf.messages.events.FatalEvent;
+import com.lhf.messages.events.BadFatalEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.WelcomeEvent;
 import com.lhf.server.client.ClientID;
@@ -25,7 +25,7 @@ public class GroupAIRunnerTest {
         BasicAI qAi = runner.register(NonPlayerCharacter.getNPCBuilder(runner).build());
         BasicAI.eventAccepter.accept(qAi, SeeEvent.getBuilder().setDeniedReason("denied once").Build());
         BasicAI.eventAccepter.accept(qAi, WelcomeEvent.getWelcomeBuilder().Build());
-        BasicAI.eventAccepter.accept(qAi, FatalEvent.getBuilder().Build());
+        BasicAI.eventAccepter.accept(qAi, BadFatalEvent.getBuilder().Build());
 
         Truth.assertThat(qAi.size()).isEqualTo(3);
         Truth.assertThat(runner.size()).isEqualTo(1);

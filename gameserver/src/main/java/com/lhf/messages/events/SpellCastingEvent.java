@@ -4,7 +4,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.magic.SpellEntry;
 import com.lhf.messages.GameEventType;
 
-public class CastingEvent extends GameEvent {
+public class SpellCastingEvent extends GameEvent {
     private final ICreature caster;
     private final SpellEntry spellEntry;
     private final String castEffects;
@@ -51,8 +51,8 @@ public class CastingEvent extends GameEvent {
         }
 
         @Override
-        public CastingEvent Build() {
-            return new CastingEvent(this);
+        public SpellCastingEvent Build() {
+            return new SpellCastingEvent(this);
         }
 
     }
@@ -61,7 +61,7 @@ public class CastingEvent extends GameEvent {
         return new Builder();
     }
 
-    public CastingEvent(Builder builder) {
+    public SpellCastingEvent(Builder builder) {
         super(builder);
         this.caster = builder.getCaster();
         this.spellEntry = builder.getSpellEntry();

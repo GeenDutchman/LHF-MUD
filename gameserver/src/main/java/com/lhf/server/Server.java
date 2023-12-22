@@ -18,7 +18,7 @@ import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.events.UserDuplicationEvent;
+import com.lhf.messages.events.BadUserDuplicationEvent;
 import com.lhf.messages.events.UserLeftEvent;
 import com.lhf.messages.events.WelcomeEvent;
 import com.lhf.messages.CommandMessage;
@@ -254,12 +254,12 @@ public class Server implements ServerInterface, ConnectionListener {
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof CreateInMessage msg) {
                 if (Server.this.userManager.getForbiddenUsernames().contains(msg.getUsername())) {
-                    ctx.receive(UserDuplicationEvent.getBuilder().Build());
+                    ctx.receive(BadUserDuplicationEvent.getBuilder().Build());
                     return ctx.handled();
                 }
                 User user = Server.this.userManager.addUser(msg, ctx.getClient());
                 if (user == null) {
-                    ctx.receive(UserDuplicationEvent.getBuilder().Build());
+                    ctx.receive(BadUserDuplicationEvent.getBuilder().Build());
                     return ctx.handled();
                 }
                 user.setSuccessor(Server.this);

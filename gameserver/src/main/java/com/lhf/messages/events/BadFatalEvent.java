@@ -2,7 +2,7 @@ package com.lhf.messages.events;
 
 import com.lhf.messages.GameEventType;
 
-public class FatalEvent extends GameEvent {
+public class BadFatalEvent extends GameEvent {
 
     private final String extraInfo;
     private final Exception exception;
@@ -39,8 +39,8 @@ public class FatalEvent extends GameEvent {
         }
 
         @Override
-        public FatalEvent Build() {
-            return new FatalEvent(this);
+        public BadFatalEvent Build() {
+            return new BadFatalEvent(this);
         }
 
     }
@@ -50,13 +50,13 @@ public class FatalEvent extends GameEvent {
     }
 
     // no nonsense constructor
-    public FatalEvent() {
+    public BadFatalEvent() {
         super(new Builder());
         this.extraInfo = null;
         this.exception = null;
     }
 
-    public FatalEvent(Builder builder) {
+    public BadFatalEvent(Builder builder) {
         super(builder);
         this.extraInfo = builder.getExtraInfo();
         this.exception = builder.getException();

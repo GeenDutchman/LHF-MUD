@@ -10,62 +10,65 @@ GameEvent.java
 
 ## Problem messages
 
-BadGoMessage.java
-BadMessage.java
-BadTargetSelectedMessage.java
-CannotSpeakToMessage.java
-FatalMessage.java
-DuplicateUserMessage.java
-HelpMessage.java
+BadFatalEvent.java
+BadGoEvent.java
+BadMessageEvent.java
+BadSpeakingTargetEvent.java
+BadTargetSelectedEvent.java
+BadUserDuplicationEvent.java
+HelpNeededEvent.java
 
 ## Battle messages
 
-BattleTurnMessage.java
-FightOverMessage.java
-JoinBattleMessage.java
-MissMessage.java
+BattleCreatureFledEvent.java
+BattleJoinedEvent.java
+BattleOverEvent.java
+BattleRoundEvent.java
+BattleRoundWastedEvent.java
+BattleStartedEvent.java
+BattleStatsRequestedEvent.java
+TargetDefendedEvent.java
 
 ## Cubed messages
 
-CastingMessage.java
-FleeMessage.java
+SpellCastingEvent.java
+SpellEntryRequestedEvent.java
+SpellFizzledEvent.java
 
 ## Item messages
 
-DropOutMessage.java
-EquipOutMessage.java
-InventoryOutMessage.java
-InteractOutMessage.java
-NotPossessedMessage.java
+InventoryRequestedEvent.java
+ItemDroppedEvent.java
+ItemEquippedEvent.java
+ItemInteractionEvent.java
+ItemNotPossessedEvent.java
+ItemTakenEvent.java
+ItemUnequippedEvent.java
+ItemUsedEvent.java
 
 ## Creature messages
 
-CreatureAffectedMessage.java
-ReincarnateMessage.java
-RenegadeAnnouncement.java
+CreatureAffectedEvent.java
+CreatureSpawnedEvent.java
+CreatureStatusRequestedEvent.java
+FactionReinforcementsCallEvent.java
+FactionRenegadeJoined.java
+PlayerReincarnatedEvent.java
+PlayersListedEvent.java
 
 ## Unsorted
 
-LewdOutMessage.java
-ListPlayersMessage.java
-NewInMessage.java
-NoUserMessage.java
-ReinforcementsCall.java
-RoomAffectedMessage.java
-RoomEnteredOutMessage.java
-SeeOutMessage.java
-SomeoneLeftRoom.java
-SpawnMessage.java
-SpeakingMessage.java
-SpellEntryMessage.java
-SpellFizzleMessage.java
-StartFightMessage.java
-StatusOutMessage.java
-TakeOutMessage.java
-UnequipOutMessage.java
-UseOutMessage.java
-UserLeftMessage.java
-WelcomeMessage.java
+LewdEvent.java
+RoomAffectedEvent.java
+RoomEnteredEvent.java
+RoomExitedEvent.java
+SeeEvent.java
+SpeakingEvent.java
+TickEvent.java
+UserAbsentEvent.java
+UserCreatedEvent.java
+UserLeftEvent.java
+WelcomeEvent.java
 
 ## Mermaid
 

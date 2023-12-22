@@ -13,7 +13,7 @@ import java.util.logging.Level;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.events.FatalEvent;
+import com.lhf.messages.events.BadFatalEvent;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.server.interfaces.ConnectionListener;
@@ -115,11 +115,12 @@ public class ClientHandle extends Client implements Runnable {
                 this.setRepeatCommand(value);
             }
         } catch (IOException e) {
-            final FatalEvent fatal = FatalEvent.getBuilder().setException(e).setExtraInfo("recoverable").Build();
+            final BadFatalEvent fatal = BadFatalEvent.getBuilder().setException(e).setExtraInfo("recoverable").Build();
             this.logger.log(Level.SEVERE, fatal.toString(), e);
             Client.eventAccepter.accept(this, fatal);
         } catch (Exception e) {
-            final FatalEvent fatal = FatalEvent.getBuilder().setException(e).setExtraInfo("irrecoverable").Build();
+            final BadFatalEvent fatal = BadFatalEvent.getBuilder().setException(e).setExtraInfo("irrecoverable")
+                    .Build();
             this.logger.log(Level.SEVERE, fatal.toString(), e);
             Client.eventAccepter.accept(this, fatal);
             throw e;
