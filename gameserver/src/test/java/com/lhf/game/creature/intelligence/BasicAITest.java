@@ -44,7 +44,7 @@ public class BasicAITest {
         }
 
         private void sendMsgAndWait(OutMessage message, AIComBundle bundle) {
-                bundle.npc.receive(message);
+                INonPlayerCharacter.eventAccepter.accept(bundle.npc, message);
                 Assertions.assertDoesNotThrow(
                                 () -> Mockito.verify(this.aiRunner, timeout(1000).atLeastOnce())
                                                 .process(bundle.brain.getClientID()));

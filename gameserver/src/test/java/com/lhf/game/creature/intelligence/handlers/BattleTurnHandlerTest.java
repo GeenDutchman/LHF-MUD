@@ -101,8 +101,9 @@ public class BattleTurnHandlerTest {
         searcher.npc.intercept(interceptor);
 
         // trigger it
-        searcher.npc.receive(BattleRoundMessage.getBuilder().setAboutCreature(searcher.npc).setNeeded()
-                .Build());
+        AIComBundle.eventAccepter.accept(searcher.npc,
+                BattleRoundMessage.getBuilder().setAboutCreature(searcher.npc).setNeeded()
+                        .Build());
 
         Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();
         Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
