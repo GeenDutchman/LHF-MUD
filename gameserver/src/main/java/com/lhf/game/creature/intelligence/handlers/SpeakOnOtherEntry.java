@@ -33,9 +33,9 @@ public class SpeakOnOtherEntry extends AIHandler {
     }
 
     @Override
-    public void handle(BasicAI bai, GameEvent msg) {
-        if (GameEventType.ROOM_ENTERED.equals(msg.getEventType())) {
-            RoomEnteredEvent reom = (RoomEnteredEvent) msg;
+    public void handle(BasicAI bai, GameEvent event) {
+        if (GameEventType.ROOM_ENTERED.equals(event.getEventType())) {
+            RoomEnteredEvent reom = (RoomEnteredEvent) event;
             if (reom.getNewbie() != null) {
                 String sayit = null;
                 if (this.greeting != null) {

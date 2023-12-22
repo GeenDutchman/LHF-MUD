@@ -27,11 +27,11 @@ public class SilencedHandler extends AIHandler {
     }
 
     @Override
-    public void handle(BasicAI bai, GameEvent msg) {
-        if (this.passThrough != null && this.allowPassthrough != null && this.allowPassthrough.test(bai, msg)) {
+    public void handle(BasicAI bai, GameEvent event) {
+        if (this.passThrough != null && this.allowPassthrough != null && this.allowPassthrough.test(bai, event)) {
             this.logger.log(Level.FINE,
                     () -> String.format("Passing through to %s", this.passThrough.getClass().getSimpleName()));
-            this.passThrough.handle(bai, msg);
+            this.passThrough.handle(bai, event);
         }
     }
 

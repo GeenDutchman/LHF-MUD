@@ -51,10 +51,10 @@ public class ServerTest {
             String command = "create " + name + " with " + name + (vocation != null ? " as " + vocation : "");
             String result = this.handleCommand(command,
                     expectUnique ? GameEventType.SEE : GameEventType.DUPLICATE_USER);
-            GameEvent outMessage = this.outCaptor.getValue();
-            if (expectUnique && outMessage != null
-                    && outMessage.getEventType() != GameEventType.DUPLICATE_USER
-                    && outMessage.getEventType() != GameEventType.BAD_MESSAGE) {
+            GameEvent gameEvent = this.outCaptor.getValue();
+            if (expectUnique && gameEvent != null
+                    && gameEvent.getEventType() != GameEventType.DUPLICATE_USER
+                    && gameEvent.getEventType() != GameEventType.BAD_MESSAGE) {
                 this.name = name;
             }
             return result;
@@ -72,11 +72,11 @@ public class ServerTest {
             Truth.assertWithMessage("Command %s has no reply", command).that(reply).isNotNull();
             Truth.assertWithMessage("Command %s should have been handled, but reply was %s", command, reply)
                     .that(reply.isHandled()).isTrue();
-            GameEvent outMessage = outCaptor.getValue();
-            Truth.assertThat(outMessage).isNotNull();
-            String response = outMessage.toString();
+            GameEvent gameEvent = outCaptor.getValue();
+            Truth.assertThat(gameEvent).isNotNull();
+            String response = gameEvent.toString();
             if (outMessageType != null) {
-                Truth.assertWithMessage("Message is: %s", response).that(outMessage.getEventType())
+                Truth.assertWithMessage("Message is: %s", response).that(gameEvent.getEventType())
                         .isEqualTo(outMessageType);
             }
             return response;
@@ -362,9 +362,9 @@ public class ServerTest {
                     .send(Mockito.argThat(battleTurnAccepted));
 
             Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
-                    .send(Mockito.argThat((outMessage) -> {
-                        return battleTurn.matches(outMessage) || fightOver.matches(outMessage)
-                                || reincarnated.matches(outMessage);
+                    .send(Mockito.argThat((gameEvent) -> {
+                        return battleTurn.matches(gameEvent) || fightOver.matches(gameEvent)
+                                || reincarnated.matches(gameEvent);
                     }));
             room = this.comm.handleCommand("see");
 

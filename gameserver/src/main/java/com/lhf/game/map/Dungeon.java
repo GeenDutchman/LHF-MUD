@@ -268,12 +268,12 @@ public class Dungeon implements Land {
         return secretDirs.getExits().put(toExistingRoom, onewayDoor) == null;
     }
 
-    public void announceToAllInRoom(Room room, GameEvent msg, ClientMessenger... deafened) {
+    public void announceToAllInRoom(Room room, GameEvent event, ClientMessenger... deafened) {
         if (room == null) {
-            this.startingRoom.announce(msg, deafened);
+            this.startingRoom.announce(event, deafened);
             return;
         }
-        room.announce(msg, deafened);
+        room.announce(event, deafened);
     }
 
     public interface DungeonCommandHandler extends Room.RoomCommandHandler {

@@ -197,9 +197,9 @@ public class BattleTurnHandler extends AIHandler {
         if (bai.getNpc().getVocation().getVocationName().isCubeHolder()) {
             Optional<SpellEntryRequestedEvent> spellbookEntries = bai.ProcessString("SPELLBOOK").getMessages()
                     .stream()
-                    .filter(outMessage -> outMessage != null
-                            && GameEventType.SPELL_ENTRY.equals((outMessage.getEventType())))
-                    .map(outMessage -> ((SpellEntryRequestedEvent) outMessage)).findFirst();
+                    .filter(gameEvent -> gameEvent != null
+                            && GameEventType.SPELL_ENTRY.equals((gameEvent.getEventType())))
+                    .map(gameEvent -> ((SpellEntryRequestedEvent) gameEvent)).findFirst();
             if (spellbookEntries.isPresent()) {
                 try {
                     SpellEntry spellEntry = spellbookEntries.get().getEntries().stream()
@@ -235,19 +235,19 @@ public class BattleTurnHandler extends AIHandler {
     }
 
     @Override
-    public void handle(BasicAI bai, GameEvent msg) {
+    public void handle(BasicAI bai, GameEvent event) {
         // bai.ProcessString("SEE");
-        // if (!this.outMessageType.equals(msg.getOutType()) ||
+        // if (!this.outMessageType.equals(event.getOutType()) ||
         // !bai.getNpc().isInBattle()) {
         // return;
         // }
 
-        BattleRoundEvent btm = (BattleRoundEvent) msg;
+        BattleRoundEvent btm = (BattleRoundEvent) event;
         if (RoundAcceptance.NEEDED.equals(btm.getNeedSubmission())) {
             Reply reply = bai.ProcessString("STATS");
             Optional<BattleStatsRequestedEvent> statsOutOpt = reply.getMessages().stream()
-                    .filter(outMessage -> outMessage != null && GameEventType.STATS.equals(outMessage.getEventType()))
-                    .map(outMessage -> ((BattleStatsRequestedEvent) outMessage)).findFirst();
+                    .filter(gameEvent -> gameEvent != null && GameEventType.STATS.equals(gameEvent.getEventType()))
+                    .map(gameEvent -> ((BattleStatsRequestedEvent) gameEvent)).findFirst();
 
             if (statsOutOpt.isEmpty()) {
                 this.logger.warning(() -> String

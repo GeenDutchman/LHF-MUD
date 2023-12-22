@@ -85,9 +85,9 @@ public class SpokenPromptChunk extends AIHandler {
     }
 
     @Override
-    public void handle(BasicAI bai, GameEvent msg) {
-        if (msg.getEventType().equals(GameEventType.SPEAKING)) {
-            SpeakingEvent sm = (SpeakingEvent) msg;
+    public void handle(BasicAI bai, GameEvent event) {
+        if (event.getEventType().equals(GameEventType.SPEAKING)) {
+            SpeakingEvent sm = (SpeakingEvent) event;
             if (!sm.getShouting() && sm.getHearer() != null && sm.getHearer() instanceof INonPlayerCharacter) {
                 if (sm.getSayer() instanceof ICreature || (this.allowUsers && sm.getSayer() instanceof User)) {
                     if (sm.getMessage().startsWith("PROMPT") &&

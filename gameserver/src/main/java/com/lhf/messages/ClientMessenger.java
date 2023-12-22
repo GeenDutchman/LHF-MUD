@@ -12,11 +12,11 @@ import com.lhf.server.client.ClientID;
 
 public interface ClientMessenger extends Taggable {
     /**
-     * Accepts a ClientMessenger and an OutMessage. Utilizes
+     * Accepts a ClientMessenger and an GameEvent. Utilizes
      * {@link #getAcceptHook()} to find how the implementation wants to handle the
      * event.
      * <p>
-     * Does nothing if the ClientMessenger or OutMessage is null. If
+     * Does nothing if the ClientMessenger or GameEvent is null. If
      * {@link #getAcceptHook()} returns null that is valid, but note that the event
      * will be listed as being recieved by this ClientMessenger.
      */
@@ -31,7 +31,7 @@ public interface ClientMessenger extends Taggable {
     };
 
     /**
-     * Returns a {@link java.util.function.Consumer Consumer<OutMessage>} that
+     * Returns a {@link java.util.function.Consumer Consumer<GameEvent>} that
      * should process the event on the behalf of the ClientMessenger.
      * It is valid to return null and say that this ClientMessenger won't process
      * it.
@@ -39,15 +39,9 @@ public interface ClientMessenger extends Taggable {
      * The assumption is that the event has already been marked by
      * {@link #getClientID()}.
      * 
-     * @return {@link java.util.function.Consumer Consumer<OutMessage>} or null
+     * @return {@link java.util.function.Consumer Consumer<GameEvent>} or null
      */
     public abstract Consumer<GameEvent> getAcceptHook();
-
-    // public void receive(OutMessage msg);
-
-    // public default void receive(OutMessage.Builder<?> builder) {
-    // this.receive(builder.Build());
-    // }
 
     public abstract void log(Level logLevel, String logMessage);
 

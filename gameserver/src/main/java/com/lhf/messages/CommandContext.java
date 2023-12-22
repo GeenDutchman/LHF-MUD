@@ -72,7 +72,7 @@ public class CommandContext {
             StringBuilder builder = new StringBuilder();
             builder.append("Reply [handled=").append(handled)
                     .append(",messageTypes=")
-                    .append(this.getMessages().stream().map(outMessage -> outMessage.getEventType()).toList())
+                    .append(this.getMessages().stream().map(gameEvent -> gameEvent.getEventType()).toList())
                     .append(",helps=").append(this.getHelps().keySet())
                     .append("]");
             return builder.toString();
@@ -154,15 +154,15 @@ public class CommandContext {
         this.creature = creature;
     }
 
-    public synchronized void receive(GameEvent msg) {
-        if (msg != null) {
-            this.addMessage(msg);
+    public synchronized void receive(GameEvent event) {
+        if (event != null) {
+            this.addMessage(event);
             if (this.creature != null) {
-                ICreature.eventAccepter.accept(this.creature, msg);
+                ICreature.eventAccepter.accept(this.creature, event);
             } else if (this.user != null) {
-                User.eventAccepter.accept(this.user, msg);
+                User.eventAccepter.accept(this.user, event);
             } else if (this.client != null) {
-                Client.eventAccepter.accept(this.client, msg);
+                Client.eventAccepter.accept(this.client, event);
             }
         }
     }

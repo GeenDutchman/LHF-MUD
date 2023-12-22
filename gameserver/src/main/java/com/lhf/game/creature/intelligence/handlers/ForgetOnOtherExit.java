@@ -12,9 +12,9 @@ public class ForgetOnOtherExit extends AIHandler {
     }
 
     @Override
-    public void handle(BasicAI bai, GameEvent msg) {
-        if (GameEventType.ROOM_EXITED.equals(msg.getEventType())) {
-            RoomExitedEvent slr = (RoomExitedEvent) msg;
+    public void handle(BasicAI bai, GameEvent event) {
+        if (GameEventType.ROOM_EXITED.equals(event.getEventType())) {
+            RoomExitedEvent slr = (RoomExitedEvent) event;
             if (slr.getLeaveTaker() != null) {
                 if (bai.getNpc().getConvoTree() != null) {
                     bai.getNpc().getConvoTree().forgetBookmark(slr.getLeaveTaker());

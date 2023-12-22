@@ -60,15 +60,6 @@ public interface MessageChainHandler extends ClientMessengerHub {
 
     public abstract Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx);
 
-    // public default CommandContext.Reply handleMessage(CommandContext ctx, Command
-    // msg) {
-    // MessageChainHandler retrievedSuccessor = this.getSuccessor();
-    // if (retrievedSuccessor != null) {
-    // return retrievedSuccessor.handleMessage(ctx, msg);
-    // }
-    // return ctx.failhandle();
-    // }
-
     public default CommandContext.Reply handle(CommandContext ctx, Command cmd) {
         if (ctx == null) {
             ctx = new CommandContext();

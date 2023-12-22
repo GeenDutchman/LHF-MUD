@@ -68,18 +68,18 @@ public class ClientManager {
         return result;
     }
 
-    public void sendMessageToAll(GameEvent msg) {
-        logger.entering(this.getClass().getName(), "sendMessageToAll()", msg);
+    public void sendMessageToAll(GameEvent event) {
+        logger.entering(this.getClass().getName(), "sendMessageToAll()", event);
         for (Client client : this.clientMap.values()) {
-            Client.eventAccepter.accept(client, msg);
+            Client.eventAccepter.accept(client, event);
         }
     }
 
-    public void sendMessageToAllExcept(GameEvent msg, ClientID id) {
+    public void sendMessageToAllExcept(GameEvent event, ClientID id) {
         logger.entering(this.getClass().getName(), "sendMessageToAllExcept()");
         for (ClientID iterId : this.clientMap.keySet()) {
             if (iterId != id) {
-                Client.eventAccepter.accept(this.clientMap.get(iterId), msg);
+                Client.eventAccepter.accept(this.clientMap.get(iterId), event);
             }
         }
     }

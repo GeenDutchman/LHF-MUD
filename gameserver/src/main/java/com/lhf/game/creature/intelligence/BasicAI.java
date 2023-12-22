@@ -57,14 +57,14 @@ public class BasicAI extends Client {
         return this.queue.size();
     }
 
-    public void process(GameEvent msg) {
-        if (msg != null) {
-            AIChunk ai = this.handlers.get(msg.getEventType());
+    public void process(GameEvent event) {
+        if (event != null) {
+            AIChunk ai = this.handlers.get(event.getEventType());
             if (ai != null) {
-                ai.handle(this, msg);
+                ai.handle(this, event);
             } else {
                 this.log(Level.WARNING, () -> String.format("No handler found for %s: %s",
-                        msg.getEventType(), msg.print()));
+                        event.getEventType(), event.print()));
             }
         }
     }
@@ -73,15 +73,15 @@ public class BasicAI extends Client {
         if (this.handlers == null) {
             this.handlers = new TreeMap<>();
         }
-        this.handlers.put(GameEventType.FIGHT_OVER, (BasicAI bai, GameEvent msg) -> {
-            if (msg.getEventType().equals(GameEventType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
+        this.handlers.put(GameEventType.FIGHT_OVER, (BasicAI bai, GameEvent event) -> {
+            if (event.getEventType().equals(GameEventType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
                 bai.npc.getHarmMemories().reset();
             }
         });
 
-        this.handlers.put(GameEventType.FLEE, (BasicAI bai, GameEvent msg) -> {
-            if (msg.getEventType().equals(GameEventType.FLEE)) {
-                CreatureFledEvent flee = (CreatureFledEvent) msg;
+        this.handlers.put(GameEventType.FLEE, (BasicAI bai, GameEvent event) -> {
+            if (event.getEventType().equals(GameEventType.FLEE)) {
+                CreatureFledEvent flee = (CreatureFledEvent) event;
                 if (flee.isFled() && flee.getRunner() != null) {
                     if (flee.getRunner() == bai.getNpc()) {
                         bai.npc.getHarmMemories().reset();
@@ -89,9 +89,9 @@ public class BasicAI extends Client {
                 }
             }
         });
-        this.handlers.put(GameEventType.BAD_TARGET_SELECTED, (BasicAI bai, GameEvent msg) -> {
-            if (msg.getEventType().equals(GameEventType.BAD_TARGET_SELECTED) && bai.getNpc().isInBattle()) {
-                BadTargetSelectedEvent btsm = (BadTargetSelectedEvent) msg;
+        this.handlers.put(GameEventType.BAD_TARGET_SELECTED, (BasicAI bai, GameEvent event) -> {
+            if (event.getEventType().equals(GameEventType.BAD_TARGET_SELECTED) && bai.getNpc().isInBattle()) {
+                BadTargetSelectedEvent btsm = (BadTargetSelectedEvent) event;
                 this.log(Level.WARNING,
                         () -> String.format("Selected a bad target: %s with possible targets", btsm,
                                 btsm.getPossibleTargets()));

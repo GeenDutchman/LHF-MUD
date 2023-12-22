@@ -6,7 +6,7 @@ Messages could be broadcastable.
 The subject matter should be easily retrivable by type and name.
 Some messages relay errors about the subject matter.
 
-OutMessage.java
+GameEvent.java
 
 ## Problem messages
 
@@ -71,7 +71,7 @@ WelcomeMessage.java
 
 ```mermaid
 classDiagram
-    class OutMessage {
+    class GameEvent {
         -OutMessageType type
         +getOutType() OutMessageType
     }
