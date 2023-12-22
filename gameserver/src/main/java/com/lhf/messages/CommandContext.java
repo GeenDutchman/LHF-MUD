@@ -5,9 +5,6 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.ICreature;
@@ -15,7 +12,6 @@ import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.Room;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.Client;
-import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 
@@ -27,6 +23,7 @@ public class CommandContext {
     protected BattleManager bManager;
     protected Dungeon dungeon;
     protected EnumMap<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
+    protected List<OutMessage> messages = new ArrayList<>();
 
     public class Reply {
         protected boolean handled;
@@ -92,6 +89,15 @@ public class CommandContext {
         return this.new Reply(true);
     }
 
+    public void addMessage(OutMessage message) {
+        if (this.messages == null) {
+            this.messages = new ArrayList<>();
+        }
+        if (message != null) {
+            this.messages.add(message);
+        }
+    }
+
     /**
      * Adds help data to the context, returns the provided helps found
      * 
@@ -134,6 +140,19 @@ public class CommandContext {
 
     public void setCreature(ICreature creature) {
         this.creature = creature;
+    }
+
+    public void receive(OutMessage msg) {
+        if (msg != null) {
+            this.addMessage(msg);
+            if (this.creature != null) {
+                ICreature.eventAccepter.accept(this.creature, msg);
+            } else if (this.user != null) {
+                User.eventAccepter.accept(this.user, msg);
+            } else if (this.client != null) {
+                Client.eventAccepter.accept(this.client, msg);
+            }
+        }
     }
 
     public void setClient(Client client) {
