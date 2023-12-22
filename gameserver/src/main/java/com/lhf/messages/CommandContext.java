@@ -155,6 +155,10 @@ public class CommandContext {
         }
     }
 
+    public void receive(OutMessage.Builder<?> builder) {
+        this.receive(builder.Build());
+    }
+
     public void setClient(Client client) {
         this.client = client;
     }
