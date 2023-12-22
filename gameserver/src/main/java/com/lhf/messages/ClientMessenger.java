@@ -25,7 +25,7 @@ public interface ClientMessenger extends Taggable {
             return;
         }
         Consumer<OutMessage> acceptHook = messenger.getAcceptHook();
-        if (acceptHook != null && event.isFirstRecieve(messenger.getClientID())) {
+        if (event.isFirstRecieve(messenger.getClientID()) && acceptHook != null) {
             acceptHook.accept(event);
         }
     };
