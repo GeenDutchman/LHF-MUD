@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.ICreature;
@@ -44,6 +45,17 @@ public class CommandContext {
                 CommandContext.this.messages = new ArrayList<>();
             }
             return Collections.unmodifiableList(CommandContext.this.messages);
+        }
+
+        public Optional<OutMessage> getLastMessage() {
+            if (CommandContext.this.messages == null || CommandContext.this.messages.size() == 0) {
+                return Optional.empty();
+            }
+            try {
+                return Optional.ofNullable(CommandContext.this.messages.get(CommandContext.this.messages.size() - 1));
+            } catch (IndexOutOfBoundsException e) {
+                return Optional.empty();
+            }
         }
 
         public boolean isHandled() {

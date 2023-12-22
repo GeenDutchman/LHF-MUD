@@ -208,11 +208,10 @@ public class Server implements ServerInterface, ConnectionListener {
                     Server.this.game.userLeft(ctx.getUserID());
                     User leaving = Server.this.userManager.getUser(ctx.getUserID());
                     Server.this.userManager.removeUser(ctx.getUserID());
-                    User.eventAccepter.accept(leaving,
-                            UserLeftMessage.getBuilder().setUser(leaving).setNotBroadcast().Build());
+                    ctx.receive(UserLeftMessage.getBuilder().setUser(leaving).setNotBroadcast().Build());
                 } else {
                     if (ch != null) {
-                        Client.eventAccepter.accept(ch, UserLeftMessage.getBuilder().setNotBroadcast().Build());
+                        ctx.receive(UserLeftMessage.getBuilder().setNotBroadcast().Build());
                     }
                 }
 
@@ -267,6 +266,7 @@ public class Server implements ServerInterface, ConnectionListener {
                 Client client = Server.this.clientManager.getConnection(ctx.getClient().getClientID());
                 Server.this.clientManager.addUserForClient(client.getClientID(), user.getUserID());
                 client.setSuccessor(user);
+                ctx.setUser(user);
                 Server.this.game.addNewPlayerToGame(user, msg.vocationRequest());
                 return ctx.handled();
             }
