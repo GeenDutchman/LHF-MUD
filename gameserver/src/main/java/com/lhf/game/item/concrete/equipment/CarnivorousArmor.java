@@ -106,7 +106,8 @@ public class CarnivorousArmor extends Equipable {
     public void onUnequippedBy(ICreature disowner) {
         super.onUnequippedBy(disowner);
         if (equippedAndUsed) {
-            disowner.receive(disowner.applyEffect(new CreatureEffect(this.lastBite, disowner, this)));
+            ICreature.eventAccepter.accept(disowner,
+                    disowner.applyEffect(new CreatureEffect(this.lastBite, disowner, this)));
         }
         equipped = false;
         equippedAndUsed = false;

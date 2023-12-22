@@ -58,7 +58,7 @@ public class HealPotion extends Usable {
                     OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     ctx.receive(results);
                     if (ctx.getCreature() != target) {
-                        target.receive(results);
+                        ICreature.eventAccepter.accept(target, results);
                     }
                 }
                 return true;
