@@ -17,12 +17,12 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.events.BadMessageEvent;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.HelpNeededEvent;
+import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.BadMessageEvent;
-import com.lhf.messages.out.BadMessageEvent.BadMessageType;
-import com.lhf.messages.out.HelpNeededEvent;
-import com.lhf.messages.out.GameEvent;
 
 public class Client implements MessageChainHandler {
     protected SendStrategy out;

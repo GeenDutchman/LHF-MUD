@@ -3,7 +3,7 @@ package com.lhf.game;
 import java.util.Objects;
 
 import com.lhf.TaggedExaminable;
-import com.lhf.messages.out.SeeEvent;
+import com.lhf.messages.events.SeeEvent;
 
 public abstract class EntityEffectSource implements TaggedExaminable {
     protected final String className;

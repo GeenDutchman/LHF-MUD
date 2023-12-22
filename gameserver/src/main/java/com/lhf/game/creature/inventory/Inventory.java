@@ -14,9 +14,9 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
-import com.lhf.messages.out.InventoryRequestedEvent;
-import com.lhf.messages.out.SeeEvent;
-import com.lhf.messages.out.SeeEvent.SeeCategory;
+import com.lhf.messages.events.InventoryRequestedEvent;
+import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 public class Inventory implements ItemContainer {
     private List<Takeable> items;

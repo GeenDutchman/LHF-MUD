@@ -6,7 +6,7 @@ import java.util.logging.Level;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.server.interfaces.NotNull;
 
 public class SilencedHandler extends AIHandler {

@@ -44,10 +44,10 @@ import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.ITickEvent;
 import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.SeeEvent;
-import com.lhf.messages.out.SeeEvent.SeeCategory;
-import com.lhf.messages.out.CreatureStatusRequestedEvent;
+import com.lhf.messages.events.CreatureStatusRequestedEvent;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 /**
  * An interface for all things Creature. This way we can create wrappers, mocks,
@@ -576,7 +576,7 @@ public interface ICreature
     }
 
     /**
-     * Produces a {@link com.lhf.messages.out.SeeEvent SeeOutMessage}
+     * Produces a {@link com.lhf.messages.events.SeeEvent SeeOutMessage}
      * describing this Creature and any {@link com.lhf.game.creature.CreatureEffect
      * Effects} upon it.
      */

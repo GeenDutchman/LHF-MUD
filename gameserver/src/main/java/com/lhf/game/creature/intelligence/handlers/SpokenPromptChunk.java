@@ -16,9 +16,9 @@ import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventType;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.SpeakingEvent;
 import com.lhf.messages.in.SayMessage;
-import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.SpeakingEvent;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.User;
 

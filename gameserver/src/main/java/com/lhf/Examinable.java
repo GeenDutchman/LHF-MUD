@@ -1,6 +1,6 @@
 package com.lhf;
 
-import com.lhf.messages.out.SeeEvent;
+import com.lhf.messages.events.SeeEvent;
 
 public interface Examinable {
     String getName();

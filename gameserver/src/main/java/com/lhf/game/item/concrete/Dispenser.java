@@ -1,7 +1,7 @@
 package com.lhf.game.item.concrete;
 
 import com.lhf.game.item.InteractObject;
-import com.lhf.messages.out.SeeEvent;
+import com.lhf.messages.events.SeeEvent;
 
 public class Dispenser extends InteractObject {
     private int count;

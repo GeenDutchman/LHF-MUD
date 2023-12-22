@@ -6,9 +6,9 @@ import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventType;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.messages.in.SayMessage;
-import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.RoomEnteredEvent;
 
 public class SpeakOnOtherEntry extends AIHandler {
     protected String greeting;

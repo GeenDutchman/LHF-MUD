@@ -8,7 +8,7 @@ import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.Room;
 import com.lhf.messages.MessageMatcher;
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.GameEvent;
 
 public class BedTest {
 

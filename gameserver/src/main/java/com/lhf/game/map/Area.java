@@ -15,9 +15,9 @@ import com.lhf.game.creature.Player;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.SeeEvent;
-import com.lhf.messages.out.SeeEvent.SeeCategory;
-import com.lhf.messages.out.TickEvent;
+import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.TickEvent;
+import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 public interface Area
         extends ItemContainer, CreatureContainer, MessageChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {

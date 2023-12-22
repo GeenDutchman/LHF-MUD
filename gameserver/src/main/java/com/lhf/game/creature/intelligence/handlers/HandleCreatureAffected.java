@@ -3,8 +3,8 @@ package com.lhf.game.creature.intelligence.handlers;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.CreatureAffectedEvent;
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.CreatureAffectedEvent;
+import com.lhf.messages.events.GameEvent;
 
 public class HandleCreatureAffected extends AIHandler {
 

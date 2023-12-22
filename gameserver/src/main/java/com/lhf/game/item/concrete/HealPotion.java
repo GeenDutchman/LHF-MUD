@@ -13,11 +13,11 @@ import com.lhf.game.enums.HealType;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.interfaces.UseAction;
-import com.lhf.messages.out.BattleRoundEvent;
-import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.ItemUsedEvent;
-import com.lhf.messages.out.BattleRoundEvent.RoundAcceptance;
-import com.lhf.messages.out.ItemUsedEvent.UseOutMessageOption;
+import com.lhf.messages.events.BattleRoundEvent;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.ItemUsedEvent;
+import com.lhf.messages.events.BattleRoundEvent.RoundAcceptance;
+import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 
 public class HealPotion extends Usable {
 

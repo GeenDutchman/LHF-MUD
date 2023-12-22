@@ -34,8 +34,8 @@ import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 import com.lhf.game.map.Land.AreaDirectionalLinks;
 import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.ItemInteractionEvent;
-import com.lhf.messages.out.ItemInteractionEvent.InteractOutMessageType;
+import com.lhf.messages.events.ItemInteractionEvent;
+import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 
 public class DungeonBuilder implements Land.LandBuilder {
     private class RoomAndDirs implements Land.AreaDirectionalLinks {

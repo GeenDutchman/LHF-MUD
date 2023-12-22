@@ -7,9 +7,9 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.interfaces.UseAction;
 import com.lhf.game.map.Room;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.out.SeeEvent;
-import com.lhf.messages.out.ItemUsedEvent;
-import com.lhf.messages.out.ItemUsedEvent.UseOutMessageOption;
+import com.lhf.messages.events.ItemUsedEvent;
+import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 
 public class Usable extends Takeable {
     private final Integer numCanUseTimes;

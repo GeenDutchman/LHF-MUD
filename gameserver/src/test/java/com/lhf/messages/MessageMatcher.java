@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.mockito.ArgumentMatcher;
 
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.GameEvent;
 
 public class MessageMatcher implements ArgumentMatcher<GameEvent> {
 

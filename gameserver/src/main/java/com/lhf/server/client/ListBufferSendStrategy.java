@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.GameEvent;
 
 public class ListBufferSendStrategy extends StringBufferSendStrategy {
     private List<GameEvent> lBuffer;

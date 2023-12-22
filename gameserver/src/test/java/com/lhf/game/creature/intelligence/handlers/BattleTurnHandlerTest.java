@@ -24,12 +24,12 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.events.BadTargetSelectedEvent;
+import com.lhf.messages.events.BattleRoundEvent;
+import com.lhf.messages.events.BattleStatsRequestedEvent;
+import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.BadTargetSelectedEvent;
-import com.lhf.messages.out.BadTargetSelectedEvent.BadTargetOption;
-import com.lhf.messages.out.BattleRoundEvent;
-import com.lhf.messages.out.BattleStatsRequestedEvent;
 
 public class BattleTurnHandlerTest {
     @Spy

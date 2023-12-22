@@ -9,7 +9,7 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.magic.concrete.DMBlessing;
-import com.lhf.messages.out.CreatureAffectedEvent;
+import com.lhf.messages.events.CreatureAffectedEvent;
 
 public class NonPlayerCharacter extends Creature implements INonPlayerCharacter {
 

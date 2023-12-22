@@ -21,16 +21,16 @@ import com.lhf.game.map.Area;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.events.BadTargetSelectedEvent;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.ItemInteractionEvent;
+import com.lhf.messages.events.LewdEvent;
+import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
+import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
+import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.LewdInMessage;
-import com.lhf.messages.out.BadTargetSelectedEvent;
-import com.lhf.messages.out.BadTargetSelectedEvent.BadTargetOption;
-import com.lhf.messages.out.ItemInteractionEvent;
-import com.lhf.messages.out.ItemInteractionEvent.InteractOutMessageType;
-import com.lhf.messages.out.LewdEvent;
-import com.lhf.messages.out.LewdEvent.LewdOutMessageType;
-import com.lhf.messages.out.GameEvent;
 
 public class LewdBed extends Bed {
 

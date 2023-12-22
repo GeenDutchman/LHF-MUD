@@ -8,7 +8,7 @@ import java.util.TreeMap;
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.INonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.AIChooser;
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.GameEvent;
 
 public class AggroHighwaterChooser implements AIChooser<String> {
     private static final double defaultValue = (double) 0.90;

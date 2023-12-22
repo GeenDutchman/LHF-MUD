@@ -9,8 +9,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.lhf.game.creature.ICreature;
-import com.lhf.messages.out.LewdEvent;
-import com.lhf.messages.out.LewdEvent.LewdOutMessageType;
+import com.lhf.messages.events.LewdEvent;
+import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 
 /**
  * The steps are to set everyone to INCLUDED except

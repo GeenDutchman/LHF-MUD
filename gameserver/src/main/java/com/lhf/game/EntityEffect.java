@@ -6,7 +6,7 @@ import com.lhf.Taggable;
 import com.lhf.TaggedExaminable;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.ICreature;
-import com.lhf.messages.out.SeeEvent;
+import com.lhf.messages.events.SeeEvent;
 
 public abstract class EntityEffect implements TaggedExaminable, Comparable<EntityEffect> {
 

@@ -24,11 +24,11 @@ import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.ClientMessenger;
-import com.lhf.messages.out.BadTargetSelectedEvent;
-import com.lhf.messages.out.BadTargetSelectedEvent.BadTargetOption;
-import com.lhf.messages.out.CreatureAffectedEvent;
-import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.SpeakingEvent;
+import com.lhf.messages.events.BadTargetSelectedEvent;
+import com.lhf.messages.events.CreatureAffectedEvent;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.SpeakingEvent;
+import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.server.client.ClientID;
 
 @ExtendWith(MockitoExtension.class)

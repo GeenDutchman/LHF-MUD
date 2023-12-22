@@ -6,7 +6,7 @@ import java.util.SortedMap;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.INonPlayerCharacter.HarmMemories;
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.GameEvent;
 
 public interface AIChooser<T extends Comparable<T>> extends Comparable<AIChooser<T>> {
     public static double MIN_VALUE = 0.01;

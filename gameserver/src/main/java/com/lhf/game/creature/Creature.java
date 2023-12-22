@@ -38,19 +38,19 @@ import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.events.CreatureAffectedEvent;
+import com.lhf.messages.events.CreatureStatusRequestedEvent;
+import com.lhf.messages.events.ItemEquippedEvent;
+import com.lhf.messages.events.ItemNotPossessedEvent;
+import com.lhf.messages.events.ItemUnequippedEvent;
+import com.lhf.messages.events.ItemEquippedEvent.EquipResultType;
+import com.lhf.messages.events.ItemUnequippedEvent.UnequipResultType;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.InventoryMessage;
 import com.lhf.messages.in.StatusMessage;
 import com.lhf.messages.in.UnequipMessage;
-import com.lhf.messages.out.CreatureAffectedEvent;
-import com.lhf.messages.out.ItemEquippedEvent;
-import com.lhf.messages.out.ItemEquippedEvent.EquipResultType;
-import com.lhf.messages.out.ItemNotPossessedEvent;
-import com.lhf.messages.out.CreatureStatusRequestedEvent;
-import com.lhf.messages.out.ItemUnequippedEvent;
-import com.lhf.messages.out.ItemUnequippedEvent.UnequipResultType;
 import com.lhf.server.client.ClientID;
 
 public abstract class Creature implements ICreature {

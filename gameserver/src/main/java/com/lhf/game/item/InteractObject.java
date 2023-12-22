@@ -2,9 +2,9 @@ package com.lhf.game.item;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.interfaces.InteractAction;
-import com.lhf.messages.out.ItemInteractionEvent;
-import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.ItemInteractionEvent.InteractOutMessageType;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.ItemInteractionEvent;
+import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 
 import java.util.HashMap;
 import java.util.Map;

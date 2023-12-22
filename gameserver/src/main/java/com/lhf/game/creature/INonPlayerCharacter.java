@@ -28,7 +28,7 @@ import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
 import com.lhf.messages.ClientMessenger;
-import com.lhf.messages.out.CreatureAffectedEvent;
+import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.server.interfaces.NotNull;
 
 /**
@@ -177,13 +177,13 @@ public interface INonPlayerCharacter extends ICreature {
 
         /**
          * Uses the data stored in the
-         * {@link com.lhf.messages.out.CreatureAffectedEvent CreatureAffectedMessage}
+         * {@link com.lhf.messages.events.CreatureAffectedEvent CreatureAffectedMessage}
          * to update the statistics in the memories
          * 
-         * @param cam {@link com.lhf.messages.out.CreatureAffectedEvent
+         * @param cam {@link com.lhf.messages.events.CreatureAffectedEvent
          *            CreatureAffectedMessage} contains updates
          * @return `this` for chainability
-         * @see {@link com.lhf.messages.out.CreatureAffectedEvent
+         * @see {@link com.lhf.messages.events.CreatureAffectedEvent
          *      CreatureAffectedMessage}
          */
         public HarmMemories update(CreatureAffectedEvent cam) {

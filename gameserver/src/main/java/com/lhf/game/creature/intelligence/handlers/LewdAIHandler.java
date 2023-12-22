@@ -11,9 +11,9 @@ import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.LewdEvent;
-import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.LewdEvent.LewdOutMessageType;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.LewdEvent;
+import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 
 public class LewdAIHandler extends AIHandler {
     private Set<ICreature> partners;

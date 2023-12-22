@@ -8,7 +8,7 @@ import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.GameEvent;
 
 public interface ClientMessengerHub extends ClientMessenger {
     public Collection<ClientMessenger> getClientMessengers();

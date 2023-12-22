@@ -3,7 +3,7 @@ package com.lhf.game;
 import java.util.Collections;
 import java.util.NavigableSet;
 
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.GameEvent;
 
 /**
  * This is used to mark an entity as Affectable. That is, magic works on it.

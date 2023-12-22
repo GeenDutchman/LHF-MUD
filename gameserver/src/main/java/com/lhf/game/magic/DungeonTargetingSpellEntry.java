@@ -9,7 +9,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.map.DungeonEffectSource;
-import com.lhf.messages.out.CastingEvent;
+import com.lhf.messages.events.CastingEvent;
 
 public class DungeonTargetingSpellEntry extends SpellEntry {
     // add way to create dungeon?

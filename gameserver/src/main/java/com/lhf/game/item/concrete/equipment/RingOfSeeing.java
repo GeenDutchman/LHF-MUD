@@ -7,8 +7,8 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.map.Room;
-import com.lhf.messages.out.ItemUsedEvent;
-import com.lhf.messages.out.ItemUsedEvent.UseOutMessageOption;
+import com.lhf.messages.events.ItemUsedEvent;
+import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 
 public class RingOfSeeing extends Equipable {
 

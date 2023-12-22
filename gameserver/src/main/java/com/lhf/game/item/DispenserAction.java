@@ -7,9 +7,9 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.Room;
-import com.lhf.messages.out.ItemInteractionEvent;
-import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.ItemInteractionEvent.InteractOutMessageType;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.ItemInteractionEvent;
+import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 
 public class DispenserAction implements InteractAction {
     @Override

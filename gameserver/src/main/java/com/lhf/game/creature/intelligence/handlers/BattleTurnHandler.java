@@ -32,12 +32,12 @@ import com.lhf.game.magic.SpellEntry;
 import com.lhf.game.map.Directions;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.events.BattleRoundEvent;
+import com.lhf.messages.events.BattleStatsRequestedEvent;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.SpellEntryRequestedEvent;
+import com.lhf.messages.events.BattleRoundEvent.RoundAcceptance;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.BattleRoundEvent;
-import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.SpellEntryRequestedEvent;
-import com.lhf.messages.out.BattleStatsRequestedEvent;
-import com.lhf.messages.out.BattleRoundEvent.RoundAcceptance;
 
 public class BattleTurnHandler extends AIHandler {
 

@@ -7,6 +7,7 @@ import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.vocation.Fighter;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
+import com.lhf.messages.events.BattleStatsRequestedEvent;
 
 public class StatsOutMessageTest {
     @Test

@@ -3,7 +3,7 @@ package com.lhf.server.client;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.GameEvent;
 
 public class LoggerSendStrategy implements SendStrategy {
     protected Logger logInstance;

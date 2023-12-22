@@ -3,7 +3,7 @@ package com.lhf.server.client;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.GameEvent;
 
 public class PrintWriterSendStrategy implements SendStrategy {
     private PrintWriter writer;

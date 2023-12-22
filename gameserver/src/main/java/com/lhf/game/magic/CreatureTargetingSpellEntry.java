@@ -9,7 +9,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
-import com.lhf.messages.out.CastingEvent;
+import com.lhf.messages.events.CastingEvent;
 
 public class CreatureTargetingSpellEntry extends SpellEntry {
     protected final boolean singleTarget;

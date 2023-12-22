@@ -7,7 +7,7 @@ import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.SpeakingEvent;
+import com.lhf.messages.events.SpeakingEvent;
 
 public class SpokenPromptChunkTest {
         @Test

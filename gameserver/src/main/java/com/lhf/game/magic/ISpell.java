@@ -8,7 +8,7 @@ import com.lhf.TaggedExaminable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.ResourceCost;
-import com.lhf.messages.out.SeeEvent;
+import com.lhf.messages.events.SeeEvent;
 
 public abstract class ISpell<T extends EntityEffect>
         implements Comparable<ISpell<?>>, Iterable<T>, TaggedExaminable {

@@ -2,7 +2,7 @@ package com.lhf.game.item.interfaces;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.InteractObject;
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.GameEvent;
 
 import java.util.Map;
 

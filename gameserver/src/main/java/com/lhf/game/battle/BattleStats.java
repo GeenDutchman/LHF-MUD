@@ -25,8 +25,8 @@ import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.CreatureAffectedEvent;
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.CreatureAffectedEvent;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.server.client.ClientID;
 
 public class BattleStats implements ClientMessenger {

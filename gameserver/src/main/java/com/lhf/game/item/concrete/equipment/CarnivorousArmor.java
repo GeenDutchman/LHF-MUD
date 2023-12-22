@@ -11,8 +11,8 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
-import com.lhf.messages.out.ItemUsedEvent;
-import com.lhf.messages.out.ItemUsedEvent.UseOutMessageOption;
+import com.lhf.messages.events.ItemUsedEvent;
+import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 
 public class CarnivorousArmor extends Equipable {
     private final CreatureEffectSource eatingResults = new CreatureEffectSource("Eaten Alive",

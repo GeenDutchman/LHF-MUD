@@ -17,7 +17,7 @@ import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
-import com.lhf.messages.out.CastingEvent;
+import com.lhf.messages.events.CastingEvent;
 
 public class ShockBolt extends CreatureTargetingSpellEntry {
     private static final Set<CreatureEffectSource> spellEffects = Set.of(

@@ -11,7 +11,7 @@ import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.Room;
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;

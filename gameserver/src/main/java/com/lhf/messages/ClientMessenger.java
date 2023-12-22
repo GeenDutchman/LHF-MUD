@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import com.lhf.Taggable;
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.server.client.ClientID;
 
 public interface ClientMessenger extends Taggable {

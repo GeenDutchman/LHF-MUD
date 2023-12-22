@@ -13,9 +13,9 @@ import com.google.common.truth.Truth;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.LewdEvent;
-import com.lhf.messages.out.LewdEvent.LewdOutMessageType;
-import com.lhf.messages.out.GameEvent;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.LewdEvent;
+import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 
 @ExtendWith(MockitoExtension.class)
 public class VrijPartijTest {

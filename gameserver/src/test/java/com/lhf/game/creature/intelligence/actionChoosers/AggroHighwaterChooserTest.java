@@ -24,7 +24,7 @@ import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
-import com.lhf.messages.out.CreatureAffectedEvent;
+import com.lhf.messages.events.CreatureAffectedEvent;
 
 public class AggroHighwaterChooserTest {
         @Spy

@@ -14,9 +14,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
-import com.lhf.messages.out.SeeEvent;
-import com.lhf.messages.out.SeeEvent.Builder;
-import com.lhf.messages.out.SeeEvent.SeeCategory;
+import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.SeeEvent.Builder;
+import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 public class Chest extends Item implements LockableItemContainer {
     protected final UUID chestUuid;
