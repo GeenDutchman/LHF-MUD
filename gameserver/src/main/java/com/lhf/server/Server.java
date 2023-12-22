@@ -78,7 +78,7 @@ public class Server implements ServerInterface, ConnectionListener {
     public Client startClient(Client client) {
         this.logger.log(Level.FINER, "Sending welcome");
         client.setSuccessor(this);
-        client.receive(WelcomeMessage.getWelcomeBuilder().Build());
+        Client.eventAccepter.accept(client, WelcomeMessage.getWelcomeBuilder().Build());
         return client;
     }
 
@@ -201,22 +201,23 @@ public class Server implements ServerInterface, ConnectionListener {
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.EXIT) {
-                Server.this.logger.log(Level.INFO, "client " + ctx.getClientID().toString() + " is exiting");
-                Client ch = Server.this.clientManager.getConnection(ctx.getClientID());
+                Server.this.logger.log(Level.INFO, "client " + ctx.getClient().toString() + " is exiting");
+                Client ch = Server.this.clientManager.getConnection(ctx.getClient().getClientID());
 
                 if (ctx.getUserID() != null) {
                     Server.this.game.userLeft(ctx.getUserID());
                     User leaving = Server.this.userManager.getUser(ctx.getUserID());
                     Server.this.userManager.removeUser(ctx.getUserID());
-                    leaving.receive(UserLeftMessage.getBuilder().setUser(leaving).setNotBroadcast().Build());
+                    User.eventAccepter.accept(leaving,
+                            UserLeftMessage.getBuilder().setUser(leaving).setNotBroadcast().Build());
                 } else {
                     if (ch != null) {
-                        ch.receive(UserLeftMessage.getBuilder().setNotBroadcast().Build());
+                        Client.eventAccepter.accept(ch, UserLeftMessage.getBuilder().setNotBroadcast().Build());
                     }
                 }
 
                 try {
-                    Server.this.clientManager.removeClient(ctx.getClientID()); // ch is killed in here
+                    Server.this.clientManager.removeClient(ctx.getClient().getClientID()); // ch is killed in here
                 } catch (IOException e) {
                     Server.this.logger.log(Level.WARNING, "While removing client", e);
                 }
@@ -257,13 +258,13 @@ public class Server implements ServerInterface, ConnectionListener {
                     ctx.receive(DuplicateUserMessage.getBuilder().Build());
                     return ctx.handled();
                 }
-                User user = Server.this.userManager.addUser(msg, ctx.getClientMessenger());
+                User user = Server.this.userManager.addUser(msg, ctx.getClient());
                 if (user == null) {
                     ctx.receive(DuplicateUserMessage.getBuilder().Build());
                     return ctx.handled();
                 }
                 user.setSuccessor(Server.this);
-                Client client = Server.this.clientManager.getConnection(ctx.getClientID());
+                Client client = Server.this.clientManager.getConnection(ctx.getClient().getClientID());
                 Server.this.clientManager.addUserForClient(client.getClientID(), user.getUserID());
                 client.setSuccessor(user);
                 Server.this.game.addNewPlayerToGame(user, msg.vocationRequest());

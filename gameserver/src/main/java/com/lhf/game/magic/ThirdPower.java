@@ -576,7 +576,7 @@ public class ThirdPower implements MessageChainHandler {
             ctx.getRoom().announce(message);
         } else if (directs != null) {
             for (ClientMessenger direct : directs) {
-                direct.receive(message);
+                ClientMessenger.eventAccepter.accept(direct, message);
             }
         }
     }
