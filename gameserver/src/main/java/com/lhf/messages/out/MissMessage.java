@@ -8,13 +8,13 @@ import com.lhf.game.dice.DiceD4;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.messages.GameEventType;
 
-public class MissMessage extends OutMessage {
+public class MissMessage extends GameEvent {
     private final ICreature attacker;
     private final ICreature target;
     private final MultiRollResult offense;
     private final MultiRollResult defense;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private ICreature attacker;
         private ICreature target;
         private MultiRollResult offense;

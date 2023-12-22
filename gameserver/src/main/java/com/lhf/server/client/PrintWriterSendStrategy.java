@@ -3,7 +3,7 @@ package com.lhf.server.client;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 
 public class PrintWriterSendStrategy implements SendStrategy {
     private PrintWriter writer;
@@ -13,7 +13,7 @@ public class PrintWriterSendStrategy implements SendStrategy {
     }
 
     @Override
-    public void send(OutMessage toSend) {
+    public void send(GameEvent toSend) {
         this.writer.println(toSend.toString());
         this.writer.flush();
     }

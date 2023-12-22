@@ -3,10 +3,10 @@ package com.lhf.messages.out;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.GameEventType;
 
-public class RoomEnteredOutMessage extends OutMessage {
+public class RoomEnteredOutMessage extends GameEvent {
     private final ClientMessenger newbie;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private ClientMessenger newbie;
 
         protected Builder() {

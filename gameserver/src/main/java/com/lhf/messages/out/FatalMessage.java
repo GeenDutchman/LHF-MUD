@@ -2,12 +2,12 @@ package com.lhf.messages.out;
 
 import com.lhf.messages.GameEventType;
 
-public class FatalMessage extends OutMessage {
+public class FatalMessage extends GameEvent {
 
     private final String extraInfo;
     private final Exception exception;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private String extraInfo;
         private Exception exception;
 

@@ -8,11 +8,11 @@ import java.util.TreeSet;
 import com.lhf.game.magic.SpellEntry;
 import com.lhf.messages.GameEventType;
 
-public class SpellEntryMessage extends OutMessage {
+public class SpellEntryMessage extends GameEvent {
     private final NavigableSet<SpellEntry> entries;
     private final boolean cubeHolder;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private NavigableSet<SpellEntry> entries = new TreeSet<>();
         private boolean cubeHolder;
 

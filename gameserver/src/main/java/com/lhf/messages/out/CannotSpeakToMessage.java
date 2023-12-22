@@ -2,12 +2,12 @@ package com.lhf.messages.out;
 
 import com.lhf.messages.GameEventType;
 
-public class CannotSpeakToMessage extends OutMessage {
+public class CannotSpeakToMessage extends GameEvent {
     private final String creatureName;
     private final String taggedCreatureName;
     private final String msg;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private String creatureName;
         private String taggedCreatureName;
         private String msg;

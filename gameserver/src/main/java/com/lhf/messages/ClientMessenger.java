@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import com.lhf.Taggable;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.server.client.ClientID;
 
 public interface ClientMessenger extends Taggable {
@@ -20,11 +20,11 @@ public interface ClientMessenger extends Taggable {
      * {@link #getAcceptHook()} returns null that is valid, but note that the event
      * will be listed as being recieved by this ClientMessenger.
      */
-    public static final BiConsumer<ClientMessenger, OutMessage> eventAccepter = (messenger, event) -> {
+    public static final BiConsumer<ClientMessenger, GameEvent> eventAccepter = (messenger, event) -> {
         if (messenger == null || event == null) {
             return;
         }
-        Consumer<OutMessage> acceptHook = messenger.getAcceptHook();
+        Consumer<GameEvent> acceptHook = messenger.getAcceptHook();
         if (event.isFirstRecieve(messenger.getClientID()) && acceptHook != null) {
             acceptHook.accept(event);
         }
@@ -41,7 +41,7 @@ public interface ClientMessenger extends Taggable {
      * 
      * @return {@link java.util.function.Consumer Consumer<OutMessage>} or null
      */
-    public abstract Consumer<OutMessage> getAcceptHook();
+    public abstract Consumer<GameEvent> getAcceptHook();
 
     // public void receive(OutMessage msg);
 
@@ -61,7 +61,7 @@ public interface ClientMessenger extends Taggable {
      * @param messenger
      * @param event
      */
-    public static void acceptEvent(ClientMessenger messenger, OutMessage event) {
+    public static void acceptEvent(ClientMessenger messenger, GameEvent event) {
         ClientMessenger.eventAccepter.accept(messenger, event);
     }
 
@@ -71,7 +71,7 @@ public interface ClientMessenger extends Taggable {
      * @param messenger
      * @param builder
      */
-    public static void acceptEvent(ClientMessenger messenger, OutMessage.Builder<?> builder) {
+    public static void acceptEvent(ClientMessenger messenger, GameEvent.Builder<?> builder) {
         ClientMessenger.eventAccepter.accept(messenger, builder.Build());
     }
 

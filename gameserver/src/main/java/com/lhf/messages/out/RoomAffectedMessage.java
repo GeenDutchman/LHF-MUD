@@ -8,12 +8,12 @@ import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomEffect;
 import com.lhf.messages.GameEventType;
 
-public class RoomAffectedMessage extends OutMessage {
+public class RoomAffectedMessage extends GameEvent {
     private final Room room;
     private final RoomEffect effect;
     private final boolean reversed;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private Room room;
         private RoomEffect effect;
         private boolean reversed;

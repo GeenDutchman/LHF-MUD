@@ -7,7 +7,7 @@ import java.util.StringJoiner;
 import com.lhf.Taggable;
 import com.lhf.messages.GameEventType;
 
-public class BadTargetSelectedMessage extends OutMessage {
+public class BadTargetSelectedMessage extends GameEvent {
     public enum BadTargetOption {
         SELF, NOTARGET, DNE, UNCLEAR, TOO_MANY, UNTARGETABLE;
     }
@@ -16,7 +16,7 @@ public class BadTargetSelectedMessage extends OutMessage {
     private final String badTarget;
     private final Collection<? extends Taggable> possibleTargets;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private BadTargetOption bde;
         private String badTarget;
         private Collection<? extends Taggable> possibleTargets = Collections.emptyList();

@@ -26,7 +26,7 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.CreatureAffectedMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.server.client.ClientID;
 
 public class BattleStats implements ClientMessenger {
@@ -475,7 +475,7 @@ public class BattleStats implements ClientMessenger {
     }
 
     @Override
-    public Consumer<OutMessage> getAcceptHook() {
+    public Consumer<GameEvent> getAcceptHook() {
         return (event) -> {
             if (event != null && GameEventType.CREATURE_AFFECTED.equals(event.getEventType())) {
                 CreatureAffectedMessage cam = (CreatureAffectedMessage) event;

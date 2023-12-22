@@ -4,10 +4,10 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.GameEventType;
 
-public class ReinforcementsCall extends OutMessage {
+public class ReinforcementsCall extends GameEvent {
     private final ICreature caller;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private ICreature caller;
 
         protected Builder() {

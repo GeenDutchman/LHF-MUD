@@ -4,10 +4,10 @@ import com.lhf.game.TickType;
 import com.lhf.messages.ITickMessage;
 import com.lhf.messages.GameEventType;
 
-public class TickMessage extends OutMessage implements ITickMessage {
+public class TickMessage extends GameEvent implements ITickMessage {
     private final TickType tickType;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private TickType tickType;
 
         protected Builder() {

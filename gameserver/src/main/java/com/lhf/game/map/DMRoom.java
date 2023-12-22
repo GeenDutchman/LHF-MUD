@@ -30,7 +30,7 @@ import com.lhf.messages.GameEventType;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.messages.out.RoomAffectedMessage;
 import com.lhf.messages.out.RoomEnteredOutMessage;
 import com.lhf.messages.out.SomeoneLeftRoom;
@@ -260,7 +260,7 @@ public class DMRoom extends Room {
                     this.logger.log(Level.FINEST,
                             () -> String.format("A user by the name of '%s' was not found", name));
                     if (dmRoomEffect.creatureResponsible() != null) {
-                        OutMessage whoops = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.DNE)
+                        GameEvent whoops = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.DNE)
                                 .setBadTarget(name).Build();
                         ICreature.eventAccepter.accept(dmRoomEffect.creatureResponsible(), whoops);
                         return null;

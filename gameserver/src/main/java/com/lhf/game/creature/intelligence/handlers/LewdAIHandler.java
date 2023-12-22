@@ -12,7 +12,7 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.LewdOutMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
 
 public class LewdAIHandler extends AIHandler {
@@ -99,7 +99,7 @@ public class LewdAIHandler extends AIHandler {
     }
 
     @Override
-    public void handle(BasicAI bai, OutMessage msg) {
+    public void handle(BasicAI bai, GameEvent msg) {
         if (GameEventType.LEWD.equals(msg.getEventType())) {
             LewdOutMessage lom = (LewdOutMessage) msg;
             this.logger.log(Level.FINEST, () -> String.format("%s: processing \"%s\"", bai.toString(), lom.print()));

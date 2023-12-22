@@ -13,7 +13,7 @@ import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
 import com.lhf.messages.GameEventType;
 
-public class StatsOutMessage extends OutMessage {
+public class StatsOutMessage extends GameEvent {
     private final Collection<BattleStatRecord> records;
     private final Optional<Integer> roundCount;
     private final Optional<Integer> turnCount;
@@ -41,7 +41,7 @@ public class StatsOutMessage extends OutMessage {
                 WIDTHS.values().stream().map(value -> "-".repeat(value)).toArray());
     }
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private Collection<BattleStatRecord> records;
         private Optional<Integer> roundCount;
         private Optional<Integer> turnCount;

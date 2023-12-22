@@ -8,7 +8,7 @@ import java.util.StringJoiner;
 import com.lhf.game.map.Directions;
 import com.lhf.messages.GameEventType;
 
-public class BadGoMessage extends OutMessage {
+public class BadGoMessage extends GameEvent {
     public enum BadGoType {
         DNE, BLOCKED, NO_ROOM;
     }
@@ -17,7 +17,7 @@ public class BadGoMessage extends OutMessage {
     private final Directions attempted;
     private final Collection<Directions> available;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private BadGoType subType;
         private Directions attempted;
         private Collection<Directions> available = EnumSet.noneOf(Directions.class);

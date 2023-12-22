@@ -48,7 +48,7 @@ import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.CastingMessage;
 import com.lhf.messages.out.MissMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.messages.out.SpellEntryMessage;
 import com.lhf.messages.out.SpellFizzleMessage;
 import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
@@ -165,7 +165,7 @@ public class ThirdPower implements MessageChainHandler {
 
                     if (resistance == null || targetResult == null
                             || (casterResult != null && (casterResult.getTotal() > targetResult.getTotal()))) {
-                        OutMessage cam = target.applyEffect(effect);
+                        GameEvent cam = target.applyEffect(effect);
                         ThirdPower.this.channelizeMessage(ctx, cam, spell.isOffensive(), caster, target);
                     } else {
                         MissMessage missMessage = MissMessage.getBuilder().setAttacker(caster).setTarget(target)
@@ -306,7 +306,7 @@ public class ThirdPower implements MessageChainHandler {
 
                 if (resistance == null || targetResult == null
                         || (casterResult != null && (casterResult.getTotal() > targetResult.getTotal()))) {
-                    OutMessage ram = ctx.getRoom().applyEffect(effect);
+                    GameEvent ram = ctx.getRoom().applyEffect(effect);
                     ThirdPower.this.channelizeMessage(ctx, ram, spell.isOffensive(), caster);
                 } else {
                     SpellFizzleMessage fizzleMessage = SpellFizzleMessage.getBuilder().setAttempter(caster)
@@ -564,7 +564,7 @@ public class ThirdPower implements MessageChainHandler {
 
     }
 
-    private void channelizeMessage(CommandContext ctx, OutMessage message, boolean includeBattle,
+    private void channelizeMessage(CommandContext ctx, GameEvent message, boolean includeBattle,
             ClientMessenger... directs) {
         if (message == null) {
             return;

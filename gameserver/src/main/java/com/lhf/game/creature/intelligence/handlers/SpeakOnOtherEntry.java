@@ -7,7 +7,7 @@ import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.in.SayMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.messages.out.RoomEnteredOutMessage;
 
 public class SpeakOnOtherEntry extends AIHandler {
@@ -33,7 +33,7 @@ public class SpeakOnOtherEntry extends AIHandler {
     }
 
     @Override
-    public void handle(BasicAI bai, OutMessage msg) {
+    public void handle(BasicAI bai, GameEvent msg) {
         if (GameEventType.ROOM_ENTERED.equals(msg.getEventType())) {
             RoomEnteredOutMessage reom = (RoomEnteredOutMessage) msg;
             if (reom.getNewbie() != null) {

@@ -30,7 +30,7 @@ import com.lhf.messages.out.BadGoMessage;
 import com.lhf.messages.out.BadGoMessage.BadGoType;
 import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.UserID;
 
@@ -197,7 +197,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
         commands.put(CommandMessage.SHOUT, new ShoutHandler());
     }
 
-    protected OutMessage bedAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
+    protected GameEvent bedAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
         if (creature == null) {
             return InteractOutMessage.getBuilder().setTaggable(triggerObject).setSubType(InteractOutMessageType.CANNOT)
                     .Build();

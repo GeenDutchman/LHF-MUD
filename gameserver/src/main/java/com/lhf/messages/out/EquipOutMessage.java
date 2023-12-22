@@ -8,7 +8,7 @@ import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
 import com.lhf.messages.GameEventType;
 
-public class EquipOutMessage extends OutMessage {
+public class EquipOutMessage extends GameEvent {
     public enum EquipResultType {
         SUCCESS, BADSLOT, NOTEQUIPBLE;
     }
@@ -18,7 +18,7 @@ public class EquipOutMessage extends OutMessage {
     private final String attemptedItemName;
     private final EquipmentSlots attemptedSlot;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private EquipResultType subType;
         private Item item;
         private String attemptedItemName;

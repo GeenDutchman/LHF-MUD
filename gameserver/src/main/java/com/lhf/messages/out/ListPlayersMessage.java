@@ -6,10 +6,10 @@ import java.util.List;
 
 import com.lhf.messages.GameEventType;
 
-public class ListPlayersMessage extends OutMessage {
+public class ListPlayersMessage extends GameEvent {
     private final List<String> playerNames;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private List<String> playerNames = new ArrayList<>();
 
         protected Builder() {

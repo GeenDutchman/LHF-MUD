@@ -12,11 +12,11 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.GameEventType;
 
-public class InventoryOutMessage extends OutMessage {
+public class InventoryOutMessage extends GameEvent {
     private final Collection<Takeable> items;
     private final Map<EquipmentSlots, Equipable> equipment;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private Collection<Takeable> items = Collections.emptyList();
         private Map<EquipmentSlots, Equipable> equipment = new EnumMap<>(EquipmentSlots.class);
 

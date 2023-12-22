@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 
 public class ListBufferSendStrategy extends StringBufferSendStrategy {
-    private List<OutMessage> lBuffer;
+    private List<GameEvent> lBuffer;
 
     public ListBufferSendStrategy() {
         this.lBuffer = new ArrayList<>();
@@ -20,7 +20,7 @@ public class ListBufferSendStrategy extends StringBufferSendStrategy {
     }
 
     @Override
-    public void send(OutMessage toSend) {
+    public void send(GameEvent toSend) {
         super.send(toSend);
         this.lBuffer.add(toSend);
     }
@@ -29,13 +29,13 @@ public class ListBufferSendStrategy extends StringBufferSendStrategy {
         return this.lBuffer.size();
     }
 
-    public OutMessage get(int index) {
+    public GameEvent get(int index) {
         return this.lBuffer.get(index);
     }
 
-    public OutMessage getMostRecent(GameEventType type) {
+    public GameEvent getMostRecent(GameEventType type) {
         for (int i = this.lBuffer.size() - 1; i >= 0; i--) {
-            OutMessage found = this.lBuffer.get(i);
+            GameEvent found = this.lBuffer.get(i);
             if (found.getEventType().equals(type)) {
                 return found;
             }

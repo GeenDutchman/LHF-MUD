@@ -4,12 +4,12 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.messages.GameEventType;
 
-public class FleeMessage extends OutMessage {
+public class FleeMessage extends GameEvent {
     private final ICreature runner;
     private final MultiRollResult roll;
     private final boolean fled;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private ICreature runner;
         private MultiRollResult roll;
         private boolean fled;

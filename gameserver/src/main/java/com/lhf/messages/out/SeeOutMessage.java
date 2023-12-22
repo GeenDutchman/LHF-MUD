@@ -12,7 +12,7 @@ import com.lhf.Taggable;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.messages.GameEventType;
 
-public class SeeOutMessage extends OutMessage {
+public class SeeOutMessage extends GameEvent {
     public enum SeeCategory {
         DIRECTION, CREATURE, PLAYER, NPC, MONSTER, ROOM_ITEM, TAKEABLE, EFFECTS, EQUIPMENT_SLOTS, PROFICIENCIES, STATS,
         ATTRIBUTE_SCORE, ATTRIBUTE_BONUS,
@@ -39,7 +39,7 @@ public class SeeOutMessage extends OutMessage {
     private final String extraInfo;
     private final String deniedReason;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private Examinable examinable;
         private NavigableMap<String, List<Taggable>> seenCategorized = new TreeMap<>();
         private List<EntityEffectSource> effects = new ArrayList<>();

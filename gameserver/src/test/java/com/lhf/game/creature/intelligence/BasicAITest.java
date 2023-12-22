@@ -27,7 +27,7 @@ import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
 import com.lhf.messages.out.CreatureAffectedMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.ClientID;
 
@@ -43,7 +43,7 @@ public class BasicAITest {
                 AIComBundle.setAIRunner(this.aiRunner.start());
         }
 
-        private void sendMsgAndWait(OutMessage message, AIComBundle bundle) {
+        private void sendMsgAndWait(GameEvent message, AIComBundle bundle) {
                 INonPlayerCharacter.eventAccepter.accept(bundle.npc, message);
                 Assertions.assertDoesNotThrow(
                                 () -> Mockito.verify(this.aiRunner, timeout(1000).atLeastOnce())

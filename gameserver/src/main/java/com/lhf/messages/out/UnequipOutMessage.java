@@ -4,7 +4,7 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Item;
 import com.lhf.messages.GameEventType;
 
-public class UnequipOutMessage extends OutMessage {
+public class UnequipOutMessage extends GameEvent {
     public enum UnequipResultType {
         SUCCESS, ITEM_NOT_EQUIPPED, ITEM_NOT_FOUND;
     }
@@ -14,7 +14,7 @@ public class UnequipOutMessage extends OutMessage {
     private final EquipmentSlots slot;
     private final String attemptedName;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private UnequipResultType subType;
         private Item item;
         private EquipmentSlots slot;

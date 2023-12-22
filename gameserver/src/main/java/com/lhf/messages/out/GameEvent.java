@@ -10,7 +10,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
 import com.lhf.server.client.ClientID;
 
-public abstract class OutMessage implements Comparable<OutMessage> {
+public abstract class GameEvent implements Comparable<GameEvent> {
 
     public static abstract class Builder<T extends Builder<T>> {
         private GameEventType type;
@@ -48,7 +48,7 @@ public abstract class OutMessage implements Comparable<OutMessage> {
 
         public abstract T getThis();
 
-        public abstract OutMessage Build();
+        public abstract GameEvent Build();
     }
 
     private final GameEventType type;
@@ -57,7 +57,7 @@ public abstract class OutMessage implements Comparable<OutMessage> {
     private final UUID uuid;
     private final SortedSet<ClientID> haveRecieved;
 
-    public OutMessage(Builder<?> builder) {
+    public GameEvent(Builder<?> builder) {
         this.type = builder.getType();
         this.broadcast = builder.isBroadcast();
         this.uuid = UUID.randomUUID();
@@ -127,15 +127,15 @@ public abstract class OutMessage implements Comparable<OutMessage> {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof OutMessage)) {
+        if (!(obj instanceof GameEvent)) {
             return false;
         }
-        OutMessage other = (OutMessage) obj;
+        GameEvent other = (GameEvent) obj;
         return type == other.type && Objects.equals(uuid, other.uuid);
     }
 
     @Override
-    public int compareTo(OutMessage arg0) {
+    public int compareTo(GameEvent arg0) {
         int runningCompare = this.type.compareTo(arg0.getEventType());
         if (runningCompare != 0) {
             return runningCompare;

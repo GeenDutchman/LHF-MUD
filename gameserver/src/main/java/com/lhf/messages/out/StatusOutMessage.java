@@ -8,7 +8,7 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.messages.GameEventType;
 
-public class StatusOutMessage extends OutMessage {
+public class StatusOutMessage extends GameEvent {
     private final boolean full;
     private final String name;
     private final String colorTaggedName;
@@ -22,7 +22,7 @@ public class StatusOutMessage extends OutMessage {
     private final VocationName vocationName;
     private final Integer vocationLevel;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private boolean full;
         private String name;
         private String colorTaggedName;

@@ -3,7 +3,7 @@ package com.lhf.server.client;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 
 public class LoggerSendStrategy implements SendStrategy {
     protected Logger logInstance;
@@ -23,7 +23,7 @@ public class LoggerSendStrategy implements SendStrategy {
     }
 
     @Override
-    public void send(OutMessage toSend) {
+    public void send(GameEvent toSend) {
         if (this.logInstance != null) {
             this.logInstance.log(this.sendLevel, toSend::print);
         } else {

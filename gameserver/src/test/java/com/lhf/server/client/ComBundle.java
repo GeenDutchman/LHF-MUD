@@ -4,12 +4,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mockito;
 
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 
 public abstract class ComBundle {
     public SendStrategy sssb;
     @Captor
-    public ArgumentCaptor<OutMessage> outCaptor;
+    public ArgumentCaptor<GameEvent> outCaptor;
 
     public ComBundle() {
         this.sssb = Mockito.mock(SendStrategy.class);
@@ -19,7 +19,7 @@ public abstract class ComBundle {
             System.out.print(Mockito.mockingDetails(this.sssb).getInvocations().size());
             this.print(object.toString(), false);
             return null;
-        }).when(this.sssb).send(Mockito.any(OutMessage.class));
+        }).when(this.sssb).send(Mockito.any(GameEvent.class));
     }
 
     protected synchronized void print(String buffer, boolean sending) {

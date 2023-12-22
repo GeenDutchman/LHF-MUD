@@ -3,10 +3,10 @@ package com.lhf.messages.out;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
 
-public class RenegadeAnnouncement extends OutMessage {
+public class RenegadeAnnouncement extends GameEvent {
     private final ICreature turned;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private ICreature turned;
 
         protected Builder(ICreature turned) {

@@ -25,7 +25,7 @@ import com.lhf.game.map.DungeonBuilder;
 import com.lhf.messages.MessageMatcher;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.messages.out.UserLeftMessage;
 import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.Client;
@@ -51,7 +51,7 @@ public class ServerTest {
             String command = "create " + name + " with " + name + (vocation != null ? " as " + vocation : "");
             String result = this.handleCommand(command,
                     expectUnique ? GameEventType.SEE : GameEventType.DUPLICATE_USER);
-            OutMessage outMessage = this.outCaptor.getValue();
+            GameEvent outMessage = this.outCaptor.getValue();
             if (expectUnique && outMessage != null
                     && outMessage.getEventType() != GameEventType.DUPLICATE_USER
                     && outMessage.getEventType() != GameEventType.BAD_MESSAGE) {
@@ -66,13 +66,13 @@ public class ServerTest {
 
         public String handleCommand(String command, GameEventType outMessageType) {
             this.print(command, true);
-            this.outCaptor = ArgumentCaptor.forClass(OutMessage.class);
+            this.outCaptor = ArgumentCaptor.forClass(GameEvent.class);
             Reply reply = this.client.ProcessString(command);
             Mockito.verify(this.sssb, Mockito.atLeastOnce()).send(this.outCaptor.capture());
             Truth.assertWithMessage("Command %s has no reply", command).that(reply).isNotNull();
             Truth.assertWithMessage("Command %s should have been handled, but reply was %s", command, reply)
                     .that(reply.isHandled()).isTrue();
-            OutMessage outMessage = outCaptor.getValue();
+            GameEvent outMessage = outCaptor.getValue();
             Truth.assertThat(outMessage).isNotNull();
             String response = outMessage.toString();
             if (outMessageType != null) {
@@ -350,12 +350,12 @@ public class ServerTest {
         extract = extract.substring(creature_index + "<monster>".length(), endcreature_index);
         System.out.println(extract);
         String room = this.comm.handleCommand("see", GameEventType.SEE);
-        ArgumentMatcher<OutMessage> battleTurn = new MessageMatcher(GameEventType.BATTLE_ROUND,
+        ArgumentMatcher<GameEvent> battleTurn = new MessageMatcher(GameEventType.BATTLE_ROUND,
                 "should enter an action to take for the round");
-        ArgumentMatcher<OutMessage> battleTurnAccepted = new MessageMatcher(GameEventType.BATTLE_ROUND,
+        ArgumentMatcher<GameEvent> battleTurnAccepted = new MessageMatcher(GameEventType.BATTLE_ROUND,
                 "action has been submitted for the round");
-        ArgumentMatcher<OutMessage> fightOver = new MessageMatcher(GameEventType.FIGHT_OVER);
-        ArgumentMatcher<OutMessage> reincarnated = new MessageMatcher(GameEventType.REINCARNATION);
+        ArgumentMatcher<GameEvent> fightOver = new MessageMatcher(GameEventType.FIGHT_OVER);
+        ArgumentMatcher<GameEvent> reincarnated = new MessageMatcher(GameEventType.REINCARNATION);
         for (int i = 1; i < 15 && room.contains("<monster>" + extract + "</monster>"); i++) {
             this.comm.handleCommand("attack " + extract);
             Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
@@ -407,9 +407,9 @@ public class ServerTest {
         attacker.handleCommand("equip shield");
         attacker.handleCommand("status");
 
-        ArgumentMatcher<OutMessage> battleTurn = new MessageMatcher(GameEventType.BATTLE_ROUND,
+        ArgumentMatcher<GameEvent> battleTurn = new MessageMatcher(GameEventType.BATTLE_ROUND,
                 "should enter an action to take for the round");
-        ArgumentMatcher<OutMessage> battleTurnAccepted = new MessageMatcher(GameEventType.BATTLE_ROUND,
+        ArgumentMatcher<GameEvent> battleTurnAccepted = new MessageMatcher(GameEventType.BATTLE_ROUND,
                 "action has been submitted for the round");
 
         attacker.handleCommand("attack Tester");

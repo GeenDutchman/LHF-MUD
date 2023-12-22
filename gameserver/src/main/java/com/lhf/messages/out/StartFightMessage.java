@@ -3,10 +3,10 @@ package com.lhf.messages.out;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
 
-public class StartFightMessage extends OutMessage {
+public class StartFightMessage extends GameEvent {
     private final ICreature instigator;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private ICreature instigator;
 
         protected Builder() {
@@ -28,7 +28,7 @@ public class StartFightMessage extends OutMessage {
         }
 
         @Override
-        public OutMessage Build() {
+        public GameEvent Build() {
             return new StartFightMessage(this);
         }
     }

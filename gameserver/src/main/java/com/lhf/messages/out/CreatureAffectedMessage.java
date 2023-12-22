@@ -10,12 +10,12 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
 import com.lhf.messages.GameEventType;
 
-public class CreatureAffectedMessage extends OutMessage {
+public class CreatureAffectedMessage extends GameEvent {
     private final ICreature affected;
     private final CreatureEffect effect;
     private final boolean reversed;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private ICreature affected;
         private CreatureEffect effect;
         private boolean reversed;

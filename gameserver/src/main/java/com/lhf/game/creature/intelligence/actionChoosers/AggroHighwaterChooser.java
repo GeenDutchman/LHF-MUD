@@ -8,7 +8,7 @@ import java.util.TreeMap;
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.INonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.AIChooser;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 
 public class AggroHighwaterChooser implements AIChooser<String> {
     private static final double defaultValue = (double) 0.90;
@@ -29,7 +29,7 @@ public class AggroHighwaterChooser implements AIChooser<String> {
 
     @Override
     public SortedMap<String, Double> choose(Set<BattleStatRecord> battleMemories,
-            HarmMemories harmMemories, Collection<OutMessage> outMessages) {
+            HarmMemories harmMemories, Collection<GameEvent> outMessages) {
         SortedMap<String, Double> results = new TreeMap<>();
         if (battleMemories == null || battleMemories.isEmpty()) {
             return results;

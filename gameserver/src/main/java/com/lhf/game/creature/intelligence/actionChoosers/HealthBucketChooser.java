@@ -9,7 +9,7 @@ import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.INonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.enums.HealthBuckets;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 
 public class HealthBucketChooser implements AIChooser<String> {
     private final boolean chooseMoreHurt;
@@ -42,7 +42,7 @@ public class HealthBucketChooser implements AIChooser<String> {
 
     @Override
     public SortedMap<String, Double> choose(Set<BattleStatRecord> battleMemories,
-            HarmMemories harmMemories, Collection<OutMessage> outMessages) {
+            HarmMemories harmMemories, Collection<GameEvent> outMessages) {
         SortedMap<String, Double> results = new TreeMap<>();
         if (battleMemories == null || battleMemories.isEmpty()) {
             return results;

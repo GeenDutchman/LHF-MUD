@@ -3,7 +3,7 @@ package com.lhf.game;
 import java.util.Collections;
 import java.util.NavigableSet;
 
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 
 /**
  * This is used to mark an entity as Affectable. That is, magic works on it.
@@ -19,7 +19,7 @@ public interface AffectableEntity<Effect extends EntityEffect> {
      * @param reverse if it should be reversed
      * @return a resultant message or null
      */
-    OutMessage processEffect(EntityEffect effect, boolean reverse);
+    GameEvent processEffect(EntityEffect effect, boolean reverse);
 
     /**
      * Checks if the effect is of the correct type to be applicable to the entity.
@@ -62,11 +62,11 @@ public interface AffectableEntity<Effect extends EntityEffect> {
      * @param reverse true if the effect is to be undone
      * @return a message or null
      */
-    default OutMessage applyEffect(Effect effect, boolean reverse) {
+    default GameEvent applyEffect(Effect effect, boolean reverse) {
         if (!this.isCorrectEffectType(effect)) {
             return null;
         }
-        OutMessage processed = this.processEffect(effect, reverse);
+        GameEvent processed = this.processEffect(effect, reverse);
         if (this.shouldAdd(effect, reverse)) {
             this.getMutableEffects().add(effect);
         } else if (this.shouldRemove(effect, reverse)) {
@@ -81,7 +81,7 @@ public interface AffectableEntity<Effect extends EntityEffect> {
      * @param effect the effect to apply
      * @return a message or null
      */
-    default OutMessage applyEffect(Effect effect) {
+    default GameEvent applyEffect(Effect effect) {
         return applyEffect(effect, false);
     }
 

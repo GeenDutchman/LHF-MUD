@@ -44,7 +44,7 @@ import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.ITickMessage;
 import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SeeOutMessage.SeeCategory;
 import com.lhf.messages.out.StatusOutMessage;
@@ -228,7 +228,7 @@ public interface ICreature
     public abstract ClientMessenger getController();
 
     @Override
-    default Consumer<OutMessage> getAcceptHook() {
+    default Consumer<GameEvent> getAcceptHook() {
         return (event) -> {
             if (event == null) {
                 return;

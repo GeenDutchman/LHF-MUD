@@ -6,7 +6,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.messages.GameEventType;
 
-public class SpellFizzleMessage extends OutMessage {
+public class SpellFizzleMessage extends GameEvent {
     public enum SpellFizzleType {
         NOT_CASTER, BAD_POWER, NOT_SPELL, MISPRONOUNCE, OTHER;
     }
@@ -16,7 +16,7 @@ public class SpellFizzleMessage extends OutMessage {
     private final MultiRollResult offense;
     private final MultiRollResult defense;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private SpellFizzleType subType;
         private ICreature attempter;
         private MultiRollResult offense;

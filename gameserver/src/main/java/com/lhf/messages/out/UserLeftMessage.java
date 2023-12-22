@@ -3,10 +3,10 @@ package com.lhf.messages.out;
 import com.lhf.messages.GameEventType;
 import com.lhf.server.client.user.User;
 
-public class UserLeftMessage extends OutMessage {
+public class UserLeftMessage extends GameEvent {
     private final User user;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private User user;
 
         protected Builder() {

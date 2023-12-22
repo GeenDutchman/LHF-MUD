@@ -8,12 +8,12 @@ import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.Room;
 import com.lhf.messages.out.InteractOutMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 
 public class DispenserAction implements InteractAction {
     @Override
-    public OutMessage doAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
+    public GameEvent doAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
         InteractOutMessage.Builder interactOutMessage = InteractOutMessage.getBuilder().setTaggable(triggerObject);
         Object o1 = args.get("room");
         if (!(o1 instanceof Room)) {

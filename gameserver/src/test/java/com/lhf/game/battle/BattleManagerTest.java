@@ -16,12 +16,12 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.map.Area;
 import com.lhf.messages.MessageMatcher;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.server.client.ClientID;
 
 @ExtendWith(MockitoExtension.class)
 public class BattleManagerTest {
-        private interface AcceptHook extends Consumer<OutMessage> {
+        private interface AcceptHook extends Consumer<GameEvent> {
         }
 
         @Test

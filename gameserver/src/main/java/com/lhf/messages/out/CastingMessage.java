@@ -4,12 +4,12 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.magic.SpellEntry;
 import com.lhf.messages.GameEventType;
 
-public class CastingMessage extends OutMessage {
+public class CastingMessage extends GameEvent {
     private final ICreature caster;
     private final SpellEntry spellEntry;
     private final String castEffects;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private ICreature caster;
         private SpellEntry spellEntry;
         private String castEffects;

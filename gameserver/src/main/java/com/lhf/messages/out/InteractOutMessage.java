@@ -5,7 +5,7 @@ import java.util.StringJoiner;
 import com.lhf.Taggable;
 import com.lhf.messages.GameEventType;
 
-public class InteractOutMessage extends OutMessage {
+public class InteractOutMessage extends GameEvent {
     public enum InteractOutMessageType {
         PERFORMED, CANNOT, NO_METHOD, USED_UP, ERROR;
     }
@@ -14,7 +14,7 @@ public class InteractOutMessage extends OutMessage {
     private final InteractOutMessageType subType;
     private final String description;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private Taggable taggable;
         private InteractOutMessageType subType;
         private String description;

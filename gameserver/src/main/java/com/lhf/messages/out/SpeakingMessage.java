@@ -3,13 +3,13 @@ package com.lhf.messages.out;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.GameEventType;
 
-public class SpeakingMessage extends OutMessage {
+public class SpeakingMessage extends GameEvent {
     private final String message;
     private final ClientMessenger sayer;
     private final ClientMessenger hearer;
     private final boolean shouting;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private String message;
         private ClientMessenger sayer;
         private ClientMessenger hearer;

@@ -11,7 +11,7 @@ import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.Room;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
@@ -24,7 +24,7 @@ public class CommandContext {
     protected BattleManager bManager;
     protected Dungeon dungeon;
     protected EnumMap<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
-    protected List<OutMessage> messages = new ArrayList<>();
+    protected List<GameEvent> messages = new ArrayList<>();
 
     public class Reply {
         protected boolean handled;
@@ -40,14 +40,14 @@ public class CommandContext {
             return Collections.unmodifiableMap(CommandContext.this.helps);
         }
 
-        public List<OutMessage> getMessages() {
+        public List<GameEvent> getMessages() {
             if (CommandContext.this.messages == null) {
                 CommandContext.this.messages = new ArrayList<>();
             }
             return Collections.unmodifiableList(CommandContext.this.messages);
         }
 
-        public Optional<OutMessage> getLastMessage() {
+        public Optional<GameEvent> getLastMessage() {
             if (CommandContext.this.messages == null || CommandContext.this.messages.size() == 0) {
                 return Optional.empty();
             }
@@ -101,7 +101,7 @@ public class CommandContext {
         return this.new Reply(true);
     }
 
-    public void addMessage(OutMessage message) {
+    public void addMessage(GameEvent message) {
         if (this.messages == null) {
             this.messages = new ArrayList<>();
         }
@@ -154,7 +154,7 @@ public class CommandContext {
         this.creature = creature;
     }
 
-    public synchronized void receive(OutMessage msg) {
+    public synchronized void receive(GameEvent msg) {
         if (msg != null) {
             this.addMessage(msg);
             if (this.creature != null) {
@@ -167,7 +167,7 @@ public class CommandContext {
         }
     }
 
-    public void receive(OutMessage.Builder<?> builder) {
+    public void receive(GameEvent.Builder<?> builder) {
         this.receive(builder.Build());
     }
 

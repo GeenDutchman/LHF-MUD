@@ -4,8 +4,8 @@ import com.lhf.game.TickType;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.ITickMessage;
 
-public class FightOverMessage extends OutMessage implements ITickMessage {
-    public static class Builder extends OutMessage.Builder<Builder> {
+public class FightOverMessage extends GameEvent implements ITickMessage {
+    public static class Builder extends GameEvent.Builder<Builder> {
 
         protected Builder() {
             super(GameEventType.FIGHT_OVER);

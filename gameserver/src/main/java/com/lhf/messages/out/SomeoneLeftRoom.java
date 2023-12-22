@@ -4,11 +4,11 @@ import com.lhf.game.map.Directions;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.GameEventType;
 
-public class SomeoneLeftRoom extends OutMessage {
+public class SomeoneLeftRoom extends GameEvent {
     private final ClientMessenger leaveTaker;
     private final Directions whichWay;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private ClientMessenger leaveTaker;
         private Directions whichWay;
 

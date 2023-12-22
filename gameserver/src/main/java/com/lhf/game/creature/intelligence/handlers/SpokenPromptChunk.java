@@ -17,7 +17,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.in.SayMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.User;
@@ -85,7 +85,7 @@ public class SpokenPromptChunk extends AIHandler {
     }
 
     @Override
-    public void handle(BasicAI bai, OutMessage msg) {
+    public void handle(BasicAI bai, GameEvent msg) {
         if (msg.getEventType().equals(GameEventType.SPEAKING)) {
             SpeakingMessage sm = (SpeakingMessage) msg;
             if (!sm.getShouting() && sm.getHearer() != null && sm.getHearer() instanceof INonPlayerCharacter) {

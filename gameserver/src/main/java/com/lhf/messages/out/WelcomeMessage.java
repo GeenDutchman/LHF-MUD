@@ -4,9 +4,9 @@ import java.util.StringJoiner;
 
 import com.lhf.messages.GameEventType;
 
-public class WelcomeMessage extends OutMessage {
+public class WelcomeMessage extends GameEvent {
 
-    protected static abstract class AbstractBuilder<T extends AbstractBuilder<T>> extends OutMessage.Builder<T> {
+    protected static abstract class AbstractBuilder<T extends AbstractBuilder<T>> extends GameEvent.Builder<T> {
 
         protected AbstractBuilder(GameEventType type) {
             super(type);

@@ -15,7 +15,7 @@ import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.LewdOutMessage;
 import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 
 @ExtendWith(MockitoExtension.class)
 public class VrijPartijTest {
@@ -44,7 +44,7 @@ public class VrijPartijTest {
 
         vrijPartij.propose();
 
-        ArgumentMatcher<OutMessage> proposeChecker = (message) -> {
+        ArgumentMatcher<GameEvent> proposeChecker = (message) -> {
             if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
@@ -77,7 +77,7 @@ public class VrijPartijTest {
 
         vrijPartij.accept(second.npc);
 
-        ArgumentMatcher<OutMessage> acceptanceChecker = (message) -> {
+        ArgumentMatcher<GameEvent> acceptanceChecker = (message) -> {
             if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
@@ -131,7 +131,7 @@ public class VrijPartijTest {
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(0);
 
-        ArgumentMatcher<OutMessage> secondAcceptanceChecker = (message) -> {
+        ArgumentMatcher<GameEvent> secondAcceptanceChecker = (message) -> {
             if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
@@ -163,7 +163,7 @@ public class VrijPartijTest {
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(0);
 
-        ArgumentMatcher<OutMessage> thirdAcceptanceChecker = (message) -> {
+        ArgumentMatcher<GameEvent> thirdAcceptanceChecker = (message) -> {
             if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
@@ -175,7 +175,7 @@ public class VrijPartijTest {
             }
         };
 
-        ArgumentMatcher<OutMessage> dunnitChecker = (message) -> {
+        ArgumentMatcher<GameEvent> dunnitChecker = (message) -> {
             if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
@@ -230,7 +230,7 @@ public class VrijPartijTest {
 
         vrijPartij.propose();
 
-        ArgumentMatcher<OutMessage> proposeChecker = (message) -> {
+        ArgumentMatcher<GameEvent> proposeChecker = (message) -> {
             if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
@@ -254,7 +254,7 @@ public class VrijPartijTest {
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(0);
 
-        ArgumentMatcher<OutMessage> secondAcceptanceChecker = (message) -> {
+        ArgumentMatcher<GameEvent> secondAcceptanceChecker = (message) -> {
             if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
@@ -283,7 +283,7 @@ public class VrijPartijTest {
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(0);
 
-        ArgumentMatcher<OutMessage> thirdPass = (message) -> {
+        ArgumentMatcher<GameEvent> thirdPass = (message) -> {
             if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
@@ -301,7 +301,7 @@ public class VrijPartijTest {
         Mockito.verify(second.sssb, Mockito.timeout(500)).send(Mockito.argThat(thirdPass));
         Mockito.verify(third.sssb, Mockito.timeout(500)).send(Mockito.argThat(thirdPass));
 
-        ArgumentMatcher<OutMessage> dunnitChecker = (message) -> {
+        ArgumentMatcher<GameEvent> dunnitChecker = (message) -> {
             if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }

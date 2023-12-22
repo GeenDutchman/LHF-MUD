@@ -3,7 +3,7 @@ package com.lhf.game.creature.intelligence.handlers;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.messages.out.SomeoneLeftRoom;
 
 public class ForgetOnOtherExit extends AIHandler {
@@ -12,7 +12,7 @@ public class ForgetOnOtherExit extends AIHandler {
     }
 
     @Override
-    public void handle(BasicAI bai, OutMessage msg) {
+    public void handle(BasicAI bai, GameEvent msg) {
         if (GameEventType.ROOM_EXITED.equals(msg.getEventType())) {
             SomeoneLeftRoom slr = (SomeoneLeftRoom) msg;
             if (slr.getLeaveTaker() != null) {

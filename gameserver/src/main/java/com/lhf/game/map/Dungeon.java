@@ -34,7 +34,7 @@ import com.lhf.messages.out.BadGoMessage;
 import com.lhf.messages.out.BadGoMessage.BadGoType;
 import com.lhf.messages.out.BadMessage;
 import com.lhf.messages.out.BadMessage.BadMessageType;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.messages.out.ReincarnateMessage;
 import com.lhf.messages.out.SeeOutMessage;
 import com.lhf.messages.out.SpawnMessage;
@@ -266,7 +266,7 @@ public class Dungeon implements Land {
         return secretDirs.getExits().put(toExistingRoom, onewayDoor) == null;
     }
 
-    public void announceToAllInRoom(Room room, OutMessage msg, ClientMessenger... deafened) {
+    public void announceToAllInRoom(Room room, GameEvent msg, ClientMessenger... deafened) {
         if (room == null) {
             this.startingRoom.announce(msg, deafened);
             return;
@@ -488,7 +488,7 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public OutMessage processEffect(EntityEffect effect, boolean reverse) {
+    public GameEvent processEffect(EntityEffect effect, boolean reverse) {
         // TODO make effects applicable here
         return null;
     }

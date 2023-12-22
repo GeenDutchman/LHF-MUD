@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.mockito.ArgumentMatcher;
 
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 
-public class MessageMatcher implements ArgumentMatcher<OutMessage> {
+public class MessageMatcher implements ArgumentMatcher<GameEvent> {
 
     protected GameEventType type;
     protected List<String> contained;
@@ -72,7 +72,7 @@ public class MessageMatcher implements ArgumentMatcher<OutMessage> {
     }
 
     @Override
-    public boolean matches(OutMessage argument) {
+    public boolean matches(GameEvent argument) {
         if (argument == null) {
             if (this.printIt) {
                 System.out.println(this.printArgument(null) + "null, no match");

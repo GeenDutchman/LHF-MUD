@@ -8,12 +8,12 @@ import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 
 public interface ClientMessengerHub extends ClientMessenger {
     public Collection<ClientMessenger> getClientMessengers();
 
-    public default boolean announceDirect(OutMessage outMessage, Collection<? extends ClientMessenger> recipients) {
+    public default boolean announceDirect(GameEvent outMessage, Collection<? extends ClientMessenger> recipients) {
         if (outMessage == null || recipients == null) {
             return false;
         }
@@ -30,11 +30,11 @@ public interface ClientMessengerHub extends ClientMessenger {
         return true;
     }
 
-    public default boolean announceDirect(OutMessage outMessage, ClientMessenger... recipients) {
+    public default boolean announceDirect(GameEvent outMessage, ClientMessenger... recipients) {
         return this.announceDirect(outMessage, Arrays.asList(recipients));
     }
 
-    public default boolean announce(OutMessage outMessage, Set<? extends ClientMessenger> deafened) {
+    public default boolean announce(GameEvent outMessage, Set<? extends ClientMessenger> deafened) {
         Collection<ClientMessenger> subscribedC = this.getClientMessengers();
         List<ClientMessenger> filteredList = subscribedC.stream()
                 .filter(messenger -> messenger != null && messenger instanceof ClientMessenger)
@@ -42,30 +42,30 @@ public interface ClientMessengerHub extends ClientMessenger {
         return this.announceDirect(outMessage, filteredList);
     }
 
-    public default boolean announce(OutMessage.Builder<?> builder, Set<? extends ClientMessenger> deafened) {
+    public default boolean announce(GameEvent.Builder<?> builder, Set<? extends ClientMessenger> deafened) {
         return this.announce(builder.Build(), deafened);
     }
 
-    public default boolean announce(OutMessage outMessage, ClientMessenger... deafened) {
+    public default boolean announce(GameEvent outMessage, ClientMessenger... deafened) {
         Set<ClientMessenger> deafCollective = new TreeSet<>(ClientMessenger.getComparator());
         deafCollective.addAll(Arrays.asList(deafened));
         return this.announce(outMessage, deafCollective);
     }
 
-    public default boolean announce(OutMessage.Builder<?> builder, ClientMessenger... deafened) {
+    public default boolean announce(GameEvent.Builder<?> builder, ClientMessenger... deafened) {
         return this.announce(builder.Build(), deafened);
     }
 
-    public default boolean announce(OutMessage outMessage) {
+    public default boolean announce(GameEvent outMessage) {
         return this.announceDirect(outMessage, this.getClientMessengers());
     }
 
-    public default boolean announce(OutMessage.Builder<?> builder) {
+    public default boolean announce(GameEvent.Builder<?> builder) {
         return this.announceDirect(builder.Build(), this.getClientMessengers());
     }
 
     @Override
-    default Consumer<OutMessage> getAcceptHook() {
+    default Consumer<GameEvent> getAcceptHook() {
         return (event) -> {
             if (event == null) {
                 return;

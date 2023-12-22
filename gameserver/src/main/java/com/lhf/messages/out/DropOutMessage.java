@@ -5,7 +5,7 @@ import java.util.StringJoiner;
 import com.lhf.Taggable;
 import com.lhf.messages.GameEventType;
 
-public class DropOutMessage extends OutMessage {
+public class DropOutMessage extends GameEvent {
     private final Taggable item;
     private final String destination;
     private final DropType dropType;
@@ -14,7 +14,7 @@ public class DropOutMessage extends OutMessage {
         SUCCESS, NO_ITEM, BAD_CONTAINER, LOCKED_CONTAINER
     }
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private Taggable item;
         private String destination;
         private DropType dropType;

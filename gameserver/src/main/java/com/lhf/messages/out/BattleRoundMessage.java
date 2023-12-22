@@ -7,7 +7,7 @@ import com.lhf.messages.GameEventType;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 
-public class BattleRoundMessage extends OutMessage implements ITickMessage {
+public class BattleRoundMessage extends GameEvent implements ITickMessage {
     public enum RoundAcceptance {
         REJECTED, ACCEPTED, NEEDED, PERFORMED, MISSING, COMPLETED;
     }
@@ -16,7 +16,7 @@ public class BattleRoundMessage extends OutMessage implements ITickMessage {
     private final Integer roundCount;
     protected final ICreature about;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private RoundAcceptance needSubmission;
         private Integer roundCount;
         private ICreature aboutCreature;

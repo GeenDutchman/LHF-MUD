@@ -34,7 +34,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.BattleRoundMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.messages.out.SpellEntryMessage;
 import com.lhf.messages.out.StatsOutMessage;
 import com.lhf.messages.out.BattleRoundMessage.RoundAcceptance;
@@ -235,7 +235,7 @@ public class BattleTurnHandler extends AIHandler {
     }
 
     @Override
-    public void handle(BasicAI bai, OutMessage msg) {
+    public void handle(BasicAI bai, GameEvent msg) {
         // bai.ProcessString("SEE");
         // if (!this.outMessageType.equals(msg.getOutType()) ||
         // !bai.getNpc().isInBattle()) {

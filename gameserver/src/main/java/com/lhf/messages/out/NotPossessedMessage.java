@@ -3,12 +3,12 @@ package com.lhf.messages.out;
 import com.lhf.Taggable;
 import com.lhf.messages.GameEventType;
 
-public class NotPossessedMessage extends OutMessage {
+public class NotPossessedMessage extends GameEvent {
     private final String itemType;
     private final String itemName;
     private final Taggable found;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private String itemType;
         private String itemName;
         private Taggable found;

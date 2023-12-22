@@ -13,7 +13,7 @@ import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD100;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.map.Directions;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 
 public class FleeChooser implements AIChooser<String> {
     private final Dice roller = new DiceD100(1);
@@ -25,7 +25,7 @@ public class FleeChooser implements AIChooser<String> {
 
     @Override
     public SortedMap<String, Double> choose(Set<BattleStatRecord> battleMemories,
-            HarmMemories harmMemories, Collection<OutMessage> outMessages) {
+            HarmMemories harmMemories, Collection<GameEvent> outMessages) {
         SortedMap<String, Double> results = new TreeMap<>();
 
         if (harmMemories != null && this.fleeLevel != null && battleMemories != null && battleMemories.size() > 0) {

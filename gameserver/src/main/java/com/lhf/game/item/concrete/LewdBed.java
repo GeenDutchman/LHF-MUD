@@ -30,7 +30,7 @@ import com.lhf.messages.out.InteractOutMessage;
 import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
 import com.lhf.messages.out.LewdOutMessage;
 import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 
 public class LewdBed extends Bed {
 
@@ -317,7 +317,7 @@ public class LewdBed extends Bed {
     }
 
     @Override
-    protected OutMessage bedAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
+    protected GameEvent bedAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
         InteractOutMessage.Builder interactOutMessage = InteractOutMessage.getBuilder().setTaggable(triggerObject);
         if (creature == null) {
             return interactOutMessage.setSubType(InteractOutMessageType.CANNOT).Build();

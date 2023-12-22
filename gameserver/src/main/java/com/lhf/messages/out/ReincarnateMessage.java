@@ -3,10 +3,10 @@ package com.lhf.messages.out;
 import com.lhf.Taggable;
 import com.lhf.messages.GameEventType;
 
-public class ReincarnateMessage extends OutMessage {
+public class ReincarnateMessage extends GameEvent {
     private final String taggedName;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private String taggedName;
 
         protected Builder() {

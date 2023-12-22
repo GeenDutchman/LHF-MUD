@@ -19,7 +19,7 @@ import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.FleeMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.DoNothingSendStrategy;
 import com.lhf.server.interfaces.NotNull;
@@ -27,7 +27,7 @@ import com.lhf.server.interfaces.NotNull;
 public class BasicAI extends Client {
     protected INonPlayerCharacter npc;
     protected Map<GameEventType, AIChunk> handlers;
-    protected BlockingQueue<OutMessage> queue;
+    protected BlockingQueue<GameEvent> queue;
     protected AIRunner runner;
 
     protected BasicAI(INonPlayerCharacter npc, AIRunner runner) {
@@ -45,11 +45,11 @@ public class BasicAI extends Client {
         this.runner = runner;
     }
 
-    public OutMessage peek() {
+    public GameEvent peek() {
         return this.queue.peek();
     }
 
-    public OutMessage poll() {
+    public GameEvent poll() {
         return this.queue.poll();
     }
 
@@ -57,7 +57,7 @@ public class BasicAI extends Client {
         return this.queue.size();
     }
 
-    public void process(OutMessage msg) {
+    public void process(GameEvent msg) {
         if (msg != null) {
             AIChunk ai = this.handlers.get(msg.getEventType());
             if (ai != null) {
@@ -73,13 +73,13 @@ public class BasicAI extends Client {
         if (this.handlers == null) {
             this.handlers = new TreeMap<>();
         }
-        this.handlers.put(GameEventType.FIGHT_OVER, (BasicAI bai, OutMessage msg) -> {
+        this.handlers.put(GameEventType.FIGHT_OVER, (BasicAI bai, GameEvent msg) -> {
             if (msg.getEventType().equals(GameEventType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
                 bai.npc.getHarmMemories().reset();
             }
         });
 
-        this.handlers.put(GameEventType.FLEE, (BasicAI bai, OutMessage msg) -> {
+        this.handlers.put(GameEventType.FLEE, (BasicAI bai, GameEvent msg) -> {
             if (msg.getEventType().equals(GameEventType.FLEE)) {
                 FleeMessage flee = (FleeMessage) msg;
                 if (flee.isFled() && flee.getRunner() != null) {
@@ -89,7 +89,7 @@ public class BasicAI extends Client {
                 }
             }
         });
-        this.handlers.put(GameEventType.BAD_TARGET_SELECTED, (BasicAI bai, OutMessage msg) -> {
+        this.handlers.put(GameEventType.BAD_TARGET_SELECTED, (BasicAI bai, GameEvent msg) -> {
             if (msg.getEventType().equals(GameEventType.BAD_TARGET_SELECTED) && bai.getNpc().isInBattle()) {
                 BadTargetSelectedMessage btsm = (BadTargetSelectedMessage) msg;
                 this.log(Level.WARNING,
@@ -116,7 +116,7 @@ public class BasicAI extends Client {
     }
 
     @Override
-    public Consumer<OutMessage> getAcceptHook() {
+    public Consumer<GameEvent> getAcceptHook() {
         return super.getAcceptHook().andThen(event -> {
             try {
                 if (this.runner == null) {

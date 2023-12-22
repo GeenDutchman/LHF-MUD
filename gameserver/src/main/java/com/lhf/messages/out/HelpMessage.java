@@ -8,9 +8,9 @@ import java.util.TreeMap;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventType;
 
-public class HelpMessage extends OutMessage {
+public class HelpMessage extends GameEvent {
 
-    protected static abstract class AbstractBuilder<T extends AbstractBuilder<T>> extends OutMessage.Builder<T> {
+    protected static abstract class AbstractBuilder<T extends AbstractBuilder<T>> extends GameEvent.Builder<T> {
 
         private SortedMap<CommandMessage, String> helps = new TreeMap<>();
         private CommandMessage singleHelp;

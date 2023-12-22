@@ -2,8 +2,8 @@ package com.lhf.messages.out;
 
 import com.lhf.messages.GameEventType;
 
-public class NewInMessage extends OutMessage {
-    public static class Builder extends OutMessage.Builder<Builder> {
+public class NewInMessage extends GameEvent {
+    public static class Builder extends GameEvent.Builder<Builder> {
         protected Builder() {
             super(GameEventType.NEW_IN);
         }

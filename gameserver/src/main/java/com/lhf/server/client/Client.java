@@ -22,7 +22,7 @@ import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.out.BadMessage;
 import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.HelpMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 
 public class Client implements MessageChainHandler {
     protected SendStrategy out;
@@ -72,7 +72,7 @@ public class Client implements MessageChainHandler {
     }
 
     @Override
-    public Consumer<OutMessage> getAcceptHook() {
+    public Consumer<GameEvent> getAcceptHook() {
         return (event) -> {
             this.logger.entering(this.getClass().getName(), "sendMsg()", event);
             if (this.out == null) {

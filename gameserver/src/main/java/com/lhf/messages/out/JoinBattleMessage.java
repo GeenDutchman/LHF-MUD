@@ -5,11 +5,11 @@ import java.util.StringJoiner;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
 
-public class JoinBattleMessage extends OutMessage {
+public class JoinBattleMessage extends GameEvent {
     private final ICreature joiner;
     private final boolean ongoing;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private ICreature joiner;
         private boolean ongoing;
 

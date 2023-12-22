@@ -4,7 +4,7 @@ import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.CreatureAffectedMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 
 public class HandleCreatureAffected extends AIHandler {
 
@@ -29,7 +29,7 @@ public class HandleCreatureAffected extends AIHandler {
     }
 
     @Override
-    public void handle(BasicAI bai, OutMessage msg) {
+    public void handle(BasicAI bai, GameEvent msg) {
         if (GameEventType.CREATURE_AFFECTED.equals(msg.getEventType())) {
             CreatureAffectedMessage caMessage = (CreatureAffectedMessage) msg;
             this.handleOtherDeath(bai, caMessage);

@@ -10,7 +10,7 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.lewd.LewdAnswer;
 import com.lhf.messages.GameEventType;
 
-public class LewdOutMessage extends OutMessage {
+public class LewdOutMessage extends GameEvent {
     public enum LewdOutMessageType {
         NOT_READY, NO_BODY, ORGY_UNSUPPORTED, SOLO_UNSUPPORTED, STATUS, DENIED, ACCEPTED, PROPOSED, DUNNIT, MISSED;
     }
@@ -20,7 +20,7 @@ public class LewdOutMessage extends OutMessage {
     private final ICreature creature;
     private final Set<String> babyNames;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private LewdOutMessageType subType;
         private Map<ICreature, LewdAnswer> party = Map.of();
         private ICreature creature;

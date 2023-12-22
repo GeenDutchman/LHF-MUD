@@ -65,7 +65,7 @@ import com.lhf.messages.out.FleeMessage;
 import com.lhf.messages.out.JoinBattleMessage;
 import com.lhf.messages.out.MissMessage;
 import com.lhf.messages.out.NotPossessedMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.messages.out.ReinforcementsCall;
 import com.lhf.messages.out.RenegadeAnnouncement;
 import com.lhf.messages.out.SeeOutMessage;
@@ -1240,7 +1240,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
                     if (resistance == null || targetResult == null
                             || (attackerResult != null && (attackerResult.getTotal() > targetResult.getTotal()))) {
-                        OutMessage cam = target.applyEffect(effect);
+                        GameEvent cam = target.applyEffect(effect);
                         BattleManager.this.announce(cam);
                     } else {
                         BattleManager.this.announce(MissMessage.getBuilder().setAttacker(attacker).setTarget(target)

@@ -14,7 +14,7 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.interfaces.UseAction;
 import com.lhf.messages.out.BattleRoundMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.out.GameEvent;
 import com.lhf.messages.out.UseOutMessage;
 import com.lhf.messages.out.BattleRoundMessage.RoundAcceptance;
 import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
@@ -47,15 +47,15 @@ public class HealPotion extends Usable {
                         return false;
                     }
                     ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
-                    OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
+                    GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     bm.announce(results);
                 } else if (ctx.getRoom() != null) {
                     ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
-                    OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
+                    GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     ctx.getRoom().announce(results);
                 } else {
                     ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
-                    OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
+                    GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     ctx.receive(results);
                     if (ctx.getCreature() != target) {
                         ICreature.eventAccepter.accept(target, results);

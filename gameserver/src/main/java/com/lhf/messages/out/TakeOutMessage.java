@@ -6,7 +6,7 @@ import com.lhf.Examinable;
 import com.lhf.game.item.Item;
 import com.lhf.messages.GameEventType;
 
-public class TakeOutMessage extends OutMessage {
+public class TakeOutMessage extends GameEvent {
     public enum TakeOutType {
         FOUND_TAKEN, NOT_FOUND, SHORT, INVALID, GREEDY, NOT_TAKEABLE, UNCLEVER, BAD_CONTAINER, LOCKED_CONTAINER;
     }
@@ -16,7 +16,7 @@ public class TakeOutMessage extends OutMessage {
     private final TakeOutType subType;
     private final String source;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private String attemptedName;
         private Item item;
         private TakeOutType subType;

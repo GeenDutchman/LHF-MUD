@@ -2,11 +2,11 @@ package com.lhf.messages.out;
 
 import com.lhf.messages.GameEventType;
 
-public class SpawnMessage extends OutMessage {
+public class SpawnMessage extends GameEvent {
 
     private final String username;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private String username;
 
         protected Builder() {

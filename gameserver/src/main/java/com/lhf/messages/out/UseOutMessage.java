@@ -7,7 +7,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.Usable;
 import com.lhf.messages.GameEventType;
 
-public class UseOutMessage extends OutMessage {
+public class UseOutMessage extends GameEvent {
     public enum UseOutMessageOption {
         OK, USED_UP, NO_USES, REQUIRE_EQUIPPED;
     }
@@ -18,7 +18,7 @@ public class UseOutMessage extends OutMessage {
     private final Taggable target;
     private final String message;
 
-    public static class Builder extends OutMessage.Builder<Builder> {
+    public static class Builder extends GameEvent.Builder<Builder> {
         private UseOutMessageOption subType;
         private ICreature itemUser;
         private Usable usable;
