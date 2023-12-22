@@ -14,7 +14,6 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.CreateInMessage;
-import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
 public class User implements MessageChainHandler, Comparable<User> {
@@ -114,11 +113,6 @@ public class User implements MessageChainHandler, Comparable<User> {
         }
         User other = (User) obj;
         return Objects.equals(id, other.id) && Objects.equals(username, other.username);
-    }
-
-    @Override
-    public void receive(OutMessage msg) {
-        this.client.receive(msg);
     }
 
     @Override

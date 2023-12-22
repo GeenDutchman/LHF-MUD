@@ -6,6 +6,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -70,12 +71,14 @@ public class Client implements MessageChainHandler {
     }
 
     @Override
-    public synchronized void receive(OutMessage msg) {
-        this.logger.entering(this.getClass().getName(), "sendMsg()", msg);
-        if (this.out == null) {
-            this.SetOut(new LoggerSendStrategy(this.logger, Level.FINER));
-        }
-        this.out.send(msg);
+    public Consumer<OutMessage> getAcceptHook() {
+        return (event) -> {
+            this.logger.entering(this.getClass().getName(), "sendMsg()", event);
+            if (this.out == null) {
+                this.SetOut(new LoggerSendStrategy(this.logger, Level.FINER));
+            }
+            this.out.send(event);
+        };
     }
 
     @Override
@@ -121,7 +124,7 @@ public class Client implements MessageChainHandler {
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             Reply reply = MessageChainHandler.passUpChain(Client.this, ctx, null); // this will collect all the helps
-            Client.this.receive(HelpMessage.getHelpBuilder().setHelps(reply.getHelps()));
+            Client.eventAccepter.accept(Client.this, HelpMessage.getHelpBuilder().setHelps(reply.getHelps()).Build());
             return reply.resolve();
         }
 
@@ -132,11 +135,12 @@ public class Client implements MessageChainHandler {
         Map<CommandMessage, String> helps = reply.getHelps();
 
         if (badMessageType != null) {
-            this.receive(
+            Client.eventAccepter.accept(this,
                     BadMessage.getBuilder().setBadMessageType(badMessageType).setHelps(helps).setCommand(msg).Build());
         } else {
-            this.receive(HelpMessage.getHelpBuilder().setHelps(helps).setSingleHelp(msg == null ? null : msg.getType())
-                    .Build());
+            Client.eventAccepter.accept(this,
+                    HelpMessage.getHelpBuilder().setHelps(helps).setSingleHelp(msg == null ? null : msg.getType())
+                            .Build());
         }
         return reply.resolve();
     }
@@ -163,7 +167,7 @@ public class Client implements MessageChainHandler {
         if (ctx == null) {
             ctx = new CommandContext();
         }
-        if (ctx.getClientID() == null) {
+        if (ctx.getClient() == null) {
             ctx.setClient(this);
         }
         return ctx;

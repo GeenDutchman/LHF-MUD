@@ -629,7 +629,11 @@ public interface ICreature
 
     @Override
     public default Collection<ClientMessenger> getClientMessengers() {
-        return Set.of(this.getController());
+        ClientMessenger controller = this.getController();
+        if (controller != null) {
+            return Set.of(controller);
+        }
+        return Set.of();
     }
 
 }

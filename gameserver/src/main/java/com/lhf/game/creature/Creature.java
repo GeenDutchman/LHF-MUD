@@ -414,19 +414,20 @@ public abstract class Creature implements ICreature {
                     this.unequipItem(slot, "");
                     this.getInventory().removeItem(equipThing);
                     this.getEquipmentSlots().putIfAbsent(slot, equipThing);
-                    this.receive(equipMessage.setSubType(EquipResultType.SUCCESS).Build());
+                    ICreature.eventAccepter.accept(this, equipMessage.setSubType(EquipResultType.SUCCESS).Build());
                     equipThing.onEquippedBy(this);
 
                     return true;
                 }
-                this.receive(equipMessage.setSubType(EquipResultType.BADSLOT).Build());
+                ICreature.eventAccepter.accept(this, equipMessage.setSubType(EquipResultType.BADSLOT).Build());
                 return true;
             }
-            this.receive(equipMessage.setSubType(EquipResultType.NOTEQUIPBLE));
+            ICreature.eventAccepter.accept(this, equipMessage.setSubType(EquipResultType.NOTEQUIPBLE).Build());
             return true;
         }
-        this.receive(NotPossessedMessage.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
-                .setItemName(itemName).Build());
+        ICreature.eventAccepter.accept(this,
+                NotPossessedMessage.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
+                        .setItemName(itemName).Build());
         return true;
     }
 
@@ -446,30 +447,34 @@ public abstract class Creature implements ICreature {
                         if (equippedThing.equals(equipped.get(thingSlot))) {
                             equipped.remove(thingSlot);
                             this.getInventory().addItem(equippedThing);
-                            this.receive(unequipMessage.setSubType(UnequipResultType.SUCCESS).Build());
+                            ICreature.eventAccepter.accept(this,
+                                    unequipMessage.setSubType(UnequipResultType.SUCCESS).Build());
                             equippedThing.onUnequippedBy(this);
                             return true;
                         }
                     }
                 }
-                this.receive(unequipMessage.setSubType(UnequipResultType.ITEM_NOT_EQUIPPED).Build());
+                ICreature.eventAccepter.accept(this,
+                        unequipMessage.setSubType(UnequipResultType.ITEM_NOT_EQUIPPED).Build());
                 return false;
             }
 
-            this.receive(NotPossessedMessage.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
-                    .setItemName(weapon));
+            ICreature.eventAccepter.accept(this,
+                    NotPossessedMessage.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
+                            .setItemName(weapon).Build());
             return false;
         }
         Equipable thing = getEquipmentSlots().remove(slot);
         if (thing != null) {
             unequipMessage.setItem(thing).setSubType(UnequipResultType.SUCCESS);
             this.getInventory().addItem(thing);
-            this.receive(unequipMessage.Build());
+            ICreature.eventAccepter.accept(this, unequipMessage.Build());
             thing.onUnequippedBy(this);
             return true;
         }
-        this.receive(unequipMessage.setItem(null).setSubType(UnequipResultType.ITEM_NOT_FOUND).Build()); // thing is
-                                                                                                         // null
+        ICreature.eventAccepter.accept(this,
+                unequipMessage.setItem(null).setSubType(UnequipResultType.ITEM_NOT_FOUND).Build()); // thing is
+        // null
         return false;
     }
 
