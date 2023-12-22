@@ -21,7 +21,7 @@ import com.lhf.messages.out.BadMessage.BadMessageType;
 import com.lhf.messages.out.HelpMessage;
 import com.lhf.messages.out.OutMessage;
 
-public class Client implements MessageChainHandler, ClientMessenger {
+public class Client implements MessageChainHandler {
     protected SendStrategy out;
     protected final ClientID id;
     protected Logger logger;

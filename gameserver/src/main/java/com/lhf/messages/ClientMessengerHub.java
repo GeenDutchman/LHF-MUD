@@ -16,17 +16,15 @@ public interface ClientMessengerHub extends ClientMessenger {
             return false;
         }
 
-        if (outMessage.isFirstRecieve(this.getClientID())) {
-            this.receive(outMessage);
-        }
+        ClientMessenger.acceptEvent(this, outMessage);
 
         Set<ClientMessenger> sentSet = new TreeSet<>(ClientMessenger.getComparator());
 
         recipients.stream()
-                .filter(messenger -> messenger != null && messenger instanceof ClientMessenger)
+                .filter(messenger -> messenger != null)
                 .forEachOrdered(messenger -> {
                     if (sentSet.add(messenger)) {
-                        messenger.receive(outMessage);
+                        ClientMessenger.acceptEvent(messenger, outMessage);
                     }
                 });
         return true;

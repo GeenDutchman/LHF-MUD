@@ -60,10 +60,6 @@ public interface MessageChainHandler extends ClientMessengerHub {
 
     public abstract Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx);
 
-    public abstract void log(Level logLevel, String logMessage);
-
-    public abstract void log(Level logLevel, Supplier<String> logMessageSupplier);
-
     // public default CommandContext.Reply handleMessage(CommandContext ctx, Command
     // msg) {
     // MessageChainHandler retrievedSuccessor = this.getSuccessor();

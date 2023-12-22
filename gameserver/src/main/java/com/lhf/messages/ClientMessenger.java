@@ -1,6 +1,8 @@
 package com.lhf.messages;
 
 import java.util.Comparator;
+import java.util.function.Supplier;
+import java.util.logging.Level;
 
 import com.lhf.Taggable;
 import com.lhf.messages.out.OutMessage;
@@ -13,9 +15,37 @@ public interface ClientMessenger extends Taggable {
         this.receive(builder.Build());
     }
 
+    public abstract void log(Level logLevel, String logMessage);
+
+    public abstract void log(Level logLevel, Supplier<String> logMessageSupplier);
+
     public ClientID getClientID();
 
-    public class ClientMessengerComparator implements Comparator<ClientMessenger> {
+    /**
+     * Accepts an event. Calls {@link #receive(OutMessage)} if the event shows that
+     * this is the first time that the event has come to this ClientID
+     * 
+     * @param messenger
+     * @param event
+     */
+    public static void acceptEvent(ClientMessenger messenger, OutMessage event) {
+        if (event != null && messenger != null && event.isFirstRecieve(messenger.getClientID())) {
+            messenger.receive(event);
+        }
+    }
+
+    /**
+     * Accepts an event. Calls {@link #receive(OutMessage)} if the event shows that
+     * this is the first time that the event has come to this ClientID
+     * 
+     * @param messenger
+     * @param builder
+     */
+    public static void acceptEvent(ClientMessenger messenger, OutMessage.Builder<?> builder) {
+        ClientMessenger.acceptEvent(messenger, builder.Build());
+    }
+
+    public static class ClientMessengerComparator implements Comparator<ClientMessenger> {
 
         @Override
         public int compare(ClientMessenger arg0, ClientMessenger arg1) {
