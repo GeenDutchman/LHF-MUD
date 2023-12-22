@@ -13,8 +13,8 @@ import com.google.common.truth.Truth;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.LewdOutMessage;
-import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
+import com.lhf.messages.out.LewdEvent;
+import com.lhf.messages.out.LewdEvent.LewdOutMessageType;
 import com.lhf.messages.out.GameEvent;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,7 +49,7 @@ public class VrijPartijTest {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.PROPOSED.equals(lom.getSubType()) && first.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
@@ -82,7 +82,7 @@ public class VrijPartijTest {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && second.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
@@ -136,7 +136,7 @@ public class VrijPartijTest {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && second.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
@@ -168,7 +168,7 @@ public class VrijPartijTest {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && third.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
@@ -180,7 +180,7 @@ public class VrijPartijTest {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.DUNNIT.equals(lom.getSubType()) && lom.getCreature() == null;
             } catch (ClassCastException e) {
                 return false;
@@ -235,7 +235,7 @@ public class VrijPartijTest {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.PROPOSED.equals(lom.getSubType()) && first.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
@@ -259,7 +259,7 @@ public class VrijPartijTest {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && second.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
@@ -288,7 +288,7 @@ public class VrijPartijTest {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.DENIED.equals(lom.getSubType()) && third.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
@@ -306,7 +306,7 @@ public class VrijPartijTest {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.DUNNIT.equals(lom.getSubType()) && lom.getCreature() == null;
             } catch (ClassCastException e) {
                 return false;

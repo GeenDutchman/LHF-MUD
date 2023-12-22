@@ -24,12 +24,12 @@ import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.LewdInMessage;
-import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.messages.out.InteractOutMessage;
-import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
-import com.lhf.messages.out.LewdOutMessage;
-import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
+import com.lhf.messages.out.BadTargetSelectedEvent;
+import com.lhf.messages.out.BadTargetSelectedEvent.BadTargetOption;
+import com.lhf.messages.out.ItemInteractionEvent;
+import com.lhf.messages.out.ItemInteractionEvent.InteractOutMessageType;
+import com.lhf.messages.out.LewdEvent;
+import com.lhf.messages.out.LewdEvent.LewdOutMessageType;
 import com.lhf.messages.out.GameEvent;
 
 public class LewdBed extends Bed {
@@ -94,7 +94,7 @@ public class LewdBed extends Bed {
     }
 
     public void clear() {
-        LewdOutMessage.Builder deniedMessage = LewdOutMessage.getBuilder().setSubType(LewdOutMessageType.DENIED)
+        LewdEvent.Builder deniedMessage = LewdEvent.getBuilder().setSubType(LewdOutMessageType.DENIED)
                 .setBroacast();
         for (VrijPartij party : this.vrijPartijen.values()) {
             party.messageParticipants(deniedMessage.setParty(party.getParty()).Build());
@@ -164,7 +164,7 @@ public class LewdBed extends Bed {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder();
+            LewdEvent.Builder lewdOutMessage = LewdEvent.getBuilder();
             if (cmd == null || cmd.getType() != CommandMessage.LEWD || !(cmd instanceof LewdInMessage)) {
                 return ctx.failhandle();
             }
@@ -209,7 +209,7 @@ public class LewdBed extends Bed {
     }
 
     protected boolean handleJoin(ICreature joiner, int index) {
-        LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder().setCreature(joiner).setNotBroadcast();
+        LewdEvent.Builder lewdOutMessage = LewdEvent.getBuilder().setCreature(joiner).setNotBroadcast();
         if (!this.isInBed(joiner)) {
             ICreature.eventAccepter.accept(joiner, lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).Build());
             return true;
@@ -233,7 +233,7 @@ public class LewdBed extends Bed {
     }
 
     protected boolean handleEmptyJoin(ICreature joiner) {
-        LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder().setCreature(joiner).setNotBroadcast();
+        LewdEvent.Builder lewdOutMessage = LewdEvent.getBuilder().setCreature(joiner).setNotBroadcast();
         if (!this.isInBed(joiner)) {
             ICreature.eventAccepter.accept(joiner, lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).Build());
             return true;
@@ -250,7 +250,7 @@ public class LewdBed extends Bed {
     }
 
     protected boolean handlePopulatedJoin(ICreature joiner, Set<String> possPartners, Set<String> babyNames) {
-        LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder().setCreature(joiner);
+        LewdEvent.Builder lewdOutMessage = LewdEvent.getBuilder().setCreature(joiner);
         if (!this.isInBed(joiner)) {
             ICreature.eventAccepter.accept(joiner,
                     lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
@@ -264,7 +264,7 @@ public class LewdBed extends Bed {
                     this.logger.log(Level.WARNING,
                             String.format("%s wanted to lewd someone named %s, but DNE", joiner.getName(), possName));
                     ICreature.eventAccepter.accept(joiner,
-                            BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.DNE)
+                            BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.DNE)
                                     .setBadTarget(possName).setPossibleTargets(possibles).Build());
                     return true;
                 } else if (possibles.size() > 1) {
@@ -272,7 +272,7 @@ public class LewdBed extends Bed {
                             String.format("%s wanted to lewd someone named %s, but UNCLEAR", joiner.getName(),
                                     possName));
                     ICreature.eventAccepter.accept(joiner,
-                            BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR)
+                            BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR)
                                     .setBadTarget(possName).setPossibleTargets(possibles).Build());
                     return true;
                 }
@@ -318,7 +318,7 @@ public class LewdBed extends Bed {
 
     @Override
     protected GameEvent bedAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
-        InteractOutMessage.Builder interactOutMessage = InteractOutMessage.getBuilder().setTaggable(triggerObject);
+        ItemInteractionEvent.Builder interactOutMessage = ItemInteractionEvent.getBuilder().setTaggable(triggerObject);
         if (creature == null) {
             return interactOutMessage.setSubType(InteractOutMessageType.CANNOT).Build();
         }
@@ -332,7 +332,7 @@ public class LewdBed extends Bed {
 
         if (creature.getEquipped(EquipmentSlots.ARMOR) != null) {
             this.logger.log(Level.WARNING, () -> String.format("%s is still wearing armor!", creature.getName()));
-            return LewdOutMessage.getBuilder().setSubType(LewdOutMessageType.NOT_READY).setCreature(creature).Build();
+            return LewdEvent.getBuilder().setSubType(LewdOutMessageType.NOT_READY).setCreature(creature).Build();
         }
 
         if (this.addCreature(creature)) {

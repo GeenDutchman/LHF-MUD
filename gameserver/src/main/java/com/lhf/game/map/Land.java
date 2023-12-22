@@ -14,7 +14,7 @@ import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.TickMessage;
+import com.lhf.messages.out.TickEvent;
 import com.lhf.server.client.user.UserID;
 
 public interface Land extends CreatureContainer, MessageChainHandler, AffectableEntity<DungeonEffect> {
@@ -111,7 +111,7 @@ public interface Land extends CreatureContainer, MessageChainHandler, Affectable
     @Override
     default void tick(TickType type) {
         AffectableEntity.super.tick(type);
-        this.announce(TickMessage.getBuilder().setTickType(type).setBroacast());
+        this.announce(TickEvent.getBuilder().setTickType(type).setBroacast());
     }
 
     @Override

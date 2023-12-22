@@ -15,9 +15,9 @@ import com.lhf.game.creature.Player;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
-import com.lhf.messages.out.TickMessage;
+import com.lhf.messages.out.SeeEvent;
+import com.lhf.messages.out.SeeEvent.SeeCategory;
+import com.lhf.messages.out.TickEvent;
 
 public interface Area
         extends ItemContainer, CreatureContainer, MessageChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
@@ -47,12 +47,12 @@ public interface Area
     public abstract void setLand(Land land);
 
     @Override
-    default SeeOutMessage produceMessage() {
+    default SeeEvent produceMessage() {
         return this.produceMessage(false, true);
     }
 
-    default SeeOutMessage produceMessage(boolean seeInvisible, boolean seeDirections) {
-        SeeOutMessage.Builder seen = SeeOutMessage.getBuilder().setExaminable(this);
+    default SeeEvent produceMessage(boolean seeInvisible, boolean seeDirections) {
+        SeeEvent.Builder seen = SeeEvent.getBuilder().setExaminable(this);
         if (seeDirections) {
             if (this.getLand() == null) {
                 seen.addExtraInfo("There is no apparent way out of here.");
@@ -95,7 +95,7 @@ public interface Area
     @Override
     default void tick(TickType type) {
         AffectableEntity.super.tick(type);
-        this.announce(TickMessage.getBuilder().setTickType(type).setBroacast());
+        this.announce(TickEvent.getBuilder().setTickType(type).setBroacast());
     }
 
     @Override

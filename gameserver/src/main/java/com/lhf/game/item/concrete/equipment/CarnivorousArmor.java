@@ -11,8 +11,8 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
-import com.lhf.messages.out.UseOutMessage;
-import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
+import com.lhf.messages.out.ItemUsedEvent;
+import com.lhf.messages.out.ItemUsedEvent.UseOutMessageOption;
 
 public class CarnivorousArmor extends Equipable {
     private final CreatureEffectSource eatingResults = new CreatureEffectSource("Eaten Alive",
@@ -56,7 +56,7 @@ public class CarnivorousArmor extends Equipable {
         this.equipped = true;
         this.equippedAndUsed = false;
 
-        UseOutMessage.Builder useOutMessage = UseOutMessage.getBuilder().setItemUser(newOwner).setUsable(this);
+        ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(newOwner).setUsable(this);
 
         setUseAction(newOwner.getName(), (ctx, object) -> {
             if (!equipped) {

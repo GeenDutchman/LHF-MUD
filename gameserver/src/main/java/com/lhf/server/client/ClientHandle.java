@@ -15,7 +15,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.FatalMessage;
+import com.lhf.messages.out.FatalEvent;
 import com.lhf.server.interfaces.ConnectionListener;
 
 public class ClientHandle extends Client implements Runnable {
@@ -115,11 +115,11 @@ public class ClientHandle extends Client implements Runnable {
                 this.setRepeatCommand(value);
             }
         } catch (IOException e) {
-            final FatalMessage fatal = FatalMessage.getBuilder().setException(e).setExtraInfo("recoverable").Build();
+            final FatalEvent fatal = FatalEvent.getBuilder().setException(e).setExtraInfo("recoverable").Build();
             this.logger.log(Level.SEVERE, fatal.toString(), e);
             Client.eventAccepter.accept(this, fatal);
         } catch (Exception e) {
-            final FatalMessage fatal = FatalMessage.getBuilder().setException(e).setExtraInfo("irrecoverable").Build();
+            final FatalEvent fatal = FatalEvent.getBuilder().setException(e).setExtraInfo("irrecoverable").Build();
             this.logger.log(Level.SEVERE, fatal.toString(), e);
             Client.eventAccepter.accept(this, fatal);
             throw e;

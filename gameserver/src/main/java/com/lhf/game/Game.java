@@ -28,7 +28,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.ListPlayersMessage;
+import com.lhf.messages.out.PlayersListedEvent;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
@@ -155,7 +155,7 @@ public class Game implements UserListener, MessageChainHandler {
 
 		@Override
 		public Reply handleCommand(CommandContext ctx, Command cmd) {
-			ctx.receive(ListPlayersMessage.getBuilder().setPlayerNames(Game.this.userManager.getAllUsernames()));
+			ctx.receive(PlayersListedEvent.getBuilder().setPlayerNames(Game.this.userManager.getAllUsernames()));
 			return ctx.handled();
 		}
 

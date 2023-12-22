@@ -7,7 +7,7 @@ import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.SpeakingMessage;
+import com.lhf.messages.out.SpeakingEvent;
 
 public class SpokenPromptChunkTest {
         @Test
@@ -24,7 +24,7 @@ public class SpokenPromptChunkTest {
                 listener.npc.setConvoTree(tree);
 
                 AIComBundle speaker = new AIComBundle();
-                SpeakingMessage sm = SpeakingMessage.getBuilder().setSayer(speaker.npc).setMessage("hello")
+                SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.npc).setMessage("hello")
                                 .setHearer(listener.npc).Build();
                 AIComBundle.eventAccepter.accept(listener.npc, sm);
 
@@ -46,7 +46,7 @@ public class SpokenPromptChunkTest {
                 listener.brain.addHandler(GameEventType.SPEAKING, chunk);
 
                 String prompt = "NONOBJECT";
-                SpeakingMessage sm = SpeakingMessage.getBuilder().setSayer(speaker.npc)
+                SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.npc)
                                 .setMessage("PROMPT SEE " + prompt)
                                 .setHearer(listener.npc).Build();
                 AIComBundle.eventAccepter.accept(listener.npc, sm);
@@ -64,7 +64,7 @@ public class SpokenPromptChunkTest {
                 listener.brain.addHandler(GameEventType.SPEAKING, chunk);
 
                 String prompt = "NONOBJECT";
-                SpeakingMessage sm = SpeakingMessage.getBuilder().setSayer(speaker.npc)
+                SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.npc)
                                 .setMessage("PROMPT SEE " + prompt)
                                 .setHearer(listener.npc).Build();
                 AIComBundle.eventAccepter.accept(listener.npc, sm);

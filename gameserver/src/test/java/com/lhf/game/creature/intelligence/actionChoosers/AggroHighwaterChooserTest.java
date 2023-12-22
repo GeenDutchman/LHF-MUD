@@ -24,7 +24,7 @@ import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
-import com.lhf.messages.out.CreatureAffectedMessage;
+import com.lhf.messages.out.CreatureAffectedEvent;
 
 public class AggroHighwaterChooserTest {
         @Spy
@@ -67,7 +67,7 @@ public class AggroHighwaterChooserTest {
                                 "For a test", false)
                                 .addDamage(new DamageDice(6, DieType.SIX, DamageFlavor.BLUDGEONING));
 
-                CreatureAffectedMessage cam = CreatureAffectedMessage.getBuilder().setAffected(finder.npc)
+                CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.npc)
                                 .setEffect(new CreatureEffect(source, attacker.npc, attacker.npc)).Build();
 
                 finder.npc.getHarmMemories().update(cam);
@@ -95,7 +95,7 @@ public class AggroHighwaterChooserTest {
                                 "For a test", false)
                                 .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO));
 
-                CreatureAffectedMessage cam2 = CreatureAffectedMessage.getBuilder().setAffected(finder.npc)
+                CreatureAffectedEvent cam2 = CreatureAffectedEvent.getBuilder().setAffected(finder.npc)
                                 .setEffect(new CreatureEffect(source2, subAttacker.npc, subAttacker.npc)).Build();
 
                 finder.npc.getHarmMemories().update(cam2);

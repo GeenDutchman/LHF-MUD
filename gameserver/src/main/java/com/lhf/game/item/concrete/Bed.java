@@ -26,10 +26,10 @@ import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.InteractMessage;
-import com.lhf.messages.out.BadGoMessage;
-import com.lhf.messages.out.BadGoMessage.BadGoType;
-import com.lhf.messages.out.InteractOutMessage;
-import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
+import com.lhf.messages.out.BadGoEvent;
+import com.lhf.messages.out.BadGoEvent.BadGoType;
+import com.lhf.messages.out.ItemInteractionEvent;
+import com.lhf.messages.out.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.out.GameEvent;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.UserID;
@@ -101,7 +101,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
             MultiRollResult sleepCheck = this.occupant.check(best);
             this.occupant.updateHitpoints(sleepCheck.getTotal());
             // TODO: regain spell energy?
-            InteractOutMessage.Builder iom = InteractOutMessage.getBuilder().setPerformed()
+            ItemInteractionEvent.Builder iom = ItemInteractionEvent.getBuilder().setPerformed()
                     .setDescription("You slept and got back " + sleepCheck.getColorTaggedName() + " hit points!")
                     .setTaggable(Bed.this);
             ICreature.eventAccepter.accept(this.occupant, iom.Build());
@@ -199,22 +199,24 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
 
     protected GameEvent bedAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
         if (creature == null) {
-            return InteractOutMessage.getBuilder().setTaggable(triggerObject).setSubType(InteractOutMessageType.CANNOT)
+            return ItemInteractionEvent.getBuilder().setTaggable(triggerObject)
+                    .setSubType(InteractOutMessageType.CANNOT)
                     .Build();
         }
         if (this.getOccupancy() >= this.getCapacity()) {
             this.logger.log(Level.WARNING,
                     () -> String.format("Over capacity! occupancy: %d capacity: %d", this.getOccupancy(),
                             this.getCapacity()));
-            return InteractOutMessage.getBuilder().setTaggable(triggerObject).setSubType(InteractOutMessageType.CANNOT)
+            return ItemInteractionEvent.getBuilder().setTaggable(triggerObject)
+                    .setSubType(InteractOutMessageType.CANNOT)
                     .setDescription("The bed is full!").Build();
         }
 
         if (this.addCreature(creature)) {
-            return InteractOutMessage.getBuilder().setTaggable(triggerObject)
+            return ItemInteractionEvent.getBuilder().setTaggable(triggerObject)
                     .setSubType(InteractOutMessageType.PERFORMED).setDescription("You are now in the bed!").Build();
         }
-        return InteractOutMessage.getBuilder().setTaggable(triggerObject).setSubType(InteractOutMessageType.ERROR)
+        return ItemInteractionEvent.getBuilder().setTaggable(triggerObject).setSubType(InteractOutMessageType.ERROR)
                 .setDescription("You are already in the bed!").Build();
     }
 
@@ -273,7 +275,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
     public boolean removeCreature(ICreature doneSleeping) {
         BedTime found = this.getBedTime(doneSleeping);
         if (found != null) {
-            ICreature.eventAccepter.accept(found.occupant, InteractOutMessage.getBuilder().setTaggable(this)
+            ICreature.eventAccepter.accept(found.occupant, ItemInteractionEvent.getBuilder().setTaggable(this)
                     .setDescription("You got out of the bed!").setPerformed().Build());
             found.cancel();
             found.occupant.setSuccessor(found.successor);
@@ -412,7 +414,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
                     return ctx.handled();
                 } else {
                     ctx.receive(
-                            BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(goMessage.getDirection())
+                            BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(goMessage.getDirection())
                                     .setAvailable(EnumSet.of(Directions.UP)).Build());
                     return ctx.handled();
                 }

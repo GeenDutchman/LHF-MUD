@@ -13,11 +13,11 @@ import com.lhf.game.enums.HealType;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.interfaces.UseAction;
-import com.lhf.messages.out.BattleRoundMessage;
+import com.lhf.messages.out.BattleRoundEvent;
 import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.UseOutMessage;
-import com.lhf.messages.out.BattleRoundMessage.RoundAcceptance;
-import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
+import com.lhf.messages.out.ItemUsedEvent;
+import com.lhf.messages.out.BattleRoundEvent.RoundAcceptance;
+import com.lhf.messages.out.ItemUsedEvent.UseOutMessageOption;
 
 public class HealPotion extends Usable {
 
@@ -25,7 +25,7 @@ public class HealPotion extends Usable {
 
     private void setUp() {
         UseAction useAction = (ctx, object) -> {
-            UseOutMessage.Builder useOutMessage = UseOutMessage.getBuilder().setItemUser(ctx.getCreature())
+            ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature())
                     .setUsable(this);
             if (object == null) {
                 ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
@@ -42,7 +42,7 @@ public class HealPotion extends Usable {
                     if (bm.hasCreature(target) && !bm.hasCreature(ctx.getCreature())) {
                         // give out of turn message
                         bm.addCreature(ctx.getCreature());
-                        ctx.receive(BattleRoundMessage.getBuilder().setNeedSubmission(RoundAcceptance.REJECTED)
+                        ctx.receive(BattleRoundEvent.getBuilder().setNeedSubmission(RoundAcceptance.REJECTED)
                                 .setNotBroadcast().Build());
                         return false;
                     }

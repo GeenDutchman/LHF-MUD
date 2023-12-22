@@ -7,14 +7,14 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.Room;
-import com.lhf.messages.out.InteractOutMessage;
+import com.lhf.messages.out.ItemInteractionEvent;
 import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
+import com.lhf.messages.out.ItemInteractionEvent.InteractOutMessageType;
 
 public class DispenserAction implements InteractAction {
     @Override
     public GameEvent doAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
-        InteractOutMessage.Builder interactOutMessage = InteractOutMessage.getBuilder().setTaggable(triggerObject);
+        ItemInteractionEvent.Builder interactOutMessage = ItemInteractionEvent.getBuilder().setTaggable(triggerObject);
         Object o1 = args.get("room");
         if (!(o1 instanceof Room)) {
             Logger.getLogger(triggerObject.getClassName()).warning("Room not found");

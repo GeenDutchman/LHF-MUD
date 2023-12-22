@@ -44,13 +44,13 @@ import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.InventoryMessage;
 import com.lhf.messages.in.StatusMessage;
 import com.lhf.messages.in.UnequipMessage;
-import com.lhf.messages.out.CreatureAffectedMessage;
-import com.lhf.messages.out.EquipOutMessage;
-import com.lhf.messages.out.EquipOutMessage.EquipResultType;
-import com.lhf.messages.out.NotPossessedMessage;
-import com.lhf.messages.out.StatusOutMessage;
-import com.lhf.messages.out.UnequipOutMessage;
-import com.lhf.messages.out.UnequipOutMessage.UnequipResultType;
+import com.lhf.messages.out.CreatureAffectedEvent;
+import com.lhf.messages.out.ItemEquippedEvent;
+import com.lhf.messages.out.ItemEquippedEvent.EquipResultType;
+import com.lhf.messages.out.ItemNotPossessedEvent;
+import com.lhf.messages.out.CreatureStatusRequestedEvent;
+import com.lhf.messages.out.ItemUnequippedEvent;
+import com.lhf.messages.out.ItemUnequippedEvent.UnequipResultType;
 import com.lhf.server.client.ClientID;
 
 public abstract class Creature implements ICreature {
@@ -279,7 +279,7 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public CreatureAffectedMessage processEffect(EntityEffect effect, boolean reverse) {
+    public CreatureAffectedEvent processEffect(EntityEffect effect, boolean reverse) {
         if (!this.isCorrectEffectType(effect)) {
             return null;
         }
@@ -317,7 +317,7 @@ public abstract class Creature implements ICreature {
             }
         }
 
-        CreatureAffectedMessage camOut = CreatureAffectedMessage.getBuilder().setAffected(this)
+        CreatureAffectedEvent camOut = CreatureAffectedEvent.getBuilder().setAffected(this)
                 .setEffect(creatureEffect).setReversed(reverse).setBroacast().Build();
         return camOut;
     }
@@ -399,7 +399,7 @@ public abstract class Creature implements ICreature {
     @Override
     public boolean equipItem(String itemName, EquipmentSlots slot) {
         Optional<Item> maybeItem = this.getInventory().getItem(itemName);
-        EquipOutMessage.Builder equipMessage = EquipOutMessage.getBuilder().setAttemptedItemName(itemName)
+        ItemEquippedEvent.Builder equipMessage = ItemEquippedEvent.getBuilder().setAttemptedItemName(itemName)
                 .setNotBroadcast().setAttemptedSlot(slot);
         if (maybeItem.isPresent()) {
             Item fromInventory = maybeItem.get();
@@ -426,14 +426,14 @@ public abstract class Creature implements ICreature {
             return true;
         }
         ICreature.eventAccepter.accept(this,
-                NotPossessedMessage.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
+                ItemNotPossessedEvent.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
                         .setItemName(itemName).Build());
         return true;
     }
 
     @Override
     public boolean unequipItem(EquipmentSlots slot, String weapon) {
-        UnequipOutMessage.Builder unequipMessage = UnequipOutMessage.getBuilder().setNotBroadcast().setSlot(slot)
+        ItemUnequippedEvent.Builder unequipMessage = ItemUnequippedEvent.getBuilder().setNotBroadcast().setSlot(slot)
                 .setAttemptedName(weapon);
         if (slot == null) {
             // if they specified weapon and not slot
@@ -460,7 +460,7 @@ public abstract class Creature implements ICreature {
             }
 
             ICreature.eventAccepter.accept(this,
-                    NotPossessedMessage.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
+                    ItemNotPossessedEvent.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
                             .setItemName(weapon).Build());
             return false;
         }
@@ -660,7 +660,8 @@ public abstract class Creature implements ICreature {
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof StatusMessage statusMessage) {
                 ctx.receive(
-                        StatusOutMessage.getBuilder().setNotBroadcast().setFromCreature(Creature.this, true).Build());
+                        CreatureStatusRequestedEvent.getBuilder().setNotBroadcast().setFromCreature(Creature.this, true)
+                                .Build());
                 Creature.this.tick(TickType.ACTION);
                 return ctx.handled();
             }

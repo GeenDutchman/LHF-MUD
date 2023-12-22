@@ -10,8 +10,8 @@ import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
+import com.lhf.messages.out.SeeEvent;
+import com.lhf.messages.out.SeeEvent.SeeCategory;
 
 public class Equipable extends Usable {
     protected List<EquipmentTypes> types;
@@ -56,8 +56,8 @@ public class Equipable extends Usable {
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
-        SeeOutMessage.Builder seeOutMessage = (SeeOutMessage.Builder) super.produceMessage().copyBuilder();
+    public SeeEvent produceMessage() {
+        SeeEvent.Builder seeOutMessage = (SeeEvent.Builder) super.produceMessage().copyBuilder();
         for (CreatureEffectSource effector : this.getEquippingEffects(false)) {
             seeOutMessage.addEffector(effector);
         }

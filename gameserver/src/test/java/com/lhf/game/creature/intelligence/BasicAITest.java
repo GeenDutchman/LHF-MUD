@@ -24,11 +24,11 @@ import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.ClientMessenger;
-import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.messages.out.CreatureAffectedMessage;
+import com.lhf.messages.out.BadTargetSelectedEvent;
+import com.lhf.messages.out.BadTargetSelectedEvent.BadTargetOption;
+import com.lhf.messages.out.CreatureAffectedEvent;
 import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.SpeakingMessage;
+import com.lhf.messages.out.SpeakingEvent;
 import com.lhf.server.client.ClientID;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,7 +65,7 @@ public class BasicAITest {
 
                 listener.npc.setConvoTree(tree);
 
-                SpeakingMessage sm = SpeakingMessage.getBuilder().setSayer(speaker).setMessage("hello")
+                SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker).setMessage("hello")
                                 .setHearer(listener.npc)
                                 .Build();
 
@@ -83,7 +83,7 @@ public class BasicAITest {
 
                 Attack attack = attacker.npc.attack(attacker.npc.defaultWeapon());
                 CreatureEffect effect = attack.getEffects().stream().findFirst().get();
-                CreatureAffectedMessage adm = CreatureAffectedMessage.getBuilder().setAffected(victim.npc)
+                CreatureAffectedEvent adm = CreatureAffectedEvent.getBuilder().setAffected(victim.npc)
                                 .setEffect(effect)
                                 .Build();
                 sendMsgAndWait(adm, victim);
@@ -93,7 +93,7 @@ public class BasicAITest {
                 victim.npc.setInBattle(true); // turn it on!
 
                 Truth.assertThat(effect.getDamageResult().getTotal()).isNotEqualTo(0);
-                CreatureAffectedMessage doneAttack = CreatureAffectedMessage.getBuilder().setAffected(victim.npc)
+                CreatureAffectedEvent doneAttack = CreatureAffectedEvent.getBuilder().setAffected(victim.npc)
                                 .setEffect(effect).Build();
                 sendMsgAndWait(doneAttack, victim);
 
@@ -118,7 +118,7 @@ public class BasicAITest {
                 victim.npc.setFaction(CreatureFaction.MONSTER);
                 ArrayList<Taggable> stuff = new ArrayList<>();
                 stuff.add(victim.npc);
-                BadTargetSelectedMessage btsm = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR)
+                BadTargetSelectedEvent btsm = BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR)
                                 .setBadTarget("bloohoo jane").setPossibleTargets(stuff).Build();
                 sendMsgAndWait(btsm, searcher);
                 Truth.assertThat(searcher.npc.getHarmMemories().getLastAttackerName().isEmpty()).isTrue();
@@ -131,7 +131,7 @@ public class BasicAITest {
                 AIComBundle samefaction = new AIComBundle();
                 ArrayList<Taggable> stuff = new ArrayList<>();
                 stuff.add(samefaction.npc);
-                BadTargetSelectedMessage btsm = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR)
+                BadTargetSelectedEvent btsm = BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR)
                                 .setBadTarget("bloohoo jane").setPossibleTargets(stuff).Build();
                 sendMsgAndWait(btsm, searcher);
                 Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();

@@ -25,7 +25,7 @@ import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.CreatureAffectedMessage;
+import com.lhf.messages.out.CreatureAffectedEvent;
 import com.lhf.messages.out.GameEvent;
 import com.lhf.server.client.ClientID;
 
@@ -292,7 +292,7 @@ public class BattleStats implements ClientMessenger {
         return this;
     }
 
-    public BattleStats update(CreatureAffectedMessage ca) {
+    public BattleStats update(CreatureAffectedEvent ca) {
         if (ca.getEffect() == null) {
             return this;
         }
@@ -478,7 +478,7 @@ public class BattleStats implements ClientMessenger {
     public Consumer<GameEvent> getAcceptHook() {
         return (event) -> {
             if (event != null && GameEventType.CREATURE_AFFECTED.equals(event.getEventType())) {
-                CreatureAffectedMessage cam = (CreatureAffectedMessage) event;
+                CreatureAffectedEvent cam = (CreatureAffectedEvent) event;
                 this.update(cam);
             }
         };

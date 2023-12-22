@@ -42,12 +42,12 @@ import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.ITickMessage;
+import com.lhf.messages.ITickEvent;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
-import com.lhf.messages.out.StatusOutMessage;
+import com.lhf.messages.out.SeeEvent;
+import com.lhf.messages.out.SeeEvent.SeeCategory;
+import com.lhf.messages.out.CreatureStatusRequestedEvent;
 
 /**
  * An interface for all things Creature. This way we can create wrappers, mocks,
@@ -233,7 +233,7 @@ public interface ICreature
             if (event == null) {
                 return;
             }
-            if (event instanceof ITickMessage tickMessage) {
+            if (event instanceof ITickEvent tickMessage) {
                 this.tick(tickMessage.getTickType());
             }
             this.announce(event);
@@ -558,7 +558,7 @@ public interface ICreature
     @Override
     public default String printDescription() {
         StringBuilder sb = new StringBuilder();
-        String statusString = StatusOutMessage.getBuilder().setFromCreature(this, false).Build().toString();
+        String statusString = CreatureStatusRequestedEvent.getBuilder().setFromCreature(this, false).Build().toString();
         sb.append(statusString).append("\r\n");
         Map<EquipmentSlots, Equipable> equipped = this.getEquipmentSlots();
         if (equipped.get(EquipmentSlots.HAT) != null) {
@@ -576,14 +576,14 @@ public interface ICreature
     }
 
     /**
-     * Produces a {@link com.lhf.messages.out.SeeOutMessage SeeOutMessage}
+     * Produces a {@link com.lhf.messages.out.SeeEvent SeeOutMessage}
      * describing this Creature and any {@link com.lhf.game.creature.CreatureEffect
      * Effects} upon it.
      */
     @Override
-    public default SeeOutMessage produceMessage(SeeOutMessage.Builder seeOutMessage) {
+    public default SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
         if (seeOutMessage == null) {
-            seeOutMessage = SeeOutMessage.getBuilder();
+            seeOutMessage = SeeEvent.getBuilder();
         }
         seeOutMessage.setExaminable(this);
         for (CreatureEffect effect : this.getEffects()) {

@@ -11,9 +11,9 @@ import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.LewdOutMessage;
+import com.lhf.messages.out.LewdEvent;
 import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
+import com.lhf.messages.out.LewdEvent.LewdOutMessageType;
 
 public class LewdAIHandler extends AIHandler {
     private Set<ICreature> partners;
@@ -61,7 +61,7 @@ public class LewdAIHandler extends AIHandler {
         return this;
     }
 
-    public void handleProposal(BasicAI bai, LewdOutMessage lom) {
+    public void handleProposal(BasicAI bai, LewdEvent lom) {
         if (!lom.getParticipants().containsKey(bai.getNpc())) {
             return; // none of our business
         }
@@ -87,7 +87,7 @@ public class LewdAIHandler extends AIHandler {
         bai.handleChain(null, cmd);
     }
 
-    public void handleDunnit(BasicAI bai, LewdOutMessage lom) {
+    public void handleDunnit(BasicAI bai, LewdEvent lom) {
         if (!lom.getParticipants().containsKey(bai.getNpc())) {
             return; // none of our business
         }
@@ -101,7 +101,7 @@ public class LewdAIHandler extends AIHandler {
     @Override
     public void handle(BasicAI bai, GameEvent msg) {
         if (GameEventType.LEWD.equals(msg.getEventType())) {
-            LewdOutMessage lom = (LewdOutMessage) msg;
+            LewdEvent lom = (LewdEvent) msg;
             this.logger.log(Level.FINEST, () -> String.format("%s: processing \"%s\"", bai.toString(), lom.print()));
             if (lom.getSubType() == LewdOutMessageType.PROPOSED) {
                 this.handleProposal(bai, lom);

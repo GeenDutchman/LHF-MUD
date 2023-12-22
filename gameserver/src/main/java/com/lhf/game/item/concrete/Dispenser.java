@@ -1,7 +1,7 @@
 package com.lhf.game.item.concrete;
 
 import com.lhf.game.item.InteractObject;
-import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SeeEvent;
 
 public class Dispenser extends InteractObject {
     private int count;
@@ -26,8 +26,8 @@ public class Dispenser extends InteractObject {
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
-        SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
+    public SeeEvent produceMessage() {
+        SeeEvent.Builder seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         return seeOutMessage.Build();
     }
 }

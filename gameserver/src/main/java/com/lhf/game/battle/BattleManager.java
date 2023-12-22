@@ -56,21 +56,21 @@ import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.PassMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.UseMessage;
-import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.messages.out.BattleRoundMessage;
-import com.lhf.messages.out.BattleRoundMessage.RoundAcceptance;
-import com.lhf.messages.out.FightOverMessage;
-import com.lhf.messages.out.FleeMessage;
-import com.lhf.messages.out.JoinBattleMessage;
-import com.lhf.messages.out.MissMessage;
-import com.lhf.messages.out.NotPossessedMessage;
+import com.lhf.messages.out.BadTargetSelectedEvent;
+import com.lhf.messages.out.BadTargetSelectedEvent.BadTargetOption;
+import com.lhf.messages.out.BattleRoundEvent;
+import com.lhf.messages.out.BattleRoundEvent.RoundAcceptance;
+import com.lhf.messages.out.FightOverEvent;
+import com.lhf.messages.out.CreatureFledEvent;
+import com.lhf.messages.out.BattleJoinedEvent;
+import com.lhf.messages.out.TargetDefendedEvent;
+import com.lhf.messages.out.ItemNotPossessedEvent;
 import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.ReinforcementsCall;
-import com.lhf.messages.out.RenegadeAnnouncement;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.StartFightMessage;
-import com.lhf.messages.out.StatsOutMessage;
+import com.lhf.messages.out.FactionReinforcementsCallEvent;
+import com.lhf.messages.out.FactionRenegadeJoined;
+import com.lhf.messages.out.SeeEvent;
+import com.lhf.messages.out.BattleStartedEvent;
+import com.lhf.messages.out.BattleStatsRequestedEvent;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
@@ -168,7 +168,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                             .filter(c -> c != null).collect(Collectors.partitioningBy(
                                     creature -> BattleManager.this.isReadyToFlush(creature), Collectors.toSet()));
                     BattleManager.this.announce(
-                            BattleRoundMessage.getBuilder().setNeedSubmission(BattleRoundMessage.RoundAcceptance.NEEDED)
+                            BattleRoundEvent.getBuilder().setNeedSubmission(BattleRoundEvent.RoundAcceptance.NEEDED)
                                     .setNotBroadcast().setRoundCount(this.parentPhaser.getPhase())
                                     .Build(),
                             partitions.getOrDefault(true, null));
@@ -489,7 +489,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                     c.setSuccessor(this);
                     this.battleStats.initialize(this.getCreatures());
                     boolean ongoing = this.isBattleOngoing("addCreature()");
-                    JoinBattleMessage.Builder joinedMessage = JoinBattleMessage.getBuilder().setJoiner(c)
+                    BattleJoinedEvent.Builder joinedMessage = BattleJoinedEvent.getBuilder().setJoiner(c)
                             .setOngoing(ongoing).setBroacast();// new JoinBattleMessage(c, this.isBattleOngoing(),
                                                                // false);
                     if (this.room != null) {
@@ -588,7 +588,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                     BattleManager.this.checkAndHandleTurnRenegade(instigator, c);
                 }
             }
-            StartFightMessage.Builder startMessage = StartFightMessage.getBuilder().setInstigator(instigator)
+            BattleStartedEvent.Builder startMessage = BattleStartedEvent.getBuilder().setInstigator(instigator)
                     .setBroacast();
             if (this.room != null) {
                 this.room.announce(startMessage.Build());
@@ -609,7 +609,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
     public void endBattle() {
         this.battleLogger.log(Level.INFO, "Ending battle");
-        FightOverMessage.Builder foverBuilder = FightOverMessage.getBuilder().setNotBroadcast();
+        FightOverEvent.Builder foverBuilder = FightOverEvent.getBuilder().setNotBroadcast();
         this.announce(foverBuilder.Build());
         if (this.room != null) {
             this.room.announce(foverBuilder.setBroacast().Build());
@@ -706,7 +706,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     public void handleTurnRenegade(ICreature turned) {
         if (!CreatureFaction.RENEGADE.equals(turned.getFaction())) {
             turned.setFaction(CreatureFaction.RENEGADE);
-            RenegadeAnnouncement.Builder builder = RenegadeAnnouncement.getBuilder(turned);
+            FactionRenegadeJoined.Builder builder = FactionRenegadeJoined.getBuilder(turned);
             ICreature.eventAccepter.accept(turned, builder.setNotBroadcast().Build());
             builder.setBroacast();
             if (this.room != null) {
@@ -758,8 +758,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
-        SeeOutMessage.Builder seeMessage = SeeOutMessage.getBuilder().setExaminable(this);
+    public SeeEvent produceMessage() {
+        SeeEvent.Builder seeMessage = SeeEvent.getBuilder().setExaminable(this);
         this.getCreatures().stream().filter(creature -> creature != null && creature.isInBattle())
                 .forEach(creature -> seeMessage.addSeen("Participants", creature));
         return seeMessage.Build();
@@ -831,7 +831,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         @Override
         default boolean onEmpool(CommandContext ctx, boolean empoolResult) {
             RoundThread thread = ctx.getBattleManager().battleThread.get();
-            BattleRoundMessage.Builder roundMessage = BattleRoundMessage.getBuilder()
+            BattleRoundEvent.Builder roundMessage = BattleRoundEvent.getBuilder()
                     .setAboutCreature(ctx.getCreature()).setNotBroadcast()
                     .setNeedSubmission(empoolResult ? RoundAcceptance.ACCEPTED : RoundAcceptance.REJECTED);
             if (thread != null) {
@@ -874,7 +874,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            ctx.receive(StatsOutMessage.getBuilder()
+            ctx.receive(BattleStatsRequestedEvent.getBuilder()
                     .addRecords(BattleManager.this.battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING))
                     .setNotBroadcast());
             return ctx.handled();
@@ -1043,7 +1043,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             if (cmd != null && cmd.getType() == CommandMessage.GO && cmd instanceof GoMessage goMessage) {
                 Integer check = 10 + BattleManager.this.actionPools.size();
                 MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
-                FleeMessage.Builder builder = FleeMessage.getBuilder().setRunner(ctx.getCreature()).setRoll(result);
+                CreatureFledEvent.Builder builder = CreatureFledEvent.getBuilder().setRunner(ctx.getCreature())
+                        .setRoll(result);
                 Reply reply = null;
                 if (result.getRoll() >= check) {
                     reply = MessageChainHandler.passUpChain(BattleManager.this, ctx, goMessage);
@@ -1087,7 +1088,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
      */
     private List<ICreature> collectTargetsFromRoom(ICreature attacker, List<String> names) {
         List<ICreature> targets = new ArrayList<>();
-        BadTargetSelectedMessage.Builder btMessBuilder = BadTargetSelectedMessage.getBuilder().setNotBroadcast();
+        BadTargetSelectedEvent.Builder btMessBuilder = BadTargetSelectedEvent.getBuilder().setNotBroadcast();
         if (names == null || names.size() == 0) {
             return targets;
         }
@@ -1142,7 +1143,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 List<ICreature> collected = BattleManager.this.collectTargetsFromRoom(attacker,
                         ((AttackMessage) cmd).getTargets());
                 if (collected == null || collected.size() == 0) {
-                    ctx.receive(BadTargetSelectedMessage.getBuilder()
+                    ctx.receive(BadTargetSelectedEvent.getBuilder()
                             .setNotBroadcast().setBde(BadTargetOption.NOTARGET).Build());
                     return ctx.handled();
                 }
@@ -1198,7 +1199,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         private Weapon getDesignatedWeapon(ICreature attacker, String weaponName) {
             if (weaponName != null && weaponName.length() > 0) {
                 Optional<Item> inventoryItem = attacker.getItem(weaponName);
-                NotPossessedMessage.Builder builder = NotPossessedMessage.getBuilder().setNotBroadcast()
+                ItemNotPossessedEvent.Builder builder = ItemNotPossessedEvent.getBuilder().setNotBroadcast()
                         .setItemName(weaponName).setItemType(Weapon.class.getSimpleName());
                 if (inventoryItem.isEmpty()) {
                     ICreature.eventAccepter.accept(attacker, builder.Build());
@@ -1243,9 +1244,10 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                         GameEvent cam = target.applyEffect(effect);
                         BattleManager.this.announce(cam);
                     } else {
-                        BattleManager.this.announce(MissMessage.getBuilder().setAttacker(attacker).setTarget(target)
-                                .setOffense(attackerResult)
-                                .setDefense(targetResult).Build());
+                        BattleManager.this
+                                .announce(TargetDefendedEvent.getBuilder().setAttacker(attacker).setTarget(target)
+                                        .setOffense(attackerResult)
+                                        .setDefense(targetResult).Build());
                     }
                 }
 
@@ -1260,7 +1262,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
                 ICreature attacker = ctx.getCreature();
 
-                BadTargetSelectedMessage.Builder btMessBuilder = BadTargetSelectedMessage.getBuilder()
+                BadTargetSelectedEvent.Builder btMessBuilder = BadTargetSelectedEvent.getBuilder()
                         .setNotBroadcast();
 
                 if (aMessage.getNumTargets() == 0) {
@@ -1320,7 +1322,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
      * @param targetCreature
      */
     public void callReinforcements(@NotNull ICreature attackingCreature, @NotNull ICreature targetCreature) {
-        ReinforcementsCall.Builder reBuilder = ReinforcementsCall.getBuilder();
+        FactionReinforcementsCallEvent.Builder reBuilder = FactionReinforcementsCallEvent.getBuilder();
         if (targetCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(targetCreature.getFaction())) {
             ICreature.eventAccepter.accept(targetCreature,
                     reBuilder.setNotBroadcast().setCaller(targetCreature).setCallerAddressed(true).Build());

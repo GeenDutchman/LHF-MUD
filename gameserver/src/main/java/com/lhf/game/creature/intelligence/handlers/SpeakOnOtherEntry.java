@@ -8,7 +8,7 @@ import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.RoomEnteredOutMessage;
+import com.lhf.messages.out.RoomEnteredEvent;
 
 public class SpeakOnOtherEntry extends AIHandler {
     protected String greeting;
@@ -35,7 +35,7 @@ public class SpeakOnOtherEntry extends AIHandler {
     @Override
     public void handle(BasicAI bai, GameEvent msg) {
         if (GameEventType.ROOM_ENTERED.equals(msg.getEventType())) {
-            RoomEnteredOutMessage reom = (RoomEnteredOutMessage) msg;
+            RoomEnteredEvent reom = (RoomEnteredEvent) msg;
             if (reom.getNewbie() != null) {
                 String sayit = null;
                 if (this.greeting != null) {

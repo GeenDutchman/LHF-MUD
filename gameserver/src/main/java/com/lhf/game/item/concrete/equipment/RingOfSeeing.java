@@ -7,15 +7,15 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.map.Room;
-import com.lhf.messages.out.UseOutMessage;
-import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
+import com.lhf.messages.out.ItemUsedEvent;
+import com.lhf.messages.out.ItemUsedEvent.UseOutMessageOption;
 
 public class RingOfSeeing extends Equipable {
 
     public RingOfSeeing(boolean isVisible) {
         super("Ring of Seeing", isVisible, 3);
         this.setUseAction(Room.class.getName(), (ctx, object) -> {
-            UseOutMessage.Builder useOutMessage = UseOutMessage.getBuilder().setItemUser(ctx.getCreature())
+            ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature())
                     .setUsable(this);
             if (object == null) {
                 ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)

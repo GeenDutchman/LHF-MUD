@@ -11,8 +11,8 @@ import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
-import com.lhf.messages.out.CastingMessage;
-import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.CastingEvent;
+import com.lhf.messages.out.SeeEvent;
 
 public abstract class SpellEntry implements TaggedExaminable, Comparable<SpellEntry> {
     private final String className;
@@ -104,7 +104,7 @@ public abstract class SpellEntry implements TaggedExaminable, Comparable<SpellEn
         return this.effectSources;
     }
 
-    abstract public CastingMessage Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets);
+    abstract public CastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets);
 
     @Override
     public String getColorTaggedName() {
@@ -208,7 +208,7 @@ public abstract class SpellEntry implements TaggedExaminable, Comparable<SpellEn
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
-        return SeeOutMessage.getBuilder().setExaminable(this).Build();
+    public SeeEvent produceMessage() {
+        return SeeEvent.getBuilder().setExaminable(this).Build();
     }
 }

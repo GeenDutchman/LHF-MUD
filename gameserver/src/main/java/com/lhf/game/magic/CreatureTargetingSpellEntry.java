@@ -9,7 +9,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
-import com.lhf.messages.out.CastingMessage;
+import com.lhf.messages.out.CastingEvent;
 
 public class CreatureTargetingSpellEntry extends SpellEntry {
     protected final boolean singleTarget;
@@ -32,14 +32,14 @@ public class CreatureTargetingSpellEntry extends SpellEntry {
     }
 
     @Override
-    public CastingMessage Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
+    public CastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
         StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("nothing");
         if (targets != null) {
             for (Taggable taggable : targets) {
                 sj.add(taggable.getColorTaggedName());
             }
         }
-        return CastingMessage.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sj.toString()).Build();
+        return CastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sj.toString()).Build();
     }
 
     @Override

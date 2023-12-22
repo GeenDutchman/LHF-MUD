@@ -3,7 +3,7 @@ package com.lhf.game.creature.intelligence.handlers;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.CreatureAffectedMessage;
+import com.lhf.messages.out.CreatureAffectedEvent;
 import com.lhf.messages.out.GameEvent;
 
 public class HandleCreatureAffected extends AIHandler {
@@ -12,7 +12,7 @@ public class HandleCreatureAffected extends AIHandler {
         super(GameEventType.CREATURE_AFFECTED);
     }
 
-    private void handleOuch(BasicAI bai, CreatureAffectedMessage caMessage) {
+    private void handleOuch(BasicAI bai, CreatureAffectedEvent caMessage) {
         if (bai.getNpc().isInBattle()) {
             if (caMessage.getAffected() == bai.getNpc() && caMessage.getEffect().isOffensive()) {
                 bai.getNpc().getHarmMemories().update(caMessage);
@@ -20,7 +20,7 @@ public class HandleCreatureAffected extends AIHandler {
         }
     }
 
-    private void handleOtherDeath(BasicAI bai, CreatureAffectedMessage caMessage) {
+    private void handleOtherDeath(BasicAI bai, CreatureAffectedEvent caMessage) {
         if (caMessage.isResultedInDeath()) {
             if (bai.getNpc().getConvoTree() != null) {
                 bai.getNpc().getConvoTree().forgetBookmark(caMessage.getAffected());
@@ -31,7 +31,7 @@ public class HandleCreatureAffected extends AIHandler {
     @Override
     public void handle(BasicAI bai, GameEvent msg) {
         if (GameEventType.CREATURE_AFFECTED.equals(msg.getEventType())) {
-            CreatureAffectedMessage caMessage = (CreatureAffectedMessage) msg;
+            CreatureAffectedEvent caMessage = (CreatureAffectedEvent) msg;
             this.handleOtherDeath(bai, caMessage);
             this.handleOuch(bai, caMessage);
         }

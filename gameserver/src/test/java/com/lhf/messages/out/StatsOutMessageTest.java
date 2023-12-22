@@ -11,10 +11,10 @@ import com.lhf.game.enums.HealthBuckets;
 public class StatsOutMessageTest {
     @Test
     void testPrint() {
-        StatsOutMessage.Builder builder = StatsOutMessage.getBuilder();
+        BattleStatsRequestedEvent.Builder builder = BattleStatsRequestedEvent.getBuilder();
         builder.addRecord(new BattleStatRecord("harvey", CreatureFaction.MONSTER, new Fighter(),
                 HealthBuckets.CRITICALLY_INJURED));
-        StatsOutMessage message = builder.Build();
+        BattleStatsRequestedEvent message = builder.Build();
         String messageString = message.print();
         Truth.assertThat(messageString).contains(CreatureFaction.MONSTER.name());
     }

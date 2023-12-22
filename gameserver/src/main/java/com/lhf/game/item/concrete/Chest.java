@@ -14,9 +14,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SeeOutMessage.Builder;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
+import com.lhf.messages.out.SeeEvent;
+import com.lhf.messages.out.SeeEvent.Builder;
+import com.lhf.messages.out.SeeEvent.SeeCategory;
 
 public class Chest extends Item implements LockableItemContainer {
     protected final UUID chestUuid;
@@ -83,15 +83,15 @@ public class Chest extends Item implements LockableItemContainer {
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
-        SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
+    public SeeEvent produceMessage() {
+        SeeEvent.Builder seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         return this.produceMessage(seeOutMessage);
     }
 
     @Override
-    public SeeOutMessage produceMessage(Builder seeOutMessage) {
+    public SeeEvent produceMessage(Builder seeOutMessage) {
         if (seeOutMessage == null) {
-            seeOutMessage = SeeOutMessage.getBuilder();
+            seeOutMessage = SeeEvent.getBuilder();
         }
         seeOutMessage.setExaminable(this);
         for (Item thing : this.getItems()) {

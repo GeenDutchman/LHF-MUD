@@ -42,16 +42,16 @@ import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.CastMessage;
 import com.lhf.messages.in.SpellbookMessage;
-import com.lhf.messages.out.BadMessage;
-import com.lhf.messages.out.BadMessage.BadMessageType;
-import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.messages.out.CastingMessage;
-import com.lhf.messages.out.MissMessage;
+import com.lhf.messages.out.BadMessageEvent;
+import com.lhf.messages.out.BadMessageEvent.BadMessageType;
+import com.lhf.messages.out.BadTargetSelectedEvent;
+import com.lhf.messages.out.BadTargetSelectedEvent.BadTargetOption;
+import com.lhf.messages.out.CastingEvent;
+import com.lhf.messages.out.TargetDefendedEvent;
 import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.SpellEntryMessage;
-import com.lhf.messages.out.SpellFizzleMessage;
-import com.lhf.messages.out.SpellFizzleMessage.SpellFizzleType;
+import com.lhf.messages.out.SpellEntryRequestedEvent;
+import com.lhf.messages.out.SpellFizzledEvent;
+import com.lhf.messages.out.SpellFizzledEvent.SpellFizzleType;
 import com.lhf.server.client.ClientID;
 
 public class ThirdPower implements MessageChainHandler {
@@ -168,7 +168,8 @@ public class ThirdPower implements MessageChainHandler {
                         GameEvent cam = target.applyEffect(effect);
                         ThirdPower.this.channelizeMessage(ctx, cam, spell.isOffensive(), caster, target);
                     } else {
-                        MissMessage missMessage = MissMessage.getBuilder().setAttacker(caster).setTarget(target)
+                        TargetDefendedEvent missMessage = TargetDefendedEvent.getBuilder().setAttacker(caster)
+                                .setTarget(target)
                                 .setOffense(casterResult).setDefense(targetResult).Build();
 
                         ThirdPower.this.channelizeMessage(ctx, missMessage, spell.isOffensive());
@@ -187,7 +188,7 @@ public class ThirdPower implements MessageChainHandler {
             ICreature caster = ctx.getCreature();
             Room localRoom = ctx.getRoom();
             if (caster == null || localRoom == null) {
-                ctx.receive(SpellFizzleMessage.getBuilder().setAttempter(caster)
+                ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster)
                         .setNotBroadcast().setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
                 return ctx.handled();
             }
@@ -200,7 +201,7 @@ public class ThirdPower implements MessageChainHandler {
                     CastHandler.logger.log(Level.WARNING,
                             () -> String.format("Searching for '%s' got '%s', cannot continue selecting targets",
                                     targetName, found));
-                    ctx.receive(BadTargetSelectedMessage.getBuilder()
+                    ctx.receive(BadTargetSelectedEvent.getBuilder()
                             .setBde(found.size() > 1 ? BadTargetOption.UNCLEAR : BadTargetOption.NOTARGET)
                             .setBadTarget(targetName).setPossibleTargets(found).Build());
                     return ctx.handled();
@@ -223,7 +224,7 @@ public class ThirdPower implements MessageChainHandler {
                     && entry.getLevel().compareTo(ResourceCost.fromInt(casting.getLevel())) <= 0
                             ? ResourceCost.fromInt(casting.getLevel())
                             : entry.getLevel();
-            CastingMessage castingMessage = entry.Cast(caster, level, possTargets);
+            CastingEvent castingMessage = entry.Cast(caster, level, possTargets);
             ThirdPower.this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
 
             return this.affectCreatures(ctx, spell, possTargets);
@@ -238,7 +239,7 @@ public class ThirdPower implements MessageChainHandler {
             final ICreature caster = ctx.getCreature();
             final Room localRoom = ctx.getRoom();
             if (caster == null || localRoom == null) {
-                ctx.receive(SpellFizzleMessage.getBuilder().setAttempter(caster)
+                ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster)
                         .setNotBroadcast().setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
                 return ctx.handled();
             }
@@ -285,7 +286,7 @@ public class ThirdPower implements MessageChainHandler {
                     && entry.getLevel().compareTo(ResourceCost.fromInt(casting.getLevel())) <= 0
                             ? ResourceCost.fromInt(casting.getLevel())
                             : entry.getLevel();
-            CastingMessage castingMessage = entry.Cast(caster, level, new ArrayList<>(targets));
+            CastingEvent castingMessage = entry.Cast(caster, level, new ArrayList<>(targets));
             ThirdPower.this.channelizeMessage(ctx, castingMessage, spell.isOffensive(), caster);
 
             return this.affectCreatures(ctx, spell, targets);
@@ -309,7 +310,7 @@ public class ThirdPower implements MessageChainHandler {
                     GameEvent ram = ctx.getRoom().applyEffect(effect);
                     ThirdPower.this.channelizeMessage(ctx, ram, spell.isOffensive(), caster);
                 } else {
-                    SpellFizzleMessage fizzleMessage = SpellFizzleMessage.getBuilder().setAttempter(caster)
+                    SpellFizzledEvent fizzleMessage = SpellFizzledEvent.getBuilder().setAttempter(caster)
                             .setSubType(SpellFizzleType.OTHER).setOffense(casterResult).setDefense(targetResult)
                             .Build();
                     ThirdPower.this.channelizeMessage(ctx, fizzleMessage, spell.isOffensive());
@@ -328,7 +329,7 @@ public class ThirdPower implements MessageChainHandler {
             final ICreature caster = ctx.getCreature();
             final Room localRoom = ctx.getRoom();
             if (caster == null || localRoom == null || !(localRoom instanceof DMRoom)) {
-                ctx.receive(SpellFizzleMessage.getBuilder().setAttempter(caster)
+                ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster)
                         .setNotBroadcast().setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
                 return ctx.failhandle();
             }
@@ -346,7 +347,7 @@ public class ThirdPower implements MessageChainHandler {
                 String target = casting.getByPreposition("at");
                 if (target == null) {
                     CastHandler.logger.log(Level.WARNING, "No target found!");
-                    ctx.receive(BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.NOTARGET)
+                    ctx.receive(BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.NOTARGET)
                             .setBadTarget(target).Build());
                     return ctx.handled();
                 }
@@ -355,7 +356,7 @@ public class ThirdPower implements MessageChainHandler {
                     CastHandler.logger.log(Level.WARNING,
                             () -> String.format("User '%s' is not in the DMRoom", target));
                     ctx.receive(
-                            SpellFizzleMessage.getBuilder().setSubType(SpellFizzleType.OTHER).setAttempter(caster)
+                            SpellFizzledEvent.getBuilder().setSubType(SpellFizzleType.OTHER).setAttempter(caster)
                                     .setNotBroadcast().Build());
                     return ctx.handled();
                 }
@@ -371,7 +372,7 @@ public class ThirdPower implements MessageChainHandler {
                     CastHandler.logger.log(Level.WARNING,
                             () -> String.format("Cannot ensoul %s without vocation!", foundUser));
                     ctx.receive(
-                            SpellFizzleMessage.getBuilder().setSubType(SpellFizzleType.OTHER).setAttempter(caster)
+                            SpellFizzledEvent.getBuilder().setSubType(SpellFizzleType.OTHER).setAttempter(caster)
                                     .setNotBroadcast().Build());
                     return ctx.handled();
                 }
@@ -384,7 +385,7 @@ public class ThirdPower implements MessageChainHandler {
                     && entry.getLevel().compareTo(ResourceCost.fromInt(casting.getLevel())) <= 0
                             ? ResourceCost.fromInt(casting.getLevel())
                             : entry.getLevel();
-            CastingMessage castingMessage = entry.Cast(caster, level, taggedTargets);
+            CastingEvent castingMessage = entry.Cast(caster, level, taggedTargets);
             ThirdPower.this.channelizeMessage(ctx, castingMessage, spell.isOffensive());
 
             return this.affectRoom(ctx, spell);
@@ -399,7 +400,7 @@ public class ThirdPower implements MessageChainHandler {
             final ICreature caster = ctx.getCreature();
             final Room localRoom = ctx.getRoom();
             if (caster == null || localRoom == null) {
-                ctx.receive(SpellFizzleMessage.getBuilder().setAttempter(caster)
+                ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster)
                         .setNotBroadcast().setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
                 return ctx.handled();
             }
@@ -413,7 +414,7 @@ public class ThirdPower implements MessageChainHandler {
                     && entry.getLevel().compareTo(ResourceCost.fromInt(casting.getLevel())) <= 0
                             ? ResourceCost.fromInt(casting.getLevel())
                             : entry.getLevel();
-            CastingMessage castingMessage = entry.Cast(caster, level, null);
+            CastingEvent castingMessage = entry.Cast(caster, level, null);
             ThirdPower.this.channelizeMessage(ctx, castingMessage, spell.isOffensive());
 
             return this.affectRoom(ctx, spell);
@@ -445,7 +446,7 @@ public class ThirdPower implements MessageChainHandler {
 
             SpellEntry entry = this.getEntry(ctx, casting);
             if (entry == null) {
-                SpellFizzleMessage.Builder spellFizzleMessage = SpellFizzleMessage.getBuilder().setAttempter(caster)
+                SpellFizzledEvent.Builder spellFizzleMessage = SpellFizzledEvent.getBuilder().setAttempter(caster)
                         .setNotBroadcast();
                 ctx.receive(spellFizzleMessage.setSubType(SpellFizzleType.MISPRONOUNCE).setNotBroadcast().Build());
                 if (ctx.getRoom() != null) {
@@ -474,13 +475,13 @@ public class ThirdPower implements MessageChainHandler {
         public Reply flushHandle(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.CAST && cmd instanceof CastMessage castmessage) {
                 if (ctx.getCreature() == null) {
-                    ctx.receive(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                    ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                             .setHelps(ctx.getHelps()).setCommand(castmessage).Build());
                     return ctx.handled();
                 }
                 ICreature attempter = ctx.getCreature();
                 if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
-                    SpellFizzleMessage.Builder spellFizzle = SpellFizzleMessage.getBuilder()
+                    SpellFizzledEvent.Builder spellFizzle = SpellFizzledEvent.getBuilder()
                             .setSubType(SpellFizzleType.NOT_CASTER).setAttempter(attempter).setNotBroadcast();
                     ctx.receive(spellFizzle.Build());
                     if (ctx.getRoom() != null) {
@@ -534,7 +535,7 @@ public class ThirdPower implements MessageChainHandler {
             SpellbookMessage spellbookMessage = (SpellbookMessage) cmd;
             ICreature caster = ctx.getCreature();
             if (caster.getVocation() == null || !(caster.getVocation() instanceof CubeHolder)) {
-                SpellEntryMessage.Builder notCaster = SpellEntryMessage.getBuilder().setNotCubeHolder()
+                SpellEntryRequestedEvent.Builder notCaster = SpellEntryRequestedEvent.getBuilder().setNotCubeHolder()
                         .setNotBroadcast();
                 ctx.receive(notCaster.Build());
                 return ctx.handled();
@@ -553,7 +554,7 @@ public class ThirdPower implements MessageChainHandler {
                     caster.getVocation().getVocationName(),
                     spellbookMessage.getSpellName(), null,
                     ((CubeHolder) caster.getVocation()).availableMagnitudes());
-            ctx.receive(SpellEntryMessage.getBuilder().setEntries(entries).Build());
+            ctx.receive(SpellEntryRequestedEvent.getBuilder().setEntries(entries).Build());
             return ctx.handled();
         }
 

@@ -2,9 +2,9 @@ package com.lhf.game.item;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.interfaces.InteractAction;
-import com.lhf.messages.out.InteractOutMessage;
+import com.lhf.messages.out.ItemInteractionEvent;
 import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
+import com.lhf.messages.out.ItemInteractionEvent.InteractOutMessageType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,11 +33,12 @@ public class InteractObject extends Item {
 
     public GameEvent doUseAction(ICreature creature) {
         if (method == null) {
-            return InteractOutMessage.getBuilder().setTaggable(this).setSubType(InteractOutMessageType.NO_METHOD)
+            return ItemInteractionEvent.getBuilder().setTaggable(this).setSubType(InteractOutMessageType.NO_METHOD)
                     .Build();
         }
         if (!isRepeatable && hasBeenInteracted) {
-            return InteractOutMessage.getBuilder().setTaggable(this).setSubType(InteractOutMessageType.USED_UP).Build();
+            return ItemInteractionEvent.getBuilder().setTaggable(this).setSubType(InteractOutMessageType.USED_UP)
+                    .Build();
         }
         hasBeenInteracted = true;
         return method.doAction(creature, this, interactItems);

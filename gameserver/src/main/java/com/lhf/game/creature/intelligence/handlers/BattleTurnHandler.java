@@ -33,11 +33,11 @@ import com.lhf.game.map.Directions;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.BattleRoundMessage;
+import com.lhf.messages.out.BattleRoundEvent;
 import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.SpellEntryMessage;
-import com.lhf.messages.out.StatsOutMessage;
-import com.lhf.messages.out.BattleRoundMessage.RoundAcceptance;
+import com.lhf.messages.out.SpellEntryRequestedEvent;
+import com.lhf.messages.out.BattleStatsRequestedEvent;
+import com.lhf.messages.out.BattleRoundEvent.RoundAcceptance;
 
 public class BattleTurnHandler extends AIHandler {
 
@@ -63,7 +63,7 @@ public class BattleTurnHandler extends AIHandler {
         return roller.rollDice().getRoll() / (double) roller.getType().getType();
     }
 
-    public TargetLists chooseTargets(Optional<StatsOutMessage> battleMemories,
+    public TargetLists chooseTargets(Optional<BattleStatsRequestedEvent> battleMemories,
             HarmMemories harmMemories,
             CreatureFaction myFaction) {
         if (battleMemories == null || battleMemories.isEmpty()) {
@@ -121,7 +121,7 @@ public class BattleTurnHandler extends AIHandler {
     }
 
     // Returns empty if not to flee, otherwise populated with "flee <direction>"
-    private Optional<String> processFlee(Optional<StatsOutMessage> battleMemories,
+    private Optional<String> processFlee(Optional<BattleStatsRequestedEvent> battleMemories,
             HarmMemories harmMemories,
             CreatureFaction myFaction) {
         if (battleMemories.isEmpty()) {
@@ -195,11 +195,11 @@ public class BattleTurnHandler extends AIHandler {
         final double offensiveFocus = VocationName.HEALER.equals(bai.getNpc().getVocation().getVocationName()) ? 0.2
                 : 0.8;
         if (bai.getNpc().getVocation().getVocationName().isCubeHolder()) {
-            Optional<SpellEntryMessage> spellbookEntries = bai.ProcessString("SPELLBOOK").getMessages()
+            Optional<SpellEntryRequestedEvent> spellbookEntries = bai.ProcessString("SPELLBOOK").getMessages()
                     .stream()
                     .filter(outMessage -> outMessage != null
                             && GameEventType.SPELL_ENTRY.equals((outMessage.getEventType())))
-                    .map(outMessage -> ((SpellEntryMessage) outMessage)).findFirst();
+                    .map(outMessage -> ((SpellEntryRequestedEvent) outMessage)).findFirst();
             if (spellbookEntries.isPresent()) {
                 try {
                     SpellEntry spellEntry = spellbookEntries.get().getEntries().stream()
@@ -242,12 +242,12 @@ public class BattleTurnHandler extends AIHandler {
         // return;
         // }
 
-        BattleRoundMessage btm = (BattleRoundMessage) msg;
+        BattleRoundEvent btm = (BattleRoundEvent) msg;
         if (RoundAcceptance.NEEDED.equals(btm.getNeedSubmission())) {
             Reply reply = bai.ProcessString("STATS");
-            Optional<StatsOutMessage> statsOutOpt = reply.getMessages().stream()
+            Optional<BattleStatsRequestedEvent> statsOutOpt = reply.getMessages().stream()
                     .filter(outMessage -> outMessage != null && GameEventType.STATS.equals(outMessage.getEventType()))
-                    .map(outMessage -> ((StatsOutMessage) outMessage)).findFirst();
+                    .map(outMessage -> ((BattleStatsRequestedEvent) outMessage)).findFirst();
 
             if (statsOutOpt.isEmpty()) {
                 this.logger.warning(() -> String

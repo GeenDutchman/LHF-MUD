@@ -6,7 +6,7 @@ import com.lhf.Taggable;
 import com.lhf.TaggedExaminable;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.ICreature;
-import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.out.SeeEvent;
 
 public abstract class EntityEffect implements TaggedExaminable, Comparable<EntityEffect> {
 
@@ -77,7 +77,7 @@ public abstract class EntityEffect implements TaggedExaminable, Comparable<Entit
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
+    public SeeEvent produceMessage() {
         return this.source.produceMessage();
     }
 

@@ -18,7 +18,7 @@ import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.SpeakingMessage;
+import com.lhf.messages.out.SpeakingEvent;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.User;
 
@@ -42,7 +42,7 @@ public class SpokenPromptChunk extends AIHandler {
         return this;
     }
 
-    private void basicHandle(BasicAI bai, SpeakingMessage sm) {
+    private void basicHandle(BasicAI bai, SpeakingEvent sm) {
         ConversationTree tree = bai.getNpc().getConvoTree();
         if (tree != null) {
             ConversationTreeNodeResult result = tree.listen(sm.getSayer(), sm.getMessage());
@@ -87,7 +87,7 @@ public class SpokenPromptChunk extends AIHandler {
     @Override
     public void handle(BasicAI bai, GameEvent msg) {
         if (msg.getEventType().equals(GameEventType.SPEAKING)) {
-            SpeakingMessage sm = (SpeakingMessage) msg;
+            SpeakingEvent sm = (SpeakingEvent) msg;
             if (!sm.getShouting() && sm.getHearer() != null && sm.getHearer() instanceof INonPlayerCharacter) {
                 if (sm.getSayer() instanceof ICreature || (this.allowUsers && sm.getSayer() instanceof User)) {
                     if (sm.getMessage().startsWith("PROMPT") &&

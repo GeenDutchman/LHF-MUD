@@ -21,9 +21,9 @@ import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.in.CreateInMessage;
-import com.lhf.messages.out.DuplicateUserMessage;
-import com.lhf.messages.out.UserLeftMessage;
-import com.lhf.messages.out.WelcomeMessage;
+import com.lhf.messages.out.UserDuplicationEvent;
+import com.lhf.messages.out.UserLeftEvent;
+import com.lhf.messages.out.WelcomeEvent;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.ClientManager;
@@ -78,7 +78,7 @@ public class Server implements ServerInterface, ConnectionListener {
     public Client startClient(Client client) {
         this.logger.log(Level.FINER, "Sending welcome");
         client.setSuccessor(this);
-        Client.eventAccepter.accept(client, WelcomeMessage.getWelcomeBuilder().Build());
+        Client.eventAccepter.accept(client, WelcomeEvent.getWelcomeBuilder().Build());
         return client;
     }
 
@@ -208,10 +208,10 @@ public class Server implements ServerInterface, ConnectionListener {
                     Server.this.game.userLeft(ctx.getUserID());
                     User leaving = Server.this.userManager.getUser(ctx.getUserID());
                     Server.this.userManager.removeUser(ctx.getUserID());
-                    ctx.receive(UserLeftMessage.getBuilder().setUser(leaving).setNotBroadcast().Build());
+                    ctx.receive(UserLeftEvent.getBuilder().setUser(leaving).setNotBroadcast().Build());
                 } else {
                     if (ch != null) {
-                        ctx.receive(UserLeftMessage.getBuilder().setNotBroadcast().Build());
+                        ctx.receive(UserLeftEvent.getBuilder().setNotBroadcast().Build());
                     }
                 }
 
@@ -254,12 +254,12 @@ public class Server implements ServerInterface, ConnectionListener {
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof CreateInMessage msg) {
                 if (Server.this.userManager.getForbiddenUsernames().contains(msg.getUsername())) {
-                    ctx.receive(DuplicateUserMessage.getBuilder().Build());
+                    ctx.receive(UserDuplicationEvent.getBuilder().Build());
                     return ctx.handled();
                 }
                 User user = Server.this.userManager.addUser(msg, ctx.getClient());
                 if (user == null) {
-                    ctx.receive(DuplicateUserMessage.getBuilder().Build());
+                    ctx.receive(UserDuplicationEvent.getBuilder().Build());
                     return ctx.handled();
                 }
                 user.setSuccessor(Server.this);

@@ -18,7 +18,7 @@ import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
-import com.lhf.messages.out.CastingMessage;
+import com.lhf.messages.out.CastingEvent;
 
 public class ThunderStrike extends CreatureTargetingSpellEntry {
 
@@ -37,13 +37,13 @@ public class ThunderStrike extends CreatureTargetingSpellEntry {
     }
 
     @Override
-    public CastingMessage Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
+    public CastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
         StringBuilder sb = new StringBuilder();
         for (Taggable target : targets) {
             sb.append("A large bolt zaps from ").append(caster.getColorTaggedName())
                     .append("'s hand and thunders toward ").append(target.getColorTaggedName()).append("!");
         }
-        return CastingMessage.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sb.toString()).Build();
+        return CastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sb.toString()).Build();
     }
 
 }

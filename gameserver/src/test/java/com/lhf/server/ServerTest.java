@@ -26,8 +26,8 @@ import com.lhf.messages.MessageMatcher;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.UserLeftMessage;
-import com.lhf.messages.out.WelcomeMessage;
+import com.lhf.messages.out.UserLeftEvent;
+import com.lhf.messages.out.WelcomeEvent;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.ClientManager;
 import com.lhf.server.client.ComBundle;
@@ -119,14 +119,14 @@ public class ServerTest {
 
     @Test
     void testServerInitialMessage() {
-        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeMessage.class));
+        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeEvent.class));
     }
 
     @Test
     void testFreshExit() {
         String message = this.comm.handleCommand("exit");
         Truth.assertThat(message).ignoringCase().contains("goodbye");
-        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(UserLeftMessage.class));
+        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(UserLeftEvent.class));
     }
 
     @Test
@@ -141,7 +141,7 @@ public class ServerTest {
 
     @Test
     void testCharacterCreation() {
-        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeMessage.class));
+        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeEvent.class));
         String message = this.comm.create("Tester");
         Truth.assertThat(message).ignoringCase().contains("room");
         Truth.assertThat(message).contains(this.comm.name);
@@ -149,7 +149,7 @@ public class ServerTest {
 
     @Test
     void testComplexCharacterCreation() {
-        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeMessage.class));
+        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeEvent.class));
         this.comm.handleCommand("CREATE Tester with Tester", null); // we won't see anything, just be
                                                                     // greeted
         Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
@@ -224,7 +224,7 @@ public class ServerTest {
         Truth.assertThat(findEm).contains(dude1.name);
         Truth.assertThat(findEm).contains(dude2.name);
         dude2.handleCommand("exit", GameEventType.USER_LEFT);
-        Mockito.verify(this.comm.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.any(UserLeftMessage.class));
+        Mockito.verify(this.comm.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.any(UserLeftEvent.class));
         findEm = this.comm.handleCommand("players", GameEventType.LIST_PLAYERS);
         Truth.assertThat(findEm).contains(this.comm.name);
         Truth.assertThat(findEm).contains(dude1.name);

@@ -26,10 +26,10 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.messages.out.BattleRoundMessage;
-import com.lhf.messages.out.StatsOutMessage;
+import com.lhf.messages.out.BadTargetSelectedEvent;
+import com.lhf.messages.out.BadTargetSelectedEvent.BadTargetOption;
+import com.lhf.messages.out.BattleRoundEvent;
+import com.lhf.messages.out.BattleStatsRequestedEvent;
 
 public class BattleTurnHandlerTest {
     @Spy
@@ -54,7 +54,7 @@ public class BattleTurnHandlerTest {
                 .initialize(List.of(finder.npc, attacker.npc, subAttacker.npc));
 
         TargetLists targets = handler.chooseTargets(
-                Optional.of(StatsOutMessage.getBuilder()
+                Optional.of(BattleStatsRequestedEvent.getBuilder()
                         .addRecords(battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING))
                         .Build()),
                 finder.npc.getHarmMemories(),
@@ -82,7 +82,7 @@ public class BattleTurnHandlerTest {
                         Command cmd = invocation.getArgument(1);
                         if (cmd.getType().equals(CommandMessage.ATTACK)
                                 && cmd.getWhole().contains("bloohoo")) {
-                            BadTargetSelectedMessage btsm = BadTargetSelectedMessage
+                            BadTargetSelectedEvent btsm = BadTargetSelectedEvent
                                     .getBuilder()
                                     .setBde(BadTargetOption.DNE)
                                     .setBadTarget("bloohoo")
@@ -102,7 +102,7 @@ public class BattleTurnHandlerTest {
 
         // trigger it
         AIComBundle.eventAccepter.accept(searcher.npc,
-                BattleRoundMessage.getBuilder().setAboutCreature(searcher.npc).setNeeded()
+                BattleRoundEvent.getBuilder().setAboutCreature(searcher.npc).setNeeded()
                         .Build());
 
         Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();

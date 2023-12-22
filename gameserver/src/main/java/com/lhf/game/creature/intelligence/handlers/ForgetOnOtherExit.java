@@ -4,7 +4,7 @@ import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.GameEvent;
-import com.lhf.messages.out.SomeoneLeftRoom;
+import com.lhf.messages.out.RoomExitedEvent;
 
 public class ForgetOnOtherExit extends AIHandler {
     public ForgetOnOtherExit() {
@@ -14,7 +14,7 @@ public class ForgetOnOtherExit extends AIHandler {
     @Override
     public void handle(BasicAI bai, GameEvent msg) {
         if (GameEventType.ROOM_EXITED.equals(msg.getEventType())) {
-            SomeoneLeftRoom slr = (SomeoneLeftRoom) msg;
+            RoomExitedEvent slr = (RoomExitedEvent) msg;
             if (slr.getLeaveTaker() != null) {
                 if (bai.getNpc().getConvoTree() != null) {
                     bai.getNpc().getConvoTree().forgetBookmark(slr.getLeaveTaker());

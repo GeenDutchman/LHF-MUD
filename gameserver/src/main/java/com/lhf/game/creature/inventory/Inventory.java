@@ -14,9 +14,9 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
-import com.lhf.messages.out.InventoryOutMessage;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
+import com.lhf.messages.out.InventoryRequestedEvent;
+import com.lhf.messages.out.SeeEvent;
+import com.lhf.messages.out.SeeEvent.SeeCategory;
 
 public class Inventory implements ItemContainer {
     private List<Takeable> items;
@@ -54,12 +54,12 @@ public class Inventory implements ItemContainer {
         return this.items.stream().map(item -> item.getColorTaggedName()).collect(Collectors.joining(", "));
     }
 
-    public InventoryOutMessage getInventoryOutMessage() {
+    public InventoryRequestedEvent getInventoryOutMessage() {
         return this.getInventoryOutMessage(null);
     }
 
-    public InventoryOutMessage getInventoryOutMessage(Map<EquipmentSlots, Equipable> equipment) {
-        return InventoryOutMessage.getBuilder().setItems(this.items).setEquipment(equipment).Build();
+    public InventoryRequestedEvent getInventoryOutMessage(Map<EquipmentSlots, Equipable> equipment) {
+        return InventoryRequestedEvent.getBuilder().setItems(this.items).setEquipment(equipment).Build();
     }
 
     public String toStoreString() {
@@ -96,8 +96,8 @@ public class Inventory implements ItemContainer {
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
-        SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
+    public SeeEvent produceMessage() {
+        SeeEvent.Builder seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         for (Takeable thing : this.items) {
             seeOutMessage.addSeen(SeeCategory.TAKEABLE, thing);
         }

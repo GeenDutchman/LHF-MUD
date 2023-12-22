@@ -17,8 +17,8 @@ import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.FleeMessage;
+import com.lhf.messages.out.BadTargetSelectedEvent;
+import com.lhf.messages.out.CreatureFledEvent;
 import com.lhf.messages.out.GameEvent;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.DoNothingSendStrategy;
@@ -81,7 +81,7 @@ public class BasicAI extends Client {
 
         this.handlers.put(GameEventType.FLEE, (BasicAI bai, GameEvent msg) -> {
             if (msg.getEventType().equals(GameEventType.FLEE)) {
-                FleeMessage flee = (FleeMessage) msg;
+                CreatureFledEvent flee = (CreatureFledEvent) msg;
                 if (flee.isFled() && flee.getRunner() != null) {
                     if (flee.getRunner() == bai.getNpc()) {
                         bai.npc.getHarmMemories().reset();
@@ -91,7 +91,7 @@ public class BasicAI extends Client {
         });
         this.handlers.put(GameEventType.BAD_TARGET_SELECTED, (BasicAI bai, GameEvent msg) -> {
             if (msg.getEventType().equals(GameEventType.BAD_TARGET_SELECTED) && bai.getNpc().isInBattle()) {
-                BadTargetSelectedMessage btsm = (BadTargetSelectedMessage) msg;
+                BadTargetSelectedEvent btsm = (BadTargetSelectedEvent) msg;
                 this.log(Level.WARNING,
                         () -> String.format("Selected a bad target: %s with possible targets", btsm,
                                 btsm.getPossibleTargets()));

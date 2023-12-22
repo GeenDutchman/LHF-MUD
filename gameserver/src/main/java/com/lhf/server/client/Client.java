@@ -19,9 +19,9 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.BadMessage;
-import com.lhf.messages.out.BadMessage.BadMessageType;
-import com.lhf.messages.out.HelpMessage;
+import com.lhf.messages.out.BadMessageEvent;
+import com.lhf.messages.out.BadMessageEvent.BadMessageType;
+import com.lhf.messages.out.HelpNeededEvent;
 import com.lhf.messages.out.GameEvent;
 
 public class Client implements MessageChainHandler {
@@ -125,7 +125,8 @@ public class Client implements MessageChainHandler {
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             Reply reply = MessageChainHandler.passUpChain(Client.this, ctx, null); // this will collect all the helps
-            Client.eventAccepter.accept(Client.this, HelpMessage.getHelpBuilder().setHelps(reply.getHelps()).Build());
+            Client.eventAccepter.accept(Client.this,
+                    HelpNeededEvent.getHelpBuilder().setHelps(reply.getHelps()).Build());
             return reply.resolve();
         }
 
@@ -137,10 +138,11 @@ public class Client implements MessageChainHandler {
 
         if (badMessageType != null) {
             Client.eventAccepter.accept(this,
-                    BadMessage.getBuilder().setBadMessageType(badMessageType).setHelps(helps).setCommand(msg).Build());
+                    BadMessageEvent.getBuilder().setBadMessageType(badMessageType).setHelps(helps).setCommand(msg)
+                            .Build());
         } else {
             Client.eventAccepter.accept(this,
-                    HelpMessage.getHelpBuilder().setHelps(helps).setSingleHelp(msg == null ? null : msg.getType())
+                    HelpNeededEvent.getHelpBuilder().setHelps(helps).setSingleHelp(msg == null ? null : msg.getType())
                             .Build());
         }
         return reply.resolve();
