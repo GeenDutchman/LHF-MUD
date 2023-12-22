@@ -104,7 +104,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
             InteractOutMessage.Builder iom = InteractOutMessage.getBuilder().setPerformed()
                     .setDescription("You slept and got back " + sleepCheck.getColorTaggedName() + " hit points!")
                     .setTaggable(Bed.this);
-            this.occupant.receive(iom.Build());
+            ICreature.eventAccepter.accept(this.occupant, iom.Build());
         }
 
         private Bed getEnclosingInstance() {
@@ -273,7 +273,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
     public boolean removeCreature(ICreature doneSleeping) {
         BedTime found = this.getBedTime(doneSleeping);
         if (found != null) {
-            found.occupant.receive(InteractOutMessage.getBuilder().setTaggable(this)
+            ICreature.eventAccepter.accept(found.occupant, InteractOutMessage.getBuilder().setTaggable(this)
                     .setDescription("You got out of the bed!").setPerformed().Build());
             found.cancel();
             found.occupant.setSuccessor(found.successor);

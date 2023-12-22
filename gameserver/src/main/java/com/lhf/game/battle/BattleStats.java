@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -474,11 +475,13 @@ public class BattleStats implements ClientMessenger {
     }
 
     @Override
-    public void receive(OutMessage msg) {
-        if (msg != null && OutMessageType.CREATURE_AFFECTED.equals(msg.getOutType())) {
-            CreatureAffectedMessage cam = (CreatureAffectedMessage) msg;
-            this.update(cam);
-        }
+    public Consumer<OutMessage> getAcceptHook() {
+        return (event) -> {
+            if (event != null && OutMessageType.CREATURE_AFFECTED.equals(event.getOutType())) {
+                CreatureAffectedMessage cam = (CreatureAffectedMessage) event;
+                this.update(cam);
+            }
+        };
     }
 
     @Override

@@ -142,7 +142,7 @@ public class CommandContext {
         this.creature = creature;
     }
 
-    public void receive(OutMessage msg) {
+    public synchronized void receive(OutMessage msg) {
         if (msg != null) {
             this.addMessage(msg);
             if (this.creature != null) {

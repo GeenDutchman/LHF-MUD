@@ -274,7 +274,7 @@ public class Room implements Area {
         boolean added = this.allCreatures.add(c);
         if (added) {
             this.logger.log(Level.FINER, () -> String.format("%s entered the room", c.getName()));
-            c.receive(this.produceMessage());
+            ICreature.eventAccepter.accept(c, this.produceMessage());
             this.announce(RoomEnteredOutMessage.getBuilder().setNewbie(c).setBroacast().Build(), c);
         }
         if (this.battleManager.isBattleOngoing("Room.addCreature()") && !CreatureFaction.NPC.equals(c.getFaction())) {
@@ -1041,7 +1041,7 @@ public class Room implements Area {
                     boolean sent = false;
                     Optional<ICreature> optTarget = Room.this.getCreature(sMessage.getTarget());
                     if (optTarget.isPresent()) {
-                        ClientMessenger sayer = ctx;
+                        ClientMessenger sayer = ctx.getClient();
                         if (ctx.getCreature() != null) {
                             sayer = ctx.getCreature();
                         } else if (ctx.getUser() != null) {
@@ -1049,7 +1049,7 @@ public class Room implements Area {
                         }
                         ICreature target = optTarget.get();
                         speakMessage.setSayer(sayer).setHearer(target);
-                        target.receive(speakMessage.Build());
+                        ICreature.eventAccepter.accept(target, speakMessage.Build());
                         sent = true;
                     }
                     if (!sent) {

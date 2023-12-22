@@ -497,7 +497,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                     } else {
                         this.announce(joinedMessage.Build(), c);
                     }
-                    c.receive(joinedMessage.setNotBroadcast().Build());
+                    ICreature.eventAccepter.accept(c, joinedMessage.setNotBroadcast().Build());
                     if (ongoing) {
                         RoundThread thread = this.battleThread.get();
                         if (thread != null) {
@@ -707,7 +707,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         if (!CreatureFaction.RENEGADE.equals(turned.getFaction())) {
             turned.setFaction(CreatureFaction.RENEGADE);
             RenegadeAnnouncement.Builder builder = RenegadeAnnouncement.getBuilder(turned);
-            turned.receive(builder.setNotBroadcast().Build());
+            ICreature.eventAccepter.accept(turned, builder.setNotBroadcast().Build());
             builder.setBroacast();
             if (this.room != null) {
                 room.announce(builder.Build(), turned);
@@ -1097,16 +1097,16 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             if (possTargets.size() == 1) {
                 ICreature targeted = possTargets.get(0);
                 if (targeted.equals(attacker)) {
-                    attacker.receive(btMessBuilder.setBde(BadTargetOption.SELF).Build());
+                    ICreature.eventAccepter.accept(attacker, btMessBuilder.setBde(BadTargetOption.SELF).Build());
                     continue; // go to next name
                 }
                 targets.add(targeted);
             } else {
                 btMessBuilder.setPossibleTargets(possTargets);
                 if (possTargets.size() == 0) {
-                    attacker.receive(btMessBuilder.setBde(BadTargetOption.DNE).Build());
+                    ICreature.eventAccepter.accept(attacker, btMessBuilder.setBde(BadTargetOption.DNE).Build());
                 } else {
-                    attacker.receive(btMessBuilder.setBde(BadTargetOption.UNCLEAR).Build());
+                    ICreature.eventAccepter.accept(attacker, btMessBuilder.setBde(BadTargetOption.UNCLEAR).Build());
                 }
                 continue; // go to next name
             }
@@ -1201,10 +1201,10 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 NotPossessedMessage.Builder builder = NotPossessedMessage.getBuilder().setNotBroadcast()
                         .setItemName(weaponName).setItemType(Weapon.class.getSimpleName());
                 if (inventoryItem.isEmpty()) {
-                    attacker.receive(builder.Build());
+                    ICreature.eventAccepter.accept(attacker, builder.Build());
                     return null;
                 } else if (!(inventoryItem.get() instanceof Weapon)) {
-                    attacker.receive(builder.setFound(inventoryItem.get()).Build());
+                    ICreature.eventAccepter.accept(attacker, builder.setFound(inventoryItem.get()).Build());
                     return null;
                 } else {
                     return (Weapon) inventoryItem.get();
@@ -1322,8 +1322,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     public void callReinforcements(@NotNull ICreature attackingCreature, @NotNull ICreature targetCreature) {
         ReinforcementsCall.Builder reBuilder = ReinforcementsCall.getBuilder();
         if (targetCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(targetCreature.getFaction())) {
-            targetCreature
-                    .receive(reBuilder.setNotBroadcast().setCaller(targetCreature).setCallerAddressed(true).Build());
+            ICreature.eventAccepter.accept(targetCreature,
+                    reBuilder.setNotBroadcast().setCaller(targetCreature).setCallerAddressed(true).Build());
             return;
         }
         if (this.room == null) {
@@ -1352,8 +1352,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
 
         if (attackingCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(attackingCreature.getFaction())) {
-            attackingCreature
-                    .receive(reBuilder.setCallerAddressed(true).setNotBroadcast().setCaller(attackingCreature).Build());
+            ICreature.eventAccepter.accept(attackingCreature,
+                    reBuilder.setCallerAddressed(true).setNotBroadcast().setCaller(attackingCreature).Build());
             return;
         }
         if (!CreatureFaction.NPC.equals(targetCreature.getFaction())) {

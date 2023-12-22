@@ -262,8 +262,7 @@ public class DMRoom extends Room {
                     if (dmRoomEffect.creatureResponsible() != null) {
                         OutMessage whoops = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.DNE)
                                 .setBadTarget(name).Build();
-                        dmRoomEffect.creatureResponsible()
-                                .receive(whoops);
+                        ICreature.eventAccepter.accept(dmRoomEffect.creatureResponsible(), whoops);
                         return null;
                     }
                 }
@@ -271,8 +270,9 @@ public class DMRoom extends Room {
                 if (maybeCorpse.isEmpty() || !(maybeCorpse.get() instanceof Corpse)) {
                     this.logger.log(Level.FINEST, () -> String.format("No corpse was found with the name '%s'", name));
                     if (effect.creatureResponsible() != null) {
-                        effect.creatureResponsible().receive(BadTargetSelectedMessage.getBuilder()
-                                .setBde(BadTargetOption.DNE).setBadTarget(name).Build());
+                        ICreature.eventAccepter.accept(dmRoomEffect.creatureResponsible(),
+                                BadTargetSelectedMessage.getBuilder()
+                                        .setBde(BadTargetOption.DNE).setBadTarget(name).Build());
                         return null;
                     }
                 }
@@ -298,14 +298,15 @@ public class DMRoom extends Room {
                     boolean sent = false;
                     for (User u : DMRoom.this.users) {
                         if (u.getUsername().equals(sayMessage.getTarget())) {
-                            ClientMessenger sayer = ctx;
+                            ClientMessenger sayer = ctx.getClient();
                             if (ctx.getCreature() != null) {
                                 sayer = ctx.getCreature();
                             } else if (ctx.getUser() != null) {
                                 sayer = ctx.getUser();
                             }
-                            u.receive(SpeakingMessage.getBuilder().setSayer(sayer).setMessage(sayMessage.getMessage())
-                                    .setHearer(u).Build());
+                            User.eventAccepter.accept(u,
+                                    SpeakingMessage.getBuilder().setSayer(sayer).setMessage(sayMessage.getMessage())
+                                            .setHearer(u).Build());
                             sent = true;
                             break;
                         }

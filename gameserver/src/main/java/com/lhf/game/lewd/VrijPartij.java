@@ -116,7 +116,7 @@ public class VrijPartij {
         if (lom != null) {
             for (Map.Entry<ICreature, LewdAnswer> entry : this.getParty().entrySet()) {
                 if (!LewdAnswer.DENIED.equals(entry.getValue())) {
-                    entry.getKey().receive(lom);
+                    ICreature.eventAccepter.accept(entry.getKey(), lom);
                 }
             }
         }
@@ -182,7 +182,7 @@ public class VrijPartij {
             party.put(creature, LewdAnswer.DENIED);
             LewdOutMessage lom = LewdOutMessage.getBuilder().setSubType(LewdOutMessageType.DENIED).setCreature(creature)
                     .setParty(party).setBroacast().Build();
-            creature.receive(lom);
+            ICreature.eventAccepter.accept(creature, lom);
             this.messageParticipants(lom);
         }
         return this;
