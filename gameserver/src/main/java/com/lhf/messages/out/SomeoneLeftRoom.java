@@ -2,7 +2,7 @@ package com.lhf.messages.out;
 
 import com.lhf.game.map.Directions;
 import com.lhf.messages.ClientMessenger;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class SomeoneLeftRoom extends OutMessage {
     private final ClientMessenger leaveTaker;
@@ -13,7 +13,7 @@ public class SomeoneLeftRoom extends OutMessage {
         private Directions whichWay;
 
         protected Builder() {
-            super(OutMessageType.ROOM_EXITED);
+            super(GameEventType.ROOM_EXITED);
         }
 
         public ClientMessenger getLeaveTaker() {

@@ -6,7 +6,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.Item;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomEffect;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class RoomAffectedMessage extends OutMessage {
     private final Room room;
@@ -19,7 +19,7 @@ public class RoomAffectedMessage extends OutMessage {
         private boolean reversed;
 
         protected Builder() {
-            super(OutMessageType.ROOM_AFFECTED);
+            super(GameEventType.ROOM_AFFECTED);
         }
 
         public Room getRoom() {

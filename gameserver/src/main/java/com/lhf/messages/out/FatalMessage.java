@@ -1,6 +1,6 @@
 package com.lhf.messages.out;
 
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class FatalMessage extends OutMessage {
 
@@ -12,7 +12,7 @@ public class FatalMessage extends OutMessage {
         private Exception exception;
 
         protected Builder() {
-            super(OutMessageType.FATAL);
+            super(GameEventType.FATAL);
         }
 
         public String getExtraInfo() {

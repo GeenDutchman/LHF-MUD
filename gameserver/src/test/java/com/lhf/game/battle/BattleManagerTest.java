@@ -15,7 +15,7 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.map.Area;
 import com.lhf.messages.MessageMatcher;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
@@ -51,8 +51,8 @@ public class BattleManagerTest {
                                 .Build(area);
 
                 battleManager.startBattle(monster, List.of(npc));
-                MessageMatcher startBattle = new MessageMatcher(OutMessageType.START_FIGHT);
-                MessageMatcher turnMessage = new MessageMatcher(OutMessageType.BATTLE_ROUND);
+                MessageMatcher startBattle = new MessageMatcher(GameEventType.START_FIGHT);
+                MessageMatcher turnMessage = new MessageMatcher(GameEventType.BATTLE_ROUND);
                 Mockito.verify(npcHook, Mockito.timeout(1000).atLeastOnce())
                                 .accept(Mockito.argThat(startBattle.ownedCopy("npc")));
 
@@ -93,8 +93,8 @@ public class BattleManagerTest {
 
                 battleManager.startBattle(monster, List.of(npc));
 
-                MessageMatcher startBattle = new MessageMatcher(OutMessageType.START_FIGHT).setPrint(true);
-                MessageMatcher turnMessage = new MessageMatcher(OutMessageType.BATTLE_ROUND,
+                MessageMatcher startBattle = new MessageMatcher(GameEventType.START_FIGHT).setPrint(true);
+                MessageMatcher turnMessage = new MessageMatcher(GameEventType.BATTLE_ROUND,
                                 "should enter an action to take for the round")
                                 .setPrint(true);
                 Mockito.verify(npcHook, Mockito.timeout(1000).times(1))

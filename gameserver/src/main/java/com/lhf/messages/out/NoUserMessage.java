@@ -1,11 +1,11 @@
 package com.lhf.messages.out;
 
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class NoUserMessage extends OutMessage {
     public static class Builder extends OutMessage.Builder<Builder> {
         protected Builder() {
-            super(OutMessageType.NO_USER);
+            super(GameEventType.NO_USER);
         }
 
         @Override

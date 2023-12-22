@@ -2,7 +2,7 @@ package com.lhf.messages.out;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.MultiRollResult;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class FleeMessage extends OutMessage {
     private final ICreature runner;
@@ -15,7 +15,7 @@ public class FleeMessage extends OutMessage {
         private boolean fled;
 
         protected Builder() {
-            super(OutMessageType.FLEE);
+            super(GameEventType.FLEE);
         }
 
         public ICreature getRunner() {

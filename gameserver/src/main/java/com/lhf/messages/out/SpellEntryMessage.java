@@ -6,7 +6,7 @@ import java.util.StringJoiner;
 import java.util.TreeSet;
 
 import com.lhf.game.magic.SpellEntry;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class SpellEntryMessage extends OutMessage {
     private final NavigableSet<SpellEntry> entries;
@@ -17,7 +17,7 @@ public class SpellEntryMessage extends OutMessage {
         private boolean cubeHolder;
 
         protected Builder() {
-            super(OutMessageType.SPELL_ENTRY);
+            super(GameEventType.SPELL_ENTRY);
             this.cubeHolder = true;
         }
 

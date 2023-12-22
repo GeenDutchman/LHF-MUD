@@ -12,7 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.intelligence.AIComBundle;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.LewdOutMessage;
 import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
 import com.lhf.messages.out.OutMessage;
@@ -45,7 +45,7 @@ public class VrijPartijTest {
         vrijPartij.propose();
 
         ArgumentMatcher<OutMessage> proposeChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
@@ -78,7 +78,7 @@ public class VrijPartijTest {
         vrijPartij.accept(second.npc);
 
         ArgumentMatcher<OutMessage> acceptanceChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
@@ -132,7 +132,7 @@ public class VrijPartijTest {
         Truth.assertThat(participants).hasSize(0);
 
         ArgumentMatcher<OutMessage> secondAcceptanceChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
@@ -164,7 +164,7 @@ public class VrijPartijTest {
         Truth.assertThat(participants).hasSize(0);
 
         ArgumentMatcher<OutMessage> thirdAcceptanceChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
@@ -176,7 +176,7 @@ public class VrijPartijTest {
         };
 
         ArgumentMatcher<OutMessage> dunnitChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
@@ -231,7 +231,7 @@ public class VrijPartijTest {
         vrijPartij.propose();
 
         ArgumentMatcher<OutMessage> proposeChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
@@ -255,7 +255,7 @@ public class VrijPartijTest {
         Truth.assertThat(participants).hasSize(0);
 
         ArgumentMatcher<OutMessage> secondAcceptanceChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
@@ -284,7 +284,7 @@ public class VrijPartijTest {
         Truth.assertThat(participants).hasSize(0);
 
         ArgumentMatcher<OutMessage> thirdPass = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
@@ -302,7 +302,7 @@ public class VrijPartijTest {
         Mockito.verify(third.sssb, Mockito.timeout(500)).send(Mockito.argThat(thirdPass));
 
         ArgumentMatcher<OutMessage> dunnitChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {

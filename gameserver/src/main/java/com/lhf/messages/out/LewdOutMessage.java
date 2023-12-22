@@ -8,7 +8,7 @@ import java.util.StringJoiner;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.lewd.LewdAnswer;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class LewdOutMessage extends OutMessage {
     public enum LewdOutMessageType {
@@ -27,7 +27,7 @@ public class LewdOutMessage extends OutMessage {
         private Set<String> babyNames = Set.of();
 
         protected Builder() {
-            super(OutMessageType.LEWD);
+            super(GameEventType.LEWD);
         }
 
         public LewdOutMessageType getSubType() {

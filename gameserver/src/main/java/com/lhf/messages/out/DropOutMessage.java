@@ -3,7 +3,7 @@ package com.lhf.messages.out;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class DropOutMessage extends OutMessage {
     private final Taggable item;
@@ -20,7 +20,7 @@ public class DropOutMessage extends OutMessage {
         private DropType dropType;
 
         protected Builder() {
-            super(OutMessageType.DROP_OUT);
+            super(GameEventType.DROP_OUT);
         }
 
         public Taggable getItem() {

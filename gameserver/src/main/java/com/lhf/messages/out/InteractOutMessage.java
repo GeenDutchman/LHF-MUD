@@ -3,7 +3,7 @@ package com.lhf.messages.out;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class InteractOutMessage extends OutMessage {
     public enum InteractOutMessageType {
@@ -20,7 +20,7 @@ public class InteractOutMessage extends OutMessage {
         private String description;
 
         protected Builder() {
-            super(OutMessageType.INTERACT);
+            super(GameEventType.INTERACT);
         }
 
         public Taggable getTaggable() {

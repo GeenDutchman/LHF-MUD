@@ -10,7 +10,7 @@ import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandBuilder;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.LewdOutMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
@@ -21,14 +21,14 @@ public class LewdAIHandler extends AIHandler {
     private boolean stayInAfter;
 
     public LewdAIHandler() {
-        super(OutMessageType.LEWD);
+        super(GameEventType.LEWD);
         this.partners = new HashSet<>();
         this.partnersOnly = false;
         this.stayInAfter = false;
     }
 
     public LewdAIHandler(Set<ICreature> partners) {
-        super(OutMessageType.LEWD);
+        super(GameEventType.LEWD);
         this.partners = partners;
         this.partnersOnly = true;
         this.stayInAfter = false;
@@ -100,7 +100,7 @@ public class LewdAIHandler extends AIHandler {
 
     @Override
     public void handle(BasicAI bai, OutMessage msg) {
-        if (OutMessageType.LEWD.equals(msg.getOutType())) {
+        if (GameEventType.LEWD.equals(msg.getEventType())) {
             LewdOutMessage lom = (LewdOutMessage) msg;
             this.logger.log(Level.FINEST, () -> String.format("%s: processing \"%s\"", bai.toString(), lom.print()));
             if (lom.getSubType() == LewdOutMessageType.PROPOSED) {

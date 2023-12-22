@@ -6,7 +6,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD4;
 import com.lhf.game.dice.MultiRollResult;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class MissMessage extends OutMessage {
     private final ICreature attacker;
@@ -21,7 +21,7 @@ public class MissMessage extends OutMessage {
         private MultiRollResult defense;
 
         protected Builder() {
-            super(OutMessageType.MISS);
+            super(GameEventType.MISS);
         }
 
         public ICreature getAttacker() {

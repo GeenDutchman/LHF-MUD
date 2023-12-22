@@ -7,17 +7,17 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 import com.lhf.game.creature.ICreature;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 import com.lhf.server.client.ClientID;
 
 public abstract class OutMessage implements Comparable<OutMessage> {
 
     public static abstract class Builder<T extends Builder<T>> {
-        private OutMessageType type;
+        private GameEventType type;
         private boolean broadcast;
         protected T thisObject;
 
-        protected Builder(OutMessageType type) {
+        protected Builder(GameEventType type) {
             this.type = type;
             this.broadcast = false;
             this.thisObject = this.getThis();
@@ -28,7 +28,7 @@ public abstract class OutMessage implements Comparable<OutMessage> {
         // return this.getThis();
         // }
 
-        public OutMessageType getType() {
+        public GameEventType getType() {
             return this.type;
         }
 
@@ -51,7 +51,7 @@ public abstract class OutMessage implements Comparable<OutMessage> {
         public abstract OutMessage Build();
     }
 
-    private final OutMessageType type;
+    private final GameEventType type;
     private final boolean broadcast;
     private final Builder<?> builder;
     private final UUID uuid;
@@ -82,7 +82,7 @@ public abstract class OutMessage implements Comparable<OutMessage> {
         return this.builder;
     }
 
-    public OutMessageType getOutType() {
+    public GameEventType getEventType() {
         return this.type;
     }
 
@@ -136,7 +136,7 @@ public abstract class OutMessage implements Comparable<OutMessage> {
 
     @Override
     public int compareTo(OutMessage arg0) {
-        int runningCompare = this.type.compareTo(arg0.getOutType());
+        int runningCompare = this.type.compareTo(arg0.getEventType());
         if (runningCompare != 0) {
             return runningCompare;
         }

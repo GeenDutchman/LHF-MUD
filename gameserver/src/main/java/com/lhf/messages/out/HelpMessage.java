@@ -6,7 +6,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class HelpMessage extends OutMessage {
 
@@ -16,10 +16,10 @@ public class HelpMessage extends OutMessage {
         private CommandMessage singleHelp;
 
         protected AbstractBuilder() {
-            super(OutMessageType.HELP);
+            super(GameEventType.HELP);
         }
 
-        protected AbstractBuilder(OutMessageType type) {
+        protected AbstractBuilder(GameEventType type) {
             super(type);
         }
 

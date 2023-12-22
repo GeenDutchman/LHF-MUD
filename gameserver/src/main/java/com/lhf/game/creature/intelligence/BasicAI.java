@@ -16,7 +16,7 @@ import com.lhf.game.creature.intelligence.handlers.ForgetOnOtherExit;
 import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.FleeMessage;
 import com.lhf.messages.out.OutMessage;
@@ -26,7 +26,7 @@ import com.lhf.server.interfaces.NotNull;
 
 public class BasicAI extends Client {
     protected INonPlayerCharacter npc;
-    protected Map<OutMessageType, AIChunk> handlers;
+    protected Map<GameEventType, AIChunk> handlers;
     protected BlockingQueue<OutMessage> queue;
     protected AIRunner runner;
 
@@ -59,12 +59,12 @@ public class BasicAI extends Client {
 
     public void process(OutMessage msg) {
         if (msg != null) {
-            AIChunk ai = this.handlers.get(msg.getOutType());
+            AIChunk ai = this.handlers.get(msg.getEventType());
             if (ai != null) {
                 ai.handle(this, msg);
             } else {
                 this.log(Level.WARNING, () -> String.format("No handler found for %s: %s",
-                        msg.getOutType(), msg.print()));
+                        msg.getEventType(), msg.print()));
             }
         }
     }
@@ -73,14 +73,14 @@ public class BasicAI extends Client {
         if (this.handlers == null) {
             this.handlers = new TreeMap<>();
         }
-        this.handlers.put(OutMessageType.FIGHT_OVER, (BasicAI bai, OutMessage msg) -> {
-            if (msg.getOutType().equals(OutMessageType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
+        this.handlers.put(GameEventType.FIGHT_OVER, (BasicAI bai, OutMessage msg) -> {
+            if (msg.getEventType().equals(GameEventType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
                 bai.npc.getHarmMemories().reset();
             }
         });
 
-        this.handlers.put(OutMessageType.FLEE, (BasicAI bai, OutMessage msg) -> {
-            if (msg.getOutType().equals(OutMessageType.FLEE)) {
+        this.handlers.put(GameEventType.FLEE, (BasicAI bai, OutMessage msg) -> {
+            if (msg.getEventType().equals(GameEventType.FLEE)) {
                 FleeMessage flee = (FleeMessage) msg;
                 if (flee.isFled() && flee.getRunner() != null) {
                     if (flee.getRunner() == bai.getNpc()) {
@@ -89,8 +89,8 @@ public class BasicAI extends Client {
                 }
             }
         });
-        this.handlers.put(OutMessageType.BAD_TARGET_SELECTED, (BasicAI bai, OutMessage msg) -> {
-            if (msg.getOutType().equals(OutMessageType.BAD_TARGET_SELECTED) && bai.getNpc().isInBattle()) {
+        this.handlers.put(GameEventType.BAD_TARGET_SELECTED, (BasicAI bai, OutMessage msg) -> {
+            if (msg.getEventType().equals(GameEventType.BAD_TARGET_SELECTED) && bai.getNpc().isInBattle()) {
                 BadTargetSelectedMessage btsm = (BadTargetSelectedMessage) msg;
                 this.log(Level.WARNING,
                         () -> String.format("Selected a bad target: %s with possible targets", btsm,
@@ -105,7 +105,7 @@ public class BasicAI extends Client {
         this.addHandler(new LewdAIHandler().setPartnersOnly());
     }
 
-    public BasicAI addHandler(OutMessageType type, AIChunk chunk) {
+    public BasicAI addHandler(GameEventType type, AIChunk chunk) {
         this.handlers.put(type, chunk);
         return this;
     }

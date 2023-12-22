@@ -2,7 +2,7 @@ package com.lhf.messages.out;
 
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class BadMessage extends HelpMessage {
 
@@ -16,11 +16,11 @@ public class BadMessage extends HelpMessage {
         private CommandMessage commandType;
 
         protected Builder() {
-            super(OutMessageType.BAD_MESSAGE);
+            super(GameEventType.BAD_MESSAGE);
         }
 
         protected Builder(BadMessageType subType, Command badCommand) {
-            super(OutMessageType.BAD_MESSAGE);
+            super(GameEventType.BAD_MESSAGE);
             this.subType = subType;
             this.setCommand(badCommand);
         }

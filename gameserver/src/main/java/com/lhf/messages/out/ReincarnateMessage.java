@@ -1,7 +1,7 @@
 package com.lhf.messages.out;
 
 import com.lhf.Taggable;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class ReincarnateMessage extends OutMessage {
     private final String taggedName;
@@ -10,7 +10,7 @@ public class ReincarnateMessage extends OutMessage {
         private String taggedName;
 
         protected Builder() {
-            super(OutMessageType.REINCARNATION);
+            super(GameEventType.REINCARNATION);
         }
 
         public String getTaggedName() {

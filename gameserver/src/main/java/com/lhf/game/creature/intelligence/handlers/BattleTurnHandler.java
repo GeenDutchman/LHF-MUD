@@ -32,7 +32,7 @@ import com.lhf.game.magic.SpellEntry;
 import com.lhf.game.map.Directions;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.BattleRoundMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpellEntryMessage;
@@ -49,7 +49,7 @@ public class BattleTurnHandler extends AIHandler {
     private final DiceD100 roller;
 
     public BattleTurnHandler() {
-        super(OutMessageType.BATTLE_ROUND);
+        super(GameEventType.BATTLE_ROUND);
         this.roller = new DiceD100(1);
         this.targetChoosers = new TreeSet<>();
 
@@ -112,7 +112,7 @@ public class BattleTurnHandler extends AIHandler {
             this.logger
                     .info(() -> String.format("Attacking target %s has reply: %s", targetEntry, reply.toString()));
             if (reply.getMessages().stream()
-                    .noneMatch(message -> message.getOutType().equals(OutMessageType.BAD_TARGET_SELECTED))) {
+                    .noneMatch(message -> message.getEventType().equals(GameEventType.BAD_TARGET_SELECTED))) {
                 return;
             }
         }
@@ -198,7 +198,7 @@ public class BattleTurnHandler extends AIHandler {
             Optional<SpellEntryMessage> spellbookEntries = bai.ProcessString("SPELLBOOK").getMessages()
                     .stream()
                     .filter(outMessage -> outMessage != null
-                            && OutMessageType.SPELL_ENTRY.equals((outMessage.getOutType())))
+                            && GameEventType.SPELL_ENTRY.equals((outMessage.getEventType())))
                     .map(outMessage -> ((SpellEntryMessage) outMessage)).findFirst();
             if (spellbookEntries.isPresent()) {
                 try {
@@ -246,7 +246,7 @@ public class BattleTurnHandler extends AIHandler {
         if (RoundAcceptance.NEEDED.equals(btm.getNeedSubmission())) {
             Reply reply = bai.ProcessString("STATS");
             Optional<StatsOutMessage> statsOutOpt = reply.getMessages().stream()
-                    .filter(outMessage -> outMessage != null && OutMessageType.STATS.equals(outMessage.getOutType()))
+                    .filter(outMessage -> outMessage != null && GameEventType.STATS.equals(outMessage.getEventType()))
                     .map(outMessage -> ((StatsOutMessage) outMessage)).findFirst();
 
             if (statsOutOpt.isEmpty()) {

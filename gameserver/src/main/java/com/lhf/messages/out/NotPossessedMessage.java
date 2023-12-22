@@ -1,7 +1,7 @@
 package com.lhf.messages.out;
 
 import com.lhf.Taggable;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class NotPossessedMessage extends OutMessage {
     private final String itemType;
@@ -14,7 +14,7 @@ public class NotPossessedMessage extends OutMessage {
         private Taggable found;
 
         protected Builder() {
-            super(OutMessageType.NOT_POSSESSED);
+            super(GameEventType.NOT_POSSESSED);
         }
 
         public String getItemType() {

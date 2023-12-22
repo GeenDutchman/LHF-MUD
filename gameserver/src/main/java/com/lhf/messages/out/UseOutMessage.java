@@ -5,7 +5,7 @@ import java.util.StringJoiner;
 import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.Usable;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class UseOutMessage extends OutMessage {
     public enum UseOutMessageOption {
@@ -26,7 +26,7 @@ public class UseOutMessage extends OutMessage {
         private String message;
 
         protected Builder() {
-            super(OutMessageType.USE);
+            super(GameEventType.USE);
         }
 
         public UseOutMessageOption getSubType() {

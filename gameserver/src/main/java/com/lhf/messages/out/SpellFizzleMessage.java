@@ -4,7 +4,7 @@ import java.util.StringJoiner;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.MultiRollResult;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class SpellFizzleMessage extends OutMessage {
     public enum SpellFizzleType {
@@ -23,7 +23,7 @@ public class SpellFizzleMessage extends OutMessage {
         private MultiRollResult defense;
 
         protected Builder() {
-            super(OutMessageType.FIZZLE);
+            super(GameEventType.FIZZLE);
         }
 
         public SpellFizzleType getSubType() {

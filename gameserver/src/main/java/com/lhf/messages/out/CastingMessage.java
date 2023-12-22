@@ -2,7 +2,7 @@ package com.lhf.messages.out;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.magic.SpellEntry;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class CastingMessage extends OutMessage {
     private final ICreature caster;
@@ -15,7 +15,7 @@ public class CastingMessage extends OutMessage {
         private String castEffects;
 
         public Builder() {
-            super(OutMessageType.CASTING);
+            super(GameEventType.CASTING);
         }
 
         public ICreature getCaster() {

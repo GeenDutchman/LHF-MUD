@@ -1,7 +1,7 @@
 package com.lhf.messages.out;
 
 import com.lhf.messages.ClientMessenger;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class SpeakingMessage extends OutMessage {
     private final String message;
@@ -16,7 +16,7 @@ public class SpeakingMessage extends OutMessage {
         private boolean shouting = false;
 
         protected Builder() {
-            super(OutMessageType.SPEAKING);
+            super(GameEventType.SPEAKING);
         }
 
         public String getMessage() {

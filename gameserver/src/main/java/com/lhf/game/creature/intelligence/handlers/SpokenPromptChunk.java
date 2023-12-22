@@ -15,7 +15,7 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.SpeakingMessage;
@@ -27,7 +27,7 @@ public class SpokenPromptChunk extends AIHandler {
     private boolean allowUsers;
 
     public SpokenPromptChunk() {
-        super(OutMessageType.SPEAKING);
+        super(GameEventType.SPEAKING);
         this.prompters = new HashSet<>();
         this.allowUsers = false;
     }
@@ -86,7 +86,7 @@ public class SpokenPromptChunk extends AIHandler {
 
     @Override
     public void handle(BasicAI bai, OutMessage msg) {
-        if (msg.getOutType().equals(OutMessageType.SPEAKING)) {
+        if (msg.getEventType().equals(GameEventType.SPEAKING)) {
             SpeakingMessage sm = (SpeakingMessage) msg;
             if (!sm.getShouting() && sm.getHearer() != null && sm.getHearer() instanceof INonPlayerCharacter) {
                 if (sm.getSayer() instanceof ICreature || (this.allowUsers && sm.getSayer() instanceof User)) {

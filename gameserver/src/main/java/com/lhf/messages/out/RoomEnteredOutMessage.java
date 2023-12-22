@@ -1,7 +1,7 @@
 package com.lhf.messages.out;
 
 import com.lhf.messages.ClientMessenger;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class RoomEnteredOutMessage extends OutMessage {
     private final ClientMessenger newbie;
@@ -10,7 +10,7 @@ public class RoomEnteredOutMessage extends OutMessage {
         private ClientMessenger newbie;
 
         protected Builder() {
-            super(OutMessageType.ROOM_ENTERED);
+            super(GameEventType.ROOM_ENTERED);
         }
 
         public ClientMessenger getNewbie() {

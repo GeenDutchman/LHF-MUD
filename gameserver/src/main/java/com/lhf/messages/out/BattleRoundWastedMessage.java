@@ -2,7 +2,7 @@ package com.lhf.messages.out;
 
 import java.util.StringJoiner;
 
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class BattleRoundWastedMessage extends BattleRoundMessage {
     private final int wastedPenalty;
@@ -11,7 +11,7 @@ public class BattleRoundWastedMessage extends BattleRoundMessage {
         private int wastedPenalty;
 
         protected Builder() {
-            super(OutMessageType.BATTLE_TURN_WASTED);
+            super(GameEventType.BATTLE_TURN_WASTED);
             super.setNeedSubmission(RoundAcceptance.MISSING);
         }
 

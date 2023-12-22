@@ -1,7 +1,7 @@
 package com.lhf.messages.out;
 
 import com.lhf.game.creature.ICreature;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class RenegadeAnnouncement extends OutMessage {
     private final ICreature turned;
@@ -10,7 +10,7 @@ public class RenegadeAnnouncement extends OutMessage {
         private ICreature turned;
 
         protected Builder(ICreature turned) {
-            super(OutMessageType.RENEGADE_ANNOUNCEMENT);
+            super(GameEventType.RENEGADE_ANNOUNCEMENT);
             this.turned = turned;
         }
 

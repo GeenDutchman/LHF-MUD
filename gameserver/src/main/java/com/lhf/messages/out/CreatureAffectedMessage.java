@@ -8,7 +8,7 @@ import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.Stats;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class CreatureAffectedMessage extends OutMessage {
     private final ICreature affected;
@@ -21,7 +21,7 @@ public class CreatureAffectedMessage extends OutMessage {
         private boolean reversed;
 
         protected Builder() {
-            super(OutMessageType.CREATURE_AFFECTED);
+            super(GameEventType.CREATURE_AFFECTED);
         }
 
         public ICreature getAffected() {

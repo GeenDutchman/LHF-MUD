@@ -6,7 +6,7 @@ import java.util.EnumSet;
 import java.util.StringJoiner;
 
 import com.lhf.game.map.Directions;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class BadGoMessage extends OutMessage {
     public enum BadGoType {
@@ -23,11 +23,11 @@ public class BadGoMessage extends OutMessage {
         private Collection<Directions> available = EnumSet.noneOf(Directions.class);
 
         protected Builder() {
-            super(OutMessageType.BAD_GO);
+            super(GameEventType.BAD_GO);
         }
 
         protected Builder(BadGoType type) {
-            super(OutMessageType.BAD_GO);
+            super(GameEventType.BAD_GO);
             this.subType = type;
         }
 

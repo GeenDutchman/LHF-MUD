@@ -10,7 +10,7 @@ import java.util.TreeMap;
 import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffectSource;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class SeeOutMessage extends OutMessage {
     public enum SeeCategory {
@@ -47,7 +47,7 @@ public class SeeOutMessage extends OutMessage {
         private String deniedReason;
 
         protected Builder() {
-            super(OutMessageType.SEE);
+            super(GameEventType.SEE);
         }
 
         public Builder setExaminable(Examinable examinable) {

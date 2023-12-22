@@ -3,7 +3,7 @@ package com.lhf.messages.out;
 import java.util.StringJoiner;
 
 import com.lhf.game.creature.ICreature;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class JoinBattleMessage extends OutMessage {
     private final ICreature joiner;
@@ -14,7 +14,7 @@ public class JoinBattleMessage extends OutMessage {
         private boolean ongoing;
 
         protected Builder() {
-            super(OutMessageType.JOIN_BATTLE);
+            super(GameEventType.JOIN_BATTLE);
         }
 
         public ICreature getJoiner() {

@@ -2,14 +2,14 @@ package com.lhf.game.creature.intelligence.handlers;
 
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.CreatureAffectedMessage;
 import com.lhf.messages.out.OutMessage;
 
 public class HandleCreatureAffected extends AIHandler {
 
     public HandleCreatureAffected() {
-        super(OutMessageType.CREATURE_AFFECTED);
+        super(GameEventType.CREATURE_AFFECTED);
     }
 
     private void handleOuch(BasicAI bai, CreatureAffectedMessage caMessage) {
@@ -30,7 +30,7 @@ public class HandleCreatureAffected extends AIHandler {
 
     @Override
     public void handle(BasicAI bai, OutMessage msg) {
-        if (OutMessageType.CREATURE_AFFECTED.equals(msg.getOutType())) {
+        if (GameEventType.CREATURE_AFFECTED.equals(msg.getEventType())) {
             CreatureAffectedMessage caMessage = (CreatureAffectedMessage) msg;
             this.handleOtherDeath(bai, caMessage);
             this.handleOuch(bai, caMessage);

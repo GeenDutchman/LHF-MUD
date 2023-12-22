@@ -2,18 +2,18 @@ package com.lhf.messages.out;
 
 import java.util.StringJoiner;
 
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class WelcomeMessage extends OutMessage {
 
     protected static abstract class AbstractBuilder<T extends AbstractBuilder<T>> extends OutMessage.Builder<T> {
 
-        protected AbstractBuilder(OutMessageType type) {
+        protected AbstractBuilder(GameEventType type) {
             super(type);
         }
 
         protected AbstractBuilder() {
-            super(OutMessageType.WELCOME);
+            super(GameEventType.WELCOME);
         }
     }
 

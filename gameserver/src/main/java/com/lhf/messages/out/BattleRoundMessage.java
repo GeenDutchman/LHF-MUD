@@ -3,7 +3,7 @@ package com.lhf.messages.out;
 import java.util.StringJoiner;
 
 import com.lhf.messages.ITickMessage;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 
@@ -22,11 +22,11 @@ public class BattleRoundMessage extends OutMessage implements ITickMessage {
         private ICreature aboutCreature;
 
         protected Builder() {
-            super(OutMessageType.BATTLE_ROUND);
+            super(GameEventType.BATTLE_ROUND);
         }
 
-        protected Builder(OutMessageType outType) {
-            super(outType != null ? outType : OutMessageType.BATTLE_ROUND);
+        protected Builder(GameEventType outType) {
+            super(outType != null ? outType : GameEventType.BATTLE_ROUND);
         }
 
         public Builder setNeedSubmission(RoundAcceptance isSubmissionNeeded) {

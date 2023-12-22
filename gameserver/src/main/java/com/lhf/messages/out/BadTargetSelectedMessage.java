@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.StringJoiner;
 
 import com.lhf.Taggable;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class BadTargetSelectedMessage extends OutMessage {
     public enum BadTargetOption {
@@ -22,7 +22,7 @@ public class BadTargetSelectedMessage extends OutMessage {
         private Collection<? extends Taggable> possibleTargets = Collections.emptyList();
 
         protected Builder() {
-            super(OutMessageType.BAD_TARGET_SELECTED);
+            super(GameEventType.BAD_TARGET_SELECTED);
         }
 
         public BadTargetOption getBde() {

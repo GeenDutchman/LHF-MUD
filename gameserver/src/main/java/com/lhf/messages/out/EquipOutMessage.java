@@ -6,7 +6,7 @@ import java.util.StringJoiner;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class EquipOutMessage extends OutMessage {
     public enum EquipResultType {
@@ -25,7 +25,7 @@ public class EquipOutMessage extends OutMessage {
         private EquipmentSlots attemptedSlot;
 
         protected Builder() {
-            super(OutMessageType.EQUIP);
+            super(GameEventType.EQUIP);
         }
 
         public EquipResultType getSubType() {

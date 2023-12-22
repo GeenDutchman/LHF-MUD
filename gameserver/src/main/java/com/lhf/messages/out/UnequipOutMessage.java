@@ -2,7 +2,7 @@ package com.lhf.messages.out;
 
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Item;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class UnequipOutMessage extends OutMessage {
     public enum UnequipResultType {
@@ -21,7 +21,7 @@ public class UnequipOutMessage extends OutMessage {
         private String attemptedName;
 
         protected Builder() {
-            super(OutMessageType.UNEQUIP);
+            super(GameEventType.UNEQUIP);
         }
 
         public Item getItem() {

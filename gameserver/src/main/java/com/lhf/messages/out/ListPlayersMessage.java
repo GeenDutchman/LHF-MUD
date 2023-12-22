@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class ListPlayersMessage extends OutMessage {
     private final List<String> playerNames;
@@ -13,7 +13,7 @@ public class ListPlayersMessage extends OutMessage {
         private List<String> playerNames = new ArrayList<>();
 
         protected Builder() {
-            super(OutMessageType.LIST_PLAYERS);
+            super(GameEventType.LIST_PLAYERS);
         }
 
         public List<String> getPlayerNames() {

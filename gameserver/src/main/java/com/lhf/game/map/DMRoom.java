@@ -26,7 +26,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage;
 import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
@@ -146,7 +146,7 @@ public class DMRoom extends Room {
             if (convoLoader != null) {
                 dmBuilder.setConversationTree(convoLoader.convoTreeFromFile("verbal_default"));
             }
-            SilencedHandler noSleepNoise = new SilencedHandler(OutMessageType.INTERACT);
+            SilencedHandler noSleepNoise = new SilencedHandler(GameEventType.INTERACT);
             dmBuilder.addAIHandler(noSleepNoise);
             LewdAIHandler lewdAIHandler = new LewdAIHandler().setPartnersOnly().setStayInAfter();
             dmBuilder.addAIHandler(lewdAIHandler);

@@ -1,14 +1,14 @@
 package com.lhf.messages.out;
 
 import com.lhf.game.TickType;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.ITickMessage;
 
 public class FightOverMessage extends OutMessage implements ITickMessage {
     public static class Builder extends OutMessage.Builder<Builder> {
 
         protected Builder() {
-            super(OutMessageType.FIGHT_OVER);
+            super(GameEventType.FIGHT_OVER);
         }
 
         @Override

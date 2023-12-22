@@ -11,7 +11,7 @@ import java.util.TreeSet;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class StatsOutMessage extends OutMessage {
     private final Collection<BattleStatRecord> records;
@@ -47,7 +47,7 @@ public class StatsOutMessage extends OutMessage {
         private Optional<Integer> turnCount;
 
         protected Builder() {
-            super(OutMessageType.STATS);
+            super(GameEventType.STATS);
             this.records = new TreeSet<>();
             this.roundCount = Optional.empty();
             this.turnCount = Optional.empty();

@@ -1,13 +1,13 @@
 package com.lhf.messages.out;
 
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class DuplicateUserMessage extends WelcomeMessage {
 
     public static class Builder extends WelcomeMessage.AbstractBuilder<Builder> {
 
         protected Builder() {
-            super(OutMessageType.DUPLICATE_USER);
+            super(GameEventType.DUPLICATE_USER);
         }
 
         @Override

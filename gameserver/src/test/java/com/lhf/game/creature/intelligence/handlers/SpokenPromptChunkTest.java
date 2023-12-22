@@ -6,7 +6,7 @@ import org.mockito.Mockito;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.creature.intelligence.AIComBundle;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.SpeakingMessage;
 
 public class SpokenPromptChunkTest {
@@ -14,7 +14,7 @@ public class SpokenPromptChunkTest {
         void testPromptSelf() {
                 SpokenPromptChunk chunk = new SpokenPromptChunk();
                 AIComBundle listener = new AIComBundle();
-                listener.brain.addHandler(OutMessageType.SPEAKING, chunk);
+                listener.brain.addHandler(GameEventType.SPEAKING, chunk);
 
                 String body = "I have been addressed";
                 ConversationTreeNode node = new ConversationTreeNode(body);
@@ -43,7 +43,7 @@ public class SpokenPromptChunkTest {
                 AIComBundle listener = new AIComBundle();
                 SpokenPromptChunk chunk = new SpokenPromptChunk();
                 chunk.addPrompter(speaker.npc.getClientID());
-                listener.brain.addHandler(OutMessageType.SPEAKING, chunk);
+                listener.brain.addHandler(GameEventType.SPEAKING, chunk);
 
                 String prompt = "NONOBJECT";
                 SpeakingMessage sm = SpeakingMessage.getBuilder().setSayer(speaker.npc)
@@ -61,7 +61,7 @@ public class SpokenPromptChunkTest {
                 AIComBundle speaker = new AIComBundle();
                 AIComBundle listener = new AIComBundle();
                 SpokenPromptChunk chunk = new SpokenPromptChunk();
-                listener.brain.addHandler(OutMessageType.SPEAKING, chunk);
+                listener.brain.addHandler(GameEventType.SPEAKING, chunk);
 
                 String prompt = "NONOBJECT";
                 SpeakingMessage sm = SpeakingMessage.getBuilder().setSayer(speaker.npc)

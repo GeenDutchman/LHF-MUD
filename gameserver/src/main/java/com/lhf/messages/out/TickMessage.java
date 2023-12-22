@@ -2,7 +2,7 @@ package com.lhf.messages.out;
 
 import com.lhf.game.TickType;
 import com.lhf.messages.ITickMessage;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class TickMessage extends OutMessage implements ITickMessage {
     private final TickType tickType;
@@ -11,7 +11,7 @@ public class TickMessage extends OutMessage implements ITickMessage {
         private TickType tickType;
 
         protected Builder() {
-            super(OutMessageType.TICK);
+            super(GameEventType.TICK);
             this.tickType = TickType.INSTANT;
         }
 
@@ -34,7 +34,7 @@ public class TickMessage extends OutMessage implements ITickMessage {
             return this;
         }
 
-        public Builder(OutMessageType type) {
+        public Builder(GameEventType type) {
             super(type);
         }
 

@@ -4,7 +4,7 @@ import java.util.StringJoiner;
 
 import com.lhf.Examinable;
 import com.lhf.game.item.Item;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class TakeOutMessage extends OutMessage {
     public enum TakeOutType {
@@ -23,7 +23,7 @@ public class TakeOutMessage extends OutMessage {
         private String source;
 
         protected Builder() {
-            super(OutMessageType.TAKE);
+            super(GameEventType.TAKE);
         }
 
         public String getAttemptedName() {

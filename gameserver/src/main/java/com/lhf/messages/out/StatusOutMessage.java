@@ -6,7 +6,7 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class StatusOutMessage extends OutMessage {
     private final boolean full;
@@ -37,7 +37,7 @@ public class StatusOutMessage extends OutMessage {
         private Integer vocationLevel;
 
         protected Builder() {
-            super(OutMessageType.STATUS);
+            super(GameEventType.STATUS);
         }
 
         public Builder setFromCreature(ICreature creature, boolean full) {

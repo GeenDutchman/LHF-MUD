@@ -1,7 +1,7 @@
 package com.lhf.messages.out;
 
 import com.lhf.game.creature.ICreature;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class StartFightMessage extends OutMessage {
     private final ICreature instigator;
@@ -10,7 +10,7 @@ public class StartFightMessage extends OutMessage {
         private ICreature instigator;
 
         protected Builder() {
-            super(OutMessageType.START_FIGHT);
+            super(GameEventType.START_FIGHT);
         }
 
         public ICreature getInstigator() {

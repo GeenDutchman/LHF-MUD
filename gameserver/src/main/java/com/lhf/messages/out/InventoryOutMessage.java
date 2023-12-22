@@ -10,7 +10,7 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class InventoryOutMessage extends OutMessage {
     private final Collection<Takeable> items;
@@ -21,7 +21,7 @@ public class InventoryOutMessage extends OutMessage {
         private Map<EquipmentSlots, Equipable> equipment = new EnumMap<>(EquipmentSlots.class);
 
         protected Builder() {
-            super(OutMessageType.INVENTORY);
+            super(GameEventType.INVENTORY);
         }
 
         public Collection<Takeable> getItems() {

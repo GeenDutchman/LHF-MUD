@@ -2,7 +2,7 @@ package com.lhf.messages.out;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class ReinforcementsCall extends OutMessage {
     private final ICreature caller;
@@ -11,7 +11,7 @@ public class ReinforcementsCall extends OutMessage {
         private ICreature caller;
 
         protected Builder() {
-            super(OutMessageType.REINFORCEMENTS_CALL);
+            super(GameEventType.REINFORCEMENTS_CALL);
         }
 
         public ICreature getCaller() {

@@ -1,6 +1,6 @@
 package com.lhf.messages.out;
 
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 import com.lhf.server.client.user.User;
 
 public class UserLeftMessage extends OutMessage {
@@ -10,7 +10,7 @@ public class UserLeftMessage extends OutMessage {
         private User user;
 
         protected Builder() {
-            super(OutMessageType.USER_LEFT);
+            super(GameEventType.USER_LEFT);
         }
 
         public User getUser() {

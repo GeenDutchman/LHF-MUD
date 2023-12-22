@@ -1,6 +1,6 @@
 package com.lhf.messages.out;
 
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class CannotSpeakToMessage extends OutMessage {
     private final String creatureName;
@@ -13,7 +13,7 @@ public class CannotSpeakToMessage extends OutMessage {
         private String msg;
 
         protected Builder() {
-            super(OutMessageType.CANNOT_SPEAK_TO);
+            super(GameEventType.CANNOT_SPEAK_TO);
         }
 
         public String getCreatureName() {

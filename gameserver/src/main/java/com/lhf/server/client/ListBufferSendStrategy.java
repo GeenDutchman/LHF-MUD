@@ -3,7 +3,7 @@ package com.lhf.server.client;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.out.OutMessage;
 
 public class ListBufferSendStrategy extends StringBufferSendStrategy {
@@ -33,10 +33,10 @@ public class ListBufferSendStrategy extends StringBufferSendStrategy {
         return this.lBuffer.get(index);
     }
 
-    public OutMessage getMostRecent(OutMessageType type) {
+    public OutMessage getMostRecent(GameEventType type) {
         for (int i = this.lBuffer.size() - 1; i >= 0; i--) {
             OutMessage found = this.lBuffer.get(i);
-            if (found.getOutType().equals(type)) {
+            if (found.getEventType().equals(type)) {
                 return found;
             }
         }

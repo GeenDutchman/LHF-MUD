@@ -1,6 +1,6 @@
 package com.lhf.messages.out;
 
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class SpawnMessage extends OutMessage {
 
@@ -10,7 +10,7 @@ public class SpawnMessage extends OutMessage {
         private String username;
 
         protected Builder() {
-            super(OutMessageType.SPAWN);
+            super(GameEventType.SPAWN);
         }
 
         public String getUsername() {
