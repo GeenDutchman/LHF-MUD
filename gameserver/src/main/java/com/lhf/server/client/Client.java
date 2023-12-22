@@ -49,6 +49,7 @@ public class Client implements MessageChainHandler {
         this.log(Level.FINE, "message received: " + value);
         Command cmd = CommandBuilder.parse(value);
         CommandContext ctx = new CommandContext();
+        ctx.setClient(this);
         CommandContext.Reply accepted = ctx.failhandle();
         if (cmd.isValid()) {
             this.log(Level.FINEST, "the message received was deemed" + cmd.getClass().toString());

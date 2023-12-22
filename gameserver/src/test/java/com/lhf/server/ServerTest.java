@@ -24,6 +24,7 @@ import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.map.DungeonBuilder;
 import com.lhf.messages.MessageMatcher;
 import com.lhf.messages.OutMessageType;
+import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.out.OutMessage;
 import com.lhf.messages.out.UserLeftMessage;
 import com.lhf.messages.out.WelcomeMessage;
@@ -66,8 +67,11 @@ public class ServerTest {
         public String handleCommand(String command, OutMessageType outMessageType) {
             this.print(command, true);
             this.outCaptor = ArgumentCaptor.forClass(OutMessage.class);
-            this.client.ProcessString(command);
+            Reply reply = this.client.ProcessString(command);
             Mockito.verify(this.sssb, Mockito.atLeastOnce()).send(this.outCaptor.capture());
+            Truth.assertWithMessage("Command %s has no reply", command).that(reply).isNotNull();
+            Truth.assertWithMessage("Command %s should have been handled, but reply was %s", command, reply)
+                    .that(reply.isHandled()).isTrue();
             OutMessage outMessage = outCaptor.getValue();
             Truth.assertThat(outMessage).isNotNull();
             String response = outMessage.toString();

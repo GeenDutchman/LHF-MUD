@@ -236,7 +236,7 @@ public interface ICreature
             if (event instanceof ITickMessage tickMessage) {
                 this.tick(tickMessage.getTickType());
             }
-            this.announceDirect(event);
+            this.announce(event);
         };
     }
 
