@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.regex.PatternSyntaxException;
@@ -227,15 +228,16 @@ public interface ICreature
     public abstract ClientMessenger getController();
 
     @Override
-    public default void receive(OutMessage msg) {
-        if (msg != null && msg instanceof ITickMessage) {
-            this.tick(((ITickMessage) msg).getTickType());
-        }
-        if (this.getController() != null) {
-            this.getController().receive(msg);
-            return;
-        }
-        // Does nothing silently
+    default Consumer<OutMessage> getAcceptHook() {
+        return (event) -> {
+            if (event == null) {
+                return;
+            }
+            if (event instanceof ITickMessage tickMessage) {
+                this.tick(tickMessage.getTickType());
+            }
+            this.announceDirect(event);
+        };
     }
 
     /**

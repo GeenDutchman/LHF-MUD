@@ -35,6 +35,9 @@ public interface ClientMessenger extends Taggable {
      * should process the event on the behalf of the ClientMessenger.
      * It is valid to return null and say that this ClientMessenger won't process
      * it.
+     * <p>
+     * The assumption is that the event has already been marked by
+     * {@link #getClientID()}.
      * 
      * @return {@link java.util.function.Consumer Consumer<OutMessage>} or null
      */

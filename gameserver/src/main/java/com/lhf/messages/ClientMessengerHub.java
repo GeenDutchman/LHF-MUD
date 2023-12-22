@@ -67,7 +67,7 @@ public interface ClientMessengerHub extends ClientMessenger {
     @Override
     default Consumer<OutMessage> getAcceptHook() {
         return (event) -> {
-            if (event == null || !event.isFirstRecieve(this.getClientID())) {
+            if (event == null) {
                 return;
             }
             this.log(Level.FINEST,

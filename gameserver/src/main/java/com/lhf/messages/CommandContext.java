@@ -14,19 +14,19 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.Room;
 import com.lhf.messages.out.OutMessage;
+import com.lhf.server.client.Client;
 import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 
-public class CommandContext implements ClientMessenger {
-    protected ClientMessenger client;
+public class CommandContext {
+    protected Client client;
     protected User user;
     protected ICreature creature;
     protected Room room;
     protected BattleManager bManager;
     protected Dungeon dungeon;
     protected EnumMap<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
-    protected List<OutMessage> messages = new ArrayList<>();
 
     public class Reply {
         protected boolean handled;
@@ -92,15 +92,6 @@ public class CommandContext implements ClientMessenger {
         return this.new Reply(true);
     }
 
-    public void addMessage(OutMessage message) {
-        if (this.messages == null) {
-            this.messages = new ArrayList<>();
-        }
-        if (message != null) {
-            this.messages.add(message);
-        }
-    }
-
     /**
      * Adds help data to the context, returns the provided helps found
      * 
@@ -133,15 +124,7 @@ public class CommandContext implements ClientMessenger {
         return Collections.unmodifiableMap(helps);
     }
 
-    @Override
-    public ClientID getClientID() {
-        if (this.client != null) {
-            return this.client.getClientID();
-        }
-        return null;
-    }
-
-    public ClientMessenger getClientMessenger() {
+    public Client getClient() {
         return this.client;
     }
 
@@ -153,56 +136,7 @@ public class CommandContext implements ClientMessenger {
         this.creature = creature;
     }
 
-    private ClientMessenger getHighestClientMessenger() {
-        ClientMessenger highestFound = this.client;
-        if (this.dungeon != null) {
-            highestFound = this.dungeon;
-        } else if (this.room != null) {
-            highestFound = this.room;
-        } else if (this.bManager != null) {
-            highestFound = this.bManager;
-        } else if (this.creature != null) {
-            highestFound = this.creature;
-        } else if (this.user != null) {
-            highestFound = this.user;
-        }
-        return highestFound;
-    }
-
-    @Override
-    public void log(Level logLevel, String logMessage) {
-        ClientMessenger logger = this.getHighestClientMessenger();
-        if (logger != null) {
-            logger.log(logLevel, String.format("%s :: %s", this.toString(), logMessage));
-        } else {
-            Logger.getLogger(String.format("%s.%d", this.getClass().getName(), this.hashCode())).log(logLevel,
-                    String.format("%s :: %s", this.toString(), logMessage));
-        }
-    }
-
-    @Override
-    public void log(Level logLevel, Supplier<String> logMessageSupplier) {
-        ClientMessenger logger = this.getHighestClientMessenger();
-        Supplier<String> composed = () -> String.format("%s :: %s", this.toString(), logMessageSupplier.get());
-        if (logger != null) {
-            logger.log(logLevel, composed);
-        } else {
-            Logger.getLogger(String.format("%s.%d", this.getClass().getName(), this.hashCode())).log(logLevel,
-                    composed);
-        }
-    }
-
-    @Override
-    public void receive(OutMessage msg) {
-        if (msg != null) {
-            this.addMessage(msg);
-            if (this.client != null) {
-                this.client.receive(msg);
-            }
-        }
-    }
-
-    public void setClient(ClientMessenger client) {
+    public void setClient(Client client) {
         this.client = client;
     }
 
@@ -246,16 +180,6 @@ public class CommandContext implements ClientMessenger {
     }
 
     @Override
-    public String getStartTag() {
-        return "<command_context>";
-    }
-
-    @Override
-    public String getEndTag() {
-        return "</command_context>";
-    }
-
-    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("CommandContext [client=").append(client).append(", user=").append(user).append(", creature=")
@@ -264,8 +188,4 @@ public class CommandContext implements ClientMessenger {
         return builder.toString();
     }
 
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + "context" + this.getEndTag();
-    }
 }
