@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 
-import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -43,7 +42,7 @@ public class ClientHandle extends Client implements Runnable {
         }
 
         private static final Predicate<CommandContext> enabledPredicate = RepeatHandler.defaultPredicate.and(ctx -> {
-            ClientMessenger client = ctx.getClientMessenger();
+            Client client = ctx.getClient();
             if (client != null && client instanceof ClientHandle cHandle) {
                 return RepeatHandler.isValidRepeatCommand(cHandle.getRepeatCommand());
             }
@@ -57,7 +56,7 @@ public class ClientHandle extends Client implements Runnable {
 
         @Override
         public Optional<String> getHelp(CommandContext ctx) {
-            ClientMessenger client = ctx.getClientMessenger();
+            Client client = ctx.getClient();
             if (client != null && client instanceof ClientHandle cHandle) {
                 String repeater = cHandle.getRepeatCommand();
                 if (repeater != null && !repeater.isBlank()) {
@@ -78,7 +77,7 @@ public class ClientHandle extends Client implements Runnable {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            ClientMessenger client = ctx.getClientMessenger();
+            Client client = ctx.getClient();
             if (client != null && client instanceof ClientHandle cHandle) {
                 String repeater = cHandle.getRepeatCommand();
                 if (repeater != null && !repeater.isBlank()) {
@@ -118,11 +117,11 @@ public class ClientHandle extends Client implements Runnable {
         } catch (IOException e) {
             final FatalMessage fatal = FatalMessage.getBuilder().setException(e).setExtraInfo("recoverable").Build();
             this.logger.log(Level.SEVERE, fatal.toString(), e);
-            receive(fatal);
+            Client.eventAccepter.accept(this, fatal);
         } catch (Exception e) {
             final FatalMessage fatal = FatalMessage.getBuilder().setException(e).setExtraInfo("irrecoverable").Build();
             this.logger.log(Level.SEVERE, fatal.toString(), e);
-            receive(fatal);
+            Client.eventAccepter.accept(this, fatal);
             throw e;
         } finally {
             connectionListener.clientConnectionTerminated(id); // let connectionListener know that it is over

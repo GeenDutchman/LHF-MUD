@@ -213,9 +213,9 @@ public class Dungeon implements Land {
             Player nextLife = Player.PlayerBuilder.getInstance(asPlayer.getUser()).setVocation(asPlayer.getVocation())
                     .build();
             this.addPlayer(nextLife);
-            creature.receive(ReincarnateMessage.getBuilder().setTaggedName(creature).setNotBroadcast().Build());
-            nextLife.receive(SeeOutMessage.getBuilder().setExaminable(startingRoom).Build());
-
+            ICreature.eventAccepter.accept(creature,
+                    ReincarnateMessage.getBuilder().setTaggedName(creature).setNotBroadcast().Build());
+            ICreature.eventAccepter.accept(nextLife, SeeOutMessage.getBuilder().setExaminable(startingRoom).Build());
         }
         return removed;
     }

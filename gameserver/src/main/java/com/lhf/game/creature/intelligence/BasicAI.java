@@ -5,6 +5,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -115,21 +116,22 @@ public class BasicAI extends Client {
     }
 
     @Override
-    public synchronized void receive(OutMessage msg) {
-        super.receive(msg);
-        try {
-            if (this.runner == null) {
-                this.process(msg);
-                return;
+    public Consumer<OutMessage> getAcceptHook() {
+        return super.getAcceptHook().andThen(event -> {
+            try {
+                if (this.runner == null) {
+                    this.process(event);
+                    return;
+                }
+                if (this.queue.offer(event, 30, TimeUnit.SECONDS)) {
+                    this.runner.getAttention(this);
+                } else {
+                    this.log(Level.SEVERE, "Unable to queue: " + event.toString());
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            if (this.queue.offer(msg, 30, TimeUnit.SECONDS)) {
-                this.runner.getAttention(this);
-            } else {
-                this.log(Level.SEVERE, "Unable to queue: " + msg.toString());
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     public INonPlayerCharacter getNpc() {
