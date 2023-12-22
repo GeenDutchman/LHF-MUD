@@ -1,10 +1,14 @@
 package com.lhf.messages.out;
 
+import java.util.Collections;
 import java.util.Objects;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.OutMessageType;
+import com.lhf.server.client.ClientID;
 
 public abstract class OutMessage implements Comparable<OutMessage> {
 
@@ -51,12 +55,27 @@ public abstract class OutMessage implements Comparable<OutMessage> {
     private final boolean broadcast;
     private final Builder<?> builder;
     private final UUID uuid;
+    private final SortedSet<ClientID> haveRecieved;
 
     public OutMessage(Builder<?> builder) {
         this.type = builder.getType();
         this.broadcast = builder.isBroadcast();
         this.uuid = UUID.randomUUID();
         this.builder = builder;
+        this.haveRecieved = Collections.synchronizedSortedSet(new TreeSet<>());
+    }
+
+    /**
+     * Checks to see if this is the first time that this message has been sent to
+     * the specified Client.
+     * 
+     * @param client
+     * @return true if this is the first time, false otherwise
+     */
+    public final synchronized boolean isFirstRecieve(ClientID client) {
+        synchronized (this.haveRecieved) {
+            return this.haveRecieved.add(client);
+        }
     }
 
     public Builder<?> copyBuilder() {
