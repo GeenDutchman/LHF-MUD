@@ -11,16 +11,13 @@ import com.lhf.messages.out.OutMessage;
 public interface ClientMessengerHub extends ClientMessenger {
     public Collection<ClientMessenger> getClientMessengers();
 
-    /** Returns true if the message has been sent, false if not **/
-    public boolean checkMessageSent(OutMessage outMessage);
-
     public default boolean announceDirect(OutMessage outMessage, Collection<? extends ClientMessenger> recipients) {
         if (outMessage == null || recipients == null) {
             return false;
         }
 
-        if (this.checkMessageSent(outMessage)) {
-            return false;
+        if (outMessage.isFirstRecieve(this.getClientID())) {
+            this.receive(outMessage);
         }
 
         Set<ClientMessenger> sentSet = new TreeSet<>(ClientMessenger.getComparator());
