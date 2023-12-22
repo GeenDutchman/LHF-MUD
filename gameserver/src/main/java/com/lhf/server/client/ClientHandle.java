@@ -118,11 +118,11 @@ public class ClientHandle extends Client implements Runnable {
         } catch (IOException e) {
             final FatalMessage fatal = FatalMessage.getBuilder().setException(e).setExtraInfo("recoverable").Build();
             this.logger.log(Level.SEVERE, fatal.toString(), e);
-            sendMsg(fatal);
+            receive(fatal);
         } catch (Exception e) {
             final FatalMessage fatal = FatalMessage.getBuilder().setException(e).setExtraInfo("irrecoverable").Build();
             this.logger.log(Level.SEVERE, fatal.toString(), e);
-            sendMsg(fatal);
+            receive(fatal);
             throw e;
         } finally {
             connectionListener.clientConnectionTerminated(id); // let connectionListener know that it is over

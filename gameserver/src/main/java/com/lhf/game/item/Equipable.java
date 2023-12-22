@@ -76,7 +76,7 @@ public class Equipable extends Usable {
 
     public void onEquippedBy(ICreature equipper) {
         for (CreatureEffectSource effector : this.getEquippingEffects(true)) {
-            equipper.sendMsg(equipper.applyEffect(new CreatureEffect(effector, equipper, this)));
+            equipper.receive(equipper.applyEffect(new CreatureEffect(effector, equipper, this)));
         }
     }
 
@@ -84,7 +84,7 @@ public class Equipable extends Usable {
         for (CreatureEffectSource effector : this.getEquippingEffects(true)) {
             if (effector.getPersistence() != null
                     && TickType.CONDITIONAL.equals(effector.getPersistence().getTickSize())) {
-                unequipper.sendMsg(unequipper.applyEffect(new CreatureEffect(effector, unequipper, this), true));
+                unequipper.receive(unequipper.applyEffect(new CreatureEffect(effector, unequipper, this), true));
             }
         }
     }

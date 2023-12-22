@@ -53,11 +53,11 @@ public class Usable extends Takeable {
     public boolean doUseAction(CommandContext ctx, Object usingOn) {
         UseOutMessage.Builder useOutMessage = UseOutMessage.getBuilder().setItemUser(ctx.getCreature()).setUsable(this);
         if (methods == null || usingOn == null) {
-            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
             return false;
         }
         if (!hasUsesLeft()) {
-            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.USED_UP).Build());
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.USED_UP).Build());
             return false;
         }
 
@@ -89,7 +89,7 @@ public class Usable extends Takeable {
         }
 
         if (method == null) {
-            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
             return false;
         }
 

@@ -113,8 +113,8 @@ public class User implements MessageChainHandler, ClientMessenger, Comparable<Us
     }
 
     @Override
-    public void sendMsg(OutMessage msg) {
-        this.client.sendMsg(msg);
+    public void receive(OutMessage msg) {
+        this.client.receive(msg);
     }
 
     @Override

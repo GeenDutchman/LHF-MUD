@@ -71,7 +71,7 @@ public class ClientManager {
     public void sendMessageToAll(OutMessage msg) {
         logger.entering(this.getClass().getName(), "sendMessageToAll()", msg);
         for (Client client : this.clientMap.values()) {
-            client.sendMsg(msg);
+            client.receive(msg);
         }
     }
 
@@ -79,7 +79,7 @@ public class ClientManager {
         logger.entering(this.getClass().getName(), "sendMessageToAllExcept()");
         for (ClientID iterId : this.clientMap.keySet()) {
             if (iterId != id) {
-                this.clientMap.get(iterId).sendMsg(msg);
+                this.clientMap.get(iterId).receive(msg);
             }
         }
     }

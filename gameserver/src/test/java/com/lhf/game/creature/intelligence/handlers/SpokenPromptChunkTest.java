@@ -26,7 +26,7 @@ public class SpokenPromptChunkTest {
                 AIComBundle speaker = new AIComBundle();
                 SpeakingMessage sm = SpeakingMessage.getBuilder().setSayer(speaker.npc).setMessage("hello")
                                 .setHearer(listener.npc).Build();
-                listener.npc.sendMsg(sm);
+                listener.npc.receive(sm);
 
                 Mockito.verify(listener.sssb, Mockito.timeout(1000)).send(sm);
                 Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
@@ -49,7 +49,7 @@ public class SpokenPromptChunkTest {
                 SpeakingMessage sm = SpeakingMessage.getBuilder().setSayer(speaker.npc)
                                 .setMessage("PROMPT SEE " + prompt)
                                 .setHearer(listener.npc).Build();
-                listener.npc.sendMsg(sm);
+                listener.npc.receive(sm);
 
                 Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
                                 Mockito.argThat((command) -> command != null && command.getWhole().contains(prompt)));
@@ -67,7 +67,7 @@ public class SpokenPromptChunkTest {
                 SpeakingMessage sm = SpeakingMessage.getBuilder().setSayer(speaker.npc)
                                 .setMessage("PROMPT SEE " + prompt)
                                 .setHearer(listener.npc).Build();
-                listener.npc.sendMsg(sm);
+                listener.npc.receive(sm);
 
                 Mockito.verifyNoInteractions(listener.mockedWrappedHandler);
 

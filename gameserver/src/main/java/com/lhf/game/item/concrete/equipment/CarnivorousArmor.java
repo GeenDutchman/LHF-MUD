@@ -60,11 +60,11 @@ public class CarnivorousArmor extends Equipable {
 
         setUseAction(newOwner.getName(), (ctx, object) -> {
             if (!equipped) {
-                ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.REQUIRE_EQUIPPED).Build());
+                ctx.receive(useOutMessage.setSubType(UseOutMessageOption.REQUIRE_EQUIPPED).Build());
                 return true;
             }
             if (object == null) {
-                ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
+                ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
                 return true;
             } else if (object instanceof ICreature) {
                 ICreature target = (ICreature) object;
@@ -72,7 +72,7 @@ public class CarnivorousArmor extends Equipable {
                 if (equippedAndUsed) {
                     String snuggle = "The " + this.getColorTaggedName()
                             + " snuggles around you as you poke at it, but otherwise does nothing.";
-                    ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.OK).setMessage(snuggle).Build());
+                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).setMessage(snuggle).Build());
                     return true;
                 }
                 Integer currHealth = target.getStats().getOrDefault(Stats.CURRENTHP, 0);
@@ -84,18 +84,18 @@ public class CarnivorousArmor extends Equipable {
                             "Once it is sated, you feel the " + this.getColorTaggedName() +
                             " tighten up around its most recent, precious meal.  It leaves the rest for later.";
                     equippedAndUsed = true;
-                    ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.OK).setMessage(eatDescription).Build());
-                    ctx.sendMsg(target.applyEffect(new CreatureEffect(this.eatingResults, ctx.getCreature(), this)));
-                    ctx.sendMsg(target.applyEffect(new CreatureEffect(this.eatingACResults, ctx.getCreature(), this)));
+                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).setMessage(eatDescription).Build());
+                    ctx.receive(target.applyEffect(new CreatureEffect(this.eatingResults, ctx.getCreature(), this)));
+                    ctx.receive(target.applyEffect(new CreatureEffect(this.eatingACResults, ctx.getCreature(), this)));
                     return true;
                 } else {
                     String moreNeeded = "You need more health to use this item.";
-                    ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES).setMessage(moreNeeded).Build());
+                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).setMessage(moreNeeded).Build());
                     return true;
                 }
             }
             String notUse = "You cannot use this on that!  You can only use it on yourself.";
-            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES).setMessage(notUse).Build());
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).setMessage(notUse).Build());
             return true;
         });
 
@@ -106,7 +106,7 @@ public class CarnivorousArmor extends Equipable {
     public void onUnequippedBy(ICreature disowner) {
         super.onUnequippedBy(disowner);
         if (equippedAndUsed) {
-            disowner.sendMsg(disowner.applyEffect(new CreatureEffect(this.lastBite, disowner, this)));
+            disowner.receive(disowner.applyEffect(new CreatureEffect(this.lastBite, disowner, this)));
         }
         equipped = false;
         equippedAndUsed = false;

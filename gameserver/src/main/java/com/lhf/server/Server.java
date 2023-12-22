@@ -72,7 +72,7 @@ public class Server implements ServerInterface, ConnectionListener {
     public Client startClient(Client client) {
         this.logger.log(Level.FINER, "Sending welcome");
         client.setSuccessor(this);
-        client.sendMsg(WelcomeMessage.getWelcomeBuilder().Build());
+        client.receive(WelcomeMessage.getWelcomeBuilder().Build());
         return client;
     }
 
@@ -192,10 +192,10 @@ public class Server implements ServerInterface, ConnectionListener {
                     Server.this.game.userLeft(ctx.getUserID());
                     User leaving = Server.this.userManager.getUser(ctx.getUserID());
                     Server.this.userManager.removeUser(ctx.getUserID());
-                    leaving.sendMsg(UserLeftMessage.getBuilder().setUser(leaving).setNotBroadcast().Build());
+                    leaving.receive(UserLeftMessage.getBuilder().setUser(leaving).setNotBroadcast().Build());
                 } else {
                     if (ch != null) {
-                        ch.sendMsg(UserLeftMessage.getBuilder().setNotBroadcast().Build());
+                        ch.receive(UserLeftMessage.getBuilder().setNotBroadcast().Build());
                     }
                 }
 
@@ -238,12 +238,12 @@ public class Server implements ServerInterface, ConnectionListener {
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof CreateInMessage msg) {
                 if (Server.this.userManager.getForbiddenUsernames().contains(msg.getUsername())) {
-                    ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
+                    ctx.receive(DuplicateUserMessage.getBuilder().Build());
                     return ctx.handled();
                 }
                 User user = Server.this.userManager.addUser(msg, ctx.getClientMessenger());
                 if (user == null) {
-                    ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
+                    ctx.receive(DuplicateUserMessage.getBuilder().Build());
                     return ctx.handled();
                 }
                 user.setSuccessor(Server.this);

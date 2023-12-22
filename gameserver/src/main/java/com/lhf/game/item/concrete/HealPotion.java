@@ -28,7 +28,7 @@ public class HealPotion extends Usable {
             UseOutMessage.Builder useOutMessage = UseOutMessage.getBuilder().setItemUser(ctx.getCreature())
                     .setUsable(this);
             if (object == null) {
-                ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
+                ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
                         .setMessage("That is not a valid target at all!").Build());
                 return true;
             } else if (object instanceof ICreature) {
@@ -42,28 +42,28 @@ public class HealPotion extends Usable {
                     if (bm.hasCreature(target) && !bm.hasCreature(ctx.getCreature())) {
                         // give out of turn message
                         bm.addCreature(ctx.getCreature());
-                        ctx.sendMsg(BattleRoundMessage.getBuilder().setNeedSubmission(RoundAcceptance.REJECTED)
+                        ctx.receive(BattleRoundMessage.getBuilder().setNeedSubmission(RoundAcceptance.REJECTED)
                                 .setNotBroadcast().Build());
                         return false;
                     }
-                    ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
+                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
                     OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     bm.announce(results);
                 } else if (ctx.getRoom() != null) {
-                    ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
+                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
                     OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     ctx.getRoom().announce(results);
                 } else {
-                    ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
+                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
                     OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
-                    ctx.sendMsg(results);
+                    ctx.receive(results);
                     if (ctx.getCreature() != target) {
-                        target.sendMsg(results);
+                        target.receive(results);
                     }
                 }
                 return true;
             }
-            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
                     .setMessage("You cannot use a " + this.getName() + " on that."));
             return true;
         };

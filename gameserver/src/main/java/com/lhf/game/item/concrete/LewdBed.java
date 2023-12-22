@@ -173,20 +173,20 @@ public class LewdBed extends Bed {
             }
 
             if (!LewdBed.this.isInBed(ctx.getCreature())) {
-                ctx.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
+                ctx.receive(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
                 return ctx.failhandle();
             }
             lewdOutMessage.setCreature(ctx.getCreature());
 
             if (ctx.getCreature().isInBattle()) {
-                ctx.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
+                ctx.receive(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
                 return ctx.failhandle();
             }
 
             if (ctx.getCreature().getEquipped(EquipmentSlots.ARMOR) != null) {
                 LewdBed.this.logger.log(Level.WARNING,
                         String.format("%s is still wearing armor, but wants to lewd!", ctx.getCreature().getName()));
-                ctx.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
+                ctx.receive(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
                 return ctx.failhandle();
             }
 
@@ -211,14 +211,14 @@ public class LewdBed extends Bed {
     protected boolean handleJoin(ICreature joiner, int index) {
         LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder().setCreature(joiner).setNotBroadcast();
         if (!this.isInBed(joiner)) {
-            joiner.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).Build());
+            joiner.receive(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).Build());
             return true;
         }
 
         VrijPartij party = this.vrijPartijen.getOrDefault(index, null);
 
         if (party == null) {
-            joiner.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.MISSED).Build());
+            joiner.receive(lewdOutMessage.setSubType(LewdOutMessageType.MISSED).Build());
             return true;
         }
         lewdOutMessage.setParty(party.getParty());
@@ -235,7 +235,7 @@ public class LewdBed extends Bed {
     protected boolean handleEmptyJoin(ICreature joiner) {
         LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder().setCreature(joiner).setNotBroadcast();
         if (!this.isInBed(joiner)) {
-            joiner.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).Build());
+            joiner.receive(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).Build());
             return true;
         }
         for (int i : this.vrijPartijen.keySet()) {
@@ -245,14 +245,14 @@ public class LewdBed extends Bed {
             }
         }
         this.logger.log(Level.WARNING, String.format("%s wanted to do solo play", joiner.getName()));
-        joiner.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.SOLO_UNSUPPORTED).Build());
+        joiner.receive(lewdOutMessage.setSubType(LewdOutMessageType.SOLO_UNSUPPORTED).Build());
         return true;
     }
 
     protected boolean handlePopulatedJoin(ICreature joiner, Set<String> possPartners, Set<String> babyNames) {
         LewdOutMessage.Builder lewdOutMessage = LewdOutMessage.getBuilder().setCreature(joiner);
         if (!this.isInBed(joiner)) {
-            joiner.sendMsg(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
+            joiner.receive(lewdOutMessage.setSubType(LewdOutMessageType.NOT_READY).setNotBroadcast().Build());
             return true;
         }
         Set<ICreature> invited = new HashSet<>();
@@ -262,14 +262,14 @@ public class LewdBed extends Bed {
                 if (possibles.size() == 0) {
                     this.logger.log(Level.WARNING,
                             String.format("%s wanted to lewd someone named %s, but DNE", joiner.getName(), possName));
-                    joiner.sendMsg(BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.DNE)
+                    joiner.receive(BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.DNE)
                             .setBadTarget(possName).setPossibleTargets(possibles).Build());
                     return true;
                 } else if (possibles.size() > 1) {
                     this.logger.log(Level.WARNING,
                             String.format("%s wanted to lewd someone named %s, but UNCLEAR", joiner.getName(),
                                     possName));
-                    joiner.sendMsg(BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR)
+                    joiner.receive(BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.UNCLEAR)
                             .setBadTarget(possName).setPossibleTargets(possibles).Build());
                     return true;
                 }

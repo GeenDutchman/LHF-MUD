@@ -263,7 +263,7 @@ public class DMRoom extends Room {
                         OutMessage whoops = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.DNE)
                                 .setBadTarget(name).Build();
                         dmRoomEffect.creatureResponsible()
-                                .sendMsg(whoops);
+                                .receive(whoops);
                         return null;
                     }
                 }
@@ -271,7 +271,7 @@ public class DMRoom extends Room {
                 if (maybeCorpse.isEmpty() || !(maybeCorpse.get() instanceof Corpse)) {
                     this.logger.log(Level.FINEST, () -> String.format("No corpse was found with the name '%s'", name));
                     if (effect.creatureResponsible() != null) {
-                        effect.creatureResponsible().sendMsg(BadTargetSelectedMessage.getBuilder()
+                        effect.creatureResponsible().receive(BadTargetSelectedMessage.getBuilder()
                                 .setBde(BadTargetOption.DNE).setBadTarget(name).Build());
                         return null;
                     }
@@ -304,7 +304,7 @@ public class DMRoom extends Room {
                             } else if (ctx.getUser() != null) {
                                 sayer = ctx.getUser();
                             }
-                            u.sendMsg(SpeakingMessage.getBuilder().setSayer(sayer).setMessage(sayMessage.getMessage())
+                            u.receive(SpeakingMessage.getBuilder().setSayer(sayer).setMessage(sayMessage.getMessage())
                                     .setHearer(u).Build());
                             sent = true;
                             break;

@@ -68,7 +68,7 @@ public class Client implements MessageChainHandler, ClientMessenger {
     }
 
     @Override
-    public synchronized void sendMsg(OutMessage msg) {
+    public synchronized void receive(OutMessage msg) {
         this.logger.entering(this.getClass().getName(), "sendMsg()", msg);
         if (this.out == null) {
             this.SetOut(new LoggerSendStrategy(this.logger, Level.FINER));
@@ -119,7 +119,7 @@ public class Client implements MessageChainHandler, ClientMessenger {
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             Reply reply = MessageChainHandler.passUpChain(Client.this, ctx, null); // this will collect all the helps
-            Client.this.sendMsg(HelpMessage.getHelpBuilder().setHelps(reply.getHelps()));
+            Client.this.receive(HelpMessage.getHelpBuilder().setHelps(reply.getHelps()));
             return reply.resolve();
         }
 
@@ -130,10 +130,10 @@ public class Client implements MessageChainHandler, ClientMessenger {
         Map<CommandMessage, String> helps = reply.getHelps();
 
         if (badMessageType != null) {
-            this.sendMsg(
+            this.receive(
                     BadMessage.getBuilder().setBadMessageType(badMessageType).setHelps(helps).setCommand(msg).Build());
         } else {
-            this.sendMsg(HelpMessage.getHelpBuilder().setHelps(helps).setSingleHelp(msg == null ? null : msg.getType())
+            this.receive(HelpMessage.getHelpBuilder().setHelps(helps).setSingleHelp(msg == null ? null : msg.getType())
                     .Build());
         }
         return reply.resolve();

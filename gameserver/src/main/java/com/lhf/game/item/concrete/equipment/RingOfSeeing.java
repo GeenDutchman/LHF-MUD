@@ -18,15 +18,15 @@ public class RingOfSeeing extends Equipable {
             UseOutMessage.Builder useOutMessage = UseOutMessage.getBuilder().setItemUser(ctx.getCreature())
                     .setUsable(this);
             if (object == null) {
-                ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
+                ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
                         .setMessage("That is not a valid target at all!").Build());
                 return true;
             } else if (object instanceof Room) {
                 Room seenRoom = (Room) object;
-                ctx.sendMsg(seenRoom.produceMessage(true, true));
+                ctx.receive(seenRoom.produceMessage(true, true));
                 return true;
             }
-            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
                     .setMessage("You cannot use a " + this.getName() + " on that.").Build());
             return true;
         });

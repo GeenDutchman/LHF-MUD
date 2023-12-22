@@ -45,10 +45,10 @@ public class BattleManagerTest {
                 MessageMatcher startBattle = new MessageMatcher(OutMessageType.START_FIGHT);
                 MessageMatcher turnMessage = new MessageMatcher(OutMessageType.BATTLE_ROUND);
                 Mockito.verify(npc, Mockito.timeout(1000).atLeastOnce())
-                                .sendMsg(Mockito.argThat(startBattle.ownedCopy("npc")));
+                                .receive(Mockito.argThat(startBattle.ownedCopy("npc")));
 
                 Mockito.verify(npc, Mockito.timeout(1000).atLeastOnce())
-                                .sendMsg(Mockito.argThat(turnMessage.ownedCopy("npc")));
+                                .receive(Mockito.argThat(turnMessage.ownedCopy("npc")));
 
         }
 
@@ -85,12 +85,12 @@ public class BattleManagerTest {
                                 "should enter an action to take for the round")
                                 .setPrint(true);
                 Mockito.verify(npc, Mockito.timeout(1000).times(1))
-                                .sendMsg(Mockito.argThat(startBattle.ownedCopy("npc")));
+                                .receive(Mockito.argThat(startBattle.ownedCopy("npc")));
 
                 Mockito.verify(npc, Mockito.timeout(1000).times(1))
-                                .sendMsg(Mockito.argThat(turnMessage.ownedCopy("npc")));
+                                .receive(Mockito.argThat(turnMessage.ownedCopy("npc")));
 
                 Mockito.verify(monster, Mockito.timeout(1000).times(1))
-                                .sendMsg(Mockito.argThat(turnMessage.ownedCopy("monster")));
+                                .receive(Mockito.argThat(turnMessage.ownedCopy("monster")));
         }
 }

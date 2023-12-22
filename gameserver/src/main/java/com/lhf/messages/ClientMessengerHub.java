@@ -29,7 +29,7 @@ public interface ClientMessengerHub {
                 .filter(messenger -> messenger != null && messenger instanceof ClientMessenger)
                 .forEachOrdered(messenger -> {
                     if (sentSet.add(messenger)) {
-                        messenger.sendMsg(outMessage);
+                        messenger.receive(outMessage);
                     }
                 });
         return true;

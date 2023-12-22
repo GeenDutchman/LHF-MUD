@@ -115,8 +115,8 @@ public class BasicAI extends Client {
     }
 
     @Override
-    public synchronized void sendMsg(OutMessage msg) {
-        super.sendMsg(msg);
+    public synchronized void receive(OutMessage msg) {
+        super.receive(msg);
         try {
             if (this.runner == null) {
                 this.process(msg);

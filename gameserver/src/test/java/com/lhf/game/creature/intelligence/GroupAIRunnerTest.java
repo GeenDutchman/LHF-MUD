@@ -23,9 +23,9 @@ public class GroupAIRunnerTest {
     void testProcessLeavesSome() throws InterruptedException {
         GroupAIRunner runner = Mockito.spy(new GroupAIRunner(false, 2));
         BasicAI qAi = runner.register(NonPlayerCharacter.getNPCBuilder(runner).build());
-        qAi.sendMsg(SeeOutMessage.getBuilder().setDeniedReason("denied once").Build());
-        qAi.sendMsg(WelcomeMessage.getWelcomeBuilder().Build());
-        qAi.sendMsg(FatalMessage.getBuilder().Build());
+        qAi.receive(SeeOutMessage.getBuilder().setDeniedReason("denied once").Build());
+        qAi.receive(WelcomeMessage.getWelcomeBuilder().Build());
+        qAi.receive(FatalMessage.getBuilder().Build());
 
         Truth.assertThat(qAi.size()).isEqualTo(3);
         Truth.assertThat(runner.size()).isEqualTo(1);

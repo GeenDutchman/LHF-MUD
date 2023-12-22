@@ -87,7 +87,7 @@ public class BattleTurnHandlerTest {
                                     .setBde(BadTargetOption.DNE)
                                     .setBadTarget("bloohoo")
                                     .setPossibleTargets(new ArrayList<>()).Build();
-                            ctx.sendMsg(btsm);
+                            ctx.receive(btsm);
                             return ctx.handled();
                         }
                         if (cmd.getType().equals(CommandMessage.SEE)) {
@@ -101,7 +101,7 @@ public class BattleTurnHandlerTest {
         searcher.npc.intercept(interceptor);
 
         // trigger it
-        searcher.npc.sendMsg(BattleRoundMessage.getBuilder().setAboutCreature(searcher.npc).setNeeded()
+        searcher.npc.receive(BattleRoundMessage.getBuilder().setAboutCreature(searcher.npc).setNeeded()
                 .Build());
 
         Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();

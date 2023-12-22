@@ -151,11 +151,11 @@ public class CommandContext implements ClientMessenger {
     }
 
     @Override
-    public void sendMsg(OutMessage msg) {
+    public void receive(OutMessage msg) {
         if (msg != null) {
             this.addMessage(msg);
             if (this.client != null) {
-                this.client.sendMsg(msg);
+                this.client.receive(msg);
             }
         }
     }

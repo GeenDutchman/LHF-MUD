@@ -235,12 +235,12 @@ public interface ICreature
     }
 
     @Override
-    public default void sendMsg(OutMessage msg) {
+    public default void receive(OutMessage msg) {
         if (msg != null && msg instanceof ITickMessage) {
             this.tick(((ITickMessage) msg).getTickType());
         }
         if (this.getController() != null) {
-            this.getController().sendMsg(msg);
+            this.getController().receive(msg);
             return;
         }
         // Does nothing silently

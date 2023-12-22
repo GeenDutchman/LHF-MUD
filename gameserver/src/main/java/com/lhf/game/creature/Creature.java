@@ -411,18 +411,18 @@ public abstract class Creature implements ICreature {
                     this.unequipItem(slot, "");
                     this.getInventory().removeItem(equipThing);
                     this.getEquipmentSlots().putIfAbsent(slot, equipThing);
-                    this.sendMsg(equipMessage.setSubType(EquipResultType.SUCCESS).Build());
+                    this.receive(equipMessage.setSubType(EquipResultType.SUCCESS).Build());
                     equipThing.onEquippedBy(this);
 
                     return true;
                 }
-                this.sendMsg(equipMessage.setSubType(EquipResultType.BADSLOT).Build());
+                this.receive(equipMessage.setSubType(EquipResultType.BADSLOT).Build());
                 return true;
             }
-            this.sendMsg(equipMessage.setSubType(EquipResultType.NOTEQUIPBLE));
+            this.receive(equipMessage.setSubType(EquipResultType.NOTEQUIPBLE));
             return true;
         }
-        this.sendMsg(NotPossessedMessage.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
+        this.receive(NotPossessedMessage.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
                 .setItemName(itemName).Build());
         return true;
     }
@@ -443,17 +443,17 @@ public abstract class Creature implements ICreature {
                         if (equippedThing.equals(equipped.get(thingSlot))) {
                             equipped.remove(thingSlot);
                             this.getInventory().addItem(equippedThing);
-                            this.sendMsg(unequipMessage.setSubType(UnequipResultType.SUCCESS).Build());
+                            this.receive(unequipMessage.setSubType(UnequipResultType.SUCCESS).Build());
                             equippedThing.onUnequippedBy(this);
                             return true;
                         }
                     }
                 }
-                this.sendMsg(unequipMessage.setSubType(UnequipResultType.ITEM_NOT_EQUIPPED).Build());
+                this.receive(unequipMessage.setSubType(UnequipResultType.ITEM_NOT_EQUIPPED).Build());
                 return false;
             }
 
-            this.sendMsg(NotPossessedMessage.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
+            this.receive(NotPossessedMessage.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
                     .setItemName(weapon));
             return false;
         }
@@ -461,11 +461,11 @@ public abstract class Creature implements ICreature {
         if (thing != null) {
             unequipMessage.setItem(thing).setSubType(UnequipResultType.SUCCESS);
             this.getInventory().addItem(thing);
-            this.sendMsg(unequipMessage.Build());
+            this.receive(unequipMessage.Build());
             thing.onUnequippedBy(this);
             return true;
         }
-        this.sendMsg(unequipMessage.setItem(null).setSubType(UnequipResultType.ITEM_NOT_FOUND).Build()); // thing is
+        this.receive(unequipMessage.setItem(null).setSubType(UnequipResultType.ITEM_NOT_FOUND).Build()); // thing is
                                                                                                          // null
         return false;
     }
@@ -646,7 +646,7 @@ public abstract class Creature implements ICreature {
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof StatusMessage statusMessage) {
-                ctx.sendMsg(
+                ctx.receive(
                         StatusOutMessage.getBuilder().setNotBroadcast().setFromCreature(Creature.this, true).Build());
                 Creature.this.tick(TickType.ACTION);
                 return ctx.handled();
@@ -682,7 +682,7 @@ public abstract class Creature implements ICreature {
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof InventoryMessage inventoryMessage) {
-                ctx.sendMsg(Creature.this.getInventory().getInventoryOutMessage(Creature.this.getEquipmentSlots()));
+                ctx.receive(Creature.this.getInventory().getInventoryOutMessage(Creature.this.getEquipmentSlots()));
                 Creature.this.tick(TickType.ACTION);
                 return ctx.handled();
             }

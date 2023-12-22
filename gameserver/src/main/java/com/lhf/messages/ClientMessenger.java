@@ -7,10 +7,10 @@ import com.lhf.messages.out.OutMessage;
 import com.lhf.server.client.ClientID;
 
 public interface ClientMessenger extends Taggable {
-    public void sendMsg(OutMessage msg);
+    public void receive(OutMessage msg);
 
-    public default void sendMsg(OutMessage.Builder<?> builder) {
-        this.sendMsg(builder.Build());
+    public default void receive(OutMessage.Builder<?> builder) {
+        this.receive(builder.Build());
     }
 
     public ClientID getClientID();

@@ -457,7 +457,7 @@ public class BattleStats implements ClientMessenger {
     }
 
     @Override
-    public void sendMsg(OutMessage msg) {
+    public void receive(OutMessage msg) {
         if (msg != null && OutMessageType.CREATURE_AFFECTED.equals(msg.getOutType())) {
             CreatureAffectedMessage cam = (CreatureAffectedMessage) msg;
             this.update(cam);
