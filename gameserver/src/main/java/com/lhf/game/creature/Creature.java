@@ -15,7 +15,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.creature.inventory.Inventory;
