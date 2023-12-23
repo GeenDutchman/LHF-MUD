@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -109,20 +110,24 @@ public abstract class Creature implements ICreature {
         return this.statblock.getStats().getOrDefault(Stats.CURRENTHP, 0);
     }
 
+    private int getMaxHealth() {
+        return this.statblock.getStats().getOrDefault(Stats.MAXHP, 0);
+    }
+
     @Override
     public HealthBuckets getHealthBucket() {
-        return HealthBuckets.calculate(getHealth(), this.statblock.getStats().getOrDefault(Stats.MAXHP, 0));
+        return HealthBuckets.calculate(this.getHealth(), this.getMaxHealth());
     }
 
     @Override
     public boolean isAlive() {
-        return getHealth() > 0;
+        return this.getHealth() > 0 && this.getMaxHealth() > 0;
     }
 
     @Override
     public void updateHitpoints(int value) {
-        int current = this.statblock.getStats().getOrDefault(Stats.CURRENTHP, 0);
-        int max = this.statblock.getStats().getOrDefault(Stats.MAXHP, 0);
+        int current = this.getHealth();
+        int max = this.getMaxHealth();
         current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
         this.statblock.getStats().replace(Stats.CURRENTHP, current);
         if (current <= 0) {
@@ -146,16 +151,41 @@ public abstract class Creature implements ICreature {
     }
 
     private void updateStat(Stats stat, int value) {
-        Map<Stats, Integer> stats = this.statblock.getStats();
-        stats.merge(stat, value, (a, b) -> {
+        if (stat == null) {
+            return;
+        }
+        final BiFunction<Integer, Integer, Integer> merger = (a, b) -> {
             if (a != null && b != null) {
                 return a + b;
             }
             return a != null ? a : b;
-        });
-        if (Stats.XPEARNED.equals(stat) && this.vocation != null) {
-            this.vocation.addExperience(value);
+        };
+        switch (stat) {
+            case MAXHP:
+                this.getStats().merge(stat, value, merger);
+                // fallthrough
+            case CURRENTHP:
+                int current = this.getHealth();
+                int max = this.getMaxHealth();
+                current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
+                this.statblock.getStats().replace(Stats.CURRENTHP, current);
+                break;
+            case XPEARNED:
+                if (this.vocation != null) {
+                    this.vocation.addExperience(value);
+                }
+                // fallthrough
+            case AC:
+                // fallthrough
+            case PROFICIENCYBONUS:
+                // fallthrough
+            case XPWORTH:
+                // fallthrough
+            default:
+                this.getStats().merge(stat, value, merger);
+                break;
         }
+
     }
 
     /* start getters */
