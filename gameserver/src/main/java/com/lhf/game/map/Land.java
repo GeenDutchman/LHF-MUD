@@ -17,7 +17,6 @@ import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.ITickEvent;
 import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.events.GameEvent;
-import com.lhf.messages.events.TickEvent;
 import com.lhf.server.client.user.UserID;
 
 public interface Land extends CreatureContainer, MessageChainHandler, AffectableEntity<DungeonEffect> {

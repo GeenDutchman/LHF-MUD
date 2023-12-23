@@ -22,7 +22,6 @@ import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
-import com.lhf.messages.events.TickEvent;
 
 public interface Area
         extends ItemContainer, CreatureContainer, MessageChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
