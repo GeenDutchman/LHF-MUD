@@ -14,10 +14,10 @@ import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.map.Area;
+import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.MessageMatcher;
 import com.lhf.messages.events.GameEvent;
-import com.lhf.messages.ClientID;
-import com.lhf.messages.GameEventType;
 
 @ExtendWith(MockitoExtension.class)
 public class BattleManagerTest {
@@ -27,20 +27,20 @@ public class BattleManagerTest {
         @Test
         void testSimpleBattle() {
                 IMonster monster = Mockito.mock(IMonster.class);
-                ClientID monstercClientID = new ClientID();
+                GameEventProcessorID monstercClientID = new GameEventProcessorID();
                 AcceptHook monsterHook = Mockito.mock(AcceptHook.class);
                 INonPlayerCharacter npc = Mockito.mock(INonPlayerCharacter.class);
-                ClientID npClientID = new ClientID();
+                GameEventProcessorID npClientID = new GameEventProcessorID();
                 AcceptHook npcHook = Mockito.mock(AcceptHook.class);
                 Area area = Mockito.mock(Area.class);
 
                 Mockito.when(monster.getName()).thenReturn("Monster");
-                Mockito.when(monster.getClientID()).thenReturn(monstercClientID);
+                Mockito.when(monster.getEventProcessorID()).thenReturn(monstercClientID);
                 Mockito.when(monster.getHealthBucket()).thenReturn(HealthBuckets.HEALTHY);
                 Mockito.when(monster.getAcceptHook()).thenReturn(monsterHook);
                 // Mockito.when(monster.getColorTaggedName()).thenCallRealMethod();
                 Mockito.when(npc.getName()).thenReturn("NPC");
-                Mockito.when(npc.getClientID()).thenReturn(npClientID);
+                Mockito.when(npc.getEventProcessorID()).thenReturn(npClientID);
                 Mockito.when(npc.getHealthBucket()).thenReturn(HealthBuckets.LIGHTLY_INJURED);
                 Mockito.when(npc.getAcceptHook()).thenReturn(npcHook);
                 // Mockito.when(npc.getColorTaggedName()).thenCallRealMethod();
@@ -64,10 +64,10 @@ public class BattleManagerTest {
         @Test
         void testWaitTooLong() throws InterruptedException {
                 IMonster monster = Mockito.mock(IMonster.class);
-                ClientID monstercClientID = new ClientID();
+                GameEventProcessorID monstercClientID = new GameEventProcessorID();
                 AcceptHook monsterHook = Mockito.mock(AcceptHook.class);
                 INonPlayerCharacter npc = Mockito.mock(INonPlayerCharacter.class);
-                ClientID npClientID = new ClientID();
+                GameEventProcessorID npClientID = new GameEventProcessorID();
                 AcceptHook npcHook = Mockito.mock(AcceptHook.class);
 
                 Area area = Mockito.mock(Area.class);
@@ -76,14 +76,14 @@ public class BattleManagerTest {
                 // Mockito.when(monster.getColorTaggedName()).thenCallRealMethod();
                 // Mockito.when(monster.isAlive()).thenReturn(true);
                 Mockito.when(monster.getFaction()).thenReturn(CreatureFaction.RENEGADE);
-                Mockito.when(monster.getClientID()).thenReturn(monstercClientID);
+                Mockito.when(monster.getEventProcessorID()).thenReturn(monstercClientID);
                 Mockito.when(monster.getHealthBucket()).thenReturn(HealthBuckets.HEALTHY);
                 Mockito.when(monster.getAcceptHook()).thenReturn(monsterHook);
                 Mockito.when(npc.getName()).thenReturn("NPC");
                 // Mockito.when(npc.getColorTaggedName()).thenReturn("NPC");
                 // Mockito.when(npc.isAlive()).thenReturn(true);
                 Mockito.when(npc.getFaction()).thenReturn(CreatureFaction.RENEGADE);
-                Mockito.when(npc.getClientID()).thenReturn(npClientID);
+                Mockito.when(npc.getEventProcessorID()).thenReturn(npClientID);
                 Mockito.when(npc.getHealthBucket()).thenReturn(HealthBuckets.LIGHTLY_INJURED);
                 Mockito.when(npc.getAcceptHook()).thenReturn(npcHook);
 

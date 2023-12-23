@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.INonPlayerCharacter;
-import com.lhf.messages.ClientID;
+import com.lhf.server.client.Client.ClientID;
 
 // see https://gamedev.stackexchange.com/questions/12458/how-to-manage-all-the-npc-ai-objects-on-the-server/12512#12512
 
@@ -147,7 +147,7 @@ public class GroupAIRunner implements AIRunner {
     @Override
     public synchronized void getAttention(BasicAI ai) throws InterruptedException {
         this.logger.entering(this.getClass().getName(), "getAttention(BasicAI)", ai.toString());
-        this.aiMap.computeIfAbsent(ai.getClientID(), clientId -> new AIPair<BasicAI>(ai));
+        this.aiMap.computeIfAbsent(ai.getClientID(), clientID -> new AIPair<BasicAI>(ai));
         this.getAttention(ai.getClientID());
     }
 

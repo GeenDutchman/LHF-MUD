@@ -1,6 +1,15 @@
 package com.lhf.game.item.concrete;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -11,32 +20,31 @@ import java.util.logging.Logger;
 
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.creature.Player;
 import com.lhf.game.creature.ICreature.CreatureCommandHandler;
+import com.lhf.game.creature.Player;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.Directions;
-import com.lhf.messages.ClientID;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.CommandMessage;
 import com.lhf.messages.events.BadGoEvent;
+import com.lhf.messages.events.BadGoEvent.BadGoType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
-import com.lhf.messages.events.BadGoEvent.BadGoType;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
-import com.lhf.messages.CommandMessage;
-import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.InteractMessage;
 import com.lhf.server.client.user.UserID;
 
 public class Bed extends InteractObject implements CreatureContainer, CommandChainHandler {
     protected final Logger logger;
-    protected final ClientID clientID;
+    protected final GameEventProcessorID gameEventProcessorID;
     protected final ScheduledThreadPoolExecutor executor;
     protected final int sleepSeconds;
     protected Set<BedTime> occupants;
@@ -170,8 +178,8 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
 
     public Bed(Area room, Builder builder) {
         super(builder.name, true, true, "It's a bed.");
-        this.clientID = new ClientID();
-        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.clientID.getUuid());
+        this.gameEventProcessorID = new GameEventProcessorID();
+        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.gameEventProcessorID.getUuid());
         this.sleepSeconds = builder.sleepSeconds;
         this.room = room;
 
@@ -349,8 +357,8 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
     }
 
     @Override
-    public ClientID getClientID() {
-        return this.clientID;
+    public GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
     }
 
     @Override

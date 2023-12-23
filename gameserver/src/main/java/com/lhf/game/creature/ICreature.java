@@ -50,6 +50,8 @@ import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
+import com.lhf.server.client.Controller;
+import com.lhf.server.client.Client.ClientID;
 
 /**
  * An interface for all things Creature. This way we can create wrappers, mocks,
@@ -130,7 +132,7 @@ public interface ICreature
         private CreatureFaction faction;
         private Vocation vocation;
         private Statblock statblock;
-        private GameEventProcessor controller;
+        private Controller controller;
         private CommandChainHandler successor;
         private Corpse corpse;
 
@@ -190,12 +192,12 @@ public interface ICreature
             return this.statblock;
         }
 
-        public T setController(GameEventProcessor controller) {
+        public T setController(Controller controller) {
             this.controller = controller;
             return this.getThis();
         }
 
-        public GameEventProcessor getController() {
+        public Controller getController() {
             return this.controller;
         }
 
@@ -222,13 +224,24 @@ public interface ICreature
     }
 
     /**
-     * Gets the Controller/{@link com.lhf.messages.GameEventProcessor
-     * GameEventProcessor}
+     * Gets the {@link com.lhf.server.client.Controller Controller}
      * for this Creature
      * 
-     * @return {@link com.lhf.messages.GameEventProcessor GameEventProcessor}
+     * @return {@link com.lhf.server.client.Controller Controller}
      */
-    public abstract GameEventProcessor getController();
+    public abstract Controller getController();
+
+    /**
+     * Gets the {@link com.lhf.server.client.Client.ClientID ClientID} from the
+     * {@link com.lhf.server.client.Controller Controller} for the creature, or NULL
+     * if there is no Controller.
+     * 
+     * @return {@link com.lhf.server.client.Client.ClientID ClientID} or NULL
+     */
+    public default ClientID getClientID() {
+        Controller controller = this.getController();
+        return controller != null ? controller.getClientID() : null;
+    }
 
     @Override
     default Consumer<GameEvent> getAcceptHook() {

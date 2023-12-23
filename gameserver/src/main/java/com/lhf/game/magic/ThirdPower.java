@@ -21,8 +21,8 @@ import com.lhf.Taggable;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.battle.BattleManager.PooledBattleManagerCommandHandler;
-import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.dice.MultiRollResult;
@@ -34,23 +34,22 @@ import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomEffect;
-import com.lhf.messages.ClientID;
-import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.BadMessageEvent;
+import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.BadTargetSelectedEvent;
-import com.lhf.messages.events.SpellCastingEvent;
+import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.SpellCastingEvent;
 import com.lhf.messages.events.SpellEntryRequestedEvent;
 import com.lhf.messages.events.SpellFizzledEvent;
-import com.lhf.messages.events.TargetDefendedEvent;
-import com.lhf.messages.events.BadMessageEvent.BadMessageType;
-import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.SpellFizzledEvent.SpellFizzleType;
-import com.lhf.messages.CommandMessage;
-import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.events.TargetDefendedEvent;
 import com.lhf.messages.in.CastMessage;
 import com.lhf.messages.in.SpellbookMessage;
 
@@ -71,11 +70,11 @@ public class ThirdPower implements CommandChainHandler {
     private EnumMap<CommandMessage, CommandHandler> cmds;
     private Spellbook spellbook;
     private transient final Logger logger;
-    public final ClientID clientID;
+    public final GameEventProcessorID gameEventProcessorID;
 
     public ThirdPower(CommandChainHandler successor, Spellbook spellbook) {
         this.logger = Logger.getLogger(this.getClass().getName());
-        this.clientID = new ClientID();
+        this.gameEventProcessorID = new GameEventProcessorID();
         this.successor = successor;
         this.cmds = this.generateCommands();
         if (spellbook == null) {
@@ -598,8 +597,8 @@ public class ThirdPower implements CommandChainHandler {
     }
 
     @Override
-    public ClientID getClientID() {
-        return this.clientID;
+    public GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
     }
 
     @Override

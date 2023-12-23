@@ -7,7 +7,7 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 import com.lhf.game.creature.ICreature;
-import com.lhf.messages.ClientID;
+import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
 import com.lhf.messages.GameEventType;
 
 public abstract class GameEvent implements Comparable<GameEvent> {
@@ -55,7 +55,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     private final boolean broadcast;
     private final Builder<?> builder;
     private final UUID uuid;
-    private final SortedSet<ClientID> haveRecieved;
+    private final SortedSet<GameEventProcessorID> haveRecieved;
 
     public GameEvent(Builder<?> builder) {
         this.type = builder.getType();
@@ -72,7 +72,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
      * @param client
      * @return true if this is the first time, false otherwise
      */
-    public final synchronized boolean isFirstRecieve(ClientID client) {
+    public final synchronized boolean isFirstRecieve(GameEventProcessorID client) {
         synchronized (this.haveRecieved) {
             return this.haveRecieved.add(client);
         }

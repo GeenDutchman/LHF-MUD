@@ -22,14 +22,13 @@ import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
-import com.lhf.messages.ClientID;
-import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.events.PlayersListedEvent;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.events.PlayersListedEvent;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
@@ -46,10 +45,10 @@ public class Game implements UserListener, CommandChainHandler {
 	private DMRoom controlRoom;
 	private AIRunner aiRunner;
 	private Map<CommandMessage, CommandHandler> commands;
-	private final ClientID clientID;
+	private final GameEventProcessorID gameEventProcessorID;
 
 	public Game(ServerInterface server, UserManager userManager) throws FileNotFoundException {
-		this.clientID = new ClientID();
+		this.gameEventProcessorID = new GameEventProcessorID();
 		this.logger = Logger.getLogger(this.getClass().getName());
 		this.aiRunner = new GroupAIRunner(true);
 		this.thirdPower = new ThirdPower(this, null);
@@ -70,7 +69,7 @@ public class Game implements UserListener, CommandChainHandler {
 
 	public Game(ServerInterface server, UserManager userManager, AIRunner aiRunner, @NotNull Dungeon dungeon)
 			throws FileNotFoundException {
-		this.clientID = new ClientID();
+		this.gameEventProcessorID = new GameEventProcessorID();
 		this.logger = Logger.getLogger(this.getClass().getName());
 		this.aiRunner = aiRunner;
 		this.thirdPower = new ThirdPower(this, null);
@@ -126,8 +125,8 @@ public class Game implements UserListener, CommandChainHandler {
 	}
 
 	@Override
-	public ClientID getClientID() {
-		return this.clientID;
+	public GameEventProcessorID getEventProcessorID() {
+		return this.gameEventProcessorID;
 	}
 
 	@Override

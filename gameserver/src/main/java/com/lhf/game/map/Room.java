@@ -36,13 +36,12 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.concrete.Corpse;
-import com.lhf.messages.ClientID;
-import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.BadSpeakingTargetEvent;
@@ -71,8 +70,8 @@ import com.lhf.messages.in.UseMessage;
 import com.lhf.server.client.user.UserID;
 
 public class Room implements Area {
-    private ClientID clientID = new ClientID();
-    private UUID uuid = clientID.getUuid();
+    private GameEventProcessorID gameEventProcessorID = new GameEventProcessorID();
+    private UUID uuid = gameEventProcessorID.getUuid();
     protected Logger logger;
     private List<Item> items;
     private transient Long takeableCount;
@@ -512,8 +511,8 @@ public class Room implements Area {
     }
 
     @Override
-    public ClientID getClientID() {
-        return this.clientID;
+    public GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
     }
 
     @Override

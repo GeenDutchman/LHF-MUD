@@ -9,25 +9,28 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.messages.ClientID;
-import com.lhf.messages.GameEventProcessor;
-import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.in.CreateInMessage;
+import com.lhf.server.client.Client;
+import com.lhf.server.client.Client.ClientID;
+import com.lhf.server.client.Controller;
 
-public class User implements CommandChainHandler, Comparable<User> {
-    private final ClientID clientID;
+public class User implements Controller, Comparable<User> {
+    private final GameEventProcessorID gameEventProcessorID;
     private UserID id;
     private String username;
     private transient CommandChainHandler successor;
     private transient final Logger logger;
 
     // private String password;
-    private GameEventProcessor client;
+    private Client client;
 
-    public User(CreateInMessage msg, GameEventProcessor client) {
-        this.clientID = new ClientID();
+    public User(CreateInMessage msg, Client client) {
+        this.gameEventProcessorID = new GameEventProcessorID();
         id = new UserID(msg);
         username = msg.getUsername();
         // password = msg.getPassword();
@@ -39,7 +42,7 @@ public class User implements CommandChainHandler, Comparable<User> {
         return this.id;
     }
 
-    public GameEventProcessor getClient() {
+    public Client getClient() {
         return this.client;
     }
 
@@ -116,8 +119,18 @@ public class User implements CommandChainHandler, Comparable<User> {
     }
 
     @Override
+    public GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
+    }
+
+    @Override
     public ClientID getClientID() {
-        return this.clientID;
+        return this.client.getClientID();
+    }
+
+    @Override
+    public Reply ProcessString(String value) {
+        return this.client.ProcessString(value);
     }
 
     @Override

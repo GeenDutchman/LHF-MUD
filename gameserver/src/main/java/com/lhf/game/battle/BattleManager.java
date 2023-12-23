@@ -44,7 +44,6 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.map.Area;
-import com.lhf.messages.ClientID;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -87,7 +86,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     private transient CommandChainHandler successor;
     private transient Map<CommandMessage, CommandHandler> cmds;
     private Logger battleLogger;
-    private final ClientID clientID;
+    private final GameEventProcessorID gameEventProcessorID;
 
     public static class Builder {
         private int waitMilliseconds;
@@ -292,7 +291,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         this.roundDurationMilliseconds = builder.waitMilliseconds;
         this.cmds = this.buildCommands();
         this.battleThread = new AtomicReference<BattleManager.RoundThread>(null);
-        this.clientID = new ClientID();
+        this.gameEventProcessorID = new GameEventProcessorID();
         this.battleLogger = Logger.getLogger(this.getClass().getName() + "." + this.getName().replaceAll("\\W", "_"));
     }
 
@@ -317,8 +316,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public ClientID getClientID() {
-        return this.clientID;
+    public GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
     }
 
     @Override

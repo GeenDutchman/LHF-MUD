@@ -23,23 +23,22 @@ import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
-import com.lhf.messages.ClientID;
-import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.BadGoEvent;
+import com.lhf.messages.events.BadGoEvent.BadGoType;
 import com.lhf.messages.events.BadMessageEvent;
+import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.CreatureSpawnedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.PlayerReincarnatedEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SpeakingEvent;
 import com.lhf.messages.events.TickEvent;
-import com.lhf.messages.events.BadGoEvent.BadGoType;
-import com.lhf.messages.events.BadMessageEvent.BadMessageType;
-import com.lhf.messages.CommandMessage;
-import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.ShoutMessage;
 import com.lhf.server.client.user.UserID;
@@ -72,11 +71,11 @@ public class Dungeon implements Land {
     private Map<CommandMessage, CommandHandler> commands;
     private transient TreeSet<DungeonEffect> effects;
     private transient final Logger logger;
-    private final ClientID clientID;
+    private final GameEventProcessorID gameEventProcessorID;
 
     Dungeon(Land.LandBuilder builder) {
         this.logger = Logger.getLogger(String.format("%s.%s", this.getClass().getName(), this.getName()));
-        this.clientID = new ClientID();
+        this.gameEventProcessorID = new GameEventProcessorID();
         this.startingRoom = builder.getStartingArea();
         this.mapping = builder.getAtlas();
         this.successor = builder.getSuccessor();
@@ -110,8 +109,8 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public ClientID getClientID() {
-        return this.clientID;
+    public GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
     }
 
     @Override

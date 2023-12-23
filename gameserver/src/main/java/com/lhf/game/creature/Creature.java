@@ -33,13 +33,11 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
-import com.lhf.messages.ClientID;
-import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.ItemEquippedEvent;
@@ -51,10 +49,11 @@ import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.InventoryMessage;
 import com.lhf.messages.in.StatusMessage;
 import com.lhf.messages.in.UnequipMessage;
+import com.lhf.server.client.Controller;
 
 public abstract class Creature implements ICreature {
     private final String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
-    private final ClientID clientID;
+    private final GameEventProcessorID gameEventProcessorID;
     private CreatureFaction faction; // See shared enum
     private Vocation vocation;
     // private MonsterType monsterType; // I dont know if we'll need this
@@ -63,13 +62,13 @@ public abstract class Creature implements ICreature {
     private Statblock statblock;
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
-    private transient GameEventProcessor controller;
+    private transient Controller controller;
     private transient CommandChainHandler successor;
     private Map<CommandMessage, CommandHandler> cmds;
     private transient final Logger logger;
 
     protected Creature(ICreature.CreatureBuilder<?> builder) {
-        this.clientID = new ClientID();
+        this.gameEventProcessorID = new GameEventProcessorID();
         this.cmds = this.buildCommands();
         // Instantiate creature with no name and type Monster
         this.name = builder.getName();
@@ -497,17 +496,17 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public GameEventProcessor getController() {
+    public Controller getController() {
         return this.controller;
     }
 
-    public void setController(GameEventProcessor cont) {
+    public void setController(Controller cont) {
         this.controller = cont;
     }
 
     @Override
-    public final ClientID getClientID() {
-        return this.clientID;
+    public final GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
     }
 
     @Override

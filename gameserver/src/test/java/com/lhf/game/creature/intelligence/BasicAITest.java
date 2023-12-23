@@ -23,13 +23,13 @@ import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.messages.ClientID;
 import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
 import com.lhf.messages.events.BadTargetSelectedEvent;
+import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SpeakingEvent;
-import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 
 @ExtendWith(MockitoExtension.class)
 public class BasicAITest {
@@ -57,8 +57,8 @@ public class BasicAITest {
                 Mockito.when(speaker.getColorTaggedName()).thenReturn("<npc>Joe Speaker</npc>");
                 Mockito.when(speaker.getStartTag()).thenReturn("<npc>");
                 Mockito.when(speaker.getEndTag()).thenReturn("</npc>");
-                ClientID id = new ClientID();
-                Mockito.when(speaker.getClientID()).thenReturn(id);
+                GameEventProcessorID id = new GameEventProcessorID();
+                Mockito.when(speaker.getEventProcessorID()).thenReturn(id);
 
                 String body = "I have been addressed";
                 ConversationTree tree = new ConversationTree(new ConversationTreeNode(body));

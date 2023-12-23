@@ -11,11 +11,11 @@ import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
-import com.lhf.messages.ClientID;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
+import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SpeakingEvent;
@@ -23,7 +23,7 @@ import com.lhf.messages.in.SayMessage;
 import com.lhf.server.client.user.User;
 
 public class SpokenPromptChunk extends AIHandler {
-    private Set<ClientID> prompters;
+    private Set<GameEventProcessorID> prompters;
     private boolean allowUsers;
 
     public SpokenPromptChunk() {
@@ -37,7 +37,7 @@ public class SpokenPromptChunk extends AIHandler {
         return this;
     }
 
-    public SpokenPromptChunk addPrompter(ClientID id) {
+    public SpokenPromptChunk addPrompter(GameEventProcessorID id) {
         this.prompters.add(id);
         return this;
     }
@@ -91,8 +91,8 @@ public class SpokenPromptChunk extends AIHandler {
             if (!sm.getShouting() && sm.getHearer() != null && sm.getHearer() instanceof INonPlayerCharacter) {
                 if (sm.getSayer() instanceof ICreature || (this.allowUsers && sm.getSayer() instanceof User)) {
                     if (sm.getMessage().startsWith("PROMPT") &&
-                            (this.prompters.contains(sm.getSayer().getClientID())
-                                    || sm.getSayer().getClientID().equals(bai.getClientID()))) {
+                            (this.prompters.contains(sm.getSayer().getEventProcessorID())
+                                    || sm.getSayer().getEventProcessorID().equals(bai.getEventProcessorID()))) {
                         String prompt = sm.getMessage().replaceFirst("PROMPT", "").trim();
                         this.logger.log(Level.INFO, String.format("Prompt \"%s\" received from %s for %s", prompt,
                                 sm.getSayer().getColorTaggedName(),

@@ -13,13 +13,12 @@ import org.mockito.Mockito;
 
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.NonPlayerCharacter;
-import com.lhf.messages.ClientID;
-import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.server.client.ComBundle;
 
 public class AIComBundle extends ComBundle implements CommandChainHandler {
@@ -39,13 +38,13 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
 
     public INonPlayerCharacter npc;
     public BasicAI brain;
-    private final ClientID clientID;
+    private final GameEventProcessorID gameEventProcessorID;
     @Mock
     public CommandChainHandler mockedWrappedHandler;
 
     public AIComBundle() {
         super();
-        this.clientID = new ClientID();
+        this.gameEventProcessorID = new GameEventProcessorID();
         this.mockedWrappedHandler = Mockito.mock(CommandChainHandler.class);
 
         this.npc = NonPlayerCharacter.getNPCBuilder(AIComBundle.getAIRunner()).build();
@@ -86,8 +85,8 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
     }
 
     @Override
-    public ClientID getClientID() {
-        return this.clientID;
+    public GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
     }
 
     @Override

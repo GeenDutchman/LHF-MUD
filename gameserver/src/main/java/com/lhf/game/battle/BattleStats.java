@@ -23,7 +23,6 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealthBuckets;
-import com.lhf.messages.ClientID;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.CreatureAffectedEvent;
@@ -260,24 +259,24 @@ public class BattleStats implements GameEventProcessor {
     }
 
     private Map<String, BattleStatRecord> battleStats;
-    private final ClientID clientID = new ClientID();
+    private final GameEventProcessorID gameEventProcessorID = new GameEventProcessorID();
     private int deadXP;
     private final Logger logger;
 
     public BattleStats() {
-        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.clientID.getUuid());
+        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.gameEventProcessorID.getUuid());
         this.battleStats = new TreeMap<>();
         this.deadXP = 0;
     }
 
     public BattleStats(Map<String, BattleStatRecord> seedStats) {
-        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.clientID.getUuid());
+        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.gameEventProcessorID.getUuid());
         this.battleStats = seedStats != null ? new TreeMap<>(seedStats) : new TreeMap<>();
     }
 
     // note that any duplicates will overwrite each other!
     public BattleStats(Iterable<BattleStatRecord> seedRecords) {
-        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.clientID.getUuid());
+        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.gameEventProcessorID.getUuid());
         this.battleStats = new TreeMap<>();
         if (seedRecords != null) {
             for (BattleStatRecord record : seedRecords) {
@@ -485,8 +484,8 @@ public class BattleStats implements GameEventProcessor {
     }
 
     @Override
-    public ClientID getClientID() {
-        return this.clientID;
+    public GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
     }
 
 }

@@ -1,6 +1,8 @@
 package com.lhf.messages;
 
 import java.util.Comparator;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -10,6 +12,49 @@ import com.lhf.Taggable;
 import com.lhf.messages.events.GameEvent;
 
 public interface GameEventProcessor extends Taggable {
+
+    public final static class GameEventProcessorID implements Comparable<GameEventProcessorID> {
+        private final UUID uuid;
+
+        public GameEventProcessorID() {
+            uuid = UUID.randomUUID();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(uuid);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("GameEventProcessorID [uuid=").append(uuid).append("]");
+            return builder.toString();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof GameEventProcessorID)) {
+                return false;
+            }
+            GameEventProcessorID other = (GameEventProcessorID) obj;
+            return Objects.equals(uuid, other.uuid);
+        }
+
+        @Override
+        public int compareTo(GameEventProcessorID o) {
+            return this.uuid.compareTo(o.uuid);
+        }
+
+        public UUID getUuid() {
+            return uuid;
+        }
+
+    }
+
     /**
      * Accepts a GameEventProcessor and an GameEvent. Utilizes
      * {@link #getAcceptHook()} to find how the implementation wants to handle the
@@ -24,7 +69,7 @@ public interface GameEventProcessor extends Taggable {
             return;
         }
         Consumer<GameEvent> acceptHook = messenger.getAcceptHook();
-        if (event.isFirstRecieve(messenger.getClientID()) && acceptHook != null) {
+        if (event.isFirstRecieve(messenger.getEventProcessorID()) && acceptHook != null) {
             acceptHook.accept(event);
         }
     };
@@ -36,7 +81,7 @@ public interface GameEventProcessor extends Taggable {
      * it.
      * <p>
      * The assumption is that the event has already been marked by
-     * {@link #getClientID()}.
+     * {@link #getEventProcessorID()}.
      * 
      * @return {@link java.util.function.Consumer Consumer<GameEvent>} or null
      */
@@ -46,7 +91,7 @@ public interface GameEventProcessor extends Taggable {
 
     public abstract void log(Level logLevel, Supplier<String> logMessageSupplier);
 
-    public ClientID getClientID();
+    public GameEventProcessorID getEventProcessorID();
 
     /**
      * Accepts an event. Calls {@link #eventAccepter}.
@@ -75,7 +120,7 @@ public interface GameEventProcessor extends Taggable {
             if (arg0 == null || arg1 == null) {
                 throw new NullPointerException();
             }
-            return arg0.getClientID().compareTo(arg1.getClientID());
+            return arg0.getEventProcessorID().compareTo(arg1.getEventProcessorID());
         }
 
     }

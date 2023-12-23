@@ -14,18 +14,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.Game;
-import com.lhf.messages.ClientID;
-import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.BadUserDuplicationEvent;
 import com.lhf.messages.events.UserLeftEvent;
 import com.lhf.messages.events.WelcomeEvent;
-import com.lhf.messages.CommandMessage;
-import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.server.client.Client;
+import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.ClientManager;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
@@ -36,7 +36,7 @@ import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
 
 public class Server implements ServerInterface, ConnectionListener {
-    protected final ClientID clientID;
+    protected final GameEventProcessorID gameEventProcessorID;
     protected Game game;
     protected UserManager userManager;
     protected ClientManager clientManager;
@@ -45,7 +45,7 @@ public class Server implements ServerInterface, ConnectionListener {
     protected Map<CommandMessage, CommandHandler> acceptedCommands;
 
     public Server() throws IOException {
-        this.clientID = new ClientID();
+        this.gameEventProcessorID = new GameEventProcessorID();
         this.logger = Logger.getLogger(this.getClass().getName());
         this.userManager = new UserManager();
         this.userListeners = new ArrayList<>();
@@ -59,7 +59,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     public Server(@NotNull UserManager userManager, @NotNull ClientManager clientManager, @NotNull Game game) {
-        this.clientID = new ClientID();
+        this.gameEventProcessorID = new GameEventProcessorID();
         this.logger = Logger.getLogger(this.getClass().getName());
         this.userManager = userManager;
         this.userListeners = new ArrayList<>();
@@ -151,8 +151,8 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public ClientID getClientID() {
-        return this.clientID;
+    public GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
     }
 
     @Override
@@ -216,7 +216,8 @@ public class Server implements ServerInterface, ConnectionListener {
                 }
 
                 try {
-                    Server.this.clientManager.removeClient(ctx.getClient().getClientID()); // ch is killed in here
+                    Server.this.clientManager.removeClient(ctx.getClient().getClientID()); // ch is killed in
+                                                                                           // here
                 } catch (IOException e) {
                     Server.this.logger.log(Level.WARNING, "While removing client", e);
                 }

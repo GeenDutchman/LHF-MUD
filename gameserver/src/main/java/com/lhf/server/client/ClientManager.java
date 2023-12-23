@@ -7,9 +7,9 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.messages.ClientID;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.ConnectionListener;
 import com.lhf.server.interfaces.NotNull;

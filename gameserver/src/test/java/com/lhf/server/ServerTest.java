@@ -89,9 +89,9 @@ public class ServerTest {
         @Override
         protected String getName() {
             if (this.name != null) {
-                return String.valueOf(this.client.getClientID().hashCode()) + ' ' + this.name;
+                return String.valueOf(this.client.getEventProcessorID().hashCode()) + ' ' + this.name;
             }
-            return String.valueOf(this.client.getClientID().hashCode());
+            return String.valueOf(this.client.getEventProcessorID().hashCode());
         }
 
     }
