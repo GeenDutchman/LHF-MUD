@@ -49,7 +49,7 @@ import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.InventoryMessage;
 import com.lhf.messages.in.StatusMessage;
 import com.lhf.messages.in.UnequipMessage;
-import com.lhf.server.client.Controller;
+import com.lhf.server.client.CommandInvoker;
 
 public abstract class Creature implements ICreature {
     private final String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
@@ -62,7 +62,7 @@ public abstract class Creature implements ICreature {
     private Statblock statblock;
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
-    private transient Controller controller;
+    private transient CommandInvoker controller;
     private transient CommandChainHandler successor;
     private Map<CommandMessage, CommandHandler> cmds;
     private transient final Logger logger;
@@ -496,11 +496,11 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public Controller getController() {
+    public CommandInvoker getController() {
         return this.controller;
     }
 
-    public void setController(Controller cont) {
+    public void setController(CommandInvoker cont) {
         this.controller = cont;
     }
 

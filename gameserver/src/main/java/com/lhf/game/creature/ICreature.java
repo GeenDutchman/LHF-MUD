@@ -50,7 +50,7 @@ import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
-import com.lhf.server.client.Controller;
+import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.Client.ClientID;
 
 /**
@@ -71,8 +71,8 @@ import com.lhf.server.client.Client.ClientID;
  * @see java.lang.Comparable
  */
 public interface ICreature
-        extends InventoryOwner, EquipmentOwner, CommandChainHandler, Comparable<ICreature>,
-        AffectableEntity<CreatureEffect> {
+        extends InventoryOwner, EquipmentOwner, Comparable<ICreature>,
+        AffectableEntity<CreatureEffect>, CommandInvoker {
 
     /**
      * A Fist is a weapon that most Creatures can be assumed to have.
@@ -132,7 +132,7 @@ public interface ICreature
         private CreatureFaction faction;
         private Vocation vocation;
         private Statblock statblock;
-        private Controller controller;
+        private CommandInvoker controller;
         private CommandChainHandler successor;
         private Corpse corpse;
 
@@ -192,12 +192,12 @@ public interface ICreature
             return this.statblock;
         }
 
-        public T setController(Controller controller) {
+        public T setController(CommandInvoker controller) {
             this.controller = controller;
             return this.getThis();
         }
 
-        public Controller getController() {
+        public CommandInvoker getController() {
             return this.controller;
         }
 
@@ -224,22 +224,33 @@ public interface ICreature
     }
 
     /**
-     * Gets the {@link com.lhf.server.client.Controller Controller}
+     * Gets the {@link com.lhf.server.client.CommandInvoker Controller}
      * for this Creature
      * 
-     * @return {@link com.lhf.server.client.Controller Controller}
+     * @return {@link com.lhf.server.client.CommandInvoker Controller}
      */
-    public abstract Controller getController();
+    public abstract CommandInvoker getController();
+
+    /**
+     * Delegates to {@link #getController()}
+     * 
+     * @return
+     */
+    @Override
+    default CommandInvoker getInnerCommandInvoker() {
+        return this.getController();
+    }
 
     /**
      * Gets the {@link com.lhf.server.client.Client.ClientID ClientID} from the
-     * {@link com.lhf.server.client.Controller Controller} for the creature, or NULL
+     * {@link com.lhf.server.client.CommandInvoker Controller} for the creature, or
+     * NULL
      * if there is no Controller.
      * 
      * @return {@link com.lhf.server.client.Client.ClientID ClientID} or NULL
      */
     public default ClientID getClientID() {
-        Controller controller = this.getController();
+        CommandInvoker controller = this.getController();
         return controller != null ? controller.getClientID() : null;
     }
 

@@ -11,15 +11,14 @@ import java.util.logging.Logger;
 
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.Client.ClientID;
-import com.lhf.server.client.Controller;
+import com.lhf.server.client.CommandInvoker;
 
-public class User implements Controller, Comparable<User> {
+public class User implements CommandInvoker, Comparable<User> {
     private final GameEventProcessorID gameEventProcessorID;
     private UserID id;
     private String username;
@@ -129,8 +128,8 @@ public class User implements Controller, Comparable<User> {
     }
 
     @Override
-    public Reply ProcessString(String value) {
-        return this.client.ProcessString(value);
+    public CommandInvoker getInnerCommandInvoker() {
+        return this.client;
     }
 
     @Override

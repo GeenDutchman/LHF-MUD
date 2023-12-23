@@ -26,7 +26,7 @@ import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.HelpNeededEvent;
 
-public class Client implements Controller {
+public class Client implements CommandInvoker {
     public final static class ClientID implements Comparable<ClientID> {
         private final UUID uuid;
 
@@ -93,6 +93,10 @@ public class Client implements Controller {
     }
 
     @Override
+    public CommandInvoker getInnerCommandInvoker() {
+        return this;
+    }
+
     public CommandContext.Reply ProcessString(String value) {
         this.log(Level.FINE, "message received: " + value);
         Command cmd = CommandBuilder.parse(value);

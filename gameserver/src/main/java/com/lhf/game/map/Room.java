@@ -41,7 +41,6 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.BadSpeakingTargetEvent;
@@ -67,6 +66,7 @@ import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.TakeMessage;
 import com.lhf.messages.in.UseMessage;
+import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.user.UserID;
 
 public class Room implements Area {
@@ -1028,7 +1028,7 @@ public class Room implements Area {
                     boolean sent = false;
                     Optional<ICreature> optTarget = Room.this.getCreature(sMessage.getTarget());
                     if (optTarget.isPresent()) {
-                        GameEventProcessor sayer = ctx.getClient();
+                        CommandInvoker sayer = ctx.getClient();
                         if (ctx.getCreature() != null) {
                             sayer = ctx.getCreature();
                         } else if (ctx.getUser() != null) {

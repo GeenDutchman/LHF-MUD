@@ -36,6 +36,7 @@ import com.lhf.messages.CommandMessage;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.in.SayMessage;
+import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.user.User;
 import com.lhf.server.interfaces.NotNull;
 
@@ -298,7 +299,7 @@ public class DMRoom extends Room {
                     boolean sent = false;
                     for (User u : DMRoom.this.users) {
                         if (u.getUsername().equals(sayMessage.getTarget())) {
-                            GameEventProcessor sayer = ctx.getClient();
+                            CommandInvoker sayer = ctx.getClient();
                             if (ctx.getCreature() != null) {
                                 sayer = ctx.getCreature();
                             } else if (ctx.getUser() != null) {

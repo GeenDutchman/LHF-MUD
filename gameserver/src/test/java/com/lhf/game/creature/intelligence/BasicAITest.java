@@ -23,7 +23,6 @@ import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
 import com.lhf.messages.events.BadTargetSelectedEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
@@ -53,7 +52,7 @@ public class BasicAITest {
         @Test
         void testBasicConversation() {
                 AIComBundle listener = new AIComBundle();
-                GameEventProcessor speaker = Mockito.mock(INonPlayerCharacter.class);
+                INonPlayerCharacter speaker = Mockito.mock(INonPlayerCharacter.class);
                 Mockito.when(speaker.getColorTaggedName()).thenReturn("<npc>Joe Speaker</npc>");
                 Mockito.when(speaker.getStartTag()).thenReturn("<npc>");
                 Mockito.when(speaker.getEndTag()).thenReturn("</npc>");

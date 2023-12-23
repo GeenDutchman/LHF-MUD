@@ -28,7 +28,7 @@ import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
 import com.lhf.messages.events.CreatureAffectedEvent;
-import com.lhf.server.client.Controller;
+import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
 
 /**
@@ -401,10 +401,10 @@ public interface INonPlayerCharacter extends ICreature {
     public abstract HarmMemories getHarmMemories();
 
     /**
-     * Sets the {@link com.lhf.server.client.Controller Controller} for the NPC.
+     * Sets the {@link com.lhf.server.client.CommandInvoker Controller} for the NPC.
      * 
-     * @param cont {@link com.lhf.server.client.Controller Controller}
+     * @param cont {@link com.lhf.server.client.CommandInvoker Controller}
      */
-    public abstract void setController(Controller cont);
+    public abstract void setController(CommandInvoker cont);
 
 }

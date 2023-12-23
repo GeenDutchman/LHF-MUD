@@ -1,23 +1,23 @@
 package com.lhf.messages.events;
 
-import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventType;
+import com.lhf.server.client.CommandInvoker;
 
 public class RoomEnteredEvent extends GameEvent {
-    private final GameEventProcessor newbie;
+    private final CommandInvoker newbie;
 
     public static class Builder extends GameEvent.Builder<Builder> {
-        private GameEventProcessor newbie;
+        private CommandInvoker newbie;
 
         protected Builder() {
             super(GameEventType.ROOM_ENTERED);
         }
 
-        public GameEventProcessor getNewbie() {
+        public CommandInvoker getNewbie() {
             return newbie;
         }
 
-        public Builder setNewbie(GameEventProcessor newbie) {
+        public Builder setNewbie(CommandInvoker newbie) {
             this.newbie = newbie;
             return this;
         }
@@ -48,7 +48,7 @@ public class RoomEnteredEvent extends GameEvent {
         return (this.newbie != null ? this.newbie.getColorTaggedName() : "Someone") + " has entered the room";
     }
 
-    public GameEventProcessor getNewbie() {
+    public CommandInvoker getNewbie() {
         return newbie;
     }
 
