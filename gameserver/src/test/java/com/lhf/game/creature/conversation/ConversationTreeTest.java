@@ -16,19 +16,19 @@ import com.google.gson.GsonBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
-import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
+import com.lhf.server.client.Client.ClientID;
 
 @ExtendWith(MockitoExtension.class)
 public class ConversationTreeTest {
 
         private String basicEmpty = "I have nothing to say to you right now.";
         private ICreature talker;
-        private GameEventProcessorID talkerID;
+        private ClientID talkerID;
 
         @BeforeEach
         void init() {
                 this.talker = Mockito.mock(INonPlayerCharacter.class);
-                this.talkerID = new GameEventProcessorID();
+                this.talkerID = new ClientID();
         }
 
         @Test
@@ -40,7 +40,7 @@ public class ConversationTreeTest {
 
         @Test
         void testIgnoreUngreeted() {
-                Mockito.when(this.talker.getEventProcessorID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
 
                 ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
                 ConversationTree tree = new ConversationTree(node);
@@ -50,7 +50,7 @@ public class ConversationTreeTest {
 
         @Test
         void testOneTrackConversation() {
-                Mockito.when(this.talker.getEventProcessorID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
                 Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
                 Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
                 Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
@@ -71,7 +71,7 @@ public class ConversationTreeTest {
 
         @Test
         void testTwoTrackConversation() {
-                Mockito.when(this.talker.getEventProcessorID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
                 Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
                 Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
                 Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
@@ -100,7 +100,7 @@ public class ConversationTreeTest {
 
         @Test
         void testConvoRollover() {
-                Mockito.when(this.talker.getEventProcessorID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
                 Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
                 Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
                 Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
@@ -137,7 +137,7 @@ public class ConversationTreeTest {
 
         @Test
         void testRememberSpot() {
-                Mockito.when(this.talker.getEventProcessorID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
                 Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
                 Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
                 Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
@@ -173,7 +173,7 @@ public class ConversationTreeTest {
 
         @Test
         void testRepeatNode() {
-                Mockito.when(this.talker.getEventProcessorID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
                 Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
                 Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
                 Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
@@ -201,7 +201,7 @@ public class ConversationTreeTest {
 
         @Test
         void testHightlightNext() {
-                Mockito.when(this.talker.getEventProcessorID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
                 Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
                 Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
                 Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
@@ -223,7 +223,7 @@ public class ConversationTreeTest {
 
         @Test
         void testGreetBack() {
-                Mockito.when(this.talker.getEventProcessorID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
                 Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
                 Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
                 Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
@@ -239,15 +239,15 @@ public class ConversationTreeTest {
 
         @Test
         void testForbidBranch() {
-                Mockito.when(this.talker.getEventProcessorID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
                 Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
                 Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
                 Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
                 Mockito.when(this.talker.getColorTaggedName()).thenCallRealMethod();
 
                 ICreature unwelcome = Mockito.mock(INonPlayerCharacter.class);
-                GameEventProcessorID id = new GameEventProcessorID();
-                Mockito.when(unwelcome.getEventProcessorID()).thenReturn(id);
+                ClientID id = new ClientID();
+                Mockito.when(unwelcome.getClientID()).thenReturn(id);
                 Mockito.when(unwelcome.getName()).thenReturn("Unwelcome Bob");
                 Mockito.when(unwelcome.getStartTag()).thenReturn("<npc>");
                 Mockito.when(unwelcome.getEndTag()).thenReturn("</npc>");
@@ -299,15 +299,15 @@ public class ConversationTreeTest {
 
         @Test
         void testDualTriggerForbiddance() {
-                Mockito.when(this.talker.getEventProcessorID()).thenReturn(this.talkerID);
+                Mockito.when(this.talker.getClientID()).thenReturn(this.talkerID);
                 Mockito.when(this.talker.getName()).thenReturn("Talker Joe");
                 Mockito.when(this.talker.getStartTag()).thenReturn("<npc>");
                 Mockito.when(this.talker.getEndTag()).thenReturn("</npc>");
                 Mockito.when(this.talker.getColorTaggedName()).thenCallRealMethod();
 
                 ICreature unwelcome = Mockito.mock(INonPlayerCharacter.class);
-                GameEventProcessorID id = new GameEventProcessorID();
-                Mockito.when(unwelcome.getEventProcessorID()).thenReturn(id);
+                ClientID id = new ClientID();
+                Mockito.when(unwelcome.getClientID()).thenReturn(id);
                 Mockito.when(unwelcome.getName()).thenReturn("Unwelcome Bob");
                 Mockito.when(unwelcome.getStartTag()).thenReturn("<npc>");
                 Mockito.when(unwelcome.getEndTag()).thenReturn("</npc>");
