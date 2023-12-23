@@ -13,11 +13,11 @@ import com.lhf.game.enums.HealType;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.interfaces.UseAction;
-import com.lhf.messages.out.BattleRoundMessage;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.UseOutMessage;
-import com.lhf.messages.out.BattleRoundMessage.RoundAcceptance;
-import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
+import com.lhf.messages.events.BattleRoundEvent;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.ItemUsedEvent;
+import com.lhf.messages.events.BattleRoundEvent.RoundAcceptance;
+import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 
 public class HealPotion extends Usable {
 
@@ -25,10 +25,10 @@ public class HealPotion extends Usable {
 
     private void setUp() {
         UseAction useAction = (ctx, object) -> {
-            UseOutMessage.Builder useOutMessage = UseOutMessage.getBuilder().setItemUser(ctx.getCreature())
+            ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature())
                     .setUsable(this);
             if (object == null) {
-                ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
+                ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
                         .setMessage("That is not a valid target at all!").Build());
                 return true;
             } else if (object instanceof ICreature) {
@@ -42,28 +42,28 @@ public class HealPotion extends Usable {
                     if (bm.hasCreature(target) && !bm.hasCreature(ctx.getCreature())) {
                         // give out of turn message
                         bm.addCreature(ctx.getCreature());
-                        ctx.sendMsg(BattleRoundMessage.getBuilder().setNeedSubmission(RoundAcceptance.REJECTED)
+                        ctx.receive(BattleRoundEvent.getBuilder().setNeedSubmission(RoundAcceptance.REJECTED)
                                 .setNotBroadcast().Build());
                         return false;
                     }
-                    ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
-                    OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
+                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
+                    GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     bm.announce(results);
                 } else if (ctx.getRoom() != null) {
-                    ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
-                    OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
+                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
+                    GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     ctx.getRoom().announce(results);
                 } else {
-                    ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
-                    OutMessage results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
-                    ctx.sendMsg(results);
+                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
+                    GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
+                    ctx.receive(results);
                     if (ctx.getCreature() != target) {
-                        target.sendMsg(results);
+                        ICreature.eventAccepter.accept(target, results);
                     }
                 }
                 return true;
             }
-            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
                     .setMessage("You cannot use a " + this.getName() + " on that."));
             return true;
         };

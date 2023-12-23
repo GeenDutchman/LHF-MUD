@@ -10,13 +10,12 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 
-import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.FatalMessage;
+import com.lhf.messages.events.BadFatalEvent;
 import com.lhf.server.interfaces.ConnectionListener;
 
 public class ClientHandle extends Client implements Runnable {
@@ -43,7 +42,7 @@ public class ClientHandle extends Client implements Runnable {
         }
 
         private static final Predicate<CommandContext> enabledPredicate = RepeatHandler.defaultPredicate.and(ctx -> {
-            ClientMessenger client = ctx.getClientMessenger();
+            Client client = ctx.getClient();
             if (client != null && client instanceof ClientHandle cHandle) {
                 return RepeatHandler.isValidRepeatCommand(cHandle.getRepeatCommand());
             }
@@ -57,7 +56,7 @@ public class ClientHandle extends Client implements Runnable {
 
         @Override
         public Optional<String> getHelp(CommandContext ctx) {
-            ClientMessenger client = ctx.getClientMessenger();
+            Client client = ctx.getClient();
             if (client != null && client instanceof ClientHandle cHandle) {
                 String repeater = cHandle.getRepeatCommand();
                 if (repeater != null && !repeater.isBlank()) {
@@ -77,8 +76,8 @@ public class ClientHandle extends Client implements Runnable {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
-            ClientMessenger client = ctx.getClientMessenger();
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
+            Client client = ctx.getClient();
             if (client != null && client instanceof ClientHandle cHandle) {
                 String repeater = cHandle.getRepeatCommand();
                 if (repeater != null && !repeater.isBlank()) {
@@ -89,7 +88,7 @@ public class ClientHandle extends Client implements Runnable {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return ClientHandle.this;
         }
 
@@ -116,16 +115,18 @@ public class ClientHandle extends Client implements Runnable {
                 this.setRepeatCommand(value);
             }
         } catch (IOException e) {
-            final FatalMessage fatal = FatalMessage.getBuilder().setException(e).setExtraInfo("recoverable").Build();
+            final BadFatalEvent fatal = BadFatalEvent.getBuilder().setException(e).setExtraInfo("recoverable").Build();
             this.logger.log(Level.SEVERE, fatal.toString(), e);
-            sendMsg(fatal);
+            Client.eventAccepter.accept(this, fatal);
         } catch (Exception e) {
-            final FatalMessage fatal = FatalMessage.getBuilder().setException(e).setExtraInfo("irrecoverable").Build();
+            final BadFatalEvent fatal = BadFatalEvent.getBuilder().setException(e).setExtraInfo("irrecoverable")
+                    .Build();
             this.logger.log(Level.SEVERE, fatal.toString(), e);
-            sendMsg(fatal);
+            Client.eventAccepter.accept(this, fatal);
             throw e;
         } finally {
-            connectionListener.clientConnectionTerminated(id); // let connectionListener know that it is over
+            connectionListener.clientConnectionTerminated(id); // let connectionListener know that it
+                                                               // is over
             this.kill();
         }
     }

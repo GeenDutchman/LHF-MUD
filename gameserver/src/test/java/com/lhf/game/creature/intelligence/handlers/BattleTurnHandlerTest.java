@@ -24,12 +24,12 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.events.BadTargetSelectedEvent;
+import com.lhf.messages.events.BattleRoundEvent;
+import com.lhf.messages.events.BattleStatsRequestedEvent;
+import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.messages.out.BattleRoundMessage;
-import com.lhf.messages.out.StatsOutMessage;
+import com.lhf.messages.CommandChainHandler;
 
 public class BattleTurnHandlerTest {
     @Spy
@@ -54,7 +54,7 @@ public class BattleTurnHandlerTest {
                 .initialize(List.of(finder.npc, attacker.npc, subAttacker.npc));
 
         TargetLists targets = handler.chooseTargets(
-                Optional.of(StatsOutMessage.getBuilder()
+                Optional.of(BattleStatsRequestedEvent.getBuilder()
                         .addRecords(battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING))
                         .Build()),
                 finder.npc.getHarmMemories(),
@@ -69,10 +69,10 @@ public class BattleTurnHandlerTest {
         AIComBundle searcher = new AIComBundle();
         searcher.npc.setInBattle(true);
 
-        MessageChainHandler interceptor = Mockito.mock(MessageChainHandler.class);
+        CommandChainHandler interceptor = Mockito.mock(CommandChainHandler.class);
         Mockito.doNothing().when(interceptor).setSuccessor(Mockito.any());
         Mockito.when(interceptor.getSuccessor()).thenReturn(searcher);
-        Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(MessageChainHandler.class));
+        Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(CommandChainHandler.class));
         Mockito.when(interceptor.handle(Mockito.any(CommandContext.class), Mockito.any(Command.class)))
                 .thenAnswer(new Answer<CommandContext.Reply>() {
 
@@ -82,12 +82,12 @@ public class BattleTurnHandlerTest {
                         Command cmd = invocation.getArgument(1);
                         if (cmd.getType().equals(CommandMessage.ATTACK)
                                 && cmd.getWhole().contains("bloohoo")) {
-                            BadTargetSelectedMessage btsm = BadTargetSelectedMessage
+                            BadTargetSelectedEvent btsm = BadTargetSelectedEvent
                                     .getBuilder()
                                     .setBde(BadTargetOption.DNE)
                                     .setBadTarget("bloohoo")
                                     .setPossibleTargets(new ArrayList<>()).Build();
-                            ctx.sendMsg(btsm);
+                            ctx.receive(btsm);
                             return ctx.handled();
                         }
                         if (cmd.getType().equals(CommandMessage.SEE)) {
@@ -101,8 +101,9 @@ public class BattleTurnHandlerTest {
         searcher.npc.intercept(interceptor);
 
         // trigger it
-        searcher.npc.sendMsg(BattleRoundMessage.getBuilder().setAboutCreature(searcher.npc).setNeeded()
-                .Build());
+        AIComBundle.eventAccepter.accept(searcher.npc,
+                BattleRoundEvent.getBuilder().setAboutCreature(searcher.npc).setNeeded()
+                        .Build());
 
         Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();
         Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),

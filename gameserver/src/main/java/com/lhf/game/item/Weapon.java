@@ -10,9 +10,9 @@ import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.item.interfaces.WeaponSubtype;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SeeOutMessage.Builder;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
+import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.SeeEvent.Builder;
+import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 public class Weapon extends Equipable {
     protected Set<CreatureEffectSource> effectSources;
@@ -62,8 +62,8 @@ public class Weapon extends Equipable {
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
-        SeeOutMessage.Builder seeOutMessage = (Builder) super.produceMessage().copyBuilder();
+    public SeeEvent produceMessage() {
+        SeeEvent.Builder seeOutMessage = (Builder) super.produceMessage().copyBuilder();
         if (this.getEffectSources() != null) {
             for (CreatureEffectSource source : this.getEffectSources()) {
                 if (source.getDamages() == null) {

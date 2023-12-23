@@ -10,8 +10,8 @@ import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
+import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 public class Equipable extends Usable {
     protected List<EquipmentTypes> types;
@@ -56,8 +56,8 @@ public class Equipable extends Usable {
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
-        SeeOutMessage.Builder seeOutMessage = (SeeOutMessage.Builder) super.produceMessage().copyBuilder();
+    public SeeEvent produceMessage() {
+        SeeEvent.Builder seeOutMessage = (SeeEvent.Builder) super.produceMessage().copyBuilder();
         for (CreatureEffectSource effector : this.getEquippingEffects(false)) {
             seeOutMessage.addEffector(effector);
         }
@@ -76,7 +76,8 @@ public class Equipable extends Usable {
 
     public void onEquippedBy(ICreature equipper) {
         for (CreatureEffectSource effector : this.getEquippingEffects(true)) {
-            equipper.sendMsg(equipper.applyEffect(new CreatureEffect(effector, equipper, this)));
+            ICreature.eventAccepter.accept(equipper,
+                    equipper.applyEffect(new CreatureEffect(effector, equipper, this)));
         }
     }
 
@@ -84,7 +85,8 @@ public class Equipable extends Usable {
         for (CreatureEffectSource effector : this.getEquippingEffects(true)) {
             if (effector.getPersistence() != null
                     && TickType.CONDITIONAL.equals(effector.getPersistence().getTickSize())) {
-                unequipper.sendMsg(unequipper.applyEffect(new CreatureEffect(effector, unequipper, this), true));
+                ICreature.eventAccepter.accept(unequipper,
+                        unequipper.applyEffect(new CreatureEffect(effector, unequipper, this), true));
             }
         }
     }

@@ -3,7 +3,7 @@ package com.lhf.game.item;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.TaggedExaminable;
-import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.events.SeeEvent;
 
 public abstract class Item implements TaggedExaminable {
     // Class name for discrimination
@@ -105,8 +105,8 @@ public abstract class Item implements TaggedExaminable {
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
-        SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
+    public SeeEvent produceMessage() {
+        SeeEvent.Builder seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         return seeOutMessage.Build();
     }
 

@@ -5,33 +5,33 @@ import java.util.logging.Level;
 
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
-import com.lhf.messages.OutMessageType;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.GameEventType;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.server.interfaces.NotNull;
 
 public class SilencedHandler extends AIHandler {
     protected final AIHandler passThrough;
-    protected final BiPredicate<BasicAI, OutMessage> allowPassthrough;
+    protected final BiPredicate<BasicAI, GameEvent> allowPassthrough;
 
-    public SilencedHandler(@NotNull OutMessageType outMessageType) {
+    public SilencedHandler(@NotNull GameEventType outMessageType) {
         super(outMessageType);
         this.passThrough = null;
         this.allowPassthrough = null;
     }
 
-    public SilencedHandler(OutMessageType outMessageType, AIHandler passThrough,
-            BiPredicate<BasicAI, OutMessage> allowPassthrough) {
+    public SilencedHandler(GameEventType outMessageType, AIHandler passThrough,
+            BiPredicate<BasicAI, GameEvent> allowPassthrough) {
         super(outMessageType);
         this.passThrough = passThrough;
         this.allowPassthrough = allowPassthrough;
     }
 
     @Override
-    public void handle(BasicAI bai, OutMessage msg) {
-        if (this.passThrough != null && this.allowPassthrough != null && this.allowPassthrough.test(bai, msg)) {
+    public void handle(BasicAI bai, GameEvent event) {
+        if (this.passThrough != null && this.allowPassthrough != null && this.allowPassthrough.test(bai, event)) {
             this.logger.log(Level.FINE,
                     () -> String.format("Passing through to %s", this.passThrough.getClass().getSimpleName()));
-            this.passThrough.handle(bai, msg);
+            this.passThrough.handle(bai, event);
         }
     }
 

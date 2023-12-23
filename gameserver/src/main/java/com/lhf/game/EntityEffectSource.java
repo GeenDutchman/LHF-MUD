@@ -3,7 +3,7 @@ package com.lhf.game;
 import java.util.Objects;
 
 import com.lhf.TaggedExaminable;
-import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.events.SeeEvent;
 
 public abstract class EntityEffectSource implements TaggedExaminable {
     protected final String className;
@@ -47,8 +47,8 @@ public abstract class EntityEffectSource implements TaggedExaminable {
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
-        return SeeOutMessage.getBuilder().setExaminable(this).Build();
+    public SeeEvent produceMessage() {
+        return SeeEvent.getBuilder().setExaminable(this).Build();
     }
 
     @Override

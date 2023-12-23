@@ -14,7 +14,7 @@ import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.Room.RoomBuilder;
 import com.lhf.messages.MessageMatcher;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 @ExtendWith(MockitoExtension.class)
 public class LewdBedTest {
@@ -32,7 +32,7 @@ public class LewdBedTest {
 
         Truth.assertThat(bed.handleEmptyJoin(first.npc)).isTrue();
 
-        MessageMatcher matcher = new MessageMatcher(OutMessageType.LEWD, "meant to be shared");
+        MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, "meant to be shared");
         Mockito.verify(first.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
 
         Truth.assertThat(bed.handlePopulatedJoin(first.npc, null, null)).isTrue();
@@ -57,10 +57,10 @@ public class LewdBedTest {
 
         Truth.assertThat(bed.handlePopulatedJoin(first.npc, Set.of(second.npc.getName()), null)).isTrue();
 
-        MessageMatcher matcher = new MessageMatcher(OutMessageType.LEWD, "is excited to join");
+        MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, "is excited to join");
         Mockito.verify(first.sssb, Mockito.timeout(1000).times(2)).send(Mockito.argThat(matcher));
         Mockito.verify(second.sssb, Mockito.timeout(1000).times(2)).send(Mockito.argThat(matcher));
-        matcher = new MessageMatcher(OutMessageType.LEWD, "as they do it");
+        matcher = new MessageMatcher(GameEventType.LEWD, "as they do it");
         Mockito.verify(first.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
         Mockito.verify(second.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
 
@@ -80,12 +80,12 @@ public class LewdBedTest {
 
         Truth.assertThat(bed.handlePopulatedJoin(first.npc, Set.of(second.npc.getName()), null)).isTrue();
 
-        MessageMatcher matcher = new MessageMatcher(OutMessageType.LEWD, "does not wish");
+        MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, "does not wish");
 
         Mockito.verify(first.sssb, Mockito.timeout(1000)).send(Mockito.argThat(matcher));
         Mockito.verify(second.sssb, Mockito.timeout(1000)).send(Mockito.argThat(matcher));
         Mockito.verify(first.sssb, Mockito.timeout(1000).atLeastOnce())
-                .send(Mockito.argThat(new MessageMatcher(OutMessageType.LEWD, "meant to be shared")));
+                .send(Mockito.argThat(new MessageMatcher(GameEventType.LEWD, "meant to be shared")));
 
     }
 
@@ -111,7 +111,7 @@ public class LewdBedTest {
 
         Truth.assertThat(bed.handlePopulatedJoin(first.npc, Set.of(second.npc.getName()), Set.of(babyname)))
                 .isTrue();
-        MessageMatcher matcher = new MessageMatcher(OutMessageType.LEWD, "as they do it");
+        MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, "as they do it");
         Mockito.verify(first.sssb, Mockito.timeout(2000).times(1)).send(Mockito.argThat(matcher));
         Mockito.verify(second.sssb, Mockito.timeout(2000).times(1)).send(Mockito.argThat(matcher));
 

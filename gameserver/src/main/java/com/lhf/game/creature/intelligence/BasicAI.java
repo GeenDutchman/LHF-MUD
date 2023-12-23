@@ -5,6 +5,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,18 +16,18 @@ import com.lhf.game.creature.intelligence.handlers.ForgetOnOtherExit;
 import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
-import com.lhf.messages.OutMessageType;
-import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.FleeMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.GameEventType;
+import com.lhf.messages.events.BadTargetSelectedEvent;
+import com.lhf.messages.events.BattleCreatureFledEvent;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.DoNothingSendStrategy;
 import com.lhf.server.interfaces.NotNull;
 
 public class BasicAI extends Client {
     protected INonPlayerCharacter npc;
-    protected Map<OutMessageType, AIChunk> handlers;
-    protected BlockingQueue<OutMessage> queue;
+    protected Map<GameEventType, AIChunk> handlers;
+    protected BlockingQueue<GameEvent> queue;
     protected AIRunner runner;
 
     protected BasicAI(INonPlayerCharacter npc, AIRunner runner) {
@@ -44,11 +45,11 @@ public class BasicAI extends Client {
         this.runner = runner;
     }
 
-    public OutMessage peek() {
+    public GameEvent peek() {
         return this.queue.peek();
     }
 
-    public OutMessage poll() {
+    public GameEvent poll() {
         return this.queue.poll();
     }
 
@@ -56,14 +57,14 @@ public class BasicAI extends Client {
         return this.queue.size();
     }
 
-    public void process(OutMessage msg) {
-        if (msg != null) {
-            AIChunk ai = this.handlers.get(msg.getOutType());
+    public void process(GameEvent event) {
+        if (event != null) {
+            AIChunk ai = this.handlers.get(event.getEventType());
             if (ai != null) {
-                ai.handle(this, msg);
+                ai.handle(this, event);
             } else {
                 this.log(Level.WARNING, () -> String.format("No handler found for %s: %s",
-                        msg.getOutType(), msg.print()));
+                        event.getEventType(), event.print()));
             }
         }
     }
@@ -72,15 +73,15 @@ public class BasicAI extends Client {
         if (this.handlers == null) {
             this.handlers = new TreeMap<>();
         }
-        this.handlers.put(OutMessageType.FIGHT_OVER, (BasicAI bai, OutMessage msg) -> {
-            if (msg.getOutType().equals(OutMessageType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
+        this.handlers.put(GameEventType.FIGHT_OVER, (BasicAI bai, GameEvent event) -> {
+            if (event.getEventType().equals(GameEventType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
                 bai.npc.getHarmMemories().reset();
             }
         });
 
-        this.handlers.put(OutMessageType.FLEE, (BasicAI bai, OutMessage msg) -> {
-            if (msg.getOutType().equals(OutMessageType.FLEE)) {
-                FleeMessage flee = (FleeMessage) msg;
+        this.handlers.put(GameEventType.FLEE, (BasicAI bai, GameEvent event) -> {
+            if (event.getEventType().equals(GameEventType.FLEE)) {
+                BattleCreatureFledEvent flee = (BattleCreatureFledEvent) event;
                 if (flee.isFled() && flee.getRunner() != null) {
                     if (flee.getRunner() == bai.getNpc()) {
                         bai.npc.getHarmMemories().reset();
@@ -88,9 +89,9 @@ public class BasicAI extends Client {
                 }
             }
         });
-        this.handlers.put(OutMessageType.BAD_TARGET_SELECTED, (BasicAI bai, OutMessage msg) -> {
-            if (msg.getOutType().equals(OutMessageType.BAD_TARGET_SELECTED) && bai.getNpc().isInBattle()) {
-                BadTargetSelectedMessage btsm = (BadTargetSelectedMessage) msg;
+        this.handlers.put(GameEventType.BAD_TARGET_SELECTED, (BasicAI bai, GameEvent event) -> {
+            if (event.getEventType().equals(GameEventType.BAD_TARGET_SELECTED) && bai.getNpc().isInBattle()) {
+                BadTargetSelectedEvent btsm = (BadTargetSelectedEvent) event;
                 this.log(Level.WARNING,
                         () -> String.format("Selected a bad target: %s with possible targets", btsm,
                                 btsm.getPossibleTargets()));
@@ -104,7 +105,7 @@ public class BasicAI extends Client {
         this.addHandler(new LewdAIHandler().setPartnersOnly());
     }
 
-    public BasicAI addHandler(OutMessageType type, AIChunk chunk) {
+    public BasicAI addHandler(GameEventType type, AIChunk chunk) {
         this.handlers.put(type, chunk);
         return this;
     }
@@ -115,21 +116,22 @@ public class BasicAI extends Client {
     }
 
     @Override
-    public synchronized void sendMsg(OutMessage msg) {
-        super.sendMsg(msg);
-        try {
-            if (this.runner == null) {
-                this.process(msg);
-                return;
+    public Consumer<GameEvent> getAcceptHook() {
+        return super.getAcceptHook().andThen(event -> {
+            try {
+                if (this.runner == null) {
+                    this.process(event);
+                    return;
+                }
+                if (this.queue.offer(event, 30, TimeUnit.SECONDS)) {
+                    this.runner.getAttention(this);
+                } else {
+                    this.log(Level.SEVERE, "Unable to queue: " + event.toString());
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            if (this.queue.offer(msg, 30, TimeUnit.SECONDS)) {
-                this.runner.getAttention(this);
-            } else {
-                this.log(Level.SEVERE, "Unable to queue: " + msg.toString());
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     public INonPlayerCharacter getNpc() {

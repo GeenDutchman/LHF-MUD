@@ -8,7 +8,7 @@ import org.mockito.Mockito;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.map.Room.RoomBuilder;
 import com.lhf.messages.MessageMatcher;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class OneWayDoorwayTest {
         @Test
@@ -25,17 +25,17 @@ public class OneWayDoorwayTest {
                 AIComBundle bundle = new AIComBundle();
                 roomB.addCreature(bundle.npc);
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000))
-                                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SEE,
+                                .send(Mockito.argThat(new MessageMatcher(GameEventType.SEE,
                                                 List.of(roomB.getName(), Directions.EAST.toString().toLowerCase()),
                                                 null)));
 
                 bundle.brain.ProcessString("go east");
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000))
-                                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SEE,
+                                .send(Mockito.argThat(new MessageMatcher(GameEventType.SEE,
                                                 List.of(roomA.getName()), null)));
 
                 bundle.brain.ProcessString("go west");
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000))
-                                .send(Mockito.argThat(new MessageMatcher(OutMessageType.BAD_GO, "wall")));
+                                .send(Mockito.argThat(new MessageMatcher(GameEventType.BAD_GO, "wall")));
         }
 }

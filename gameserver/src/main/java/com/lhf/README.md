@@ -119,9 +119,9 @@ classDiagram
 
 ```mermaid
 classDiagram
-    class MessageChainHandler
-    <<interface>> MessageChainHandler
-    MessageChainHandler: +handleMessage(context, Command)
+    class CommandChainHandler
+    <<interface>> CommandChainHandler
+    CommandChainHandler: +handleMessage(context, Command)
     class Main
     class Server
     class UserManager
@@ -164,15 +164,15 @@ classDiagram
 
     Room o-- BattleManager
     
-    MessageChainHandler <|-- BattleManager
-    MessageChainHandler <|-- Player
-    MessageChainHandler <|-- Room
-    MessageChainHandler <|-- Dungeon
-    MessageChainHandler <|-- ThirdPower
-    MessageChainHandler <|-- Game
-    MessageChainHandler <|-- Server
-    MessageChainHandler <|-- User
-    MessageChainHandler <|-- Client
+    CommandChainHandler <|-- BattleManager
+    CommandChainHandler <|-- Player
+    CommandChainHandler <|-- Room
+    CommandChainHandler <|-- Dungeon
+    CommandChainHandler <|-- ThirdPower
+    CommandChainHandler <|-- Game
+    CommandChainHandler <|-- Server
+    CommandChainHandler <|-- User
+    CommandChainHandler <|-- Client
 
 ```
 

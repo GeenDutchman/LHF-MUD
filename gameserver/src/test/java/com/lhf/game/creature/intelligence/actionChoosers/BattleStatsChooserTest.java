@@ -28,7 +28,7 @@ import com.lhf.game.dice.DamageDice.FlavoredRollResult;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
-import com.lhf.messages.out.CreatureAffectedMessage;
+import com.lhf.messages.events.CreatureAffectedEvent;
 
 public class BattleStatsChooserTest {
         @Spy
@@ -71,7 +71,7 @@ public class BattleStatsChooserTest {
                                 "For a test", false)
                                 .addDamage(new DamageDice(1, DieType.HUNDRED, DamageFlavor.BLUDGEONING));
 
-                CreatureAffectedMessage cam = CreatureAffectedMessage.getBuilder().setAffected(finder.npc)
+                CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.npc)
                                 .setEffect(new CreatureEffect(source, attacker.npc, attacker.npc)).Build();
 
                 finder.npc.getHarmMemories().update(cam);
@@ -99,7 +99,7 @@ public class BattleStatsChooserTest {
                                 "For a test", false)
                                 .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO));
 
-                CreatureAffectedMessage cam2 = CreatureAffectedMessage.getBuilder().setAffected(finder.npc)
+                CreatureAffectedEvent cam2 = CreatureAffectedEvent.getBuilder().setAffected(finder.npc)
                                 .setEffect(new CreatureEffect(source2, subAttacker.npc, subAttacker.npc)).Build();
 
                 finder.npc.getHarmMemories().update(cam2);
@@ -152,7 +152,7 @@ public class BattleStatsChooserTest {
 
                 effect.updateDamageResult(mrrBuilder.Build());
 
-                CreatureAffectedMessage cam = CreatureAffectedMessage.getBuilder().setAffected(finder.npc)
+                CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.npc)
                                 .setEffect(effect).Build();
 
                 System.out.println(cam.print());

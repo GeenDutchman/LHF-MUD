@@ -20,22 +20,23 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.game.lewd.LewdBabyMaker;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.events.BadTargetSelectedEvent;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.RoomAffectedEvent;
+import com.lhf.messages.events.RoomEnteredEvent;
+import com.lhf.messages.events.RoomExitedEvent;
+import com.lhf.messages.events.SpeakingEvent;
+import com.lhf.messages.events.UserLeftEvent;
+import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.in.SayMessage;
-import com.lhf.messages.out.BadTargetSelectedMessage;
-import com.lhf.messages.out.BadTargetSelectedMessage.BadTargetOption;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.RoomAffectedMessage;
-import com.lhf.messages.out.RoomEnteredOutMessage;
-import com.lhf.messages.out.SomeoneLeftRoom;
-import com.lhf.messages.out.SpeakingMessage;
-import com.lhf.messages.out.UserLeftMessage;
+import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.user.User;
 import com.lhf.server.interfaces.NotNull;
 
@@ -97,7 +98,7 @@ public class DMRoom extends Room {
             return this;
         }
 
-        public DMRoomBuilder setSuccessor(MessageChainHandler successor) {
+        public DMRoomBuilder setSuccessor(CommandChainHandler successor) {
             this.delegate = delegate.setSuccessor(successor);
             return this;
         }
@@ -128,7 +129,7 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public MessageChainHandler getSuccessor() {
+        public CommandChainHandler getSuccessor() {
             return this.delegate.getSuccessor();
         }
 
@@ -146,7 +147,7 @@ public class DMRoom extends Room {
             if (convoLoader != null) {
                 dmBuilder.setConversationTree(convoLoader.convoTreeFromFile("verbal_default"));
             }
-            SilencedHandler noSleepNoise = new SilencedHandler(OutMessageType.INTERACT);
+            SilencedHandler noSleepNoise = new SilencedHandler(GameEventType.INTERACT);
             dmBuilder.addAIHandler(noSleepNoise);
             LewdAIHandler lewdAIHandler = new LewdAIHandler().setPartnersOnly().setStayInAfter();
             dmBuilder.addAIHandler(lewdAIHandler);
@@ -190,14 +191,14 @@ public class DMRoom extends Room {
     public boolean addUser(User user) {
         if (this.filterCreatures(EnumSet.of(CreatureContainer.Filters.TYPE), null, null, null, null,
                 DungeonMaster.class, null).size() < 2) {
-            // shunt
+            this.log(Level.INFO, () -> "Conditions met to create and add Player automatically");
             return this.addNewPlayer(Player.PlayerBuilder.getInstance(user).build());
         }
         boolean added = this.users.add(user);
         if (added) {
             user.setSuccessor(this);
             this.log(Level.FINE, () -> String.format("User %s entered DMRoom", user));
-            this.announce(RoomEnteredOutMessage.getBuilder().setNewbie(user).setBroacast().Build());
+            this.announce(RoomEnteredEvent.getBuilder().setNewbie(user).setBroacast().Build());
         }
         return added;
     }
@@ -215,7 +216,7 @@ public class DMRoom extends Room {
         for (User user : this.users) {
             if (username.equals(user.getUsername())) {
                 this.users.remove(user);
-                this.announce(SomeoneLeftRoom.getBuilder().setLeaveTaker(user).setBroacast().Build());
+                this.announce(RoomExitedEvent.getBuilder().setLeaveTaker(user).setBroacast().Build());
                 return user;
             }
         }
@@ -229,17 +230,17 @@ public class DMRoom extends Room {
     public void userExitSystem(User user) {
         for (Dungeon dungeon : this.dungeons) {
             if (dungeon.removePlayer(user.getUserID()).isPresent()) {
-                dungeon.announce(UserLeftMessage.getBuilder().setUser(user).setBroacast().Build());
+                dungeon.announce(UserLeftEvent.getBuilder().setUser(user).setBroacast().Build());
             }
         }
     }
 
     @Override
-    public Collection<ClientMessenger> getClientMessengers() {
-        Collection<ClientMessenger> messengers = new ArrayList<>(super.getClientMessengers());
-        messengers.addAll(this.users.stream()
-                .filter(userThing -> userThing != null)
-                .map(userThing -> (ClientMessenger) userThing).toList());
+    public Collection<GameEventProcessor> getClientMessengers() {
+        Collection<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
+        messengers.addAll(super.getClientMessengers());
+        this.users.stream().filter(userThing -> userThing != null)
+                .forEach(userThing -> messengers.add(userThing));
         return messengers;
     }
 
@@ -249,7 +250,7 @@ public class DMRoom extends Room {
     }
 
     @Override
-    public RoomAffectedMessage processEffect(EntityEffect effect, boolean reverse) {
+    public RoomAffectedEvent processEffect(EntityEffect effect, boolean reverse) {
         if (this.isCorrectEffectType(effect)) {
             DMRoomEffect dmRoomEffect = (DMRoomEffect) effect;
             this.logger.log(Level.FINER, () -> String.format("DMRoom processing effect '%s'", dmRoomEffect.getName()));
@@ -260,10 +261,9 @@ public class DMRoom extends Room {
                     this.logger.log(Level.FINEST,
                             () -> String.format("A user by the name of '%s' was not found", name));
                     if (dmRoomEffect.creatureResponsible() != null) {
-                        OutMessage whoops = BadTargetSelectedMessage.getBuilder().setBde(BadTargetOption.DNE)
+                        GameEvent whoops = BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.DNE)
                                 .setBadTarget(name).Build();
-                        dmRoomEffect.creatureResponsible()
-                                .sendMsg(whoops);
+                        ICreature.eventAccepter.accept(dmRoomEffect.creatureResponsible(), whoops);
                         return null;
                     }
                 }
@@ -271,8 +271,9 @@ public class DMRoom extends Room {
                 if (maybeCorpse.isEmpty() || !(maybeCorpse.get() instanceof Corpse)) {
                     this.logger.log(Level.FINEST, () -> String.format("No corpse was found with the name '%s'", name));
                     if (effect.creatureResponsible() != null) {
-                        effect.creatureResponsible().sendMsg(BadTargetSelectedMessage.getBuilder()
-                                .setBde(BadTargetOption.DNE).setBadTarget(name).Build());
+                        ICreature.eventAccepter.accept(dmRoomEffect.creatureResponsible(),
+                                BadTargetSelectedEvent.getBuilder()
+                                        .setBde(BadTargetOption.DNE).setBadTarget(name).Build());
                         return null;
                     }
                 }
@@ -292,20 +293,21 @@ public class DMRoom extends Room {
                 .or(SayHandler.defaultRoomPredicate);
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.SAY && cmd instanceof SayMessage sayMessage) {
                 if (sayMessage.getTarget() != null && !sayMessage.getTarget().isBlank()) {
                     boolean sent = false;
                     for (User u : DMRoom.this.users) {
                         if (u.getUsername().equals(sayMessage.getTarget())) {
-                            ClientMessenger sayer = ctx;
+                            CommandInvoker sayer = ctx.getClient();
                             if (ctx.getCreature() != null) {
                                 sayer = ctx.getCreature();
                             } else if (ctx.getUser() != null) {
                                 sayer = ctx.getUser();
                             }
-                            u.sendMsg(SpeakingMessage.getBuilder().setSayer(sayer).setMessage(sayMessage.getMessage())
-                                    .setHearer(u).Build());
+                            User.eventAccepter.accept(u,
+                                    SpeakingEvent.getBuilder().setSayer(sayer).setMessage(sayMessage.getMessage())
+                                            .setHearer(u).Build());
                             sent = true;
                             break;
                         }
@@ -315,7 +317,7 @@ public class DMRoom extends Room {
                     }
                 }
             }
-            return super.handle(ctx, cmd);
+            return super.handleCommand(ctx, cmd);
         }
 
         @Override
@@ -324,7 +326,7 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return DMRoom.this;
         }
     }
@@ -339,7 +341,7 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return DMRoom.this;
         }
     }

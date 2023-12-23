@@ -15,7 +15,7 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.magic.RoomTargetingSpellEntry;
 import com.lhf.game.map.RoomEffectSource;
-import com.lhf.messages.out.CastingMessage;
+import com.lhf.messages.events.SpellCastingEvent;
 
 public class Thaumaturgy extends RoomTargetingSpellEntry {
 
@@ -30,7 +30,7 @@ public class Thaumaturgy extends RoomTargetingSpellEntry {
     }
 
     @Override
-    public CastingMessage Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
+    public SpellCastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
         StringBuilder sb = new StringBuilder();
         String casterName = caster.getName();
         String[] splitname = casterName.split("( |_)");
@@ -49,7 +49,8 @@ public class Thaumaturgy extends RoomTargetingSpellEntry {
         }
         sb.append(caster.getStartTag()).append("/").append("|".repeat(longest)).append("\\")
                 .append(caster.getEndTag()).append("\n");
-        return CastingMessage.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sb.toString()).Build();
+        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sb.toString())
+                .Build();
     }
 
 }

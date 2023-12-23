@@ -9,7 +9,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
@@ -19,13 +23,12 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealthBuckets;
-import com.lhf.messages.ClientMessenger;
-import com.lhf.messages.OutMessageType;
-import com.lhf.messages.out.CreatureAffectedMessage;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.server.client.ClientID;
+import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.GameEventType;
+import com.lhf.messages.events.CreatureAffectedEvent;
+import com.lhf.messages.events.GameEvent;
 
-public class BattleStats implements ClientMessenger {
+public class BattleStats implements GameEventProcessor {
 
     private static final BiFunction<Integer, Integer, Integer> adder = (a, b) -> {
         if (a != null && b != null) {
@@ -256,20 +259,24 @@ public class BattleStats implements ClientMessenger {
     }
 
     private Map<String, BattleStatRecord> battleStats;
-    private ClientID clientID = new ClientID();
+    private final GameEventProcessorID gameEventProcessorID = new GameEventProcessorID();
     private int deadXP;
+    private final Logger logger;
 
     public BattleStats() {
+        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.gameEventProcessorID.getUuid());
         this.battleStats = new TreeMap<>();
         this.deadXP = 0;
     }
 
     public BattleStats(Map<String, BattleStatRecord> seedStats) {
+        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.gameEventProcessorID.getUuid());
         this.battleStats = seedStats != null ? new TreeMap<>(seedStats) : new TreeMap<>();
     }
 
     // note that any duplicates will overwrite each other!
     public BattleStats(Iterable<BattleStatRecord> seedRecords) {
+        this.logger = Logger.getLogger(this.getClass().getName() + "." + this.gameEventProcessorID.getUuid());
         this.battleStats = new TreeMap<>();
         if (seedRecords != null) {
             for (BattleStatRecord record : seedRecords) {
@@ -284,7 +291,7 @@ public class BattleStats implements ClientMessenger {
         return this;
     }
 
-    public BattleStats update(CreatureAffectedMessage ca) {
+    public BattleStats update(CreatureAffectedEvent ca) {
         if (ca.getEffect() == null) {
             return this;
         }
@@ -434,6 +441,16 @@ public class BattleStats implements ClientMessenger {
     }
 
     @Override
+    public void log(Level logLevel, String logMessage) {
+        this.logger.log(logLevel, logMessage);
+    }
+
+    @Override
+    public void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        this.logger.log(logLevel, logMessageSupplier);
+    }
+
+    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("BattleStats [battleStats=").append(battleStats != null ? battleStats.values() : null)
@@ -457,16 +474,18 @@ public class BattleStats implements ClientMessenger {
     }
 
     @Override
-    public void sendMsg(OutMessage msg) {
-        if (msg != null && OutMessageType.CREATURE_AFFECTED.equals(msg.getOutType())) {
-            CreatureAffectedMessage cam = (CreatureAffectedMessage) msg;
-            this.update(cam);
-        }
+    public Consumer<GameEvent> getAcceptHook() {
+        return (event) -> {
+            if (event != null && GameEventType.CREATURE_AFFECTED.equals(event.getEventType())) {
+                CreatureAffectedEvent cam = (CreatureAffectedEvent) event;
+                this.update(cam);
+            }
+        };
     }
 
     @Override
-    public ClientID getClientID() {
-        return this.clientID;
+    public GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
     }
 
 }

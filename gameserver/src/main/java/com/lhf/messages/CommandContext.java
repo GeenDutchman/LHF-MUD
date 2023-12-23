@@ -5,25 +5,26 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.Room;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.server.client.ClientID;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.server.client.Client;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 
-public class CommandContext implements ClientMessenger {
-    protected ClientMessenger client;
+public class CommandContext {
+    protected Client client;
     protected User user;
     protected ICreature creature;
     protected Room room;
     protected BattleManager bManager;
     protected Dungeon dungeon;
     protected EnumMap<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
-    protected List<OutMessage> messages = new ArrayList<>();
+    protected List<GameEvent> messages = new ArrayList<>();
 
     public class Reply {
         protected boolean handled;
@@ -39,11 +40,22 @@ public class CommandContext implements ClientMessenger {
             return Collections.unmodifiableMap(CommandContext.this.helps);
         }
 
-        public List<OutMessage> getMessages() {
+        public List<GameEvent> getMessages() {
             if (CommandContext.this.messages == null) {
                 CommandContext.this.messages = new ArrayList<>();
             }
             return Collections.unmodifiableList(CommandContext.this.messages);
+        }
+
+        public Optional<GameEvent> getLastMessage() {
+            if (CommandContext.this.messages == null || CommandContext.this.messages.size() == 0) {
+                return Optional.empty();
+            }
+            try {
+                return Optional.ofNullable(CommandContext.this.messages.get(CommandContext.this.messages.size() - 1));
+            } catch (IndexOutOfBoundsException e) {
+                return Optional.empty();
+            }
         }
 
         public boolean isHandled() {
@@ -60,7 +72,7 @@ public class CommandContext implements ClientMessenger {
             StringBuilder builder = new StringBuilder();
             builder.append("Reply [handled=").append(handled)
                     .append(",messageTypes=")
-                    .append(this.getMessages().stream().map(outMessage -> outMessage.getOutType()).toList())
+                    .append(this.getMessages().stream().map(gameEvent -> gameEvent.getEventType()).toList())
                     .append(",helps=").append(this.getHelps().keySet())
                     .append("]");
             return builder.toString();
@@ -89,7 +101,7 @@ public class CommandContext implements ClientMessenger {
         return this.new Reply(true);
     }
 
-    public void addMessage(OutMessage message) {
+    public void addMessage(GameEvent message) {
         if (this.messages == null) {
             this.messages = new ArrayList<>();
         }
@@ -130,15 +142,7 @@ public class CommandContext implements ClientMessenger {
         return Collections.unmodifiableMap(helps);
     }
 
-    @Override
-    public ClientID getClientID() {
-        if (this.client != null) {
-            return this.client.getClientID();
-        }
-        return null;
-    }
-
-    public ClientMessenger getClientMessenger() {
+    public Client getClient() {
         return this.client;
     }
 
@@ -150,17 +154,24 @@ public class CommandContext implements ClientMessenger {
         this.creature = creature;
     }
 
-    @Override
-    public void sendMsg(OutMessage msg) {
-        if (msg != null) {
-            this.addMessage(msg);
-            if (this.client != null) {
-                this.client.sendMsg(msg);
+    public synchronized void receive(GameEvent event) {
+        if (event != null) {
+            this.addMessage(event);
+            if (this.creature != null) {
+                ICreature.eventAccepter.accept(this.creature, event);
+            } else if (this.user != null) {
+                User.eventAccepter.accept(this.user, event);
+            } else if (this.client != null) {
+                Client.eventAccepter.accept(this.client, event);
             }
         }
     }
 
-    public void setClient(ClientMessenger client) {
+    public void receive(GameEvent.Builder<?> builder) {
+        this.receive(builder.Build());
+    }
+
+    public void setClient(Client client) {
         this.client = client;
     }
 
@@ -204,16 +215,6 @@ public class CommandContext implements ClientMessenger {
     }
 
     @Override
-    public String getStartTag() {
-        return "<command_context>";
-    }
-
-    @Override
-    public String getEndTag() {
-        return "</command_context>";
-    }
-
-    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("CommandContext [client=").append(client).append(", user=").append(user).append(", creature=")
@@ -222,8 +223,4 @@ public class CommandContext implements ClientMessenger {
         return builder.toString();
     }
 
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + "context" + this.getEndTag();
-    }
 }

@@ -15,19 +15,19 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
+import com.lhf.messages.GameEventType;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.SpeakingEvent;
 import com.lhf.messages.in.SayMessage;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.SpeakingMessage;
-import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.User;
 
 public class SpokenPromptChunk extends AIHandler {
-    private Set<ClientID> prompters;
+    private Set<GameEventProcessorID> prompters;
     private boolean allowUsers;
 
     public SpokenPromptChunk() {
-        super(OutMessageType.SPEAKING);
+        super(GameEventType.SPEAKING);
         this.prompters = new HashSet<>();
         this.allowUsers = false;
     }
@@ -37,12 +37,12 @@ public class SpokenPromptChunk extends AIHandler {
         return this;
     }
 
-    public SpokenPromptChunk addPrompter(ClientID id) {
+    public SpokenPromptChunk addPrompter(GameEventProcessorID id) {
         this.prompters.add(id);
         return this;
     }
 
-    private void basicHandle(BasicAI bai, SpeakingMessage sm) {
+    private void basicHandle(BasicAI bai, SpeakingEvent sm) {
         ConversationTree tree = bai.getNpc().getConvoTree();
         if (tree != null) {
             ConversationTreeNodeResult result = tree.listen(sm.getSayer(), sm.getMessage());
@@ -85,14 +85,14 @@ public class SpokenPromptChunk extends AIHandler {
     }
 
     @Override
-    public void handle(BasicAI bai, OutMessage msg) {
-        if (msg.getOutType().equals(OutMessageType.SPEAKING)) {
-            SpeakingMessage sm = (SpeakingMessage) msg;
+    public void handle(BasicAI bai, GameEvent event) {
+        if (event.getEventType().equals(GameEventType.SPEAKING)) {
+            SpeakingEvent sm = (SpeakingEvent) event;
             if (!sm.getShouting() && sm.getHearer() != null && sm.getHearer() instanceof INonPlayerCharacter) {
                 if (sm.getSayer() instanceof ICreature || (this.allowUsers && sm.getSayer() instanceof User)) {
                     if (sm.getMessage().startsWith("PROMPT") &&
-                            (this.prompters.contains(sm.getSayer().getClientID())
-                                    || sm.getSayer().getClientID().equals(bai.getClientID()))) {
+                            (this.prompters.contains(sm.getSayer().getEventProcessorID())
+                                    || sm.getSayer().getEventProcessorID().equals(bai.getEventProcessorID()))) {
                         String prompt = sm.getMessage().replaceFirst("PROMPT", "").trim();
                         this.logger.log(Level.INFO, String.format("Prompt \"%s\" received from %s for %s", prompt,
                                 sm.getSayer().getColorTaggedName(),

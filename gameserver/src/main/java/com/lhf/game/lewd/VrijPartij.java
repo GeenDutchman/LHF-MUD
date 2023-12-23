@@ -9,8 +9,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.lhf.game.creature.ICreature;
-import com.lhf.messages.out.LewdOutMessage;
-import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
+import com.lhf.messages.events.LewdEvent;
+import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 
 /**
  * The steps are to set everyone to INCLUDED except
@@ -65,7 +65,7 @@ public class VrijPartij {
     }
 
     public void propose() {
-        LewdOutMessage lom = LewdOutMessage.getBuilder().setSubType(LewdOutMessageType.PROPOSED).setCreature(initiator)
+        LewdEvent lom = LewdEvent.getBuilder().setSubType(LewdOutMessageType.PROPOSED).setCreature(initiator)
                 .setParty(party).setBroacast().Build();
         this.messageParticipants(lom);
         this.party.replaceAll((creature, answer) -> {
@@ -112,11 +112,11 @@ public class VrijPartij {
         return this.getParticipants(LewdAnswer.ACCEPTED);
     }
 
-    public synchronized void messageParticipants(LewdOutMessage lom) {
+    public synchronized void messageParticipants(LewdEvent lom) {
         if (lom != null) {
             for (Map.Entry<ICreature, LewdAnswer> entry : this.getParty().entrySet()) {
                 if (!LewdAnswer.DENIED.equals(entry.getValue())) {
-                    entry.getKey().sendMsg(lom);
+                    ICreature.eventAccepter.accept(entry.getKey(), lom);
                 }
             }
         }
@@ -148,7 +148,7 @@ public class VrijPartij {
     protected synchronized VrijPartij accept(ICreature creature) {
         if (this.party.containsKey(creature)) {
             this.party.put(creature, LewdAnswer.ACCEPTED);
-            LewdOutMessage lom = LewdOutMessage.getBuilder().setSubType(LewdOutMessageType.ACCEPTED)
+            LewdEvent lom = LewdEvent.getBuilder().setSubType(LewdOutMessageType.ACCEPTED)
                     .setCreature(creature).setParty(party).setBroacast().Build();
             this.messageParticipants(lom);
         }
@@ -156,7 +156,7 @@ public class VrijPartij {
     }
 
     public boolean check() {
-        LewdOutMessage.Builder lom = LewdOutMessage.getBuilder().setParty(party).setBroacast();
+        LewdEvent.Builder lom = LewdEvent.getBuilder().setParty(party).setBroacast();
         boolean allDone = this.getParticipants(LewdAnswer.ASKED).size() == 0
                 && this.getParticipants(LewdAnswer.INCLUDED).size() == 0;
 
@@ -180,9 +180,9 @@ public class VrijPartij {
     public synchronized VrijPartij pass(ICreature creature) {
         if (party.containsKey(creature)) {
             party.put(creature, LewdAnswer.DENIED);
-            LewdOutMessage lom = LewdOutMessage.getBuilder().setSubType(LewdOutMessageType.DENIED).setCreature(creature)
+            LewdEvent lom = LewdEvent.getBuilder().setSubType(LewdOutMessageType.DENIED).setCreature(creature)
                     .setParty(party).setBroacast().Build();
-            creature.sendMsg(lom);
+            ICreature.eventAccepter.accept(creature, lom);
             this.messageParticipants(lom);
         }
         return this;

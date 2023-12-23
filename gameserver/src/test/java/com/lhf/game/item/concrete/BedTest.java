@@ -8,7 +8,7 @@ import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.Room;
 import com.lhf.messages.MessageMatcher;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.events.GameEvent;
 
 public class BedTest {
 
@@ -32,7 +32,7 @@ public class BedTest {
         Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(2).setSleepSeconds(2));
         room.addItem(bed);
 
-        OutMessage out = bed.doUseAction(first.npc);
+        GameEvent out = bed.doUseAction(first.npc);
         Truth.assertThat(out.toString()).contains("You are now in the bed");
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 
@@ -61,7 +61,7 @@ public class BedTest {
         Room room = builder.setName("Sleeping Room").addCreature(first.npc).build();
         Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(1).setSleepSeconds(1));
 
-        OutMessage out = bed.doUseAction(first.npc);
+        GameEvent out = bed.doUseAction(first.npc);
         Truth.assertThat(out.toString()).contains("You are now in the bed");
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 

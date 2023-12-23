@@ -1,19 +1,19 @@
 package com.lhf;
 
-import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.events.SeeEvent;
 
 public interface Examinable {
     String getName();
 
     String printDescription();
 
-    default SeeOutMessage produceMessage() {
-        return this.produceMessage(SeeOutMessage.getBuilder());
+    default SeeEvent produceMessage() {
+        return this.produceMessage(SeeEvent.getBuilder());
     }
 
-    default SeeOutMessage produceMessage(SeeOutMessage.Builder seeOutMessage) {
+    default SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
         if (seeOutMessage == null) {
-            seeOutMessage = SeeOutMessage.getBuilder();
+            seeOutMessage = SeeEvent.getBuilder();
         }
         return seeOutMessage.setExaminable(this).Build();
     }

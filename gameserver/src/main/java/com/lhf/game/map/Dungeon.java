@@ -19,26 +19,28 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.EntityEffect;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
-import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.events.BadGoEvent;
+import com.lhf.messages.events.BadGoEvent.BadGoType;
+import com.lhf.messages.events.BadMessageEvent;
+import com.lhf.messages.events.BadMessageEvent.BadMessageType;
+import com.lhf.messages.events.CreatureSpawnedEvent;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.PlayerReincarnatedEvent;
+import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.SpeakingEvent;
+import com.lhf.messages.events.TickEvent;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.ShoutMessage;
-import com.lhf.messages.out.BadGoMessage;
-import com.lhf.messages.out.BadGoMessage.BadGoType;
-import com.lhf.messages.out.BadMessage;
-import com.lhf.messages.out.BadMessage.BadMessageType;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.ReincarnateMessage;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SpawnMessage;
-import com.lhf.messages.out.SpeakingMessage;
 import com.lhf.server.client.user.UserID;
 
 public class Dungeon implements Land {
@@ -65,14 +67,15 @@ public class Dungeon implements Land {
 
     private Map<UUID, Land.AreaDirectionalLinks> mapping;
     private Area startingRoom = null;
-    private transient MessageChainHandler successor;
+    private transient CommandChainHandler successor;
     private Map<CommandMessage, CommandHandler> commands;
     private transient TreeSet<DungeonEffect> effects;
-    private transient Set<UUID> sentMessage;
     private transient final Logger logger;
+    private final GameEventProcessorID gameEventProcessorID;
 
     Dungeon(Land.LandBuilder builder) {
         this.logger = Logger.getLogger(String.format("%s.%s", this.getClass().getName(), this.getName()));
+        this.gameEventProcessorID = new GameEventProcessorID();
         this.startingRoom = builder.getStartingArea();
         this.mapping = builder.getAtlas();
         this.successor = builder.getSuccessor();
@@ -85,7 +88,6 @@ public class Dungeon implements Land {
         }
         this.commands = this.buildCommands();
         this.effects = new TreeSet<>();
-        this.sentMessage = new TreeSet<>();
     }
 
     @Override
@@ -107,17 +109,15 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public boolean checkMessageSent(OutMessage outMessage) {
-        if (outMessage == null) {
-            return true; // yes we "sent" null
-        }
-        return !this.sentMessage.add(outMessage.getUuid());
+    public GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
     }
 
     @Override
     public boolean addPlayer(Player player) {
         this.startingRoom
-                .announce(SpawnMessage.getBuilder().setBroacast().setUsername(player.getColorTaggedName()).Build());
+                .announce(CreatureSpawnedEvent.getBuilder().setBroacast().setCreatureName(player.getColorTaggedName())
+                        .Build());
         player.setSuccessor(this);
         return startingRoom.addPlayer(player);
     }
@@ -150,7 +150,8 @@ public class Dungeon implements Land {
     @Override
     public boolean addCreature(ICreature creature) {
         this.startingRoom
-                .announce(SpawnMessage.getBuilder().setUsername(creature.getColorTaggedName()).setBroacast().Build());
+                .announce(CreatureSpawnedEvent.getBuilder().setCreatureName(creature.getColorTaggedName()).setBroacast()
+                        .Build());
         creature.setSuccessor(this);
         return startingRoom.addCreature(creature);
     }
@@ -159,7 +160,7 @@ public class Dungeon implements Land {
         if (this.mapping.containsKey(roomUUID)) {
             AreaDirectionalLinks roomAndDirs = this.mapping.get(roomUUID);
             roomAndDirs.getArea()
-                    .announce(SpawnMessage.getBuilder().setUsername(creature.getColorTaggedName()).Build());
+                    .announce(CreatureSpawnedEvent.getBuilder().setCreatureName(creature.getColorTaggedName()).Build());
             creature.setSuccessor(this);
             return roomAndDirs.getArea().addCreature(creature);
         }
@@ -215,9 +216,9 @@ public class Dungeon implements Land {
             Player nextLife = Player.PlayerBuilder.getInstance(asPlayer.getUser()).setVocation(asPlayer.getVocation())
                     .build();
             this.addPlayer(nextLife);
-            creature.sendMsg(ReincarnateMessage.getBuilder().setTaggedName(creature).setNotBroadcast().Build());
-            nextLife.sendMsg(SeeOutMessage.getBuilder().setExaminable(startingRoom).Build());
-
+            ICreature.eventAccepter.accept(creature,
+                    PlayerReincarnatedEvent.getBuilder().setTaggedName(creature).setNotBroadcast().Build());
+            ICreature.eventAccepter.accept(nextLife, SeeEvent.getBuilder().setExaminable(startingRoom).Build());
         }
         return removed;
     }
@@ -268,12 +269,12 @@ public class Dungeon implements Land {
         return secretDirs.getExits().put(toExistingRoom, onewayDoor) == null;
     }
 
-    public void announceToAllInRoom(Room room, OutMessage msg, ClientMessenger... deafened) {
+    public void announceToAllInRoom(Room room, GameEvent event, GameEventProcessor... deafened) {
         if (room == null) {
-            this.startingRoom.announce(msg, deafened);
+            this.startingRoom.announce(event, deafened);
             return;
         }
-        room.announce(msg, deafened);
+        room.announce(event, deafened);
     }
 
     public interface DungeonCommandHandler extends Room.RoomCommandHandler {
@@ -300,18 +301,18 @@ public class Dungeon implements Land {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.SHOUT && cmd instanceof ShoutMessage shoutMessage) {
                 if (ctx.getCreature() == null) {
-                    ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                    ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                             .setHelps(ctx.getHelps()).setCommand(cmd).Build());
                     return ctx.handled();
                 }
                 Dungeon.this.announceDirect(
-                        SpeakingMessage.getBuilder().setSayer(ctx.getCreature()).setShouting(true)
+                        SpeakingEvent.getBuilder().setSayer(ctx.getCreature()).setShouting(true)
                                 .setMessage(shoutMessage.getMessage()).Build(),
                         Dungeon.this.getPlayers().stream().filter(player -> player != null)
-                                .map(player -> (ClientMessenger) player)
+                                .map(player -> (GameEventProcessor) player)
                                 .toList());
                 return ctx.handled();
             }
@@ -319,7 +320,7 @@ public class Dungeon implements Land {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Dungeon.this;
         }
 
@@ -344,16 +345,16 @@ public class Dungeon implements Land {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.GO && cmd instanceof GoMessage goMessage) {
                 if (ctx.getCreature() == null) {
-                    ctx.sendMsg(BadMessage.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                    ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                             .setHelps(ctx.getHelps()).setCommand(cmd).Build());
                     return ctx.handled();
                 }
                 Directions toGo = goMessage.getDirection();
                 if (ctx.getRoom() == null) {
-                    ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(toGo).Build());
+                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(toGo).Build());
                     return ctx.handled();
                 }
                 Room presentRoom = ctx.getRoom();
@@ -363,35 +364,37 @@ public class Dungeon implements Land {
                     if (exits == null || exits.size() == 0
                             || !exits.containsKey(toGo)
                             || exits.get(toGo) == null) {
-                        ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
+                        ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
                         return ctx.handled();
                     }
                     Doorway doorway = exits.get(toGo);
                     if (!doorway.canTraverse(ctx.getCreature(), toGo)) {
-                        ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo)
+                        ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo)
                                 .setAvailable(exits.keySet()).Build());
                         return ctx.handled();
                     }
                     UUID nextRoomUuid = doorway.getRoomAccross(presentRoom.getUuid());
                     AreaDirectionalLinks nextRandD = Dungeon.this.mapping.get(nextRoomUuid);
                     if (nextRoomUuid == null || nextRandD == null) {
-                        ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
+                        ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
                                 .setAvailable(exits.keySet()).Build());
                         return ctx.handled();
                     }
                     Area nextRoom = nextRandD.getArea();
                     if (nextRoom == null) {
-                        ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
+                        ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
                                 .setAvailable(exits.keySet()).Build());
                         return ctx.handled();
                     }
 
-                    ctx.getCreature().setSuccessor(nextRoom);
-                    nextRoom.addCreature(ctx.getCreature());
-                    presentRoom.removeCreature(ctx.getCreature(), toGo);
-                    return ctx.handled();
+                    if (presentRoom.removeCreature(ctx.getCreature(), toGo)) {
+                        ICreature.eventAccepter.accept(ctx.getCreature(),
+                                TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
+                        nextRoom.addCreature(ctx.getCreature());
+                        return ctx.handled();
+                    }
                 } else {
-                    ctx.sendMsg(BadGoMessage.getBuilder().setSubType(BadGoType.NO_ROOM)
+                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM)
                             .setAttempted(goMessage.getDirection()).Build());
                     return ctx.handled();
                 }
@@ -400,7 +403,7 @@ public class Dungeon implements Land {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Dungeon.this;
         }
 
@@ -428,12 +431,12 @@ public class Dungeon implements Land {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.SEE) {
                 Room presentRoom = ctx.getRoom();
                 if (presentRoom != null) {
-                    SeeOutMessage roomSeen = presentRoom.produceMessage();
-                    ctx.sendMsg(roomSeen);
+                    SeeEvent roomSeen = presentRoom.produceMessage();
+                    ctx.receive(roomSeen);
                     return ctx.handled();
                 }
             }
@@ -441,19 +444,19 @@ public class Dungeon implements Land {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Dungeon.this;
         }
 
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return this.successor;
     }
 
@@ -490,7 +493,7 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public OutMessage processEffect(EntityEffect effect, boolean reverse) {
+    public GameEvent processEffect(EntityEffect effect, boolean reverse) {
         // TODO make effects applicable here
         return null;
     }
@@ -502,13 +505,24 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public String printDescription() {
-        return String.format("This Dungeon is called %s and it has %d rooms!", this.getName(), this.mapping.size());
+    public String getStartTag() {
+        return "<Dungeon>";
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
-        return SeeOutMessage.getBuilder().setExaminable(this).Build();
+    public String getEndTag() {
+        return "</Dungeon>";
+    }
+
+    @Override
+    public String printDescription() {
+        return String.format("This Dungeon is called %s and it has %d rooms!", this.getColorTaggedName(),
+                this.mapping.size());
+    }
+
+    @Override
+    public SeeEvent produceMessage() {
+        return SeeEvent.getBuilder().setExaminable(this).Build();
     }
 
     public String toMermaid(boolean fence) {

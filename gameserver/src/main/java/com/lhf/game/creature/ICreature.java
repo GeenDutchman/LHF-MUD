@@ -1,11 +1,15 @@
 package com.lhf.game.creature;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.regex.PatternSyntaxException;
@@ -38,15 +42,16 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.ITickMessage;
-import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
-import com.lhf.messages.out.StatusOutMessage;
-import com.lhf.server.client.ClientID;
+import com.lhf.messages.ITickEvent;
+import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.events.CreatureStatusRequestedEvent;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.SeeEvent.SeeCategory;
+import com.lhf.server.client.CommandInvoker;
+import com.lhf.server.client.Client.ClientID;
 
 /**
  * An interface for all things Creature. This way we can create wrappers, mocks,
@@ -58,16 +63,16 @@ import com.lhf.server.client.ClientID;
  * 
  * @see com.lhf.game.creature.inventory.InventoryOwner
  * @see com.lhf.game.creature.inventory.EquipmentOwner
- * @see com.lhf.messages.ClientMessenger
- * @see com.lhf.messages.MessageChainHandler
+ * @see com.lhf.messages.GameEventProcessor
+ * @see com.lhf.messages.CommandChainHandler
  * @see com.lhf.game.AffectableEntity
  * @see com.lhf.game.creature.CreatureEffect
  * 
  * @see java.lang.Comparable
  */
 public interface ICreature
-        extends InventoryOwner, EquipmentOwner, ClientMessenger, MessageChainHandler, Comparable<ICreature>,
-        AffectableEntity<CreatureEffect> {
+        extends InventoryOwner, EquipmentOwner, Comparable<ICreature>,
+        AffectableEntity<CreatureEffect>, CommandInvoker {
 
     /**
      * A Fist is a weapon that most Creatures can be assumed to have.
@@ -127,8 +132,8 @@ public interface ICreature
         private CreatureFaction faction;
         private Vocation vocation;
         private Statblock statblock;
-        private ClientMessenger controller;
-        private MessageChainHandler successor;
+        private CommandInvoker controller;
+        private CommandChainHandler successor;
         private Corpse corpse;
 
         protected CreatureBuilder() {
@@ -187,21 +192,21 @@ public interface ICreature
             return this.statblock;
         }
 
-        public T setController(ClientMessenger controller) {
+        public T setController(CommandInvoker controller) {
             this.controller = controller;
             return this.getThis();
         }
 
-        public ClientMessenger getController() {
+        public CommandInvoker getController() {
             return this.controller;
         }
 
-        public T setSuccessor(MessageChainHandler successor) {
+        public T setSuccessor(CommandChainHandler successor) {
             this.successor = successor;
             return this.getThis();
         }
 
-        public MessageChainHandler getSuccessor() {
+        public CommandChainHandler getSuccessor() {
             return this.successor;
         }
 
@@ -219,31 +224,47 @@ public interface ICreature
     }
 
     /**
-     * Gets the Controller/{@link com.lhf.messages.ClientMessenger ClientMessenger}
+     * Gets the {@link com.lhf.server.client.CommandInvoker Controller}
      * for this Creature
      * 
-     * @return {@link com.lhf.messages.ClientMessenger ClientMessenger}
+     * @return {@link com.lhf.server.client.CommandInvoker Controller}
      */
-    public abstract ClientMessenger getController();
+    public abstract CommandInvoker getController();
 
+    /**
+     * Delegates to {@link #getController()}
+     * 
+     * @return
+     */
     @Override
+    default CommandInvoker getInnerCommandInvoker() {
+        return this.getController();
+    }
+
+    /**
+     * Gets the {@link com.lhf.server.client.Client.ClientID ClientID} from the
+     * {@link com.lhf.server.client.CommandInvoker Controller} for the creature, or
+     * NULL
+     * if there is no Controller.
+     * 
+     * @return {@link com.lhf.server.client.Client.ClientID ClientID} or NULL
+     */
     public default ClientID getClientID() {
-        if (this.getController() != null) {
-            return this.getController().getClientID();
-        }
-        return null;
+        CommandInvoker controller = this.getController();
+        return controller != null ? controller.getClientID() : null;
     }
 
     @Override
-    public default void sendMsg(OutMessage msg) {
-        if (msg != null && msg instanceof ITickMessage) {
-            this.tick(((ITickMessage) msg).getTickType());
-        }
-        if (this.getController() != null) {
-            this.getController().sendMsg(msg);
-            return;
-        }
-        // Does nothing silently
+    default Consumer<GameEvent> getAcceptHook() {
+        return (event) -> {
+            if (event == null) {
+                return;
+            }
+            if (event instanceof ITickEvent tickEvent) {
+                this.tick(tickEvent);
+            }
+            this.announce(event);
+        };
     }
 
     /**
@@ -564,7 +585,7 @@ public interface ICreature
     @Override
     public default String printDescription() {
         StringBuilder sb = new StringBuilder();
-        String statusString = StatusOutMessage.getBuilder().setFromCreature(this, false).Build().toString();
+        String statusString = CreatureStatusRequestedEvent.getBuilder().setFromCreature(this, false).Build().toString();
         sb.append(statusString).append("\r\n");
         Map<EquipmentSlots, Equipable> equipped = this.getEquipmentSlots();
         if (equipped.get(EquipmentSlots.HAT) != null) {
@@ -582,14 +603,14 @@ public interface ICreature
     }
 
     /**
-     * Produces a {@link com.lhf.messages.out.SeeOutMessage SeeOutMessage}
+     * Produces a {@link com.lhf.messages.events.SeeEvent SeeOutMessage}
      * describing this Creature and any {@link com.lhf.game.creature.CreatureEffect
      * Effects} upon it.
      */
     @Override
-    public default SeeOutMessage produceMessage(SeeOutMessage.Builder seeOutMessage) {
+    public default SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
         if (seeOutMessage == null) {
-            seeOutMessage = SeeOutMessage.getBuilder();
+            seeOutMessage = SeeEvent.getBuilder();
         }
         seeOutMessage.setExaminable(this);
         for (CreatureEffect effect : this.getEffects()) {
@@ -631,6 +652,16 @@ public interface ICreature
     public interface CreatureCommandHandler extends CommandHandler {
         static final Predicate<CommandContext> defaultCreaturePredicate = CommandHandler.defaultPredicate
                 .and((ctx) -> ctx.getCreature() != null && ctx.getCreature().isAlive());
+    }
+
+    @Override
+    public default Collection<GameEventProcessor> getClientMessengers() {
+        TreeSet<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
+        GameEventProcessor controller = this.getController();
+        if (controller != null) {
+            messengers.add(controller);
+        }
+        return Collections.unmodifiableCollection(messengers);
     }
 
 }

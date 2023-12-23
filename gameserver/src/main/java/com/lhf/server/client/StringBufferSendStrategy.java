@@ -1,6 +1,6 @@
 package com.lhf.server.client;
 
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.events.GameEvent;
 
 public class StringBufferSendStrategy implements SendStrategy {
     private StringBuffer sBuffer;
@@ -10,7 +10,7 @@ public class StringBufferSendStrategy implements SendStrategy {
     }
 
     @Override
-    public void send(OutMessage toSend) {
+    public void send(GameEvent toSend) {
         this.sBuffer.append(toSend.toString()).append("\n");
     }
 

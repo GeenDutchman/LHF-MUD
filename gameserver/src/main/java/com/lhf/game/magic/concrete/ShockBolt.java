@@ -17,7 +17,7 @@ import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
-import com.lhf.messages.out.CastingMessage;
+import com.lhf.messages.events.SpellCastingEvent;
 
 public class ShockBolt extends CreatureTargetingSpellEntry {
     private static final Set<CreatureEffectSource> spellEffects = Set.of(
@@ -33,13 +33,14 @@ public class ShockBolt extends CreatureTargetingSpellEntry {
     }
 
     @Override
-    public CastingMessage Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
+    public SpellCastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
         StringBuilder sb = new StringBuilder();
         for (Taggable target : targets) {
             sb.append("A small spark zips from").append(caster.getColorTaggedName())
                     .append("'s finger and flies toward").append(target.getColorTaggedName()).append("!");
         }
-        return CastingMessage.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sb.toString()).Build();
+        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sb.toString())
+                .Build();
     }
 
 }

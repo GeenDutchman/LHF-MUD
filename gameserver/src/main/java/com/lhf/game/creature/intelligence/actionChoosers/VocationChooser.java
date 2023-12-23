@@ -11,7 +11,7 @@ import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.creature.INonPlayerCharacter.HarmMemories;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.events.GameEvent;
 
 public class VocationChooser implements AIChooser<String> {
 
@@ -33,7 +33,7 @@ public class VocationChooser implements AIChooser<String> {
 
     @Override
     public SortedMap<String, Double> choose(Set<BattleStatRecord> battleMemories,
-            HarmMemories harmMemories, Collection<OutMessage> outMessages) {
+            HarmMemories harmMemories, Collection<GameEvent> outMessages) {
         SortedMap<String, Double> results = new TreeMap<>();
         if (battleMemories != null && battleMemories.size() > 0) {
             for (BattleStatRecord stat : battleMemories) {

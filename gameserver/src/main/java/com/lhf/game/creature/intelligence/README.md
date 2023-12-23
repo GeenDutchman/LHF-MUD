@@ -7,23 +7,23 @@ sequenceDiagram
     actor AIRunner
     activate AIRunner
     par receive message
-        ClientMessenger ->>+ BasicAI : sendMsg(OutMessage)
+        GameEventProcessor ->>+ BasicAI : sendMsg(GameEvent)
         BasicAI ->>- BasicAI : enqueue message
     and process message
         loop when message found in queue
-            AIRunner ->>+ BasicAI : process(msg)
+            AIRunner ->>+ BasicAI : process(event)
             opt handler found for type
-                BasicAI ->>+ AIChunk : handle(msg)
+                BasicAI ->>+ AIChunk : handle(event)
                 loop while processing
                     opt send message
                         AIChunk ->>+ BasicAI: CommandMessage
-                        BasicAI ->> MessageChainHandler: handleMessage(CommandMessage)
+                        BasicAI ->> CommandChainHandler: handleMessage(CommandMessage)
                         deactivate BasicAI
                     end
                 end
                 AIChunk ->>- BasicAI: return void
             end
-            BasicAI ->>- ClientMessenger: Null
+            BasicAI ->>- GameEventProcessor: Null
         end
     end
 

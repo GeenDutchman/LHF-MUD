@@ -5,29 +5,29 @@ import java.util.List;
 
 import org.mockito.ArgumentMatcher;
 
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.events.GameEvent;
 
-public class MessageMatcher implements ArgumentMatcher<OutMessage> {
+public class MessageMatcher implements ArgumentMatcher<GameEvent> {
 
-    protected OutMessageType type;
+    protected GameEventType type;
     protected List<String> contained;
     protected List<String> notContained;
     protected boolean printIt = false;
     protected String sentTo = "";
 
-    public MessageMatcher(OutMessageType type, List<String> containedWords, List<String> notContainedWords) {
+    public MessageMatcher(GameEventType type, List<String> containedWords, List<String> notContainedWords) {
         this.type = type;
         this.contained = containedWords;
         this.notContained = notContainedWords;
     }
 
-    public MessageMatcher(OutMessageType type, String contained) {
+    public MessageMatcher(GameEventType type, String contained) {
         this.type = type;
         this.contained = List.of(contained);
         this.notContained = null;
     }
 
-    public MessageMatcher(OutMessageType type) {
+    public MessageMatcher(GameEventType type) {
         this.type = type;
         this.contained = null;
         this.notContained = null;
@@ -72,7 +72,7 @@ public class MessageMatcher implements ArgumentMatcher<OutMessage> {
     }
 
     @Override
-    public boolean matches(OutMessage argument) {
+    public boolean matches(GameEvent argument) {
         if (argument == null) {
             if (this.printIt) {
                 System.out.println(this.printArgument(null) + "null, no match");
@@ -82,9 +82,9 @@ public class MessageMatcher implements ArgumentMatcher<OutMessage> {
         String argumentAsString = argument.toString();
         StringBuilder sb = new StringBuilder().append(argument.hashCode()).append(this.printArgument(argumentAsString));
 
-        if (this.type != null && this.type != argument.getOutType()) {
+        if (this.type != null && this.type != argument.getEventType()) {
             if (this.printIt) {
-                sb.append("expected type ").append(this.type).append(" got type ").append(argument.getOutType())
+                sb.append("expected type ").append(this.type).append(" got type ").append(argument.getEventType())
                         .append(",no match");
                 System.out.println(sb.toString());
             }

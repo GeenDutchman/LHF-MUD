@@ -23,10 +23,11 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.map.DungeonBuilder;
 import com.lhf.messages.MessageMatcher;
-import com.lhf.messages.OutMessageType;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.UserLeftMessage;
-import com.lhf.messages.out.WelcomeMessage;
+import com.lhf.messages.GameEventType;
+import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.UserLeftEvent;
+import com.lhf.messages.events.WelcomeEvent;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.ClientManager;
 import com.lhf.server.client.ComBundle;
@@ -49,11 +50,11 @@ public class ServerTest {
         public String create(String name, String vocation, Boolean expectUnique) {
             String command = "create " + name + " with " + name + (vocation != null ? " as " + vocation : "");
             String result = this.handleCommand(command,
-                    expectUnique ? OutMessageType.SEE : OutMessageType.DUPLICATE_USER);
-            OutMessage outMessage = this.outCaptor.getValue();
-            if (expectUnique && outMessage != null
-                    && outMessage.getOutType() != OutMessageType.DUPLICATE_USER
-                    && outMessage.getOutType() != OutMessageType.BAD_MESSAGE) {
+                    expectUnique ? GameEventType.SEE : GameEventType.DUPLICATE_USER);
+            GameEvent gameEvent = this.outCaptor.getValue();
+            if (expectUnique && gameEvent != null
+                    && gameEvent.getEventType() != GameEventType.DUPLICATE_USER
+                    && gameEvent.getEventType() != GameEventType.BAD_MESSAGE) {
                 this.name = name;
             }
             return result;
@@ -63,16 +64,19 @@ public class ServerTest {
             return this.create(name, "fighter", true);
         }
 
-        public String handleCommand(String command, OutMessageType outMessageType) {
+        public String handleCommand(String command, GameEventType outMessageType) {
             this.print(command, true);
-            this.outCaptor = ArgumentCaptor.forClass(OutMessage.class);
-            this.client.ProcessString(command);
+            this.outCaptor = ArgumentCaptor.forClass(GameEvent.class);
+            Reply reply = this.client.ProcessString(command);
             Mockito.verify(this.sssb, Mockito.atLeastOnce()).send(this.outCaptor.capture());
-            OutMessage outMessage = outCaptor.getValue();
-            Truth.assertThat(outMessage).isNotNull();
-            String response = outMessage.toString();
+            Truth.assertWithMessage("Command %s has no reply", command).that(reply).isNotNull();
+            Truth.assertWithMessage("Command %s should have been handled, but reply was %s", command, reply)
+                    .that(reply.isHandled()).isTrue();
+            GameEvent gameEvent = outCaptor.getValue();
+            Truth.assertThat(gameEvent).isNotNull();
+            String response = gameEvent.toString();
             if (outMessageType != null) {
-                Truth.assertWithMessage("Message is: %s", response).that(outMessage.getOutType())
+                Truth.assertWithMessage("Message is: %s", response).that(gameEvent.getEventType())
                         .isEqualTo(outMessageType);
             }
             return response;
@@ -85,9 +89,9 @@ public class ServerTest {
         @Override
         protected String getName() {
             if (this.name != null) {
-                return String.valueOf(this.client.getClientID().hashCode()) + ' ' + this.name;
+                return String.valueOf(this.client.getEventProcessorID().hashCode()) + ' ' + this.name;
             }
-            return String.valueOf(this.client.getClientID().hashCode());
+            return String.valueOf(this.client.getEventProcessorID().hashCode());
         }
 
     }
@@ -115,21 +119,21 @@ public class ServerTest {
 
     @Test
     void testServerInitialMessage() {
-        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeMessage.class));
+        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeEvent.class));
     }
 
     @Test
     void testFreshExit() {
         String message = this.comm.handleCommand("exit");
         Truth.assertThat(message).ignoringCase().contains("goodbye");
-        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(UserLeftMessage.class));
+        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(UserLeftEvent.class));
     }
 
     @Test
     void testExitFinality() {
-        String message = this.comm.handleCommand("exit", OutMessageType.USER_LEFT);
+        String message = this.comm.handleCommand("exit", GameEventType.USER_LEFT);
         Truth.assertThat(message).ignoringCase().contains("goodbye");
-        this.comm.handleCommand("see", OutMessageType.BAD_MESSAGE);
+        this.comm.handleCommand("see", GameEventType.BAD_MESSAGE);
         Assertions.assertThrows(NullPointerException.class, () -> {
             this.comm.handleCommand("create Tester with Tester");
         });
@@ -137,7 +141,7 @@ public class ServerTest {
 
     @Test
     void testCharacterCreation() {
-        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeMessage.class));
+        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeEvent.class));
         String message = this.comm.create("Tester");
         Truth.assertThat(message).ignoringCase().contains("room");
         Truth.assertThat(message).contains(this.comm.name);
@@ -145,23 +149,23 @@ public class ServerTest {
 
     @Test
     void testComplexCharacterCreation() {
-        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeMessage.class));
+        Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeEvent.class));
         this.comm.handleCommand("CREATE Tester with Tester", null); // we won't see anything, just be
                                                                     // greeted
         Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
-                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPEAKING, "to make a character you need")));
+                .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "to make a character you need")));
         this.comm.handleCommand("say hi to gary lovejax");
         Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
-                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPEAKING, "intro lore placeholder here")));
+                .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "intro lore placeholder here")));
         this.comm.handleCommand("say ok to gary lovejax");
         Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
-                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPEAKING, "MAGE")));
+                .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "MAGE")));
         this.comm.handleCommand("say mage to gary lovejax");
         Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
-                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SPEAKING, "You have selected MAGE")));
+                .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "You have selected MAGE")));
         this.comm.handleCommand("say ready to gary lovejax");
         Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
-                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SEE)));
+                .send(Mockito.argThat(new MessageMatcher(GameEventType.SEE)));
         String room1 = this.comm.handleCommand("see");
         Truth.assertThat(room1).contains("east");
     }
@@ -183,12 +187,12 @@ public class ServerTest {
     @Test
     void testGo() {
         this.comm.create("Tester");
-        String room1 = this.comm.handleCommand("see", OutMessageType.SEE);
+        String room1 = this.comm.handleCommand("see", GameEventType.SEE);
         Truth.assertThat(room1).contains("east");
-        String room2 = this.comm.handleCommand("go east", OutMessageType.SEE);
+        String room2 = this.comm.handleCommand("go east", GameEventType.SEE);
         Truth.assertThat(room2).contains("hall");
         Truth.assertThat(room1).isNotEqualTo(room2);
-        String origRoom = this.comm.handleCommand("go west", OutMessageType.SEE);
+        String origRoom = this.comm.handleCommand("go west", GameEventType.SEE);
         Truth.assertThat(room2).isNotEqualTo(origRoom);
         Truth.assertThat(room1).isEqualTo(origRoom);
     }
@@ -197,7 +201,7 @@ public class ServerTest {
     void testDropTake() {
         this.comm.create("Tester");
         this.comm.handleCommand("inventory");
-        this.comm.handleCommand("take longsword", OutMessageType.BAD_MESSAGE);
+        this.comm.handleCommand("take longsword", GameEventType.BAD_MESSAGE);
         this.comm.handleCommand("drop longsword");
         this.comm.handleCommand("drop longsword");
         this.comm.handleCommand("take longsword");
@@ -210,18 +214,18 @@ public class ServerTest {
         dude1.create("dude1");
         ServerClientComBundle dude2 = new ServerClientComBundle(this.server);
         dude2.create("dude2");
-        String findEm = this.comm.handleCommand("players", OutMessageType.LIST_PLAYERS);
+        String findEm = this.comm.handleCommand("players", GameEventType.LIST_PLAYERS);
         Truth.assertThat(findEm).contains(this.comm.name);
         Truth.assertThat(findEm).contains(dude1.name);
         Truth.assertThat(findEm).contains(dude2.name);
-        dude2.handleCommand("go east", OutMessageType.SEE);
-        findEm = this.comm.handleCommand("players", OutMessageType.LIST_PLAYERS);
+        dude2.handleCommand("go east", GameEventType.SEE);
+        findEm = this.comm.handleCommand("players", GameEventType.LIST_PLAYERS);
         Truth.assertThat(findEm).contains(this.comm.name);
         Truth.assertThat(findEm).contains(dude1.name);
         Truth.assertThat(findEm).contains(dude2.name);
-        dude2.handleCommand("exit", OutMessageType.USER_LEFT);
-        Mockito.verify(this.comm.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.any(UserLeftMessage.class));
-        findEm = this.comm.handleCommand("players", OutMessageType.LIST_PLAYERS);
+        dude2.handleCommand("exit", GameEventType.USER_LEFT);
+        Mockito.verify(this.comm.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.any(UserLeftEvent.class));
+        findEm = this.comm.handleCommand("players", GameEventType.LIST_PLAYERS);
         Truth.assertThat(findEm).contains(this.comm.name);
         Truth.assertThat(findEm).contains(dude1.name);
         Truth.assertThat(findEm).doesNotContain(dude2.name);
@@ -242,7 +246,7 @@ public class ServerTest {
             listener1.create("Listener1");
             this.listener2 = new ServerClientComBundle(ServerTest.this.server);
             listener2.create("Listener2");
-            String room = ServerTest.this.comm.handleCommand("see", OutMessageType.SEE);
+            String room = ServerTest.this.comm.handleCommand("see", GameEventType.SEE);
             Truth.assertThat(room).contains(ServerTest.this.comm.name);
             Truth.assertThat(room).contains(listener1.name);
             Truth.assertThat(room).contains(listener2.name);
@@ -250,7 +254,7 @@ public class ServerTest {
 
         @Test
         void testSpeakToRoom() {
-            this.matcher = new MessageMatcher(OutMessageType.SPEAKING,
+            this.matcher = new MessageMatcher(GameEventType.SPEAKING,
                     List.of(ServerTest.this.comm.name, "this is a unique string"), null);
             ServerTest.this.comm.handleCommand("say this is a unique string");
             Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.argThat(this.matcher));
@@ -259,7 +263,7 @@ public class ServerTest {
 
         @Test
         void testSpeakDirectly() {
-            this.matcher = new MessageMatcher(OutMessageType.SPEAKING,
+            this.matcher = new MessageMatcher(GameEventType.SPEAKING,
                     List.of(ServerTest.this.comm.name, "hey you man"), null);
             ServerTest.this.comm.handleCommand("say hey you man to Listener1");
             Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce())
@@ -271,7 +275,7 @@ public class ServerTest {
         @Test
         void testShoutSameRoom() {
             ServerTest.this.comm.handleCommand("shout hello world");
-            this.matcher = new MessageMatcher(OutMessageType.SPEAKING,
+            this.matcher = new MessageMatcher(GameEventType.SPEAKING,
                     List.of(ServerTest.this.comm.name, "hello world"), null);
             Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.argThat(matcher));
             Mockito.verify(listener2.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.argThat(matcher));
@@ -279,8 +283,8 @@ public class ServerTest {
 
         @Test
         void testSpeakDifferentRoom() {
-            listener2.handleCommand("go east", OutMessageType.SEE);
-            this.matcher = new MessageMatcher(OutMessageType.SPEAKING,
+            listener2.handleCommand("go east", GameEventType.SEE);
+            this.matcher = new MessageMatcher(GameEventType.SPEAKING,
                     List.of(ServerTest.this.comm.name, "zaboomafoo"), null);
             ServerTest.this.comm.handleCommand("say zaboomafoo");
             Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce())
@@ -290,9 +294,9 @@ public class ServerTest {
 
         @Test
         void testSpeakDirectlyWithDifferentRoom() {
-            listener2.handleCommand("go east", OutMessageType.SEE);
+            listener2.handleCommand("go east", GameEventType.SEE);
 
-            this.matcher = new MessageMatcher(OutMessageType.SPEAKING,
+            this.matcher = new MessageMatcher(GameEventType.SPEAKING,
                     List.of(ServerTest.this.comm.name, "lil dip sauce"), null);
             ServerTest.this.comm.handleCommand("say lil dip sauce to Listener1");
             Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.argThat(this.matcher));
@@ -302,9 +306,9 @@ public class ServerTest {
 
         @Test
         void testShoutWithDifferentRoom() {
-            listener2.handleCommand("go east", OutMessageType.SEE);
+            listener2.handleCommand("go east", GameEventType.SEE);
 
-            this.matcher = new MessageMatcher(OutMessageType.SPEAKING,
+            this.matcher = new MessageMatcher(GameEventType.SPEAKING,
                     List.of(ServerTest.this.comm.name, "I like yelling"), null);
             ServerTest.this.comm.handleCommand("shout I like yelling");
             Mockito.verify(listener1.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito.argThat(this.matcher));
@@ -316,7 +320,7 @@ public class ServerTest {
     @Test
     void testNameCollision() throws IOException {
         this.comm.create("Tester");
-        this.comm.handleCommand("create Tester with password", OutMessageType.BAD_MESSAGE);
+        this.comm.handleCommand("create Tester with password", GameEventType.BAD_MESSAGE);
         ServerClientComBundle twin1 = new ServerClientComBundle(this.server);
         twin1.create(this.comm.name, "fighter", false); // would have failed making twin
         Truth.assertThat(twin1.name).isNotEqualTo(this.comm.name);
@@ -339,28 +343,28 @@ public class ServerTest {
     @Test
     void testAttack() {
         this.comm.create("AttackTester");
-        String extract = this.comm.handleCommand("go east", OutMessageType.SEE);
+        String extract = this.comm.handleCommand("go east", GameEventType.SEE);
         Truth.assertThat(extract).ignoringCase().contains("<monster>");
         int creature_index = extract.indexOf("<monster>");
         int endcreature_index = extract.indexOf("</monster>");
         extract = extract.substring(creature_index + "<monster>".length(), endcreature_index);
         System.out.println(extract);
-        String room = this.comm.handleCommand("see", OutMessageType.SEE);
-        ArgumentMatcher<OutMessage> battleTurn = new MessageMatcher(OutMessageType.BATTLE_ROUND,
+        String room = this.comm.handleCommand("see", GameEventType.SEE);
+        ArgumentMatcher<GameEvent> battleTurn = new MessageMatcher(GameEventType.BATTLE_ROUND,
                 "should enter an action to take for the round");
-        ArgumentMatcher<OutMessage> battleTurnAccepted = new MessageMatcher(OutMessageType.BATTLE_ROUND,
+        ArgumentMatcher<GameEvent> battleTurnAccepted = new MessageMatcher(GameEventType.BATTLE_ROUND,
                 "action has been submitted for the round");
-        ArgumentMatcher<OutMessage> fightOver = new MessageMatcher(OutMessageType.FIGHT_OVER);
-        ArgumentMatcher<OutMessage> reincarnated = new MessageMatcher(OutMessageType.REINCARNATION);
+        ArgumentMatcher<GameEvent> fightOver = new MessageMatcher(GameEventType.FIGHT_OVER);
+        ArgumentMatcher<GameEvent> reincarnated = new MessageMatcher(GameEventType.REINCARNATION);
         for (int i = 1; i < 15 && room.contains("<monster>" + extract + "</monster>"); i++) {
             this.comm.handleCommand("attack " + extract);
             Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
                     .send(Mockito.argThat(battleTurnAccepted));
 
             Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
-                    .send(Mockito.argThat((outMessage) -> {
-                        return battleTurn.matches(outMessage) || fightOver.matches(outMessage)
-                                || reincarnated.matches(outMessage);
+                    .send(Mockito.argThat((gameEvent) -> {
+                        return battleTurn.matches(gameEvent) || fightOver.matches(gameEvent)
+                                || reincarnated.matches(gameEvent);
                     }));
             room = this.comm.handleCommand("see");
 
@@ -403,15 +407,15 @@ public class ServerTest {
         attacker.handleCommand("equip shield");
         attacker.handleCommand("status");
 
-        ArgumentMatcher<OutMessage> battleTurn = new MessageMatcher(OutMessageType.BATTLE_ROUND,
+        ArgumentMatcher<GameEvent> battleTurn = new MessageMatcher(GameEventType.BATTLE_ROUND,
                 "should enter an action to take for the round");
-        ArgumentMatcher<OutMessage> battleTurnAccepted = new MessageMatcher(OutMessageType.BATTLE_ROUND,
+        ArgumentMatcher<GameEvent> battleTurnAccepted = new MessageMatcher(GameEventType.BATTLE_ROUND,
                 "action has been submitted for the round");
 
         attacker.handleCommand("attack Tester");
         this.comm.handleCommand("PASS");
         for (int i = 1; i < 30 && this.comm.outCaptor.getAllValues().stream()
-                .noneMatch(outy -> outy != null && OutMessageType.REINCARNATION.equals(outy.getOutType())); i++) {
+                .noneMatch(outy -> outy != null && GameEventType.REINCARNATION.equals(outy.getEventType())); i++) {
             Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
                     .send(Mockito.argThat(battleTurn));
             Mockito.verify(attacker.sssb, Mockito.timeout(500).atLeast(i - 1)) // minus one because the first one is
@@ -440,11 +444,11 @@ public class ServerTest {
 
         this.comm.handleCommand("attack " + second.name);
         Mockito.verify(this.comm.sssb, Mockito.atLeastOnce())
-                .send(Mockito.argThat(new MessageMatcher(OutMessageType.RENEGADE_ANNOUNCEMENT, "RENEGADE")));
+                .send(Mockito.argThat(new MessageMatcher(GameEventType.RENEGADE_ANNOUNCEMENT, "RENEGADE")));
         Mockito.verify(bystander.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito
-                .argThat(new MessageMatcher(OutMessageType.RENEGADE_ANNOUNCEMENT)));
+                .argThat(new MessageMatcher(GameEventType.RENEGADE_ANNOUNCEMENT)));
         Mockito.verify(bystander.sssb, Mockito.timeout(500).atLeastOnce()).send(
-                Mockito.argThat(new MessageMatcher(OutMessageType.JOIN_BATTLE)));
+                Mockito.argThat(new MessageMatcher(GameEventType.JOIN_BATTLE)));
     }
 
     @Test
@@ -481,9 +485,9 @@ public class ServerTest {
 
         this.comm.handleCommand("spellbook");
         Mockito.verify(this.comm.sssb, Mockito.timeout(500))
-                .send(Mockito.argThat(new MessageMatcher(OutMessageType.BAD_MESSAGE, "was not handled")));
+                .send(Mockito.argThat(new MessageMatcher(GameEventType.BAD_MESSAGE, "was not handled")));
         mage.handleCommand("spellbook");
         Mockito.verify(mage.sssb, Mockito.timeout(500)).send(
-                Mockito.argThat(new MessageMatcher(OutMessageType.SPELL_ENTRY, "Thaumaturgy")));
+                Mockito.argThat(new MessageMatcher(GameEventType.SPELL_ENTRY, "Thaumaturgy")));
     }
 }
