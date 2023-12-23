@@ -68,6 +68,11 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
         this.experiencePoints = 0;
     }
 
+    public Vocation resetLevel() {
+        this.level = 1;
+        return this;
+    }
+
     public int getLevel() {
         return level;
     }
