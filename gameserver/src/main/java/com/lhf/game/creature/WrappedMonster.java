@@ -6,8 +6,10 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NavigableSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
@@ -34,7 +36,10 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
+import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.GameEvent.Builder;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.CommandInvoker;
@@ -459,6 +464,99 @@ public abstract class WrappedMonster implements IMonster {
     @Override
     public GameEventProcessorID getEventProcessorID() {
         return innerMonster.getEventProcessorID();
+    }
+
+    @Override
+    public Collection<GameEventProcessor> getGameEventProcessors() {
+        return innerMonster.getGameEventProcessors();
+    }
+
+    @Override
+    public Consumer<GameEvent> getAcceptHook() {
+        return innerMonster.getAcceptHook();
+    }
+
+    @Override
+    public void tick(ITickEvent tickEvent) {
+        innerMonster.tick(tickEvent);
+    }
+
+    @Override
+    public SeeEvent produceMessage() {
+        return innerMonster.produceMessage();
+    }
+
+    @Override
+    public void intercept(CommandChainHandler interceptor) {
+        innerMonster.intercept(interceptor);
+    }
+
+    @Override
+    public boolean announceDirect(GameEvent gameEvent, Collection<? extends GameEventProcessor> recipients) {
+        return innerMonster.announceDirect(gameEvent, recipients);
+    }
+
+    @Override
+    public boolean announceDirect(GameEvent gameEvent, GameEventProcessor... recipients) {
+        return innerMonster.announceDirect(gameEvent, recipients);
+    }
+
+    @Override
+    public boolean announce(GameEvent gameEvent, Set<? extends GameEventProcessor> deafened) {
+        return innerMonster.announce(gameEvent, deafened);
+    }
+
+    @Override
+    public boolean announce(Builder<?> builder, Set<? extends GameEventProcessor> deafened) {
+        return innerMonster.announce(builder, deafened);
+    }
+
+    @Override
+    public boolean announce(GameEvent gameEvent, GameEventProcessor... deafened) {
+        return innerMonster.announce(gameEvent, deafened);
+    }
+
+    @Override
+    public boolean announce(Builder<?> builder, GameEventProcessor... deafened) {
+        return innerMonster.announce(builder, deafened);
+    }
+
+    @Override
+    public boolean announce(GameEvent gameEvent) {
+        return innerMonster.announce(gameEvent);
+    }
+
+    @Override
+    public boolean announce(Builder<?> builder) {
+        return innerMonster.announce(builder);
+    }
+
+    @Override
+    public CommandInvoker getInnerCommandInvoker() {
+        return innerMonster;
+    }
+
+    @Override
+    public CommandContext addSelfToContext(CommandContext ctx) {
+        if (ctx.getCreature() == null) {
+            ctx.setCreature(this);
+        }
+        return ctx;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(innerMonster);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof WrappedMonster))
+            return false;
+        WrappedMonster other = (WrappedMonster) obj;
+        return Objects.equals(innerMonster, other.innerMonster);
     }
 
 }
