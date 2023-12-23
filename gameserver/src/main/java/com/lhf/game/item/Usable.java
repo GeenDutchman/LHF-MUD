@@ -7,9 +7,9 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.interfaces.UseAction;
 import com.lhf.game.map.Room;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.UseOutMessage;
-import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
+import com.lhf.messages.events.ItemUsedEvent;
+import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 
 public class Usable extends Takeable {
     private final Integer numCanUseTimes;
@@ -51,13 +51,13 @@ public class Usable extends Takeable {
     }
 
     public boolean doUseAction(CommandContext ctx, Object usingOn) {
-        UseOutMessage.Builder useOutMessage = UseOutMessage.getBuilder().setItemUser(ctx.getCreature()).setUsable(this);
+        ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature()).setUsable(this);
         if (methods == null || usingOn == null) {
-            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
             return false;
         }
         if (!hasUsesLeft()) {
-            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.USED_UP).Build());
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.USED_UP).Build());
             return false;
         }
 
@@ -89,7 +89,7 @@ public class Usable extends Takeable {
         }
 
         if (method == null) {
-            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
             return false;
         }
 
@@ -112,8 +112,8 @@ public class Usable extends Takeable {
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
-        SeeOutMessage.Builder seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this);
+    public SeeEvent produceMessage() {
+        SeeEvent.Builder seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         return seeOutMessage.Build();
     }
 

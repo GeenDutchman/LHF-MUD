@@ -1,30 +1,35 @@
 package com.lhf.server.client.user;
 
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.in.CreateInMessage;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.server.client.ClientID;
+import com.lhf.server.client.Client;
+import com.lhf.server.client.Client.ClientID;
+import com.lhf.server.client.CommandInvoker;
 
-public class User implements MessageChainHandler, ClientMessenger, Comparable<User> {
+public class User implements CommandInvoker, Comparable<User> {
+    private final GameEventProcessorID gameEventProcessorID;
     private UserID id;
     private String username;
-    private transient MessageChainHandler successor;
+    private transient CommandChainHandler successor;
     private transient final Logger logger;
 
     // private String password;
-    private ClientMessenger client;
+    private Client client;
 
-    public User(CreateInMessage msg, ClientMessenger client) {
+    public User(CreateInMessage msg, Client client) {
+        this.gameEventProcessorID = new GameEventProcessorID();
         id = new UserID(msg);
         username = msg.getUsername();
         // password = msg.getPassword();
@@ -36,7 +41,7 @@ public class User implements MessageChainHandler, ClientMessenger, Comparable<Us
         return this.id;
     }
 
-    public ClientMessenger getClient() {
+    public Client getClient() {
         return this.client;
     }
 
@@ -60,12 +65,12 @@ public class User implements MessageChainHandler, ClientMessenger, Comparable<Us
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return this.successor;
     }
 
@@ -113,13 +118,18 @@ public class User implements MessageChainHandler, ClientMessenger, Comparable<Us
     }
 
     @Override
-    public void sendMsg(OutMessage msg) {
-        this.client.sendMsg(msg);
+    public GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
     }
 
     @Override
     public ClientID getClientID() {
         return this.client.getClientID();
+    }
+
+    @Override
+    public CommandInvoker getInnerCommandInvoker() {
+        return this.client;
     }
 
     @Override
@@ -135,6 +145,11 @@ public class User implements MessageChainHandler, ClientMessenger, Comparable<Us
         StringBuilder builder = new StringBuilder();
         builder.append("User [id=").append(id).append(", username=").append(username).append("]");
         return builder.toString();
+    }
+
+    @Override
+    public Collection<GameEventProcessor> getClientMessengers() {
+        return Set.of(this.client);
     }
 
 }

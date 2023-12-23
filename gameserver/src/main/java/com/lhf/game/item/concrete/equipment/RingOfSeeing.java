@@ -7,26 +7,26 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.map.Room;
-import com.lhf.messages.out.UseOutMessage;
-import com.lhf.messages.out.UseOutMessage.UseOutMessageOption;
+import com.lhf.messages.events.ItemUsedEvent;
+import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 
 public class RingOfSeeing extends Equipable {
 
     public RingOfSeeing(boolean isVisible) {
         super("Ring of Seeing", isVisible, 3);
         this.setUseAction(Room.class.getName(), (ctx, object) -> {
-            UseOutMessage.Builder useOutMessage = UseOutMessage.getBuilder().setItemUser(ctx.getCreature())
+            ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature())
                     .setUsable(this);
             if (object == null) {
-                ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
+                ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
                         .setMessage("That is not a valid target at all!").Build());
                 return true;
             } else if (object instanceof Room) {
                 Room seenRoom = (Room) object;
-                ctx.sendMsg(seenRoom.produceMessage(true, true));
+                ctx.receive(seenRoom.produceMessage(true, true));
                 return true;
             }
-            ctx.sendMsg(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES)
                     .setMessage("You cannot use a " + this.getName() + " on that.").Build());
             return true;
         });

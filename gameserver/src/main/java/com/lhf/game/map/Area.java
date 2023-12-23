@@ -1,26 +1,30 @@
 package com.lhf.game.map;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.ItemContainer;
-import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.Player;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
-import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.messages.out.SeeOutMessage.SeeCategory;
-import com.lhf.messages.out.TickMessage;
+import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.ITickEvent;
+import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 public interface Area
-        extends ItemContainer, CreatureContainer, MessageChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
+        extends ItemContainer, CreatureContainer, CommandChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
 
     public interface AreaBuilder {
         public abstract String getName();
@@ -33,26 +37,26 @@ public interface Area
 
         public abstract Collection<ICreature> getCreatures();
 
-        public abstract MessageChainHandler getSuccessor();
+        public abstract CommandChainHandler getSuccessor();
 
         public abstract Area build();
     }
 
     public abstract UUID getUuid();
 
-    public abstract ICreature removeCreature(ICreature c, Directions dir);
+    public abstract boolean removeCreature(ICreature c, Directions dir);
 
     public abstract Land getLand();
 
     public abstract void setLand(Land land);
 
     @Override
-    default SeeOutMessage produceMessage() {
+    default SeeEvent produceMessage() {
         return this.produceMessage(false, true);
     }
 
-    default SeeOutMessage produceMessage(boolean seeInvisible, boolean seeDirections) {
-        SeeOutMessage.Builder seen = SeeOutMessage.getBuilder().setExaminable(this);
+    default SeeEvent produceMessage(boolean seeInvisible, boolean seeDirections) {
+        SeeEvent.Builder seen = SeeEvent.getBuilder().setExaminable(this);
         if (seeDirections) {
             if (this.getLand() == null) {
                 seen.addExtraInfo("There is no apparent way out of here.");
@@ -93,9 +97,26 @@ public interface Area
     }
 
     @Override
-    default void tick(TickType type) {
-        AffectableEntity.super.tick(type);
-        this.announce(TickMessage.getBuilder().setTickType(type).setBroacast());
+    public default Collection<GameEventProcessor> getClientMessengers() {
+        TreeSet<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
+
+        this.getCreatures().stream()
+                .filter(creature -> creature != null).forEach(messenger -> messengers.add(messenger));
+
+        return Collections.unmodifiableCollection(messengers);
+    }
+
+    @Override
+    public default Consumer<GameEvent> getAcceptHook() {
+        return (event) -> {
+            if (event == null) {
+                return;
+            }
+            if (event instanceof ITickEvent tickEvent) {
+                this.tick(tickEvent);
+            }
+            this.announceDirect(event, this.getClientMessengers());
+        };
     }
 
     @Override
@@ -108,5 +129,20 @@ public interface Area
             return nameCompare;
         }
         return this.getUuid().compareTo(o.getUuid());
+    }
+
+    @Override
+    public default String getStartTag() {
+        return "<area>";
+    }
+
+    @Override
+    public default String getEndTag() {
+        return "</area>";
+    }
+
+    @Override
+    public default String getColorTaggedName() {
+        return this.getStartTag() + this.getName() + this.getEndTag();
     }
 }

@@ -1,10 +1,12 @@
 package com.lhf.game;
 
 import java.io.FileNotFoundException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -21,11 +23,12 @@ import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.DungeonBuilder;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.ListPlayersMessage;
+import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.events.PlayersListedEvent;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
@@ -33,8 +36,8 @@ import com.lhf.server.interfaces.NotNull;
 import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
 
-public class Game implements UserListener, MessageChainHandler {
-	private transient MessageChainHandler successor;
+public class Game implements UserListener, CommandChainHandler {
+	private transient CommandChainHandler successor;
 	private ServerInterface server;
 	private UserManager userManager;
 	private Logger logger;
@@ -42,8 +45,10 @@ public class Game implements UserListener, MessageChainHandler {
 	private DMRoom controlRoom;
 	private AIRunner aiRunner;
 	private Map<CommandMessage, CommandHandler> commands;
+	private final GameEventProcessorID gameEventProcessorID;
 
 	public Game(ServerInterface server, UserManager userManager) throws FileNotFoundException {
+		this.gameEventProcessorID = new GameEventProcessorID();
 		this.logger = Logger.getLogger(this.getClass().getName());
 		this.aiRunner = new GroupAIRunner(true);
 		this.thirdPower = new ThirdPower(this, null);
@@ -64,6 +69,7 @@ public class Game implements UserListener, MessageChainHandler {
 
 	public Game(ServerInterface server, UserManager userManager, AIRunner aiRunner, @NotNull Dungeon dungeon)
 			throws FileNotFoundException {
+		this.gameEventProcessorID = new GameEventProcessorID();
 		this.logger = Logger.getLogger(this.getClass().getName());
 		this.aiRunner = aiRunner;
 		this.thirdPower = new ThirdPower(this, null);
@@ -109,13 +115,23 @@ public class Game implements UserListener, MessageChainHandler {
 	}
 
 	@Override
-	public void setSuccessor(MessageChainHandler successor) {
+	public void setSuccessor(CommandChainHandler successor) {
 		this.successor = successor;
 	}
 
 	@Override
-	public MessageChainHandler getSuccessor() {
+	public CommandChainHandler getSuccessor() {
 		return this.successor;
+	}
+
+	@Override
+	public GameEventProcessorID getEventProcessorID() {
+		return this.gameEventProcessorID;
+	}
+
+	@Override
+	public Collection<GameEventProcessor> getClientMessengers() {
+		return Set.of(this.controlRoom);
 	}
 
 	protected class PlayersHandler implements CommandHandler {
@@ -137,13 +153,13 @@ public class Game implements UserListener, MessageChainHandler {
 		}
 
 		@Override
-		public Reply handle(CommandContext ctx, Command cmd) {
-			ctx.sendMsg(ListPlayersMessage.getBuilder().setPlayerNames(Game.this.userManager.getAllUsernames()));
+		public Reply handleCommand(CommandContext ctx, Command cmd) {
+			ctx.receive(PlayersListedEvent.getBuilder().setPlayerNames(Game.this.userManager.getAllUsernames()));
 			return ctx.handled();
 		}
 
 		@Override
-		public MessageChainHandler getChainHandler() {
+		public CommandChainHandler getChainHandler() {
 			return Game.this;
 		}
 
@@ -176,6 +192,21 @@ public class Game implements UserListener, MessageChainHandler {
 		if (this.server != null) {
 			this.server.registerCallback(this);
 		}
+	}
+
+	@Override
+	public String getColorTaggedName() {
+		return this.getStartTag() + "Game" + this.getEndTag();
+	}
+
+	@Override
+	public String getEndTag() {
+		return "</Game>";
+	}
+
+	@Override
+	public String getStartTag() {
+		return "<Game>";
 	}
 
 }

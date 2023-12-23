@@ -16,7 +16,7 @@ import com.google.gson.GsonBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
-import com.lhf.server.client.ClientID;
+import com.lhf.server.client.Client.ClientID;
 
 @ExtendWith(MockitoExtension.class)
 public class ConversationTreeTest {

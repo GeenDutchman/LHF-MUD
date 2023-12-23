@@ -1,7 +1,9 @@
 package com.lhf.game.creature.intelligence;
 
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -12,13 +14,14 @@ import org.mockito.Mockito;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.server.client.ComBundle;
 
-public class AIComBundle extends ComBundle implements MessageChainHandler {
+public class AIComBundle extends ComBundle implements CommandChainHandler {
     public static AIRunner aiRunner;
 
     public static AIRunner getAIRunner() {
@@ -35,12 +38,14 @@ public class AIComBundle extends ComBundle implements MessageChainHandler {
 
     public INonPlayerCharacter npc;
     public BasicAI brain;
+    private final GameEventProcessorID gameEventProcessorID;
     @Mock
-    public MessageChainHandler mockedWrappedHandler;
+    public CommandChainHandler mockedWrappedHandler;
 
     public AIComBundle() {
         super();
-        this.mockedWrappedHandler = Mockito.mock(MessageChainHandler.class);
+        this.gameEventProcessorID = new GameEventProcessorID();
+        this.mockedWrappedHandler = Mockito.mock(CommandChainHandler.class);
 
         this.npc = NonPlayerCharacter.getNPCBuilder(AIComBundle.getAIRunner()).build();
         this.brain = AIComBundle.getAIRunner().register(this.npc);
@@ -55,18 +60,43 @@ public class AIComBundle extends ComBundle implements MessageChainHandler {
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public String getColorTaggedName() {
+        return this.getStartTag() + this.getName() + this.getEndTag();
+    }
+
+    @Override
+    public String getEndTag() {
+        return "</AIComBundle>";
+    }
+
+    @Override
+    public String getStartTag() {
+        return "<AIComBundle>";
+    }
+
+    @Override
+    public void setSuccessor(CommandChainHandler successor) {
         // no -op
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return null;
+    }
+
+    @Override
+    public GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
     }
 
     @Override
     public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
         return new EnumMap<>(CommandMessage.class);
+    }
+
+    @Override
+    public Collection<GameEventProcessor> getClientMessengers() {
+        return Set.of();
     }
 
     @Override

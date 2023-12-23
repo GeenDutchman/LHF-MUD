@@ -33,9 +33,9 @@ import com.lhf.game.item.concrete.equipment.Whimsystick;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 import com.lhf.game.map.Land.AreaDirectionalLinks;
-import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.InteractOutMessage;
-import com.lhf.messages.out.InteractOutMessage.InteractOutMessageType;
+import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.events.ItemInteractionEvent;
+import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 
 public class DungeonBuilder implements Land.LandBuilder {
     private class RoomAndDirs implements Land.AreaDirectionalLinks {
@@ -61,7 +61,7 @@ public class DungeonBuilder implements Land.LandBuilder {
     private Logger logger;
     private Map<UUID, Land.AreaDirectionalLinks> mapping;
     private Room startingRoom = null;
-    private MessageChainHandler successor = null;
+    private CommandChainHandler successor = null;
     private List<Room> orderAdded;
 
     public static DungeonBuilder newInstance() {
@@ -81,7 +81,7 @@ public class DungeonBuilder implements Land.LandBuilder {
         return this;
     }
 
-    public DungeonBuilder setSuccessor(MessageChainHandler successor) {
+    public DungeonBuilder setSuccessor(CommandChainHandler successor) {
         this.successor = successor;
         return this;
     }
@@ -126,7 +126,7 @@ public class DungeonBuilder implements Land.LandBuilder {
         return dungeon;
     }
 
-    public static Dungeon buildStaticDungeon(MessageChainHandler successor, AIRunner aiRunner)
+    public static Dungeon buildStaticDungeon(CommandChainHandler successor, AIRunner aiRunner)
             throws FileNotFoundException {
         DungeonBuilder builder = DungeonBuilder.newInstance();
         if (aiRunner == null) {
@@ -155,7 +155,8 @@ public class DungeonBuilder implements Land.LandBuilder {
         InteractAction testAction = (creature, triggerObject, args) -> {
             // You can do anything you imagine inside, just with casting overhead (for now)
             // This can be used for the secret room trigger, since a switch can be hidden
-            InteractOutMessage.Builder interactOutMessage = InteractOutMessage.getBuilder().setTaggable(triggerObject);
+            ItemInteractionEvent.Builder interactOutMessage = ItemInteractionEvent.getBuilder()
+                    .setTaggable(triggerObject);
             Object o1 = args.get("note");
             if (!(o1 instanceof Note)) {
                 Logger.getLogger(triggerObject.getClassName()).warning("Note not found");
@@ -237,7 +238,8 @@ public class DungeonBuilder implements Land.LandBuilder {
         Switch statue = new Switch("golden statue", true, true,
                 "The statue has a start to a riddle, but it looks like it hasn't been finished yet.");
         InteractAction statueAction = (player, triggerObject, args) -> {
-            InteractOutMessage.Builder interactOutMessage = InteractOutMessage.getBuilder().setTaggable(triggerObject);
+            ItemInteractionEvent.Builder interactOutMessage = ItemInteractionEvent.getBuilder()
+                    .setTaggable(triggerObject);
             Object o1 = args.get("room1");
             if (!(o1 instanceof Room)) {
                 Logger.getLogger(triggerObject.getClassName()).warning("Origin Room not found");
@@ -345,7 +347,7 @@ public class DungeonBuilder implements Land.LandBuilder {
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return this.successor;
     }
 }

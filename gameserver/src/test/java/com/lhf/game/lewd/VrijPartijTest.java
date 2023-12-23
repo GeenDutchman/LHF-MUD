@@ -12,10 +12,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.intelligence.AIComBundle;
-import com.lhf.messages.OutMessageType;
-import com.lhf.messages.out.LewdOutMessage;
-import com.lhf.messages.out.LewdOutMessage.LewdOutMessageType;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.GameEventType;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.LewdEvent;
+import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 
 @ExtendWith(MockitoExtension.class)
 public class VrijPartijTest {
@@ -44,12 +44,12 @@ public class VrijPartijTest {
 
         vrijPartij.propose();
 
-        ArgumentMatcher<OutMessage> proposeChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+        ArgumentMatcher<GameEvent> proposeChecker = (message) -> {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.PROPOSED.equals(lom.getSubType()) && first.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
@@ -77,12 +77,12 @@ public class VrijPartijTest {
 
         vrijPartij.accept(second.npc);
 
-        ArgumentMatcher<OutMessage> acceptanceChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+        ArgumentMatcher<GameEvent> acceptanceChecker = (message) -> {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && second.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
@@ -131,12 +131,12 @@ public class VrijPartijTest {
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(0);
 
-        ArgumentMatcher<OutMessage> secondAcceptanceChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+        ArgumentMatcher<GameEvent> secondAcceptanceChecker = (message) -> {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && second.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
@@ -163,24 +163,24 @@ public class VrijPartijTest {
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(0);
 
-        ArgumentMatcher<OutMessage> thirdAcceptanceChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+        ArgumentMatcher<GameEvent> thirdAcceptanceChecker = (message) -> {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && third.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
         };
 
-        ArgumentMatcher<OutMessage> dunnitChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+        ArgumentMatcher<GameEvent> dunnitChecker = (message) -> {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.DUNNIT.equals(lom.getSubType()) && lom.getCreature() == null;
             } catch (ClassCastException e) {
                 return false;
@@ -230,12 +230,12 @@ public class VrijPartijTest {
 
         vrijPartij.propose();
 
-        ArgumentMatcher<OutMessage> proposeChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+        ArgumentMatcher<GameEvent> proposeChecker = (message) -> {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.PROPOSED.equals(lom.getSubType()) && first.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
@@ -254,12 +254,12 @@ public class VrijPartijTest {
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(0);
 
-        ArgumentMatcher<OutMessage> secondAcceptanceChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+        ArgumentMatcher<GameEvent> secondAcceptanceChecker = (message) -> {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && second.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
@@ -283,12 +283,12 @@ public class VrijPartijTest {
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(0);
 
-        ArgumentMatcher<OutMessage> thirdPass = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+        ArgumentMatcher<GameEvent> thirdPass = (message) -> {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.DENIED.equals(lom.getSubType()) && third.npc.equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
@@ -301,12 +301,12 @@ public class VrijPartijTest {
         Mockito.verify(second.sssb, Mockito.timeout(500)).send(Mockito.argThat(thirdPass));
         Mockito.verify(third.sssb, Mockito.timeout(500)).send(Mockito.argThat(thirdPass));
 
-        ArgumentMatcher<OutMessage> dunnitChecker = (message) -> {
-            if (message == null || !OutMessageType.LEWD.equals(message.getOutType())) {
+        ArgumentMatcher<GameEvent> dunnitChecker = (message) -> {
+            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
                 return false;
             }
             try {
-                LewdOutMessage lom = (LewdOutMessage) message;
+                LewdEvent lom = (LewdEvent) message;
                 return LewdOutMessageType.DUNNIT.equals(lom.getSubType()) && lom.getCreature() == null;
             } catch (ClassCastException e) {
                 return false;

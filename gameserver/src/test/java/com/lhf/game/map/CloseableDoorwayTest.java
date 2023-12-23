@@ -11,7 +11,7 @@ import com.lhf.game.map.DoorwayFactory.DoorwayType;
 import com.lhf.game.map.Land.AreaDirectionalLinks;
 import com.lhf.game.map.Room.RoomBuilder;
 import com.lhf.messages.MessageMatcher;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class CloseableDoorwayTest {
         @Test
@@ -36,26 +36,26 @@ public class CloseableDoorwayTest {
                 AIComBundle bundle = new AIComBundle();
                 roomA.addCreature(bundle.npc);
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000)).send(Mockito.argThat(
-                                new MessageMatcher(OutMessageType.SEE,
+                                new MessageMatcher(GameEventType.SEE,
                                                 List.of(roomA.getName(), Directions.WEST.toString().toLowerCase()),
                                                 null)));
 
                 bundle.brain.ProcessString("go west");
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000))
-                                .send(Mockito.argThat(new MessageMatcher(OutMessageType.BAD_GO, "blocked")));
+                                .send(Mockito.argThat(new MessageMatcher(GameEventType.BAD_GO, "blocked")));
 
                 doorway.open();
                 Truth.assertThat(doorway.isOpen()).isTrue();
 
                 bundle.brain.ProcessString("go west");
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000))
-                                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SEE,
+                                .send(Mockito.argThat(new MessageMatcher(GameEventType.SEE,
                                                 List.of(roomB.getName(), Directions.EAST.toString().toLowerCase()),
                                                 null)));
 
                 bundle.brain.ProcessString("go east");
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000).times(2))
-                                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SEE,
+                                .send(Mockito.argThat(new MessageMatcher(GameEventType.SEE,
                                                 List.of(roomA.getName(), Directions.WEST.toString().toLowerCase()),
                                                 null)));
 
@@ -64,7 +64,7 @@ public class CloseableDoorwayTest {
 
                 bundle.brain.ProcessString("go west");
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000))
-                                .send(Mockito.argThat(new MessageMatcher(OutMessageType.SEE,
+                                .send(Mockito.argThat(new MessageMatcher(GameEventType.SEE,
                                                 List.of(roomB.getName(), Directions.EAST.toString().toLowerCase()),
                                                 null)));
         }

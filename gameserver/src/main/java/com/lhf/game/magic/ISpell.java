@@ -8,7 +8,7 @@ import com.lhf.TaggedExaminable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.ResourceCost;
-import com.lhf.messages.out.SeeOutMessage;
+import com.lhf.messages.events.SeeEvent;
 
 public abstract class ISpell<T extends EntityEffect>
         implements Comparable<ISpell<?>>, Iterable<T>, TaggedExaminable {
@@ -87,8 +87,8 @@ public abstract class ISpell<T extends EntityEffect>
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
-        SeeOutMessage seeOutMessage = SeeOutMessage.getBuilder().setExaminable(this).Build();
+    public SeeEvent produceMessage() {
+        SeeEvent seeOutMessage = SeeEvent.getBuilder().setExaminable(this).Build();
         return seeOutMessage;
     }
 

@@ -32,12 +32,12 @@ import com.lhf.game.magic.SpellEntry;
 import com.lhf.game.map.Directions;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.OutMessageType;
-import com.lhf.messages.out.BattleRoundMessage;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.SpellEntryMessage;
-import com.lhf.messages.out.StatsOutMessage;
-import com.lhf.messages.out.BattleRoundMessage.RoundAcceptance;
+import com.lhf.messages.events.BattleRoundEvent;
+import com.lhf.messages.events.BattleStatsRequestedEvent;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.SpellEntryRequestedEvent;
+import com.lhf.messages.events.BattleRoundEvent.RoundAcceptance;
+import com.lhf.messages.GameEventType;
 
 public class BattleTurnHandler extends AIHandler {
 
@@ -49,7 +49,7 @@ public class BattleTurnHandler extends AIHandler {
     private final DiceD100 roller;
 
     public BattleTurnHandler() {
-        super(OutMessageType.BATTLE_ROUND);
+        super(GameEventType.BATTLE_ROUND);
         this.roller = new DiceD100(1);
         this.targetChoosers = new TreeSet<>();
 
@@ -63,7 +63,7 @@ public class BattleTurnHandler extends AIHandler {
         return roller.rollDice().getRoll() / (double) roller.getType().getType();
     }
 
-    public TargetLists chooseTargets(Optional<StatsOutMessage> battleMemories,
+    public TargetLists chooseTargets(Optional<BattleStatsRequestedEvent> battleMemories,
             HarmMemories harmMemories,
             CreatureFaction myFaction) {
         if (battleMemories == null || battleMemories.isEmpty()) {
@@ -112,7 +112,7 @@ public class BattleTurnHandler extends AIHandler {
             this.logger
                     .info(() -> String.format("Attacking target %s has reply: %s", targetEntry, reply.toString()));
             if (reply.getMessages().stream()
-                    .noneMatch(message -> message.getOutType().equals(OutMessageType.BAD_TARGET_SELECTED))) {
+                    .noneMatch(message -> message.getEventType().equals(GameEventType.BAD_TARGET_SELECTED))) {
                 return;
             }
         }
@@ -121,7 +121,7 @@ public class BattleTurnHandler extends AIHandler {
     }
 
     // Returns empty if not to flee, otherwise populated with "flee <direction>"
-    private Optional<String> processFlee(Optional<StatsOutMessage> battleMemories,
+    private Optional<String> processFlee(Optional<BattleStatsRequestedEvent> battleMemories,
             HarmMemories harmMemories,
             CreatureFaction myFaction) {
         if (battleMemories.isEmpty()) {
@@ -195,11 +195,11 @@ public class BattleTurnHandler extends AIHandler {
         final double offensiveFocus = VocationName.HEALER.equals(bai.getNpc().getVocation().getVocationName()) ? 0.2
                 : 0.8;
         if (bai.getNpc().getVocation().getVocationName().isCubeHolder()) {
-            Optional<SpellEntryMessage> spellbookEntries = bai.ProcessString("SPELLBOOK").getMessages()
+            Optional<SpellEntryRequestedEvent> spellbookEntries = bai.ProcessString("SPELLBOOK").getMessages()
                     .stream()
-                    .filter(outMessage -> outMessage != null
-                            && OutMessageType.SPELL_ENTRY.equals((outMessage.getOutType())))
-                    .map(outMessage -> ((SpellEntryMessage) outMessage)).findFirst();
+                    .filter(gameEvent -> gameEvent != null
+                            && GameEventType.SPELL_ENTRY.equals((gameEvent.getEventType())))
+                    .map(gameEvent -> ((SpellEntryRequestedEvent) gameEvent)).findFirst();
             if (spellbookEntries.isPresent()) {
                 try {
                     SpellEntry spellEntry = spellbookEntries.get().getEntries().stream()
@@ -235,19 +235,19 @@ public class BattleTurnHandler extends AIHandler {
     }
 
     @Override
-    public void handle(BasicAI bai, OutMessage msg) {
+    public void handle(BasicAI bai, GameEvent event) {
         // bai.ProcessString("SEE");
-        // if (!this.outMessageType.equals(msg.getOutType()) ||
+        // if (!this.outMessageType.equals(event.getOutType()) ||
         // !bai.getNpc().isInBattle()) {
         // return;
         // }
 
-        BattleRoundMessage btm = (BattleRoundMessage) msg;
+        BattleRoundEvent btm = (BattleRoundEvent) event;
         if (RoundAcceptance.NEEDED.equals(btm.getNeedSubmission())) {
             Reply reply = bai.ProcessString("STATS");
-            Optional<StatsOutMessage> statsOutOpt = reply.getMessages().stream()
-                    .filter(outMessage -> outMessage != null && OutMessageType.STATS.equals(outMessage.getOutType()))
-                    .map(outMessage -> ((StatsOutMessage) outMessage)).findFirst();
+            Optional<BattleStatsRequestedEvent> statsOutOpt = reply.getMessages().stream()
+                    .filter(gameEvent -> gameEvent != null && GameEventType.STATS.equals(gameEvent.getEventType()))
+                    .map(gameEvent -> ((BattleStatsRequestedEvent) gameEvent)).findFirst();
 
             if (statsOutOpt.isEmpty()) {
                 this.logger.warning(() -> String

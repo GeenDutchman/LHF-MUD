@@ -8,7 +8,7 @@ import org.mockito.Mockito;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.map.Room.RoomBuilder;
 import com.lhf.messages.MessageMatcher;
-import com.lhf.messages.OutMessageType;
+import com.lhf.messages.GameEventType;
 
 public class DoorwayTest {
         @Test
@@ -25,7 +25,7 @@ public class DoorwayTest {
                 AIComBundle bundle = new AIComBundle();
                 roomA.addCreature(bundle.npc);
 
-                MessageMatcher hasWest = new MessageMatcher(OutMessageType.SEE,
+                MessageMatcher hasWest = new MessageMatcher(GameEventType.SEE,
                                 List.of(roomA.getName(), Directions.WEST.toString().toLowerCase()), null);
 
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000))
@@ -33,7 +33,7 @@ public class DoorwayTest {
 
                 bundle.brain.ProcessString("go west");
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000)).send(Mockito.argThat(
-                                new MessageMatcher(OutMessageType.SEE,
+                                new MessageMatcher(GameEventType.SEE,
                                                 List.of(roomB.getName(), Directions.EAST.toString().toLowerCase()),
                                                 null)));
 

@@ -8,7 +8,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.ConnectionListener;
 import com.lhf.server.interfaces.NotNull;
@@ -68,18 +69,18 @@ public class ClientManager {
         return result;
     }
 
-    public void sendMessageToAll(OutMessage msg) {
-        logger.entering(this.getClass().getName(), "sendMessageToAll()", msg);
+    public void sendMessageToAll(GameEvent event) {
+        logger.entering(this.getClass().getName(), "sendMessageToAll()", event);
         for (Client client : this.clientMap.values()) {
-            client.sendMsg(msg);
+            Client.eventAccepter.accept(client, event);
         }
     }
 
-    public void sendMessageToAllExcept(OutMessage msg, ClientID id) {
+    public void sendMessageToAllExcept(GameEvent event, ClientID id) {
         logger.entering(this.getClass().getName(), "sendMessageToAllExcept()");
         for (ClientID iterId : this.clientMap.keySet()) {
             if (iterId != id) {
-                this.clientMap.get(iterId).sendMsg(msg);
+                Client.eventAccepter.accept(this.clientMap.get(iterId), event);
             }
         }
     }

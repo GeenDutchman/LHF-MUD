@@ -19,13 +19,13 @@ import com.google.common.truth.Truth;
 @ExtendWith(MockitoExtension.class)
 public class MessageHandlerTest {
     @Mock
-    private MessageChainHandler leafNodeOne;
+    private CommandChainHandler leafNodeOne;
     @Mock
-    private MessageChainHandler leafNodeTwo;
+    private CommandChainHandler leafNodeTwo;
     @Mock
-    private MessageChainHandler branchNode;
+    private CommandChainHandler branchNode;
     @Mock
-    private MessageChainHandler rootNode;
+    private CommandChainHandler rootNode;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -114,11 +114,11 @@ public class MessageHandlerTest {
 
     }
 
-    private CommandContext follow(MessageChainHandler mh, CommandContext ctx) {
+    private CommandContext follow(CommandChainHandler mh, CommandContext ctx) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
-        MessageChainHandler following = mh;
+        CommandChainHandler following = mh;
         while (following != null) {
             following.getCommands(ctx);
             following = following.getSuccessor();

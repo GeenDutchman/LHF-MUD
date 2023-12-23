@@ -9,7 +9,7 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.magic.concrete.DMBlessing;
-import com.lhf.messages.out.CreatureAffectedMessage;
+import com.lhf.messages.events.CreatureAffectedEvent;
 
 public class NonPlayerCharacter extends Creature implements INonPlayerCharacter {
 
@@ -87,8 +87,8 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     }
 
     @Override
-    public CreatureAffectedMessage processEffect(EntityEffect effect, boolean reverse) {
-        CreatureAffectedMessage cam = super.processEffect(effect, reverse);
+    public CreatureAffectedEvent processEffect(EntityEffect effect, boolean reverse) {
+        CreatureAffectedEvent cam = super.processEffect(effect, reverse);
         this.getHarmMemories().update(cam);
         return cam;
     }

@@ -27,8 +27,8 @@ import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
-import com.lhf.messages.ClientMessenger;
-import com.lhf.messages.out.CreatureAffectedMessage;
+import com.lhf.messages.events.CreatureAffectedEvent;
+import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
 
 /**
@@ -177,16 +177,16 @@ public interface INonPlayerCharacter extends ICreature {
 
         /**
          * Uses the data stored in the
-         * {@link com.lhf.messages.out.CreatureAffectedMessage CreatureAffectedMessage}
+         * {@link com.lhf.messages.events.CreatureAffectedEvent CreatureAffectedMessage}
          * to update the statistics in the memories
          * 
-         * @param cam {@link com.lhf.messages.out.CreatureAffectedMessage
+         * @param cam {@link com.lhf.messages.events.CreatureAffectedEvent
          *            CreatureAffectedMessage} contains updates
          * @return `this` for chainability
-         * @see {@link com.lhf.messages.out.CreatureAffectedMessage
+         * @see {@link com.lhf.messages.events.CreatureAffectedEvent
          *      CreatureAffectedMessage}
          */
-        public HarmMemories update(CreatureAffectedMessage cam) {
+        public HarmMemories update(CreatureAffectedEvent cam) {
             if (cam == null || !this.owner.equals(cam.getAffected())) {
                 return this;
             }
@@ -401,10 +401,10 @@ public interface INonPlayerCharacter extends ICreature {
     public abstract HarmMemories getHarmMemories();
 
     /**
-     * Sets the {@link com.lhf.messages.ClientMessenger Controller} for the NPC.
+     * Sets the {@link com.lhf.server.client.CommandInvoker Controller} for the NPC.
      * 
-     * @param cont {@link com.lhf.messages.ClientMessenger Controller}
+     * @param cont {@link com.lhf.server.client.CommandInvoker Controller}
      */
-    public abstract void setController(ClientMessenger cont);
+    public abstract void setController(CommandInvoker cont);
 
 }

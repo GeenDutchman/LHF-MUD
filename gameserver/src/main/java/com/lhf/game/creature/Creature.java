@@ -17,7 +17,6 @@ import java.util.logging.Logger;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.ItemContainer;
-import com.lhf.game.TickType;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
@@ -34,26 +33,27 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
-import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.events.CreatureAffectedEvent;
+import com.lhf.messages.events.CreatureStatusRequestedEvent;
+import com.lhf.messages.events.ItemEquippedEvent;
+import com.lhf.messages.events.ItemEquippedEvent.EquipResultType;
+import com.lhf.messages.events.ItemNotPossessedEvent;
+import com.lhf.messages.events.ItemUnequippedEvent;
+import com.lhf.messages.events.ItemUnequippedEvent.UnequipResultType;
 import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.InventoryMessage;
 import com.lhf.messages.in.StatusMessage;
 import com.lhf.messages.in.UnequipMessage;
-import com.lhf.messages.out.CreatureAffectedMessage;
-import com.lhf.messages.out.EquipOutMessage;
-import com.lhf.messages.out.EquipOutMessage.EquipResultType;
-import com.lhf.messages.out.NotPossessedMessage;
-import com.lhf.messages.out.StatusOutMessage;
-import com.lhf.messages.out.UnequipOutMessage;
-import com.lhf.messages.out.UnequipOutMessage.UnequipResultType;
+import com.lhf.server.client.CommandInvoker;
 
 public abstract class Creature implements ICreature {
     private final String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
+    private final GameEventProcessorID gameEventProcessorID;
     private CreatureFaction faction; // See shared enum
     private Vocation vocation;
     // private MonsterType monsterType; // I dont know if we'll need this
@@ -62,12 +62,13 @@ public abstract class Creature implements ICreature {
     private Statblock statblock;
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
-    private transient ClientMessenger controller;
-    private transient MessageChainHandler successor;
+    private transient CommandInvoker controller;
+    private transient CommandChainHandler successor;
     private Map<CommandMessage, CommandHandler> cmds;
     private transient final Logger logger;
 
     protected Creature(ICreature.CreatureBuilder<?> builder) {
+        this.gameEventProcessorID = new GameEventProcessorID();
         this.cmds = this.buildCommands();
         // Instantiate creature with no name and type Monster
         this.name = builder.getName();
@@ -125,7 +126,16 @@ public abstract class Creature implements ICreature {
         current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
         this.statblock.getStats().replace(Stats.CURRENTHP, current);
         if (current <= 0) {
-            ICreature.announceDeath(this);
+            CommandChainHandler next = this.getSuccessor();
+            while (next != null) {
+                if (next instanceof CreatureContainer container) {
+                    container.onCreatureDeath(this); // the rest of the chain should be handled here as well
+                    return; // break out of here, because it is handled
+                }
+                next = next.getSuccessor();
+            }
+            // if it gets to here, welcome to undeath (not literally)
+            this.log(Level.WARNING, "died while not in a `CreatureContainer`!");
         }
     }
 
@@ -267,7 +277,7 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public CreatureAffectedMessage processEffect(EntityEffect effect, boolean reverse) {
+    public CreatureAffectedEvent processEffect(EntityEffect effect, boolean reverse) {
         if (!this.isCorrectEffectType(effect)) {
             return null;
         }
@@ -305,7 +315,7 @@ public abstract class Creature implements ICreature {
             }
         }
 
-        CreatureAffectedMessage camOut = CreatureAffectedMessage.getBuilder().setAffected(this)
+        CreatureAffectedEvent camOut = CreatureAffectedEvent.getBuilder().setAffected(this)
                 .setEffect(creatureEffect).setReversed(reverse).setBroacast().Build();
         return camOut;
     }
@@ -387,7 +397,7 @@ public abstract class Creature implements ICreature {
     @Override
     public boolean equipItem(String itemName, EquipmentSlots slot) {
         Optional<Item> maybeItem = this.getInventory().getItem(itemName);
-        EquipOutMessage.Builder equipMessage = EquipOutMessage.getBuilder().setAttemptedItemName(itemName)
+        ItemEquippedEvent.Builder equipMessage = ItemEquippedEvent.getBuilder().setAttemptedItemName(itemName)
                 .setNotBroadcast().setAttemptedSlot(slot);
         if (maybeItem.isPresent()) {
             Item fromInventory = maybeItem.get();
@@ -402,25 +412,26 @@ public abstract class Creature implements ICreature {
                     this.unequipItem(slot, "");
                     this.getInventory().removeItem(equipThing);
                     this.getEquipmentSlots().putIfAbsent(slot, equipThing);
-                    this.sendMsg(equipMessage.setSubType(EquipResultType.SUCCESS).Build());
+                    ICreature.eventAccepter.accept(this, equipMessage.setSubType(EquipResultType.SUCCESS).Build());
                     equipThing.onEquippedBy(this);
 
                     return true;
                 }
-                this.sendMsg(equipMessage.setSubType(EquipResultType.BADSLOT).Build());
+                ICreature.eventAccepter.accept(this, equipMessage.setSubType(EquipResultType.BADSLOT).Build());
                 return true;
             }
-            this.sendMsg(equipMessage.setSubType(EquipResultType.NOTEQUIPBLE));
+            ICreature.eventAccepter.accept(this, equipMessage.setSubType(EquipResultType.NOTEQUIPBLE).Build());
             return true;
         }
-        this.sendMsg(NotPossessedMessage.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
-                .setItemName(itemName).Build());
+        ICreature.eventAccepter.accept(this,
+                ItemNotPossessedEvent.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
+                        .setItemName(itemName).Build());
         return true;
     }
 
     @Override
     public boolean unequipItem(EquipmentSlots slot, String weapon) {
-        UnequipOutMessage.Builder unequipMessage = UnequipOutMessage.getBuilder().setNotBroadcast().setSlot(slot)
+        ItemUnequippedEvent.Builder unequipMessage = ItemUnequippedEvent.getBuilder().setNotBroadcast().setSlot(slot)
                 .setAttemptedName(weapon);
         if (slot == null) {
             // if they specified weapon and not slot
@@ -434,30 +445,34 @@ public abstract class Creature implements ICreature {
                         if (equippedThing.equals(equipped.get(thingSlot))) {
                             equipped.remove(thingSlot);
                             this.getInventory().addItem(equippedThing);
-                            this.sendMsg(unequipMessage.setSubType(UnequipResultType.SUCCESS).Build());
+                            ICreature.eventAccepter.accept(this,
+                                    unequipMessage.setSubType(UnequipResultType.SUCCESS).Build());
                             equippedThing.onUnequippedBy(this);
                             return true;
                         }
                     }
                 }
-                this.sendMsg(unequipMessage.setSubType(UnequipResultType.ITEM_NOT_EQUIPPED).Build());
+                ICreature.eventAccepter.accept(this,
+                        unequipMessage.setSubType(UnequipResultType.ITEM_NOT_EQUIPPED).Build());
                 return false;
             }
 
-            this.sendMsg(NotPossessedMessage.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
-                    .setItemName(weapon));
+            ICreature.eventAccepter.accept(this,
+                    ItemNotPossessedEvent.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
+                            .setItemName(weapon).Build());
             return false;
         }
         Equipable thing = getEquipmentSlots().remove(slot);
         if (thing != null) {
             unequipMessage.setItem(thing).setSubType(UnequipResultType.SUCCESS);
             this.getInventory().addItem(thing);
-            this.sendMsg(unequipMessage.Build());
+            ICreature.eventAccepter.accept(this, unequipMessage.Build());
             thing.onUnequippedBy(this);
             return true;
         }
-        this.sendMsg(unequipMessage.setItem(null).setSubType(UnequipResultType.ITEM_NOT_FOUND).Build()); // thing is
-                                                                                                         // null
+        ICreature.eventAccepter.accept(this,
+                unequipMessage.setItem(null).setSubType(UnequipResultType.ITEM_NOT_FOUND).Build()); // thing is
+        // null
         return false;
     }
 
@@ -481,21 +496,26 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public ClientMessenger getController() {
+    public CommandInvoker getController() {
         return this.controller;
     }
 
-    public void setController(ClientMessenger cont) {
+    public void setController(CommandInvoker cont) {
         this.controller = cont;
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public final GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
+    }
+
+    @Override
+    public void setSuccessor(CommandChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return this.successor;
     }
 
@@ -545,17 +565,16 @@ public abstract class Creature implements ICreature {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof EquipMessage equipMessage) {
                 Creature.this.equipItem(equipMessage.getItemName(), equipMessage.getEquipSlot());
-                Creature.this.tick(TickType.ACTION);
                 return ctx.handled();
             }
             return ctx.failhandle();
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Creature.this;
         }
 
@@ -591,18 +610,17 @@ public abstract class Creature implements ICreature {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof UnequipMessage unequipMessage) {
                 Creature.this.unequipItem(EquipmentSlots.getEquipmentSlot(unequipMessage.getUnequipWhat()),
                         unequipMessage.getUnequipWhat());
-                Creature.this.tick(TickType.ACTION);
                 return ctx.handled();
             }
             return ctx.failhandle();
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Creature.this;
         }
 
@@ -627,18 +645,18 @@ public abstract class Creature implements ICreature {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof StatusMessage statusMessage) {
-                ctx.sendMsg(
-                        StatusOutMessage.getBuilder().setNotBroadcast().setFromCreature(Creature.this, true).Build());
-                Creature.this.tick(TickType.ACTION);
+                ctx.receive(
+                        CreatureStatusRequestedEvent.getBuilder().setNotBroadcast().setFromCreature(Creature.this, true)
+                                .Build());
                 return ctx.handled();
             }
             return ctx.failhandle();
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Creature.this;
         }
 
@@ -663,17 +681,16 @@ public abstract class Creature implements ICreature {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof InventoryMessage inventoryMessage) {
-                ctx.sendMsg(Creature.this.getInventory().getInventoryOutMessage(Creature.this.getEquipmentSlots()));
-                Creature.this.tick(TickType.ACTION);
+                ctx.receive(Creature.this.getInventory().getInventoryOutMessage(Creature.this.getEquipmentSlots()));
                 return ctx.handled();
             }
             return ctx.failhandle();
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Creature.this;
         }
 

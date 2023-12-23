@@ -2,10 +2,12 @@ package com.lhf.server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -13,16 +15,17 @@ import java.util.logging.Logger;
 
 import com.lhf.game.Game;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.events.BadUserDuplicationEvent;
+import com.lhf.messages.events.UserLeftEvent;
+import com.lhf.messages.events.WelcomeEvent;
 import com.lhf.messages.in.CreateInMessage;
-import com.lhf.messages.out.DuplicateUserMessage;
-import com.lhf.messages.out.UserLeftMessage;
-import com.lhf.messages.out.WelcomeMessage;
 import com.lhf.server.client.Client;
-import com.lhf.server.client.ClientID;
+import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.ClientManager;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
@@ -33,6 +36,7 @@ import com.lhf.server.interfaces.ServerInterface;
 import com.lhf.server.interfaces.UserListener;
 
 public class Server implements ServerInterface, ConnectionListener {
+    protected final GameEventProcessorID gameEventProcessorID;
     protected Game game;
     protected UserManager userManager;
     protected ClientManager clientManager;
@@ -41,6 +45,7 @@ public class Server implements ServerInterface, ConnectionListener {
     protected Map<CommandMessage, CommandHandler> acceptedCommands;
 
     public Server() throws IOException {
+        this.gameEventProcessorID = new GameEventProcessorID();
         this.logger = Logger.getLogger(this.getClass().getName());
         this.userManager = new UserManager();
         this.userListeners = new ArrayList<>();
@@ -54,6 +59,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     public Server(@NotNull UserManager userManager, @NotNull ClientManager clientManager, @NotNull Game game) {
+        this.gameEventProcessorID = new GameEventProcessorID();
         this.logger = Logger.getLogger(this.getClass().getName());
         this.userManager = userManager;
         this.userListeners = new ArrayList<>();
@@ -72,7 +78,7 @@ public class Server implements ServerInterface, ConnectionListener {
     public Client startClient(Client client) {
         this.logger.log(Level.FINER, "Sending welcome");
         client.setSuccessor(this);
-        client.sendMsg(WelcomeMessage.getWelcomeBuilder().Build());
+        Client.eventAccepter.accept(client, WelcomeEvent.getWelcomeBuilder().Build());
         return client;
     }
 
@@ -133,15 +139,20 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         // Server is IT, the buck stops here
         logger.log(Level.WARNING, "Attempted to put a successor on the Server");
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         // Server is IT, the buck stops here
         return null;
+    }
+
+    @Override
+    public GameEventProcessorID getEventProcessorID() {
+        return this.gameEventProcessorID;
     }
 
     @Override
@@ -164,6 +175,11 @@ public class Server implements ServerInterface, ConnectionListener {
         return ctx;
     }
 
+    @Override
+    public Collection<GameEventProcessor> getClientMessengers() {
+        return Set.of(this.game);
+    }
+
     protected class ExitHandler implements ServerCommandHandler {
         private static final String helpString = "Disconnect and leave Ibaif!";
 
@@ -183,24 +199,25 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.EXIT) {
-                Server.this.logger.log(Level.INFO, "client " + ctx.getClientID().toString() + " is exiting");
-                Client ch = Server.this.clientManager.getConnection(ctx.getClientID());
+                Server.this.logger.log(Level.INFO, "client " + ctx.getClient().toString() + " is exiting");
+                Client ch = Server.this.clientManager.getConnection(ctx.getClient().getClientID());
 
                 if (ctx.getUserID() != null) {
                     Server.this.game.userLeft(ctx.getUserID());
                     User leaving = Server.this.userManager.getUser(ctx.getUserID());
                     Server.this.userManager.removeUser(ctx.getUserID());
-                    leaving.sendMsg(UserLeftMessage.getBuilder().setUser(leaving).setNotBroadcast().Build());
+                    ctx.receive(UserLeftEvent.getBuilder().setUser(leaving).setNotBroadcast().Build());
                 } else {
                     if (ch != null) {
-                        ch.sendMsg(UserLeftMessage.getBuilder().setNotBroadcast().Build());
+                        ctx.receive(UserLeftEvent.getBuilder().setNotBroadcast().Build());
                     }
                 }
 
                 try {
-                    Server.this.clientManager.removeClient(ctx.getClientID()); // ch is killed in here
+                    Server.this.clientManager.removeClient(ctx.getClient().getClientID()); // ch is killed in
+                                                                                           // here
                 } catch (IOException e) {
                     Server.this.logger.log(Level.WARNING, "While removing client", e);
                 }
@@ -210,7 +227,7 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Server.this;
         }
 
@@ -235,21 +252,22 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public Reply handle(CommandContext ctx, Command cmd) {
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof CreateInMessage msg) {
                 if (Server.this.userManager.getForbiddenUsernames().contains(msg.getUsername())) {
-                    ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
+                    ctx.receive(BadUserDuplicationEvent.getBuilder().Build());
                     return ctx.handled();
                 }
-                User user = Server.this.userManager.addUser(msg, ctx.getClientMessenger());
+                User user = Server.this.userManager.addUser(msg, ctx.getClient());
                 if (user == null) {
-                    ctx.sendMsg(DuplicateUserMessage.getBuilder().Build());
+                    ctx.receive(BadUserDuplicationEvent.getBuilder().Build());
                     return ctx.handled();
                 }
                 user.setSuccessor(Server.this);
-                Client client = Server.this.clientManager.getConnection(ctx.getClientID());
+                Client client = Server.this.clientManager.getConnection(ctx.getClient().getClientID());
                 Server.this.clientManager.addUserForClient(client.getClientID(), user.getUserID());
                 client.setSuccessor(user);
+                ctx.setUser(user);
                 Server.this.game.addNewPlayerToGame(user, msg.vocationRequest());
                 return ctx.handled();
             }
@@ -257,7 +275,7 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Server.this;
         }
 

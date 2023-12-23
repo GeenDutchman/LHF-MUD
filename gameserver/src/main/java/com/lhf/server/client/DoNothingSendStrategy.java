@@ -1,11 +1,11 @@
 package com.lhf.server.client;
 
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.events.GameEvent;
 
 public class DoNothingSendStrategy implements SendStrategy {
 
     @Override
-    public void send(OutMessage toSend) {
+    public void send(GameEvent toSend) {
         // Does literally nothing
     }
 
