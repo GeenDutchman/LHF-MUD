@@ -126,16 +126,7 @@ public abstract class Creature implements ICreature {
         current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
         this.statblock.getStats().replace(Stats.CURRENTHP, current);
         if (current <= 0) {
-            CommandChainHandler next = this.getSuccessor();
-            while (next != null) {
-                if (next instanceof CreatureContainer container) {
-                    container.onCreatureDeath(this); // the rest of the chain should be handled here as well
-                    return; // break out of here, because it is handled
-                }
-                next = next.getSuccessor();
-            }
-            // if it gets to here, welcome to undeath (not literally)
-            this.log(Level.WARNING, "died while not in a `CreatureContainer`!");
+            ICreature.announceDeath(this);
         }
     }
 

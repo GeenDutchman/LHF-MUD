@@ -586,7 +586,7 @@ public interface ICreature
      * @param dead
      */
     static public void announceDeath(ICreature dead) {
-        if (dead == null) {
+        if (dead == null || dead.isAlive()) {
             return;
         }
         CommandChainHandler next = dead.getSuccessor();
