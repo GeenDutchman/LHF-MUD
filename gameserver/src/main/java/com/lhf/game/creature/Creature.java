@@ -304,6 +304,8 @@ public abstract class Creature implements ICreature {
             if (creatureEffect.isRestoreFaction()) {
                 this.restoreFaction();
             }
+        } else {
+            ICreature.announceDeath(this);
         }
 
         CreatureAffectedEvent camOut = CreatureAffectedEvent.getBuilder().setAffected(this)
