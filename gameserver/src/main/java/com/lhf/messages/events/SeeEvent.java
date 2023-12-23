@@ -10,9 +10,11 @@ import java.util.TreeMap;
 import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffectSource;
+import com.lhf.game.TickType;
 import com.lhf.messages.GameEventType;
+import com.lhf.messages.ITickEvent;
 
-public class SeeEvent extends GameEvent {
+public class SeeEvent extends GameEvent implements ITickEvent {
     public enum SeeCategory {
         DIRECTION, CREATURE, PLAYER, NPC, MONSTER, ROOM_ITEM, TAKEABLE, EFFECTS, EQUIPMENT_SLOTS, PROFICIENCIES, STATS,
         ATTRIBUTE_SCORE, ATTRIBUTE_BONUS,
@@ -33,6 +35,7 @@ public class SeeEvent extends GameEvent {
         }
     }
 
+    private final static TickType tickType = TickType.ACTION;
     private final Examinable examinable;
     private final NavigableMap<String, List<Taggable>> seenCategorized;
     private final List<EntityEffectSource> effects;
@@ -266,6 +269,11 @@ public class SeeEvent extends GameEvent {
 
     public List<EntityEffectSource> getEffects() {
         return Collections.unmodifiableList(effects);
+    }
+
+    @Override
+    public TickType getTickType() {
+        return tickType;
     }
 
     @Override

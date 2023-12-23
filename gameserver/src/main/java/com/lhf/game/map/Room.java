@@ -265,16 +265,17 @@ public class Room implements Area {
     @Override
     public boolean addCreature(ICreature c) {
         c.setSuccessor(this);
-        boolean added = this.allCreatures.add(c);
-        if (added) {
+        if (this.allCreatures.add(c)) {
             this.logger.log(Level.FINER, () -> String.format("%s entered the room", c.getName()));
             ICreature.eventAccepter.accept(c, this.produceMessage());
             this.announce(RoomEnteredEvent.getBuilder().setNewbie(c).setBroacast().Build(), c);
+            if (this.battleManager.isBattleOngoing("Room.addCreature()")
+                    && !CreatureFaction.NPC.equals(c.getFaction())) {
+                this.battleManager.addCreature(c);
+            }
+            return true;
         }
-        if (this.battleManager.isBattleOngoing("Room.addCreature()") && !CreatureFaction.NPC.equals(c.getFaction())) {
-            this.battleManager.addCreature(c);
-        }
-        return added;
+        return false;
     }
 
     @Override
@@ -293,21 +294,16 @@ public class Room implements Area {
             c.setInBattle(false);
         }
 
-        if (this.allCreatures.contains(c)) {
-            this.allCreatures.remove(c);
-            ICreature.eventAccepter.accept(c, TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
-            return true;
-        }
-        return false;
+        return this.allCreatures.remove(c);
     }
 
     @Override
-    public ICreature removeCreature(ICreature c, Directions dir) {
+    public boolean removeCreature(ICreature c, Directions dir) {
         boolean removed = removeCreature(c);
         if (removed) {
             this.announce(RoomExitedEvent.getBuilder().setLeaveTaker(c).setWhichWay(dir).Build());
         }
-        return c;
+        return removed;
     }
 
     @Override

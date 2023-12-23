@@ -44,7 +44,7 @@ public interface Area
 
     public abstract UUID getUuid();
 
-    public abstract ICreature removeCreature(ICreature c, Directions dir);
+    public abstract boolean removeCreature(ICreature c, Directions dir);
 
     public abstract Land getLand();
 

@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.EntityEffect;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
@@ -33,6 +34,7 @@ import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.PlayerReincarnatedEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SpeakingEvent;
+import com.lhf.messages.events.TickEvent;
 import com.lhf.messages.events.BadGoEvent.BadGoType;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.CommandMessage;
@@ -386,10 +388,12 @@ public class Dungeon implements Land {
                         return ctx.handled();
                     }
 
-                    ctx.getCreature().setSuccessor(nextRoom);
-                    nextRoom.addCreature(ctx.getCreature());
-                    presentRoom.removeCreature(ctx.getCreature(), toGo);
-                    return ctx.handled();
+                    if (presentRoom.removeCreature(ctx.getCreature(), toGo)) {
+                        ICreature.eventAccepter.accept(ctx.getCreature(),
+                                TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
+                        nextRoom.addCreature(ctx.getCreature());
+                        return ctx.handled();
+                    }
                 } else {
                     ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM)
                             .setAttempted(goMessage.getDirection()).Build());
