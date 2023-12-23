@@ -45,6 +45,7 @@ import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.BadSpeakingTargetEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent;
+import com.lhf.messages.events.CreatureDiedEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.ItemDroppedEvent;
 import com.lhf.messages.events.ItemDroppedEvent.DropType;
@@ -199,6 +200,7 @@ public class Room implements Area {
         }
         this.dungeon = builder.getLand();
         this.successor = builder.getSuccessor();
+        this.effects = new TreeSet<>();
         this.battleManager = builder.battleManagerBuilder.Build(this);
         this.commands = this.buildCommands();
     }
@@ -289,9 +291,13 @@ public class Room implements Area {
         if (this.battleManager.hasCreature(c)) {
             this.battleManager.removeCreature(c);
             c.setInBattle(false);
+            c.setSuccessor(this.getSuccessor());
         }
-
-        return this.allCreatures.remove(c);
+        if (this.allCreatures.remove(c)) {
+            c.setSuccessor(this.getSuccessor());
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -336,6 +342,7 @@ public class Room implements Area {
         boolean removed = this.removeCreature(creature);
         if (removed) {
             this.logger.log(Level.FINER, () -> String.format("The creature '%s' has died", creature.getName()));
+            Area.eventAccepter.accept(this, CreatureDiedEvent.getBuilder().setDearlyDeparted(creature).Build());
             Corpse corpse = ICreature.die(creature);
             this.addItem(corpse);
         }

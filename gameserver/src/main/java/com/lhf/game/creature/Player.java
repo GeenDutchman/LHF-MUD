@@ -13,7 +13,7 @@ public class Player extends Creature {
         private PlayerBuilder(User user) {
             this.setFaction(CreatureFaction.PLAYER);
             this.user = user;
-            this.setController(user.getClient());
+            this.setController(user);
             this.setName(this.user.getUsername());
         }
 
@@ -32,6 +32,8 @@ public class Player extends Creature {
 
         public PlayerBuilder setUser(User user) {
             this.user = user;
+            this.setController(user);
+            this.setName(this.user.getUsername());
             return this;
         }
 

@@ -35,7 +35,11 @@ public enum TickType {
     /**
      * For various other checks.
      */
-    CONDITIONAL;
+    CONDITIONAL,
+    /**
+     * For when something dies.
+     */
+    DEATH;
 
     public static TickType getTickType(String value) {
         for (TickType type : values()) {

@@ -128,7 +128,11 @@ public class Dungeon implements Land {
         if (room == null) {
             return Optional.empty();
         }
-        return room.removePlayer(id);
+        Optional<Player> removed = room.removePlayer(id);
+        if (removed.isPresent()) {
+            removed.get().setSuccessor(this.getSuccessor());
+        }
+        return removed;
     }
 
     @Override
@@ -173,7 +177,11 @@ public class Dungeon implements Land {
         if (room == null) {
             return Optional.empty();
         }
-        return room.removeCreature(name);
+        Optional<ICreature> removed = room.removeCreature(name);
+        if (removed.isPresent()) {
+            removed.get().setSuccessor(this.getSuccessor());
+        }
+        return removed;
     }
 
     @Override
@@ -182,7 +190,11 @@ public class Dungeon implements Land {
         if (room == null) {
             return false;
         }
-        return room.removeCreature(creature);
+        if (room.removeCreature(creature)) {
+            creature.setSuccessor(this.getSuccessor());
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -190,6 +202,7 @@ public class Dungeon implements Land {
         for (AreaDirectionalLinks rAndD : this.mapping.values()) {
             Optional<Player> found = rAndD.getArea().removePlayer(name);
             if (found.isPresent()) {
+                found.get().setSuccessor(this.getSuccessor());
                 return found;
             }
         }
@@ -211,14 +224,15 @@ public class Dungeon implements Land {
     public boolean onCreatureDeath(ICreature creature) {
         boolean removed = this.removeCreature(creature);
 
-        if (creature != null && creature instanceof Player) {
-            Player asPlayer = (Player) creature;
-            Player nextLife = Player.PlayerBuilder.getInstance(asPlayer.getUser()).setVocation(asPlayer.getVocation())
+        if (creature != null && creature instanceof Player oldLife) {
+            Player nextLife = Player.PlayerBuilder.getInstance(oldLife.getUser()).setVocation(oldLife.getVocation())
                     .build();
-            this.addPlayer(nextLife);
-            ICreature.eventAccepter.accept(creature,
+            oldLife.setController(null); // events will now not go anywhere
+            ICreature.eventAccepter.accept(nextLife,
                     PlayerReincarnatedEvent.getBuilder().setTaggedName(creature).setNotBroadcast().Build());
-            ICreature.eventAccepter.accept(nextLife, SeeEvent.getBuilder().setExaminable(startingRoom).Build());
+            // ICreature.eventAccepter.accept(nextLife,
+            // SeeEvent.getBuilder().setExaminable(startingRoom).Build());
+            this.addPlayer(nextLife);
         }
         return removed;
     }
