@@ -25,6 +25,13 @@ public class TickEvent extends GameEvent implements ITickEvent {
             return new TickEvent(this);
         }
 
+        public Builder fromITickEvent(ITickEvent event) {
+            if (event != null) {
+                this.tickType = event.getTickType() != null ? event.getTickType() : TickType.INSTANT;
+            }
+            return this;
+        }
+
         public TickType getTickType() {
             return tickType;
         }

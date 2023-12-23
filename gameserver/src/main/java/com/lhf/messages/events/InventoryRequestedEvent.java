@@ -6,15 +6,18 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.StringJoiner;
 
+import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.GameEventType;
+import com.lhf.messages.ITickEvent;
 
-public class InventoryRequestedEvent extends GameEvent {
+public class InventoryRequestedEvent extends GameEvent implements ITickEvent {
     private final Collection<Takeable> items;
     private final Map<EquipmentSlots, Equipable> equipment;
+    private final static TickType tickType = TickType.ACTION;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private Collection<Takeable> items = Collections.emptyList();
@@ -100,6 +103,11 @@ public class InventoryRequestedEvent extends GameEvent {
 
     public Map<EquipmentSlots, Equipable> getEquipment() {
         return equipment;
+    }
+
+    @Override
+    public TickType getTickType() {
+        return tickType;
     }
 
     @Override

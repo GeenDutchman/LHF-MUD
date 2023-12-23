@@ -3,6 +3,7 @@ package com.lhf.game;
 import java.util.Collections;
 import java.util.NavigableSet;
 
+import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.GameEvent;
 
 /**
@@ -88,15 +89,20 @@ public interface AffectableEntity<Effect extends EntityEffect> {
     /**
      * This is to be called when it's possible for an effect to expire.
      * 
-     * Based on the {@link com.lhf.game.TickType TickType} the
+     * Based on the {@link com.lhf.game.TickType TickType} in the
+     * {@link com.lhf.messages.ITickEvent ITickEvent} the
      * effect may or may not be removed.
      * 
      * @see com.lhf.game.TickType TickType
+     * @see com.lhf.messages.ITickEvent ITickEvent
      * @param type
      */
-    default void tick(TickType type) {
+    default void tick(ITickEvent tickEvent) {
+        if (tickEvent == null) {
+            return;
+        }
         this.getMutableEffects().removeIf(effect -> {
-            if (effect.tick(type) == 0) {
+            if (effect.tick(tickEvent.getTickType()) == 0) {
                 this.applyEffect(effect, true);
                 return true;
             }

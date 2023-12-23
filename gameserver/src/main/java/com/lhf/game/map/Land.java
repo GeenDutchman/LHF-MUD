@@ -7,13 +7,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
-import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
+import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ITickEvent;
 import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.TickEvent;
 import com.lhf.server.client.user.UserID;
 
@@ -109,9 +112,33 @@ public interface Land extends CreatureContainer, MessageChainHandler, Affectable
     }
 
     @Override
-    default void tick(TickType type) {
-        AffectableEntity.super.tick(type);
-        this.announce(TickEvent.getBuilder().setTickType(type).setBroacast());
+    public default Collection<ClientMessenger> getClientMessengers() {
+        Set<ClientMessenger> messengers = new TreeSet<>(ClientMessenger.getComparator());
+        Area startingArea = this.getStartingArea();
+        if (startingArea != null) {
+            messengers.add(startingArea);
+        }
+
+        Map<UUID, AreaDirectionalLinks> atlas = this.getAtlas();
+        if (atlas != null) {
+            atlas.values().stream().filter(rAndD -> rAndD != null && rAndD.getArea() != null)
+                    .forEach(rAndD -> messengers.add(rAndD.getArea()));
+        }
+
+        return Collections.unmodifiableCollection(messengers);
+    }
+
+    @Override
+    public default Consumer<GameEvent> getAcceptHook() {
+        return (event) -> {
+            if (event == null) {
+                return;
+            }
+            if (event instanceof ITickEvent tickEvent) {
+                this.tick(tickEvent);
+            }
+            this.announceDirect(event, this.getClientMessengers());
+        };
     }
 
     @Override

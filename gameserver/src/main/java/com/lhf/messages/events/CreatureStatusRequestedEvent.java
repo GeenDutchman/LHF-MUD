@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
@@ -7,8 +8,10 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.messages.GameEventType;
+import com.lhf.messages.ITickEvent;
 
-public class CreatureStatusRequestedEvent extends GameEvent {
+public class CreatureStatusRequestedEvent extends GameEvent implements ITickEvent {
+    private final static TickType tickType = TickType.ACTION;
     private final boolean full;
     private final String name;
     private final String colorTaggedName;
@@ -276,6 +279,11 @@ public class CreatureStatusRequestedEvent extends GameEvent {
 
     public AttributeBlock getAttributes() {
         return attributes;
+    }
+
+    @Override
+    public TickType getTickType() {
+        return tickType;
     }
 
     @Override

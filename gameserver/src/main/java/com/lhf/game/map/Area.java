@@ -1,23 +1,28 @@
 package com.lhf.game.map;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.ItemContainer;
-import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.Player;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
+import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ITickEvent;
 import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
-import com.lhf.messages.events.TickEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
+import com.lhf.messages.events.TickEvent;
 
 public interface Area
         extends ItemContainer, CreatureContainer, MessageChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
@@ -93,9 +98,26 @@ public interface Area
     }
 
     @Override
-    default void tick(TickType type) {
-        AffectableEntity.super.tick(type);
-        this.announce(TickEvent.getBuilder().setTickType(type).setBroacast());
+    public default Collection<ClientMessenger> getClientMessengers() {
+        TreeSet<ClientMessenger> messengers = new TreeSet<>(ClientMessenger.getComparator());
+
+        this.getCreatures().stream()
+                .filter(creature -> creature != null).forEach(messenger -> messengers.add(messenger));
+
+        return Collections.unmodifiableCollection(messengers);
+    }
+
+    @Override
+    public default Consumer<GameEvent> getAcceptHook() {
+        return (event) -> {
+            if (event == null) {
+                return;
+            }
+            if (event instanceof ITickEvent tickEvent) {
+                this.tick(tickEvent);
+            }
+            this.announceDirect(event, this.getClientMessengers());
+        };
     }
 
     @Override

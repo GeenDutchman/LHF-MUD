@@ -1,12 +1,14 @@
 package com.lhf.game.creature;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -233,8 +235,8 @@ public interface ICreature
             if (event == null) {
                 return;
             }
-            if (event instanceof ITickEvent tickMessage) {
-                this.tick(tickMessage.getTickType());
+            if (event instanceof ITickEvent tickEvent) {
+                this.tick(tickEvent);
             }
             this.announce(event);
         };
@@ -629,11 +631,12 @@ public interface ICreature
 
     @Override
     public default Collection<ClientMessenger> getClientMessengers() {
+        TreeSet<ClientMessenger> messengers = new TreeSet<>(ClientMessenger.getComparator());
         ClientMessenger controller = this.getController();
         if (controller != null) {
-            return Set.of(controller);
+            messengers.add(controller);
         }
-        return Set.of();
+        return Collections.unmodifiableCollection(messengers);
     }
 
 }

@@ -1,13 +1,17 @@
 package com.lhf.messages.events;
 
+import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Item;
 import com.lhf.messages.GameEventType;
+import com.lhf.messages.ITickEvent;
 
-public class ItemUnequippedEvent extends GameEvent {
+public class ItemUnequippedEvent extends GameEvent implements ITickEvent {
     public enum UnequipResultType {
         SUCCESS, ITEM_NOT_EQUIPPED, ITEM_NOT_FOUND;
     }
+
+    private final static TickType tickType = TickType.ACTION;
 
     private final UnequipResultType subType;
     private final Item item;
@@ -154,6 +158,11 @@ public class ItemUnequippedEvent extends GameEvent {
 
     public String getAttemptedName() {
         return attemptedName;
+    }
+
+    @Override
+    public TickType getTickType() {
+        return tickType;
     }
 
     @Override

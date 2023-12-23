@@ -236,10 +236,10 @@ public class DMRoom extends Room {
 
     @Override
     public Collection<ClientMessenger> getClientMessengers() {
-        Collection<ClientMessenger> messengers = new ArrayList<>(super.getClientMessengers());
-        messengers.addAll(this.users.stream()
-                .filter(userThing -> userThing != null)
-                .map(userThing -> (ClientMessenger) userThing).toList());
+        Collection<ClientMessenger> messengers = new TreeSet<>(ClientMessenger.getComparator());
+        messengers.addAll(super.getClientMessengers());
+        this.users.stream().filter(userThing -> userThing != null)
+                .forEach(userThing -> messengers.add(userThing));
         return messengers;
     }
 

@@ -54,6 +54,7 @@ import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.messages.events.RoomExitedEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SpeakingEvent;
+import com.lhf.messages.events.TickEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.ItemDroppedEvent.DropType;
@@ -257,13 +258,6 @@ public class Room implements Area {
     }
 
     @Override
-    public Collection<ClientMessenger> getClientMessengers() {
-        return this.getCreatures().stream()
-                .filter(creature -> creature != null)
-                .map(creature -> (ClientMessenger) creature).toList();
-    }
-
-    @Override
     public Set<ICreature> getCreatures() {
         return Collections.unmodifiableSet(this.allCreatures);
     }
@@ -301,7 +295,7 @@ public class Room implements Area {
 
         if (this.allCreatures.contains(c)) {
             this.allCreatures.remove(c);
-            c.tick(TickType.ROOM);
+            ICreature.eventAccepter.accept(c, TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
             return true;
         }
         return false;

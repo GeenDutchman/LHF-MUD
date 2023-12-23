@@ -3,16 +3,19 @@ package com.lhf.messages.events;
 import java.util.List;
 import java.util.StringJoiner;
 
+import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
 import com.lhf.messages.GameEventType;
+import com.lhf.messages.ITickEvent;
 
-public class ItemEquippedEvent extends GameEvent {
+public class ItemEquippedEvent extends GameEvent implements ITickEvent {
     public enum EquipResultType {
         SUCCESS, BADSLOT, NOTEQUIPBLE;
     }
 
+    private final static TickType tickType = TickType.ACTION;
     private final EquipResultType subType;
     private final Item item;
     private final String attemptedItemName;
@@ -234,5 +237,10 @@ public class ItemEquippedEvent extends GameEvent {
             return ((Equipable) this.item).getWhichSlots();
         }
         return List.of();
+    }
+
+    @Override
+    public TickType getTickType() {
+        return tickType;
     }
 }

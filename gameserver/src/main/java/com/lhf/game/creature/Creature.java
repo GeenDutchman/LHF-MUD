@@ -43,6 +43,7 @@ import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.ItemEquippedEvent;
 import com.lhf.messages.events.ItemNotPossessedEvent;
 import com.lhf.messages.events.ItemUnequippedEvent;
+import com.lhf.messages.events.TickEvent;
 import com.lhf.messages.events.ItemEquippedEvent.EquipResultType;
 import com.lhf.messages.events.ItemUnequippedEvent.UnequipResultType;
 import com.lhf.messages.CommandMessage;
@@ -578,7 +579,6 @@ public abstract class Creature implements ICreature {
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof EquipMessage equipMessage) {
                 Creature.this.equipItem(equipMessage.getItemName(), equipMessage.getEquipSlot());
-                Creature.this.tick(TickType.ACTION);
                 return ctx.handled();
             }
             return ctx.failhandle();
@@ -625,7 +625,6 @@ public abstract class Creature implements ICreature {
             if (cmd != null && cmd instanceof UnequipMessage unequipMessage) {
                 Creature.this.unequipItem(EquipmentSlots.getEquipmentSlot(unequipMessage.getUnequipWhat()),
                         unequipMessage.getUnequipWhat());
-                Creature.this.tick(TickType.ACTION);
                 return ctx.handled();
             }
             return ctx.failhandle();
@@ -662,7 +661,6 @@ public abstract class Creature implements ICreature {
                 ctx.receive(
                         CreatureStatusRequestedEvent.getBuilder().setNotBroadcast().setFromCreature(Creature.this, true)
                                 .Build());
-                Creature.this.tick(TickType.ACTION);
                 return ctx.handled();
             }
             return ctx.failhandle();
@@ -697,7 +695,6 @@ public abstract class Creature implements ICreature {
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd instanceof InventoryMessage inventoryMessage) {
                 ctx.receive(Creature.this.getInventory().getInventoryOutMessage(Creature.this.getEquipmentSlots()));
-                Creature.this.tick(TickType.ACTION);
                 return ctx.handled();
             }
             return ctx.failhandle();
