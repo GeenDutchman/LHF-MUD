@@ -110,7 +110,7 @@ public class SpellEntryBuilder {
                 case 3:
                     System.out.println("Printing spellbook:");
                     for (SpellEntry entry : spellbook.getEntries()) {
-                        System.out.printf("%d %s\r\n", entry.getLevel(), entry.getName());
+                        System.out.printf("%s %s\r\n", entry.getLevel(), entry.getName());
                         System.out.println(entry.printDescription());
                     }
                     break;
