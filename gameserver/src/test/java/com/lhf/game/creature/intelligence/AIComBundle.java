@@ -13,16 +13,16 @@ import org.mockito.Mockito;
 
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.NonPlayerCharacter;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ClientID;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
-import com.lhf.server.client.ClientID;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.server.client.ComBundle;
 
-public class AIComBundle extends ComBundle implements MessageChainHandler {
+public class AIComBundle extends ComBundle implements CommandChainHandler {
     public static AIRunner aiRunner;
 
     public static AIRunner getAIRunner() {
@@ -41,12 +41,12 @@ public class AIComBundle extends ComBundle implements MessageChainHandler {
     public BasicAI brain;
     private final ClientID clientID;
     @Mock
-    public MessageChainHandler mockedWrappedHandler;
+    public CommandChainHandler mockedWrappedHandler;
 
     public AIComBundle() {
         super();
         this.clientID = new ClientID();
-        this.mockedWrappedHandler = Mockito.mock(MessageChainHandler.class);
+        this.mockedWrappedHandler = Mockito.mock(CommandChainHandler.class);
 
         this.npc = NonPlayerCharacter.getNPCBuilder(AIComBundle.getAIRunner()).build();
         this.brain = AIComBundle.getAIRunner().register(this.npc);
@@ -76,12 +76,12 @@ public class AIComBundle extends ComBundle implements MessageChainHandler {
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         // no -op
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return null;
     }
 
@@ -96,7 +96,7 @@ public class AIComBundle extends ComBundle implements MessageChainHandler {
     }
 
     @Override
-    public Collection<ClientMessenger> getClientMessengers() {
+    public Collection<GameEventProcessor> getClientMessengers() {
         return Set.of();
     }
 

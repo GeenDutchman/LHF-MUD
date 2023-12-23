@@ -1,18 +1,18 @@
 package com.lhf.messages.events;
 
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventType;
 
 public class SpeakingEvent extends GameEvent {
     private final String message;
-    private final ClientMessenger sayer;
-    private final ClientMessenger hearer;
+    private final GameEventProcessor sayer;
+    private final GameEventProcessor hearer;
     private final boolean shouting;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private String message;
-        private ClientMessenger sayer;
-        private ClientMessenger hearer;
+        private GameEventProcessor sayer;
+        private GameEventProcessor hearer;
         private boolean shouting = false;
 
         protected Builder() {
@@ -28,20 +28,20 @@ public class SpeakingEvent extends GameEvent {
             return this;
         }
 
-        public ClientMessenger getSayer() {
+        public GameEventProcessor getSayer() {
             return sayer;
         }
 
-        public Builder setSayer(ClientMessenger sayer) {
+        public Builder setSayer(GameEventProcessor sayer) {
             this.sayer = sayer;
             return this;
         }
 
-        public ClientMessenger getHearer() {
+        public GameEventProcessor getHearer() {
             return hearer;
         }
 
-        public Builder setHearer(ClientMessenger hearer) {
+        public Builder setHearer(GameEventProcessor hearer) {
             this.hearer = hearer;
             return this;
         }
@@ -101,11 +101,11 @@ public class SpeakingEvent extends GameEvent {
         return message;
     }
 
-    public ClientMessenger getSayer() {
+    public GameEventProcessor getSayer() {
         return sayer;
     }
 
-    public ClientMessenger getHearer() {
+    public GameEventProcessor getHearer() {
         return hearer;
     }
 

@@ -11,6 +11,7 @@ import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
+import com.lhf.messages.ClientID;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandContext;
@@ -19,7 +20,6 @@ import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SpeakingEvent;
 import com.lhf.messages.in.SayMessage;
-import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.User;
 
 public class SpokenPromptChunk extends AIHandler {

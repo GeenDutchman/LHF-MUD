@@ -12,7 +12,8 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ClientID;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandContext;
@@ -22,13 +23,13 @@ import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.HelpNeededEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 
-public class Client implements MessageChainHandler {
+public class Client implements CommandChainHandler {
     protected SendStrategy out;
     protected final ClientID id;
     protected Logger logger;
-    protected transient MessageChainHandler _successor;
+    protected transient CommandChainHandler _successor;
     protected final HelpHandler helpHandler = new HelpHandler();
 
     protected Client() {
@@ -118,13 +119,13 @@ public class Client implements MessageChainHandler {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Client.this;
         }
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            Reply reply = MessageChainHandler.passUpChain(Client.this, ctx, null); // this will collect all the helps
+            Reply reply = CommandChainHandler.passUpChain(Client.this, ctx, null); // this will collect all the helps
             Client.eventAccepter.accept(Client.this,
                     HelpNeededEvent.getHelpBuilder().setHelps(reply.getHelps()).Build());
             return reply.resolve();
@@ -149,12 +150,12 @@ public class Client implements MessageChainHandler {
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         this._successor = successor;
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return this._successor;
     }
 
@@ -192,7 +193,7 @@ public class Client implements MessageChainHandler {
     }
 
     @Override
-    public Collection<ClientMessenger> getClientMessengers() {
+    public Collection<GameEventProcessor> getClientMessengers() {
         return Set.of();
     }
 

@@ -33,7 +33,7 @@ import com.lhf.game.item.concrete.equipment.Whimsystick;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 import com.lhf.game.map.Land.AreaDirectionalLinks;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 
@@ -61,7 +61,7 @@ public class DungeonBuilder implements Land.LandBuilder {
     private Logger logger;
     private Map<UUID, Land.AreaDirectionalLinks> mapping;
     private Room startingRoom = null;
-    private MessageChainHandler successor = null;
+    private CommandChainHandler successor = null;
     private List<Room> orderAdded;
 
     public static DungeonBuilder newInstance() {
@@ -81,7 +81,7 @@ public class DungeonBuilder implements Land.LandBuilder {
         return this;
     }
 
-    public DungeonBuilder setSuccessor(MessageChainHandler successor) {
+    public DungeonBuilder setSuccessor(CommandChainHandler successor) {
         this.successor = successor;
         return this;
     }
@@ -126,7 +126,7 @@ public class DungeonBuilder implements Land.LandBuilder {
         return dungeon;
     }
 
-    public static Dungeon buildStaticDungeon(MessageChainHandler successor, AIRunner aiRunner)
+    public static Dungeon buildStaticDungeon(CommandChainHandler successor, AIRunner aiRunner)
             throws FileNotFoundException {
         DungeonBuilder builder = DungeonBuilder.newInstance();
         if (aiRunner == null) {
@@ -347,7 +347,7 @@ public class DungeonBuilder implements Land.LandBuilder {
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return this.successor;
     }
 }

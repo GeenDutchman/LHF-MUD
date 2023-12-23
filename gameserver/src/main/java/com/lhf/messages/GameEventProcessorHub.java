@@ -10,49 +10,49 @@ import java.util.logging.Level;
 
 import com.lhf.messages.events.GameEvent;
 
-public interface ClientMessengerHub extends ClientMessenger {
-    public Collection<ClientMessenger> getClientMessengers();
+public interface GameEventProcessorHub extends GameEventProcessor {
+    public Collection<GameEventProcessor> getClientMessengers();
 
-    public default boolean announceDirect(GameEvent gameEvent, Collection<? extends ClientMessenger> recipients) {
+    public default boolean announceDirect(GameEvent gameEvent, Collection<? extends GameEventProcessor> recipients) {
         if (gameEvent == null || recipients == null) {
             return false;
         }
 
-        Set<ClientMessenger> sentSet = new TreeSet<>(ClientMessenger.getComparator());
+        Set<GameEventProcessor> sentSet = new TreeSet<>(GameEventProcessor.getComparator());
 
         recipients.stream()
                 .filter(messenger -> messenger != null)
                 .forEachOrdered(messenger -> {
                     if (sentSet.add(messenger)) {
-                        ClientMessenger.acceptEvent(messenger, gameEvent);
+                        GameEventProcessor.acceptEvent(messenger, gameEvent);
                     }
                 });
         return true;
     }
 
-    public default boolean announceDirect(GameEvent gameEvent, ClientMessenger... recipients) {
+    public default boolean announceDirect(GameEvent gameEvent, GameEventProcessor... recipients) {
         return this.announceDirect(gameEvent, Arrays.asList(recipients));
     }
 
-    public default boolean announce(GameEvent gameEvent, Set<? extends ClientMessenger> deafened) {
-        Collection<ClientMessenger> subscribedC = this.getClientMessengers();
-        List<ClientMessenger> filteredList = subscribedC.stream()
-                .filter(messenger -> messenger != null && messenger instanceof ClientMessenger)
+    public default boolean announce(GameEvent gameEvent, Set<? extends GameEventProcessor> deafened) {
+        Collection<GameEventProcessor> subscribedC = this.getClientMessengers();
+        List<GameEventProcessor> filteredList = subscribedC.stream()
+                .filter(messenger -> messenger != null && messenger instanceof GameEventProcessor)
                 .filter(messenger -> deafened == null || !deafened.contains(messenger)).toList();
         return this.announceDirect(gameEvent, filteredList);
     }
 
-    public default boolean announce(GameEvent.Builder<?> builder, Set<? extends ClientMessenger> deafened) {
+    public default boolean announce(GameEvent.Builder<?> builder, Set<? extends GameEventProcessor> deafened) {
         return this.announce(builder.Build(), deafened);
     }
 
-    public default boolean announce(GameEvent gameEvent, ClientMessenger... deafened) {
-        Set<ClientMessenger> deafCollective = new TreeSet<>(ClientMessenger.getComparator());
+    public default boolean announce(GameEvent gameEvent, GameEventProcessor... deafened) {
+        Set<GameEventProcessor> deafCollective = new TreeSet<>(GameEventProcessor.getComparator());
         deafCollective.addAll(Arrays.asList(deafened));
         return this.announce(gameEvent, deafCollective);
     }
 
-    public default boolean announce(GameEvent.Builder<?> builder, ClientMessenger... deafened) {
+    public default boolean announce(GameEvent.Builder<?> builder, GameEventProcessor... deafened) {
         return this.announce(builder.Build(), deafened);
     }
 

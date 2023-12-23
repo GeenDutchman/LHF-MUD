@@ -23,13 +23,13 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealthBuckets;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ClientID;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.events.GameEvent;
-import com.lhf.server.client.ClientID;
 
-public class BattleStats implements ClientMessenger {
+public class BattleStats implements GameEventProcessor {
 
     private static final BiFunction<Integer, Integer, Integer> adder = (a, b) -> {
         if (a != null && b != null) {

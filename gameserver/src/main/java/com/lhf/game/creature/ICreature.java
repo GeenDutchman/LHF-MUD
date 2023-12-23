@@ -42,10 +42,10 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.ITickEvent;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
@@ -61,15 +61,15 @@ import com.lhf.messages.events.SeeEvent.SeeCategory;
  * 
  * @see com.lhf.game.creature.inventory.InventoryOwner
  * @see com.lhf.game.creature.inventory.EquipmentOwner
- * @see com.lhf.messages.ClientMessenger
- * @see com.lhf.messages.MessageChainHandler
+ * @see com.lhf.messages.GameEventProcessor
+ * @see com.lhf.messages.CommandChainHandler
  * @see com.lhf.game.AffectableEntity
  * @see com.lhf.game.creature.CreatureEffect
  * 
  * @see java.lang.Comparable
  */
 public interface ICreature
-        extends InventoryOwner, EquipmentOwner, MessageChainHandler, Comparable<ICreature>,
+        extends InventoryOwner, EquipmentOwner, CommandChainHandler, Comparable<ICreature>,
         AffectableEntity<CreatureEffect> {
 
     /**
@@ -130,8 +130,8 @@ public interface ICreature
         private CreatureFaction faction;
         private Vocation vocation;
         private Statblock statblock;
-        private ClientMessenger controller;
-        private MessageChainHandler successor;
+        private GameEventProcessor controller;
+        private CommandChainHandler successor;
         private Corpse corpse;
 
         protected CreatureBuilder() {
@@ -190,21 +190,21 @@ public interface ICreature
             return this.statblock;
         }
 
-        public T setController(ClientMessenger controller) {
+        public T setController(GameEventProcessor controller) {
             this.controller = controller;
             return this.getThis();
         }
 
-        public ClientMessenger getController() {
+        public GameEventProcessor getController() {
             return this.controller;
         }
 
-        public T setSuccessor(MessageChainHandler successor) {
+        public T setSuccessor(CommandChainHandler successor) {
             this.successor = successor;
             return this.getThis();
         }
 
-        public MessageChainHandler getSuccessor() {
+        public CommandChainHandler getSuccessor() {
             return this.successor;
         }
 
@@ -222,12 +222,13 @@ public interface ICreature
     }
 
     /**
-     * Gets the Controller/{@link com.lhf.messages.ClientMessenger ClientMessenger}
+     * Gets the Controller/{@link com.lhf.messages.GameEventProcessor
+     * GameEventProcessor}
      * for this Creature
      * 
-     * @return {@link com.lhf.messages.ClientMessenger ClientMessenger}
+     * @return {@link com.lhf.messages.GameEventProcessor GameEventProcessor}
      */
-    public abstract ClientMessenger getController();
+    public abstract GameEventProcessor getController();
 
     @Override
     default Consumer<GameEvent> getAcceptHook() {
@@ -630,9 +631,9 @@ public interface ICreature
     }
 
     @Override
-    public default Collection<ClientMessenger> getClientMessengers() {
-        TreeSet<ClientMessenger> messengers = new TreeSet<>(ClientMessenger.getComparator());
-        ClientMessenger controller = this.getController();
+    public default Collection<GameEventProcessor> getClientMessengers() {
+        TreeSet<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
+        GameEventProcessor controller = this.getController();
         if (controller != null) {
             messengers.add(controller);
         }

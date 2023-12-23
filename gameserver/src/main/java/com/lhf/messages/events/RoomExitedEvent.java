@@ -1,26 +1,26 @@
 package com.lhf.messages.events;
 
 import com.lhf.game.map.Directions;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventType;
 
 public class RoomExitedEvent extends GameEvent {
-    private final ClientMessenger leaveTaker;
+    private final GameEventProcessor leaveTaker;
     private final Directions whichWay;
 
     public static class Builder extends GameEvent.Builder<Builder> {
-        private ClientMessenger leaveTaker;
+        private GameEventProcessor leaveTaker;
         private Directions whichWay;
 
         protected Builder() {
             super(GameEventType.ROOM_EXITED);
         }
 
-        public ClientMessenger getLeaveTaker() {
+        public GameEventProcessor getLeaveTaker() {
             return leaveTaker;
         }
 
-        public Builder setLeaveTaker(ClientMessenger leaveTaker) {
+        public Builder setLeaveTaker(GameEventProcessor leaveTaker) {
             this.leaveTaker = leaveTaker;
             return this;
         }
@@ -72,7 +72,7 @@ public class RoomExitedEvent extends GameEvent {
         return sb.toString();
     }
 
-    public ClientMessenger getLeaveTaker() {
+    public GameEventProcessor getLeaveTaker() {
         return leaveTaker;
     }
 

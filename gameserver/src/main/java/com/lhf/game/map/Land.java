@@ -13,19 +13,19 @@ import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.ITickEvent;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.server.client.user.UserID;
 
-public interface Land extends CreatureContainer, MessageChainHandler, AffectableEntity<DungeonEffect> {
+public interface Land extends CreatureContainer, CommandChainHandler, AffectableEntity<DungeonEffect> {
     public interface LandBuilder {
         public abstract Area getStartingArea();
 
         public abstract Map<UUID, AreaDirectionalLinks> getAtlas();
 
-        public abstract MessageChainHandler getSuccessor();
+        public abstract CommandChainHandler getSuccessor();
 
         public abstract Land build();
     }
@@ -111,8 +111,8 @@ public interface Land extends CreatureContainer, MessageChainHandler, Affectable
     }
 
     @Override
-    public default Collection<ClientMessenger> getClientMessengers() {
-        Set<ClientMessenger> messengers = new TreeSet<>(ClientMessenger.getComparator());
+    public default Collection<GameEventProcessor> getClientMessengers() {
+        Set<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
         Area startingArea = this.getStartingArea();
         if (startingArea != null) {
             messengers.add(startingArea);

@@ -12,10 +12,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.messages.ClientID;
 import com.lhf.messages.events.BadFatalEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.WelcomeEvent;
-import com.lhf.server.client.ClientID;
 
 @ExtendWith(MockitoExtension.class)
 public class GroupAIRunnerTest {

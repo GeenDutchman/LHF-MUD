@@ -19,6 +19,7 @@ import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.Directions;
+import com.lhf.messages.ClientID;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -28,13 +29,12 @@ import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.BadGoEvent.BadGoType;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.InteractMessage;
-import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.UserID;
 
-public class Bed extends InteractObject implements CreatureContainer, MessageChainHandler {
+public class Bed extends InteractObject implements CreatureContainer, CommandChainHandler {
     protected final Logger logger;
     protected final ClientID clientID;
     protected final ScheduledThreadPoolExecutor executor;
@@ -45,7 +45,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
 
     protected class BedTime implements Runnable, Comparable<Bed.BedTime> {
         protected ICreature occupant;
-        protected MessageChainHandler successor;
+        protected CommandChainHandler successor;
         protected ScheduledFuture<?> future;
 
         protected BedTime(ICreature occupant) {
@@ -354,7 +354,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         // We only care about the room
         if (successor instanceof Area && successor != null) {
             this.room = (Area) successor;
@@ -362,7 +362,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return null; // we're gonna pretend there *is* no successor!
     }
 
@@ -423,7 +423,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Bed.this;
         }
 
@@ -454,13 +454,13 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
                 if (Bed.this.room != null) {
                     return Bed.this.room.handleChain(ctx, cmd);
                 }
-                return MessageChainHandler.passUpChain(Bed.this, ctx, cmd);
+                return CommandChainHandler.passUpChain(Bed.this, ctx, cmd);
             }
             return ctx.failhandle();
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Bed.this;
         }
 
@@ -498,7 +498,7 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Bed.this;
         }
 
@@ -528,13 +528,13 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
                 if (Bed.this.room != null) {
                     return Bed.this.room.handleChain(ctx, cmd);
                 }
-                return MessageChainHandler.passUpChain(Bed.this, ctx, cmd);
+                return CommandChainHandler.passUpChain(Bed.this, ctx, cmd);
             }
             return ctx.failhandle();
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Bed.this;
         }
 
@@ -564,13 +564,13 @@ public class Bed extends InteractObject implements CreatureContainer, MessageCha
                 if (Bed.this.room != null) {
                     return Bed.this.room.handleChain(ctx, cmd);
                 }
-                return MessageChainHandler.passUpChain(Bed.this, ctx, cmd);
+                return CommandChainHandler.passUpChain(Bed.this, ctx, cmd);
             }
             return ctx.failhandle();
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Bed.this;
         }
 

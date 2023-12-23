@@ -7,8 +7,8 @@ import java.util.regex.Pattern;
 
 import com.lhf.Taggable;
 import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
-import com.lhf.messages.ClientMessenger;
-import com.lhf.server.client.ClientID;
+import com.lhf.messages.ClientID;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.server.interfaces.NotNull;
 
 public class ConversationTree implements Serializable {
@@ -130,7 +130,7 @@ public class ConversationTree implements Serializable {
         return result;
     }
 
-    protected ConversationTreeNodeResult backtrack(ClientMessenger talker) {
+    protected ConversationTreeNodeResult backtrack(GameEventProcessor talker) {
         ConversationContext ctx = this.bookmarks.get(talker.getClientID());
         ctx.backtrack();
         UUID backNode = ctx.getTrailEnd();
@@ -145,7 +145,7 @@ public class ConversationTree implements Serializable {
         return this.nodes;
     }
 
-    protected ConversationTreeNode getCurrentNode(ClientMessenger talker) {
+    protected ConversationTreeNode getCurrentNode(GameEventProcessor talker) {
         ConversationContext ctx = this.bookmarks.get(talker.getClientID());
         UUID nodeID = ctx.getTrailEnd();
         return this.getNode(nodeID);
@@ -155,7 +155,7 @@ public class ConversationTree implements Serializable {
         return this.branches.get(nodeID);
     }
 
-    public ConversationTreeNodeResult listen(ClientMessenger talker, String message) {
+    public ConversationTreeNodeResult listen(GameEventProcessor talker, String message) {
         if (!this.bookmarks.containsKey(talker.getClientID())) {
             for (ConversationTreeBranch greet : this.greetings) {
                 Matcher matcher = greet.getRegex().matcher(message);
@@ -204,11 +204,11 @@ public class ConversationTree implements Serializable {
         return new ConversationTreeNodeResult(this.notRecognized);
     }
 
-    public void forgetBookmark(ClientMessenger talker) {
+    public void forgetBookmark(GameEventProcessor talker) {
         this.bookmarks.remove(talker.getClientID());
     }
 
-    public boolean store(ClientMessenger talker, String key, String value) {
+    public boolean store(GameEventProcessor talker, String key, String value) {
         if (this.bookmarks.containsKey(talker.getClientID())) {
             this.bookmarks.get(talker.getClientID()).put(key, value);
             return true;
@@ -216,7 +216,7 @@ public class ConversationTree implements Serializable {
         return false;
     }
 
-    public Map<String, String> getContextBag(ClientMessenger talker) {
+    public Map<String, String> getContextBag(GameEventProcessor talker) {
         ConversationContext ctx = this.bookmarks.get(talker.getClientID());
         if (ctx != null) {
             return Collections.unmodifiableMap(ctx);
@@ -224,7 +224,7 @@ public class ConversationTree implements Serializable {
         return ctx;
     }
 
-    public ConversationContext getContext(ClientMessenger talker) {
+    public ConversationContext getContext(GameEventProcessor talker) {
         return this.bookmarks.get(talker.getClientID());
     }
 

@@ -33,12 +33,13 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ClientID;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.ItemEquippedEvent;
@@ -50,7 +51,6 @@ import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.InventoryMessage;
 import com.lhf.messages.in.StatusMessage;
 import com.lhf.messages.in.UnequipMessage;
-import com.lhf.server.client.ClientID;
 
 public abstract class Creature implements ICreature {
     private final String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
@@ -63,8 +63,8 @@ public abstract class Creature implements ICreature {
     private Statblock statblock;
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
-    private transient ClientMessenger controller;
-    private transient MessageChainHandler successor;
+    private transient GameEventProcessor controller;
+    private transient CommandChainHandler successor;
     private Map<CommandMessage, CommandHandler> cmds;
     private transient final Logger logger;
 
@@ -127,7 +127,7 @@ public abstract class Creature implements ICreature {
         current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
         this.statblock.getStats().replace(Stats.CURRENTHP, current);
         if (current <= 0) {
-            MessageChainHandler next = this.getSuccessor();
+            CommandChainHandler next = this.getSuccessor();
             while (next != null) {
                 if (next instanceof CreatureContainer container) {
                     container.onCreatureDeath(this); // the rest of the chain should be handled here as well
@@ -497,11 +497,11 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public ClientMessenger getController() {
+    public GameEventProcessor getController() {
         return this.controller;
     }
 
-    public void setController(ClientMessenger cont) {
+    public void setController(GameEventProcessor cont) {
         this.controller = cont;
     }
 
@@ -511,12 +511,12 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return this.successor;
     }
 
@@ -583,7 +583,7 @@ public abstract class Creature implements ICreature {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Creature.this;
         }
 
@@ -629,7 +629,7 @@ public abstract class Creature implements ICreature {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Creature.this;
         }
 
@@ -665,7 +665,7 @@ public abstract class Creature implements ICreature {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Creature.this;
         }
 
@@ -699,7 +699,7 @@ public abstract class Creature implements ICreature {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Creature.this;
         }
 

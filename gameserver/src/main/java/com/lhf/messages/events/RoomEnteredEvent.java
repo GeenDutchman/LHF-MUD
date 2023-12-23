@@ -1,23 +1,23 @@
 package com.lhf.messages.events;
 
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventType;
 
 public class RoomEnteredEvent extends GameEvent {
-    private final ClientMessenger newbie;
+    private final GameEventProcessor newbie;
 
     public static class Builder extends GameEvent.Builder<Builder> {
-        private ClientMessenger newbie;
+        private GameEventProcessor newbie;
 
         protected Builder() {
             super(GameEventType.ROOM_ENTERED);
         }
 
-        public ClientMessenger getNewbie() {
+        public GameEventProcessor getNewbie() {
             return newbie;
         }
 
-        public Builder setNewbie(ClientMessenger newbie) {
+        public Builder setNewbie(GameEventProcessor newbie) {
             this.newbie = newbie;
             return this;
         }
@@ -48,7 +48,7 @@ public class RoomEnteredEvent extends GameEvent {
         return (this.newbie != null ? this.newbie.getColorTaggedName() : "Someone") + " has entered the room";
     }
 
-    public ClientMessenger getNewbie() {
+    public GameEventProcessor getNewbie() {
         return newbie;
     }
 

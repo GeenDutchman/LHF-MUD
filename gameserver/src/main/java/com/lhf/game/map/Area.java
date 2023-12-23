@@ -16,15 +16,15 @@ import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.Player;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.ITickEvent;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 public interface Area
-        extends ItemContainer, CreatureContainer, MessageChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
+        extends ItemContainer, CreatureContainer, CommandChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
 
     public interface AreaBuilder {
         public abstract String getName();
@@ -37,7 +37,7 @@ public interface Area
 
         public abstract Collection<ICreature> getCreatures();
 
-        public abstract MessageChainHandler getSuccessor();
+        public abstract CommandChainHandler getSuccessor();
 
         public abstract Area build();
     }
@@ -97,8 +97,8 @@ public interface Area
     }
 
     @Override
-    public default Collection<ClientMessenger> getClientMessengers() {
-        TreeSet<ClientMessenger> messengers = new TreeSet<>(ClientMessenger.getComparator());
+    public default Collection<GameEventProcessor> getClientMessengers() {
+        TreeSet<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
 
         this.getCreatures().stream()
                 .filter(creature -> creature != null).forEach(messenger -> messengers.add(messenger));

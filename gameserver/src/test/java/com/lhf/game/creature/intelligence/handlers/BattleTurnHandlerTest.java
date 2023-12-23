@@ -29,7 +29,7 @@ import com.lhf.messages.events.BattleRoundEvent;
 import com.lhf.messages.events.BattleStatsRequestedEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 
 public class BattleTurnHandlerTest {
     @Spy
@@ -69,10 +69,10 @@ public class BattleTurnHandlerTest {
         AIComBundle searcher = new AIComBundle();
         searcher.npc.setInBattle(true);
 
-        MessageChainHandler interceptor = Mockito.mock(MessageChainHandler.class);
+        CommandChainHandler interceptor = Mockito.mock(CommandChainHandler.class);
         Mockito.doNothing().when(interceptor).setSuccessor(Mockito.any());
         Mockito.when(interceptor.getSuccessor()).thenReturn(searcher);
-        Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(MessageChainHandler.class));
+        Mockito.doCallRealMethod().when(interceptor).intercept(Mockito.any(CommandChainHandler.class));
         Mockito.when(interceptor.handle(Mockito.any(CommandContext.class), Mockito.any(Command.class)))
                 .thenAnswer(new Answer<CommandContext.Reply>() {
 

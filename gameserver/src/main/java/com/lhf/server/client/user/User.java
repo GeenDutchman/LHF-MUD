@@ -9,24 +9,24 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ClientID;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.in.CreateInMessage;
-import com.lhf.server.client.ClientID;
 
-public class User implements MessageChainHandler, Comparable<User> {
+public class User implements CommandChainHandler, Comparable<User> {
     private final ClientID clientID;
     private UserID id;
     private String username;
-    private transient MessageChainHandler successor;
+    private transient CommandChainHandler successor;
     private transient final Logger logger;
 
     // private String password;
-    private ClientMessenger client;
+    private GameEventProcessor client;
 
-    public User(CreateInMessage msg, ClientMessenger client) {
+    public User(CreateInMessage msg, GameEventProcessor client) {
         this.clientID = new ClientID();
         id = new UserID(msg);
         username = msg.getUsername();
@@ -39,7 +39,7 @@ public class User implements MessageChainHandler, Comparable<User> {
         return this.id;
     }
 
-    public ClientMessenger getClient() {
+    public GameEventProcessor getClient() {
         return this.client;
     }
 
@@ -63,12 +63,12 @@ public class User implements MessageChainHandler, Comparable<User> {
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return this.successor;
     }
 
@@ -136,7 +136,7 @@ public class User implements MessageChainHandler, Comparable<User> {
     }
 
     @Override
-    public Collection<ClientMessenger> getClientMessengers() {
+    public Collection<GameEventProcessor> getClientMessengers() {
         return Set.of(this.client);
     }
 

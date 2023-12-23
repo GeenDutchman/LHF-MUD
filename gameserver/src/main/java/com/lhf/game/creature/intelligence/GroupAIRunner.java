@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.INonPlayerCharacter;
-import com.lhf.server.client.ClientID;
+import com.lhf.messages.ClientID;
 
 // see https://gamedev.stackexchange.com/questions/12458/how-to-manage-all-the-npc-ai-objects-on-the-server/12512#12512
 

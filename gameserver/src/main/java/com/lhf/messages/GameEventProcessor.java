@@ -8,19 +8,18 @@ import java.util.logging.Level;
 
 import com.lhf.Taggable;
 import com.lhf.messages.events.GameEvent;
-import com.lhf.server.client.ClientID;
 
-public interface ClientMessenger extends Taggable {
+public interface GameEventProcessor extends Taggable {
     /**
-     * Accepts a ClientMessenger and an GameEvent. Utilizes
+     * Accepts a GameEventProcessor and an GameEvent. Utilizes
      * {@link #getAcceptHook()} to find how the implementation wants to handle the
      * event.
      * <p>
-     * Does nothing if the ClientMessenger or GameEvent is null. If
+     * Does nothing if the GameEventProcessor or GameEvent is null. If
      * {@link #getAcceptHook()} returns null that is valid, but note that the event
-     * will be listed as being recieved by this ClientMessenger.
+     * will be listed as being recieved by this GameEventProcessor.
      */
-    public static final BiConsumer<ClientMessenger, GameEvent> eventAccepter = (messenger, event) -> {
+    public static final BiConsumer<GameEventProcessor, GameEvent> eventAccepter = (messenger, event) -> {
         if (messenger == null || event == null) {
             return;
         }
@@ -32,8 +31,8 @@ public interface ClientMessenger extends Taggable {
 
     /**
      * Returns a {@link java.util.function.Consumer Consumer<GameEvent>} that
-     * should process the event on the behalf of the ClientMessenger.
-     * It is valid to return null and say that this ClientMessenger won't process
+     * should process the event on the behalf of the GameEventProcessor.
+     * It is valid to return null and say that this GameEventProcessor won't process
      * it.
      * <p>
      * The assumption is that the event has already been marked by
@@ -55,8 +54,8 @@ public interface ClientMessenger extends Taggable {
      * @param messenger
      * @param event
      */
-    public static void acceptEvent(ClientMessenger messenger, GameEvent event) {
-        ClientMessenger.eventAccepter.accept(messenger, event);
+    public static void acceptEvent(GameEventProcessor messenger, GameEvent event) {
+        GameEventProcessor.eventAccepter.accept(messenger, event);
     }
 
     /**
@@ -65,14 +64,14 @@ public interface ClientMessenger extends Taggable {
      * @param messenger
      * @param builder
      */
-    public static void acceptEvent(ClientMessenger messenger, GameEvent.Builder<?> builder) {
-        ClientMessenger.eventAccepter.accept(messenger, builder.Build());
+    public static void acceptEvent(GameEventProcessor messenger, GameEvent.Builder<?> builder) {
+        GameEventProcessor.eventAccepter.accept(messenger, builder.Build());
     }
 
-    public static class ClientMessengerComparator implements Comparator<ClientMessenger> {
+    public static class ClientMessengerComparator implements Comparator<GameEventProcessor> {
 
         @Override
-        public int compare(ClientMessenger arg0, ClientMessenger arg1) {
+        public int compare(GameEventProcessor arg0, GameEventProcessor arg1) {
             if (arg0 == null || arg1 == null) {
                 throw new NullPointerException();
             }
@@ -81,7 +80,7 @@ public interface ClientMessenger extends Taggable {
 
     }
 
-    public static Comparator<ClientMessenger> getComparator() {
+    public static Comparator<GameEventProcessor> getComparator() {
         return new ClientMessengerComparator();
     }
 

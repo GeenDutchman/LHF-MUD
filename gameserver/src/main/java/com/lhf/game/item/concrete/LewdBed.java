@@ -29,7 +29,7 @@ import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.in.LewdInMessage;
 
 public class LewdBed extends Bed {
@@ -138,7 +138,7 @@ public class LewdBed extends Bed {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return LewdBed.this;
         }
 
@@ -202,7 +202,7 @@ public class LewdBed extends Bed {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return LewdBed.this;
         }
 

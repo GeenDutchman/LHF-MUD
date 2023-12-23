@@ -15,7 +15,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadFatalEvent;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.server.interfaces.ConnectionListener;
 
 public class ClientHandle extends Client implements Runnable {
@@ -88,7 +88,7 @@ public class ClientHandle extends Client implements Runnable {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return ClientHandle.this;
         }
 

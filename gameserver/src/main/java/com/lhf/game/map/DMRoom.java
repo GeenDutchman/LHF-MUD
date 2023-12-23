@@ -20,7 +20,7 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.game.lewd.LewdBabyMaker;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -33,7 +33,7 @@ import com.lhf.messages.events.SpeakingEvent;
 import com.lhf.messages.events.UserLeftEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.server.client.user.User;
@@ -97,7 +97,7 @@ public class DMRoom extends Room {
             return this;
         }
 
-        public DMRoomBuilder setSuccessor(MessageChainHandler successor) {
+        public DMRoomBuilder setSuccessor(CommandChainHandler successor) {
             this.delegate = delegate.setSuccessor(successor);
             return this;
         }
@@ -128,7 +128,7 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public MessageChainHandler getSuccessor() {
+        public CommandChainHandler getSuccessor() {
             return this.delegate.getSuccessor();
         }
 
@@ -235,8 +235,8 @@ public class DMRoom extends Room {
     }
 
     @Override
-    public Collection<ClientMessenger> getClientMessengers() {
-        Collection<ClientMessenger> messengers = new TreeSet<>(ClientMessenger.getComparator());
+    public Collection<GameEventProcessor> getClientMessengers() {
+        Collection<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
         messengers.addAll(super.getClientMessengers());
         this.users.stream().filter(userThing -> userThing != null)
                 .forEach(userThing -> messengers.add(userThing));
@@ -298,7 +298,7 @@ public class DMRoom extends Room {
                     boolean sent = false;
                     for (User u : DMRoom.this.users) {
                         if (u.getUsername().equals(sayMessage.getTarget())) {
-                            ClientMessenger sayer = ctx.getClient();
+                            GameEventProcessor sayer = ctx.getClient();
                             if (ctx.getCreature() != null) {
                                 sayer = ctx.getCreature();
                             } else if (ctx.getUser() != null) {
@@ -325,7 +325,7 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return DMRoom.this;
         }
     }
@@ -340,7 +340,7 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return DMRoom.this;
         }
     }

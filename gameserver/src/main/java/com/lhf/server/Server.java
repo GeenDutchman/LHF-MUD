@@ -14,7 +14,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.Game;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ClientID;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -22,10 +23,9 @@ import com.lhf.messages.events.BadUserDuplicationEvent;
 import com.lhf.messages.events.UserLeftEvent;
 import com.lhf.messages.events.WelcomeEvent;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.server.client.Client;
-import com.lhf.server.client.ClientID;
 import com.lhf.server.client.ClientManager;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
@@ -139,13 +139,13 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         // Server is IT, the buck stops here
         logger.log(Level.WARNING, "Attempted to put a successor on the Server");
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         // Server is IT, the buck stops here
         return null;
     }
@@ -176,7 +176,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public Collection<ClientMessenger> getClientMessengers() {
+    public Collection<GameEventProcessor> getClientMessengers() {
         return Set.of(this.game);
     }
 
@@ -226,7 +226,7 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Server.this;
         }
 
@@ -274,7 +274,7 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Server.this;
         }
 

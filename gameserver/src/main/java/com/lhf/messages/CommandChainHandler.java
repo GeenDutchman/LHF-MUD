@@ -6,13 +6,13 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
-public interface MessageChainHandler extends ClientMessengerHub {
+public interface CommandChainHandler extends GameEventProcessorHub {
 
-    public void setSuccessor(MessageChainHandler successor);
+    public void setSuccessor(CommandChainHandler successor);
 
-    public MessageChainHandler getSuccessor();
+    public CommandChainHandler getSuccessor();
 
-    public default void intercept(MessageChainHandler interceptor) {
+    public default void intercept(CommandChainHandler interceptor) {
         interceptor.setSuccessor(this.getSuccessor());
         this.setSuccessor(interceptor);
     }
@@ -42,7 +42,7 @@ public interface MessageChainHandler extends ClientMessengerHub {
 
         public CommandContext.Reply handleCommand(CommandContext ctx, Command cmd);
 
-        public MessageChainHandler getChainHandler();
+        public CommandChainHandler getChainHandler();
 
         public default void log(Level logLevel, String logMessage) {
             this.getChainHandler().log(logLevel, logMessage);
@@ -66,7 +66,7 @@ public interface MessageChainHandler extends ClientMessengerHub {
         }
         ctx = this.addSelfToContext(ctx);
         Map<CommandMessage, CommandHandler> handlers = this.getCommands(ctx);
-        ctx = MessageChainHandler.addHelps(handlers, ctx);
+        ctx = CommandChainHandler.addHelps(handlers, ctx);
         if (cmd != null && handlers != null) {
             CommandHandler handler = handlers.get(cmd.getType());
             if (handler == null) {
@@ -90,7 +90,7 @@ public interface MessageChainHandler extends ClientMessengerHub {
         if (thisLevelReply != null && thisLevelReply.isHandled()) {
             return thisLevelReply;
         }
-        return MessageChainHandler.passUpChain(this, ctx, cmd);
+        return CommandChainHandler.passUpChain(this, ctx, cmd);
     }
 
     private static CommandContext addHelps(Map<CommandMessage, CommandHandler> handlers, CommandContext ctx) {
@@ -111,7 +111,7 @@ public interface MessageChainHandler extends ClientMessengerHub {
         return ctx;
     }
 
-    public static CommandContext.Reply passUpChain(MessageChainHandler presentChainHandler, CommandContext ctx,
+    public static CommandContext.Reply passUpChain(CommandChainHandler presentChainHandler, CommandContext ctx,
             Command msg) {
         if (ctx == null) {
             ctx = new CommandContext();
@@ -120,8 +120,8 @@ public interface MessageChainHandler extends ClientMessengerHub {
             return ctx.failhandle();
         }
         ctx = presentChainHandler.addSelfToContext(ctx);
-        ctx = MessageChainHandler.addHelps(presentChainHandler.getCommands(ctx), ctx);
-        MessageChainHandler currentChainHandler = presentChainHandler.getSuccessor();
+        ctx = CommandChainHandler.addHelps(presentChainHandler.getCommands(ctx), ctx);
+        CommandChainHandler currentChainHandler = presentChainHandler.getSuccessor();
         while (currentChainHandler != null) {
             CommandContext.Reply thisLevelReply = currentChainHandler.handle(ctx, msg);
             if (thisLevelReply != null && thisLevelReply.isHandled()) {

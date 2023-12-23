@@ -36,12 +36,13 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.concrete.Corpse;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ClientID;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.BadSpeakingTargetEvent;
@@ -67,7 +68,6 @@ import com.lhf.messages.in.SayMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.TakeMessage;
 import com.lhf.messages.in.UseMessage;
-import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.UserID;
 
 public class Room implements Area {
@@ -85,7 +85,7 @@ public class Room implements Area {
     private transient TreeSet<RoomEffect> effects;
 
     private transient Map<CommandMessage, CommandHandler> commands;
-    private MessageChainHandler successor;
+    private CommandChainHandler successor;
 
     public static class RoomBuilder implements Area.AreaBuilder {
         private Logger logger;
@@ -94,7 +94,7 @@ public class Room implements Area {
         private List<Item> items;
         private Set<ICreature> creatures;
         private Land dungeon;
-        private MessageChainHandler successor;
+        private CommandChainHandler successor;
         private BattleManager.Builder battleManagerBuilder;
 
         private RoomBuilder() {
@@ -145,7 +145,7 @@ public class Room implements Area {
             return this;
         }
 
-        public RoomBuilder setSuccessor(MessageChainHandler successor) {
+        public RoomBuilder setSuccessor(CommandChainHandler successor) {
             this.successor = successor;
             return this;
         }
@@ -176,7 +176,7 @@ public class Room implements Area {
         }
 
         @Override
-        public MessageChainHandler getSuccessor() {
+        public CommandChainHandler getSuccessor() {
             return this.successor;
         }
 
@@ -502,12 +502,12 @@ public class Room implements Area {
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return this.successor;
     }
 
@@ -593,7 +593,7 @@ public class Room implements Area {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Room.this;
         }
 
@@ -628,7 +628,7 @@ public class Room implements Area {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Room.this;
         }
 
@@ -747,7 +747,7 @@ public class Room implements Area {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Room.this;
         }
     }
@@ -810,7 +810,7 @@ public class Room implements Area {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Room.this;
         }
     }
@@ -892,7 +892,7 @@ public class Room implements Area {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Room.this;
         }
     }
@@ -990,7 +990,7 @@ public class Room implements Area {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Room.this;
         }
     }
@@ -1029,7 +1029,7 @@ public class Room implements Area {
                     boolean sent = false;
                     Optional<ICreature> optTarget = Room.this.getCreature(sMessage.getTarget());
                     if (optTarget.isPresent()) {
-                        ClientMessenger sayer = ctx.getClient();
+                        GameEventProcessor sayer = ctx.getClient();
                         if (ctx.getCreature() != null) {
                             sayer = ctx.getCreature();
                         } else if (ctx.getUser() != null) {
@@ -1052,7 +1052,7 @@ public class Room implements Area {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Room.this;
         }
     }
@@ -1136,7 +1136,7 @@ public class Room implements Area {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Room.this;
         }
     }

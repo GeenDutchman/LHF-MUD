@@ -5,9 +5,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ClientID;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.in.CreateInMessage;
-import com.lhf.server.client.ClientID;
 
 public class UserManager {
     private HashMap<UserID, User> userMap;
@@ -44,7 +44,7 @@ public class UserManager {
         return userMap.keySet();
     }
 
-    public User addUser(CreateInMessage msg, ClientMessenger client) {
+    public User addUser(CreateInMessage msg, GameEventProcessor client) {
         User user = new User(msg, client);
         if (!userMap.containsKey(user.getUserID())) {
             userMap.put(user.getUserID(), user);

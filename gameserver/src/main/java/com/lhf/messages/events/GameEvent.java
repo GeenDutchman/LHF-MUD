@@ -7,8 +7,8 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 import com.lhf.game.creature.ICreature;
+import com.lhf.messages.ClientID;
 import com.lhf.messages.GameEventType;
-import com.lhf.server.client.ClientID;
 
 public abstract class GameEvent implements Comparable<GameEvent> {
 

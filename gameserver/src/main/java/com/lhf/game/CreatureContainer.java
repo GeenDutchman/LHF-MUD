@@ -14,11 +14,11 @@ import com.lhf.game.creature.Player;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.messages.ClientMessenger;
-import com.lhf.messages.ClientMessengerHub;
+import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.GameEventProcessorHub;
 import com.lhf.server.client.user.UserID;
 
-public interface CreatureContainer extends Examinable, ClientMessengerHub {
+public interface CreatureContainer extends Examinable, GameEventProcessorHub {
     /**
      * This returns an immutable Collection of Creatures
      * 
@@ -116,11 +116,11 @@ public interface CreatureContainer extends Examinable, ClientMessengerHub {
     }
 
     @Override
-    default Collection<ClientMessenger> getClientMessengers() {
-        TreeSet<ClientMessenger> messengers = new TreeSet<>(ClientMessenger.getComparator());
+    default Collection<GameEventProcessor> getClientMessengers() {
+        TreeSet<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
         messengers.addAll(this.getCreatures().stream()
                 .filter(creature -> creature != null)
-                .map(creature -> (ClientMessenger) creature).toList());
+                .map(creature -> (GameEventProcessor) creature).toList());
         return messengers;
     }
 

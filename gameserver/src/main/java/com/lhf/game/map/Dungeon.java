@@ -23,7 +23,8 @@ import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ClientID;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -38,10 +39,9 @@ import com.lhf.messages.events.TickEvent;
 import com.lhf.messages.events.BadGoEvent.BadGoType;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.ShoutMessage;
-import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.UserID;
 
 public class Dungeon implements Land {
@@ -68,7 +68,7 @@ public class Dungeon implements Land {
 
     private Map<UUID, Land.AreaDirectionalLinks> mapping;
     private Area startingRoom = null;
-    private transient MessageChainHandler successor;
+    private transient CommandChainHandler successor;
     private Map<CommandMessage, CommandHandler> commands;
     private transient TreeSet<DungeonEffect> effects;
     private transient final Logger logger;
@@ -270,7 +270,7 @@ public class Dungeon implements Land {
         return secretDirs.getExits().put(toExistingRoom, onewayDoor) == null;
     }
 
-    public void announceToAllInRoom(Room room, GameEvent event, ClientMessenger... deafened) {
+    public void announceToAllInRoom(Room room, GameEvent event, GameEventProcessor... deafened) {
         if (room == null) {
             this.startingRoom.announce(event, deafened);
             return;
@@ -313,7 +313,7 @@ public class Dungeon implements Land {
                         SpeakingEvent.getBuilder().setSayer(ctx.getCreature()).setShouting(true)
                                 .setMessage(shoutMessage.getMessage()).Build(),
                         Dungeon.this.getPlayers().stream().filter(player -> player != null)
-                                .map(player -> (ClientMessenger) player)
+                                .map(player -> (GameEventProcessor) player)
                                 .toList());
                 return ctx.handled();
             }
@@ -321,7 +321,7 @@ public class Dungeon implements Land {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Dungeon.this;
         }
 
@@ -404,7 +404,7 @@ public class Dungeon implements Land {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Dungeon.this;
         }
 
@@ -445,19 +445,19 @@ public class Dungeon implements Land {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return Dungeon.this;
         }
 
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return this.successor;
     }
 

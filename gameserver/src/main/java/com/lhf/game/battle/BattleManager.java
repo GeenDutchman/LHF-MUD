@@ -44,7 +44,8 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.map.Area;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ClientID;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -64,14 +65,13 @@ import com.lhf.messages.events.TargetDefendedEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.BattleRoundEvent.RoundAcceptance;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.PooledMessageChainHandler;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.PassMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.UseMessage;
-import com.lhf.server.client.ClientID;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
 
@@ -84,7 +84,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     private NavigableMap<ICreature, Deque<IPoolEntry>> actionPools;
     private BattleStats battleStats;
     private Area room;
-    private transient MessageChainHandler successor;
+    private transient CommandChainHandler successor;
     private transient Map<CommandMessage, CommandHandler> cmds;
     private Logger battleLogger;
     private final ClientID clientID;
@@ -778,12 +778,12 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return this.successor;
     }
 
@@ -881,7 +881,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return BattleManager.this;
         }
     }
@@ -915,14 +915,14 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         public Reply flushHandle(CommandContext ctx, Command cmd) {
             // TODO: #127 test me!
             if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof UseMessage useMessage) {
-                Reply reply = MessageChainHandler.passUpChain(BattleManager.this, ctx, useMessage);
+                Reply reply = CommandChainHandler.passUpChain(BattleManager.this, ctx, useMessage);
                 return reply;
             }
             return ctx.failhandle();
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return BattleManager.this;
         }
 
@@ -956,7 +956,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return BattleManager.this;
         }
 
@@ -984,7 +984,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.SEE && cmd instanceof SeeMessage seeMessage) {
                 if (seeMessage.getThing() != null) {
-                    return MessageChainHandler.passUpChain(BattleManager.this, ctx, seeMessage);
+                    return CommandChainHandler.passUpChain(BattleManager.this, ctx, seeMessage);
                 }
                 ctx.receive(BattleManager.this.produceMessage());
                 return ctx.handled();
@@ -993,7 +993,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return BattleManager.this;
         }
 
@@ -1004,7 +1004,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         private final static Predicate<CommandContext> enabledPredicate = BattleManagerCommandHandler.defaultBattlePredicate
                 .and(ctx -> {
                     BattleManager bm = ctx.getBattleManager();
-                    MessageChainHandler chainHandler = bm.getSuccessor();
+                    CommandChainHandler chainHandler = bm.getSuccessor();
                     CommandContext copyContext = ctx.copy();
 
                     // this whole block means: if someone further up in the chain has GO, then I
@@ -1048,7 +1048,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                         .setRoll(result);
                 Reply reply = null;
                 if (result.getRoll() >= check) {
-                    reply = MessageChainHandler.passUpChain(BattleManager.this, ctx, goMessage);
+                    reply = CommandChainHandler.passUpChain(BattleManager.this, ctx, goMessage);
                 }
                 if (BattleManager.this.hasCreature(ctx.getCreature())) { // if it is still here, it failed to flee
                     builder.setFled(false);
@@ -1072,7 +1072,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return BattleManager.this;
         }
 
@@ -1306,7 +1306,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return BattleManager.this;
         }
     }
@@ -1372,8 +1372,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public Collection<ClientMessenger> getClientMessengers() {
-        Collection<ClientMessenger> messengers = CreatureContainer.super.getClientMessengers();
+    public Collection<GameEventProcessor> getClientMessengers() {
+        Collection<GameEventProcessor> messengers = CreatureContainer.super.getClientMessengers();
         messengers.add(this.battleStats);
         return messengers;
     }

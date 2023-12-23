@@ -34,7 +34,8 @@ import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomEffect;
-import com.lhf.messages.ClientMessenger;
+import com.lhf.messages.ClientID;
+import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -49,12 +50,11 @@ import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.SpellFizzledEvent.SpellFizzleType;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.in.CastMessage;
 import com.lhf.messages.in.SpellbookMessage;
-import com.lhf.server.client.ClientID;
 
-public class ThirdPower implements MessageChainHandler {
+public class ThirdPower implements CommandChainHandler {
     // buff debuff
     // damage heal
     // summon banish
@@ -67,13 +67,13 @@ public class ThirdPower implements MessageChainHandler {
      * 
      * 
      */
-    private transient MessageChainHandler successor;
+    private transient CommandChainHandler successor;
     private EnumMap<CommandMessage, CommandHandler> cmds;
     private Spellbook spellbook;
     private transient final Logger logger;
     public final ClientID clientID;
 
-    public ThirdPower(MessageChainHandler successor, Spellbook spellbook) {
+    public ThirdPower(CommandChainHandler successor, Spellbook spellbook) {
         this.logger = Logger.getLogger(this.getClass().getName());
         this.clientID = new ClientID();
         this.successor = successor;
@@ -501,7 +501,7 @@ public class ThirdPower implements MessageChainHandler {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return ThirdPower.this;
         }
 
@@ -559,14 +559,14 @@ public class ThirdPower implements MessageChainHandler {
         }
 
         @Override
-        public MessageChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler() {
             return ThirdPower.this;
         }
 
     }
 
     private void channelizeMessage(CommandContext ctx, GameEvent message, boolean includeBattle,
-            ClientMessenger... directs) {
+            GameEventProcessor... directs) {
         if (message == null) {
             return;
         }
@@ -576,19 +576,19 @@ public class ThirdPower implements MessageChainHandler {
         } else if (ctx.getRoom() != null) {
             ctx.getRoom().announce(message);
         } else if (directs != null) {
-            for (ClientMessenger direct : directs) {
-                ClientMessenger.eventAccepter.accept(direct, message);
+            for (GameEventProcessor direct : directs) {
+                GameEventProcessor.eventAccepter.accept(direct, message);
             }
         }
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         this.successor = successor;
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return this.successor;
     }
 
@@ -619,7 +619,7 @@ public class ThirdPower implements MessageChainHandler {
     }
 
     @Override
-    public Collection<ClientMessenger> getClientMessengers() {
+    public Collection<GameEventProcessor> getClientMessengers() {
         this.log(Level.FINE, "No client messengers here!");
         return Set.of();
     }

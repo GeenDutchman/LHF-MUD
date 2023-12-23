@@ -1,4 +1,4 @@
-package com.lhf.server.client;
+package com.lhf.messages;
 
 import java.util.Objects;
 import java.util.UUID;
