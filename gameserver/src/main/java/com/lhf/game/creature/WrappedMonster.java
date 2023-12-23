@@ -12,7 +12,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import com.lhf.game.EntityEffect;
-import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.Monster.MonsterBuilder;
 import com.lhf.game.creature.conversation.ConversationManager;
@@ -30,16 +29,15 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
-import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.OutMessage.Builder;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.server.client.ClientID;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.SeeEvent;
+import com.lhf.server.client.Client.ClientID;
+import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
 
 public abstract class WrappedMonster implements IMonster {
@@ -72,18 +70,13 @@ public abstract class WrappedMonster implements IMonster {
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         innerMonster.setSuccessor(successor);
     }
 
     @Override
     public Inventory getInventory() {
         return innerMonster.getInventory();
-    }
-
-    @Override
-    public void sendMsg(Builder<?> builder) {
-        innerMonster.sendMsg(builder);
     }
 
     @Override
@@ -97,7 +90,7 @@ public abstract class WrappedMonster implements IMonster {
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return innerMonster.getSuccessor();
     }
 
@@ -117,7 +110,7 @@ public abstract class WrappedMonster implements IMonster {
     }
 
     @Override
-    public OutMessage processEffect(EntityEffect effect, boolean reverse) {
+    public GameEvent processEffect(EntityEffect effect, boolean reverse) {
         return innerMonster.processEffect(effect, reverse);
     }
 
@@ -188,7 +181,7 @@ public abstract class WrappedMonster implements IMonster {
     }
 
     @Override
-    public OutMessage applyEffect(CreatureEffect effect, boolean reverse) {
+    public GameEvent applyEffect(CreatureEffect effect, boolean reverse) {
         return innerMonster.applyEffect(effect, reverse);
     }
 
@@ -213,18 +206,13 @@ public abstract class WrappedMonster implements IMonster {
     }
 
     @Override
-    public OutMessage applyEffect(CreatureEffect effect) {
+    public GameEvent applyEffect(CreatureEffect effect) {
         return innerMonster.applyEffect(effect);
     }
 
     @Override
     public boolean hasItem(String name, Integer minimumLength) {
         return innerMonster.hasItem(name, minimumLength);
-    }
-
-    @Override
-    public void tick(TickType type) {
-        innerMonster.tick(type);
     }
 
     @Override
@@ -268,18 +256,13 @@ public abstract class WrappedMonster implements IMonster {
     }
 
     @Override
-    public ClientMessenger getController() {
+    public CommandInvoker getController() {
         return innerMonster.getController();
     }
 
     @Override
     public ClientID getClientID() {
         return innerMonster.getClientID();
-    }
-
-    @Override
-    public void sendMsg(OutMessage msg) {
-        innerMonster.sendMsg(msg);
     }
 
     @Override
@@ -394,7 +377,7 @@ public abstract class WrappedMonster implements IMonster {
     }
 
     @Override
-    public void setController(ClientMessenger cont) {
+    public void setController(CommandInvoker cont) {
         innerMonster.setController(cont);
     }
 
@@ -449,7 +432,7 @@ public abstract class WrappedMonster implements IMonster {
     }
 
     @Override
-    public SeeOutMessage produceMessage(com.lhf.messages.out.SeeOutMessage.Builder seeOutMessage) {
+    public SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
         return innerMonster.produceMessage(seeOutMessage);
     }
 
@@ -471,6 +454,11 @@ public abstract class WrappedMonster implements IMonster {
     @Override
     public int compareTo(ICreature other) {
         return innerMonster.compareTo(other);
+    }
+
+    @Override
+    public GameEventProcessorID getEventProcessorID() {
+        return innerMonster.getEventProcessorID();
     }
 
 }

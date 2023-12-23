@@ -12,7 +12,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import com.lhf.game.EntityEffect;
-import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
@@ -29,16 +28,15 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
-import com.lhf.messages.ClientMessenger;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
-import com.lhf.messages.MessageChainHandler;
-import com.lhf.messages.out.OutMessage;
-import com.lhf.messages.out.OutMessage.Builder;
-import com.lhf.messages.out.SeeOutMessage;
-import com.lhf.server.client.ClientID;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.SeeEvent;
+import com.lhf.server.client.Client.ClientID;
+import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
 
 public abstract class WrappedNPC implements INonPlayerCharacter {
@@ -67,7 +65,7 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
-    public SeeOutMessage produceMessage() {
+    public SeeEvent produceMessage() {
         return innerNPC.produceMessage();
     }
 
@@ -77,18 +75,13 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
-    public void setSuccessor(MessageChainHandler successor) {
+    public void setSuccessor(CommandChainHandler successor) {
         innerNPC.setSuccessor(successor);
     }
 
     @Override
     public Inventory getInventory() {
         return innerNPC.getInventory();
-    }
-
-    @Override
-    public void sendMsg(Builder<?> builder) {
-        innerNPC.sendMsg(builder);
     }
 
     @Override
@@ -102,7 +95,7 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
-    public MessageChainHandler getSuccessor() {
+    public CommandChainHandler getSuccessor() {
         return innerNPC.getSuccessor();
     }
 
@@ -117,7 +110,7 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
-    public OutMessage processEffect(EntityEffect effect, boolean reverse) {
+    public GameEvent processEffect(EntityEffect effect, boolean reverse) {
         return innerNPC.processEffect(effect, reverse);
     }
 
@@ -188,7 +181,7 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
-    public OutMessage applyEffect(CreatureEffect effect, boolean reverse) {
+    public GameEvent applyEffect(CreatureEffect effect, boolean reverse) {
         return innerNPC.applyEffect(effect, reverse);
     }
 
@@ -213,18 +206,13 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
-    public OutMessage applyEffect(CreatureEffect effect) {
+    public GameEvent applyEffect(CreatureEffect effect) {
         return innerNPC.applyEffect(effect);
     }
 
     @Override
     public boolean hasItem(String name, Integer minimumLength) {
         return innerNPC.hasItem(name, minimumLength);
-    }
-
-    @Override
-    public void tick(TickType type) {
-        innerNPC.tick(type);
     }
 
     @Override
@@ -268,18 +256,13 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
-    public ClientMessenger getController() {
+    public CommandInvoker getController() {
         return innerNPC.getController();
     }
 
     @Override
     public ClientID getClientID() {
         return innerNPC.getClientID();
-    }
-
-    @Override
-    public void sendMsg(OutMessage msg) {
-        innerNPC.sendMsg(msg);
     }
 
     @Override
@@ -399,7 +382,7 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
-    public void setController(ClientMessenger cont) {
+    public void setController(CommandInvoker cont) {
         innerNPC.setController(cont);
     }
 
@@ -454,7 +437,7 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
-    public SeeOutMessage produceMessage(com.lhf.messages.out.SeeOutMessage.Builder seeOutMessage) {
+    public SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
         return innerNPC.produceMessage(seeOutMessage);
     }
 
@@ -476,6 +459,11 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     @Override
     public int compareTo(ICreature other) {
         return innerNPC.compareTo(other);
+    }
+
+    @Override
+    public GameEventProcessorID getEventProcessorID() {
+        return innerNPC.getEventProcessorID();
     }
 
 }

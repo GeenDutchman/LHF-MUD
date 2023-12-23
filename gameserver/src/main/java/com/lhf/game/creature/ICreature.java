@@ -589,7 +589,7 @@ public interface ICreature
         if (dead == null) {
             return;
         }
-        MessageChainHandler next = dead.getSuccessor();
+        CommandChainHandler next = dead.getSuccessor();
         while (next != null) {
             if (next instanceof CreatureContainer container) {
                 container.onCreatureDeath(dead); // the rest of the chain should be handled here as well

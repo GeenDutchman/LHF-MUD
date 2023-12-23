@@ -16,7 +16,6 @@ import java.util.logging.Level;
 
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.EntityEffect;
-import com.lhf.game.TickType;
 import com.lhf.game.creature.Monster.MonsterBuilder;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
@@ -28,7 +27,7 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
-import com.lhf.messages.out.OutMessage;
+import com.lhf.messages.events.GameEvent;
 
 public class SummonedMonster extends WrappedMonster {
     protected final ICreature summoner;
@@ -115,7 +114,7 @@ public class SummonedMonster extends WrappedMonster {
     }
 
     @Override
-    public OutMessage processEffect(EntityEffect effect, boolean reverse) {
+    public GameEvent processEffect(EntityEffect effect, boolean reverse) {
         if (this.isAlive()) {
             return innerMonster.processEffect(effect, reverse);
         }
@@ -234,7 +233,7 @@ public class SummonedMonster extends WrappedMonster {
     }
 
     @Override
-    public OutMessage applyEffect(CreatureEffect effect, boolean reverse) {
+    public GameEvent applyEffect(CreatureEffect effect, boolean reverse) {
         if (this.isAlive()) {
             return innerMonster.applyEffect(effect, reverse);
         }
@@ -255,7 +254,7 @@ public class SummonedMonster extends WrappedMonster {
     }
 
     @Override
-    public OutMessage applyEffect(CreatureEffect effect) {
+    public GameEvent applyEffect(CreatureEffect effect) {
         if (this.isAlive()) {
             return innerMonster.applyEffect(effect);
         }
@@ -270,14 +269,6 @@ public class SummonedMonster extends WrappedMonster {
         }
         this.log(Level.WARNING, "This summon is dead, and cannot perform 'hasItem(name, minimumLength)'");
         return false;
-    }
-
-    @Override
-    public synchronized void tick(TickType type) {
-        if (this.timeLeft != null) {
-            this.timeLeft.tick(type);
-        }
-        innerMonster.tick(type);
     }
 
     @Override

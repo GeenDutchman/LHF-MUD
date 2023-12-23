@@ -23,13 +23,12 @@ import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
 import com.lhf.messages.events.BadTargetSelectedEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
-import com.lhf.server.client.Client.ClientID;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SpeakingEvent;
+import com.lhf.server.client.Client.ClientID;
 
 @ExtendWith(MockitoExtension.class)
 public class BasicAITest {
