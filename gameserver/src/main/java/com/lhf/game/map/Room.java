@@ -342,7 +342,9 @@ public class Room implements Area {
         boolean removed = this.removeCreature(creature);
         if (removed) {
             this.logger.log(Level.FINER, () -> String.format("The creature '%s' has died", creature.getName()));
-            Area.eventAccepter.accept(this, CreatureDiedEvent.getBuilder().setDearlyDeparted(creature).Build());
+            CreatureDiedEvent deathEvent = CreatureDiedEvent.getBuilder().setDearlyDeparted(creature).Build();
+            ICreature.eventAccepter.accept(creature, deathEvent); // tell the creature it has died
+            Area.eventAccepter.accept(this, deathEvent); // and then tell everyone else
             Corpse corpse = ICreature.die(creature);
             this.addItem(corpse);
         }

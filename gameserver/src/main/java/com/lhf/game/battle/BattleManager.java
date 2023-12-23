@@ -646,7 +646,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
     @Override
     public boolean onCreatureDeath(ICreature creature) {
-        if (creature == null) {
+        if (creature == null || creature.isAlive()) {
             return false;
         }
         RoundThread thread = BattleManager.this.battleThread.get();
