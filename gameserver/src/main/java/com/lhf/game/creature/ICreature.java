@@ -685,7 +685,7 @@ public interface ICreature
     }
 
     @Override
-    public default Collection<GameEventProcessor> getClientMessengers() {
+    public default Collection<GameEventProcessor> getGameEventProcessors() {
         TreeSet<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
         GameEventProcessor controller = this.getController();
         if (controller != null) {

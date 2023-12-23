@@ -236,9 +236,9 @@ public class DMRoom extends Room {
     }
 
     @Override
-    public Collection<GameEventProcessor> getClientMessengers() {
+    public Collection<GameEventProcessor> getGameEventProcessors() {
         Collection<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
-        messengers.addAll(super.getClientMessengers());
+        messengers.addAll(super.getGameEventProcessors());
         this.users.stream().filter(userThing -> userThing != null)
                 .forEach(userThing -> messengers.add(userThing));
         return messengers;

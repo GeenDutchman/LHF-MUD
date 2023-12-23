@@ -111,7 +111,7 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
     }
 
     @Override
-    public default Collection<GameEventProcessor> getClientMessengers() {
+    public default Collection<GameEventProcessor> getGameEventProcessors() {
         Set<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
         Area startingArea = this.getStartingArea();
         if (startingArea != null) {
@@ -136,7 +136,7 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             if (event instanceof ITickEvent tickEvent) {
                 this.tick(tickEvent);
             }
-            this.announceDirect(event, this.getClientMessengers());
+            this.announceDirect(event, this.getGameEventProcessors());
         };
     }
 

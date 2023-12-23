@@ -11,7 +11,7 @@ import java.util.logging.Level;
 import com.lhf.messages.events.GameEvent;
 
 public interface GameEventProcessorHub extends GameEventProcessor {
-    public Collection<GameEventProcessor> getClientMessengers();
+    public Collection<GameEventProcessor> getGameEventProcessors();
 
     public default boolean announceDirect(GameEvent gameEvent, Collection<? extends GameEventProcessor> recipients) {
         if (gameEvent == null || recipients == null) {
@@ -35,7 +35,7 @@ public interface GameEventProcessorHub extends GameEventProcessor {
     }
 
     public default boolean announce(GameEvent gameEvent, Set<? extends GameEventProcessor> deafened) {
-        Collection<GameEventProcessor> subscribedC = this.getClientMessengers();
+        Collection<GameEventProcessor> subscribedC = this.getGameEventProcessors();
         List<GameEventProcessor> filteredList = subscribedC.stream()
                 .filter(messenger -> messenger != null && messenger instanceof GameEventProcessor)
                 .filter(messenger -> deafened == null || !deafened.contains(messenger)).toList();
@@ -57,11 +57,11 @@ public interface GameEventProcessorHub extends GameEventProcessor {
     }
 
     public default boolean announce(GameEvent gameEvent) {
-        return this.announceDirect(gameEvent, this.getClientMessengers());
+        return this.announceDirect(gameEvent, this.getGameEventProcessors());
     }
 
     public default boolean announce(GameEvent.Builder<?> builder) {
-        return this.announceDirect(builder.Build(), this.getClientMessengers());
+        return this.announceDirect(builder.Build(), this.getGameEventProcessors());
     }
 
     @Override
@@ -72,7 +72,7 @@ public interface GameEventProcessorHub extends GameEventProcessor {
             }
             this.log(Level.FINEST,
                     () -> String.format("Received message %s, defaulting to announce it", event.getUuid()));
-            this.announceDirect(event, this.getClientMessengers());
+            this.announceDirect(event, this.getGameEventProcessors());
         };
     }
 

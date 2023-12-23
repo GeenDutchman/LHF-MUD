@@ -116,7 +116,7 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
     }
 
     @Override
-    default Collection<GameEventProcessor> getClientMessengers() {
+    default Collection<GameEventProcessor> getGameEventProcessors() {
         TreeSet<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
         messengers.addAll(this.getCreatures().stream()
                 .filter(creature -> creature != null)

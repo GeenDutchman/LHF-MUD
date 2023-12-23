@@ -249,7 +249,7 @@ public class Client implements CommandInvoker {
     }
 
     @Override
-    public Collection<GameEventProcessor> getClientMessengers() {
+    public Collection<GameEventProcessor> getGameEventProcessors() {
         return Set.of();
     }
 

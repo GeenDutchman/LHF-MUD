@@ -148,7 +148,7 @@ public class User implements CommandInvoker, Comparable<User> {
     }
 
     @Override
-    public Collection<GameEventProcessor> getClientMessengers() {
+    public Collection<GameEventProcessor> getGameEventProcessors() {
         return Set.of(this.client);
     }
 

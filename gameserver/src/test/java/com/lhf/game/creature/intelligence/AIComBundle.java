@@ -95,7 +95,7 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
     }
 
     @Override
-    public Collection<GameEventProcessor> getClientMessengers() {
+    public Collection<GameEventProcessor> getGameEventProcessors() {
         return Set.of();
     }
 

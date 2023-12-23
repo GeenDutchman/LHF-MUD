@@ -97,7 +97,7 @@ public interface Area
     }
 
     @Override
-    public default Collection<GameEventProcessor> getClientMessengers() {
+    public default Collection<GameEventProcessor> getGameEventProcessors() {
         TreeSet<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
 
         this.getCreatures().stream()
@@ -115,7 +115,7 @@ public interface Area
             if (event instanceof ITickEvent tickEvent) {
                 this.tick(tickEvent);
             }
-            this.announceDirect(event, this.getClientMessengers());
+            this.announceDirect(event, this.getGameEventProcessors());
         };
     }
 

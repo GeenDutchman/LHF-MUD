@@ -176,7 +176,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public Collection<GameEventProcessor> getClientMessengers() {
+    public Collection<GameEventProcessor> getGameEventProcessors() {
         return Set.of(this.game);
     }
 

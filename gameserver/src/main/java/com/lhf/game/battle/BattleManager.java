@@ -1371,8 +1371,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public Collection<GameEventProcessor> getClientMessengers() {
-        Collection<GameEventProcessor> messengers = CreatureContainer.super.getClientMessengers();
+    public Collection<GameEventProcessor> getGameEventProcessors() {
+        Collection<GameEventProcessor> messengers = CreatureContainer.super.getGameEventProcessors();
         messengers.add(this.battleStats);
         return messengers;
     }

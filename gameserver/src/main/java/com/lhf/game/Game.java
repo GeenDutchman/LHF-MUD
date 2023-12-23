@@ -130,7 +130,7 @@ public class Game implements UserListener, CommandChainHandler {
 	}
 
 	@Override
-	public Collection<GameEventProcessor> getClientMessengers() {
+	public Collection<GameEventProcessor> getGameEventProcessors() {
 		return Set.of(this.controlRoom);
 	}
 
