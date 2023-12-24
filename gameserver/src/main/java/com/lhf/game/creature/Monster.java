@@ -61,6 +61,11 @@ public class Monster extends NonPlayerCharacter implements IMonster {
             this.nextSerial();
             return new Monster(this);
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            return super.equals(obj) && obj instanceof MonsterBuilder;
+        }
     }
 
     public Monster(MonsterBuilder builder) {

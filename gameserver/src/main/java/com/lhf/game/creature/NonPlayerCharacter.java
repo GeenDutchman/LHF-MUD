@@ -26,6 +26,12 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
         protected INonPlayerCharacter preEnforcedRegistrationBuild() {
             return new NonPlayerCharacter(this);
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            return super.equals(obj) && obj instanceof NPCBuilder;
+        }
+
     }
 
     public static NPCBuilder getNPCBuilder(AIRunner aiRunner) {

@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -336,6 +337,27 @@ public interface INonPlayerCharacter extends ICreature {
         @Override
         public INonPlayerCharacter build() {
             return this.register(this.preEnforcedRegistrationBuild());
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = super.hashCode();
+            result = prime * result + Objects.hash(conversationFileName, conversationTree);
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!super.equals(obj))
+                return false;
+            if (!(obj instanceof AbstractNPCBuilder))
+                return false;
+            AbstractNPCBuilder<?> other = (AbstractNPCBuilder<?>) obj;
+            return Objects.equals(conversationFileName, other.conversationFileName)
+                    && Objects.equals(conversationTree, other.conversationTree);
         }
 
     }

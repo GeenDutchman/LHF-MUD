@@ -7,6 +7,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -249,6 +250,23 @@ public interface ICreature
         }
 
         public abstract ICreature build();
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, faction, vocation, statblock, corpse);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof CreatureBuilder))
+                return false;
+            CreatureBuilder<?> other = (CreatureBuilder<?>) obj;
+            return Objects.equals(name, other.name) && faction == other.faction
+                    && Objects.equals(vocation, other.vocation) && Objects.equals(statblock, other.statblock)
+                    && Objects.equals(corpse, other.corpse);
+        }
 
     }
 
