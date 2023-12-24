@@ -1,5 +1,6 @@
 package com.lhf.messages;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.UUID;
@@ -113,7 +114,7 @@ public interface GameEventProcessor extends Taggable {
         GameEventProcessor.eventAccepter.accept(messenger, builder.Build());
     }
 
-    public static class ClientMessengerComparator implements Comparator<GameEventProcessor> {
+    public static class ClientMessengerComparator implements Comparator<GameEventProcessor>, Serializable {
 
         @Override
         public int compare(GameEventProcessor arg0, GameEventProcessor arg1) {
