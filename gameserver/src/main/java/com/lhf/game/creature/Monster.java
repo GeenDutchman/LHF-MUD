@@ -1,9 +1,7 @@
 package com.lhf.game.creature;
 
-import java.io.FileNotFoundException;
 import java.util.Objects;
 
-import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.enums.CreatureFaction;
 
@@ -11,8 +9,8 @@ public class Monster extends NonPlayerCharacter implements IMonster {
     private final long monsterNumber;
 
     public static class MonsterBuilder extends INonPlayerCharacter.AbstractNPCBuilder<MonsterBuilder> {
-        private static long serialNumber = 0;
-        private long monsterNumber = 0;
+        private static transient long serialNumber = 0;
+        private transient long monsterNumber = 0;
 
         private MonsterBuilder(AIRunner aiRunner) {
             super(aiRunner);
@@ -29,10 +27,8 @@ public class Monster extends NonPlayerCharacter implements IMonster {
         }
 
         @Override
-        public MonsterBuilder useDefaultConversation(ConversationManager convoManager) throws FileNotFoundException {
-            if (convoManager != null) {
-                this.setConversationTree(convoManager.convoTreeFromFile(IMonster.defaultConvoTreeName));
-            }
+        public MonsterBuilder useDefaultConversation() {
+            this.setConversationFileName(IMonster.defaultConvoTreeName);
             return this.getThis();
         }
 
@@ -70,7 +66,6 @@ public class Monster extends NonPlayerCharacter implements IMonster {
     public Monster(MonsterBuilder builder) {
         super(builder);
         this.monsterNumber = builder.getMonsterNumber();
-        this.setFaction(CreatureFaction.MONSTER);
     }
 
     public static MonsterBuilder getMonsterBuilder(AIRunner aiRunner) {

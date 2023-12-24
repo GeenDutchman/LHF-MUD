@@ -213,8 +213,10 @@ public interface INonPlayerCharacter extends ICreature {
      */
     public static abstract class AbstractNPCBuilder<T extends AbstractNPCBuilder<T>>
             extends ICreature.CreatureBuilder<T> {
+        private transient ConversationManager convoManager = null;
+        private String conversationFileName = null;
         private ConversationTree conversationTree = null;
-        private AIRunner aiRunner;
+        private transient AIRunner aiRunner;
         private List<AIHandler> aiHandlers;
 
         protected AbstractNPCBuilder(AIRunner aiRunner) {
@@ -229,33 +231,61 @@ public interface INonPlayerCharacter extends ICreature {
             return this.thisObject;
         }
 
-        public T setConversationTree(ConversationTree tree) {
-            this.conversationTree = tree;
+        public ConversationManager getConvoManager() {
+            return convoManager;
+        }
+
+        public T setConvoManager(ConversationManager convoManager) {
+            if (convoManager == null) {
+                throw new IllegalArgumentException("Cannot create conversation Tree without converation manager");
+            }
+            this.convoManager = convoManager;
             return this.getThis();
         }
 
-        public T setConversationTree(ConversationManager manager, String name) {
-            if (name != null && manager != null) {
-                try {
-                    this.conversationTree = manager.convoTreeFromFile(name);
-                } catch (FileNotFoundException e) {
-                    System.err.println("Cannot load that convo file");
-                    e.printStackTrace();
-                }
-            } else {
+        public String getConversationFileName() {
+            if (this.conversationTree != null) {
+                this.conversationFileName = this.conversationTree.getTreeName();
+            }
+            return conversationFileName;
+        }
+
+        public T setConversationFileName(String conversationFileName) {
+            this.conversationFileName = conversationFileName;
+            if (this.conversationTree != null && !this.conversationTree.getTreeName().equals(conversationFileName)) {
                 this.conversationTree = null;
             }
             return this.getThis();
         }
 
+        public T setConversationTree(ConversationTree tree) {
+            this.conversationTree = tree;
+            if (tree != null) {
+                this.conversationFileName = tree.getTreeName();
+            }
+            return this.getThis();
+        }
+
         public ConversationTree getConversationTree() {
+            ConversationManager manager = this.getConvoManager();
+            String filename = this.getConversationFileName();
+            if (this.conversationTree == null && filename != null) {
+                if (manager == null) {
+                    throw new IllegalArgumentException("Cannot create conversation Tree without converation manager");
+                }
+                try {
+                    this.conversationTree = manager.convoTreeFromFile(filename);
+                } catch (FileNotFoundException e) {
+                    System.err.printf("Cannot load that convo file '%s'\n", filename);
+                    e.printStackTrace();
+                    this.conversationTree = null;
+                }
+            }
             return this.conversationTree;
         }
 
-        public T useDefaultConversation(ConversationManager convoManager) throws FileNotFoundException {
-            if (convoManager != null) {
-                this.conversationTree = convoManager.convoTreeFromFile(INonPlayerCharacter.defaultConvoTreeName);
-            }
+        public T useDefaultConversation() {
+            this.setConversationFileName(INonPlayerCharacter.defaultConvoTreeName);
             return this.getThis();
         }
 

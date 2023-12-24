@@ -128,18 +128,18 @@ public interface ICreature
      * Builder pattern root for Creature
      */
     public abstract static class CreatureBuilder<T extends CreatureBuilder<T>> {
-        protected T thisObject;
+        protected transient T thisObject;
         private String name;
         private CreatureFaction faction;
         private Vocation vocation;
         private Statblock statblock;
-        private CommandInvoker controller;
-        private CommandChainHandler successor;
+        private transient CommandInvoker controller;
+        private transient CommandChainHandler successor;
         private Corpse corpse;
 
         protected CreatureBuilder() {
-            this.name = NameGenerator.Generate(null);
-            this.faction = CreatureFaction.NPC;
+            this.name = null;
+            this.faction = null;
             this.vocation = null;
             this.statblock = new Statblock();
             this.controller = null;
@@ -153,20 +153,38 @@ public interface ICreature
         protected abstract T getThis();
 
         public T setName(String name) {
-            this.name = name != null && !name.isBlank() ? name : NameGenerator.Generate(null);
+            this.name = name;
             return this.getThis();
         }
 
+        /**
+         * Will lazily generate a name if none is already set
+         * 
+         * @return
+         */
         public String getName() {
+            if (this.name == null || name.isBlank()) {
+                this.name = NameGenerator.Generate(null);
+            }
             return this.name;
         }
 
         public T setFaction(CreatureFaction faction) {
-            this.faction = faction != null ? faction : CreatureFaction.RENEGADE;
+            this.faction = faction;
             return this.getThis();
         }
 
+        /**
+         * Will lazily generate a faction (default to
+         * {@link com.lhf.game.enums.CreatureFaction#RENEGADE RENEGADE}) if none is
+         * already set
+         * 
+         * @return
+         */
         public CreatureFaction getFaction() {
+            if (this.faction == null) {
+                this.faction = CreatureFaction.RENEGADE;
+            }
             return this.faction;
         }
 
@@ -184,6 +202,15 @@ public interface ICreature
             return this.getThis();
         }
 
+        /**
+         * Will lazily generate a {@link com.lhf.game.creature.statblock.Statblock
+         * Statblock} if none is provided.
+         * If this has a {@link com.lhf.game.creature.vocation.Vocation Vocation} set,
+         * it will use the default for the Vocation.
+         * Otherwise it'll be a plain statblock.
+         * 
+         * @return
+         */
         public Statblock getStatblock() {
             if (this.vocation != null) {
                 this.statblock = this.vocation.createNewDefaultStatblock("creature");
