@@ -253,7 +253,7 @@ public interface ICreature
 
         @Override
         public int hashCode() {
-            return Objects.hash(name, faction, vocation, statblock, corpse);
+            return Objects.hash(name, faction, vocation, statblock, corpse, getThis().getClass().getName());
         }
 
         @Override
@@ -264,6 +264,7 @@ public interface ICreature
                 return false;
             CreatureBuilder<?> other = (CreatureBuilder<?>) obj;
             return Objects.equals(name, other.name) && faction == other.faction
+                    && Objects.equals(getThis().getClass().getName(), other.getThis().getClass().getName())
                     && Objects.equals(vocation, other.vocation) && Objects.equals(statblock, other.statblock)
                     && Objects.equals(corpse, other.corpse);
         }
