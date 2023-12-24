@@ -1,5 +1,6 @@
 package com.lhf.game.creature;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -127,7 +128,7 @@ public interface ICreature
     /**
      * Builder pattern root for Creature
      */
-    public abstract static class CreatureBuilder<T extends CreatureBuilder<T>> {
+    public abstract static class CreatureBuilder<T extends CreatureBuilder<T>> implements Serializable {
         protected transient T thisObject;
         private String name;
         private CreatureFaction faction;
