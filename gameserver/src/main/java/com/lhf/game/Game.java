@@ -56,7 +56,8 @@ public class Game implements UserListener, CommandChainHandler {
 		this.thirdPower = new ThirdPower(this, null);
 		this.conversationManager = new ConversationManager();
 		this.statblockManager = new StatblockManager();
-		Dungeon dungeon = DungeonBuilder.buildStaticDungeon(this.thirdPower, this.groupAiRunner);
+		Dungeon dungeon = DungeonBuilder.buildStaticDungeon(this.thirdPower, this.groupAiRunner, this,
+				this.conversationManager, this.statblockManager);
 		this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(groupAiRunner, new ConversationManager());
 		this.controlRoom.addDungeon(dungeon);
 		this.controlRoom.setSuccessor(this.thirdPower);

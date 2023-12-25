@@ -1,5 +1,6 @@
 package com.lhf.game.creature;
 
+import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -27,6 +28,7 @@ import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice;
@@ -130,24 +132,22 @@ public interface ICreature
      * Builder pattern root for Creature
      */
     public abstract static class CreatureBuilder<T extends CreatureBuilder<T>> implements Serializable {
-        protected transient T thisObject;
+        protected final transient T thisObject;
         private String name;
         private CreatureFaction faction;
         private Vocation vocation;
+        private String statblockName;
         private Statblock statblock;
-        private transient CommandInvoker controller;
-        private transient CommandChainHandler successor;
         private Corpse corpse;
 
         protected CreatureBuilder() {
+            this.thisObject = getThis();
             this.name = null;
             this.faction = null;
             this.vocation = null;
-            this.statblock = new Statblock();
-            this.controller = null;
-            this.successor = null;
+            this.statblockName = null;
+            this.statblock = null;
             this.corpse = null;
-            this.thisObject = getThis();
         }
 
         // used for the generics and safe casts
@@ -201,43 +201,51 @@ public interface ICreature
 
         public T setStatblock(Statblock statblock) {
             this.statblock = statblock;
+            if (this.statblock != null) {
+                this.statblockName = this.statblock.getCreatureRace();
+            }
             return this.getThis();
+        }
+
+        public T setStatblockName(String statblockName) {
+            this.statblockName = statblockName;
+            if (this.statblock != null && !this.statblock.getCreatureRace().equals(statblockName)) {
+                this.statblock = null;
+            }
+            return this.getThis();
+        }
+
+        public String getStatblockName() {
+            return statblockName;
         }
 
         /**
          * Will lazily generate a {@link com.lhf.game.creature.statblock.Statblock
          * Statblock} if none is provided.
-         * If this has a {@link com.lhf.game.creature.vocation.Vocation Vocation} set,
+         * <p>
+         * If this has a vocationName set, it'll try to use the provided
+         * {@link com.lhf.game.creature.statblock.StatblockManager StatblockManager}.
+         * Elsewise if this has a {@link com.lhf.game.creature.vocation.Vocation
+         * Vocation} set,
          * it will use the default for the Vocation.
          * Otherwise it'll be a plain statblock.
          * 
          * @return
+         * @throws FileNotFoundException
          */
-        public Statblock getStatblock() {
-            if (this.vocation != null) {
-                this.statblock = this.vocation.createNewDefaultStatblock("creature");
-            } else if (this.statblock == null) {
-                this.statblock = new Statblock();
+        public Statblock getStatblock(StatblockManager statblockManager) throws FileNotFoundException {
+            if (this.statblock == null) {
+                String nextname = this.getStatblockName();
+                if (nextname != null) {
+                    this.setStatblock(statblockManager.statblockFromfile(nextname));
+                } else if (this.vocation != null) {
+                    this.setStatblock(this.vocation.createNewDefaultStatblock("creature"));
+                } else {
+                    this.setStatblock(new Statblock());
+                }
             }
+
             return this.statblock;
-        }
-
-        public T setController(CommandInvoker controller) {
-            this.controller = controller;
-            return this.getThis();
-        }
-
-        public CommandInvoker getController() {
-            return this.controller;
-        }
-
-        public T setSuccessor(CommandChainHandler successor) {
-            this.successor = successor;
-            return this.getThis();
-        }
-
-        public CommandChainHandler getSuccessor() {
-            return this.successor;
         }
 
         public T setCorpse(Corpse corpse) {
@@ -249,11 +257,13 @@ public interface ICreature
             return this.corpse;
         }
 
-        public abstract ICreature build();
+        public abstract ICreature build(CommandInvoker controller, CommandChainHandler successor,
+                StatblockManager statblockManager);
 
         @Override
         public int hashCode() {
-            return Objects.hash(name, faction, vocation, statblock, corpse, getThis().getClass().getName());
+            return Objects.hash(name, faction, vocation, statblockName, statblock, corpse,
+                    getThis().getClass().getName());
         }
 
         @Override
@@ -265,6 +275,7 @@ public interface ICreature
             CreatureBuilder<?> other = (CreatureBuilder<?>) obj;
             return Objects.equals(name, other.name) && faction == other.faction
                     && Objects.equals(getThis().getClass().getName(), other.getThis().getClass().getName())
+                    && Objects.equals(statblockName, other.statblockName)
                     && Objects.equals(vocation, other.vocation) && Objects.equals(statblock, other.statblock)
                     && Objects.equals(corpse, other.corpse);
         }
