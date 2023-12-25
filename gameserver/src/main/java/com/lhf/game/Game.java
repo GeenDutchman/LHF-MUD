@@ -14,8 +14,8 @@ import java.util.logging.Logger;
 
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
-import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.magic.ThirdPower;
@@ -40,20 +40,24 @@ public class Game implements UserListener, CommandChainHandler {
 	private transient CommandChainHandler successor;
 	private ServerInterface server;
 	private UserManager userManager;
-	private Logger logger;
-	private ThirdPower thirdPower;
+	private final Logger logger;
+	private final ThirdPower thirdPower;
 	private DMRoom controlRoom;
-	private AIRunner aiRunner;
+	private final GroupAIRunner groupAiRunner;
+	private final ConversationManager conversationManager;
+	private final StatblockManager statblockManager;
 	private Map<CommandMessage, CommandHandler> commands;
 	private final GameEventProcessorID gameEventProcessorID;
 
 	public Game(ServerInterface server, UserManager userManager) throws FileNotFoundException {
 		this.gameEventProcessorID = new GameEventProcessorID();
 		this.logger = Logger.getLogger(this.getClass().getName());
-		this.aiRunner = new GroupAIRunner(true);
+		this.groupAiRunner = new GroupAIRunner(true);
 		this.thirdPower = new ThirdPower(this, null);
-		Dungeon dungeon = DungeonBuilder.buildStaticDungeon(this.thirdPower, this.aiRunner);
-		this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(aiRunner, new ConversationManager());
+		this.conversationManager = new ConversationManager();
+		this.statblockManager = new StatblockManager();
+		Dungeon dungeon = DungeonBuilder.buildStaticDungeon(this.thirdPower, this.groupAiRunner);
+		this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(groupAiRunner, new ConversationManager());
 		this.controlRoom.addDungeon(dungeon);
 		this.controlRoom.setSuccessor(this.thirdPower);
 		this.successor = server;
@@ -67,12 +71,14 @@ public class Game implements UserListener, CommandChainHandler {
 		this.commands.put(CommandMessage.PLAYERS, new PlayersHandler());
 	}
 
-	public Game(ServerInterface server, UserManager userManager, AIRunner aiRunner, @NotNull Dungeon dungeon)
+	public Game(ServerInterface server, UserManager userManager, GroupAIRunner aiRunner, @NotNull Dungeon dungeon)
 			throws FileNotFoundException {
 		this.gameEventProcessorID = new GameEventProcessorID();
 		this.logger = Logger.getLogger(this.getClass().getName());
-		this.aiRunner = aiRunner;
+		this.groupAiRunner = aiRunner;
 		this.thirdPower = new ThirdPower(this, null);
+		this.conversationManager = new ConversationManager();
+		this.statblockManager = new StatblockManager();
 		this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(aiRunner, new ConversationManager());
 		this.controlRoom.addDungeon(dungeon);
 		this.controlRoom.setSuccessor(this.thirdPower);
@@ -183,6 +189,22 @@ public class Game implements UserListener, CommandChainHandler {
 	@Override
 	public CommandContext addSelfToContext(CommandContext ctx) {
 		return ctx;
+	}
+
+	public GroupAIRunner getGroupAiRunner() {
+		return groupAiRunner;
+	}
+
+	public ThirdPower getThirdPower() {
+		return thirdPower;
+	}
+
+	public ConversationManager getConversationManager() {
+		return conversationManager;
+	}
+
+	public StatblockManager getStatblockManager() {
+		return statblockManager;
 	}
 
 	public void setServer(ServerInterface server) {
