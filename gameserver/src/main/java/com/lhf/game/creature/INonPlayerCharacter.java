@@ -15,6 +15,7 @@ import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.dice.MultiRollResult;
@@ -28,6 +29,7 @@ import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
@@ -214,34 +216,19 @@ public interface INonPlayerCharacter extends ICreature {
      */
     public static abstract class AbstractNPCBuilder<T extends AbstractNPCBuilder<T>>
             extends ICreature.CreatureBuilder<T> {
-        private transient ConversationManager convoManager = null;
         private String conversationFileName = null;
         private ConversationTree conversationTree = null;
-        private transient AIRunner aiRunner;
         private List<AIHandler> aiHandlers;
 
-        protected AbstractNPCBuilder(AIRunner aiRunner) {
+        protected AbstractNPCBuilder() {
             super();
             this.setFaction(CreatureFaction.NPC);
-            this.aiRunner = aiRunner;
             this.aiHandlers = new ArrayList<>();
         }
 
         @Override
         protected T getThis() {
             return this.thisObject;
-        }
-
-        public ConversationManager getConvoManager() {
-            return convoManager;
-        }
-
-        public T setConvoManager(ConversationManager convoManager) {
-            if (convoManager == null) {
-                throw new IllegalArgumentException("Cannot create conversation Tree without converation manager");
-            }
-            this.convoManager = convoManager;
-            return this.getThis();
         }
 
         public String getConversationFileName() {
@@ -267,15 +254,14 @@ public interface INonPlayerCharacter extends ICreature {
             return this.getThis();
         }
 
-        public ConversationTree getConversationTree() {
-            ConversationManager manager = this.getConvoManager();
+        public ConversationTree getConversationTree(ConversationManager conversationManager) {
             String filename = this.getConversationFileName();
             if (this.conversationTree == null && filename != null) {
-                if (manager == null) {
+                if (conversationManager == null) {
                     throw new IllegalArgumentException("Cannot create conversation Tree without converation manager");
                 }
                 try {
-                    this.conversationTree = manager.convoTreeFromFile(filename);
+                    this.setConversationTree(conversationManager.convoTreeFromFile(filename));
                 } catch (FileNotFoundException e) {
                     System.err.printf("Cannot load that convo file '%s'\n", filename);
                     e.printStackTrace();
@@ -319,9 +305,9 @@ public interface INonPlayerCharacter extends ICreature {
             return this.getThis();
         }
 
-        protected INonPlayerCharacter register(INonPlayerCharacter npc) {
-            if (this.aiRunner != null) {
-                this.aiRunner.register(npc, this.getAiHandlersAsArray());
+        protected INonPlayerCharacter register(AIRunner aiRunner, INonPlayerCharacter npc) {
+            if (aiRunner != null) {
+                aiRunner.register(npc, this.getAiHandlersAsArray());
             }
             return npc;
         }
@@ -332,11 +318,14 @@ public interface INonPlayerCharacter extends ICreature {
          * 
          * @return the built NPC
          */
-        protected abstract INonPlayerCharacter preEnforcedRegistrationBuild();
+        protected abstract INonPlayerCharacter preEnforcedRegistrationBuild(CommandInvoker controller,
+                CommandChainHandler successor,
+                StatblockManager statblockManager);
 
         @Override
-        public INonPlayerCharacter build() {
-            return this.register(this.preEnforcedRegistrationBuild());
+        public INonPlayerCharacter build(CommandInvoker controller, CommandChainHandler successor,
+                StatblockManager statblockManager, AIRunner aiRunner) {
+            return this.register(aiRunner, this.preEnforcedRegistrationBuild());
         }
 
         @Override
