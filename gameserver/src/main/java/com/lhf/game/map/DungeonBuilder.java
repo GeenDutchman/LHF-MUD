@@ -3,6 +3,7 @@ package com.lhf.game.map;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -10,6 +11,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.Game;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NameGenerator;
 import com.lhf.game.creature.conversation.ConversationManager;
@@ -59,10 +61,11 @@ public class DungeonBuilder implements Land.LandBuilder {
     }
 
     private Logger logger;
-    private Map<UUID, Land.AreaDirectionalLinks> mapping;
+    // linkedhasmap preserves insertion order
+    private LinkedHashMap<UUID, Land.AreaDirectionalLinks> mapping;
     private Room startingRoom = null;
+    private Game game;
     private CommandChainHandler successor = null;
-    private List<Room> orderAdded;
 
     public static DungeonBuilder newInstance() {
         return new DungeonBuilder();
@@ -70,14 +73,12 @@ public class DungeonBuilder implements Land.LandBuilder {
 
     private DungeonBuilder() {
         this.logger = Logger.getLogger(this.getClass().getName());
-        this.mapping = new HashMap<>();
-        this.orderAdded = new ArrayList<>();
+        this.mapping = new LinkedHashMap<>();
     }
 
     public DungeonBuilder addStartingRoom(Room startingRoom) {
         this.startingRoom = startingRoom;
         this.mapping.putIfAbsent(this.startingRoom.getUuid(), new RoomAndDirs(startingRoom));
-        this.orderAdded.add(startingRoom);
         return this;
     }
 
@@ -99,7 +100,6 @@ public class DungeonBuilder implements Land.LandBuilder {
         assert !existingExits.containsKey(toNewRoom)
                 : existing.getName() + " already has direction " + toNewRoom.toString();
         existingExits.put(toNewRoom, doorway);
-        this.orderAdded.add(toAdd);
         return this;
     }
 
@@ -115,7 +115,6 @@ public class DungeonBuilder implements Land.LandBuilder {
                 : secretRoom.getName() + " already has direction " + toExistingRoom.toString();
         Doorway oneWayDoor = DoorwayFactory.createDoorway(DoorwayType.ONE_WAY, secretRoom, toExistingRoom, existing);
         secretExits.put(toExistingRoom, oneWayDoor);
-        this.orderAdded.add(secretRoom);
         return this;
     }
 
@@ -126,20 +125,19 @@ public class DungeonBuilder implements Land.LandBuilder {
         return dungeon;
     }
 
-    public static Dungeon buildStaticDungeon(CommandChainHandler successor, AIRunner aiRunner)
+    public static Dungeon buildStaticDungeon(CommandChainHandler successor, AIRunner aiRunner, Game game,
+            ConversationManager convoLoader, StatblockManager statblockLoader)
             throws FileNotFoundException {
-        DungeonBuilder builder = DungeonBuilder.newInstance();
+        DungeonBuilder builder = DungeonBuilder.newInstance().setGame(game);
         if (aiRunner == null) {
             builder.logger.log(Level.SEVERE, "AIRunner NOT provided!");
         }
 
         builder.setSuccessor(successor);
 
-        ConversationManager convoLoader = new ConversationManager();
-        StatblockManager loader = new StatblockManager();
-        Statblock goblin = loader.statblockFromfile("goblin");
-        Statblock bugbear = loader.statblockFromfile("bugbear");
-        Statblock hobgoblin = loader.statblockFromfile("hobgoblin");
+        Statblock goblin = statblockLoader.statblockFromfile("goblin");
+        Statblock bugbear = statblockLoader.statblockFromfile("bugbear");
+        Statblock hobgoblin = statblockLoader.statblockFromfile("hobgoblin");
 
         // Entry Room RM1
         Room.RoomBuilder entryRoomBuilder = Room.RoomBuilder.getInstance();
@@ -331,7 +329,8 @@ public class DungeonBuilder implements Land.LandBuilder {
         return builder.build();
     }
 
-    public static Dungeon buildDynamicDungeon(int seed, AIRunner aiRunner) {
+    public static Dungeon buildDynamicDungeon(int seed, AIRunner aiRunner,
+            ConversationManager convoLoader, StatblockManager statblockLoader) {
 
         return null;
     }
@@ -350,4 +349,17 @@ public class DungeonBuilder implements Land.LandBuilder {
     public CommandChainHandler getSuccessor() {
         return this.successor;
     }
+
+    public Game getGame() {
+        if (this.game == null) {
+            this.logger.severe("No game present!");
+        }
+        return game;
+    }
+
+    public DungeonBuilder setGame(Game game) {
+        this.game = game;
+        return this;
+    }
+
 }

@@ -19,9 +19,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.EntityEffect;
+import com.lhf.game.Game;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.conversation.ConversationManager;
+import com.lhf.game.creature.intelligence.GroupAIRunner;
+import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
@@ -67,6 +72,7 @@ public class Dungeon implements Land {
 
     private Map<UUID, Land.AreaDirectionalLinks> mapping;
     private Area startingRoom = null;
+    private final Game game;
     private transient CommandChainHandler successor;
     private Map<CommandMessage, CommandHandler> commands;
     private transient TreeSet<DungeonEffect> effects;
@@ -76,6 +82,7 @@ public class Dungeon implements Land {
     Dungeon(Land.LandBuilder builder) {
         this.logger = Logger.getLogger(String.format("%s.%s", this.getClass().getName(), this.getName()));
         this.gameEventProcessorID = new GameEventProcessorID();
+        this.game = builder.getGame();
         this.startingRoom = builder.getStartingArea();
         this.mapping = builder.getAtlas();
         this.successor = builder.getSuccessor();
@@ -517,6 +524,34 @@ public class Dungeon implements Land {
     public String getName() {
         // TODO: do dungeons need names?
         return "Ibaif";
+    }
+
+    public GroupAIRunner getGroupAiRunner() {
+        if (this.game == null) {
+            return null;
+        }
+        return this.game.getGroupAiRunner();
+    }
+
+    public ThirdPower getThirdPower() {
+        if (this.game == null) {
+            return null;
+        }
+        return this.game.getThirdPower();
+    }
+
+    public ConversationManager getConversationManager() {
+        if (this.game == null) {
+            return null;
+        }
+        return this.game.getConversationManager();
+    }
+
+    public StatblockManager getStatblockManager() {
+        if (this.game == null) {
+            return null;
+        }
+        return this.game.getStatblockManager();
     }
 
     @Override

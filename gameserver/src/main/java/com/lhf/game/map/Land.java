@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
+import com.lhf.game.Game;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.messages.GameEventProcessor;
@@ -28,6 +29,8 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         public abstract CommandChainHandler getSuccessor();
 
         public abstract Land build();
+
+        public abstract Game getGame();
     }
 
     public interface AreaDirectionalLinks {
