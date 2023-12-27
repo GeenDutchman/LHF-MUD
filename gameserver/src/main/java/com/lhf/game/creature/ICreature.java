@@ -170,7 +170,7 @@ public interface ICreature
          * 
          * @return
          */
-        public String getName() {
+        public synchronized String getName() {
             if (this.name == null || name.isBlank()) {
                 this.name = NameGenerator.Generate(null);
             }
