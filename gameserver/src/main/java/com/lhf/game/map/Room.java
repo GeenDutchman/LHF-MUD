@@ -1,5 +1,6 @@
 package com.lhf.game.map;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,7 +30,12 @@ import com.lhf.game.ItemContainer;
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.INonPlayerCharacter.AbstractNPCBuilder;
+import com.lhf.game.creature.conversation.ConversationManager;
+import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
@@ -88,13 +94,12 @@ public class Room implements Area {
     private CommandChainHandler successor;
 
     public static class RoomBuilder implements Area.AreaBuilder {
-        private Logger logger;
+        private final transient Logger logger;
         private String name;
         private String description;
         private List<Item> items;
-        private Set<ICreature> creatures;
-        private Land dungeon;
-        private CommandChainHandler successor;
+        private Set<INonPlayerCharacter.AbstractNPCBuilder<?, ?>> npcsToBuild;
+        private Set<INonPlayerCharacter> nonPlayerCharacters;
         private BattleManager.Builder battleManagerBuilder;
 
         private RoomBuilder() {
@@ -102,7 +107,8 @@ public class Room implements Area {
             this.name = "A Room";
             this.description = "An area that Creatures and Items can be in";
             this.items = new ArrayList<>();
-            this.creatures = new HashSet<>();
+            this.npcsToBuild = new HashSet<>();
+            this.nonPlayerCharacters = new HashSet<>();
             this.battleManagerBuilder = BattleManager.Builder.getInstance();
         }
 
@@ -130,39 +136,48 @@ public class Room implements Area {
             return this;
         }
 
-        public RoomBuilder addCreature(ICreature creature) {
-            if (this.creatures == null) {
-                this.creatures = new HashSet<>();
+        /**
+         * Adds a prebuilt NPC to the Builder
+         * 
+         * @deprecated We want to keep the Builders Serializable, and a full Creature
+         *             has several non-Serializable components that are neccesary for
+         *             functionality. Prefer using
+         *             {@link #addNPCBuilder(AbstractNPCBuilder)}.
+         */
+        @Deprecated
+        public RoomBuilder addPrebuiltNPC(INonPlayerCharacter npc) {
+            if (this.nonPlayerCharacters == null) {
+                this.nonPlayerCharacters = new HashSet<>();
             }
-            if (creature != null) {
-                this.creatures.add(creature);
+            if (npc != null) {
+                this.nonPlayerCharacters.add(npc);
             }
             return this;
         }
 
-        public RoomBuilder setDungeon(Land dungeon) {
-            this.dungeon = dungeon;
-            return this;
-        }
-
-        public RoomBuilder setSuccessor(CommandChainHandler successor) {
-            this.successor = successor;
+        public RoomBuilder addNPCBuilder(INonPlayerCharacter.AbstractNPCBuilder<?, ?> builder) {
+            if (this.npcsToBuild == null) {
+                this.npcsToBuild = new HashSet<>();
+            }
+            if (builder != null) {
+                this.npcsToBuild.add(builder);
+            }
             return this;
         }
 
         @Override
-        public Collection<ICreature> getCreatures() {
-            return this.creatures;
+        public Collection<AbstractNPCBuilder<?, ?>> getNPCsToBuild() {
+            return this.npcsToBuild;
+        }
+
+        @Override
+        public Collection<INonPlayerCharacter> getPrebuiltNPCs() {
+            return this.nonPlayerCharacters;
         }
 
         @Override
         public String getDescription() {
             return this.description;
-        }
-
-        @Override
-        public Land getLand() {
-            return this.dungeon;
         }
 
         @Override
@@ -175,15 +190,54 @@ public class Room implements Area {
             return this.name;
         }
 
-        @Override
-        public CommandChainHandler getSuccessor() {
-            return this.successor;
+        private Room buildCreatures(Room room,
+                AIRunner aiRunner, StatblockManager statblockManager,
+                ConversationManager conversationManager) throws FileNotFoundException {
+            Collection<AbstractNPCBuilder<?, ?>> toBuild = this.getNPCsToBuild();
+            if (room == null || toBuild == null) {
+                return room;
+            }
+            for (AbstractNPCBuilder<?, ?> npcBuilder : toBuild) {
+                if (npcBuilder == null) {
+                    continue;
+                }
+                INonPlayerCharacter builtCharacter = npcBuilder.build(aiRunner, room, statblockManager, conversationManager)
+                room.allCreatures.add(builtCharacter);
+            }
+            return room;
         }
 
         @Override
-        public Room build() {
+        public Room build(Land land, AIRunner aiRunner, StatblockManager statblockManager,
+                ConversationManager conversationManager) throws FileNotFoundException {
             this.logger.log(Level.INFO, () -> String.format("Building room '%s'", this.name));
-            return new Room(this);
+            Room theRoom = new Room(this);
+            if (land == null) {
+                this.logger.log(Level.WARNING, "Building a Room without a Land!");
+            } else {
+                theRoom.setSuccessor(land);
+                theRoom.setLand(land);
+            }
+            return this.buildCreatures(theRoom, aiRunner, statblockManager, conversationManager);
+        }
+
+        @Override
+        public Area build(CommandChainHandler successor, Land land, AIRunner aiRunner,
+                StatblockManager statblockManager, ConversationManager conversationManager)
+                throws FileNotFoundException {
+            this.logger.log(Level.INFO, () -> String.format("Building room '%s'", this.name));
+            Room theRoom = new Room(this);
+            if (land == null) {
+                this.logger.log(Level.WARNING, "Building a Room without a Land!");
+            } else {
+                theRoom.setLand(land);
+            }
+            if (successor == null) {
+                this.logger.log(Level.WARNING, "Building a Room without a Successor!");
+            } else {
+                theRoom.setSuccessor(successor);
+            }
+            return this.buildCreatures(theRoom, aiRunner, statblockManager, conversationManager);
         }
     }
 
@@ -194,12 +248,13 @@ public class Room implements Area {
                         : this.uuid.toString()));
         this.description = builder.getDescription() != null ? builder.getDescription() : builder.getName();
         this.items = new ArrayList<>(builder.getItems());
-        this.allCreatures = new TreeSet<>(builder.getCreatures());
+        this.allCreatures = new TreeSet<>(builder.getPrebuiltNPCs());
         for (ICreature c : this.allCreatures) {
             c.setSuccessor(this);
         }
-        this.dungeon = builder.getLand();
-        this.successor = builder.getSuccessor();
+        // dungeon and successor set by builder
+        this.dungeon = null;
+        this.successor = null;
         this.effects = new TreeSet<>();
         this.battleManager = builder.battleManagerBuilder.Build(this);
         this.commands = this.buildCommands();
@@ -211,14 +266,6 @@ public class Room implements Area {
         cmds.put(CommandMessage.SEE, new SeeHandler());
         cmds.put(CommandMessage.DROP, new DropHandler());
         cmds.put(CommandMessage.USE, new UseHandler());
-        // sj.add("\"cast [invocation]\"").add("Casts the spell that has the matching
-        // invocation.").add("\n");
-        // sj.add("\"cast [invocation] at [target]\"").add("Some spells need you to name
-        // a target.").add("\n");
-        // sj.add("\"cast [invocation] use [level]\"").add(
-        // "Sometimes you want to put more power into your spell, so put a higher level
-        // number for the level.")
-        // .add("\n");
         cmds.put(CommandMessage.CAST, new CastHandler());
         cmds.put(CommandMessage.ATTACK, new AttackHandler());
         cmds.put(CommandMessage.INTERACT, new InteractHandler());

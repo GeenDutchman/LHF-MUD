@@ -1,5 +1,7 @@
 package com.lhf.game.map;
 
+import java.io.FileNotFoundException;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -14,6 +16,9 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.conversation.ConversationManager;
+import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.GameEventProcessor;
@@ -26,20 +31,23 @@ import com.lhf.messages.events.SeeEvent.SeeCategory;
 public interface Area
         extends ItemContainer, CreatureContainer, CommandChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
 
-    public interface AreaBuilder {
+    public interface AreaBuilder extends Serializable {
         public abstract String getName();
 
         public abstract String getDescription();
 
-        public abstract Land getLand();
-
         public abstract Collection<Item> getItems();
 
-        public abstract Collection<ICreature> getCreatures();
+        public abstract Collection<INonPlayerCharacter.AbstractNPCBuilder<?, ?>> getNPCsToBuild();
 
-        public abstract CommandChainHandler getSuccessor();
+        public abstract Collection<INonPlayerCharacter> getPrebuiltNPCs();
 
-        public abstract Area build();
+        public abstract Area build(Land land, AIRunner aiRunner, StatblockManager statblockManager,
+                ConversationManager conversationManager) throws FileNotFoundException;
+
+        public abstract Area build(CommandChainHandler successor, Land land, AIRunner aiRunner,
+                StatblockManager statblockManager,
+                ConversationManager conversationManager) throws FileNotFoundException;
     }
 
     public abstract UUID getUuid();
