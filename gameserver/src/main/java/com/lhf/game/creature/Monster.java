@@ -1,24 +1,27 @@
 package com.lhf.game.creature;
 
+import java.io.FileNotFoundException;
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 
-import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.messages.CommandChainHandler;
 
 public class Monster extends NonPlayerCharacter implements IMonster {
     private final long monsterNumber;
 
-    public static class MonsterBuilder extends INonPlayerCharacter.AbstractNPCBuilder<MonsterBuilder> {
+    public static class MonsterBuilder extends INonPlayerCharacter.AbstractNPCBuilder<MonsterBuilder, Monster> {
         private static transient long serialNumber = 0;
         private transient long monsterNumber = 0;
 
-        private MonsterBuilder(AIRunner aiRunner) {
-            super(aiRunner);
+        private MonsterBuilder() {
+            super();
             this.setFaction(CreatureFaction.MONSTER);
         }
 
-        public static MonsterBuilder getInstance(AIRunner aiRunner) {
-            return new MonsterBuilder(aiRunner);
+        public static MonsterBuilder getInstance() {
+            return new MonsterBuilder();
         }
 
         @Override
@@ -44,22 +47,19 @@ public class Monster extends NonPlayerCharacter implements IMonster {
             return this.monsterNumber;
         }
 
-        protected IMonster register(IMonster npc) {
-            if (this.getAiRunner() != null) {
-                this.getAiRunner().register(npc, this.getAiHandlersAsArray());
+        @Override
+        protected Monster preEnforcedRegistrationBuild(CommandChainHandler successor,
+                StatblockManager statblockManager, UnaryOperator<MonsterBuilder> composedlazyLoaders)
+                throws FileNotFoundException {
+            if (statblockManager != null) {
+                this.loadStatblock(statblockManager);
             }
-            return npc;
-        }
-
-        @Override
-        public IMonster build() {
-            return this.register(this.preEnforcedRegistrationBuild());
-        }
-
-        @Override
-        protected IMonster preEnforcedRegistrationBuild() {
-            this.nextSerial();
-            return new Monster(this);
+            if (composedlazyLoaders != null) {
+                composedlazyLoaders.apply(this.getThis());
+            }
+            Monster created = new Monster(this);
+            created.setSuccessor(successor);
+            return created;
         }
 
         @Override
@@ -73,8 +73,8 @@ public class Monster extends NonPlayerCharacter implements IMonster {
         this.monsterNumber = builder.getMonsterNumber();
     }
 
-    public static MonsterBuilder getMonsterBuilder(AIRunner aiRunner) {
-        return new MonsterBuilder(aiRunner);
+    public static MonsterBuilder getMonsterBuilder() {
+        return new MonsterBuilder();
     }
 
     @Override

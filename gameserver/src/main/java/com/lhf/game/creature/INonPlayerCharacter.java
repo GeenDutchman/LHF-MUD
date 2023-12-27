@@ -313,7 +313,7 @@ public interface INonPlayerCharacter extends ICreature {
                 throws FileNotFoundException;
 
         @Override
-        public INonPlayerCharacter build(Consumer<INonPlayerCharacter> controllerAssigner,
+        public NPCType build(Consumer<INonPlayerCharacter> controllerAssigner,
                 CommandChainHandler successor, StatblockManager statblockManager,
                 UnaryOperator<NPCBuilderType> composedlazyLoaders) throws FileNotFoundException {
             if (statblockManager != null) {
@@ -322,7 +322,7 @@ public interface INonPlayerCharacter extends ICreature {
             if (composedlazyLoaders != null) {
                 composedlazyLoaders.apply(this.getThis());
             }
-            INonPlayerCharacter built = this.preEnforcedRegistrationBuild(successor, statblockManager,
+            NPCType built = this.preEnforcedRegistrationBuild(successor, statblockManager,
                     composedlazyLoaders);
             if (controllerAssigner != null) {
                 controllerAssigner.accept(built);
@@ -331,7 +331,7 @@ public interface INonPlayerCharacter extends ICreature {
             return built;
         }
 
-        public INonPlayerCharacter build(AIRunner aiRunner, CommandChainHandler successor,
+        public NPCType build(AIRunner aiRunner, CommandChainHandler successor,
                 StatblockManager statblockManager, ConversationManager conversationManager)
                 throws FileNotFoundException {
             Consumer<INonPlayerCharacter> registration = (npc) -> {
