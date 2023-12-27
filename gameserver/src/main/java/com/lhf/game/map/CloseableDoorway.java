@@ -1,21 +1,17 @@
 package com.lhf.game.map;
 
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.map.DoorwayFactory.DoorwayType;
 
 class CloseableDoorway extends Doorway {
     private AtomicBoolean opened;
 
-    public CloseableDoorway(UUID roomAUuid, Directions fromBtoA, UUID roomBUuid) {
-        super(roomAUuid, fromBtoA, roomBUuid);
+    public CloseableDoorway() {
         this.opened = new AtomicBoolean(false);
     }
 
-    public CloseableDoorway(UUID roomAUuid, Directions fromBtoA, UUID roomBUuid, boolean opened) {
-        super(roomAUuid, fromBtoA, roomBUuid);
+    public CloseableDoorway(boolean opened) {
         this.opened = new AtomicBoolean(opened);
     }
 
@@ -37,11 +33,11 @@ class CloseableDoorway extends Doorway {
     }
 
     @Override
-    public boolean canTraverse(ICreature creature, Directions whichWay) {
-        if (!this.isOpen()) {
-            return false;
+    public boolean testTraversal(ICreature creature, Directions direction, Area source, Area dest) {
+        if (this.isOpen()) {
+            return super.testTraversal(creature, direction, source, dest);
         }
-        return super.canTraverse(creature, whichWay);
+        return false;
     }
 
 }
