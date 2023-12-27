@@ -1,5 +1,6 @@
 package com.lhf.game.creature;
 
+import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -18,8 +19,10 @@ import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.Monster.MonsterBuilder;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
+import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
@@ -56,8 +59,9 @@ public abstract class WrappedMonster implements IMonster {
         this.innerMonster = monster;
     }
 
-    protected WrappedMonster(@NotNull MonsterBuilder builder) {
-        this.innerMonster = builder.build();
+    protected WrappedMonster(@NotNull MonsterBuilder builder, AIRunner aiRunner, CommandChainHandler successor,
+            StatblockManager statblockManager, ConversationManager conversationManager) throws FileNotFoundException {
+        this.innerMonster = builder.build(aiRunner, successor, statblockManager, conversationManager);
     }
 
     public IMonster unwrap() {

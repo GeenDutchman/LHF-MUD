@@ -1,5 +1,6 @@
 package com.lhf.game.creature;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
@@ -17,8 +18,11 @@ import java.util.logging.Level;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.Monster.MonsterBuilder;
+import com.lhf.game.creature.conversation.ConversationManager;
+import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
@@ -27,6 +31,7 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.GameEvent;
 
 public class SummonedMonster extends WrappedMonster {
@@ -45,8 +50,10 @@ public class SummonedMonster extends WrappedMonster {
         this.timeLeft = timeLeft;
     }
 
-    public SummonedMonster(MonsterBuilder builder, ICreature summoner, Ticker timeLeft) {
-        super(builder);
+    public SummonedMonster(MonsterBuilder builder, ICreature summoner, Ticker timeLeft, AIRunner aiRunner,
+            CommandChainHandler successor,
+            StatblockManager statblockManager, ConversationManager conversationManager) throws FileNotFoundException {
+        super(builder, aiRunner, successor, statblockManager, conversationManager);
         this.summoner = summoner;
         this.timeLeft = timeLeft;
     }
