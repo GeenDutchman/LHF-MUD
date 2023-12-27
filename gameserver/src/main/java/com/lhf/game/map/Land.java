@@ -3,6 +3,7 @@ package com.lhf.game.map;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -17,6 +18,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.map.Area.AreaBuilder;
 import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
+import com.lhf.game.map.Atlas.AtlasMappingItem;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.ITickEvent;
 import com.lhf.messages.CommandChainHandler;
@@ -24,45 +26,41 @@ import com.lhf.messages.events.GameEvent;
 import com.lhf.server.client.user.UserID;
 
 public interface Land extends CreatureContainer, CommandChainHandler, AffectableEntity<DungeonEffect> {
-
-    public interface DirectionalLinks {
-        public abstract UUID getID();
-
-        public abstract Map<Directions, Doorway> getExits();
+    public interface TraversalTester extends Serializable {
+        public boolean test(ICreature creature, Directions direction, Area source, Area dest);
     }
 
-    public interface AreaDirectionalLinks extends DirectionalLinks {
-        public abstract Area getArea();
+    public final class AreaAtlas extends Atlas<Area, UUID> {
+
+        protected AreaAtlas(Area first) {
+            super(first);
+        }
 
         @Override
-        default UUID getID() {
-            final Area foundArea = this.getArea();
-            if (foundArea == null) {
-                throw new IllegalStateException("An AreaDirectionalLink cannot have a null area!");
-            }
-            return foundArea.getUuid();
+        public UUID getIDForMemberType(Area member) {
+            return member.getUuid();
         }
 
     }
 
     public interface LandBuilder extends Serializable {
-        public interface AreaBuilderDirectionalLinks extends Serializable, DirectionalLinks {
-            public abstract AreaBuilder getAreaBuilder();
+
+        public final class AreaBuilderAtlas extends Atlas<AreaBuilder, AreaBuilderID> {
+
+            protected AreaBuilderAtlas(AreaBuilder first) {
+                super(first);
+            }
 
             @Override
-            default UUID getID() {
-                final AreaBuilder foundArea = this.getAreaBuilder();
-                if (foundArea == null) {
-                    throw new IllegalStateException("An AreaDirectionalLink cannot have a null area!");
-                }
-                return foundArea.getAreaBuilderID().getId();
+            public AreaBuilderID getIDForMemberType(AreaBuilder member) {
+                return member.getAreaBuilderID();
             }
 
         }
 
         public abstract AreaBuilder getStartingAreaBuilder();
 
-        public abstract Map<AreaBuilderID, ? extends AreaBuilderDirectionalLinks> getAtlas();
+        public abstract AreaBuilderAtlas getAtlas();
 
         public abstract Land build(CommandChainHandler successor, Game game);
 
@@ -72,61 +70,34 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
     }
 
-    public abstract Map<UUID, AreaDirectionalLinks> getAtlas();
+    public abstract AreaAtlas getAtlas();
 
     public abstract Area getStartingArea();
 
-    public default AreaDirectionalLinks getAreaDirectionalLinks(Area area) {
-        Map<UUID, AreaDirectionalLinks> atlas = this.getAtlas();
-        if (atlas == null || atlas.size() == 0 || !atlas.containsKey(area.getUuid())) {
-            return null;
-        }
-        return atlas.get(area.getUuid());
-    }
-
-    public default Map<Directions, Doorway> getAreaExits(Area area) {
-        AreaDirectionalLinks links = this.getAreaDirectionalLinks(area);
-        if (links == null) {
-            return null;
-        }
-        return links.getExits();
+    public default Map<Directions, Atlas<Area, UUID>.TargetedTester> getAreaExits(Area area) {
+        AreaAtlas atlas = this.getAtlas();
+        Atlas<Area, UUID>.AtlasMappingItem ami = atlas.getAtlasMappingItem(area);
+        return ami.getDirections();
     }
 
     public default Area getCreatureArea(ICreature creature) {
-        for (AreaDirectionalLinks adl : this.getAtlas().values()) {
-            Area adlArea = adl.getArea();
-            if (adlArea != null) {
-                if (adlArea.hasCreature(creature)) {
-                    return adlArea;
-                }
-            }
-        }
-        return null;
+        return this.getAtlas().getAtlasMembers().stream()
+                .filter(area -> area != null && area.hasCreature(creature))
+                .findFirst().orElseGet(() -> null);
     }
 
     public default Area getCreatureArea(String name) {
-        for (AreaDirectionalLinks adl : this.getAtlas().values()) {
-            Area adlArea = adl.getArea();
-            if (adlArea != null) {
-                if (adlArea.hasCreature(name, null)) {
-                    return adlArea;
-                }
-            }
-        }
-        return null;
+        return this.getAtlas().getAtlasMembers().stream()
+                .filter(area -> area != null && area.hasCreature(name, null))
+                .findFirst().orElseGet(() -> null);
+
     }
 
     public default Area getPlayerArea(UserID id) {
-        for (AreaDirectionalLinks rAndD : this.getAtlas().values()) {
-            Area randArea = rAndD.getArea();
-            if (randArea != null) {
-                Optional<Player> found = randArea.getPlayer(id);
-                if (found.isPresent()) {
-                    return randArea;
-                }
-            }
-        }
-        return null;
+        return this.getAtlas().getAtlasMembers().stream()
+                .filter(area -> area != null && area.getPlayer(id).isPresent())
+                .findFirst().orElseGet(() -> null);
+
     }
 
     @Override
@@ -136,12 +107,9 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         if (startingArea != null) {
             creatures.addAll(startingArea.getCreatures());
         }
-        for (AreaDirectionalLinks rAndD : this.getAtlas().values()) {
-            Area area = rAndD.getArea();
-            if (area != null) {
-                creatures.addAll(area.getCreatures());
-            }
-        }
+        this.getAtlas().getAtlasMembers().stream()
+                .filter(area -> area != null)
+                .forEach(area -> creatures.addAll(area.getCreatures()));
         return Collections.unmodifiableSet(creatures);
     }
 
@@ -153,11 +121,7 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             messengers.add(startingArea);
         }
 
-        Map<UUID, AreaDirectionalLinks> atlas = this.getAtlas();
-        if (atlas != null) {
-            atlas.values().stream().filter(rAndD -> rAndD != null && rAndD.getArea() != null)
-                    .forEach(rAndD -> messengers.add(rAndD.getArea()));
-        }
+        this.getAtlas().getAtlasMembers().stream().filter(area -> area != null).forEach(area -> messengers.add(area));
 
         return Collections.unmodifiableCollection(messengers);
     }
