@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -32,6 +33,37 @@ public interface Area
         extends ItemContainer, CreatureContainer, CommandChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
 
     public interface AreaBuilder extends Serializable {
+        public class AreaBuilderID implements Comparable<AreaBuilderID> {
+            private final UUID id = UUID.randomUUID();
+
+            public UUID getId() {
+                return id;
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(id);
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (!(obj instanceof AreaBuilderID))
+                    return false;
+                AreaBuilderID other = (AreaBuilderID) obj;
+                return Objects.equals(id, other.id);
+            }
+
+            @Override
+            public int compareTo(AreaBuilderID arg0) {
+                return this.id.compareTo(arg0.id);
+            }
+
+        }
+
+        public abstract AreaBuilderID getAreaBuilderID();
+
         public abstract String getName();
 
         public abstract String getDescription();

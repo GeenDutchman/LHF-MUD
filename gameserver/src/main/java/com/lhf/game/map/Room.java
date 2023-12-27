@@ -95,6 +95,7 @@ public class Room implements Area {
 
     public static class RoomBuilder implements Area.AreaBuilder {
         private final transient Logger logger;
+        private final AreaBuilderID id;
         private String name;
         private String description;
         private List<Item> items;
@@ -104,6 +105,7 @@ public class Room implements Area {
 
         private RoomBuilder() {
             this.logger = Logger.getLogger(this.getClass().getName());
+            this.id = new AreaBuilderID();
             this.name = "A Room";
             this.description = "An area that Creatures and Items can be in";
             this.items = new ArrayList<>();
@@ -114,6 +116,11 @@ public class Room implements Area {
 
         public static RoomBuilder getInstance() {
             return new RoomBuilder();
+        }
+
+        @Override
+        public AreaBuilderID getAreaBuilderID() {
+            return this.id;
         }
 
         public RoomBuilder setName(String name) {
@@ -239,6 +246,22 @@ public class Room implements Area {
             }
             return this.buildCreatures(theRoom, aiRunner, statblockManager, conversationManager);
         }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof RoomBuilder))
+                return false;
+            RoomBuilder other = (RoomBuilder) obj;
+            return Objects.equals(id, other.id);
+        }
+
     }
 
     Room(RoomBuilder builder) {
