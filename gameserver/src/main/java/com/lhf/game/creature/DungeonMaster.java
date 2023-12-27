@@ -3,9 +3,8 @@ package com.lhf.game.creature;
 import java.io.FileNotFoundException;
 import java.util.function.UnaryOperator;
 
-import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
-import com.lhf.game.creature.vocation.DMV;
+import com.lhf.game.creature.vocation.DMVocation;
 import com.lhf.messages.CommandChainHandler;
 
 public class DungeonMaster extends NonPlayerCharacter {
@@ -14,7 +13,7 @@ public class DungeonMaster extends NonPlayerCharacter {
             extends INonPlayerCharacter.AbstractNPCBuilder<DungeonMasterBuilder, DungeonMaster> {
         private DungeonMasterBuilder() {
             super();
-            this.setVocation(new DMV());
+            this.setVocation(new DMVocation());
         }
 
         public static DungeonMasterBuilder getInstance() {

@@ -13,7 +13,7 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.magic.CubeHolder;
 
-public class DMV extends Vocation implements CubeHolder, MultiAttacker {
+public class DMVocation extends Vocation implements CubeHolder, MultiAttacker {
 
     private class UnlimitedPool implements ResourcePool {
 
@@ -24,7 +24,7 @@ public class DMV extends Vocation implements CubeHolder, MultiAttacker {
 
         @Override
         public int getLevel() {
-            return DMV.this.level;
+            return DMVocation.this.level;
         }
 
         @Override
@@ -52,7 +52,7 @@ public class DMV extends Vocation implements CubeHolder, MultiAttacker {
 
     }
 
-    public DMV() {
+    public DMVocation() {
         super(VocationName.DUNGEON_MASTER);
     }
 

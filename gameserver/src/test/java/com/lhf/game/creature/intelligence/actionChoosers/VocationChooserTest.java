@@ -16,7 +16,7 @@ import com.lhf.game.battle.BattleStats.BattleStatsQuery;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
-import com.lhf.game.creature.vocation.DMV;
+import com.lhf.game.creature.vocation.DMVocation;
 import com.lhf.game.creature.vocation.Fighter;
 import com.lhf.game.creature.vocation.Healer;
 import com.lhf.game.creature.vocation.Mage;
@@ -43,7 +43,7 @@ public class VocationChooserTest {
                 AIComBundle barbarian = new AIComBundle();
                 barbarian.npc.setVocation(new Fighter());
                 AIComBundle supreme = new AIComBundle();
-                supreme.npc.setVocation(new DMV());
+                supreme.npc.setVocation(new DMVocation());
 
                 VocationChooser chooser = new VocationChooser();
 
