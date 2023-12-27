@@ -12,6 +12,7 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.magic.concrete.DMBlessing;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.CreatureAffectedEvent;
+import com.lhf.server.client.CommandInvoker;
 
 public class NonPlayerCharacter extends Creature implements INonPlayerCharacter {
 
@@ -109,5 +110,10 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
         CreatureAffectedEvent cam = super.processEffect(effect, reverse);
         this.getHarmMemories().update(cam);
         return cam;
+    }
+
+    @Override
+    public void setController(CommandInvoker cont) {
+        super.setController(cont);
     }
 }
