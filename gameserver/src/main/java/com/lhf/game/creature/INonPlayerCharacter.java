@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
@@ -214,8 +216,8 @@ public interface INonPlayerCharacter extends ICreature {
     /**
      * Builder pattern root for all NPCs.
      */
-    public static abstract class AbstractNPCBuilder<T extends AbstractNPCBuilder<T>>
-            extends ICreature.CreatureBuilder<T> {
+    public static abstract class AbstractNPCBuilder<NPCBuilderType extends AbstractNPCBuilder<NPCBuilderType, NPCType>, NPCType extends INonPlayerCharacter>
+            extends ICreature.CreatureBuilder<NPCBuilderType, INonPlayerCharacter> {
         private String conversationFileName = null;
         private ConversationTree conversationTree = null;
         private List<AIHandler> aiHandlers;
@@ -227,7 +229,7 @@ public interface INonPlayerCharacter extends ICreature {
         }
 
         @Override
-        protected T getThis() {
+        protected NPCBuilderType getThis() {
             return this.thisObject;
         }
 
@@ -238,7 +240,7 @@ public interface INonPlayerCharacter extends ICreature {
             return conversationFileName;
         }
 
-        public T setConversationFileName(String conversationFileName) {
+        public NPCBuilderType setConversationFileName(String conversationFileName) {
             this.conversationFileName = conversationFileName;
             if (this.conversationTree != null && !this.conversationTree.getTreeName().equals(conversationFileName)) {
                 this.conversationTree = null;
@@ -246,7 +248,7 @@ public interface INonPlayerCharacter extends ICreature {
             return this.getThis();
         }
 
-        public T setConversationTree(ConversationTree tree) {
+        public NPCBuilderType setConversationTree(ConversationTree tree) {
             this.conversationTree = tree;
             if (tree != null) {
                 this.conversationFileName = tree.getTreeName();
@@ -254,7 +256,7 @@ public interface INonPlayerCharacter extends ICreature {
             return this.getThis();
         }
 
-        public ConversationTree getConversationTree(ConversationManager conversationManager) {
+        public ConversationTree loadConversationTree(ConversationManager conversationManager) {
             String filename = this.getConversationFileName();
             if (this.conversationTree == null && filename != null) {
                 if (conversationManager == null) {
@@ -271,21 +273,16 @@ public interface INonPlayerCharacter extends ICreature {
             return this.conversationTree;
         }
 
-        public T useDefaultConversation() {
+        public ConversationTree getConversationTree() {
+            return conversationTree;
+        }
+
+        public NPCBuilderType useDefaultConversation() {
             this.setConversationFileName(INonPlayerCharacter.defaultConvoTreeName);
             return this.getThis();
         }
 
-        public AIRunner getAiRunner() {
-            return aiRunner;
-        }
-
-        public T setAiRunner(AIRunner aiRunner) {
-            this.aiRunner = aiRunner;
-            return this.getThis();
-        }
-
-        public T addAIHandler(AIHandler handler) {
+        public NPCBuilderType addAIHandler(AIHandler handler) {
             if (handler != null) {
                 this.aiHandlers.add(handler);
             }
@@ -300,16 +297,9 @@ public interface INonPlayerCharacter extends ICreature {
             return this.aiHandlers.toArray(new AIHandler[this.aiHandlers.size()]);
         }
 
-        public T clearAIHandlers() {
+        public NPCBuilderType clearAIHandlers() {
             this.aiHandlers.clear();
             return this.getThis();
-        }
-
-        protected INonPlayerCharacter register(AIRunner aiRunner, INonPlayerCharacter npc) {
-            if (aiRunner != null) {
-                aiRunner.register(npc, this.getAiHandlersAsArray());
-            }
-            return npc;
         }
 
         /**
@@ -318,14 +308,42 @@ public interface INonPlayerCharacter extends ICreature {
          * 
          * @return the built NPC
          */
-        protected abstract INonPlayerCharacter preEnforcedRegistrationBuild(CommandInvoker controller,
-                CommandChainHandler successor,
-                StatblockManager statblockManager);
+        protected abstract NPCType preEnforcedRegistrationBuild(CommandChainHandler successor,
+                StatblockManager statblockManager, UnaryOperator<NPCBuilderType> composedlazyLoaders)
+                throws FileNotFoundException;
 
         @Override
-        public INonPlayerCharacter build(CommandInvoker controller, CommandChainHandler successor,
-                StatblockManager statblockManager, AIRunner aiRunner) {
-            return this.register(aiRunner, this.preEnforcedRegistrationBuild());
+        public INonPlayerCharacter build(Consumer<INonPlayerCharacter> controllerAssigner,
+                CommandChainHandler successor, StatblockManager statblockManager,
+                UnaryOperator<NPCBuilderType> composedlazyLoaders) throws FileNotFoundException {
+            if (statblockManager != null) {
+                this.loadStatblock(statblockManager);
+            }
+            if (composedlazyLoaders != null) {
+                composedlazyLoaders.apply(this.getThis());
+            }
+            INonPlayerCharacter built = this.preEnforcedRegistrationBuild(successor, statblockManager,
+                    composedlazyLoaders);
+            if (controllerAssigner != null) {
+                controllerAssigner.accept(built);
+            }
+            built.setSuccessor(successor);
+            return built;
+        }
+
+        public INonPlayerCharacter build(AIRunner aiRunner, CommandChainHandler successor,
+                StatblockManager statblockManager, ConversationManager conversationManager)
+                throws FileNotFoundException {
+            Consumer<INonPlayerCharacter> registration = (npc) -> {
+                if (aiRunner != null) {
+                    aiRunner.register(npc, this.getAiHandlersAsArray());
+                }
+            };
+            UnaryOperator<NPCBuilderType> conversationLoader = (builder) -> {
+                builder.loadConversationTree(conversationManager);
+                return builder;
+            };
+            return this.build(registration, successor, statblockManager, conversationLoader);
         }
 
         @Override
@@ -344,7 +362,7 @@ public interface INonPlayerCharacter extends ICreature {
                 return false;
             if (!(obj instanceof AbstractNPCBuilder))
                 return false;
-            AbstractNPCBuilder<?> other = (AbstractNPCBuilder<?>) obj;
+            AbstractNPCBuilder<?, ?> other = (AbstractNPCBuilder<?, ?>) obj;
             return Objects.equals(conversationFileName, other.conversationFileName)
                     && Objects.equals(conversationTree, other.conversationTree);
         }

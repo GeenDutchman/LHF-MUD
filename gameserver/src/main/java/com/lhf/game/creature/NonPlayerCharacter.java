@@ -1,30 +1,42 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
+import java.util.function.UnaryOperator;
 
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
-import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.magic.concrete.DMBlessing;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.CreatureAffectedEvent;
 
 public class NonPlayerCharacter extends Creature implements INonPlayerCharacter {
 
-    public static class NPCBuilder extends INonPlayerCharacter.AbstractNPCBuilder<NPCBuilder> {
-        private NPCBuilder(AIRunner aiRunner) {
-            super(aiRunner);
+    public static class NPCBuilder extends INonPlayerCharacter.AbstractNPCBuilder<NPCBuilder, NonPlayerCharacter> {
+        private NPCBuilder() {
+            super();
         }
 
-        public static NPCBuilder getInstance(AIRunner aiRunner) {
-            return new NPCBuilder(aiRunner);
+        public static NPCBuilder getInstance() {
+            return new NPCBuilder();
         }
 
         @Override
-        protected INonPlayerCharacter preEnforcedRegistrationBuild() {
-            return new NonPlayerCharacter(this);
+        protected NonPlayerCharacter preEnforcedRegistrationBuild(CommandChainHandler successor,
+                StatblockManager statblockManager, UnaryOperator<NPCBuilder> composedlazyLoaders)
+                throws FileNotFoundException {
+            if (statblockManager != null) {
+                this.loadStatblock(statblockManager);
+            }
+            if (composedlazyLoaders != null) {
+                composedlazyLoaders.apply(this.getThis());
+            }
+            NonPlayerCharacter created = new NonPlayerCharacter(this);
+            created.setSuccessor(successor);
+            return created;
         }
 
         @Override
@@ -34,14 +46,14 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
 
     }
 
-    public static NPCBuilder getNPCBuilder(AIRunner aiRunner) {
-        return new NPCBuilder(aiRunner);
+    public static NPCBuilder getNPCBuilder() {
+        return new NPCBuilder();
     }
 
     private ConversationTree convoTree = null;
     private transient final HarmMemories harmMemories = HarmMemories.makeMemories(this);
 
-    public NonPlayerCharacter(AbstractNPCBuilder<?> builder) {
+    public NonPlayerCharacter(AbstractNPCBuilder<?, ? extends INonPlayerCharacter> builder) {
         super(builder);
         this.convoTree = builder.getConversationTree();
     }

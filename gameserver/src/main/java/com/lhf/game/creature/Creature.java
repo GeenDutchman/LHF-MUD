@@ -67,7 +67,7 @@ public abstract class Creature implements ICreature {
     private Map<CommandMessage, CommandHandler> cmds;
     private transient final Logger logger;
 
-    protected Creature(ICreature.CreatureBuilder<?> builder) {
+    protected Creature(ICreature.CreatureBuilder<?, ? extends ICreature> builder) {
         this.gameEventProcessorID = new GameEventProcessorID();
         this.cmds = this.buildCommands();
         // Instantiate creature with no name and type Monster
@@ -77,8 +77,9 @@ public abstract class Creature implements ICreature {
 
         this.effects = new TreeSet<>();
         this.statblock = builder.getStatblock();
-        this.controller = builder.getController();
-        this.successor = builder.getSuccessor();
+        // controller and successor set by Builder
+        this.controller = null;
+        this.successor = null;
         ItemContainer.transfer(builder.getCorpse(), this.getInventory(), null);
 
         // We don't start them in battle
@@ -522,7 +523,7 @@ public abstract class Creature implements ICreature {
         return this.controller;
     }
 
-    public void setController(CommandInvoker cont) {
+    protected void setController(CommandInvoker cont) {
         this.controller = cont;
     }
 

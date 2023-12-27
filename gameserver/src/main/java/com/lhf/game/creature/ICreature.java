@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.regex.PatternSyntaxException;
 
@@ -47,16 +48,16 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
-import com.lhf.messages.GameEventProcessor;
-import com.lhf.messages.CommandContext;
-import com.lhf.messages.ITickEvent;
 import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
-import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.Client.ClientID;
+import com.lhf.server.client.CommandInvoker;
 
 /**
  * An interface for all things Creature. This way we can create wrappers, mocks,
@@ -128,11 +129,16 @@ public interface ICreature
         return defaultFist;
     }
 
+    public interface ControllerAssigner {
+        public abstract void assign();
+    }
+
     /**
      * Builder pattern root for Creature
      */
-    public abstract static class CreatureBuilder<T extends CreatureBuilder<T>> implements Serializable {
-        protected final transient T thisObject;
+    public abstract static class CreatureBuilder<BuilderType extends CreatureBuilder<BuilderType, CreatureType>, CreatureType extends ICreature>
+            implements Serializable {
+        protected final transient BuilderType thisObject;
         private String name;
         private CreatureFaction faction;
         private Vocation vocation;
@@ -152,9 +158,9 @@ public interface ICreature
 
         // used for the generics and safe casts
         // https://stackoverflow.com/questions/17164375/subclassing-a-java-builder-class
-        protected abstract T getThis();
+        protected abstract BuilderType getThis();
 
-        public T setName(String name) {
+        public BuilderType setName(String name) {
             this.name = name;
             return this.getThis();
         }
@@ -171,7 +177,7 @@ public interface ICreature
             return this.name;
         }
 
-        public T setFaction(CreatureFaction faction) {
+        public BuilderType setFaction(CreatureFaction faction) {
             this.faction = faction;
             return this.getThis();
         }
@@ -190,7 +196,7 @@ public interface ICreature
             return this.faction;
         }
 
-        public T setVocation(Vocation vocation) {
+        public BuilderType setVocation(Vocation vocation) {
             this.vocation = vocation;
             return this.getThis();
         }
@@ -199,7 +205,7 @@ public interface ICreature
             return this.vocation;
         }
 
-        public T setStatblock(Statblock statblock) {
+        public BuilderType setStatblock(Statblock statblock) {
             this.statblock = statblock;
             if (this.statblock != null) {
                 this.statblockName = this.statblock.getCreatureRace();
@@ -207,7 +213,7 @@ public interface ICreature
             return this.getThis();
         }
 
-        public T setStatblockName(String statblockName) {
+        public BuilderType setStatblockName(String statblockName) {
             this.statblockName = statblockName;
             if (this.statblock != null && !this.statblock.getCreatureRace().equals(statblockName)) {
                 this.statblock = null;
@@ -233,7 +239,7 @@ public interface ICreature
          * @return
          * @throws FileNotFoundException
          */
-        public Statblock getStatblock(StatblockManager statblockManager) throws FileNotFoundException {
+        public Statblock loadStatblock(StatblockManager statblockManager) throws FileNotFoundException {
             if (this.statblock == null) {
                 String nextname = this.getStatblockName();
                 if (nextname != null) {
@@ -248,7 +254,11 @@ public interface ICreature
             return this.statblock;
         }
 
-        public T setCorpse(Corpse corpse) {
+        public Statblock getStatblock() {
+            return this.statblock;
+        }
+
+        public BuilderType setCorpse(Corpse corpse) {
             this.corpse = corpse;
             return this.getThis();
         }
@@ -257,8 +267,9 @@ public interface ICreature
             return this.corpse;
         }
 
-        public abstract ICreature build(CommandInvoker controller, CommandChainHandler successor,
-                StatblockManager statblockManager);
+        public abstract CreatureType build(Consumer<CreatureType> controllerAssigner,
+                CommandChainHandler successor, StatblockManager statblockManager,
+                UnaryOperator<BuilderType> composedLazyLoaders) throws FileNotFoundException;
 
         @Override
         public int hashCode() {
@@ -272,7 +283,7 @@ public interface ICreature
                 return true;
             if (!(obj instanceof CreatureBuilder))
                 return false;
-            CreatureBuilder<?> other = (CreatureBuilder<?>) obj;
+            CreatureBuilder<?, ?> other = (CreatureBuilder<?, ?>) obj;
             return Objects.equals(name, other.name) && faction == other.faction
                     && Objects.equals(getThis().getClass().getName(), other.getThis().getClass().getName())
                     && Objects.equals(statblockName, other.statblockName)
