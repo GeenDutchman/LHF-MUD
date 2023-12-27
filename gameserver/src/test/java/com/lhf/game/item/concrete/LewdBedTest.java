@@ -24,7 +24,7 @@ public class LewdBedTest {
     @Test
     void testSolo() {
         AIComBundle first = new AIComBundle();
-        Room room = this.builder.setName("Solo").addCreature(first.npc).build();
+        Room room = this.builder.setName("Solo").addPrebuiltNPC(first.npc).build();
         LewdBed bed = new LewdBed(room, LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30));
         room.addItem(bed);
 
@@ -48,7 +48,7 @@ public class LewdBedTest {
         first.brain.addHandler(new LewdAIHandler(Set.of(second.npc)));
         second.brain.addHandler(new LewdAIHandler(Set.of(first.npc)));
 
-        Room room = this.builder.setName("Pair").addCreature(first.npc).addCreature(second.npc).build();
+        Room room = this.builder.setName("Pair").addPrebuiltNPC(first.npc).addPrebuiltNPC(second.npc).build();
         LewdBed bed = new LewdBed(room, LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30));
         room.addItem(bed);
 
@@ -71,7 +71,7 @@ public class LewdBedTest {
         AIComBundle first = new AIComBundle();
         AIComBundle second = new AIComBundle();
 
-        Room room = this.builder.setName("Spurned").addCreature(first.npc).addCreature(second.npc).build();
+        Room room = this.builder.setName("Spurned").addPrebuiltNPC(first.npc).addPrebuiltNPC(second.npc).build();
         LewdBed bed = new LewdBed(room, LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30));
         room.addItem(bed);
 
@@ -97,7 +97,7 @@ public class LewdBedTest {
         first.brain.addHandler(new LewdAIHandler(Set.of(second.npc)));
         second.brain.addHandler(new LewdAIHandler(Set.of(first.npc)));
 
-        Room room = this.builder.setName("Spurned").addCreature(first.npc).addCreature(second.npc).build();
+        Room room = this.builder.setName("Spurned").addPrebuiltNPC(first.npc).addPrebuiltNPC(second.npc).build();
         LewdBed bed = new LewdBed(room,
                 LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30).setLewdProduct(new LewdBabyMaker()));
         room.addItem(bed);

@@ -8,6 +8,8 @@ import java.util.logging.Level;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.INonPlayerCharacter;
+import com.lhf.game.creature.INonPlayerCharacter.AbstractNPCBuilder;
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
@@ -73,13 +75,42 @@ public class DMRoom extends Room {
             return this;
         }
 
-        public DMRoomBuilder addCreature(ICreature creature) {
-            this.delegate = delegate.addCreature(creature);
+        /**
+         * Adds a prebuilt NPC to the Builder
+         * 
+         * @deprecated We want to keep the Builders Serializable, and a full Creature
+         *             has several non-Serializable components that are neccesary for
+         *             functionality. Prefer using
+         *             {@link #addNPCBuilder(AbstractNPCBuilder)}.
+         */
+        @Deprecated
+        public DMRoomBuilder addPrebuiltNPC(INonPlayerCharacter creature) {
+            this.delegate = delegate.addPrebuiltNPC(creature);
             return this;
         }
 
+        public DMRoomBuilder addNPCBuilder(INonPlayerCharacter.AbstractNPCBuilder<?, ?> builder) {
+            this.delegate = delegate.addNPCBuilder(builder);
+            return this;
+        }
+
+        /**
+         * Adds a prebuilt DM to the Builder
+         * 
+         * @deprecated We want to keep the Builders Serializable, and a full
+         *             DungeonMaster
+         *             has several non-Serializable components that are neccesary for
+         *             functionality. Prefer using
+         *             {@link #addDungeonMasterBuilder(DungeonMaster.DungeonMasterBuilder)}.
+         */
+        @Deprecated
         public DMRoomBuilder addDungeonMaster(DungeonMaster dm) {
-            this.delegate = delegate.addCreature(dm);
+            this.delegate = delegate.addPrebuiltNPC(dm);
+            return this;
+        }
+
+        public DMRoomBuilder addDungeonMasterBuilder(DungeonMaster.DungeonMasterBuilder builder) {
+            this.delegate = delegate.addNPCBuilder(builder);
             return this;
         }
 
@@ -104,8 +135,8 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public Collection<ICreature> getCreatures() {
-            return this.delegate.getCreatures();
+        public Collection<INonPlayerCharacter> getPrebuiltNPCs() {
+            return this.delegate.getNonPlayerCharacters();
         }
 
         @Override

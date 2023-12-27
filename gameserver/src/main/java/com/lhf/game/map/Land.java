@@ -1,5 +1,6 @@
 package com.lhf.game.map;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -14,6 +15,8 @@ import com.lhf.game.CreatureContainer;
 import com.lhf.game.Game;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
+import com.lhf.game.map.Area.AreaBuilder;
+import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.ITickEvent;
 import com.lhf.messages.CommandChainHandler;
@@ -21,22 +24,51 @@ import com.lhf.messages.events.GameEvent;
 import com.lhf.server.client.user.UserID;
 
 public interface Land extends CreatureContainer, CommandChainHandler, AffectableEntity<DungeonEffect> {
-    public interface LandBuilder {
-        public abstract Area getStartingArea();
 
-        public abstract Map<UUID, AreaDirectionalLinks> getAtlas();
-
-        public abstract CommandChainHandler getSuccessor();
-
-        public abstract Land build();
-
-        public abstract Game getGame();
-    }
-
-    public interface AreaDirectionalLinks {
-        public abstract Area getArea();
+    public interface DirectionalLinks {
+        public abstract UUID getID();
 
         public abstract Map<Directions, Doorway> getExits();
+    }
+
+    public interface AreaDirectionalLinks extends DirectionalLinks {
+        public abstract Area getArea();
+
+        @Override
+        default UUID getID() {
+            final Area foundArea = this.getArea();
+            if (foundArea == null) {
+                throw new IllegalStateException("An AreaDirectionalLink cannot have a null area!");
+            }
+            return foundArea.getUuid();
+        }
+
+    }
+
+    public interface LandBuilder extends Serializable {
+        public interface AreaBuilderDirectionalLinks extends Serializable, DirectionalLinks {
+            public abstract AreaBuilder getAreaBuilder();
+
+            @Override
+            default UUID getID() {
+                final AreaBuilder foundArea = this.getAreaBuilder();
+                if (foundArea == null) {
+                    throw new IllegalStateException("An AreaDirectionalLink cannot have a null area!");
+                }
+                return foundArea.getAreaBuilderID().getId();
+            }
+
+        }
+
+        public abstract AreaBuilder getStartingAreaBuilder();
+
+        public abstract Map<AreaBuilderID, ? extends AreaBuilderDirectionalLinks> getAtlas();
+
+        public abstract Land build(CommandChainHandler successor, Game game);
+
+        public default Land build(Game game) {
+            return this.build(game, game);
+        }
 
     }
 

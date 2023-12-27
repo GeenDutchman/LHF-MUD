@@ -1,8 +1,10 @@
 package com.lhf.game.map;
 
+import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableSet;
@@ -24,9 +26,12 @@ import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
+import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.magic.ThirdPower;
+import com.lhf.game.map.Area.AreaBuilder;
+import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.DoorwayFactory.DoorwayType;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
@@ -49,6 +54,126 @@ import com.lhf.messages.in.ShoutMessage;
 import com.lhf.server.client.user.UserID;
 
 public class Dungeon implements Land {
+
+    public static class DungeonBuilder implements Land.LandBuilder {
+        private class AreaBuilderAndDirs implements AreaBuilderDirectionalLinks {
+            public final AreaBuilder areaBuilder;
+            public Map<Directions, Doorway> exits;
+
+            AreaBuilderAndDirs(AreaBuilder areaBuilder) {
+                this.areaBuilder = areaBuilder;
+                this.exits = new TreeMap<>();
+            }
+
+            @Override
+            public AreaBuilder getAreaBuilder() {
+                return this.areaBuilder;
+            }
+
+            @Override
+            public Map<Directions, Doorway> getExits() {
+                return this.exits;
+            }
+        }
+
+        private final transient Logger logger;
+        // linkedhasmap preserves insertion order
+        private LinkedHashMap<AreaBuilder.AreaBuilderID, AreaBuilderAndDirs> mapping;
+        private AreaBuilder startingRoom = null;
+
+        public static DungeonBuilder newInstance() {
+            return new DungeonBuilder();
+        }
+
+        private DungeonBuilder() {
+            this.logger = Logger.getLogger(this.getClass().getName());
+            this.mapping = new LinkedHashMap<>();
+        }
+
+        public DungeonBuilder addStartingRoom(AreaBuilder startingRoom) {
+            this.startingRoom = startingRoom;
+            this.mapping.putIfAbsent(this.startingRoom.getAreaBuilderID(), new AreaBuilderAndDirs(startingRoom));
+            return this;
+        }
+
+        public DungeonBuilder connectRoom(DoorwayType type, AreaBuilder toAdd, Directions toExistingRoom,
+                AreaBuilder existing) {
+            assert this.mapping.containsKey(existing.getAreaBuilderID()) : existing.getName() + " not yet added";
+            Directions toNewRoom = toExistingRoom.opposite();
+            this.mapping.putIfAbsent(toAdd.getAreaBuilderID(), new AreaBuilderAndDirs(toAdd));
+            Map<Directions, Doorway> toAddExits = this.mapping.get(toAdd.getAreaBuilderID()).getExits();
+            assert !toAddExits.containsKey(toExistingRoom)
+                    : toAdd.getName() + " already has direction " + toExistingRoom.toString();
+            Doorway doorway = DoorwayFactory.createDoorway(type, toAdd.getAreaBuilderID().getId(), toExistingRoom,
+                    existing.getAreaBuilderID().getId());
+            toAddExits.put(toExistingRoom, doorway);
+            Map<Directions, Doorway> existingExits = this.mapping.get(existing.getAreaBuilderID()).getExits();
+            assert !existingExits.containsKey(toNewRoom)
+                    : existing.getName() + " already has direction " + toNewRoom.toString();
+            existingExits.put(toNewRoom, doorway);
+            return this;
+        }
+
+        public DungeonBuilder connectRoom(AreaBuilder toAdd, Directions toExistingRoom, AreaBuilder existing) {
+            return this.connectRoom(DoorwayType.STANDARD, toAdd, toExistingRoom, existing);
+        }
+
+        public DungeonBuilder connectRoomOneWay(AreaBuilder secretRoom, Directions toExistingRoom,
+                AreaBuilder existing) {
+            assert this.mapping.containsKey(existing.getAreaBuilderID()) : existing.getName() + " not yet added";
+            this.mapping.putIfAbsent(secretRoom.getAreaBuilderID(), new AreaBuilderAndDirs(secretRoom));
+            Map<Directions, Doorway> secretExits = this.mapping.get(secretRoom.getAreaBuilderID()).getExits();
+            assert !secretExits.containsKey(toExistingRoom)
+                    : secretRoom.getName() + " already has direction " + toExistingRoom.toString();
+            Doorway oneWayDoor = DoorwayFactory.createDoorway(DoorwayType.ONE_WAY,
+                    secretRoom.getAreaBuilderID().getId(),
+                    toExistingRoom, existing.getAreaBuilderID().getId());
+            secretExits.put(toExistingRoom, oneWayDoor);
+            return this;
+        }
+
+        private Dungeon addRooms(Dungeon dungeon, Game game) throws FileNotFoundException {
+            Map<AreaBuilder.AreaBuilderID, AreaBuilderAndDirs> atlas = this.getAtlas();
+            if (dungeon == null || atlas == null) {
+                this.logger.log(Level.WARNING, "Cannot add rooms with null dungeon or atlas");
+                return dungeon;
+            }
+            for (AreaBuilderDirectionalLinks links : atlas.values()) {
+                AreaBuilder builder = links.getAreaBuilder();
+                Area area = builder.build(dungeon, game.getGroupAiRunner(),
+                        game.getStatblockManager(), game.getConversationManager());
+            }
+        }
+
+        @Override
+        public Dungeon build(CommandChainHandler successor, Game game) throws FileNotFoundException {
+            this.logger.entering(this.getClass().getName(), "build()");
+            Dungeon dungeon = new Dungeon(this);
+            dungeon.setSuccessor(successor);
+            dungeon.setGame(game);
+            dungeon.setStartingRoom(this.startingRoom.build(dungeon, game.getGroupAiRunner(),
+                    game.getStatblockManager(), game.getConversationManager()));
+            return dungeon;
+        }
+
+        public static Dungeon buildDynamicDungeon(int seed, AIRunner aiRunner,
+                ConversationManager convoLoader, StatblockManager statblockLoader) {
+
+            return null;
+        }
+
+        @Override
+        public AreaBuilder getStartingAreaBuilder() {
+            return this.startingRoom;
+        }
+
+        @Override
+        public LinkedHashMap<AreaBuilderID, AreaBuilderAndDirs> getAtlas() {
+            return this.mapping;
+        }
+
+    }
+
     public class AreaAndDirs implements Land.AreaDirectionalLinks {
         public final Area room;
         public Map<Directions, Doorway> exits;
@@ -72,7 +197,7 @@ public class Dungeon implements Land {
 
     private Map<UUID, Land.AreaDirectionalLinks> mapping;
     private Area startingRoom = null;
-    private final Game game;
+    private transient Game game;
     private transient CommandChainHandler successor;
     private Map<CommandMessage, CommandHandler> commands;
     private transient TreeSet<DungeonEffect> effects;
@@ -82,10 +207,11 @@ public class Dungeon implements Land {
     Dungeon(Land.LandBuilder builder) {
         this.logger = Logger.getLogger(String.format("%s.%s", this.getClass().getName(), this.getName()));
         this.gameEventProcessorID = new GameEventProcessorID();
-        this.game = builder.getGame();
-        this.startingRoom = builder.getStartingArea();
+        this.startingRoom = builder.getStartingAreaBuilder();
         this.mapping = builder.getAtlas();
-        this.successor = builder.getSuccessor();
+        // game and successor set by builder
+        this.game = null;
+        this.successor = null;
         for (AreaDirectionalLinks links : this.mapping.values()) {
             Area area = links.getArea();
             if (area != null) {
@@ -245,10 +371,10 @@ public class Dungeon implements Land {
         return removed;
     }
 
-    void setStartingRoom(Room r) {
+    void setStartingRoom(Area r) {
         this.startingRoom = r;
         this.mapping.putIfAbsent(r.getUuid(), new AreaAndDirs(r));
-        r.setDungeon(this);
+        r.setLand(this);
         r.setSuccessor(this);
     }
 
@@ -531,6 +657,11 @@ public class Dungeon implements Land {
             return null;
         }
         return this.game.getGroupAiRunner();
+    }
+
+    private Dungeon setGame(Game game) {
+        this.game = game;
+        return this;
     }
 
     public ThirdPower getThirdPower() {

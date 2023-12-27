@@ -27,8 +27,8 @@ public class BedTest {
         AIComBundle first = new AIComBundle();
         AIComBundle second = new AIComBundle();
         AIComBundle third = new AIComBundle();
-        Room room = builder.setName("Occupancy Room").addCreature(first.npc).addCreature(second.npc)
-                .addCreature(third.npc).build();
+        Room room = builder.setName("Occupancy Room").addPrebuiltNPC(first.npc).addPrebuiltNPC(second.npc)
+                .addPrebuiltNPC(third.npc).build();
         Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(2).setSleepSeconds(2));
         room.addItem(bed);
 
@@ -58,7 +58,7 @@ public class BedTest {
     @Test
     void testBedTime() {
         AIComBundle first = new AIComBundle();
-        Room room = builder.setName("Sleeping Room").addCreature(first.npc).build();
+        Room room = builder.setName("Sleeping Room").addPrebuiltNPC(first.npc).build();
         Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(1).setSleepSeconds(1));
 
         GameEvent out = bed.doUseAction(first.npc);
