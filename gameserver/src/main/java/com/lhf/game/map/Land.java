@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
@@ -74,10 +75,15 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
     public abstract Area getStartingArea();
 
-    public default Map<Directions, Atlas<Area, UUID>.TargetedTester> getAreaExits(Area area) {
-        AreaAtlas atlas = this.getAtlas();
-        Atlas<Area, UUID>.AtlasMappingItem ami = atlas.getAtlasMappingItem(area);
-        return ami.getDirections();
+    public default Set<Directions> getAreaExits(Area area) {
+        try {
+            AreaAtlas atlas = this.getAtlas();
+            Atlas<Area, UUID>.AtlasMappingItem ami = atlas.getAtlasMappingItem(area);
+            return ami.getAvailableDirections();
+        } catch (NullPointerException e) {
+            this.log(Level.WARNING, String.format("Atlas error for getting exits: %s", e));
+            return Set.of();
+        }
     }
 
     public default Area getCreatureArea(ICreature creature) {

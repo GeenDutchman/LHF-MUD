@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -102,9 +103,9 @@ public interface Area
                 seen.addExtraInfo("There is no apparent way out of here.");
             } else {
                 Land land = this.getLand();
-                Map<Directions, Doorway> exits = land.getAreaExits(this);
+                Set<Directions> exits = land.getAreaExits(this);
                 if (exits != null) {
-                    for (Directions dir : exits.keySet()) {
+                    for (Directions dir : exits) {
                         seen.addSeen(SeeCategory.DIRECTION, dir);
                     }
                 }
