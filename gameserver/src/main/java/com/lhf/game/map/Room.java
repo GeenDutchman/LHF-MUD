@@ -208,7 +208,8 @@ public class Room implements Area {
                 if (npcBuilder == null) {
                     continue;
                 }
-                INonPlayerCharacter builtCharacter = npcBuilder.build(aiRunner, room, statblockManager, conversationManager)
+                INonPlayerCharacter builtCharacter = npcBuilder.build(aiRunner, room, statblockManager,
+                        conversationManager);
                 room.allCreatures.add(builtCharacter);
             }
             return room;
