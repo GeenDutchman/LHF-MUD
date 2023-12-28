@@ -53,6 +53,9 @@ public interface AIRunner extends Runnable {
      * handlers
      * with the BasicAI.
      * 
+     * @deprecated Prefer {@link #produceAI(AIHandler...)} to supply a BasicAI
+     *             rather than relying on an already-built NPC
+     * 
      * @param npc      to register
      * @param handlers variadic argument of handlers to register
      * @return null if cannot be registered, or populated if can be or is already
