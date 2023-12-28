@@ -1,5 +1,6 @@
 package com.lhf.game.map;
 
+import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -12,6 +13,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
+import com.google.common.base.Function;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.Game;
@@ -28,7 +30,7 @@ import com.lhf.server.client.user.UserID;
 
 public interface Land extends CreatureContainer, CommandChainHandler, AffectableEntity<DungeonEffect> {
     public interface TraversalTester extends Serializable {
-        public boolean test(ICreature creature, Directions direction, Area source, Area dest);
+        public boolean testTraversal(ICreature creature, Directions direction, Area source, Area dest);
     }
 
     public final class AreaAtlas extends Atlas<Area, UUID> {
@@ -46,7 +48,7 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
     public interface LandBuilder extends Serializable {
 
-        public final class AreaBuilderAtlas extends Atlas<AreaBuilder, AreaBuilderID> {
+        public final class AreaBuilderAtlas extends Atlas<AreaBuilder, AreaBuilderID> implements Serializable {
 
             protected AreaBuilderAtlas(AreaBuilder first) {
                 super(first);
@@ -63,9 +65,31 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
         public abstract AreaBuilderAtlas getAtlas();
 
-        public abstract Land build(CommandChainHandler successor, Game game);
+        public default AreaAtlas getTranslatedAtlas(Land builtLand, Game game) {
+            if (game == null) {
+                throw new IllegalArgumentException("Cannot translate atlas with no game!");
+            }
 
-        public default Land build(Game game) {
+            final Function<AreaBuilder, Area> transformer = (builder) -> {
+                try {
+                    return builder.build(builtLand, game.getGroupAiRunner(),
+                            game.getStatblockManager(), game.getConversationManager());
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    throw new IllegalStateException("Cannot find necessary file!", e);
+                }
+            };
+
+            final AreaBuilderAtlas builderAtlas = this.getAtlas();
+            if (builderAtlas == null) {
+                return null;
+            }
+            return builderAtlas.translate(area -> new AreaAtlas(null), transformer);
+        }
+
+        public abstract Land build(CommandChainHandler successor, Game game) throws FileNotFoundException;
+
+        public default Land build(Game game) throws FileNotFoundException {
             return this.build(game, game);
         }
 
@@ -78,7 +102,7 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
     public default Set<Directions> getAreaExits(Area area) {
         try {
             AreaAtlas atlas = this.getAtlas();
-            Atlas<Area, UUID>.AtlasMappingItem ami = atlas.getAtlasMappingItem(area);
+            AtlasMappingItem<Area, UUID> ami = atlas.getAtlasMappingItem(area);
             return ami.getAvailableDirections();
         } catch (NullPointerException e) {
             this.log(Level.WARNING, String.format("Atlas error for getting exits: %s", e));
