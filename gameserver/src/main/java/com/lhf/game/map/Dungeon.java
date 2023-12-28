@@ -100,11 +100,8 @@ public class Dungeon implements Land {
         @Override
         public Dungeon build(CommandChainHandler successor, Game game) throws FileNotFoundException {
             this.logger.entering(this.getClass().getName(), "build()");
-            Dungeon dungeon = new Dungeon(this);
-            dungeon.atlas = this.getTranslatedAtlas(dungeon, game);
-            dungeon.setSuccessor(successor);
-            dungeon.setGame(game);
-            return dungeon;
+            AreaAtlas translated = this.getTranslatedAtlas(dungeon, game); // TODO: NEED lAND
+            return new Dungeon(this, () -> game, () -> translated, () -> game);
         }
 
         public static Dungeon buildDynamicDungeon(int seed, AIRunner aiRunner,
@@ -129,21 +126,21 @@ public class Dungeon implements Land {
 
     }
 
-    private Land.AreaAtlas atlas;
-    private transient Game game;
+    private final Land.AreaAtlas atlas;
+    private final transient Game game;
     private transient CommandChainHandler successor;
     private Map<CommandMessage, CommandHandler> commands;
     private transient TreeSet<DungeonEffect> effects;
     private transient final Logger logger;
     private final GameEventProcessorID gameEventProcessorID;
 
-    Dungeon(Land.LandBuilder builder) {
+    Dungeon(Land.LandBuilder builder, Supplier<Game> gameSupplier, Supplier<Land.AreaAtlas> atlasSupplier,
+            Supplier<CommandChainHandler> successorSupplier) {
         this.logger = Logger.getLogger(String.format("%s.%s", this.getClass().getName(), this.getName()));
         this.gameEventProcessorID = new GameEventProcessorID();
-        // atlas, game, and successor set by builder
-        this.atlas = null;
-        this.game = null;
-        this.successor = null;
+        this.atlas = atlasSupplier.get();
+        this.game = gameSupplier.get();
+        this.successor = successorSupplier.get();
         this.commands = this.buildCommands();
         this.effects = new TreeSet<>();
     }
@@ -556,11 +553,6 @@ public class Dungeon implements Land {
             return null;
         }
         return this.game.getGroupAiRunner();
-    }
-
-    private Dungeon setGame(Game game) {
-        this.game = game;
-        return this;
     }
 
     public ThirdPower getThirdPower() {

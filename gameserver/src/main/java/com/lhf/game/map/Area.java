@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
@@ -75,12 +74,14 @@ public interface Area
 
         public abstract Collection<INonPlayerCharacter> getPrebuiltNPCs();
 
-        public abstract Area build(Land land, AIRunner aiRunner, StatblockManager statblockManager,
-                ConversationManager conversationManager) throws FileNotFoundException;
-
         public abstract Area build(CommandChainHandler successor, Land land, AIRunner aiRunner,
                 StatblockManager statblockManager,
                 ConversationManager conversationManager) throws FileNotFoundException;
+
+        public default Area build(Land land, AIRunner aiRunner, StatblockManager statblockManager,
+                ConversationManager conversationManager) throws FileNotFoundException {
+            return this.build(land, land, aiRunner, statblockManager, conversationManager);
+        }
     }
 
     public abstract UUID getUuid();
@@ -88,8 +89,6 @@ public interface Area
     public abstract boolean removeCreature(ICreature c, Directions dir);
 
     public abstract Land getLand();
-
-    public abstract void setLand(Land land);
 
     @Override
     default SeeEvent produceMessage() {
