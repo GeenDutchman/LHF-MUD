@@ -58,8 +58,8 @@ public abstract class Creature implements ICreature {
     private Vocation vocation;
     // private MonsterType monsterType; // I dont know if we'll need this
 
-    private TreeSet<CreatureEffect> effects;
-    private Statblock statblock;
+    private final TreeSet<CreatureEffect> effects;
+    private final Statblock statblock;
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
     private transient CommandInvoker controller;
@@ -67,7 +67,8 @@ public abstract class Creature implements ICreature {
     private Map<CommandMessage, CommandHandler> cmds;
     private transient final Logger logger;
 
-    protected Creature(ICreature.CreatureBuilder<?, ? extends ICreature> builder) {
+    protected Creature(ICreature.CreatureBuilder<?, ? extends ICreature> builder, Supplier<Statblock> statblockSupplier,
+            Supplier<CommandChainHandler> successorSupplier, Supplier<CommandInvoker> controllerSupplier) {
         this.gameEventProcessorID = new GameEventProcessorID();
         this.cmds = this.buildCommands();
         // Instantiate creature with no name and type Monster
@@ -76,10 +77,10 @@ public abstract class Creature implements ICreature {
         this.vocation = builder.getVocation();
 
         this.effects = new TreeSet<>();
-        this.statblock = builder.getStatblock();
+        this.statblock = statblockSupplier.get();
         // controller and successor set by Builder
-        this.controller = null;
-        this.successor = null;
+        this.controller = controllerSupplier.get();
+        this.successor = successorSupplier.get();
         ItemContainer.transfer(builder.getCorpse(), this.getInventory(), null);
 
         // We don't start them in battle
