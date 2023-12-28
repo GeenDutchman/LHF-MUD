@@ -602,7 +602,7 @@ public class Dungeon implements Land {
     }
 
     public String toMermaid(boolean fence) {
-        return this.atlas.toMermaid(fence);
+        return this.getName() + "\r\n" + this.atlas.toMermaid(fence);
     }
 
     @Override
