@@ -2,11 +2,15 @@ package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import com.lhf.game.creature.conversation.ConversationTree;
+import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.CommandChainHandler;
+import com.lhf.server.client.CommandInvoker;
 
 public class Monster extends NonPlayerCharacter implements IMonster {
     private final long monsterNumber;
@@ -68,8 +72,11 @@ public class Monster extends NonPlayerCharacter implements IMonster {
         }
     }
 
-    public Monster(MonsterBuilder builder) {
-        super(builder);
+    public Monster(MonsterBuilder builder,
+            Supplier<Statblock> statblockSupplier,
+            Supplier<CommandChainHandler> successorSupplier, Supplier<CommandInvoker> controllerSupplier,
+            Supplier<ConversationTree> conversationSupplier) {
+        super(builder, statblockSupplier, successorSupplier, controllerSupplier, conversationSupplier);
         this.monsterNumber = builder.getMonsterNumber();
     }
 

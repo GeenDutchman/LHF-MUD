@@ -1,11 +1,13 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
+import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
@@ -35,7 +37,7 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
             if (composedlazyLoaders != null) {
                 composedlazyLoaders.apply(this.getThis());
             }
-            NonPlayerCharacter created = new NonPlayerCharacter(this);
+            NonPlayerCharacter created = new NonPlayerCharacter(this, () -> this.getStatblock(), () -> );
             created.setSuccessor(successor);
             return created;
         }
@@ -54,9 +56,12 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     private ConversationTree convoTree = null;
     private transient final HarmMemories harmMemories = HarmMemories.makeMemories(this);
 
-    public NonPlayerCharacter(AbstractNPCBuilder<?, ? extends INonPlayerCharacter> builder) {
-        super(builder);
-        this.convoTree = builder.getConversationTree();
+    protected NonPlayerCharacter(AbstractNPCBuilder<?, ? extends INonPlayerCharacter> builder,
+            Supplier<Statblock> statblockSupplier,
+            Supplier<CommandChainHandler> successorSupplier, Supplier<CommandInvoker> controllerSupplier,
+            Supplier<ConversationTree> conversationSupplier) {
+        super(builder, statblockSupplier, successorSupplier, controllerSupplier);
+        this.convoTree = conversationSupplier.get();
     }
 
     @Override
