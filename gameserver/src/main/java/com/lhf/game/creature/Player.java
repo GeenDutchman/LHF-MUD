@@ -2,11 +2,15 @@ package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.CommandChainHandler;
+import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 
@@ -36,14 +40,18 @@ public class Player extends Creature {
         }
 
         public PlayerBuilder setUser(User user) {
+            if (user == null) {
+                throw new IllegalArgumentException("Cannot set a null user!");
+            }
             this.user = user;
             this.setName(this.user.getUsername());
             return this;
         }
 
         @Override
-        public Player build(Consumer<Player> controllerAssigner, CommandChainHandler successor,
-                StatblockManager statblockManager, UnaryOperator<PlayerBuilder> composedLazyLoaders)
+        public Player build(Supplier<CommandInvoker> controllerSupplier,
+                CommandChainHandler successor, StatblockManager statblockManager,
+                UnaryOperator<PlayerBuilder> composedLazyLoaders)
                 throws FileNotFoundException {
 
             if (statblockManager != null) {
@@ -52,56 +60,39 @@ public class Player extends Creature {
             if (composedLazyLoaders != null) {
                 composedLazyLoaders.apply(this.getThis());
             }
-            Player player = new Player(this.getThis());
-            if (controllerAssigner != null) {
-                controllerAssigner.accept(player);
-            } else {
-                User foundUser = this.getUser();
-                if (foundUser == null) {
-                    throw new IllegalArgumentException("Player cannot be created with null user!");
-                }
-                player.setController(foundUser);
-            }
-            try {
-                this.getUser().setSuccessor(player);
-            } catch (NullPointerException e) {
-                throw new IllegalArgumentException("Player cannot be created with null user!", e);
-            }
-            return player;
+            return new Player(this.getThis(), controllerSupplier, () -> successor, () -> this.getStatblock());
         }
 
         public Player build(User user, CommandChainHandler successor, StatblockManager statblockManager,
                 UnaryOperator<PlayerBuilder> composedLazyLoaders) throws FileNotFoundException {
             this.setUser(user);
-            Consumer<Player> controllerAssigner = user != null ? (player) -> {
-                if (player == null) {
-                    return;
-                }
-                player.setController(user);
-                user.setSuccessor(player);
-            } : null;
-            return this.build(controllerAssigner, successor, statblockManager, composedLazyLoaders);
+            Supplier<CommandInvoker> controllerSupplier = () -> user;
+            return this.build(controllerSupplier, successor, statblockManager, composedLazyLoaders);
         }
 
-        public Player build() {
+        public Player build(CommandChainHandler successor) {
             User foundUser = this.getUser();
             if (foundUser == null) {
-                throw new IllegalArgumentException("Player cannot be created with null user!");
+                throw new IllegalStateException("Player cannot be created with null user!");
             }
-            if (this.getStatblock() == null && this.getVocation() == null) {
-                throw new IllegalArgumentException(
-                        "Must have a statblock or a Vocation from which to define the statblock!");
+            Statblock currStatBlock = this.getStatblock();
+            if (currStatBlock == null) {
+                Vocation currVocation = this.getVocation();
+                if (currVocation == null) {
+                    throw new IllegalStateException(
+                            "Must have a statblock or a Vocation from which to define the statblock!");
+                }
+                currStatBlock = currVocation.createNewDefaultStatblock("Player");
+                this.setStatblock(currStatBlock);
             }
-            this.setStatblock(this.getVocation().createNewDefaultStatblock("Player"));
-            Player player = new Player(this.getThis());
-            player.setController(foundUser);
-            foundUser.setSuccessor(player);
-            return player;
+            return new Player(this.getThis(), () -> foundUser, () -> successor, () -> this.getStatblock());
         }
     }
 
-    public Player(PlayerBuilder builder) {
-        super(builder);
+    public Player(PlayerBuilder builder,
+            Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
+            Supplier<Statblock> statblockSupplier) {
+        super(builder, controllerSupplier, successorSupplier, statblockSupplier);
         this.user = builder.getUser();
         this.user.setSuccessor(this);
     }
