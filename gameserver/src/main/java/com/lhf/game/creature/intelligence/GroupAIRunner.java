@@ -89,18 +89,26 @@ public class GroupAIRunner implements AIRunner {
         return this;
     }
 
-    private BasicAI produceAI(INonPlayerCharacter npc) {
-        this.logger.log(Level.FINE, "Producing an AI for " + npc.getName());
-        return new BasicAI(npc, this);
+    @Override
+    public BasicAI produceAI(AIHandler... handlers) {
+        BasicAI ai = new BasicAI(this);
+        this.logger.log(Level.FINE, "Producing an AI " + ai.getClientID().toString());
+        this.aiMap.put(ai.getClientID(), new AIPair<BasicAI>(ai));
+        if (handlers != null) {
+            for (AIHandler handler : handlers) {
+                ai.addHandler(handler);
+            }
+        }
+        return ai;
     }
 
+    @Deprecated
     @Override
     public synchronized BasicAI register(INonPlayerCharacter npc, AIHandler... handlers) {
         this.logger.entering(this.getClass().getName(), "register()", npc.getName());
         if (npc.getController() == null) {
             this.logger.log(Level.FINE, "NPC " + npc.getName() + " does not have a controller");
-            BasicAI basicAI = this.produceAI(npc);
-            this.aiMap.put(basicAI.getClientID(), new AIPair<BasicAI>(basicAI));
+            BasicAI basicAI = this.produceAI(handlers);
             npc.setController(basicAI);
         }
         if (npc.getController() instanceof BasicAI) {

@@ -41,6 +41,14 @@ public interface AIRunner extends Runnable {
     public void getAttention(BasicAI ai) throws InterruptedException;
 
     /**
+     * Produces a BasicAI that is already registered and has the provided handlers.
+     * 
+     * @param handlers
+     * @return
+     */
+    public BasicAI produceAI(AIHandler... handlers);
+
+    /**
      * Registers an NPC with the AIRunner, and as well, will register the variadic
      * handlers
      * with the BasicAI.
@@ -50,5 +58,6 @@ public interface AIRunner extends Runnable {
      * @return null if cannot be registered, or populated if can be or is already
      *         registered
      */
+    @Deprecated
     public BasicAI register(INonPlayerCharacter npc, AIHandler... handlers);
 }
