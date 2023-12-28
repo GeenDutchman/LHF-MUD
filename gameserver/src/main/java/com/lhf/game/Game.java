@@ -21,7 +21,7 @@ import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
-import com.lhf.game.map.DungeonBuilder;
+import com.lhf.game.map.StandardDungeonProducer;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -56,7 +56,7 @@ public class Game implements UserListener, CommandChainHandler {
 		this.thirdPower = new ThirdPower(this, null);
 		this.conversationManager = new ConversationManager();
 		this.statblockManager = new StatblockManager();
-		Dungeon dungeon = DungeonBuilder.buildStaticDungeon(this.thirdPower, this.groupAiRunner, this,
+		Dungeon dungeon = StandardDungeonProducer.buildStaticDungeon(this.thirdPower, this.groupAiRunner, this,
 				this.conversationManager, this.statblockManager);
 		this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(groupAiRunner, new ConversationManager());
 		this.controlRoom.addDungeon(dungeon);
@@ -112,7 +112,6 @@ public class Game implements UserListener, CommandChainHandler {
 			if (selected != null) {
 				Player.PlayerBuilder builder = Player.PlayerBuilder.getInstance(user);
 				builder.setVocation(selected);
-				builder.setController(user);
 				Player player = builder.build();
 				this.controlRoom.addNewPlayer(player);
 				return;
