@@ -16,6 +16,7 @@ import com.lhf.game.creature.intelligence.handlers.ForgetOnOtherExit;
 import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.BadTargetSelectedEvent;
 import com.lhf.messages.events.BattleCreatureFledEvent;
@@ -25,20 +26,16 @@ import com.lhf.server.client.DoNothingSendStrategy;
 import com.lhf.server.interfaces.NotNull;
 
 public class BasicAI extends Client {
-    protected INonPlayerCharacter npc;
+    protected final String basicLoggerName;
+    protected transient INonPlayerCharacter npc;
     protected Map<GameEventType, AIChunk> handlers;
     protected BlockingQueue<GameEvent> queue;
-    protected AIRunner runner;
+    protected transient AIRunner runner;
 
-    protected BasicAI(INonPlayerCharacter npc, AIRunner runner) {
+    protected BasicAI(AIRunner runner) {
         super();
+        this.basicLoggerName = String.format("%s.%d", this.getClass().getName(), this.getClientID().hashCode());
         this.queue = new ArrayBlockingQueue<>(32, true);
-        this.npc = npc;
-        if (npc != null) {
-            this.logger = Logger.getLogger(this.logger.getName() + "." + npc.getName().replaceAll("\\W", "_"));
-        }
-        this.npc.setController(this);
-        this.setSuccessor(npc);
         this.SetOut(new DoNothingSendStrategy());
         this.handlers = new TreeMap<>();
         this.initBasicHandlers();
@@ -136,6 +133,33 @@ public class BasicAI extends Client {
 
     public INonPlayerCharacter getNpc() {
         return npc;
+    }
+
+    public void setNPC(INonPlayerCharacter nextNPC) {
+        this.logger.log(Level.CONFIG,
+                () -> String.format("Transitioning BasicAI %s to back %s", this.getClientID(), nextNPC));
+        this.npc = nextNPC;
+        if (this.npc != null) {
+            this.npc.setController(this);
+            this.logger = Logger.getLogger(this.basicLoggerName + "." + npc.getName().replaceAll("\\W", "_"));
+        } else {
+            this.logger = Logger.getLogger(this.basicLoggerName);
+        }
+        super.setSuccessor(nextNPC);
+    }
+
+    public void setSuccessor(INonPlayerCharacter successor) {
+        this.setNPC(successor);
+        super.setSuccessor(successor);
+    }
+
+    @Override
+    public void setSuccessor(CommandChainHandler successor) {
+        if (successor != null) {
+            throw new IllegalArgumentException(
+                    String.format("The client successor '%s' should be an INonPlayerCharacter", successor));
+        }
+        super.setSuccessor(null);
     }
 
     @Override
