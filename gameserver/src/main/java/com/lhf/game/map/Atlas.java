@@ -1,12 +1,12 @@
 package com.lhf.game.map;
 
 import java.io.Serializable;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Function;
@@ -14,9 +14,9 @@ import com.lhf.game.map.Land.TraversalTester;
 
 public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<AtlasMemberID>> {
     protected static final class TargetedTester<TargetIDType> implements Serializable {
-        final Directions direction;
-        final TargetIDType targetId;
-        final TraversalTester predicate;
+        private final Directions direction;
+        private final TargetIDType targetId;
+        private final TraversalTester predicate;
 
         protected TargetedTester(Directions direction, TargetIDType targetId, TraversalTester predicate) {
             this.direction = direction;
@@ -39,8 +39,8 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
     }
 
     protected final static class AtlasMappingItem<MappingMember, MappingTargetID> implements Serializable {
-        final MappingMember atlasMember;
-        public final EnumMap<Directions, TargetedTester<MappingTargetID>> directions;
+        private final MappingMember atlasMember;
+        private final EnumMap<Directions, TargetedTester<MappingTargetID>> directions;
 
         protected AtlasMappingItem(MappingMember atlasMember) {
             this.atlasMember = atlasMember;
@@ -51,13 +51,14 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             return atlasMember;
         }
 
-        public Set<TargetedTester<MappingTargetID>> getTargetedTesters() {
-            return this.directions.values().stream().filter(tester -> tester != null)
-                    .collect(Collectors.toUnmodifiableSet());
+        public Collection<TargetedTester<MappingTargetID>> getTargetedTesters() {
+            return this.getDirections().values();
         }
 
         public Map<Directions, TargetedTester<MappingTargetID>> getDirections() {
-            return Collections.unmodifiableMap(this.directions);
+            return this.directions.entrySet().stream()
+                    .filter(entry -> entry.getKey() != null && entry.getValue() != null)
+                    .collect(Collectors.toUnmodifiableMap(entry -> entry.getKey(), entry -> entry.getValue()));
         }
 
         public Set<Directions> getAvailableDirections() {
@@ -66,7 +67,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
     }
 
-    protected final Map<AtlasMemberID, AtlasMappingItem<AtlasMemberType, AtlasMemberID>> mapping;
+    private final Map<AtlasMemberID, AtlasMappingItem<AtlasMemberType, AtlasMemberID>> mapping;
 
     public abstract AtlasMemberID getIDForMemberType(AtlasMemberType member);
 
@@ -80,10 +81,14 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                     String.format("The key obtained from the first entry '%s' must not be null!", first));
         }
         this.mapping = new LinkedHashMap<>(); // keep insertion order
-        this.mapping.put(key, new AtlasMappingItem(first));
+        this.mapping.put(key, new AtlasMappingItem<>(first));
     }
 
-    public final synchronized void connectOneWay(AtlasMemberType existing, Directions toNext, AtlasMemberType next,
+    public int size() {
+        return this.mapping.size();
+    }
+
+    public final synchronized void connectOneWay(AtlasMemberType existing, Directions toExisting, AtlasMemberType next,
             TraversalTester predicate) {
         synchronized (this.mapping) {
             if (existing == null) {
@@ -101,10 +106,10 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                         String.format("The value obtained from \"existing\" key argument '%s' must not be null!",
                                 existingKey));
             }
-            if (toNext == null) {
+            if (toExisting == null) {
                 throw new IllegalArgumentException("The provided direction must not be null!");
             }
-            final AtlasMemberID nextKey = this.getIDForMemberType(existing);
+            final AtlasMemberID nextKey = this.getIDForMemberType(next);
             if (nextKey == null) {
                 throw new IllegalStateException(
                         String.format("The key obtained from \"next\" argument '%s' must not be null!", next));
@@ -112,20 +117,21 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             if (next == null) {
                 throw new IllegalArgumentException("The 'next' argument must not be null!");
             }
-            this.mapping.computeIfAbsent(nextKey, key -> new AtlasMappingItem<>(next));
-            existingEntry.directions.put(toNext, new TargetedTester<>(toNext, nextKey, predicate));
+            final AtlasMappingItem<AtlasMemberType, AtlasMemberID> nextEntry = this.mapping.computeIfAbsent(nextKey,
+                    key -> new AtlasMappingItem<>(next));
+            nextEntry.directions.put(toExisting, new TargetedTester<>(toExisting, nextKey, predicate));
         }
     }
 
     public final synchronized void connect(AtlasMemberType existing, Directions toNext, AtlasMemberType next,
             TraversalTester predicate) {
         synchronized (this.mapping) {
-            this.connectOneWay(existing, toNext, next, predicate);
-            final AtlasMappingItem<AtlasMemberType, AtlasMemberID> nextMappingItem = this.mapping
-                    .get(this.getIDForMemberType(next));
+            this.connectOneWay(existing, toNext.opposite(), next, predicate);
             final AtlasMemberID existingKey = this.getIDForMemberType(existing);
-            nextMappingItem.directions.put(toNext.opposite(),
-                    new TargetedTester<>(toNext.opposite(), existingKey, predicate));
+            final AtlasMappingItem<AtlasMemberType, AtlasMemberID> existingMapItem = this.mapping
+                    .get(existingKey);
+            final AtlasMemberID nextKey = this.getIDForMemberType(next);
+            existingMapItem.directions.put(toNext, new TargetedTester<>(toNext, nextKey, predicate));
         }
     }
 
@@ -133,6 +139,12 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         synchronized (this.mapping) {
             return this.mapping.values().stream().filter(mapItem -> mapItem != null)
                     .collect(Collectors.toUnmodifiableSet());
+        }
+    }
+
+    public final Optional<AtlasMappingItem<AtlasMemberType, AtlasMemberID>> getFirstMappingItem() {
+        synchronized (this.mapping) {
+            return this.mapping.values().stream().filter(item -> item != null).findFirst();
         }
     }
 
@@ -144,6 +156,16 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
     }
 
+    public final AtlasMemberType getFirstMember() {
+        synchronized (this.mapping) {
+            Optional<AtlasMappingItem<AtlasMemberType, AtlasMemberID>> firstItem = this.getFirstMappingItem();
+            if (firstItem == null || firstItem.isEmpty()) {
+                return null;
+            }
+            return firstItem.get().getAtlasMember();
+        }
+    }
+
     public final AtlasMappingItem<AtlasMemberType, AtlasMemberID> getAtlasMappingItem(AtlasMemberID memberID) {
         synchronized (this.mapping) {
             if (memberID == null) {
@@ -151,6 +173,11 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             }
             return this.mapping.get(memberID);
         }
+    }
+
+    protected AtlasMappingItem<AtlasMemberType, AtlasMemberID> potentialNewMapping(AtlasMemberID id,
+            AtlasMemberType nextMember) {
+        return this.mapping.computeIfAbsent(id, key -> new AtlasMappingItem<>(nextMember));
     }
 
     public final AtlasMappingItem<AtlasMemberType, AtlasMemberID> getAtlasMappingItem(AtlasMemberType possMember) {
@@ -179,10 +206,10 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             }
 
             final AtlasMappingItem<AtlasMemberType, AtlasMemberID> mappingItem = this.getAtlasMappingItem(visiting);
-            final Set<TargetedTester<AtlasMemberID>> targetedTesters = mappingItem.getTargetedTesters();
+            final Collection<TargetedTester<AtlasMemberID>> targetedTesters = mappingItem.getTargetedTesters();
             final TT transformedMember = transformer.apply(mappingItem.getAtlasMember());
             final TID transformedMemberID = translation.getIDForMemberType(transformedMember);
-            translation.mapping.computeIfAbsent(transformedMemberID, key -> new AtlasMappingItem<>(transformedMember));
+            translation.potentialNewMapping(transformedMemberID, transformedMember);
             visited.put(visiting, transformedMemberID);
 
             for (final TargetedTester<AtlasMemberID> tester : targetedTesters) {
