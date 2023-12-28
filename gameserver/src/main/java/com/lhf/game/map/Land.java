@@ -4,9 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -18,13 +15,12 @@ import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.Game;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.creature.Player;
 import com.lhf.game.map.Area.AreaBuilder;
 import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.Atlas.AtlasMappingItem;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.ITickEvent;
-import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.server.client.user.UserID;
 
@@ -44,6 +40,11 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             return member.getUuid();
         }
 
+        @Override
+        public String getNameForMemberType(Area member) {
+            return member.getName();
+        }
+
     }
 
     public interface LandBuilder extends Serializable {
@@ -57,6 +58,11 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             @Override
             public AreaBuilderID getIDForMemberType(AreaBuilder member) {
                 return member.getAreaBuilderID();
+            }
+
+            @Override
+            public String getNameForMemberType(AreaBuilder member) {
+                return member.getName();
             }
 
         }

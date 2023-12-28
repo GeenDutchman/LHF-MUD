@@ -71,6 +71,8 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
     public abstract AtlasMemberID getIDForMemberType(AtlasMemberType member);
 
+    public abstract String getNameForMemberType(AtlasMemberType member);
+
     protected Atlas(final AtlasMemberType first) {
         if (first == null) {
             throw new IllegalArgumentException("Cannot make an Atlas with a null first!");
@@ -251,6 +253,31 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
 
         return translation;
+    }
+
+    public final String toMermaid(boolean fence) {
+        StringBuilder sb = new StringBuilder();
+        StringBuilder edges = new StringBuilder();
+        if (fence) {
+            sb.append("```mermaid").append("\r\n");
+        }
+        sb.append("flowchart LR").append("\r\n");
+        for (final AtlasMappingItem<AtlasMemberType, AtlasMemberID> mapItem : this.getAtlasMappingItems()) {
+            final AtlasMemberType member = mapItem.getAtlasMember();
+            final String uuid = this.getIDForMemberType(member).toString();
+            sb.append("    ").append(uuid).append("[").append(this.getNameForMemberType(member)).append("]\r\n");
+            for (final TargetedTester<AtlasMemberID> dir : mapItem.getTargetedTesters()) {
+                String otherUUID = dir.getTargetId().toString();
+                edges.append("    ").append(uuid).append("-->|").append(dir.getDirection()).append("|")
+                        .append(otherUUID).append("\r\n");
+            }
+        }
+        sb.append("\r\n");
+        sb.append(edges.toString());
+        if (fence) {
+            sb.append("```").append("\r\n");
+        }
+        return sb.toString();
     }
 
 }
