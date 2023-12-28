@@ -31,8 +31,8 @@ import com.lhf.game.LockableItemContainer;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
-import com.lhf.game.creature.Player;
 import com.lhf.game.creature.INonPlayerCharacter.AbstractNPCBuilder;
+import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
@@ -51,8 +51,8 @@ import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.BadSpeakingTargetEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent;
-import com.lhf.messages.events.CreatureDiedEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
+import com.lhf.messages.events.CreatureDiedEvent;
 import com.lhf.messages.events.ItemDroppedEvent;
 import com.lhf.messages.events.ItemDroppedEvent.DropType;
 import com.lhf.messages.events.ItemInteractionEvent;
@@ -77,21 +77,21 @@ import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.user.UserID;
 
 public class Room implements Area {
-    private GameEventProcessorID gameEventProcessorID = new GameEventProcessorID();
-    private UUID uuid = gameEventProcessorID.getUuid();
-    protected Logger logger;
-    private List<Item> items;
+    private final GameEventProcessorID gameEventProcessorID = new GameEventProcessorID();
+    private final UUID uuid = gameEventProcessorID.getUuid();
+    protected final Logger logger;
+    private final List<Item> items;
     private transient Long takeableCount;
     private transient Long interactableCount;
-    private String description;
-    private String name;
-    private BattleManager battleManager;
-    private Set<ICreature> allCreatures;
-    private transient Land dungeon;
-    private transient TreeSet<RoomEffect> effects;
+    private final String description;
+    private final String name;
+    private final BattleManager battleManager;
+    private final Set<ICreature> allCreatures;
+    private final transient Land dungeon;
+    private final transient TreeSet<RoomEffect> effects;
 
     private transient Map<CommandMessage, CommandHandler> commands;
-    private CommandChainHandler successor;
+    private transient CommandChainHandler successor;
 
     public static class RoomBuilder implements Area.AreaBuilder {
         private final transient Logger logger;
@@ -197,55 +197,34 @@ public class Room implements Area {
             return this.name;
         }
 
-        private Room buildCreatures(Room room,
+        protected Set<INonPlayerCharacter> buildCreatures(
                 AIRunner aiRunner, StatblockManager statblockManager,
                 ConversationManager conversationManager) throws FileNotFoundException {
             Collection<AbstractNPCBuilder<?, ?>> toBuild = this.getNPCsToBuild();
-            if (room == null || toBuild == null) {
-                return room;
+            if (toBuild == null) {
+                return Set.of();
             }
-            for (AbstractNPCBuilder<?, ?> npcBuilder : toBuild) {
-                if (npcBuilder == null) {
+            TreeSet<INonPlayerCharacter> built = new TreeSet<>();
+            for (final AbstractNPCBuilder<?, ?> builder : toBuild) {
+                if (builder == null) {
                     continue;
                 }
-                INonPlayerCharacter builtCharacter = npcBuilder.build(aiRunner, room, statblockManager,
-                        conversationManager);
-                room.allCreatures.add(builtCharacter);
+                // a null successor here because their successor will be set in the constructor
+                built.add(builder.build(aiRunner, null, statblockManager, conversationManager));
             }
-            return room;
+            return Collections.unmodifiableSet(built);
         }
 
         @Override
-        public Room build(Land land, AIRunner aiRunner, StatblockManager statblockManager,
-                ConversationManager conversationManager) throws FileNotFoundException {
-            this.logger.log(Level.INFO, () -> String.format("Building room '%s'", this.name));
-            Room theRoom = new Room(this);
-            if (land == null) {
-                this.logger.log(Level.WARNING, "Building a Room without a Land!");
-            } else {
-                theRoom.setSuccessor(land);
-                theRoom.setLand(land);
-            }
-            return this.buildCreatures(theRoom, aiRunner, statblockManager, conversationManager);
-        }
-
-        @Override
-        public Area build(CommandChainHandler successor, Land land, AIRunner aiRunner,
+        public Room build(CommandChainHandler successor, Land land, AIRunner aiRunner,
                 StatblockManager statblockManager, ConversationManager conversationManager)
                 throws FileNotFoundException {
             this.logger.log(Level.INFO, () -> String.format("Building room '%s'", this.name));
-            Room theRoom = new Room(this);
-            if (land == null) {
-                this.logger.log(Level.WARNING, "Building a Room without a Land!");
-            } else {
-                theRoom.setLand(land);
-            }
-            if (successor == null) {
-                this.logger.log(Level.WARNING, "Building a Room without a Successor!");
-            } else {
-                theRoom.setSuccessor(successor);
-            }
-            return this.buildCreatures(theRoom, aiRunner, statblockManager, conversationManager);
+            final Set<INonPlayerCharacter> creaturesBuilt = this.buildCreatures(aiRunner, statblockManager,
+                    conversationManager);
+            final Set<INonPlayerCharacter> creaturesToAdd = new TreeSet<>(this.nonPlayerCharacters);
+            creaturesToAdd.addAll(creaturesBuilt);
+            return new Room(this, () -> land, () -> successor, () -> creaturesToAdd);
         }
 
         @Override
@@ -265,20 +244,20 @@ public class Room implements Area {
 
     }
 
-    Room(RoomBuilder builder) {
+    Room(RoomBuilder builder, Supplier<Land> landSupplier,
+            Supplier<CommandChainHandler> successorSupplier, Supplier<Set<INonPlayerCharacter>> creatureSupplier) {
         this.name = builder.getName();
         this.logger = Logger.getLogger(this.getClass().getName() + "."
                 + (this.name != null && !this.name.isBlank() ? this.name.replaceAll("\\W", "_")
                         : this.uuid.toString()));
         this.description = builder.getDescription() != null ? builder.getDescription() : builder.getName();
         this.items = new ArrayList<>(builder.getItems());
-        this.allCreatures = new TreeSet<>(builder.getPrebuiltNPCs());
+        this.allCreatures = new TreeSet<>(creatureSupplier.get());
         for (ICreature c : this.allCreatures) {
             c.setSuccessor(this);
         }
-        // dungeon and successor set by builder
-        this.dungeon = null;
-        this.successor = null;
+        this.dungeon = landSupplier.get();
+        this.successor = successorSupplier.get();
         this.effects = new TreeSet<>();
         this.battleManager = builder.battleManagerBuilder.Build(this);
         this.commands = this.buildCommands();
@@ -323,13 +302,29 @@ public class Room implements Area {
     }
 
     @Override
-    public void setLand(Land land) {
-        this.dungeon = land;
-    }
-
-    @Override
     public Set<ICreature> getCreatures() {
         return Collections.unmodifiableSet(this.allCreatures);
+    }
+
+    protected void addCreatures(Set<ICreature> creaturesToAdd, boolean silent) {
+        StringJoiner sj = new StringJoiner(", ", "Added creatures: ", "").setEmptyValue("No creatures added");
+        if (creaturesToAdd != null) {
+            creaturesToAdd.stream().filter(c -> c != null).forEach(c -> {
+                c.setSuccessor(this);
+                if (this.allCreatures.add(c)) {
+                    sj.add(c.getName());
+                    if (!silent) {
+                        ICreature.eventAccepter.accept(c, this.produceMessage());
+                        this.announce(RoomEnteredEvent.getBuilder().setNewbie(c).setBroacast().Build(), c);
+                    }
+                    if (this.battleManager.isBattleOngoing("Room.addCreatures(Set<ICreature>)")
+                            && !CreatureFaction.NPC.equals(c.getFaction())) {
+                        this.battleManager.addCreature(c);
+                    }
+                }
+            });
+        }
+        this.log(Level.INFO, sj.toString());
     }
 
     @Override
@@ -570,10 +565,6 @@ public class Room implements Area {
     @Override
     public NavigableSet<RoomEffect> getMutableEffects() {
         return this.effects;
-    }
-
-    void setDungeon(Dungeon dungeon) {
-        this.dungeon = dungeon;
     }
 
     public String getBattleInfo() {
