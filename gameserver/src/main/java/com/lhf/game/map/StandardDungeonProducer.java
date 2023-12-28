@@ -26,6 +26,7 @@ import com.lhf.game.item.concrete.equipment.RustyDagger;
 import com.lhf.game.item.concrete.equipment.Shortsword;
 import com.lhf.game.item.concrete.equipment.Whimsystick;
 import com.lhf.game.item.interfaces.InteractAction;
+import com.lhf.game.map.Dungeon.DungeonBuilder;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
@@ -34,12 +35,7 @@ public final class StandardDungeonProducer {
     public static Dungeon buildStaticDungeon(CommandChainHandler successor, AIRunner aiRunner, Game game,
             ConversationManager convoLoader, StatblockManager statblockLoader)
             throws FileNotFoundException {
-        DungeonBuilder builder = DungeonBuilder.newInstance().setGame(game);
-        if (aiRunner == null) {
-            builder.logger.log(Level.SEVERE, "AIRunner NOT provided!");
-        }
-
-        builder.setSuccessor(successor);
+        DungeonBuilder builder = DungeonBuilder.newInstance();
 
         Statblock goblin = statblockLoader.statblockFromfile("goblin");
         Statblock bugbear = statblockLoader.statblockFromfile("bugbear");
@@ -82,8 +78,9 @@ public final class StandardDungeonProducer {
         testSwitch.setAction(testAction);
         // Switch test end
         entryRoomBuilder.addItem(testSwitch);
-        Room entryRoom = entryRoomBuilder.build();
-        testSwitch.setItem("room", entryRoom); // TODO: find a better way for context aware items
+        // Room entryRoom = entryRoomBuilder.build();
+        // testSwitch.setItem("room", entryRoom); // TODO: #151 find a better way for
+        // context aware items
 
         // History Hall RM2
         Room.RoomBuilder historyHallBuilder = Room.RoomBuilder.getInstance();
@@ -106,20 +103,22 @@ public final class StandardDungeonProducer {
         dispenser.setAction(testAction2);
         // Test dispenser end
         historyHallBuilder.addItem(dispenser);
-        Room historyHall = historyHallBuilder.build();
-        dispenser.setItem("room", historyHall);
+
+        // Room historyHall = historyHallBuilder.build();
+        // dispenser.setItem("room", historyHall); // TODO: #151 find a better way for
+        // context aware items
 
         // RM3
         Room.RoomBuilder offeringRoomBuilder = Room.RoomBuilder.getInstance().setName("Offering Room")
                 .setDescription("This is the offering room.");
-        Room offeringRoom = offeringRoomBuilder.build();
+        // Room offeringRoom = offeringRoomBuilder.build();
 
         // RM4
         Room.RoomBuilder trappedHallBuilder = Room.RoomBuilder.getInstance().setName("Trapped Room")
                 .setDescription("This is the trapped room.");
         HealPotion h1 = new HealPotion(true);
         trappedHallBuilder.addItem(h1);
-        Room trappedHall = trappedHallBuilder.build();
+        // Room trappedHall = trappedHallBuilder.build();
 
         Room.RoomBuilder secretRoomBuilder = Room.RoomBuilder.getInstance().setName("Secret Room")
                 .setDescription("This is the secret room!");
@@ -131,7 +130,7 @@ public final class StandardDungeonProducer {
         secretRoomBuilder.addItem(healPotion);
         secretRoomBuilder.addItem(mantle);
         secretRoomBuilder.addItem(scythe);
-        Room secretRoom = secretRoomBuilder.build();
+        // Room secretRoom = secretRoomBuilder.build();
 
         // RM5
         Room.RoomBuilder statueRoomBuilder = Room.RoomBuilder.getInstance().setName("Statue Room")
@@ -169,9 +168,10 @@ public final class StandardDungeonProducer {
         statue.setAction(statueAction);
         statueRoomBuilder.addItem(statue);
 
-        Room statueRoom = statueRoomBuilder.build();
-        statue.setItem("room1", statueRoom);
-        statue.setItem("room2", secretRoom);
+        // Room statueRoom = statueRoomBuilder.build();
+        // statue.setItem("room1", statueRoom);
+        // statue.setItem("room2", secretRoom); // TODO: #151 find a better way for
+        // context aware items
 
         // RM6 The armory
         Room.RoomBuilder armoryBuilder = Room.RoomBuilder.getInstance().setName("Armory").setDescription("An armory");
@@ -185,11 +185,11 @@ public final class StandardDungeonProducer {
         armoryBuilder.addItem(stick);
         armoryBuilder.addItem(shortsword);
         armoryBuilder.addItem(potion);
-        Room armory = armoryBuilder.build();
+        // Room armory = armoryBuilder.build();
 
         // RM7
-        Room passage = Room.RoomBuilder.getInstance().setName("Passageway")
-                .setDescription("An old, curvy and dusty passageway").build();
+        Room.RoomBuilder passage = Room.RoomBuilder.getInstance().setName("Passageway")
+                .setDescription("An old, curvy and dusty passageway");
         // RM8
         Room.RoomBuilder treasuryBuilder = Room.RoomBuilder.getInstance().setName("Vault")
                 .setDescription("A looted vault room.");
@@ -203,35 +203,34 @@ public final class StandardDungeonProducer {
         for (Chest.ChestDescriptor descriptor : Chest.ChestDescriptor.values()) { // it's "looted", so...
             treasuryBuilder.addItem(new Chest(descriptor, true, false, true));
         }
-        Room treasury = treasuryBuilder.build();
+        // Room treasury = treasuryBuilder.build();
 
         // Monsters
-        Monster.MonsterBuilder g1 = Monster.getMonsterBuilder(aiRunner).setName(NameGenerator.Generate("goblin"))
-                .setStatblock(goblin);
-        g1.setConversationTree(convoLoader, "non_verbal_default");
-        historyHall.addPrebuiltNPC(g1.build());
+        Monster.MonsterBuilder g1 = Monster.getMonsterBuilder().setName(NameGenerator.Generate("goblin"))
+                .setStatblock(goblin).useDefaultConversation();
+        historyHallBuilder.addNPCBuilder(g1);
 
-        Monster.MonsterBuilder boss = Monster.getMonsterBuilder(aiRunner).setName("Boss Bear").setStatblock(bugbear);
-        statueRoom.addPrebuiltNPC(boss.build());
+        Monster.MonsterBuilder boss = Monster.getMonsterBuilder().setName("Boss Bear").setStatblock(bugbear);
+        statueRoomBuilder.addNPCBuilder(boss);
 
-        Monster.MonsterBuilder rightHandMan = Monster.getMonsterBuilder(aiRunner)
+        Monster.MonsterBuilder rightHandMan = Monster.getMonsterBuilder()
                 .setName(NameGenerator.Generate("Right")).setStatblock(hobgoblin);
-        offeringRoom.addPrebuiltNPC(rightHandMan.build());
+        offeringRoomBuilder.addNPCBuilder(rightHandMan);
 
         // Set starting room
-        builder.addStartingRoom(entryRoom);
+        builder.addStartingRoom(entryRoomBuilder);
 
         // Path
-        builder.connectRoom(historyHall, Directions.WEST, entryRoom);
-        builder.connectRoom(offeringRoom, Directions.WEST, historyHall);
-        builder.connectRoom(armory, Directions.SOUTH, historyHall);
-        builder.connectRoom(trappedHall, Directions.WEST, offeringRoom);
-        builder.connectRoom(passage, Directions.SOUTH, armory);
-        builder.connectRoom(treasury, Directions.WEST, passage);
-        builder.connectRoom(trappedHall, Directions.NORTH, treasury);
-        builder.connectRoom(statueRoom, Directions.NORTH, trappedHall);
-        builder.connectRoomOneWay(secretRoom, Directions.WEST, statueRoom);
+        builder.connectRoom(historyHallBuilder, Directions.WEST, entryRoomBuilder);
+        builder.connectRoom(offeringRoomBuilder, Directions.WEST, historyHallBuilder);
+        builder.connectRoom(armoryBuilder, Directions.SOUTH, historyHallBuilder);
+        builder.connectRoom(trappedHallBuilder, Directions.WEST, offeringRoomBuilder);
+        builder.connectRoom(passage, Directions.SOUTH, armoryBuilder);
+        builder.connectRoom(treasuryBuilder, Directions.WEST, passage);
+        builder.connectRoom(trappedHallBuilder, Directions.NORTH, treasuryBuilder);
+        builder.connectRoom(statueRoomBuilder, Directions.NORTH, trappedHallBuilder);
+        builder.connectRoomOneWay(secretRoomBuilder, Directions.WEST, statueRoomBuilder);
 
-        return builder.build();
+        return builder.build(successor, game);
     }
 }

@@ -123,6 +123,10 @@ public class Dungeon implements Land {
             return this.atlas;
         }
 
+        public String toMermaid(boolean fence) {
+            return "DungeonBuilder\r\n" + this.atlas.toMermaid(fence);
+        }
+
     }
 
     private Land.AreaAtlas atlas;
