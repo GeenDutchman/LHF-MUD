@@ -61,6 +61,6 @@ public interface AIRunner extends Runnable {
      * @return null if cannot be registered, or populated if can be or is already
      *         registered
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     public BasicAI register(INonPlayerCharacter npc, AIHandler... handlers);
 }
