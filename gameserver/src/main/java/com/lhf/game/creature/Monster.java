@@ -73,10 +73,9 @@ public class Monster extends NonPlayerCharacter implements IMonster {
     }
 
     public Monster(MonsterBuilder builder,
-            Supplier<Statblock> statblockSupplier,
-            Supplier<CommandChainHandler> successorSupplier, Supplier<CommandInvoker> controllerSupplier,
-            Supplier<ConversationTree> conversationSupplier) {
-        super(builder, statblockSupplier, successorSupplier, controllerSupplier, conversationSupplier);
+            Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
+            Supplier<Statblock> statblockSupplier, Supplier<ConversationTree> conversationSupplier) {
+        super(builder, controllerSupplier, successorSupplier, statblockSupplier, conversationSupplier);
         this.monsterNumber = builder.getMonsterNumber();
     }
 
