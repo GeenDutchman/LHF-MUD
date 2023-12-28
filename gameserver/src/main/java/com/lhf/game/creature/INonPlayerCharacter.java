@@ -8,11 +8,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
+import com.lhf.game.creature.NonPlayerCharacter.NPCBuilder;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
@@ -302,48 +304,23 @@ public interface INonPlayerCharacter extends ICreature {
             return this.getThis();
         }
 
-        /**
-         * Builds an NPC that is potentially not registered with an
-         * {@link com.lhf.game.creature.intelligence.AIRunner AIRunner}.
-         * 
-         * @return the built NPC
-         */
-        protected abstract NPCType preEnforcedRegistrationBuild(CommandChainHandler successor,
-                StatblockManager statblockManager, UnaryOperator<NPCBuilderType> composedlazyLoaders)
-                throws FileNotFoundException;
-
         @Override
-        public NPCType build(Consumer<INonPlayerCharacter> controllerAssigner,
+        public abstract NPCType build(Supplier<CommandInvoker> controllerSupplier,
                 CommandChainHandler successor, StatblockManager statblockManager,
-                UnaryOperator<NPCBuilderType> composedlazyLoaders) throws FileNotFoundException {
-            if (statblockManager != null) {
-                this.loadStatblock(statblockManager);
-            }
-            if (composedlazyLoaders != null) {
-                composedlazyLoaders.apply(this.getThis());
-            }
-            NPCType built = this.preEnforcedRegistrationBuild(successor, statblockManager,
-                    composedlazyLoaders);
-            if (controllerAssigner != null) {
-                controllerAssigner.accept(built);
-            }
-            built.setSuccessor(successor);
-            return built;
-        }
+                UnaryOperator<NPCBuilderType> composedlazyLoaders) throws FileNotFoundException;
 
         public NPCType build(AIRunner aiRunner, CommandChainHandler successor,
                 StatblockManager statblockManager, ConversationManager conversationManager)
                 throws FileNotFoundException {
-            Consumer<INonPlayerCharacter> registration = (npc) -> {
-                if (aiRunner != null) {
-                    aiRunner.register(npc, this.getAiHandlersAsArray());
-                }
+            Supplier<CommandInvoker> controllerSupplier = () -> {
+                return aiRunner.produceAI(getAiHandlersAsArray());
             };
+
             UnaryOperator<NPCBuilderType> conversationLoader = (builder) -> {
                 builder.loadConversationTree(conversationManager);
                 return builder;
             };
-            return this.build(registration, successor, statblockManager, conversationLoader);
+            return this.build(controllerSupplier, successor, statblockManager, conversationLoader);
         }
 
         @Override

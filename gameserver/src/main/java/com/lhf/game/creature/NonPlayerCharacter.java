@@ -28,18 +28,17 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
         }
 
         @Override
-        protected NonPlayerCharacter preEnforcedRegistrationBuild(CommandChainHandler successor,
-                StatblockManager statblockManager, UnaryOperator<NPCBuilder> composedlazyLoaders)
-                throws FileNotFoundException {
+        public NonPlayerCharacter build(Supplier<CommandInvoker> controllerSupplier,
+                CommandChainHandler successor, StatblockManager statblockManager,
+                UnaryOperator<NPCBuilder> composedlazyLoaders) throws FileNotFoundException {
             if (statblockManager != null) {
                 this.loadStatblock(statblockManager);
             }
             if (composedlazyLoaders != null) {
                 composedlazyLoaders.apply(this.getThis());
             }
-            NonPlayerCharacter created = new NonPlayerCharacter(this, () -> this.getStatblock(), () -> );
-            created.setSuccessor(successor);
-            return created;
+            return new NonPlayerCharacter(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
+                    () -> this.getConversationTree());
         }
 
         @Override
@@ -57,10 +56,9 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     private transient final HarmMemories harmMemories = HarmMemories.makeMemories(this);
 
     protected NonPlayerCharacter(AbstractNPCBuilder<?, ? extends INonPlayerCharacter> builder,
-            Supplier<Statblock> statblockSupplier,
-            Supplier<CommandChainHandler> successorSupplier, Supplier<CommandInvoker> controllerSupplier,
-            Supplier<ConversationTree> conversationSupplier) {
-        super(builder, statblockSupplier, successorSupplier, controllerSupplier);
+            Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
+            Supplier<Statblock> statblockSupplier, Supplier<ConversationTree> conversationSupplier) {
+        super(builder, controllerSupplier, successorSupplier, statblockSupplier);
         this.convoTree = conversationSupplier.get();
     }
 

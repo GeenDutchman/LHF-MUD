@@ -52,18 +52,17 @@ public class Monster extends NonPlayerCharacter implements IMonster {
         }
 
         @Override
-        protected Monster preEnforcedRegistrationBuild(CommandChainHandler successor,
-                StatblockManager statblockManager, UnaryOperator<MonsterBuilder> composedlazyLoaders)
-                throws FileNotFoundException {
+        public Monster build(Supplier<CommandInvoker> controllerSupplier,
+                CommandChainHandler successor, StatblockManager statblockManager,
+                UnaryOperator<MonsterBuilder> composedlazyLoaders) throws FileNotFoundException {
             if (statblockManager != null) {
                 this.loadStatblock(statblockManager);
             }
             if (composedlazyLoaders != null) {
                 composedlazyLoaders.apply(this.getThis());
             }
-            Monster created = new Monster(this);
-            created.setSuccessor(successor);
-            return created;
+            return new Monster(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
+                    () -> this.getConversationTree());
         }
 
         @Override
