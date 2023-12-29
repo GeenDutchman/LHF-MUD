@@ -46,7 +46,7 @@ public class Game implements UserListener, CommandChainHandler {
 	private final Logger logger;
 	private final ThirdPower thirdPower;
 	private DMRoom controlRoom;
-	private final AIRunner groupAiRunner;
+	private final AIRunner aiRunner;
 	private final ConversationManager conversationManager;
 	private final StatblockManager statblockManager;
 	private Map<CommandMessage, CommandHandler> commands;
@@ -168,17 +168,17 @@ public class Game implements UserListener, CommandChainHandler {
 	public Game(GameBuilder builder, UserManager userManager) throws FileNotFoundException {
 		this.gameEventProcessorID = new GameEventProcessorID();
 		this.logger = Logger.getLogger(this.getClass().getName());
-		this.groupAiRunner = builder.getAiRunner();
+		this.aiRunner = builder.getAiRunner();
 		this.thirdPower = builder.getThirdPower();
 		this.thirdPower.setSuccessor(this);
 		this.conversationManager = builder.getConversationManager();
 		this.statblockManager = builder.getStatblockManager();
 		DMRoom.DMRoomBuilder dmRoomBuilder = builder.getDmRoomBuilder();
 		if (dmRoomBuilder != null) {
-			this.controlRoom = dmRoomBuilder.build(this.thirdPower, null, groupAiRunner, statblockManager,
+			this.controlRoom = dmRoomBuilder.build(this.thirdPower, null, aiRunner, statblockManager,
 					conversationManager);
 		} else {
-			this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(groupAiRunner, statblockManager, conversationManager);
+			this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(aiRunner, statblockManager, conversationManager);
 			this.controlRoom.setSuccessor(this.thirdPower);
 		}
 		ArrayList<LandBuilder> moreLands = builder.getAdditionalLands();
@@ -188,7 +188,7 @@ public class Game implements UserListener, CommandChainHandler {
 					continue;
 				}
 				this.controlRoom.addLand(
-						landBuilder.build(this.thirdPower, groupAiRunner, statblockManager, conversationManager));
+						landBuilder.build(this.thirdPower, aiRunner, statblockManager, conversationManager));
 			}
 		}
 		this.successor = builder.getServer();
@@ -298,8 +298,8 @@ public class Game implements UserListener, CommandChainHandler {
 		return ctx;
 	}
 
-	public GroupAIRunner getGroupAiRunner() {
-		return groupAiRunner;
+	public AIRunner getAiRunner() {
+		return aiRunner;
 	}
 
 	public ThirdPower getThirdPower() {
