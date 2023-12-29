@@ -1,13 +1,13 @@
 package com.lhf.game.map;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.item.Item;
+import com.lhf.game.creature.Monster.MonsterBuilder;
+import com.lhf.game.creature.NonPlayerCharacter.NPCBuilder;
 import com.lhf.server.interfaces.NotNull;
 
 public class RoomEffect extends EntityEffect {
@@ -24,21 +24,11 @@ public class RoomEffect extends EntityEffect {
         return (RoomEffectSource) this.source;
     }
 
-    public List<Item> getItemsToSummon() {
-        return Collections.unmodifiableList(this.getSource().getItemsToSummon());
-    }
-
-    public List<Item> getItemsToBanish() {
-        return Collections.unmodifiableList(this.getSource().getItemsToBanish());
-
-    }
-
-    public Set<ICreature> getCreaturesToSummon() {
+    public Set<NPCBuilder> getNPCsToSummon() {
         return Collections.unmodifiableSet(this.getSource().getNpcsToSummon());
     }
 
-    public Set<ICreature> getCreaturesToBanish() {
-        return Collections.unmodifiableSet(this.getSource().getCreaturesToBanish());
-
+    public Set<MonsterBuilder> getMonstersToSummon() {
+        return Collections.unmodifiableSet(this.getSource().getMonstersToSummon());
     }
 }
