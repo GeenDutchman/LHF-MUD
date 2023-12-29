@@ -118,10 +118,10 @@ public class CreatureCreator {
         return builder.build(aiRunner, null, loader_unloader, null);
     }
 
-    public static INonPlayerCharacter makeNPC() {
+    public static INonPlayerCharacter makeNPC() throws FileNotFoundException {
         NonPlayerCharacter.NPCBuilder builder = NonPlayerCharacter.getNPCBuilder();
 
-        return builder.build(aiRunner, null, loader_unloader, null)
+        return builder.build(aiRunner, null, loader_unloader, null);
     }
 
     public static DungeonMaster makeDM(String name) throws FileNotFoundException {
