@@ -328,7 +328,7 @@ public class Room implements Area {
         return Collections.unmodifiableSet(this.allCreatures);
     }
 
-    protected void addCreatures(Set<? extends ICreature> creaturesToAdd, boolean silent) {
+    public void addCreatures(Set<? extends ICreature> creaturesToAdd, boolean silent) {
         StringJoiner sj = new StringJoiner(", ", "Added creatures: ", "").setEmptyValue("No creatures added");
         if (creaturesToAdd != null) {
             creaturesToAdd.stream().filter(c -> c != null).forEach(c -> {

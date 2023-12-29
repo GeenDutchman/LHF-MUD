@@ -1,5 +1,7 @@
 package com.lhf.game.item.concrete;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -27,8 +29,8 @@ public class BedTest {
         AIComBundle first = new AIComBundle();
         AIComBundle second = new AIComBundle();
         AIComBundle third = new AIComBundle();
-        Room room = builder.setName("Occupancy Room").addPrebuiltNPC(first.npc).addPrebuiltNPC(second.npc)
-                .addPrebuiltNPC(third.npc).build();
+        Room room = builder.setName("Occupancy Room").quickBuild(null, null, null);
+        room.addCreatures(Set.of(first.npc, second.npc, third.npc), true);
         Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(2).setSleepSeconds(2));
         room.addItem(bed);
 
@@ -58,7 +60,8 @@ public class BedTest {
     @Test
     void testBedTime() {
         AIComBundle first = new AIComBundle();
-        Room room = builder.setName("Sleeping Room").addPrebuiltNPC(first.npc).build();
+        Room room = builder.setName("Sleeping Room").quickBuild(null, null, null);
+        room.addCreature(first.npc);
         Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(1).setSleepSeconds(1));
 
         GameEvent out = bed.doUseAction(first.npc);

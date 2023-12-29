@@ -24,7 +24,8 @@ public class LewdBedTest {
     @Test
     void testSolo() {
         AIComBundle first = new AIComBundle();
-        Room room = this.builder.setName("Solo").addPrebuiltNPC(first.npc).build();
+        Room room = this.builder.setName("Solo").quickBuild(null, null, null);
+        room.addCreature(first.npc);
         LewdBed bed = new LewdBed(room, LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30));
         room.addItem(bed);
 
@@ -45,10 +46,11 @@ public class LewdBedTest {
         AIComBundle first = new AIComBundle();
         AIComBundle second = new AIComBundle();
 
-        first.brain.addHandler(new LewdAIHandler(Set.of(second.npc)));
-        second.brain.addHandler(new LewdAIHandler(Set.of(first.npc)));
+        first.brain.addHandler(new LewdAIHandler(Set.of(second.npc.getName())));
+        second.brain.addHandler(new LewdAIHandler(Set.of(first.npc.getName())));
 
-        Room room = this.builder.setName("Pair").addPrebuiltNPC(first.npc).addPrebuiltNPC(second.npc).build();
+        Room room = this.builder.setName("Pair").quickBuild(null, null, null);
+        room.addCreatures(Set.of(first.npc, second.npc), true);
         LewdBed bed = new LewdBed(room, LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30));
         room.addItem(bed);
 
@@ -71,7 +73,8 @@ public class LewdBedTest {
         AIComBundle first = new AIComBundle();
         AIComBundle second = new AIComBundle();
 
-        Room room = this.builder.setName("Spurned").addPrebuiltNPC(first.npc).addPrebuiltNPC(second.npc).build();
+        Room room = this.builder.setName("Spurned").quickBuild(null, null, null);
+        room.addCreatures(Set.of(first.npc, second.npc), true);
         LewdBed bed = new LewdBed(room, LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30));
         room.addItem(bed);
 
@@ -94,10 +97,11 @@ public class LewdBedTest {
         AIComBundle first = new AIComBundle();
         AIComBundle second = new AIComBundle();
 
-        first.brain.addHandler(new LewdAIHandler(Set.of(second.npc)));
-        second.brain.addHandler(new LewdAIHandler(Set.of(first.npc)));
+        first.brain.addHandler(new LewdAIHandler(Set.of(second.npc.getName())));
+        second.brain.addHandler(new LewdAIHandler(Set.of(first.npc.getName())));
 
-        Room room = this.builder.setName("Spurned").addPrebuiltNPC(first.npc).addPrebuiltNPC(second.npc).build();
+        Room room = this.builder.setName("Spurned").quickBuild(null, null, null);
+        room.addCreatures(Set.of(first.npc, second.npc), false);
         LewdBed bed = new LewdBed(room,
                 LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30).setLewdProduct(new LewdBabyMaker()));
         room.addItem(bed);
