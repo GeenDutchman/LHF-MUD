@@ -58,7 +58,7 @@ public class Game implements UserListener, CommandChainHandler {
 		this.statblockManager = new StatblockManager();
 		Dungeon dungeon = StandardDungeonProducer.buildStaticDungeon(this.thirdPower, this.groupAiRunner, this,
 				this.conversationManager, this.statblockManager);
-		this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(groupAiRunner, new ConversationManager());
+		this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(groupAiRunner, statblockManager, conversationManager);
 		this.controlRoom.addLand(dungeon);
 		this.controlRoom.setSuccessor(this.thirdPower);
 		this.successor = server;
@@ -80,7 +80,7 @@ public class Game implements UserListener, CommandChainHandler {
 		this.thirdPower = new ThirdPower(this, null);
 		this.conversationManager = new ConversationManager();
 		this.statblockManager = new StatblockManager();
-		this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(aiRunner, new ConversationManager());
+		this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(groupAiRunner, statblockManager, conversationManager);
 		this.controlRoom.addLand(dungeon);
 		this.controlRoom.setSuccessor(this.thirdPower);
 		this.successor = server;
@@ -112,7 +112,7 @@ public class Game implements UserListener, CommandChainHandler {
 			if (selected != null) {
 				Player.PlayerBuilder builder = Player.PlayerBuilder.getInstance(user);
 				builder.setVocation(selected);
-				Player player = builder.build();
+				Player player = builder.build(this);
 				this.controlRoom.addNewPlayer(player);
 				return;
 			}
