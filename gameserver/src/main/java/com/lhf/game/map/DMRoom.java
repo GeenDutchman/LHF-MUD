@@ -206,7 +206,7 @@ public class DMRoom extends Room {
                         conversationManager);
                 final Set<ICreature> creaturesToAdd = new TreeSet<>(this.getPrebuiltNPCs());
                 creaturesToAdd.addAll(creaturesBuilt);
-                room.addCreatures(creaturesToAdd, false);
+                room.addCreatures(creaturesToAdd, true);
             }, () -> (dmRoom) -> {
                 final List<Land> landsBuilt = this.buildLands(aiRunner, dmRoom, null, statblockManager,
                         conversationManager);
@@ -224,38 +224,49 @@ public class DMRoom extends Room {
             return this.build(land, land, aiRunner, statblockManager, conversationManager);
         }
 
-        public static DMRoom buildDefault(AIRunner aiRunner, ConversationManager convoLoader)
+        public static DMRoom buildDefault(AIRunner aiRunner, StatblockManager statblockManager,
+                ConversationManager conversationManager)
                 throws FileNotFoundException {
             DMRoomBuilder builder = DMRoomBuilder.getInstance();
             builder.setName("Control Room")
                     .setDescription("There are a lot of buttons and screens in here.  It looks like a home office.");
 
-            DungeonMaster.DungeonMasterBuilder dmBuilder = DungeonMaster.DungeonMasterBuilder.getInstance(aiRunner);
-            if (convoLoader != null) {
-                dmBuilder.setConversationTree(convoLoader.convoTreeFromFile("verbal_default"));
+            DungeonMaster.DungeonMasterBuilder dmAda = DungeonMaster.DungeonMasterBuilder.getInstance();
+            if (conversationManager != null) {
+                dmAda.setConversationTree(conversationManager.convoTreeFromFile("verbal_default"));
             }
             SilencedHandler noSleepNoise = new SilencedHandler(GameEventType.INTERACT);
-            dmBuilder.addAIHandler(noSleepNoise);
+            dmAda.addAIHandler(noSleepNoise);
             LewdAIHandler lewdAIHandler = new LewdAIHandler().setPartnersOnly().setStayInAfter();
-            dmBuilder.addAIHandler(lewdAIHandler);
-            dmBuilder.addAIHandler(new SpokenPromptChunk().setAllowUsers());
-            dmBuilder.addAIHandler(new SpeakOnOtherEntry());
-            dmBuilder.setName("Ada Lovejax");
-            DungeonMaster dmAda = dmBuilder.build();
-            if (convoLoader != null) {
-                dmBuilder.setConversationTree(convoLoader.convoTreeFromFile("gary"));
+            dmAda.addAIHandler(lewdAIHandler);
+            dmAda.addAIHandler(new SpokenPromptChunk().setAllowUsers());
+            dmAda.addAIHandler(new SpeakOnOtherEntry());
+            dmAda.setName("Ada Lovejax");
+
+            DungeonMaster.DungeonMasterBuilder dmGary = DungeonMaster.DungeonMasterBuilder.getInstance();
+            if (conversationManager != null) {
+                dmGary.setConversationTree(conversationManager.convoTreeFromFile("gary"));
             }
-            dmBuilder.setName("Gary Lovejax");
-            DungeonMaster dmGary = dmBuilder.build();
-            lewdAIHandler.addPartner(dmGary).addPartner(dmAda);
+            dmGary.addAIHandler(noSleepNoise);
+            dmGary.addAIHandler(lewdAIHandler);
+            dmGary.addAIHandler(new SpokenPromptChunk().setAllowUsers());
+            dmGary.addAIHandler(new SpeakOnOtherEntry());
+            dmGary.setName("Gary Lovejax");
 
-            builder.addCreature(dmAda).addCreature(dmGary);
+            lewdAIHandler.addPartner(dmGary.getName()).addPartner(dmAda.getName());
 
-            DMRoom built = builder.build();
+            builder.addDungeonMasterBuilder(dmAda).addDungeonMasterBuilder(dmGary);
+
+            DMRoom built = builder.build(null, null, aiRunner, statblockManager, conversationManager);
 
             LewdBed.Builder bedBuilder = LewdBed.Builder.getInstance().setCapacity(2)
-                    .setLewdProduct(new LewdBabyMaker()).addOccupant(dmGary).addOccupant(dmAda);
-            LewdBed bed = bedBuilder.build(built); // TODO: figure out this room
+                    .setLewdProduct(new LewdBabyMaker());
+            for (ICreature dm : built.getCreaturesLike("Lovejax")) {
+                if (dm != null) {
+                    bedBuilder.addOccupant(dm);
+                }
+            }
+            LewdBed bed = bedBuilder.build(built);
 
             built.addItem(bed);
 

@@ -16,7 +16,7 @@ import com.lhf.messages.events.LewdEvent;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 
 public class LewdAIHandler extends AIHandler {
-    private Set<ICreature> partners;
+    private Set<String> partners;
     private boolean partnersOnly;
     private boolean stayInAfter;
 
@@ -27,7 +27,7 @@ public class LewdAIHandler extends AIHandler {
         this.stayInAfter = false;
     }
 
-    public LewdAIHandler(Set<ICreature> partners) {
+    public LewdAIHandler(Set<String> partners) {
         super(GameEventType.LEWD);
         this.partners = partners;
         this.partnersOnly = true;
@@ -54,9 +54,9 @@ public class LewdAIHandler extends AIHandler {
         return this;
     }
 
-    public LewdAIHandler addPartner(ICreature partner) {
-        if (partner != null) {
-            this.partners.add(partner);
+    public LewdAIHandler addPartner(String partnerName) {
+        if (partnerName != null) {
+            this.partners.add(partnerName);
         }
         return this;
     }
@@ -71,7 +71,7 @@ public class LewdAIHandler extends AIHandler {
         StringJoiner sj = new StringJoiner(", ");
         for (ICreature partyCreature : lom.getParticipants().keySet()) {
             if (this.partnersOnly) {
-                if (!this.partners.contains(partyCreature) // if they aren't our partner
+                if (!this.partners.contains(partyCreature.getName()) // if they aren't our partner
                         && partyCreature != bai.getNpc()) { // or us
                     this.logger.log(Level.WARNING, String.format("%s proposed to lewd %s, but they aren't a parnter!",
                             lom.getCreature().getName(), bai.toString()));
