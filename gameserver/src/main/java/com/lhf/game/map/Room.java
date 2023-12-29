@@ -280,7 +280,7 @@ public class Room implements Area {
         if (postOperations != null) {
             PostBuildOperations<? super Room> postOp = postOperations.get();
             if (postOp != null) {
-                postOp.execute(created);
+                postOp.accept(created);
             }
         }
         return created;

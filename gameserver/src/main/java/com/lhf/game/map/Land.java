@@ -56,13 +56,13 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
         @FunctionalInterface
         public static interface PostBuildOperations<L extends Land> {
-            public abstract void execute(L land) throws FileNotFoundException;
+            public abstract void accept(L land) throws FileNotFoundException;
 
             public default PostBuildOperations<L> andThen(PostBuildOperations<? super L> after) {
                 Objects.requireNonNull(after);
                 return (t) -> {
-                    this.execute(t);
-                    after.execute(t);
+                    this.accept(t);
+                    after.accept(t);
                 };
             }
         }

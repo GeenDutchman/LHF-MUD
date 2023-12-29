@@ -3,11 +3,8 @@ package com.lhf.game.map;
 import java.io.FileNotFoundException;
 import java.util.logging.Logger;
 
-import com.lhf.game.Game;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NameGenerator;
-import com.lhf.game.creature.conversation.ConversationManager;
-import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.HealType;
@@ -26,14 +23,11 @@ import com.lhf.game.item.concrete.equipment.Shortsword;
 import com.lhf.game.item.concrete.equipment.Whimsystick;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.Dungeon.DungeonBuilder;
-import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 
 public final class StandardDungeonProducer {
-        public static DungeonBuilder buildStaticDungeonBuilder(CommandChainHandler successor, AIRunner aiRunner,
-                        Game game,
-                        ConversationManager convoLoader, StatblockManager statblockLoader)
+        public static DungeonBuilder buildStaticDungeonBuilder(StatblockManager statblockLoader)
                         throws FileNotFoundException {
                 DungeonBuilder builder = DungeonBuilder.newInstance();
 
