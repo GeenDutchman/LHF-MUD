@@ -50,16 +50,6 @@ public class DungeonTargetingSpell extends ISpell<DungeonEffect> {
         return this.createdRoomDescription;
     }
 
-    public Room getRoomToAdd() {
-        if (this.createdRoom == null) {
-            Room.RoomBuilder rb = Room.RoomBuilder.getInstance();
-            rb.setName(this.getRoomName());
-            rb.setDescription(this.getRoomDescription());
-            this.createdRoom = rb.build();
-        }
-        return this.createdRoom;
-    }
-
     @Override
     public boolean isOffensive() {
         return false;

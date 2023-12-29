@@ -107,7 +107,7 @@ public class Room implements Area {
         private RoomBuilder() {
             this.logger = Logger.getLogger(this.getClass().getName());
             this.id = new AreaBuilderID();
-            this.name = "A Room";
+            this.name = null;
             this.description = "An area that Creatures and Items can be in";
             this.items = new ArrayList<>();
             this.npcsToBuild = new HashSet<>();
@@ -124,7 +124,7 @@ public class Room implements Area {
         }
 
         public RoomBuilder setName(String name) {
-            this.name = name != null ? name : "A Room";
+            this.name = name;
             return this;
         }
 
@@ -170,7 +170,7 @@ public class Room implements Area {
 
         @Override
         public String getName() {
-            return this.name;
+            return this.name != null ? this.name : "Room " + UUID.randomUUID().toString();
         }
 
         protected Set<INonPlayerCharacter> quickBuildCreatures(AIRunner aiRunner, Room successor) {
