@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -15,7 +16,6 @@ import java.util.logging.Level;
 import com.google.common.base.Function;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
-import com.lhf.game.Game;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
@@ -192,6 +192,11 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             this.log(Level.WARNING, String.format("Atlas error for getting exits: %s", e));
             return Set.of();
         }
+    }
+
+    public default Optional<Area> getAreaByName(String name) {
+        AreaAtlas atlas = this.getAtlas();
+        return atlas.getAtlasMembers().stream().filter(area -> area != null && area.getName().equals(name)).findFirst();
     }
 
     public default Area getCreatureArea(ICreature creature) {
