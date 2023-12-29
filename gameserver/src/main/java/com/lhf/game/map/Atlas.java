@@ -230,22 +230,31 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
     }
 
-    public final <TT, TID extends Comparable<TID>, T extends Atlas<TT, TID>> T translate(Supplier<T> starter,
+    public final <TT, TID extends Comparable<TID>, T extends Atlas<TT, TID>> Map<AtlasMemberID, TID> translate(
+            Supplier<T> starter,
             Function<AtlasMemberType, TT> transformer) {
 
+        if (starter == null) {
+            throw new IllegalArgumentException("Must provide an Atlas supplier for translation!");
+        }
         final T translation = starter.get();
+        if (translation == null) {
+            throw new NullPointerException("Cannot translate to a null atlas!");
+        }
+        final Map<AtlasMemberID, TID> visited = new LinkedHashMap<>();
         if (this.size() == 0) {
-            return translation;
+            return visited;
+        }
+        if (transformer == null) {
+            throw new IllegalArgumentException("Must provide a transformer function");
         }
 
-        Map<AtlasMemberID, TID> visited = new LinkedHashMap<>();
-
-        for (AtlasMappingItem<AtlasMemberType, AtlasMemberID> mappingItem : this.getAtlasMappingItems()) {
+        for (final AtlasMappingItem<AtlasMemberType, AtlasMemberID> mappingItem : this.getAtlasMappingItems()) {
             this.depthFirstTraversal(translation, transformer, visited,
                     this.getIDForMemberType(mappingItem.getAtlasMember()));
         }
 
-        return translation;
+        return visited;
     }
 
     public final String toMermaid(boolean fence) {

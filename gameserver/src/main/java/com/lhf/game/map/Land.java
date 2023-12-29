@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -34,8 +36,8 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
     public final class AreaAtlas extends Atlas<Area, UUID> {
 
-        protected AreaAtlas(Area first) {
-            super(first);
+        protected AreaAtlas() {
+            super();
         }
 
         @Override
@@ -52,10 +54,56 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
     public interface LandBuilder extends Serializable {
 
+        @FunctionalInterface
+        public static interface PostBuildOperations<L extends Land> {
+            public abstract void execute(L land) throws FileNotFoundException;
+
+            public default PostBuildOperations<L> andThen(PostBuildOperations<? super L> after) {
+                Objects.requireNonNull(after);
+                return (t) -> {
+                    this.execute(t);
+                    after.execute(t);
+                };
+            }
+        }
+
+        public class LandBuilderID implements Comparable<LandBuilderID> {
+            private final UUID id = UUID.randomUUID();
+
+            public UUID getId() {
+                return id;
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(id);
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (!(obj instanceof LandBuilderID))
+                    return false;
+                LandBuilderID other = (LandBuilderID) obj;
+                return Objects.equals(id, other.id);
+            }
+
+            @Override
+            public int compareTo(LandBuilderID arg0) {
+                return this.id.compareTo(arg0.id);
+            }
+
+        }
+
+        public abstract LandBuilderID getLandBuilderID();
+
+        public abstract String getName();
+
         public final class AreaBuilderAtlas extends Atlas<AreaBuilder, AreaBuilderID> implements Serializable {
 
-            protected AreaBuilderAtlas(AreaBuilder first) {
-                super(first);
+            protected AreaBuilderAtlas() {
+                super();
             }
 
             @Override
@@ -74,7 +122,19 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
         public abstract AreaBuilderAtlas getAtlas();
 
-        public default AreaAtlas getTranslatedAtlas(Land builtLand, AIRunner aiRunner,
+        public default Map<AreaBuilderID, UUID> quickTranslateAtlas(Land builtLand, AIRunner aiRunner) {
+            final Function<AreaBuilder, Area> transformer = (builder) -> {
+                return builder.quickBuild(builtLand, builtLand, aiRunner);
+            };
+
+            final AreaBuilderAtlas builderAtlas = this.getAtlas();
+            if (builderAtlas == null) {
+                return null;
+            }
+            return builderAtlas.translate(() -> builtLand.getAtlas(), transformer);
+        }
+
+        public default Map<AreaBuilderID, UUID> translateAtlas(Land builtLand, AIRunner aiRunner,
                 StatblockManager statblockManager, ConversationManager conversationManager) {
 
             final Function<AreaBuilder, Area> transformer = (builder) -> {
@@ -91,20 +151,37 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             if (builderAtlas == null) {
                 return null;
             }
-            return builderAtlas.translate(area -> new AreaAtlas(area), transformer);
+            return builderAtlas.translate(() -> builtLand.getAtlas(), transformer);
         }
 
-        public abstract Land build(CommandChainHandler successor, Game game) throws FileNotFoundException;
+        public abstract Land quickBuild(CommandChainHandler successor, AIRunner aiRunner);
 
-        public default Land build(Game game) throws FileNotFoundException {
-            return this.build(game, game);
-        }
+        public abstract Land build(CommandChainHandler successor, AIRunner aiRunner, StatblockManager statblockManager,
+                ConversationManager conversationManager) throws FileNotFoundException;
 
     }
 
     public abstract AreaAtlas getAtlas();
 
-    public abstract Area getStartingArea();
+    public abstract void setStartingAreaUUID(UUID areaID);
+
+    public abstract UUID getStartingAreaUUID();
+
+    public default Area getStartingArea() {
+        AreaAtlas atlas = this.getAtlas();
+        if (atlas == null) {
+            return null;
+        }
+        UUID startingAreaUUID = this.getStartingAreaUUID();
+        if (startingAreaUUID == null) {
+            Area firstMember = atlas.getFirstMember();
+            if (firstMember != null) {
+                this.setStartingAreaUUID(firstMember.getUuid()); // cache that value
+            }
+            return firstMember;
+        }
+        return atlas.getAtlasMember(startingAreaUUID);
+    }
 
     public default Set<Directions> getAreaExits(Area area) {
         try {

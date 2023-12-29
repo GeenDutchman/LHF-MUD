@@ -29,6 +29,7 @@ import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.Area.AreaBuilder;
+import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.Atlas.AtlasMappingItem;
 import com.lhf.game.map.Atlas.TargetedTester;
 import com.lhf.messages.Command;
@@ -56,6 +57,8 @@ public class Dungeon implements Land {
     public static class DungeonBuilder implements Land.LandBuilder {
 
         private final transient Logger logger;
+        private final LandBuilderID id;
+        private String name;
         private AreaBuilder startingRoom = null;
         private AreaBuilderAtlas atlas = null;
 
@@ -65,16 +68,29 @@ public class Dungeon implements Land {
 
         private DungeonBuilder() {
             this.logger = Logger.getLogger(this.getClass().getName());
+            this.id = new LandBuilderID();
+            this.name = null;
+            this.atlas = new AreaBuilderAtlas();
+        }
+
+        public LandBuilderID getLandBuilderID() {
+            return this.id;
+        }
+
+        public DungeonBuilder setName(String dungeonName) {
+            this.name = dungeonName;
+            return this;
+        }
+
+        public String getName() {
+            return this.name != null ? this.name : "Ibaif " + UUID.randomUUID().toString();
         }
 
         public DungeonBuilder addStartingRoom(AreaBuilder startingRoom) {
             if (startingRoom == null) {
                 throw new IllegalArgumentException("Cannot add null starting room");
             }
-            if (this.atlas != null) {
-                this.logger.log(Level.WARNING, "Resetting atlas!");
-            }
-            this.atlas = new AreaBuilderAtlas(startingRoom);
+            this.atlas.addMember(startingRoom);
             this.startingRoom = startingRoom;
 
             return this;
@@ -99,11 +115,29 @@ public class Dungeon implements Land {
         }
 
         @Override
-        public Dungeon build(CommandChainHandler successor, Game game) throws FileNotFoundException {
+        public Land quickBuild(CommandChainHandler successor, AIRunner aiRunner) {
+            this.logger.entering(this.getClass().getName(), "QUICK build()");
+            return Dungeon.fromBuilder(this, () -> successor, () -> (dungeon) -> {
+                Map<AreaBuilderID, UUID> translation = this.quickTranslateAtlas(dungeon, aiRunner);
+                if (translation != null && this.startingRoom != null) {
+                    AreaBuilderID builderID = this.startingRoom.getAreaBuilderID();
+                    dungeon.setStartingAreaUUID(translation.get(builderID));
+                }
+            });
+        }
+
+        @Override
+        public Dungeon build(CommandChainHandler successor, AIRunner aiRunner, StatblockManager statblockManager,
+                ConversationManager conversationManager) throws FileNotFoundException {
             this.logger.entering(this.getClass().getName(), "build()");
-            AreaAtlas translated = this.getTranslatedAtlas(null, game.getGroupAiRunner(), game.getStatblockManager(),
-                    game.getConversationManager());
-            return Dungeon.fromBuilder(this, () -> game, () -> translated, () -> game, null);
+            return Dungeon.fromBuilder(this, () -> successor, () -> (dungeon) -> {
+                Map<AreaBuilderID, UUID> translation = this.translateAtlas(dungeon, aiRunner, statblockManager,
+                        conversationManager);
+                if (translation != null && this.startingRoom != null) {
+                    AreaBuilderID builderID = this.startingRoom.getAreaBuilderID();
+                    dungeon.setStartingAreaUUID(translation.get(builderID));
+                }
+            });
         }
 
         public static Dungeon buildDynamicDungeon(int seed, AIRunner aiRunner,
@@ -126,20 +160,35 @@ public class Dungeon implements Land {
             return "DungeonBuilder\r\n" + this.atlas.toMermaid(fence);
         }
 
+        @Override
+        public int hashCode() {
+            return Objects.hash(id);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof DungeonBuilder))
+                return false;
+            DungeonBuilder other = (DungeonBuilder) obj;
+            return Objects.equals(id, other.id);
+        }
+
     }
 
     private final Land.AreaAtlas atlas;
-    private final transient Game game;
+    private UUID startingAreaUUID;
     private transient CommandChainHandler successor;
     private Map<CommandMessage, CommandHandler> commands;
     private transient TreeSet<DungeonEffect> effects;
     private transient final Logger logger;
     private final GameEventProcessorID gameEventProcessorID;
+    private final String name;
 
-    static Dungeon fromBuilder(Land.LandBuilder builder, Supplier<Game> gameSupplier,
-            Supplier<Land.AreaAtlas> atlasSupplier,
+    static Dungeon fromBuilder(Land.LandBuilder builder,
             Supplier<CommandChainHandler> successorSupplier, Supplier<Consumer<Dungeon>> postOperation) {
-        Dungeon built = new Dungeon(builder, gameSupplier, atlasSupplier, successorSupplier);
+        Dungeon built = new Dungeon(builder, successorSupplier);
         if (postOperation != null) {
             Consumer<Dungeon> postOp = postOperation.get();
             if (postOp != null) {
@@ -149,12 +198,12 @@ public class Dungeon implements Land {
         return built;
     }
 
-    Dungeon(Land.LandBuilder builder, Supplier<Game> gameSupplier, Supplier<Land.AreaAtlas> atlasSupplier,
-            Supplier<CommandChainHandler> successorSupplier) {
+    Dungeon(Land.LandBuilder builder, Supplier<CommandChainHandler> successorSupplier) {
         this.logger = Logger.getLogger(String.format("%s.%s", this.getClass().getName(), this.getName()));
         this.gameEventProcessorID = new GameEventProcessorID();
-        this.atlas = atlasSupplier.get();
-        this.game = gameSupplier.get();
+        this.atlas = new AreaAtlas();
+        this.startingAreaUUID = null;
+        this.name = builder.getName();
         this.successor = successorSupplier.get();
         this.commands = this.buildCommands();
         this.effects = new TreeSet<>();
@@ -166,8 +215,13 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public Area getStartingArea() {
-        return this.atlas != null ? this.atlas.getFirstMember() : null;
+    public void setStartingAreaUUID(UUID areaID) {
+        this.startingAreaUUID = areaID;
+    }
+
+    @Override
+    public UUID getStartingAreaUUID() {
+        return this.startingAreaUUID;
     }
 
     private Map<CommandMessage, CommandHandler> buildCommands() {
@@ -559,36 +613,7 @@ public class Dungeon implements Land {
 
     @Override
     public String getName() {
-        // TODO: do dungeons need names?
-        return "Ibaif";
-    }
-
-    public GroupAIRunner getGroupAiRunner() {
-        if (this.game == null) {
-            return null;
-        }
-        return this.game.getGroupAiRunner();
-    }
-
-    public ThirdPower getThirdPower() {
-        if (this.game == null) {
-            return null;
-        }
-        return this.game.getThirdPower();
-    }
-
-    public ConversationManager getConversationManager() {
-        if (this.game == null) {
-            return null;
-        }
-        return this.game.getConversationManager();
-    }
-
-    public StatblockManager getStatblockManager() {
-        if (this.game == null) {
-            return null;
-        }
-        return this.game.getStatblockManager();
+        return this.name;
     }
 
     @Override
