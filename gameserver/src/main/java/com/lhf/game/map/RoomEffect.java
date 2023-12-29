@@ -34,7 +34,7 @@ public class RoomEffect extends EntityEffect {
     }
 
     public Set<ICreature> getCreaturesToSummon() {
-        return Collections.unmodifiableSet(this.getSource().getCreaturesToSummon());
+        return Collections.unmodifiableSet(this.getSource().getNpcsToSummon());
     }
 
     public Set<ICreature> getCreaturesToBanish() {
