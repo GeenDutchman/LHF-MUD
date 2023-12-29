@@ -335,21 +335,21 @@ public interface ICreature
             StringBuilder sb = new StringBuilder();
             sb.append(this.getThis().getClass().getSimpleName()).append(" with the following characteristics: \r\n");
             if (this.name == null) {
-                sb.append("Name will be generated. ");
+                sb.append("Name will be generated.\r\n");
             } else {
-                sb.append("Name is:").append(this.name).append(". ");
+                sb.append("Name is:").append(this.name).append(".\r\n");
             }
             if (this.vocation != null) {
-                sb.append("Vocation of ").append(this.vocation.getName()).append(". ");
+                sb.append("Vocation of ").append(this.vocation.getName()).append(".\r\n");
             }
             if (this.statblockName != null) {
                 sb.append("Statblock similar to: ").append(this.statblockName);
                 if (this.statblock != null) {
                     sb.append(" (concrete statblock present)");
                 }
-                sb.append(". ");
+                sb.append(".\r\n");
             }
-            return sb.append("\r\n").toString();
+            return sb.toString();
         }
 
     }

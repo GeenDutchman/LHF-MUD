@@ -7,12 +7,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
+import com.lhf.game.creature.NonPlayerCharacter.NPCBuilder;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
@@ -218,14 +220,33 @@ public interface INonPlayerCharacter extends ICreature {
      */
     public static abstract class AbstractNPCBuilder<NPCBuilderType extends AbstractNPCBuilder<NPCBuilderType, NPCType>, NPCType extends INonPlayerCharacter>
             extends ICreature.CreatureBuilder<NPCBuilderType, INonPlayerCharacter> {
+        public enum SummonData {
+            /**
+             * When the summoner dies, the summon dies
+             */
+            LIFELINE_SUMMON,
+            /**
+             * While the summoner is alive, summon maintains the same faction as the
+             * summoner
+             */
+            SYMPATHETIC_SUMMON,
+            /**
+             * If the summon is survives the summoner, maintains the same faction as the
+             * summoner
+             */
+            LOYAL_SUMMON
+        };
+
         private String conversationFileName = null;
         private ConversationTree conversationTree = null;
         private List<AIHandler> aiHandlers;
+        private EnumSet<SummonData> summonState;
 
         protected AbstractNPCBuilder() {
             super();
             this.setFaction(CreatureFaction.NPC);
             this.aiHandlers = new ArrayList<>();
+            this.summonState = EnumSet.noneOf(SummonData.class);
         }
 
         @Override
@@ -302,6 +323,22 @@ public interface INonPlayerCharacter extends ICreature {
             return this.getThis();
         }
 
+        public EnumSet<SummonData> getSummonState() {
+            return summonState;
+        }
+
+        public NPCBuilderType resetSummonState() {
+            this.summonState.clear();
+            return this.getThis();
+        }
+
+        public NPCBuilderType addSummonState(SummonData data) {
+            if (data != null) {
+                this.summonState.add(data);
+            }
+            return this.getThis();
+        }
+
         public abstract NPCType quickBuild(Supplier<CommandInvoker> controllerSupplier,
                 CommandChainHandler successor);
 
@@ -325,24 +362,27 @@ public interface INonPlayerCharacter extends ICreature {
         }
 
         @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = super.hashCode();
-            result = prime * result + Objects.hash(conversationFileName, conversationTree);
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (!super.equals(obj))
-                return false;
-            if (!(obj instanceof AbstractNPCBuilder))
-                return false;
-            AbstractNPCBuilder<?, ?> other = (AbstractNPCBuilder<?, ?>) obj;
-            return Objects.equals(conversationFileName, other.conversationFileName)
-                    && Objects.equals(conversationTree, other.conversationTree);
+        public String toString() {
+            StringBuilder sb = new StringBuilder(super.toString());
+            if (this.conversationFileName != null) {
+                sb.append("With conversation like: ").append(this.conversationFileName);
+                if (this.conversationTree != null) {
+                    sb.append(" (concrete conversation tree present)");
+                }
+                sb.append(".\r\n");
+            }
+            if (this.aiHandlers != null && !this.aiHandlers.isEmpty()) {
+                StringJoiner sj = new StringJoiner(", ", "With handlers for ", ".\r\n");
+                for (final AIHandler handler : this.aiHandlers) {
+                    sj.add(handler.getOutMessageType().toString());
+                }
+                sb.append(sj.toString());
+            }
+            if (this.summonState != null && !this.summonState.isEmpty()) {
+                sb.append("With the following summon characteristics: ").append(this.summonState.toString())
+                        .append("\r\n");
+            }
+            return sb.toString();
         }
 
     }
