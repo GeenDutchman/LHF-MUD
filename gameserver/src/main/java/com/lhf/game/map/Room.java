@@ -215,7 +215,7 @@ public class Room implements Area {
         }
 
         @Override
-        public Area quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
+        public Room quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
             this.logger.log(Level.INFO, () -> String.format("QUICK Building room '%s'", this.name));
             return Room.quickBuilder(this, () -> land, () -> successor, () -> (room) -> {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.quickBuildCreatures(aiRunner, room);

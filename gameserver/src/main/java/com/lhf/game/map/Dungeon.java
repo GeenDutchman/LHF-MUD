@@ -115,7 +115,7 @@ public class Dungeon implements Land {
         }
 
         @Override
-        public Land quickBuild(CommandChainHandler successor, AIRunner aiRunner) {
+        public Dungeon quickBuild(CommandChainHandler successor, AIRunner aiRunner) {
             this.logger.entering(this.getClass().getName(), "QUICK build()");
             return Dungeon.fromBuilder(this, () -> successor, () -> (dungeon) -> {
                 Map<AreaBuilderID, UUID> translation = this.quickTranslateAtlas(dungeon, aiRunner);
