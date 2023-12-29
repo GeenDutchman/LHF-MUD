@@ -178,7 +178,7 @@ public class DMRoom extends Room {
             return delegate.getNPCsToBuild();
         }
 
-        private List<Land> quickBuildLands(AIRunner aiRunner, DMRoom dmRoom, Game game) {
+        private List<Land> quickBuildLands(AIRunner aiRunner, DMRoom dmRoom) {
             List<Land.LandBuilder> toBuild = this.getLandBuilders();
             if (toBuild == null) {
                 return List.of();
@@ -188,7 +188,7 @@ public class DMRoom extends Room {
                 if (builder == null) {
                     continue;
                 }
-                built.add(builder.quickBuild(dmRoom, game));
+                built.add(builder.quickBuild(dmRoom, aiRunner));
             }
             return Collections.unmodifiableList(built);
         }
@@ -202,7 +202,7 @@ public class DMRoom extends Room {
                 creaturesToAdd.addAll(creaturesBuilt);
                 room.addCreatures(creaturesToAdd, true);
             }, () -> (dmRoom) -> {
-                final List<Land> landsBuilt = this.quickBuildLands(aiRunner, dmRoom, null);
+                final List<Land> landsBuilt = this.quickBuildLands(aiRunner, dmRoom);
                 final List<Land> landsToAdd = new ArrayList<>(this.prebuiltLands);
                 landsToAdd.addAll(landsBuilt);
                 for (Land toAdd : landsToAdd) {
@@ -223,7 +223,7 @@ public class DMRoom extends Room {
                 if (builder == null) {
                     continue;
                 }
-                built.add(builder.build(dmRoom, game));
+                built.add(builder.build(game, aiRunner, statblockManager, conversationManager));
             }
             return Collections.unmodifiableList(built);
         }
@@ -315,13 +315,13 @@ public class DMRoom extends Room {
         if (postRoomOperations != null) {
             PostBuildOperations<? super Room> postRoomOp = postRoomOperations.get();
             if (postRoomOp != null) {
-                postRoomOp.execute(dmRoom);
+                postRoomOp.accept(dmRoom);
             }
         }
         if (postDMRoomOperations != null) {
             PostBuildOperations<? super DMRoom> postDMRoomOp = postDMRoomOperations.get();
             if (postDMRoomOp != null) {
-                postDMRoomOp.execute(dmRoom);
+                postDMRoomOp.accept(dmRoom);
             }
         }
         return dmRoom;

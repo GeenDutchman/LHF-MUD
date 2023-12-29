@@ -36,13 +36,13 @@ public interface Area
 
         @FunctionalInterface
         public static interface PostBuildOperations<A extends Area> {
-            public abstract void execute(A area) throws FileNotFoundException;
+            public abstract void accept(A area);
 
             public default PostBuildOperations<A> andThen(PostBuildOperations<? super A> after) {
                 Objects.requireNonNull(after);
                 return (t) -> {
-                    this.execute(t);
-                    after.execute(t);
+                    this.accept(t);
+                    after.accept(t);
                 };
             }
         }
