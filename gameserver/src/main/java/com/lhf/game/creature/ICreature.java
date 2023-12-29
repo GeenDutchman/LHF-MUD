@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -139,7 +140,37 @@ public interface ICreature
      */
     public abstract static class CreatureBuilder<BuilderType extends CreatureBuilder<BuilderType, CreatureType>, CreatureType extends ICreature>
             implements Serializable {
+        public static class CreatureBuilderID implements Comparable<CreatureBuilderID> {
+            private final UUID id = UUID.randomUUID();
+
+            public UUID getId() {
+                return id;
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(id);
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (!(obj instanceof CreatureBuilderID))
+                    return false;
+                CreatureBuilderID other = (CreatureBuilderID) obj;
+                return Objects.equals(id, other.id);
+            }
+
+            @Override
+            public int compareTo(CreatureBuilderID arg0) {
+                return this.id.compareTo(arg0.id);
+            }
+
+        }
+
         protected final transient BuilderType thisObject;
+        protected final CreatureBuilderID id;
         private String name;
         private CreatureFaction faction;
         private Vocation vocation;
@@ -149,12 +180,17 @@ public interface ICreature
 
         protected CreatureBuilder() {
             this.thisObject = getThis();
+            this.id = new CreatureBuilderID();
             this.name = null;
             this.faction = null;
             this.vocation = null;
             this.statblockName = null;
             this.statblock = null;
             this.corpse = null;
+        }
+
+        public CreatureBuilderID getCreatureBuilderID() {
+            return this.id;
         }
 
         // used for the generics and safe casts
@@ -279,7 +315,7 @@ public interface ICreature
 
         @Override
         public int hashCode() {
-            return Objects.hash(name, faction, vocation, statblockName, statblock, corpse,
+            return Objects.hash(this.id,
                     getThis().getClass().getName());
         }
 
@@ -290,11 +326,30 @@ public interface ICreature
             if (!(obj instanceof CreatureBuilder))
                 return false;
             CreatureBuilder<?, ?> other = (CreatureBuilder<?, ?>) obj;
-            return Objects.equals(name, other.name) && faction == other.faction
-                    && Objects.equals(getThis().getClass().getName(), other.getThis().getClass().getName())
-                    && Objects.equals(statblockName, other.statblockName)
-                    && Objects.equals(vocation, other.vocation) && Objects.equals(statblock, other.statblock)
-                    && Objects.equals(corpse, other.corpse);
+            return Objects.equals(id, other.id)
+                    && Objects.equals(getThis().getClass().getName(), other.getThis().getClass().getName());
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(this.getThis().getClass().getSimpleName()).append(" with the following characteristics: \r\n");
+            if (this.name == null) {
+                sb.append("Name will be generated. ");
+            } else {
+                sb.append("Name is:").append(this.name).append(". ");
+            }
+            if (this.vocation != null) {
+                sb.append("Vocation of ").append(this.vocation.getName()).append(". ");
+            }
+            if (this.statblockName != null) {
+                sb.append("Statblock similar to: ").append(this.statblockName);
+                if (this.statblock != null) {
+                    sb.append(" (concrete statblock present)");
+                }
+                sb.append(". ");
+            }
+            return sb.append("\r\n").toString();
         }
 
     }
