@@ -304,6 +304,9 @@ public interface INonPlayerCharacter extends ICreature {
             return this.getThis();
         }
 
+        public abstract NPCType quickBuild(Supplier<CommandInvoker> controllerSupplier,
+                CommandChainHandler successor);
+
         @Override
         public abstract NPCType build(Supplier<CommandInvoker> controllerSupplier,
                 CommandChainHandler successor, StatblockManager statblockManager,

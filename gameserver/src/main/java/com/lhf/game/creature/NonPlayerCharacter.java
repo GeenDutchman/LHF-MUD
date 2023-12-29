@@ -28,6 +28,17 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
         }
 
         @Override
+        public NonPlayerCharacter quickBuild(Supplier<CommandInvoker> controllerSupplier,
+                CommandChainHandler successor) {
+            Statblock block = this.getStatblock();
+            if (block == null) {
+                this.useBlankStatblock();
+            }
+            return new NonPlayerCharacter(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
+                    () -> null);
+        }
+
+        @Override
         public NonPlayerCharacter build(Supplier<CommandInvoker> controllerSupplier,
                 CommandChainHandler successor, StatblockManager statblockManager,
                 UnaryOperator<NPCBuilder> composedlazyLoaders) throws FileNotFoundException {
@@ -59,7 +70,9 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
             Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
             Supplier<Statblock> statblockSupplier, Supplier<ConversationTree> conversationSupplier) {
         super(builder, controllerSupplier, successorSupplier, statblockSupplier);
-        this.convoTree = conversationSupplier.get();
+        if (conversationSupplier != null) {
+            this.convoTree = conversationSupplier.get();
+        }
     }
 
     @Override

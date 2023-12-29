@@ -52,6 +52,16 @@ public class Monster extends NonPlayerCharacter implements IMonster {
         }
 
         @Override
+        public Monster quickBuild(Supplier<CommandInvoker> controllerSupplier, CommandChainHandler successor) {
+            Statblock block = this.getStatblock();
+            if (block == null) {
+                this.useBlankStatblock();
+            }
+            return new Monster(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
+                    () -> null);
+        }
+
+        @Override
         public Monster build(Supplier<CommandInvoker> controllerSupplier,
                 CommandChainHandler successor, StatblockManager statblockManager,
                 UnaryOperator<MonsterBuilder> composedlazyLoaders) throws FileNotFoundException {

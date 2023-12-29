@@ -25,6 +25,16 @@ public class DungeonMaster extends NonPlayerCharacter {
         }
 
         @Override
+        public DungeonMaster quickBuild(Supplier<CommandInvoker> controllerSupplier, CommandChainHandler successor) {
+            Statblock block = this.getStatblock();
+            if (block == null) {
+                this.useBlankStatblock();
+            }
+            return new DungeonMaster(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
+                    () -> null);
+        }
+
+        @Override
         public DungeonMaster build(Supplier<CommandInvoker> controllerSupplier,
                 CommandChainHandler successor, StatblockManager statblockManager,
                 UnaryOperator<DungeonMasterBuilder> composedlazyLoaders) throws FileNotFoundException {
