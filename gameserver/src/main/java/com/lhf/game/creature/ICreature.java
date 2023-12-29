@@ -255,6 +255,11 @@ public interface ICreature
             return this.statblock;
         }
 
+        public BuilderType useBlankStatblock() {
+            this.setStatblock(new Statblock());
+            return this.getThis();
+        }
+
         protected Statblock getStatblock() {
             return this.statblock;
         }

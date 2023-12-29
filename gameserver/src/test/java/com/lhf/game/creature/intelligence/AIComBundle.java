@@ -1,5 +1,6 @@
 package com.lhf.game.creature.intelligence;
 
+import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
@@ -42,16 +43,14 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
     @Mock
     public CommandChainHandler mockedWrappedHandler;
 
-    public AIComBundle() {
+    public AIComBundle() throws FileNotFoundException {
         super();
         this.gameEventProcessorID = new GameEventProcessorID();
         this.mockedWrappedHandler = Mockito.mock(CommandChainHandler.class);
 
-        this.npc = NonPlayerCharacter.getNPCBuilder(AIComBundle.getAIRunner()).build();
-        this.brain = AIComBundle.getAIRunner().register(this.npc);
-        brain.SetOut(this.sssb);
-        this.npc.setController(this.brain);
-        this.npc.setSuccessor(this);
+        this.brain = AIComBundle.getAIRunner().produceAI();
+        this.npc = NonPlayerCharacter.getNPCBuilder().useBlankStatblock().build(() -> this.brain, this, null, null);
+        this.brain.SetOut(this.sssb);
     }
 
     @Override
