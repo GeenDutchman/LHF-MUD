@@ -16,7 +16,7 @@ public class BedTest {
 
     @Test
     void testGetCapacity() {
-        Area room = builder.setName("Capacity Room").build();
+        Area room = builder.setName("Capacity Room").quickBuild(null, null, null);
         int capacity = 2;
         Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(capacity).setSleepSeconds(0));
         Truth.assertThat(bed.getCapacity()).isEqualTo(capacity);

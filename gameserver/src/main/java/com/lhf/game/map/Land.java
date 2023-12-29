@@ -15,6 +15,9 @@ import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.Game;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.conversation.ConversationManager;
+import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.map.Area.AreaBuilder;
 import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.Atlas.AtlasMappingItem;
@@ -71,15 +74,13 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
         public abstract AreaBuilderAtlas getAtlas();
 
-        public default AreaAtlas getTranslatedAtlas(Land builtLand, Game game) {
-            if (game == null) {
-                throw new IllegalArgumentException("Cannot translate atlas with no game!");
-            }
+        public default AreaAtlas getTranslatedAtlas(Land builtLand, AIRunner aiRunner,
+                StatblockManager statblockManager, ConversationManager conversationManager) {
 
             final Function<AreaBuilder, Area> transformer = (builder) -> {
                 try {
-                    return builder.build(builtLand, game.getGroupAiRunner(),
-                            game.getStatblockManager(), game.getConversationManager());
+                    return builder.build(builtLand, aiRunner,
+                            statblockManager, conversationManager);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                     throw new IllegalStateException("Cannot find necessary file!", e);
@@ -90,7 +91,7 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             if (builderAtlas == null) {
                 return null;
             }
-            return builderAtlas.translate(area -> new AreaAtlas(null), transformer);
+            return builderAtlas.translate(area -> new AreaAtlas(area), transformer);
         }
 
         public abstract Land build(CommandChainHandler successor, Game game) throws FileNotFoundException;

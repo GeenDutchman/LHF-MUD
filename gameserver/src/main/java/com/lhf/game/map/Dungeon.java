@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -100,8 +101,9 @@ public class Dungeon implements Land {
         @Override
         public Dungeon build(CommandChainHandler successor, Game game) throws FileNotFoundException {
             this.logger.entering(this.getClass().getName(), "build()");
-            AreaAtlas translated = this.getTranslatedAtlas(dungeon, game); // TODO: NEED lAND
-            return new Dungeon(this, () -> game, () -> translated, () -> game);
+            AreaAtlas translated = this.getTranslatedAtlas(null, game.getGroupAiRunner(), game.getStatblockManager(),
+                    game.getConversationManager());
+            return Dungeon.fromBuilder(this, () -> game, () -> translated, () -> game, null);
         }
 
         public static Dungeon buildDynamicDungeon(int seed, AIRunner aiRunner,
@@ -133,6 +135,19 @@ public class Dungeon implements Land {
     private transient TreeSet<DungeonEffect> effects;
     private transient final Logger logger;
     private final GameEventProcessorID gameEventProcessorID;
+
+    static Dungeon fromBuilder(Land.LandBuilder builder, Supplier<Game> gameSupplier,
+            Supplier<Land.AreaAtlas> atlasSupplier,
+            Supplier<CommandChainHandler> successorSupplier, Supplier<Consumer<Dungeon>> postOperation) {
+        Dungeon built = new Dungeon(builder, gameSupplier, atlasSupplier, successorSupplier);
+        if (postOperation != null) {
+            Consumer<Dungeon> postOp = postOperation.get();
+            if (postOp != null) {
+                postOp.accept(built);
+            }
+        }
+        return built;
+    }
 
     Dungeon(Land.LandBuilder builder, Supplier<Game> gameSupplier, Supplier<Land.AreaAtlas> atlasSupplier,
             Supplier<CommandChainHandler> successorSupplier) {
@@ -284,7 +299,7 @@ public class Dungeon implements Land {
         if (creature != null && creature instanceof Player oldLife) {
             Player nextLife = Player.PlayerBuilder.getInstance(oldLife.getUser())
                     .setVocation(oldLife.getVocation().resetLevel())
-                    .build();
+                    .build(this.getStartingArea());
             oldLife.setController(null); // events will now not go anywhere
             ICreature.eventAccepter.accept(nextLife,
                     PlayerReincarnatedEvent.getBuilder().setTaggedName(creature).setNotBroadcast().Build());
