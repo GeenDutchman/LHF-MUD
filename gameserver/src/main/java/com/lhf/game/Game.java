@@ -22,6 +22,7 @@ import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.StandardDungeonProducer;
+import com.lhf.game.map.Dungeon.DungeonBuilder;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -56,8 +57,8 @@ public class Game implements UserListener, CommandChainHandler {
 		this.thirdPower = new ThirdPower(this, null);
 		this.conversationManager = new ConversationManager();
 		this.statblockManager = new StatblockManager();
-		Dungeon dungeon = StandardDungeonProducer.buildStaticDungeon(this.thirdPower, this.groupAiRunner, this,
-				this.conversationManager, this.statblockManager);
+		Dungeon dungeon = StandardDungeonProducer.buildStaticDungeonBuilder(this.thirdPower, this.groupAiRunner, this,
+				this.conversationManager, this.statblockManager).build(server, this);
 		this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(groupAiRunner, statblockManager, conversationManager);
 		this.controlRoom.addLand(dungeon);
 		this.controlRoom.setSuccessor(this.thirdPower);
@@ -72,7 +73,8 @@ public class Game implements UserListener, CommandChainHandler {
 		this.commands.put(CommandMessage.PLAYERS, new PlayersHandler());
 	}
 
-	public Game(ServerInterface server, UserManager userManager, GroupAIRunner aiRunner, @NotNull Dungeon dungeon)
+	public Game(ServerInterface server, UserManager userManager, GroupAIRunner aiRunner,
+			@NotNull DungeonBuilder dungeonBuilder)
 			throws FileNotFoundException {
 		this.gameEventProcessorID = new GameEventProcessorID();
 		this.logger = Logger.getLogger(this.getClass().getName());
@@ -81,6 +83,7 @@ public class Game implements UserListener, CommandChainHandler {
 		this.conversationManager = new ConversationManager();
 		this.statblockManager = new StatblockManager();
 		this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(groupAiRunner, statblockManager, conversationManager);
+		Dungeon dungeon = dungeonBuilder.build(this.controlRoom, groupAiRunner, statblockManager, conversationManager);
 		this.controlRoom.addLand(dungeon);
 		this.controlRoom.setSuccessor(this.thirdPower);
 		this.successor = server;

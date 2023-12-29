@@ -31,7 +31,8 @@ import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 
 public final class StandardDungeonProducer {
-        public static Dungeon buildStaticDungeon(CommandChainHandler successor, AIRunner aiRunner, Game game,
+        public static DungeonBuilder buildStaticDungeonBuilder(CommandChainHandler successor, AIRunner aiRunner,
+                        Game game,
                         ConversationManager convoLoader, StatblockManager statblockLoader)
                         throws FileNotFoundException {
                 DungeonBuilder builder = DungeonBuilder.newInstance();
@@ -231,6 +232,6 @@ public final class StandardDungeonProducer {
                 builder.connectRoom(statueRoomBuilder, Directions.NORTH, trappedHallBuilder);
                 builder.connectRoomOneWay(secretRoomBuilder, Directions.WEST, statueRoomBuilder);
 
-                return builder.build(successor, game);
+                return builder;
         }
 }
