@@ -33,6 +33,20 @@ public interface Area
         extends ItemContainer, CreatureContainer, CommandChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
 
     public interface AreaBuilder extends Serializable {
+
+        @FunctionalInterface
+        public static interface PostBuildOperations<A extends Area> {
+            public abstract void execute(A area) throws FileNotFoundException;
+
+            public default PostBuildOperations<A> andThen(PostBuildOperations<? super A> after) {
+                Objects.requireNonNull(after);
+                return (t) -> {
+                    this.execute(t);
+                    after.execute(t);
+                };
+            }
+        }
+
         public class AreaBuilderID implements Comparable<AreaBuilderID> {
             private final UUID id = UUID.randomUUID();
 
@@ -72,6 +86,7 @@ public interface Area
 
         public abstract Collection<INonPlayerCharacter.AbstractNPCBuilder<?, ?>> getNPCsToBuild();
 
+        @Deprecated(forRemoval = true)
         public abstract Collection<INonPlayerCharacter> getPrebuiltNPCs();
 
         public abstract Area build(CommandChainHandler successor, Land land, AIRunner aiRunner,

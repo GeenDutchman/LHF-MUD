@@ -2,11 +2,15 @@ package com.lhf.game.map;
 
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
+import com.lhf.game.Game;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.INonPlayerCharacter.AbstractNPCBuilder;
@@ -18,10 +22,13 @@ import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SilencedHandler;
 import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.game.lewd.LewdBabyMaker;
+import com.lhf.game.magic.ThirdPower;
+import com.lhf.game.map.Area.AreaBuilder.PostBuildOperations;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -44,16 +51,20 @@ import com.lhf.server.interfaces.NotNull;
 
 public class DMRoom extends Room {
     private Set<User> users;
-    private List<Dungeon> dungeons;
+    private List<Land> lands;
     private transient Map<CommandMessage, CommandHandler> commands;
 
     public static class DMRoomBuilder implements Area.AreaBuilder {
+        private final transient Logger logger;
         private Room.RoomBuilder delegate;
-        private List<Dungeon> dungeons;
+        private List<Land> prebuiltLands;
+        private List<Land.LandBuilder> landBuilders;
 
         private DMRoomBuilder() {
+            this.logger = Logger.getLogger(this.getClass().getName());
             this.delegate = Room.RoomBuilder.getInstance();
-            this.dungeons = new ArrayList<>();
+            this.prebuiltLands = new ArrayList<>();
+            this.landBuilders = new ArrayList<>();
         }
 
         public static DMRoomBuilder getInstance() {
@@ -83,7 +94,7 @@ public class DMRoom extends Room {
          *             functionality. Prefer using
          *             {@link #addNPCBuilder(AbstractNPCBuilder)}.
          */
-        @Deprecated
+        @Deprecated(forRemoval = true)
         public DMRoomBuilder addPrebuiltNPC(INonPlayerCharacter creature) {
             this.delegate = delegate.addPrebuiltNPC(creature);
             return this;
@@ -103,7 +114,7 @@ public class DMRoom extends Room {
          *             functionality. Prefer using
          *             {@link #addDungeonMasterBuilder(DungeonMaster.DungeonMasterBuilder)}.
          */
-        @Deprecated
+        @Deprecated(forRemoval = true)
         public DMRoomBuilder addDungeonMaster(DungeonMaster dm) {
             this.delegate = delegate.addPrebuiltNPC(dm);
             return this;
@@ -114,29 +125,32 @@ public class DMRoom extends Room {
             return this;
         }
 
-        public DMRoomBuilder setDungeon(Dungeon dungeon) {
-            this.delegate = delegate.setDungeon(dungeon);
-            return this;
-        }
-
+        @Deprecated(forRemoval = true)
         public DMRoomBuilder addDungeon(Dungeon dungeon) {
-            if (this.dungeons == null) {
-                this.dungeons = new ArrayList<>();
+            if (this.prebuiltLands == null) {
+                this.prebuiltLands = new ArrayList<>();
             }
             if (dungeon != null) {
-                this.dungeons.add(dungeon);
+                this.prebuiltLands.add(dungeon);
             }
             return this;
         }
 
-        public DMRoomBuilder setSuccessor(CommandChainHandler successor) {
-            this.delegate = delegate.setSuccessor(successor);
+        public DMRoomBuilder addLandBuilder(Land.LandBuilder builder) {
+            if (builder != null) {
+                this.landBuilders.add(builder);
+            }
             return this;
         }
 
+        public List<Land.LandBuilder> getLandBuilders() {
+            return Collections.unmodifiableList(this.landBuilders);
+        }
+
+        @Deprecated(forRemoval = true)
         @Override
         public Collection<INonPlayerCharacter> getPrebuiltNPCs() {
-            return this.delegate.getNonPlayerCharacters();
+            return this.delegate.getPrebuiltNPCs();
         }
 
         @Override
@@ -150,22 +164,64 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public Land getLand() {
-            return this.delegate.getLand();
-        }
-
-        @Override
         public String getName() {
             return this.delegate.getName();
         }
 
         @Override
-        public CommandChainHandler getSuccessor() {
-            return this.delegate.getSuccessor();
+        public AreaBuilderID getAreaBuilderID() {
+            return delegate.getAreaBuilderID();
         }
 
-        public DMRoom build() {
-            return new DMRoom(this);
+        @Override
+        public Collection<AbstractNPCBuilder<?, ?>> getNPCsToBuild() {
+            return delegate.getNPCsToBuild();
+        }
+
+        private List<Land> buildLands(AIRunner aiRunner, DMRoom dmRoom, Game game,
+                StatblockManager statblockManager, ConversationManager conversationManager)
+                throws FileNotFoundException {
+            List<Land.LandBuilder> toBuild = this.getLandBuilders();
+            if (toBuild == null) {
+                return List.of();
+            }
+            List<Land> built = new ArrayList<>();
+            for (final Land.LandBuilder builder : toBuild) {
+                if (builder == null) {
+                    continue;
+                }
+                built.add(builder.build(dmRoom, game));
+            }
+            return Collections.unmodifiableList(built);
+        }
+
+        @Override
+        public DMRoom build(CommandChainHandler successor, Land land, AIRunner aiRunner,
+                StatblockManager statblockManager, ConversationManager conversationManager)
+                throws FileNotFoundException {
+            this.logger.log(Level.INFO, () -> String.format("Building DM room '%s'", this.getName()));
+            return new DMRoom(this, () -> land, () -> successor, () -> (room) -> {
+                final Set<INonPlayerCharacter> creaturesBuilt = this.delegate.buildCreatures(aiRunner, room,
+                        statblockManager,
+                        conversationManager);
+                final Set<ICreature> creaturesToAdd = new TreeSet<>(this.getPrebuiltNPCs());
+                creaturesToAdd.addAll(creaturesBuilt);
+                room.addCreatures(creaturesToAdd, false);
+            }, () -> (dmRoom) -> {
+                final List<Land> landsBuilt = this.buildLands(aiRunner, dmRoom, null, statblockManager,
+                        conversationManager);
+                final List<Land> landsToAdd = new ArrayList<>(this.prebuiltLands);
+                landsToAdd.addAll(landsBuilt);
+                for (Land toAdd : landsToAdd) {
+                    dmRoom.addLand(toAdd);
+                }
+            });
+        }
+
+        @Override
+        public DMRoom build(Land land, AIRunner aiRunner, StatblockManager statblockManager,
+                ConversationManager conversationManager) throws FileNotFoundException {
+            return this.build(land, land, aiRunner, statblockManager, conversationManager);
         }
 
         public static DMRoom buildDefault(AIRunner aiRunner, ConversationManager convoLoader)
@@ -207,16 +263,20 @@ public class DMRoom extends Room {
         }
     }
 
-    DMRoom(DMRoomBuilder builder) {
-        super(builder.delegate);
-        this.dungeons = builder.dungeons;
+    DMRoom(DMRoomBuilder builder, Supplier<Land> landSupplier,
+            Supplier<CommandChainHandler> successorSupplier,
+            Supplier<PostBuildOperations<? super Room>> postRoomOperations,
+            Supplier<PostBuildOperations<? super DMRoom>> postDMRoomOperations) throws FileNotFoundException {
+        super(builder.delegate, landSupplier, successorSupplier, postRoomOperations);
+        this.lands = new ArrayList<>();
         this.users = new HashSet<>();
         this.commands = this.buildCommands();
+        postDMRoomOperations.get().execute(this);
     }
 
-    public boolean addDungeon(@NotNull Dungeon dungeon) {
-        dungeon.setSuccessor(this);
-        return this.dungeons.add(dungeon);
+    public boolean addLand(@NotNull Land land) {
+        land.setSuccessor(this);
+        return this.lands.add(land);
     }
 
     public boolean addUser(User user) {
@@ -255,13 +315,13 @@ public class DMRoom extends Room {
     }
 
     public boolean addNewPlayer(Player player) {
-        return this.dungeons.get(0).addPlayer(player);
+        return this.lands.get(0).addPlayer(player);
     }
 
     public void userExitSystem(User user) {
-        for (Dungeon dungeon : this.dungeons) {
-            if (dungeon.removePlayer(user.getUserID()).isPresent()) {
-                dungeon.announce(UserLeftEvent.getBuilder().setUser(user).setBroacast().Build());
+        for (Land land : this.lands) {
+            if (land.removePlayer(user.getUserID()).isPresent()) {
+                land.announce(UserLeftEvent.getBuilder().setUser(user).setBroacast().Build());
             }
         }
     }
