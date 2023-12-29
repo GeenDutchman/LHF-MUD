@@ -102,7 +102,6 @@ public class Room implements Area {
         private String description;
         private List<Item> items;
         private Set<INonPlayerCharacter.AbstractNPCBuilder<?, ?>> npcsToBuild;
-        private Set<INonPlayerCharacter> nonPlayerCharacters;
         private BattleManager.Builder battleManagerBuilder;
 
         private RoomBuilder() {
@@ -112,7 +111,6 @@ public class Room implements Area {
             this.description = "An area that Creatures and Items can be in";
             this.items = new ArrayList<>();
             this.npcsToBuild = new HashSet<>();
-            this.nonPlayerCharacters = new HashSet<>();
             this.battleManagerBuilder = BattleManager.Builder.getInstance();
         }
 
@@ -145,25 +143,6 @@ public class Room implements Area {
             return this;
         }
 
-        /**
-         * Adds a prebuilt NPC to the Builder
-         * 
-         * @deprecated We want to keep the Builders Serializable, and a full Creature
-         *             has several non-Serializable components that are neccesary for
-         *             functionality. Prefer using
-         *             {@link #addNPCBuilder(AbstractNPCBuilder)}.
-         */
-        @Deprecated
-        public RoomBuilder addPrebuiltNPC(INonPlayerCharacter npc) {
-            if (this.nonPlayerCharacters == null) {
-                this.nonPlayerCharacters = new HashSet<>();
-            }
-            if (npc != null) {
-                this.nonPlayerCharacters.add(npc);
-            }
-            return this;
-        }
-
         public RoomBuilder addNPCBuilder(INonPlayerCharacter.AbstractNPCBuilder<?, ?> builder) {
             if (this.npcsToBuild == null) {
                 this.npcsToBuild = new HashSet<>();
@@ -177,11 +156,6 @@ public class Room implements Area {
         @Override
         public Collection<AbstractNPCBuilder<?, ?>> getNPCsToBuild() {
             return this.npcsToBuild;
-        }
-
-        @Override
-        public Collection<INonPlayerCharacter> getPrebuiltNPCs() {
-            return this.nonPlayerCharacters;
         }
 
         @Override
@@ -219,9 +193,7 @@ public class Room implements Area {
             this.logger.log(Level.INFO, () -> String.format("QUICK Building room '%s'", this.name));
             return Room.quickBuilder(this, () -> land, () -> successor, () -> (room) -> {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.quickBuildCreatures(aiRunner, room);
-                final Set<ICreature> creaturesToAdd = new TreeSet<>(this.nonPlayerCharacters);
-                creaturesToAdd.addAll(creaturesBuilt);
-                room.addCreatures(creaturesToAdd, true);
+                room.addCreatures(creaturesBuilt, true);
             });
         }
 
@@ -250,9 +222,7 @@ public class Room implements Area {
             return Room.fromBuilder(this, () -> land, () -> successor, () -> (room) -> {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.buildCreatures(aiRunner, room, statblockManager,
                         conversationManager);
-                final Set<ICreature> creaturesToAdd = new TreeSet<>(this.nonPlayerCharacters);
-                creaturesToAdd.addAll(creaturesBuilt);
-                room.addCreatures(creaturesToAdd, false);
+                room.addCreatures(creaturesBuilt, false);
             });
         }
 

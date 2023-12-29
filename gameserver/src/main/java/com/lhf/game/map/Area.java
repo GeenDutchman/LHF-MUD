@@ -86,9 +86,6 @@ public interface Area
 
         public abstract Collection<INonPlayerCharacter.AbstractNPCBuilder<?, ?>> getNPCsToBuild();
 
-        @Deprecated(forRemoval = true)
-        public abstract Collection<INonPlayerCharacter> getPrebuiltNPCs();
-
         public abstract Area quickBuild(CommandChainHandler successor, Land land,
                 AIRunner aiRunner);
 

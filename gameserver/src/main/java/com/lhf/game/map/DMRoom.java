@@ -1,7 +1,16 @@
 package com.lhf.game.map;
 
 import java.io.FileNotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -11,10 +20,10 @@ import java.util.logging.Logger;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.Game;
+import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.INonPlayerCharacter.AbstractNPCBuilder;
-import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
@@ -27,23 +36,22 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.game.lewd.LewdBabyMaker;
-import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.Area.AreaBuilder.PostBuildRoomOperations;
-import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.BadTargetSelectedEvent;
+import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.RoomAffectedEvent;
 import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.messages.events.RoomExitedEvent;
 import com.lhf.messages.events.SpeakingEvent;
 import com.lhf.messages.events.UserLeftEvent;
-import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
-import com.lhf.messages.CommandMessage;
-import com.lhf.messages.CommandChainHandler;
-import com.lhf.messages.GameEventType;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.user.User;
@@ -57,13 +65,11 @@ public class DMRoom extends Room {
     public static class DMRoomBuilder implements Area.AreaBuilder {
         private final transient Logger logger;
         private Room.RoomBuilder delegate;
-        private List<Land> prebuiltLands;
         private List<Land.LandBuilder> landBuilders;
 
         private DMRoomBuilder() {
             this.logger = Logger.getLogger(this.getClass().getName());
             this.delegate = Room.RoomBuilder.getInstance();
-            this.prebuiltLands = new ArrayList<>();
             this.landBuilders = new ArrayList<>();
         }
 
@@ -86,53 +92,13 @@ public class DMRoom extends Room {
             return this;
         }
 
-        /**
-         * Adds a prebuilt NPC to the Builder
-         * 
-         * @deprecated We want to keep the Builders Serializable, and a full Creature
-         *             has several non-Serializable components that are neccesary for
-         *             functionality. Prefer using
-         *             {@link #addNPCBuilder(AbstractNPCBuilder)}.
-         */
-        @Deprecated(forRemoval = true)
-        public DMRoomBuilder addPrebuiltNPC(INonPlayerCharacter creature) {
-            this.delegate = delegate.addPrebuiltNPC(creature);
-            return this;
-        }
-
         public DMRoomBuilder addNPCBuilder(INonPlayerCharacter.AbstractNPCBuilder<?, ?> builder) {
             this.delegate = delegate.addNPCBuilder(builder);
             return this;
         }
 
-        /**
-         * Adds a prebuilt DM to the Builder
-         * 
-         * @deprecated We want to keep the Builders Serializable, and a full
-         *             DungeonMaster
-         *             has several non-Serializable components that are neccesary for
-         *             functionality. Prefer using
-         *             {@link #addDungeonMasterBuilder(DungeonMaster.DungeonMasterBuilder)}.
-         */
-        @Deprecated(forRemoval = true)
-        public DMRoomBuilder addDungeonMaster(DungeonMaster dm) {
-            this.delegate = delegate.addPrebuiltNPC(dm);
-            return this;
-        }
-
         public DMRoomBuilder addDungeonMasterBuilder(DungeonMaster.DungeonMasterBuilder builder) {
             this.delegate = delegate.addNPCBuilder(builder);
-            return this;
-        }
-
-        @Deprecated(forRemoval = true)
-        public DMRoomBuilder addDungeon(Dungeon dungeon) {
-            if (this.prebuiltLands == null) {
-                this.prebuiltLands = new ArrayList<>();
-            }
-            if (dungeon != null) {
-                this.prebuiltLands.add(dungeon);
-            }
             return this;
         }
 
@@ -145,12 +111,6 @@ public class DMRoom extends Room {
 
         public List<Land.LandBuilder> getLandBuilders() {
             return Collections.unmodifiableList(this.landBuilders);
-        }
-
-        @Deprecated(forRemoval = true)
-        @Override
-        public Collection<INonPlayerCharacter> getPrebuiltNPCs() {
-            return this.delegate.getPrebuiltNPCs();
         }
 
         @Override
@@ -198,14 +158,10 @@ public class DMRoom extends Room {
             this.logger.log(Level.INFO, () -> String.format("QUICK Building DM room '%s'", this.getName()));
             return DMRoom.quickBuilder(this, () -> land, () -> successor, () -> (room) -> {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.delegate.quickBuildCreatures(aiRunner, room);
-                final Set<ICreature> creaturesToAdd = new TreeSet<>(this.getPrebuiltNPCs());
-                creaturesToAdd.addAll(creaturesBuilt);
-                room.addCreatures(creaturesToAdd, true);
+                room.addCreatures(creaturesBuilt, true);
             }, () -> (dmRoom) -> {
                 final List<Land> landsBuilt = this.quickBuildLands(aiRunner, dmRoom);
-                final List<Land> landsToAdd = new ArrayList<>(this.prebuiltLands);
-                landsToAdd.addAll(landsBuilt);
-                for (Land toAdd : landsToAdd) {
+                for (Land toAdd : landsBuilt) {
                     dmRoom.addLand(toAdd);
                 }
             });
@@ -237,15 +193,11 @@ public class DMRoom extends Room {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.delegate.buildCreatures(aiRunner, room,
                         statblockManager,
                         conversationManager);
-                final Set<ICreature> creaturesToAdd = new TreeSet<>(this.getPrebuiltNPCs());
-                creaturesToAdd.addAll(creaturesBuilt);
-                room.addCreatures(creaturesToAdd, true);
+                room.addCreatures(creaturesBuilt, true);
             }, () -> (dmRoom) -> {
                 final List<Land> landsBuilt = this.buildLands(aiRunner, dmRoom, null, statblockManager,
                         conversationManager);
-                final List<Land> landsToAdd = new ArrayList<>(this.prebuiltLands);
-                landsToAdd.addAll(landsBuilt);
-                for (Land toAdd : landsToAdd) {
+                for (Land toAdd : landsBuilt) {
                     dmRoom.addLand(toAdd);
                 }
             });

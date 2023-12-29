@@ -18,16 +18,15 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
-import com.lhf.game.Game;
 import com.lhf.game.Game.GameBuilder;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.map.StandardDungeonProducer;
-import com.lhf.messages.MessageMatcher;
-import com.lhf.messages.GameEventType;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.GameEventType;
+import com.lhf.messages.MessageMatcher;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.UserLeftEvent;
 import com.lhf.messages.events.WelcomeEvent;
