@@ -178,6 +178,39 @@ public class DMRoom extends Room {
             return delegate.getNPCsToBuild();
         }
 
+        private List<Land> quickBuildLands(AIRunner aiRunner, DMRoom dmRoom, Game game) {
+            List<Land.LandBuilder> toBuild = this.getLandBuilders();
+            if (toBuild == null) {
+                return List.of();
+            }
+            List<Land> built = new ArrayList<>();
+            for (final Land.LandBuilder builder : toBuild) {
+                if (builder == null) {
+                    continue;
+                }
+                built.add(builder.quickBuild(dmRoom, game));
+            }
+            return Collections.unmodifiableList(built);
+        }
+
+        @Override
+        public Area quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
+            this.logger.log(Level.INFO, () -> String.format("QUICK Building DM room '%s'", this.getName()));
+            return DMRoom.quickBuilder(this, () -> land, () -> successor, () -> (room) -> {
+                final Set<INonPlayerCharacter> creaturesBuilt = this.delegate.quickBuildCreatures(aiRunner, room);
+                final Set<ICreature> creaturesToAdd = new TreeSet<>(this.getPrebuiltNPCs());
+                creaturesToAdd.addAll(creaturesBuilt);
+                room.addCreatures(creaturesToAdd, true);
+            }, () -> (dmRoom) -> {
+                final List<Land> landsBuilt = this.quickBuildLands(aiRunner, dmRoom, null);
+                final List<Land> landsToAdd = new ArrayList<>(this.prebuiltLands);
+                landsToAdd.addAll(landsBuilt);
+                for (Land toAdd : landsToAdd) {
+                    dmRoom.addLand(toAdd);
+                }
+            });
+        }
+
         private List<Land> buildLands(AIRunner aiRunner, DMRoom dmRoom, Game game,
                 StatblockManager statblockManager, ConversationManager conversationManager)
                 throws FileNotFoundException {
@@ -200,7 +233,7 @@ public class DMRoom extends Room {
                 StatblockManager statblockManager, ConversationManager conversationManager)
                 throws FileNotFoundException {
             this.logger.log(Level.INFO, () -> String.format("Building DM room '%s'", this.getName()));
-            return new DMRoom(this, () -> land, () -> successor, () -> (room) -> {
+            return DMRoom.fromBuilder(this, () -> land, () -> successor, () -> (room) -> {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.delegate.buildCreatures(aiRunner, room,
                         statblockManager,
                         conversationManager);
@@ -274,15 +307,52 @@ public class DMRoom extends Room {
         }
     }
 
-    DMRoom(DMRoomBuilder builder, Supplier<Land> landSupplier,
+    static DMRoom fromBuilder(DMRoomBuilder builder, Supplier<Land> landSupplier,
             Supplier<CommandChainHandler> successorSupplier,
             Supplier<PostBuildOperations<? super Room>> postRoomOperations,
             Supplier<PostBuildOperations<? super DMRoom>> postDMRoomOperations) throws FileNotFoundException {
-        super(builder.delegate, landSupplier, successorSupplier, postRoomOperations);
+        DMRoom dmRoom = new DMRoom(builder, landSupplier, successorSupplier);
+        if (postRoomOperations != null) {
+            PostBuildOperations<? super Room> postRoomOp = postRoomOperations.get();
+            if (postRoomOp != null) {
+                postRoomOp.execute(dmRoom);
+            }
+        }
+        if (postDMRoomOperations != null) {
+            PostBuildOperations<? super DMRoom> postDMRoomOp = postDMRoomOperations.get();
+            if (postDMRoomOp != null) {
+                postDMRoomOp.execute(dmRoom);
+            }
+        }
+        return dmRoom;
+    }
+
+    static DMRoom quickBuilder(DMRoomBuilder builder, Supplier<Land> landSupplier,
+            Supplier<CommandChainHandler> successorSupplier,
+            Supplier<Consumer<? super Room>> postRoomOperations,
+            Supplier<Consumer<? super DMRoom>> postDMRoomOperations) {
+        DMRoom dmRoom = new DMRoom(builder, landSupplier, successorSupplier);
+        if (postRoomOperations != null) {
+            Consumer<? super Room> postRoomOp = postRoomOperations.get();
+            if (postRoomOp != null) {
+                postRoomOp.accept(dmRoom);
+            }
+        }
+        if (postDMRoomOperations != null) {
+            Consumer<? super DMRoom> postDMRoomOp = postDMRoomOperations.get();
+            if (postDMRoomOp != null) {
+                postDMRoomOp.accept(dmRoom);
+            }
+        }
+        return dmRoom;
+    }
+
+    DMRoom(DMRoomBuilder builder, Supplier<Land> landSupplier,
+            Supplier<CommandChainHandler> successorSupplier) {
+        super(builder.delegate, landSupplier, successorSupplier);
         this.lands = new ArrayList<>();
         this.users = new HashSet<>();
         this.commands = this.buildCommands();
-        postDMRoomOperations.get().execute(this);
     }
 
     public boolean addLand(@NotNull Land land) {
@@ -294,7 +364,7 @@ public class DMRoom extends Room {
         if (this.filterCreatures(EnumSet.of(CreatureContainer.Filters.TYPE), null, null, null, null,
                 DungeonMaster.class, null).size() < 2) {
             this.log(Level.INFO, () -> "Conditions met to create and add Player automatically");
-            return this.addNewPlayer(Player.PlayerBuilder.getInstance(user).build());
+            return this.addNewPlayer(Player.PlayerBuilder.getInstance(user).build(null));
         }
         boolean added = this.users.add(user);
         if (added) {
@@ -381,7 +451,7 @@ public class DMRoom extends Room {
                 }
                 Corpse corpse = (Corpse) maybeCorpse.get();
                 Player player = Player.PlayerBuilder.getInstance(user).setVocation(dmRoomEffect.getVocation())
-                        .setCorpse(corpse).build();
+                        .setCorpse(corpse).build(null);
                 this.removeItem(corpse);
                 this.addNewPlayer(player);
             }

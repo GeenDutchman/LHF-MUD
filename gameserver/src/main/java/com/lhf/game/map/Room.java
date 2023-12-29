@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -198,6 +199,32 @@ public class Room implements Area {
             return this.name;
         }
 
+        protected Set<INonPlayerCharacter> quickBuildCreatures(AIRunner aiRunner, Room successor) {
+            Collection<AbstractNPCBuilder<?, ?>> toBuild = this.getNPCsToBuild();
+            if (toBuild == null) {
+                return Set.of();
+            }
+            TreeSet<INonPlayerCharacter> built = new TreeSet<>();
+            for (final AbstractNPCBuilder<?, ?> builder : toBuild) {
+                if (builder == null) {
+                    continue;
+                }
+                built.add(builder.quickBuild(() -> aiRunner.produceAI(), successor));
+            }
+            return Collections.unmodifiableSet(built);
+        }
+
+        @Override
+        public Area quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
+            this.logger.log(Level.INFO, () -> String.format("QUICK Building room '%s'", this.name));
+            return Room.quickBuilder(this, () -> land, () -> successor, () -> (room) -> {
+                final Set<INonPlayerCharacter> creaturesBuilt = this.quickBuildCreatures(aiRunner, room);
+                final Set<ICreature> creaturesToAdd = new TreeSet<>(this.nonPlayerCharacters);
+                creaturesToAdd.addAll(creaturesBuilt);
+                room.addCreatures(creaturesToAdd, true);
+            });
+        }
+
         protected Set<INonPlayerCharacter> buildCreatures(
                 AIRunner aiRunner, Room successor, StatblockManager statblockManager,
                 ConversationManager conversationManager) throws FileNotFoundException {
@@ -210,7 +237,6 @@ public class Room implements Area {
                 if (builder == null) {
                     continue;
                 }
-                // a null successor here because their successor will be set in the constructor
                 built.add(builder.build(aiRunner, successor, statblockManager, conversationManager));
             }
             return Collections.unmodifiableSet(built);
@@ -221,7 +247,7 @@ public class Room implements Area {
                 StatblockManager statblockManager, ConversationManager conversationManager)
                 throws FileNotFoundException {
             this.logger.log(Level.INFO, () -> String.format("Building room '%s'", this.name));
-            return new Room(this, () -> land, () -> successor, () -> (room) -> {
+            return Room.fromBuilder(this, () -> land, () -> successor, () -> (room) -> {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.buildCreatures(aiRunner, room, statblockManager,
                         conversationManager);
                 final Set<ICreature> creaturesToAdd = new TreeSet<>(this.nonPlayerCharacters);
@@ -247,9 +273,33 @@ public class Room implements Area {
 
     }
 
-    Room(RoomBuilder builder, Supplier<Land> landSupplier,
+    static Room fromBuilder(RoomBuilder builder, Supplier<Land> landSupplier,
             Supplier<CommandChainHandler> successorSupplier, Supplier<PostBuildOperations<? super Room>> postOperations)
             throws FileNotFoundException {
+        Room created = new Room(builder, landSupplier, successorSupplier);
+        if (postOperations != null) {
+            PostBuildOperations<? super Room> postOp = postOperations.get();
+            if (postOp != null) {
+                postOp.execute(created);
+            }
+        }
+        return created;
+    }
+
+    static Room quickBuilder(RoomBuilder builder, Supplier<Land> landSupplier,
+            Supplier<CommandChainHandler> successorSupplier, Supplier<Consumer<? super Room>> postOperations) {
+        Room created = new Room(builder, landSupplier, successorSupplier);
+        if (postOperations != null) {
+            Consumer<? super Room> postOp = postOperations.get();
+            if (postOp != null) {
+                postOp.accept(created);
+            }
+        }
+        return created;
+    }
+
+    Room(RoomBuilder builder, Supplier<Land> landSupplier,
+            Supplier<CommandChainHandler> successorSupplier) {
         this.name = builder.getName();
         this.logger = Logger.getLogger(this.getClass().getName() + "."
                 + (this.name != null && !this.name.isBlank() ? this.name.replaceAll("\\W", "_")
@@ -262,7 +312,6 @@ public class Room implements Area {
         this.effects = new TreeSet<>();
         this.battleManager = builder.battleManagerBuilder.Build(this);
         this.commands = this.buildCommands();
-        postOperations.get().execute(this);
     }
 
     protected Map<CommandMessage, CommandHandler> buildCommands() {

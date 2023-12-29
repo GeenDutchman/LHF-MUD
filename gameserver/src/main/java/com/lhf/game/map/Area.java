@@ -22,9 +22,9 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.ITickEvent;
-import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
@@ -88,6 +88,9 @@ public interface Area
 
         @Deprecated(forRemoval = true)
         public abstract Collection<INonPlayerCharacter> getPrebuiltNPCs();
+
+        public abstract Area quickBuild(CommandChainHandler successor, Land land,
+                AIRunner aiRunner);
 
         public abstract Area build(CommandChainHandler successor, Land land, AIRunner aiRunner,
                 StatblockManager statblockManager,

@@ -102,8 +102,8 @@ public class GroupAIRunner implements AIRunner {
         return ai;
     }
 
-    @Deprecated
     @Override
+    @Deprecated
     public synchronized BasicAI register(INonPlayerCharacter npc, AIHandler... handlers) {
         this.logger.entering(this.getClass().getName(), "register()", npc.getName());
         if (npc.getController() == null) {
