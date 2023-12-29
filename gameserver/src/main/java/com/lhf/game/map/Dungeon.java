@@ -354,7 +354,7 @@ public class Dungeon implements Land {
             Player nextLife = Player.PlayerBuilder.getInstance(oldLife.getUser())
                     .setVocation(oldLife.getVocation().resetLevel())
                     .build(this.getStartingArea());
-            oldLife.setController(null); // events will now not go anywhere
+            oldLife.disconnectController(); // events will now not go anywhere
             ICreature.eventAccepter.accept(nextLife,
                     PlayerReincarnatedEvent.getBuilder().setTaggedName(creature).setNotBroadcast().Build());
             // ICreature.eventAccepter.accept(nextLife,

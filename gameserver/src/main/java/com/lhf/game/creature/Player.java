@@ -1,7 +1,6 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -121,6 +120,12 @@ public class Player extends Creature {
 
     public User getUser() {
         return this.user;
+    }
+
+    public CommandInvoker disconnectController() {
+        CommandInvoker stored = this.getController();
+        this.setController(null);
+        return stored;
     }
 
 }
