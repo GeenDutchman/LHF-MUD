@@ -19,9 +19,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.Game;
+import com.lhf.game.Game.GameBuilder;
+import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
-import com.lhf.game.map.DungeonBuilder;
+import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.map.StandardDungeonProducer;
 import com.lhf.messages.MessageMatcher;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.CommandContext.Reply;
@@ -109,8 +112,14 @@ public class ServerTest {
             this.userManager = new UserManager();
             this.clientManager = new ClientManager();
             AIRunner aiRunner = new GroupAIRunner(true, 2, 250, TimeUnit.MILLISECONDS);
-            Game game = new Game(null, this.userManager, aiRunner, DungeonBuilder.buildStaticDungeon(null, aiRunner));
-            this.server = new Server(this.userManager, this.clientManager, game);
+            ConversationManager conversationManager = new ConversationManager();
+            StatblockManager statblockManager = new StatblockManager();
+            GameBuilder gameBuilder = new GameBuilder()
+                    .setAiRunner(aiRunner)
+                    .setConversationManager(conversationManager)
+                    .setStatblockManager(statblockManager)
+                    .addAdditionalLands(StandardDungeonProducer.buildStaticDungeonBuilder(statblockManager));
+            this.server = new Server(this.userManager, this.clientManager, gameBuilder);
             this.comm = new ServerClientComBundle(this.server);
         } catch (IOException e) {
             fail(e);

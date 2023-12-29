@@ -150,6 +150,11 @@ public class Game implements UserListener, CommandChainHandler {
 			return this;
 		}
 
+		public GameBuilder addAdditionalLands(Land.LandBuilder additionalLand) {
+			this.additionalLands.add(additionalLand);
+			return this;
+		}
+
 		public GameBuilder setAdditionalLands(ArrayList<Land.LandBuilder> additionalLands) {
 			this.additionalLands = additionalLands;
 			return this;
