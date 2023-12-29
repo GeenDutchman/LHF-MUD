@@ -28,7 +28,7 @@ import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.game.magic.ThirdPower;
-import com.lhf.game.map.Area.AreaBuilder.PostBuildOperations;
+import com.lhf.game.map.Area.AreaBuilder.PostBuildRoomOperations;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -309,17 +309,17 @@ public class DMRoom extends Room {
 
     static DMRoom fromBuilder(DMRoomBuilder builder, Supplier<Land> landSupplier,
             Supplier<CommandChainHandler> successorSupplier,
-            Supplier<PostBuildOperations<? super Room>> postRoomOperations,
-            Supplier<PostBuildOperations<? super DMRoom>> postDMRoomOperations) throws FileNotFoundException {
+            Supplier<PostBuildRoomOperations<? super Room>> postRoomOperations,
+            Supplier<PostBuildRoomOperations<? super DMRoom>> postDMRoomOperations) throws FileNotFoundException {
         DMRoom dmRoom = new DMRoom(builder, landSupplier, successorSupplier);
         if (postRoomOperations != null) {
-            PostBuildOperations<? super Room> postRoomOp = postRoomOperations.get();
+            PostBuildRoomOperations<? super Room> postRoomOp = postRoomOperations.get();
             if (postRoomOp != null) {
                 postRoomOp.accept(dmRoom);
             }
         }
         if (postDMRoomOperations != null) {
-            PostBuildOperations<? super DMRoom> postDMRoomOp = postDMRoomOperations.get();
+            PostBuildRoomOperations<? super DMRoom> postDMRoomOp = postDMRoomOperations.get();
             if (postDMRoomOp != null) {
                 postDMRoomOp.accept(dmRoom);
             }

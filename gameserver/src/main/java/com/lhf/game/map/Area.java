@@ -35,10 +35,10 @@ public interface Area
     public interface AreaBuilder extends Serializable {
 
         @FunctionalInterface
-        public static interface PostBuildOperations<A extends Area> {
-            public abstract void accept(A area);
+        public static interface PostBuildRoomOperations<A extends Area> {
+            public abstract void accept(A area) throws FileNotFoundException;
 
-            public default PostBuildOperations<A> andThen(PostBuildOperations<? super A> after) {
+            public default PostBuildRoomOperations<A> andThen(PostBuildRoomOperations<? super A> after) {
                 Objects.requireNonNull(after);
                 return (t) -> {
                     this.accept(t);

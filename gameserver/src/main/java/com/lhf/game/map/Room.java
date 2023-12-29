@@ -43,7 +43,7 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.concrete.Corpse;
-import com.lhf.game.map.Area.AreaBuilder.PostBuildOperations;
+import com.lhf.game.map.Area.AreaBuilder.PostBuildRoomOperations;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -274,11 +274,12 @@ public class Room implements Area {
     }
 
     static Room fromBuilder(RoomBuilder builder, Supplier<Land> landSupplier,
-            Supplier<CommandChainHandler> successorSupplier, Supplier<PostBuildOperations<? super Room>> postOperations)
+            Supplier<CommandChainHandler> successorSupplier,
+            Supplier<PostBuildRoomOperations<? super Room>> postOperations)
             throws FileNotFoundException {
         Room created = new Room(builder, landSupplier, successorSupplier);
         if (postOperations != null) {
-            PostBuildOperations<? super Room> postOp = postOperations.get();
+            PostBuildRoomOperations<? super Room> postOp = postOperations.get();
             if (postOp != null) {
                 postOp.accept(created);
             }

@@ -55,10 +55,10 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
     public interface LandBuilder extends Serializable {
 
         @FunctionalInterface
-        public static interface PostBuildOperations<L extends Land> {
+        public static interface PostBuildLandOperations<L extends Land> {
             public abstract void accept(L land) throws FileNotFoundException;
 
-            public default PostBuildOperations<L> andThen(PostBuildOperations<? super L> after) {
+            public default PostBuildLandOperations<L> andThen(PostBuildLandOperations<? super L> after) {
                 Objects.requireNonNull(after);
                 return (t) -> {
                     this.accept(t);
