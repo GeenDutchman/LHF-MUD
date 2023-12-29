@@ -43,13 +43,13 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
     @Mock
     public CommandChainHandler mockedWrappedHandler;
 
-    public AIComBundle() throws FileNotFoundException {
+    public AIComBundle() {
         super();
         this.gameEventProcessorID = new GameEventProcessorID();
         this.mockedWrappedHandler = Mockito.mock(CommandChainHandler.class);
 
         this.brain = AIComBundle.getAIRunner().produceAI();
-        this.npc = NonPlayerCharacter.getNPCBuilder().useBlankStatblock().build(() -> this.brain, this, null, null);
+        this.npc = NonPlayerCharacter.getNPCBuilder().useBlankStatblock().quickBuild(() -> this.brain, this);
         this.brain.SetOut(this.sssb);
     }
 
