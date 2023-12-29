@@ -1,11 +1,15 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import com.lhf.game.creature.conversation.ConversationTree;
+import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.DMVocation;
 import com.lhf.messages.CommandChainHandler;
+import com.lhf.server.client.CommandInvoker;
 
 public class DungeonMaster extends NonPlayerCharacter {
 
@@ -21,18 +25,17 @@ public class DungeonMaster extends NonPlayerCharacter {
         }
 
         @Override
-        protected DungeonMaster preEnforcedRegistrationBuild(CommandChainHandler successor,
-                StatblockManager statblockManager, UnaryOperator<DungeonMasterBuilder> composedlazyLoaders)
-                throws FileNotFoundException {
+        public DungeonMaster build(Supplier<CommandInvoker> controllerSupplier,
+                CommandChainHandler successor, StatblockManager statblockManager,
+                UnaryOperator<DungeonMasterBuilder> composedlazyLoaders) throws FileNotFoundException {
             if (statblockManager != null) {
                 this.loadStatblock(statblockManager);
             }
             if (composedlazyLoaders != null) {
                 composedlazyLoaders.apply(this.getThis());
             }
-            DungeonMaster created = new DungeonMaster(this);
-            created.setSuccessor(successor);
-            return created;
+            return new DungeonMaster(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
+                    () -> this.getConversationTree());
         }
 
         @Override
@@ -41,8 +44,10 @@ public class DungeonMaster extends NonPlayerCharacter {
         }
     }
 
-    public DungeonMaster(DungeonMasterBuilder builder) {
-        super(builder);
+    public DungeonMaster(DungeonMasterBuilder builder,
+            Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
+            Supplier<Statblock> statblockSupplier, Supplier<ConversationTree> conversationSupplier) {
+        super(builder, controllerSupplier, successorSupplier, statblockSupplier, conversationSupplier);
     }
 
     public static DungeonMasterBuilder getDMBuilder() {
