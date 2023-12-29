@@ -1,6 +1,5 @@
 package com.lhf.game.creature.intelligence;
 
-import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
