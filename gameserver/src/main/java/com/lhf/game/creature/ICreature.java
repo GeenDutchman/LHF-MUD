@@ -335,8 +335,7 @@ public interface ICreature
 
         @Override
         public int hashCode() {
-            return Objects.hash(this.id,
-                    getThis().getClass().getName());
+            return Objects.hash(id);
         }
 
         @Override
@@ -346,8 +345,7 @@ public interface ICreature
             if (!(obj instanceof CreatureBuilder))
                 return false;
             CreatureBuilder<?, ?> other = (CreatureBuilder<?, ?>) obj;
-            return Objects.equals(id, other.id)
-                    && Objects.equals(getThis().getClass().getName(), other.getThis().getClass().getName());
+            return Objects.equals(id, other.id);
         }
 
         @Override
