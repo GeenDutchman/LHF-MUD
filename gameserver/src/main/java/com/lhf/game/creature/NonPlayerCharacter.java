@@ -28,6 +28,13 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
         }
 
         @Override
+        public NPCBuilder makeCopy() {
+            NPCBuilder npcBuilder = new NPCBuilder();
+            npcBuilder.copyFrom(this);
+            return npcBuilder;
+        }
+
+        @Override
         public NonPlayerCharacter quickBuild(Supplier<CommandInvoker> controllerSupplier,
                 CommandChainHandler successor) {
             Statblock block = this.getStatblock();

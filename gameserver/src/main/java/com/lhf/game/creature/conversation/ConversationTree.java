@@ -45,6 +45,17 @@ public class ConversationTree implements Serializable {
         this.tagkeywords = true;
     }
 
+    public ConversationTree(ConversationTree other) {
+        this.treeName = UUID.randomUUID().toString();
+        this.nodes.putAll(other.nodes);
+        this.branches.putAll(other.branches);
+        this.start = other.start;
+        this.init();
+        this.endOfConvo = "Goodbye";
+        this.notRecognized = "What did you say? ...";
+        this.tagkeywords = true;
+    }
+
     protected ConversationTree init() {
         this.initBookmarks();
         this.addDefaultGreetings();

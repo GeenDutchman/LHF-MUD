@@ -1,15 +1,11 @@
 package com.lhf.game.magic;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.item.Item;
 import com.lhf.game.map.RoomEffect;
 import com.lhf.game.map.RoomEffectSource;
 

@@ -40,6 +40,19 @@ public class CreatureEffectSource extends EntityEffectSource {
         this.restoreFaction = false;
     }
 
+    @Override
+    public CreatureEffectSource makeCopy() {
+        CreatureEffectSource copy = new CreatureEffectSource(this.getName(), persistence, resistance, description,
+                restoreFaction);
+        copy.statChanges.putAll(this.statChanges);
+        copy.attributeScoreChanges.putAll(this.attributeScoreChanges);
+        copy.attributeBonusChanges.putAll(this.attributeBonusChanges);
+        for (final DamageDice dd : this.damages) {
+            copy.damages.add(new DamageDice(dd));
+        }
+        return copy;
+    }
+
     public Map<Stats, Integer> getStatChanges() {
         return this.statChanges;
     }

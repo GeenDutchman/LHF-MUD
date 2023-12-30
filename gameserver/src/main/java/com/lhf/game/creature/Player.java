@@ -30,6 +30,12 @@ public class Player extends Creature {
         }
 
         @Override
+        public PlayerBuilder makeCopy() {
+            throw new UnsupportedOperationException(
+                    "Cannot make a copy of a User, and thus cannot make a copy of a PlayerBuilder");
+        }
+
+        @Override
         protected PlayerBuilder getThis() {
             return this;
         }

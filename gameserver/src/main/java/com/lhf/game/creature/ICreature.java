@@ -207,6 +207,8 @@ public interface ICreature
             }
         }
 
+        public abstract CreatureBuilder<BuilderType, CreatureType> makeCopy();
+
         public CreatureBuilderID getCreatureBuilderID() {
             return this.id;
         }

@@ -173,6 +173,11 @@ public abstract class Dice implements Taggable, Comparable<Dice> {
         this.type = type;
     }
 
+    public Dice(Dice other) {
+        this.count = other.count;
+        this.type = other.type;
+    }
+
     public int getCount() {
         return count;
     }

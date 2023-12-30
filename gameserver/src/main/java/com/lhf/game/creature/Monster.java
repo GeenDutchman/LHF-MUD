@@ -29,6 +29,13 @@ public class Monster extends NonPlayerCharacter implements IMonster {
         }
 
         @Override
+        public MonsterBuilder makeCopy() {
+            MonsterBuilder monsterBuilder = new MonsterBuilder();
+            monsterBuilder.copyFrom(this);
+            return monsterBuilder;
+        }
+
+        @Override
         protected MonsterBuilder getThis() {
             return this;
         }

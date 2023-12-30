@@ -105,35 +105,10 @@ public class RoomAffectedEvent extends GameEvent {
 
         StringJoiner lister = null;
 
-        if (this.effect.getItemsToSummon().size() > 0) {
-            lister = new StringJoiner(", ", "", this.reversed ? " are de-summoned.\r\n" : " are summoned.\r\n")
-                    .setEmptyValue("No items ");
-            for (Item item : this.effect.getItemsToSummon()) {
-                lister.add(item.getColorTaggedName());
-            }
-            sj.add(lister.toString());
-        }
-        if (this.effect.getItemsToBanish().size() > 0) {
-            lister = new StringJoiner(", ", "", this.reversed ? " are de-banished.\r\n" : " are banished.\r\n")
-                    .setEmptyValue("No items ");
-            for (Item item : this.effect.getItemsToBanish()) {
-                lister.add(item.getColorTaggedName());
-            }
-            sj.add(lister.toString());
-        }
-
-        if (this.effect.getCreaturesToSummon().size() > 0) {
+        if (this.effect.getNPCToSummon() != null) {
             lister = new StringJoiner(", ", "", this.reversed ? " are de-summoned.\r\n" : " are summoned.\r\n")
                     .setEmptyValue("No creatures ");
             for (ICreature creature : this.effect.getCreaturesToSummon()) {
-                lister.add(creature.getColorTaggedName());
-            }
-            sj.add(lister.toString());
-        }
-        if (this.effect.getCreaturesToBanish().size() > 0) {
-            lister = new StringJoiner(", ", "", this.reversed ? " are de-banished.\r\n" : " are banished.\r\n")
-                    .setEmptyValue("No creatures ");
-            for (ICreature creature : this.effect.getCreaturesToBanish()) {
                 lister.add(creature.getColorTaggedName());
             }
             sj.add(lister.toString());

@@ -252,6 +252,17 @@ public interface INonPlayerCharacter extends ICreature {
             this.summonState = EnumSet.noneOf(SummonData.class);
         }
 
+        protected void copyFrom(NPCBuilderType other) {
+            this.conversationFileName = new String(other.getConversationFileName());
+            this.conversationTree = null;
+            ConversationTree otherTree = other.getConversationTree();
+            if (otherTree != null) {
+                this.conversationTree = new ConversationTree(otherTree);
+            }
+            this.aiHandlers = new ArrayList<>(other.getAIHandlers());
+            this.summonState = EnumSet.copyOf(other.getSummonState());
+        }
+
         @Override
         protected NPCBuilderType getThis() {
             return this.thisObject;

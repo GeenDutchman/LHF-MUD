@@ -35,6 +35,11 @@ public class DamageDice extends Dice implements DamageFlavored {
         this.flavor = flavor;
     }
 
+    public DamageDice(DamageDice other) {
+        super(other);
+        this.flavor = other.flavor;
+    }
+
     private final DamageFlavor flavor;
 
     @Override

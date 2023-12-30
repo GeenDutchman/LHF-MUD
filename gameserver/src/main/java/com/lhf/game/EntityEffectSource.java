@@ -21,6 +21,8 @@ public abstract class EntityEffectSource implements TaggedExaminable {
         this.description = description;
     }
 
+    public abstract EntityEffectSource makeCopy();
+
     public EffectPersistence getPersistence() {
         return persistence;
     }
