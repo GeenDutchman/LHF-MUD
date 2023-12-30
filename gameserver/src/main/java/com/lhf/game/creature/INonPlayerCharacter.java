@@ -257,7 +257,7 @@ public interface INonPlayerCharacter extends ICreature {
             this.conversationTree = null;
             ConversationTree otherTree = other.getConversationTree();
             if (otherTree != null) {
-                this.conversationTree = new ConversationTree(otherTree);
+                this.conversationTree = otherTree.makeCopy();
             }
             this.aiHandlers = new ArrayList<>(other.getAIHandlers());
             this.summonState = EnumSet.copyOf(other.getSummonState());
