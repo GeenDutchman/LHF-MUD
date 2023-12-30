@@ -64,8 +64,8 @@ public class Monster extends NonPlayerCharacter implements IMonster {
             if (block == null) {
                 this.useBlankStatblock();
             }
-            return new Monster(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
-                    () -> null);
+            return Monster.buildMonster(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
+                    () -> null, null);
         }
 
         @Override
@@ -78,8 +78,8 @@ public class Monster extends NonPlayerCharacter implements IMonster {
             if (composedlazyLoaders != null) {
                 composedlazyLoaders.apply(this.getThis());
             }
-            return new Monster(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
-                    () -> this.getConversationTree());
+            return Monster.buildMonster(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
+                    () -> this.getConversationTree(), null);
         }
 
         @Override
@@ -88,7 +88,19 @@ public class Monster extends NonPlayerCharacter implements IMonster {
         }
     }
 
-    public Monster(MonsterBuilder builder,
+    public static Monster buildMonster(MonsterBuilder builder,
+            Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
+            Supplier<Statblock> statblockSupplier, Supplier<ConversationTree> conversationSupplier,
+            UnaryOperator<Monster> transformer) {
+        Monster made = new Monster(builder, controllerSupplier, successorSupplier, statblockSupplier,
+                conversationSupplier);
+        if (transformer != null) {
+            made = transformer.apply(made);
+        }
+        return made;
+    }
+
+    protected Monster(MonsterBuilder builder,
             Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
             Supplier<Statblock> statblockSupplier, Supplier<ConversationTree> conversationSupplier) {
         super(builder, controllerSupplier, successorSupplier, statblockSupplier, conversationSupplier);

@@ -41,8 +41,8 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
             if (block == null) {
                 this.useBlankStatblock();
             }
-            return new NonPlayerCharacter(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
-                    () -> null);
+            return NonPlayerCharacter.buildNPC(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
+                    () -> null, null);
         }
 
         @Override
@@ -55,8 +55,8 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
             if (composedlazyLoaders != null) {
                 composedlazyLoaders.apply(this.getThis());
             }
-            return new NonPlayerCharacter(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
-                    () -> this.getConversationTree());
+            return NonPlayerCharacter.buildNPC(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
+                    () -> this.getConversationTree(), null);
         }
 
         @Override
@@ -72,6 +72,18 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
 
     private ConversationTree convoTree = null;
     private transient final HarmMemories harmMemories = HarmMemories.makeMemories(this);
+
+    public static NonPlayerCharacter buildNPC(AbstractNPCBuilder<?, ? extends INonPlayerCharacter> builder,
+            Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
+            Supplier<Statblock> statblockSupplier, Supplier<ConversationTree> conversationSupplier,
+            UnaryOperator<NonPlayerCharacter> transformer) {
+        NonPlayerCharacter made = new NonPlayerCharacter(builder, controllerSupplier, successorSupplier,
+                statblockSupplier, conversationSupplier);
+        if (transformer != null) {
+            made = transformer.apply(made);
+        }
+        return made;
+    }
 
     protected NonPlayerCharacter(AbstractNPCBuilder<?, ? extends INonPlayerCharacter> builder,
             Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
