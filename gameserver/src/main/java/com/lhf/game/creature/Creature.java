@@ -20,7 +20,7 @@ import com.lhf.game.ItemContainer;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.Statblock.DamgeFlavorReactionSort;
+import com.lhf.game.creature.statblock.Statblock.DamgeFlavorReaction;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.DamageDice.FlavoredRollResult;
 import com.lhf.game.dice.Dice.RollResult;
@@ -240,25 +240,25 @@ public abstract class Creature implements ICreature {
             return null;
         }
         MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
-        EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> dfr = this.statblock.getDamageFlavorReactions();
+        EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> dfr = this.statblock.getDamageFlavorReactions();
         for (RollResult rr : mrr) {
             if (rr instanceof FlavoredRollResult) {
                 FlavoredRollResult frr = (FlavoredRollResult) rr;
-                if (dfr.get(DamgeFlavorReactionSort.CURATIVES).contains(frr.getDamageFlavor())) {
+                if (dfr.get(DamgeFlavorReaction.CURATIVES).contains(frr.getDamageFlavor())) {
                     if (reverse) {
                         mrrBuilder.addRollResults(frr.negative());
                     } else {
                         mrrBuilder.addRollResults(frr);
                     }
-                } else if (dfr.get(DamgeFlavorReactionSort.IMMUNITIES).contains(frr.getDamageFlavor())) {
+                } else if (dfr.get(DamgeFlavorReaction.IMMUNITIES).contains(frr.getDamageFlavor())) {
                     mrrBuilder.addRollResults(frr.none());
-                } else if (dfr.get(DamgeFlavorReactionSort.RESISTANCES).contains(frr.getDamageFlavor())) {
+                } else if (dfr.get(DamgeFlavorReaction.RESISTANCES).contains(frr.getDamageFlavor())) {
                     if (reverse) {
                         mrrBuilder.addRollResults(frr.half());
                     } else {
                         mrrBuilder.addRollResults(frr.negative().half());
                     }
-                } else if (dfr.get(DamgeFlavorReactionSort.WEAKNESSES).contains(frr.getDamageFlavor())) {
+                } else if (dfr.get(DamgeFlavorReaction.WEAKNESSES).contains(frr.getDamageFlavor())) {
                     if (reverse) {
                         mrrBuilder.addRollResults(frr.twice());
                     } else {
@@ -272,7 +272,7 @@ public abstract class Creature implements ICreature {
                     }
                 }
             } else {
-                if (dfr.get(DamgeFlavorReactionSort.IMMUNITIES).size() > 0) {
+                if (dfr.get(DamgeFlavorReaction.IMMUNITIES).size() > 0) {
                     mrrBuilder.addRollResults(rr.none()); // if they have any immunities, unflavored damge does nothing
                 } else if (reverse) {
                     mrrBuilder.addRollResults(rr.negative());
@@ -282,8 +282,8 @@ public abstract class Creature implements ICreature {
             }
         }
 
-        if (dfr.get(DamgeFlavorReactionSort.IMMUNITIES).size() == 0) { // if they have any immunities, unflavored damge
-                                                                       // does nothing
+        if (dfr.get(DamgeFlavorReaction.IMMUNITIES).size() == 0) { // if they have any immunities, unflavored damge
+                                                                   // does nothing
             mrrBuilder.addBonuses(mrr.getBonuses());
         }
 

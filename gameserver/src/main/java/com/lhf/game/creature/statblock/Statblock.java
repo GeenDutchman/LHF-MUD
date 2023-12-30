@@ -20,7 +20,7 @@ import com.lhf.game.item.Takeable;
 public class Statblock {
 
     // Reactions to DamageFlavors
-    public enum DamgeFlavorReactionSort {
+    public enum DamgeFlavorReaction {
         WEAKNESSES,
         RESISTANCES,
         IMMUNITIES,
@@ -45,7 +45,7 @@ public class Statblock {
     // Equipment slots
     private Map<EquipmentSlots, Equipable> equipmentSlots;
 
-    private EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> damageFlavorReactions;
+    private EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> damageFlavorReactions;
 
     public static final int DEFAULT_HP = 12;
     public static final int DEFAULT_AC = 11;
@@ -58,7 +58,7 @@ public class Statblock {
         private Set<EquipmentTypes> proficiencies;
         private Inventory inventory;
         private Map<EquipmentSlots, Equipable> equipmentSlots;
-        private EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> damageFlavorReactions;
+        private EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> damageFlavorReactions;
 
         public StatblockBuilder() {
             this.creatureRace = "Creature";
@@ -68,7 +68,7 @@ public class Statblock {
             this.proficiencies = EnumSet.noneOf(EquipmentTypes.class);
             this.inventory = new Inventory();
             this.equipmentSlots = new EnumMap<>(EquipmentSlots.class);
-            this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReactionSort.class);
+            this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReaction.class);
             this.defaultFlavorReactions();
         }
 
@@ -151,15 +151,15 @@ public class Statblock {
         }
 
         public static void setDefaultFlavorReactions(
-                EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> needDefaults) {
+                EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> needDefaults) {
             if (needDefaults == null) {
-                needDefaults = new EnumMap<>(DamgeFlavorReactionSort.class);
+                needDefaults = new EnumMap<>(DamgeFlavorReaction.class);
             }
             needDefaults
-                    .computeIfAbsent(DamgeFlavorReactionSort.CURATIVES, key -> EnumSet.of(DamageFlavor.HEALING))
+                    .computeIfAbsent(DamgeFlavorReaction.CURATIVES, key -> EnumSet.of(DamageFlavor.HEALING))
                     .add(DamageFlavor.HEALING);
             needDefaults
-                    .computeIfAbsent(DamgeFlavorReactionSort.IMMUNITIES, key -> EnumSet.of(DamageFlavor.AGGRO))
+                    .computeIfAbsent(DamgeFlavorReaction.IMMUNITIES, key -> EnumSet.of(DamageFlavor.AGGRO))
                     .add(DamageFlavor.AGGRO);
         }
 
@@ -169,11 +169,11 @@ public class Statblock {
         }
 
         public StatblockBuilder resetFlavorReactions() {
-            this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReactionSort.class);
+            this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReaction.class);
             return this;
         }
 
-        public StatblockBuilder addFlavorReaction(DamgeFlavorReactionSort sort, DamageFlavor flavor) {
+        public StatblockBuilder addFlavorReaction(DamgeFlavorReaction sort, DamageFlavor flavor) {
             if (sort != null && flavor != null) {
                 this.damageFlavorReactions.computeIfAbsent(sort, key -> EnumSet.of(flavor)).add(flavor);
             }
@@ -204,19 +204,19 @@ public class Statblock {
             return new EnumMap<>(this.equipmentSlots); // this is a shallow copy of the equipables, but whatever
         }
 
-        public static EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> deepCloneDamageFlavorReactions(
-                EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> from) {
-            EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> reactions = new EnumMap<>(
-                    DamgeFlavorReactionSort.class);
+        public static EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> deepCloneDamageFlavorReactions(
+                EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> from) {
+            EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> reactions = new EnumMap<>(
+                    DamgeFlavorReaction.class);
             if (from != null) {
-                for (final Entry<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> entry : from.entrySet()) {
+                for (final Entry<DamgeFlavorReaction, EnumSet<DamageFlavor>> entry : from.entrySet()) {
                     reactions.put(entry.getKey(), EnumSet.copyOf(entry.getValue()));
                 }
             }
             return reactions;
         }
 
-        public EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> getDamageFlavorReactions() {
+        public EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> getDamageFlavorReactions() {
             return StatblockBuilder.deepCloneDamageFlavorReactions(this.damageFlavorReactions);
         }
 
@@ -244,7 +244,7 @@ public class Statblock {
             EnumMap<Stats, Integer> stats,
             EnumSet<EquipmentTypes> proficiencies, Inventory inventory,
             EnumMap<EquipmentSlots, Equipable> equipmentSlots,
-            EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> reactions) {
+            EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> reactions) {
         this.creatureRace = creatureRace;
         this.attributes = attributes;
         this.stats = Collections.synchronizedMap(stats.clone());
@@ -252,7 +252,7 @@ public class Statblock {
         this.inventory = inventory;
         this.equipmentSlots = Collections.synchronizedMap(equipmentSlots.clone());
         if (reactions == null) {
-            this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReactionSort.class);
+            this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReaction.class);
             StatblockBuilder.setDefaultFlavorReactions(this.damageFlavorReactions);
         } else {
             this.damageFlavorReactions = reactions;
@@ -328,11 +328,11 @@ public class Statblock {
         return creatureRace;
     }
 
-    public EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> getDamageFlavorReactions() {
+    public EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> getDamageFlavorReactions() {
         return damageFlavorReactions;
     }
 
-    public void setDamageFlavorReactions(EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> reactions) {
+    public void setDamageFlavorReactions(EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> reactions) {
         if (reactions == null) {
             StatblockBuilder.setDefaultFlavorReactions(reactions);
         }

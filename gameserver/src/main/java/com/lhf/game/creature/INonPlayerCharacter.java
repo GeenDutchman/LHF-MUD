@@ -356,6 +356,13 @@ public interface INonPlayerCharacter extends ICreature {
             return this.getThis();
         }
 
+        public NPCBuilderType setSummonStates(Set<SummonData> summonData) {
+            if (summonData != null) {
+                this.summonState = EnumSet.copyOf(summonData);
+            }
+            return this.getThis();
+        }
+
         public abstract NPCType quickBuild(Supplier<CommandInvoker> controllerSupplier, CommandChainHandler successor);
 
         public final NPCType quickBuild(AIRunner aiRunner, CommandChainHandler successor) {
