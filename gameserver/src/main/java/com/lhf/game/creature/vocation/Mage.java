@@ -69,6 +69,11 @@ public class Mage extends Vocation implements CubeHolder {
     }
 
     @Override
+    public Vocation copy() {
+        return new Mage();
+    }
+
+    @Override
     protected ResourcePool initPool() {
         return new SpellSlots();
     }

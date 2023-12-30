@@ -33,6 +33,11 @@ public class Fighter extends Vocation implements MultiAttacker {
     }
 
     @Override
+    public Vocation copy() {
+        return new Fighter();
+    }
+
+    @Override
     protected ResourcePool initPool() {
         return new Stamina();
     }

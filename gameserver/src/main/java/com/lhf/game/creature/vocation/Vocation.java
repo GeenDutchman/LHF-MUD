@@ -61,6 +61,8 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
     protected abstract ResourcePool initPool();
 
+    public abstract Vocation copy();
+
     protected Vocation(VocationName name) {
         this.name = name;
         this.resourcePool = this.initPool();

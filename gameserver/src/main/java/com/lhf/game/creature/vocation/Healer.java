@@ -43,6 +43,11 @@ public class Healer extends Vocation implements CubeHolder {
     }
 
     @Override
+    public Vocation copy() {
+        return new Healer();
+    }
+
+    @Override
     protected ResourcePool initPool() {
         return new SpellPoints();
     }

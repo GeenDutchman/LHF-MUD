@@ -57,6 +57,12 @@ public class DMVocation extends Vocation implements CubeHolder, MultiAttacker {
     }
 
     @Override
+    public DMVocation copy() {
+        DMVocation aCopy = new DMVocation();
+        return aCopy;
+    }
+
+    @Override
     protected ResourcePool initPool() {
         return new UnlimitedPool();
     }
