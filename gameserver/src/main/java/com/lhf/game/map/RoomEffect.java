@@ -11,6 +11,8 @@ import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.Monster.MonsterBuilder;
 import com.lhf.game.creature.NonPlayerCharacter.NPCBuilder;
+import com.lhf.game.creature.SummonedMonster;
+import com.lhf.game.creature.SummonedNPC;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.server.client.CommandInvoker;
@@ -44,16 +46,50 @@ public class RoomEffect extends EntityEffect {
         return this.getSource().getMonsterToSummon();
     }
 
+    public INonPlayerCharacter getCachedNPC() {
+        return this.summonedNPC;
+    }
+
+    public IMonster getCachedMonster() {
+        return this.summonedMonster;
+    }
+
+    public INonPlayerCharacter getQuickSummonedNPC(Supplier<CommandInvoker> controllerSupplier,
+            CommandChainHandler successor) {
+        if (this.summonedNPC == null) {
+            NPCBuilder builder = getNPCToSummon();
+            if (builder != null) {
+                this.summonedNPC = new SummonedNPC(builder.quickBuild(null, creatureResponsible),
+                        builder.getSummonState(), this.creatureResponsible(), this.getPersistence().getTicker());
+            }
+        }
+        return summonedNPC;
+    }
+
+    public IMonster getQuickSummonedMonster(Supplier<CommandInvoker> controllerSupplier,
+            CommandChainHandler successor) {
+        if (this.summonedMonster == null) {
+            MonsterBuilder builder = getMonsterToSummon();
+            if (builder != null) {
+                this.summonedMonster = new SummonedMonster(builder.quickBuild(controllerSupplier, successor),
+                        builder.getSummonState(), this.creatureResponsible(), this.getPersistence().getTicker());
+            }
+        }
+        return this.summonedMonster;
+    }
+
     public INonPlayerCharacter getSummonedNPC(Supplier<CommandInvoker> controllerSupplier,
             CommandChainHandler successor, StatblockManager statblockManager,
             UnaryOperator<NPCBuilder> composedlazyLoaders) throws FileNotFoundException {
         if (this.summonedNPC == null) {
             NPCBuilder builder = getNPCToSummon();
             if (builder != null) {
-                this.summonedNPC = builder.build(controllerSupplier, successor, statblockManager, composedlazyLoaders);
+                this.summonedNPC = new SummonedNPC(
+                        builder.build(controllerSupplier, successor, statblockManager, composedlazyLoaders),
+                        builder.getSummonState(), this.creatureResponsible(), this.getTicker());
             }
         }
-        return summonedNPC;
+        return this.summonedNPC;
     }
 
     public IMonster getSummonedMonster(Supplier<CommandInvoker> controllerSupplier,
@@ -62,10 +98,12 @@ public class RoomEffect extends EntityEffect {
         if (this.summonedMonster == null) {
             MonsterBuilder builder = getMonsterToSummon();
             if (builder != null) {
-                this.summonedMonster = builder.build(controllerSupplier, successor, statblockManager,
-                        composedlazyLoaders);
+                this.summonedMonster = new SummonedMonster(
+                        builder.build(controllerSupplier, successor, statblockManager,
+                                composedlazyLoaders),
+                        builder.getSummonState(), this.creatureResponsible(), this.getTicker());
             }
         }
-        return summonedMonster;
+        return this.summonedMonster;
     }
 }
