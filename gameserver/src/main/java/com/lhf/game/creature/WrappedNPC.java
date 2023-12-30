@@ -187,7 +187,7 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
-    public Collection<Item> filterItems(EnumSet<Filters> filters, String className, String objectName,
+    public Collection<Item> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
             Integer objNameRegexLen, Class<? extends Item> clazz, Boolean isVisible) {
         return innerNPC.filterItems(filters, className, objectName, objNameRegexLen, clazz, isVisible);
     }

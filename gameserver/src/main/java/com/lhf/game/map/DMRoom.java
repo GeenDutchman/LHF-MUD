@@ -313,7 +313,7 @@ public class DMRoom extends Room {
     }
 
     public boolean addUser(User user) {
-        if (this.filterCreatures(EnumSet.of(CreatureContainer.Filters.TYPE), null, null, null, null,
+        if (this.filterCreatures(EnumSet.of(CreatureContainer.CreatureFilters.TYPE), null, null, null, null,
                 DungeonMaster.class, null).size() < 2) {
             this.log(Level.INFO, () -> "Conditions met to create and add Player automatically");
             return this.addNewPlayer(Player.PlayerBuilder.getInstance(user).build(null));

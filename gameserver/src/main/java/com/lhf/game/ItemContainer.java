@@ -46,33 +46,33 @@ public interface ItemContainer extends Examinable {
         return changed;
     }
 
-    public enum Filters {
+    public enum ItemFilters {
         CLASS_NAME, OBJECT_NAME, TYPE, VISIBILITY;
     }
 
-    public default Collection<Item> filterItems(EnumSet<Filters> filters, String className, String objectName,
+    public default Collection<Item> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
             Integer objNameRegexLen, Class<? extends Item> clazz, Boolean isVisible) {
         Collection<Item> retrieved = this.getItems();
         Supplier<Collection<Item>> sortSupplier = () -> new ArrayList<Item>();
         return Collections.unmodifiableCollection(retrieved.stream()
                 .filter(item -> item != null)
-                .filter(item -> !filters.contains(Filters.VISIBILITY)
+                .filter(item -> !filters.contains(ItemFilters.VISIBILITY)
                         || (isVisible != null && item.checkVisibility() == isVisible))
-                .filter(item -> !filters.contains(Filters.CLASS_NAME)
+                .filter(item -> !filters.contains(ItemFilters.CLASS_NAME)
                         || (className != null && className.equals(item.getClassName())))
-                .filter(item -> !filters.contains(Filters.OBJECT_NAME) || (objectName != null
+                .filter(item -> !filters.contains(ItemFilters.OBJECT_NAME) || (objectName != null
                         && (objNameRegexLen != null ? item.CheckNameRegex(objectName, objNameRegexLen)
                                 : item.checkName(objectName))))
-                .filter(item -> !filters.contains(Filters.TYPE) || (clazz != null && clazz.isInstance(item)))
+                .filter(item -> !filters.contains(ItemFilters.TYPE) || (clazz != null && clazz.isInstance(item)))
                 .collect(Collectors.toCollection(sortSupplier)));
     }
 
     public default Optional<Item> getItem(String name) {
-        return this.filterItems(EnumSet.of(Filters.OBJECT_NAME), null, name, 3, null, null).stream().findAny();
+        return this.filterItems(EnumSet.of(ItemFilters.OBJECT_NAME), null, name, 3, null, null).stream().findAny();
     }
 
     public default boolean hasItem(String name, Integer minimumLength) {
-        return this.filterItems(EnumSet.of(Filters.OBJECT_NAME), null, name, minimumLength, null, null).size() > 0;
+        return this.filterItems(EnumSet.of(ItemFilters.OBJECT_NAME), null, name, minimumLength, null, null).size() > 0;
     }
 
     public default boolean hasItem(String name) {

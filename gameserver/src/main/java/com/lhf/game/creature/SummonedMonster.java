@@ -235,7 +235,7 @@ public class SummonedMonster extends WrappedMonster {
     }
 
     @Override
-    public Collection<Item> filterItems(EnumSet<Filters> filters, String className, String objectName,
+    public Collection<Item> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
             Integer objNameRegexLen, Class<? extends Item> clazz, Boolean isVisible) {
         if (this.isAlive()) {
             return innerMonster.filterItems(filters, className, objectName, objNameRegexLen, clazz, isVisible);
