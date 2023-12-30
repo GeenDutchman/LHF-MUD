@@ -17,6 +17,7 @@ import java.util.logging.Level;
 
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.EntityEffect;
+import com.lhf.game.creature.INonPlayerCharacter.AbstractNPCBuilder.SummonData;
 import com.lhf.game.creature.Monster.MonsterBuilder;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
@@ -35,17 +36,21 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.GameEvent;
 
 public class SummonedMonster extends WrappedMonster {
+    protected final EnumSet<SummonData> summonData;
     protected final ICreature summoner;
     protected final Ticker timeLeft;
 
-    public SummonedMonster(Monster monster, ICreature summoner, Ticker timeLeft) {
+    public SummonedMonster(Monster monster, EnumSet<SummonData> summonData, ICreature summoner, Ticker timeLeft) {
         super(monster);
+        this.summonData = summonData;
         this.summoner = summoner;
         this.timeLeft = timeLeft;
     }
 
-    public SummonedMonster(WrappedMonster monster, ICreature summoner, Ticker timeLeft) {
+    public SummonedMonster(WrappedMonster monster, EnumSet<SummonData> summonData, ICreature summoner,
+            Ticker timeLeft) {
         super(monster);
+        this.summonData = summonData;
         this.summoner = summoner;
         this.timeLeft = timeLeft;
     }
@@ -54,6 +59,7 @@ public class SummonedMonster extends WrappedMonster {
             CommandChainHandler successor,
             StatblockManager statblockManager, ConversationManager conversationManager) throws FileNotFoundException {
         super(builder, aiRunner, successor, statblockManager, conversationManager);
+        this.summonData = builder.getSummonState();
         this.summoner = summoner;
         this.timeLeft = timeLeft;
     }
@@ -355,7 +361,8 @@ public class SummonedMonster extends WrappedMonster {
             ICreature.announceDeath(this);
             return false;
         }
-        if (this.summoner != null && !this.summoner.isAlive()) {
+        if (this.summoner != null && !this.summoner.isAlive() && this.summonData != null
+                && !this.summonData.contains(SummonData.LIFELINE_SUMMON)) {
             ICreature.announceDeath(this);
             return false;
         }
@@ -432,15 +439,22 @@ public class SummonedMonster extends WrappedMonster {
 
     @Override
     public CreatureFaction getFaction() {
-        if (this.summoner != null && this.summoner.isAlive()) {
-            return this.summoner.getFaction();
+        if (this.summoner != null && this.summonData != null) {
+            boolean summonerAlive = this.summoner.isAlive();
+            if (summonerAlive && this.summonData.contains(SummonData.SYMPATHETIC_SUMMON)) {
+                return this.summoner.getFaction();
+            } else if (!summonerAlive && this.summonData.contains(SummonData.LOYAL_SUMMON)) {
+                innerMonster.setFaction(this.summoner.getFaction());
+                return this.innerMonster.getFaction();
+            }
         }
         return innerMonster.getFaction();
     }
 
     @Override
     public void setFaction(CreatureFaction faction) {
-        if (this.summoner == null || !this.summoner.isAlive()) {
+        if (this.summoner == null || (!this.summoner.isAlive() && this.summonData != null
+                && !this.summonData.contains(SummonData.LOYAL_SUMMON))) {
             innerMonster.setFaction(faction);
             return;
         }

@@ -542,7 +542,7 @@ public abstract class WrappedMonster implements IMonster {
 
     @Override
     public CommandContext addSelfToContext(CommandContext ctx) {
-        if (ctx.getCreature() == null) {
+        if (ctx.getCreature() == null || ctx.getCreature() == this.innerMonster) {
             ctx.setCreature(this);
         }
         return ctx;
