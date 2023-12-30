@@ -22,7 +22,7 @@ public class Ensouling extends DMRoomTargetingSpellEntry {
     public Ensouling() {
         super(ResourceCost.TENTH_MAGNITUDE, "Ensouling", "heresabodyandgo", spellEffects,
                 Set.of(VocationName.DUNGEON_MASTER),
-                "A way to create a player by ensouling them with a user.", false, false);
+                "A way to create a player by ensouling them with a user.");
     }
 
     @Override

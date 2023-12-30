@@ -26,7 +26,7 @@ public class Thaumaturgy extends RoomTargetingSpellEntry {
 
     public Thaumaturgy() {
         super(ResourceCost.NO_COST, "Thaumaturgy", "zarmamoo", spellEffects, new HashSet<VocationName>(),
-                "A way to magically announce your presence", false, false);
+                "A way to magically announce your presence");
     }
 
     @Override
