@@ -1,6 +1,5 @@
 package com.lhf.game.item;
 
-import java.util.function.Consumer;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.TaggedExaminable;

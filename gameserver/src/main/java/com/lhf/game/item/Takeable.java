@@ -10,6 +10,17 @@ public class Takeable extends Item {
         super(name, isVisible, description);
     }
 
+    protected void copyOverwriteTo(Takeable other) {
+        super.copyOverwriteTo(other);
+    }
+
+    @Override
+    public Takeable makeCopy() {
+        Takeable takeable = new Takeable(this.getName(), this.checkVisibility(), descriptionString);
+        this.copyOverwriteTo(takeable);
+        return takeable;
+    }
+
     @Override
     public String getStartTag() {
         return "<takeable>";
