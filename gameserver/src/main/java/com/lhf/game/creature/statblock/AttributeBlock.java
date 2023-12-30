@@ -20,6 +20,12 @@ public class AttributeBlock {
             this.modBonus = modBonus;
         }
 
+        public attributeStripe(attributeStripe other) {
+            this.score = other.score;
+            this.scoreBonus = other.scoreBonus;
+            this.modBonus = other.modBonus;
+        }
+
         public Integer getScore() {
             return this.score;
         }
@@ -66,6 +72,15 @@ public class AttributeBlock {
         this.intelligence = new AttributeBlock.attributeStripe(10);
         this.wisdom = new AttributeBlock.attributeStripe(10);
         this.charisma = new AttributeBlock.attributeStripe(10);
+    }
+
+    public AttributeBlock(AttributeBlock other) {
+        this.strength = new attributeStripe(other.strength);
+        this.dexterity = new attributeStripe(other.dexterity);
+        this.constitution = new attributeStripe(other.constitution);
+        this.intelligence = new attributeStripe(other.intelligence);
+        this.wisdom = new attributeStripe(other.wisdom);
+        this.charisma = new attributeStripe(other.charisma);
     }
 
     public AttributeBlock(attributeStripe strength, attributeStripe dexterity,

@@ -25,6 +25,13 @@ public class Inventory implements ItemContainer {
         items = new ArrayList<>();
     }
 
+    public Inventory(Inventory other) {
+        this.items = new ArrayList<>();
+        for (final Takeable item : other.items) {
+            this.items.add(item.makeCopy());
+        }
+    }
+
     @Override
     public Collection<Item> getItems() {
         return Collections.unmodifiableList(this.items);
