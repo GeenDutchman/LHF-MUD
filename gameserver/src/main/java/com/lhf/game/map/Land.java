@@ -94,6 +94,11 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                 return this.id.compareTo(arg0.id);
             }
 
+            @Override
+            public String toString() {
+                return this.id.toString();
+            }
+
         }
 
         public abstract LandBuilderID getLandBuilderID();

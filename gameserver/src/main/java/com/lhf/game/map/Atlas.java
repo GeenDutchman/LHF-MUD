@@ -1,12 +1,19 @@
 package com.lhf.game.map;
 
 import java.io.Serializable;
+import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.EnumMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -151,8 +158,14 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
     public final Set<AtlasMappingItem<AtlasMemberType, AtlasMemberID>> getAtlasMappingItems() {
         synchronized (this.mapping) {
-            return this.mapping.values().stream().filter(mapItem -> mapItem != null)
-                    .collect(Collectors.toUnmodifiableSet());
+            LinkedHashSet<AtlasMappingItem<AtlasMemberType, AtlasMemberID>> mappingSet = new LinkedHashSet<>();
+            for (final AtlasMappingItem<AtlasMemberType, AtlasMemberID> mappingItem : this.mapping.values()) {
+                if (mappingItem == null) {
+                    continue;
+                }
+                mappingSet.add(mappingItem);
+            }
+            return Collections.unmodifiableSet(mappingSet);
         }
     }
 
@@ -164,9 +177,18 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
     public final Set<AtlasMemberType> getAtlasMembers() {
         synchronized (this.mapping) {
-            return this.mapping.values().stream().filter(mapItem -> mapItem != null)
-                    .map(mapItem -> mapItem.getAtlasMember()).filter(atlasMember -> atlasMember != null)
-                    .collect(Collectors.toUnmodifiableSet());
+            LinkedHashSet<AtlasMemberType> mappingSet = new LinkedHashSet<>();
+            for (final AtlasMappingItem<AtlasMemberType, AtlasMemberID> mappingItem : this.mapping.values()) {
+                if (mappingItem == null) {
+                    continue;
+                }
+                final AtlasMemberType member = mappingItem.getAtlasMember();
+                if (member == null) {
+                    continue;
+                }
+                mappingSet.add(member);
+            }
+            return Collections.unmodifiableSet(mappingSet);
         }
     }
 
@@ -206,28 +228,64 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
     }
 
-    private final <TT, TID extends Comparable<TID>, T extends Atlas<TT, TID>> TT depthFirstTraversal(
-            final T translation, final Function<AtlasMemberType, TT> transformer, final Map<AtlasMemberID, TID> visited,
-            final AtlasMemberID visiting) {
-        synchronized (this.mapping) {
-            if (visited.containsKey(visiting)) {
-                return translation.getAtlasMember(visited.get(visiting));
-            }
+    public class DepthFirstIterator implements Iterator<AtlasMappingItem<AtlasMemberType, AtlasMemberID>> {
 
-            final AtlasMappingItem<AtlasMemberType, AtlasMemberID> mappingItem = this.getAtlasMappingItem(visiting);
-            final Collection<TargetedTester<AtlasMemberID>> targetedTesters = mappingItem.getTargetedTesters();
-            final TT transformedMember = transformer.apply(mappingItem.getAtlasMember());
-            final TID transformedMemberID = translation.getIDForMemberType(transformedMember);
-            translation.addMember(transformedMember);
-            visited.put(visiting, transformedMemberID);
+        private Deque<AtlasMemberID> stack;
+        private LinkedHashSet<AtlasMemberID> visited;
+        private Iterator<AtlasMappingItem<AtlasMemberType, AtlasMemberID>> innerIterator;
 
-            for (final TargetedTester<AtlasMemberID> tester : targetedTesters) {
-                System.out.printf("%s %s %s\n", visiting, tester.getDirection(), tester.getTargetId());
-                final TT visitedItem = this.depthFirstTraversal(translation, transformer, visited, tester.targetId);
-                translation.connectOneWay(transformedMember, tester.getDirection(), visitedItem, tester.getPredicate());
-            }
-            return transformedMember;
+        public DepthFirstIterator() {
+            this.stack = new ArrayDeque<>();
+            this.visited = new LinkedHashSet<>();
+            this.innerIterator = Atlas.this.getAtlasMappingItems().iterator();
         }
+
+        @Override
+        public boolean hasNext() {
+            return (!this.stack.isEmpty() || this.innerIterator.hasNext()) && this.visited.size() < Atlas.this.size();
+        }
+
+        @Override
+        public AtlasMappingItem<AtlasMemberType, AtlasMemberID> next() {
+            if (!this.hasNext()) {
+                throw new NoSuchElementException();
+            }
+
+            if (this.stack.isEmpty()) {
+                while (this.innerIterator.hasNext()) { // for each subtree
+                    final AtlasMappingItem<AtlasMemberType, AtlasMemberID> member = this.innerIterator.next();
+                    final AtlasMemberID checkId = Atlas.this.getIDForMemberType(member.getAtlasMember());
+                    if (this.visited.contains(checkId)) {
+                        continue;
+                    }
+                    this.stack.push(checkId);
+                    break;
+                }
+            }
+
+            while (!this.stack.isEmpty()) { // get all the connected nodes
+                final AtlasMemberID current = this.stack.pop();
+                final AtlasMappingItem<AtlasMemberType, AtlasMemberID> mappingItem = getAtlasMappingItem(current);
+                if (!this.visited.contains(current)) {
+                    this.visited.add(current);
+                    this.stack.push(current);
+                    return mappingItem;
+                }
+                final Collection<TargetedTester<AtlasMemberID>> targetedTesters = mappingItem.getTargetedTesters();
+                for (final TargetedTester<AtlasMemberID> tester : targetedTesters) {
+                    if (!this.visited.contains(tester.getTargetId())) {
+                        this.stack.push(tester.getTargetId());
+                    }
+                }
+            }
+
+            throw new NoSuchElementException("End of Line");
+        }
+
+    }
+
+    public DepthFirstIterator depthFirstIterator() {
+        return new DepthFirstIterator();
     }
 
     public final <TT, TID extends Comparable<TID>, T extends Atlas<TT, TID>> Map<AtlasMemberID, TID> translate(
@@ -250,8 +308,25 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
 
         for (final AtlasMappingItem<AtlasMemberType, AtlasMemberID> mappingItem : this.getAtlasMappingItems()) {
-            this.depthFirstTraversal(translation, transformer, visited,
-                    this.getIDForMemberType(mappingItem.getAtlasMember()));
+            final AtlasMemberType member = mappingItem.getAtlasMember();
+            final AtlasMemberID mappingItemId = this.getIDForMemberType(mappingItem.getAtlasMember());
+            final TT translatedMember = transformer.apply(member);
+            final TID translatedID = translation.getIDForMemberType(translatedMember);
+            translation.addMember(translatedMember);
+            visited.put(mappingItemId, translatedID);
+        }
+
+        for (final Entry<AtlasMemberID, TID> vistedEntry : visited.entrySet()) {
+            final AtlasMappingItem<AtlasMemberType, AtlasMemberID> member = this
+                    .getAtlasMappingItem(vistedEntry.getKey());
+            final AtlasMappingItem<TT, TID> translatedMember = translation.getAtlasMappingItem(vistedEntry.getValue());
+            for (final TargetedTester<AtlasMemberID> tester : member.getTargetedTesters()) {
+                final AtlasMemberID targetMemberID = tester.getTargetId();
+                final AtlasMappingItem<TT, TID> translatedTarget = translation
+                        .getAtlasMappingItem(visited.get(targetMemberID));
+                translation.connectOneWay(translatedTarget.getAtlasMember(), tester.getDirection(),
+                        translatedMember.getAtlasMember(), tester.getPredicate());
+            }
         }
 
         return visited;
