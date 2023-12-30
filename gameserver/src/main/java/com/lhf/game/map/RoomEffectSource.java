@@ -1,8 +1,5 @@
 package com.lhf.game.map;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffectSource;
@@ -11,40 +8,40 @@ import com.lhf.game.creature.NonPlayerCharacter.NPCBuilder;
 
 public class RoomEffectSource extends EntityEffectSource {
 
-    // TODO: implement banishment
+    // TODO: implement banishment, with limited to how many
 
-    protected Set<NPCBuilder> npcsToSummon;
-    protected Set<MonsterBuilder> monstersToSummon;
+    protected NPCBuilder npcToSummon;
+    protected MonsterBuilder monsterToSummon;
 
     public RoomEffectSource(RoomEffectSource other) {
         super(other.name, other.persistence, other.resistance, other.description);
-        this.npcsToSummon = new HashSet<>();
-        this.monstersToSummon = new HashSet<>();
+        this.npcToSummon = NPCBuilder.getInstance();
+        this.monsterToSummon = MonsterBuilder.getInstance();
     }
 
     public RoomEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
             String description) {
         super(name, persistence, resistance, description);
-        this.npcsToSummon = new HashSet<>();
-        this.monstersToSummon = new HashSet<>();
+        this.npcToSummon = NPCBuilder.getInstance();
+        this.monsterToSummon = MonsterBuilder.getInstance();
     }
 
-    public RoomEffectSource addCreatureToSummon(MonsterBuilder toSummon) {
-        this.monstersToSummon.add(toSummon);
+    public RoomEffectSource setCreatureToSummon(MonsterBuilder toSummon) {
+        this.monsterToSummon = toSummon;
         return this;
     }
 
-    public RoomEffectSource addCreatureToSummon(NPCBuilder toSummon) {
-        this.npcsToSummon.add(toSummon);
+    public RoomEffectSource setCreatureToSummon(NPCBuilder toSummon) {
+        this.npcToSummon = toSummon;
         return this;
     }
 
-    public Set<NPCBuilder> getNpcsToSummon() {
-        return npcsToSummon;
+    public NPCBuilder getNpcToSummon() {
+        return npcToSummon;
     }
 
-    public Set<MonsterBuilder> getMonstersToSummon() {
-        return monstersToSummon;
+    public MonsterBuilder getMonsterToSummon() {
+        return monsterToSummon;
     }
 
     @Override
@@ -55,24 +52,20 @@ public class RoomEffectSource extends EntityEffectSource {
 
     @Override
     public int aiScore() {
-        return (this.monstersToSummon != null ? this.monstersToSummon.size() : 0) +
-                (this.npcsToSummon != null ? this.npcsToSummon.size() : 0);
+        return (this.monsterToSummon != null ? 2 : 1) *
+                (this.npcToSummon != null ? 10 : 1);
     }
 
     @Override
     public String printDescription() {
         StringBuilder sb = new StringBuilder(super.printDescription());
-        if (this.monstersToSummon != null && this.monstersToSummon.size() > 0) {
-            sb.append("\r\nWill summon the following Monsters:\r\n");
-            for (final MonsterBuilder builder : this.monstersToSummon) {
-                sb.append(builder.toString());
-            }
+        if (this.monsterToSummon != null) {
+            sb.append("\r\nWill summon the following Monster:\r\n");
+            sb.append(this.monsterToSummon.toString());
         }
-        if (this.npcsToSummon != null && this.npcsToSummon.size() > 0) {
-            sb.append("\r\nWill summon the following NPCs:\r\n");
-            for (final NPCBuilder builder : this.npcsToSummon) {
-                sb.append(builder.toString());
-            }
+        if (this.npcToSummon != null) {
+            sb.append("\r\nWill summon the following NPC:\r\n");
+            sb.append(this.npcToSummon.toString());
         }
         return sb.toString();
     }
