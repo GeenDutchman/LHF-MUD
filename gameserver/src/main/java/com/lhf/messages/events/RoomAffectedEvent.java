@@ -2,10 +2,8 @@ package com.lhf.messages.events;
 
 import java.util.StringJoiner;
 
-import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
-import com.lhf.game.item.Item;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomEffect;
 import com.lhf.messages.GameEventType;

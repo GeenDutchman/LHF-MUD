@@ -5,7 +5,6 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import com.lhf.game.creature.conversation.ConversationTree;
-import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.DMVocation;
@@ -33,14 +32,12 @@ public class DungeonMaster extends NonPlayerCharacter {
         }
 
         @Override
-        public DungeonMaster quickBuild(AIRunner aiRunner, CommandChainHandler successor) {
+        public DungeonMaster quickBuild(Supplier<CommandInvoker> controllerSupplier, CommandChainHandler successor) {
             Statblock block = this.getStatblock();
             if (block == null) {
                 this.useBlankStatblock();
             }
-            return new DungeonMaster(this,
-                    () -> aiRunner != null ? aiRunner.produceAI(getAiHandlersAsArray())
-                            : DungeonMaster.defaultAIRunner.produceAI(getAiHandlersAsArray()),
+            return new DungeonMaster(this, controllerSupplier,
                     () -> successor, () -> this.getStatblock(),
                     () -> null);
         }

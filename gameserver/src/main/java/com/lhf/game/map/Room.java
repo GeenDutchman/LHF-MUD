@@ -23,14 +23,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.PatternSyntaxException;
 
-import org.mockito.exceptions.misusing.UnfinishedStubbingException;
-
 import com.lhf.Examinable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.INonPlayerCharacter.AbstractNPCBuilder;
 import com.lhf.game.creature.Player;
@@ -570,16 +569,15 @@ public class Room implements Area {
         }
         this.logger.log(Level.FINER, () -> String.format("Room processing effect '%s'", effect.getName()));
         RoomEffect roomEffect = (RoomEffect) effect;
-        // TODO: make banishing work!
-        if (roomEffect.getCreaturesToBanish().size() > 0 || roomEffect.getCreaturesToBanish().size() > 0) {
-            throw new UnfinishedStubbingException("We don't have this yet");
+        INonPlayerCharacter summonedNPC = roomEffect.getQuickSummonedNPC(this);
+        if (summonedNPC != null) {
+            this.logger.log(Level.INFO, () -> String.format("Summoned npc %s", summonedNPC.getName()));
+            this.addCreature(summonedNPC);
         }
-
-        for (Item item : roomEffect.getItemsToSummon()) {
-            this.addItem(item);
-        }
-        for (ICreature creature : roomEffect.getCreaturesToSummon()) {
-            this.addCreature(creature);
+        IMonster summonedMonster = roomEffect.getQuickSummonedMonster(this);
+        if (summonedMonster != null) {
+            this.logger.log(Level.INFO, () -> String.format("Summoned monster %s", summonedMonster.getName()));
+            this.addCreature(summonedMonster);
         }
         return RoomAffectedEvent.getBuilder().setRoom(this).setEffect(roomEffect).Build();
     }

@@ -54,24 +54,22 @@ public class RoomEffect extends EntityEffect {
         return this.summonedMonster;
     }
 
-    public INonPlayerCharacter getQuickSummonedNPC(Supplier<CommandInvoker> controllerSupplier,
-            CommandChainHandler successor) {
+    public INonPlayerCharacter getQuickSummonedNPC(CommandChainHandler successor) {
         if (this.summonedNPC == null) {
             NPCBuilder builder = getNPCToSummon();
             if (builder != null) {
-                this.summonedNPC = new SummonedNPC(builder.quickBuild(null, creatureResponsible),
+                this.summonedNPC = new SummonedNPC(builder.quickBuild(successor),
                         builder.getSummonState(), this.creatureResponsible(), this.getPersistence().getTicker());
             }
         }
         return summonedNPC;
     }
 
-    public IMonster getQuickSummonedMonster(Supplier<CommandInvoker> controllerSupplier,
-            CommandChainHandler successor) {
+    public IMonster getQuickSummonedMonster(CommandChainHandler successor) {
         if (this.summonedMonster == null) {
             MonsterBuilder builder = getMonsterToSummon();
             if (builder != null) {
-                this.summonedMonster = new SummonedMonster(builder.quickBuild(controllerSupplier, successor),
+                this.summonedMonster = new SummonedMonster(builder.quickBuild(successor),
                         builder.getSummonState(), this.creatureResponsible(), this.getPersistence().getTicker());
             }
         }
