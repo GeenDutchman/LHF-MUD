@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.battle.MultiAttacker;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.statblock.Statblock.StatblockBuilder;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentTypes;
@@ -68,28 +69,23 @@ public class DMVocation extends Vocation implements CubeHolder, MultiAttacker {
     }
 
     @Override
-    public Statblock createNewDefaultStatblock(String creatureRace) {
-        Statblock built = new Statblock(creatureRace);
+    public StatblockBuilder createNewDefaultStatblock(String creatureRace) {
+        StatblockBuilder builder = Statblock.getBuilder().setCreatureRace(creatureRace);
 
-        built.setProficiencies(EnumSet.allOf(EquipmentTypes.class));
+        builder.addProficiencies(EnumSet.allOf(EquipmentTypes.class));
 
-        built.getInventory().addItem(new HealPotion(true));
+        builder.addItemToInventory(new HealPotion(true));
 
         // Set default stats
-        built.getStats().put(Stats.MAXHP, Integer.MAX_VALUE / 3);
-        built.getStats().put(Stats.CURRENTHP, Integer.MAX_VALUE / 3);
-        built.getStats().put(Stats.AC, Integer.MAX_VALUE / 3);
-        built.getStats().put(Stats.XPWORTH, Integer.MAX_VALUE / 3);
-        built.getStats().put(Stats.PROFICIENCYBONUS, Integer.MAX_VALUE / 3);
+        builder.setStat(Stats.MAXHP, Integer.MAX_VALUE / 3);
+        builder.setStat(Stats.CURRENTHP, Integer.MAX_VALUE / 3);
+        builder.setStat(Stats.AC, Integer.MAX_VALUE / 3);
+        builder.setStat(Stats.XPWORTH, Integer.MAX_VALUE / 3);
+        builder.setStat(Stats.PROFICIENCYBONUS, Integer.MAX_VALUE / 3);
 
-        built.getAttributes().setScore(Attributes.STR, 100);
-        built.getAttributes().setScore(Attributes.DEX, 100);
-        built.getAttributes().setScore(Attributes.CON, 100);
-        built.getAttributes().setScore(Attributes.INT, 100);
-        built.getAttributes().setScore(Attributes.WIS, 100);
-        built.getAttributes().setScore(Attributes.CHA, 100);
+        builder.setAttributeBlock(100, 100, 100, 100, 100, 100);
 
-        return built;
+        return builder;
     }
 
     @Override

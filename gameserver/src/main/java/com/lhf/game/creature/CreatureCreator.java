@@ -68,7 +68,7 @@ public class CreatureCreator {
     }
 
     private static Statblock makeStatblock(CreatorAdaptor adapter) {
-        Statblock built = new Statblock();
+        Statblock built = Statblock.getBuilder().build();
 
         // name
         built.setCreatureRace(adapter.buildStatblockName());

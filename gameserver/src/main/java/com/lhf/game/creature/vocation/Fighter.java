@@ -2,6 +2,7 @@ package com.lhf.game.creature.vocation;
 
 import com.lhf.game.battle.MultiAttacker;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.statblock.Statblock.StatblockBuilder;
 import com.lhf.game.creature.vocation.resourcepools.IntegerResourcePool;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.enums.Attributes;
@@ -43,34 +44,29 @@ public class Fighter extends Vocation implements MultiAttacker {
     }
 
     @Override
-    public Statblock createNewDefaultStatblock(String creatureRace) {
-        Statblock built = new Statblock(creatureRace);
+    public StatblockBuilder createNewDefaultStatblock(String creatureRace) {
+        StatblockBuilder builder = Statblock.getBuilder().setCreatureRace(creatureRace);
 
-        built.getProficiencies().add(EquipmentTypes.LIGHTARMOR);
-        built.getProficiencies().add(EquipmentTypes.MEDIUMARMOR);
-        built.getProficiencies().add(EquipmentTypes.SHIELD);
-        built.getProficiencies().add(EquipmentTypes.SIMPLEMELEEWEAPONS);
-        built.getProficiencies().add(EquipmentTypes.MARTIALWEAPONS);
+        builder.addProficiency(EquipmentTypes.LIGHTARMOR);
+        builder.addProficiency(EquipmentTypes.MEDIUMARMOR);
+        builder.addProficiency(EquipmentTypes.SHIELD);
+        builder.addProficiency(EquipmentTypes.SIMPLEMELEEWEAPONS);
+        builder.addProficiency(EquipmentTypes.MARTIALWEAPONS);
 
-        built.getInventory().addItem(new Longsword(true));
-        built.getInventory().addItem(new LeatherArmor(false));
-        built.getInventory().addItem(new HealPotion(true));
-        built.getInventory().addItem(new Shield(true));
+        builder.addItemToInventory(new Longsword(true));
+        builder.addItemToInventory(new LeatherArmor(false));
+        builder.addItemToInventory(new HealPotion(true));
+        builder.addItemToInventory(new Shield(true));
 
         // Set default stats
-        built.getStats().put(Stats.MAXHP, 12);
-        built.getStats().put(Stats.CURRENTHP, 12);
-        built.getStats().put(Stats.AC, 11);
-        built.getStats().put(Stats.XPWORTH, 500);
+        builder.setStat(Stats.MAXHP, 12);
+        builder.setStat(Stats.CURRENTHP, 12);
+        builder.setStat(Stats.AC, 11);
+        builder.setStat(Stats.XPWORTH, 500);
 
-        built.getAttributes().setScore(Attributes.STR, 16);
-        built.getAttributes().setScore(Attributes.DEX, 12);
-        built.getAttributes().setScore(Attributes.CON, 14);
-        built.getAttributes().setScore(Attributes.INT, 8);
-        built.getAttributes().setScore(Attributes.WIS, 10);
-        built.getAttributes().setScore(Attributes.CHA, 12);
+        builder.setAttributeBlock(16, 12, 14, 8, 10, 12);
 
-        return built;
+        return builder;
     }
 
     @Override

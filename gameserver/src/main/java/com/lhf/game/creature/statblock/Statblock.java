@@ -1,80 +1,31 @@
 package com.lhf.game.creature.statblock;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import com.lhf.game.ItemContainer;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
+import com.lhf.game.item.Takeable;
 
 public class Statblock {
 
     // Reactions to DamageFlavors
-    public static class DamageFlavorReactions {
-        protected EnumSet<DamageFlavor> weaknesses;
-        protected EnumSet<DamageFlavor> resistances;
-        protected EnumSet<DamageFlavor> immunities;
-        protected EnumSet<DamageFlavor> healing;
-
-        private DamageFlavorReactions() {
-            this.weaknesses = EnumSet.noneOf(DamageFlavor.class);
-            this.resistances = EnumSet.noneOf(DamageFlavor.class);
-            this.immunities = EnumSet.noneOf(DamageFlavor.class);
-            this.healing = EnumSet.noneOf(DamageFlavor.class);
-        }
-
-        public static DamageFlavorReactions empty() {
-            return new DamageFlavorReactions();
-        }
-
-        public static DamageFlavorReactions standard() {
-            DamageFlavorReactions reactions = new DamageFlavorReactions();
-            reactions.immunities.add(DamageFlavor.AGGRO);
-            reactions.healing.add(DamageFlavor.HEALING);
-            return reactions;
-        }
-
-        public static DamageFlavorReactions undead() {
-            DamageFlavorReactions reactions = new DamageFlavorReactions();
-            reactions.immunities.add(DamageFlavor.AGGRO);
-            reactions.healing.remove(DamageFlavor.HEALING);
-            reactions.healing.add(DamageFlavor.NECROTIC);
-            reactions.weaknesses.add(DamageFlavor.HEALING);
-            return reactions;
-        }
-
-        public static DamageFlavorReactions clone(DamageFlavorReactions other) {
-            DamageFlavorReactions reactions = new DamageFlavorReactions();
-            reactions.weaknesses = EnumSet.copyOf(other.weaknesses);
-            reactions.resistances = EnumSet.copyOf(other.resistances);
-            reactions.immunities = EnumSet.copyOf(other.immunities);
-            reactions.healing = EnumSet.copyOf(other.healing);
-            return reactions;
-        }
-
-        public Set<DamageFlavor> getWeaknesses() {
-            return Collections.unmodifiableSet(weaknesses);
-        }
-
-        public Set<DamageFlavor> getResistances() {
-            return Collections.unmodifiableSet(resistances);
-        }
-
-        public Set<DamageFlavor> getImmunities() {
-            return Collections.unmodifiableSet(immunities);
-        }
-
-        public Set<DamageFlavor> getHealing() {
-            return Collections.unmodifiableSet(healing);
-        }
-
-    }
+    public enum DamgeFlavorReactionSort {
+        WEAKNESSES,
+        RESISTANCES,
+        IMMUNITIES,
+        CURATIVES
+    };
 
     private String creatureRace;
 
@@ -94,50 +45,218 @@ public class Statblock {
     // Equipment slots
     private Map<EquipmentSlots, Equipable> equipmentSlots;
 
-    private DamageFlavorReactions damageFlavorReactions;
+    private EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> damageFlavorReactions;
 
     public static final int DEFAULT_HP = 12;
     public static final int DEFAULT_AC = 11;
     public static final int DEFAULT_XP_WORTH = 500;
 
-    public Statblock() {
-        this.creatureRace = "creature";
-        this.attributes = new AttributeBlock();
-        this.stats = Collections.synchronizedMap(new EnumMap<>(Stats.class));
-        // Set default stats
-        this.stats.put(Stats.MAXHP, Statblock.DEFAULT_HP);
-        this.stats.put(Stats.CURRENTHP, Statblock.DEFAULT_HP);
-        this.stats.put(Stats.AC, Statblock.DEFAULT_AC);
-        this.stats.put(Stats.XPWORTH, Statblock.DEFAULT_XP_WORTH);
-        this.proficiencies = Collections.synchronizedSet(EnumSet.noneOf(EquipmentTypes.class));
-        this.inventory = new Inventory();
-        this.equipmentSlots = Collections.synchronizedMap(new EnumMap<>(EquipmentSlots.class));
-        this.damageFlavorReactions = DamageFlavorReactions.standard();
+    public static class StatblockBuilder implements Serializable {
+        private String creatureRace;
+        private AttributeBlock attributeBlock;
+        private Map<Stats, Integer> stats;
+        private Set<EquipmentTypes> proficiencies;
+        private Inventory inventory;
+        private Map<EquipmentSlots, Equipable> equipmentSlots;
+        private EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> damageFlavorReactions;
+
+        public StatblockBuilder() {
+            this.creatureRace = "Creature";
+            this.attributeBlock = new AttributeBlock();
+            this.stats = new EnumMap<>(Stats.class);
+            this.defaultStats();
+            this.proficiencies = EnumSet.noneOf(EquipmentTypes.class);
+            this.inventory = new Inventory();
+            this.equipmentSlots = new EnumMap<>(EquipmentSlots.class);
+            this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReactionSort.class);
+            this.defaultFlavorReactions();
+        }
+
+        public StatblockBuilder setCreatureRace(String race) {
+            this.creatureRace = race != null && !race.isBlank() ? race : "Creature";
+            return this;
+        }
+
+        public StatblockBuilder setAttributeBlock(AttributeBlock other) {
+            this.attributeBlock = other != null ? other : new AttributeBlock();
+            return this;
+        }
+
+        public StatblockBuilder setAttributeBlock(Integer strength, Integer dexterity, Integer constitution,
+                Integer intelligence,
+                Integer wisdom, Integer charisma) {
+            this.attributeBlock = new AttributeBlock(strength, dexterity, constitution, intelligence, wisdom, charisma);
+            return this;
+        }
+
+        public StatblockBuilder defaultStats() {
+            this.stats.put(Stats.MAXHP, Statblock.DEFAULT_HP);
+            this.stats.put(Stats.CURRENTHP, Statblock.DEFAULT_HP);
+            this.stats.put(Stats.AC, Statblock.DEFAULT_AC);
+            this.stats.put(Stats.XPWORTH, Statblock.DEFAULT_XP_WORTH);
+            return this;
+        }
+
+        public StatblockBuilder setStat(Stats stat, int value) {
+            if (stat != null) {
+                this.stats.put(stat, value);
+            }
+            return this;
+        }
+
+        public StatblockBuilder resetProficiencies() {
+            this.proficiencies.clear();
+            return this;
+        }
+
+        public StatblockBuilder addProficiency(EquipmentTypes equipType) {
+            if (equipType != null) {
+                this.proficiencies.add(equipType);
+            }
+            return this;
+        }
+
+        public StatblockBuilder addProficiencies(Set<EquipmentTypes> eqiupTypes) {
+            if (eqiupTypes != null) {
+                this.proficiencies.addAll(eqiupTypes);
+            }
+            return this;
+        }
+
+        public StatblockBuilder setInventory(Inventory other) {
+            if (other != null) {
+                this.inventory = new Inventory();
+                ItemContainer.transfer(other, this.inventory, null, true);
+            }
+            return this;
+        }
+
+        public StatblockBuilder addItemToInventory(Takeable takeable) {
+            if (takeable != null) {
+                this.inventory.addItem(takeable);
+            }
+            return this;
+        }
+
+        public StatblockBuilder resetEquipment() {
+            this.equipmentSlots.clear();
+            return this;
+        }
+
+        public StatblockBuilder addEquipment(EquipmentSlots slot, Equipable equipable) {
+            if (slot != null && equipable != null) {
+                this.addItemToInventory(this.equipmentSlots.put(slot, equipable));
+            }
+            return this;
+        }
+
+        public static void setDefaultFlavorReactions(
+                EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> needDefaults) {
+            if (needDefaults == null) {
+                needDefaults = new EnumMap<>(DamgeFlavorReactionSort.class);
+            }
+            needDefaults
+                    .computeIfAbsent(DamgeFlavorReactionSort.CURATIVES, key -> EnumSet.of(DamageFlavor.HEALING))
+                    .add(DamageFlavor.HEALING);
+            needDefaults
+                    .computeIfAbsent(DamgeFlavorReactionSort.IMMUNITIES, key -> EnumSet.of(DamageFlavor.AGGRO))
+                    .add(DamageFlavor.AGGRO);
+        }
+
+        public StatblockBuilder defaultFlavorReactions() {
+            StatblockBuilder.setDefaultFlavorReactions(this.damageFlavorReactions);
+            return this;
+        }
+
+        public StatblockBuilder resetFlavorReactions() {
+            this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReactionSort.class);
+            return this;
+        }
+
+        public StatblockBuilder addFlavorReaction(DamgeFlavorReactionSort sort, DamageFlavor flavor) {
+            if (sort != null && flavor != null) {
+                this.damageFlavorReactions.computeIfAbsent(sort, key -> EnumSet.of(flavor)).add(flavor);
+            }
+            return this;
+        }
+
+        public String getCreatureRace() {
+            return creatureRace;
+        }
+
+        public AttributeBlock getAttributeBlock() {
+            return new AttributeBlock(attributeBlock);
+        }
+
+        public Map<Stats, Integer> getStats() {
+            return new EnumMap<>(this.stats);
+        }
+
+        public Set<EquipmentTypes> getProficiencies() {
+            return EnumSet.copyOf(proficiencies);
+        }
+
+        public Inventory getInventory() {
+            return new Inventory(inventory);
+        }
+
+        public Map<EquipmentSlots, Equipable> getEquipmentSlots() {
+            return new EnumMap<>(this.equipmentSlots); // this is a shallow copy of the equipables, but whatever
+        }
+
+        public static EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> deepCloneDamageFlavorReactions(
+                EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> from) {
+            EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> reactions = new EnumMap<>(
+                    DamgeFlavorReactionSort.class);
+            if (from != null) {
+                for (final Entry<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> entry : from.entrySet()) {
+                    reactions.put(entry.getKey(), EnumSet.copyOf(entry.getValue()));
+                }
+            }
+            return reactions;
+        }
+
+        public EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> getDamageFlavorReactions() {
+            return StatblockBuilder.deepCloneDamageFlavorReactions(this.damageFlavorReactions);
+        }
+
+        public Statblock build() {
+            return new Statblock(this);
+        }
+
     }
 
-    public Statblock(String creatureRace) {
-        this.creatureRace = creatureRace;
-        this.attributes = new AttributeBlock();
-        this.stats = Collections.synchronizedMap(new EnumMap<>(Stats.class));
-        this.proficiencies = Collections.synchronizedSet(EnumSet.noneOf(EquipmentTypes.class));
-        this.inventory = new Inventory();
-        this.equipmentSlots = Collections.synchronizedMap(new EnumMap<>(EquipmentSlots.class));
-        this.damageFlavorReactions = DamageFlavorReactions.standard();
+    public static StatblockBuilder getBuilder() {
+        return new StatblockBuilder();
+    }
+
+    private Statblock(StatblockBuilder builder) {
+        this.creatureRace = builder.getCreatureRace();
+        this.attributes = builder.getAttributeBlock();
+        this.stats = Collections.synchronizedMap(builder.getStats());
+        this.proficiencies = Collections.synchronizedSet(builder.getProficiencies());
+        this.inventory = builder.getInventory();
+        this.equipmentSlots = Collections.synchronizedMap(builder.getEquipmentSlots());
+        this.damageFlavorReactions = builder.getDamageFlavorReactions();
     }
 
     public Statblock(String creatureRace, AttributeBlock attributes,
             EnumMap<Stats, Integer> stats,
             EnumSet<EquipmentTypes> proficiencies, Inventory inventory,
             EnumMap<EquipmentSlots, Equipable> equipmentSlots,
-            DamageFlavorReactions damageFlavorReactions) {
+            EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> reactions) {
         this.creatureRace = creatureRace;
         this.attributes = attributes;
         this.stats = Collections.synchronizedMap(stats.clone());
         this.proficiencies = Collections.synchronizedSet(proficiencies.clone());
         this.inventory = inventory;
         this.equipmentSlots = Collections.synchronizedMap(equipmentSlots.clone());
-        this.damageFlavorReactions = damageFlavorReactions != null ? damageFlavorReactions
-                : DamageFlavorReactions.standard();
+        if (reactions == null) {
+            this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReactionSort.class);
+            StatblockBuilder.setDefaultFlavorReactions(this.damageFlavorReactions);
+        } else {
+            this.damageFlavorReactions = reactions;
+        }
     }
 
     public Statblock(Statblock other) {
@@ -147,7 +266,7 @@ public class Statblock {
         this.proficiencies = Collections.synchronizedSet(EnumSet.copyOf(other.proficiencies));
         this.inventory = new Inventory(other.inventory);
         this.equipmentSlots = Collections.synchronizedMap(new EnumMap<>(other.equipmentSlots));
-        this.damageFlavorReactions = DamageFlavorReactions.clone(other.getDamageFlavorReactions());
+        this.damageFlavorReactions = StatblockBuilder.deepCloneDamageFlavorReactions(other.damageFlavorReactions);
     }
 
     @Override
@@ -209,18 +328,15 @@ public class Statblock {
         return creatureRace;
     }
 
-    public DamageFlavorReactions getDamageFlavorReactions() {
-        if (this.damageFlavorReactions == null) {
-            this.damageFlavorReactions = DamageFlavorReactions.standard();
-            ;
-        }
+    public EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> getDamageFlavorReactions() {
         return damageFlavorReactions;
     }
 
-    public void setDamageFlavorReactions(DamageFlavorReactions damageFlavorReactions) {
-        this.damageFlavorReactions = damageFlavorReactions != null ? damageFlavorReactions
-                : DamageFlavorReactions.standard();
-        ;
+    public void setDamageFlavorReactions(EnumMap<DamgeFlavorReactionSort, EnumSet<DamageFlavor>> reactions) {
+        if (reactions == null) {
+            StatblockBuilder.setDefaultFlavorReactions(reactions);
+        }
+        this.damageFlavorReactions = reactions;
     }
 
     private String equipmentSlotsToString() {

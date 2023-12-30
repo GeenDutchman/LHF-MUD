@@ -7,9 +7,9 @@ import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.statblock.Statblock.StatblockBuilder;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.creature.vocation.resourcepools.SlottedResourcePool;
-import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.enums.Stats;
@@ -84,28 +84,23 @@ public class Mage extends Vocation implements CubeHolder {
     }
 
     @Override
-    public Statblock createNewDefaultStatblock(String creatureRace) {
-        Statblock built = new Statblock(creatureRace);
-        built.getProficiencies().add(EquipmentTypes.SIMPLEMELEEWEAPONS);
-        built.getProficiencies().add(EquipmentTypes.LIGHTARMOR);
+    public StatblockBuilder createNewDefaultStatblock(String creatureRace) {
+        StatblockBuilder builder = Statblock.getBuilder().setCreatureRace(creatureRace);
+        builder.addProficiency(EquipmentTypes.SIMPLEMELEEWEAPONS);
+        builder.addProficiency(EquipmentTypes.LIGHTARMOR);
 
-        built.getInventory().addItem(new LeatherArmor(false));
-        built.getInventory().addItem(new HealPotion(true));
+        builder.addItemToInventory(new LeatherArmor(true));
+        builder.addItemToInventory(new HealPotion(true));
 
         // Set default stats
-        built.getStats().put(Stats.MAXHP, 9);
-        built.getStats().put(Stats.CURRENTHP, 9);
-        built.getStats().put(Stats.AC, 11);
-        built.getStats().put(Stats.XPWORTH, 500);
+        builder.setStat(Stats.MAXHP, 9);
+        builder.setStat(Stats.CURRENTHP, 9);
+        builder.setStat(Stats.AC, 11);
+        builder.setStat(Stats.XPWORTH, 500);
 
-        built.getAttributes().setScore(Attributes.STR, 8);
-        built.getAttributes().setScore(Attributes.DEX, 12);
-        built.getAttributes().setScore(Attributes.CON, 10);
-        built.getAttributes().setScore(Attributes.INT, 16);
-        built.getAttributes().setScore(Attributes.WIS, 14);
-        built.getAttributes().setScore(Attributes.CHA, 12);
+        builder.setAttributeBlock(8, 12, 10, 16, 14, 12);
 
-        return built;
+        return builder;
     }
 
     @Override

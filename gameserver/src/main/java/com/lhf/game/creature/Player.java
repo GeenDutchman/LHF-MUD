@@ -87,7 +87,7 @@ public class Player extends Creature {
                     throw new IllegalStateException(
                             "Must have a statblock or a Vocation from which to define the statblock!");
                 }
-                currStatBlock = currVocation.createNewDefaultStatblock("Player");
+                currStatBlock = currVocation.createNewDefaultStatblock("Player").build();
                 this.setStatblock(currStatBlock);
             }
             return new Player(this.getThis(), () -> foundUser, () -> successor, () -> this.getStatblock());

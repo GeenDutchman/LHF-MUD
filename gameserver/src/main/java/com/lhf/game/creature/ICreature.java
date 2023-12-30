@@ -302,9 +302,9 @@ public interface ICreature
                 if (nextname != null) {
                     this.setStatblock(statblockManager.statblockFromfile(nextname));
                 } else if (this.vocation != null) {
-                    this.setStatblock(this.vocation.createNewDefaultStatblock("creature"));
+                    this.setStatblock(this.vocation.createNewDefaultStatblock("creature").build());
                 } else {
-                    this.setStatblock(new Statblock());
+                    this.setStatblock(Statblock.getBuilder().build());
                 }
             }
 
@@ -312,7 +312,7 @@ public interface ICreature
         }
 
         public BuilderType useBlankStatblock() {
-            this.setStatblock(new Statblock());
+            this.setStatblock(Statblock.getBuilder().build());
             return this.getThis();
         }
 

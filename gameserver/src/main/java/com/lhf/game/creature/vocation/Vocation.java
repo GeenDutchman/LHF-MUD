@@ -3,7 +3,7 @@ package com.lhf.game.creature.vocation;
 import java.util.Objects;
 
 import com.lhf.Taggable;
-import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.statblock.Statblock.StatblockBuilder;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 
 public abstract class Vocation implements Taggable, Comparable<Vocation> {
@@ -48,7 +48,7 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
     protected final VocationName name;
     protected ResourcePool resourcePool;
 
-    public abstract Statblock createNewDefaultStatblock(String creatureRace);
+    public abstract StatblockBuilder createNewDefaultStatblock(String creatureRace);
 
     public Vocation onLevel() {
         this.level++;
