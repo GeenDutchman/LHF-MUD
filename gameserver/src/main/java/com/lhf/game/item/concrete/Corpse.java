@@ -8,6 +8,11 @@ public class Corpse extends Chest {
     }
 
     @Override
+    public Corpse makeCopy() {
+        return new Corpse(this.getName(), this.checkVisibility());
+    }
+
+    @Override
     public String printDescription() {
         return "This is " + this.getColorTaggedName()
                 + ".  They are quite clearly dead.  You can't quite tell the cause...";

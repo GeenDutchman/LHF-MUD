@@ -30,14 +30,15 @@ public interface ItemContainer extends Examinable {
 
     public abstract Iterator<? extends Item> itemIterator();
 
-    public static boolean transfer(ItemContainer from, ItemContainer to, Predicate<Item> predicate) {
+    public static boolean transfer(ItemContainer from, ItemContainer to, Predicate<Item> predicate, boolean copyItem) {
         if (from == null || to == null) {
             return false;
         }
         boolean changed = false;
         for (Iterator<? extends Item> it = from.itemIterator(); it.hasNext();) {
             Item item = it.next();
-            if (item != null && (predicate != null ? predicate.test(item) : true) && to.addItem(item)) {
+            if (item != null && (predicate != null ? predicate.test(item) : true)
+                    && (copyItem ? to.addItem(item.makeCopy()) : to.addItem(item))) {
                 it.remove();
                 changed = true;
             }

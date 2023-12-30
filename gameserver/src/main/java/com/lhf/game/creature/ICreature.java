@@ -102,6 +102,11 @@ public interface ICreature
             this.descriptionString = "This is a Fist attached to a Creature \n";
         }
 
+        @Override
+        public Fist makeCopy() {
+            return new Fist();
+        }
+
     }
 
     /**
@@ -171,12 +176,12 @@ public interface ICreature
 
         protected final transient BuilderType thisObject;
         protected final CreatureBuilderID id;
-        private String name;
-        private CreatureFaction faction;
-        private Vocation vocation;
-        private String statblockName;
-        private Statblock statblock;
-        private Corpse corpse;
+        protected String name;
+        protected CreatureFaction faction;
+        protected Vocation vocation;
+        protected String statblockName;
+        protected Statblock statblock;
+        protected Corpse corpse;
 
         protected CreatureBuilder() {
             this.thisObject = getThis();
@@ -187,6 +192,19 @@ public interface ICreature
             this.statblockName = null;
             this.statblock = null;
             this.corpse = null;
+        }
+
+        protected void copyFrom(BuilderType other) {
+            this.name = new String(other.name);
+            this.faction = other.faction;
+            this.vocation = other.vocation != null ? other.vocation.copy() : null;
+            this.statblockName = new String(other.statblockName);
+            this.statblock = this.statblock != null ? new Statblock(other.statblock) : null;
+            this.corpse = null;
+            if (other.corpse != null) {
+                this.corpse = other.corpse.makeCopy();
+                ItemContainer.transfer(other.corpse, this.corpse, null, true);
+            }
         }
 
         public CreatureBuilderID getCreatureBuilderID() {
@@ -706,7 +724,7 @@ public interface ICreature
             }
         }
         Corpse deadCorpse = new Corpse(deadCreature.getName() + "'s corpse", true);
-        ItemContainer.transfer(deadCreature, deadCorpse, null);
+        ItemContainer.transfer(deadCreature, deadCorpse, null, false);
         return deadCorpse;
     }
 

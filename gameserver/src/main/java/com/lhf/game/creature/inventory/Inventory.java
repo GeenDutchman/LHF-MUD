@@ -27,9 +27,7 @@ public class Inventory implements ItemContainer {
 
     public Inventory(Inventory other) {
         this.items = new ArrayList<>();
-        for (final Takeable item : other.items) {
-            this.items.add(item.makeCopy());
-        }
+        ItemContainer.transfer(other, this, null, true);
     }
 
     @Override

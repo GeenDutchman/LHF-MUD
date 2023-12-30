@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -14,7 +13,6 @@ import java.util.function.UnaryOperator;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
-import com.lhf.game.creature.NonPlayerCharacter.NPCBuilder;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
@@ -77,6 +75,11 @@ public interface INonPlayerCharacter extends ICreature {
             this.slots = List.of(EquipmentSlots.WEAPON);
             this.descriptionString = "This is a Fist attached to a Creature who is blessed\n";
 
+        }
+
+        @Override
+        public BlessedFist makeCopy() {
+            return new BlessedFist();
         }
     }
 
