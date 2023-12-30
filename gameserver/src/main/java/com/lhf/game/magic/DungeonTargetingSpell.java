@@ -65,8 +65,8 @@ public class DungeonTargetingSpell extends ISpell<DungeonEffect> {
         if (this.effects == null) {
             this.effects = new HashSet<>();
             for (EntityEffectSource source : this.getEntry().getEffectSources()) {
-                if (source instanceof DungeonEffectSource) {
-                    this.effects.add(new DungeonEffect((DungeonEffectSource) source, this.getCaster(), this,
+                if (source instanceof DungeonEffectSource dungeonEffectSource) {
+                    this.effects.add(new DungeonEffect(dungeonEffectSource.makeCopy(), this.getCaster(), this,
                             this.getRoomName(), this.getDirectionToAddedRoom(), this.getRoomDescription()));
                 }
             }
