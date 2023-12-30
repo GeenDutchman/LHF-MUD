@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
+import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.NonPlayerCharacter.NPCBuilder;
@@ -46,13 +47,18 @@ import com.lhf.messages.events.GameEvent.Builder;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.CommandInvoker;
+import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
 
-public abstract class WrappedNPC implements INonPlayerCharacter {
+public abstract class WrappedNPC implements INonPlayerCharacter, CreatureContainer {
     protected final INonPlayerCharacter innerNPC;
+    protected CommandChainHandler successor;
 
     protected WrappedNPC(@NotNull WrappedNPC npc) {
         this.innerNPC = npc;
+        if (npc != null) {
+            npc.setSuccessor(this);
+        }
     }
 
     /**
@@ -60,6 +66,9 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
      */
     protected WrappedNPC(@NotNull NonPlayerCharacter npc) {
         this.innerNPC = npc;
+        if (npc != null) {
+            npc.setSuccessor(this);
+        }
     }
 
     /**
@@ -69,11 +78,67 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
      */
     protected WrappedNPC(@NotNull NPCBuilder builder, AIRunner aiRunner, CommandChainHandler successor,
             StatblockManager statblockManager, ConversationManager conversationManager) throws FileNotFoundException {
-        this.innerNPC = builder.build(aiRunner, successor, statblockManager, conversationManager);
+        this.innerNPC = builder.build(aiRunner, this, statblockManager, conversationManager);
+        this.successor = successor;
     }
 
     public INonPlayerCharacter unwrap() {
         return this.innerNPC;
+    }
+
+    @Override
+    public final Collection<ICreature> getCreatures() {
+        if (this.innerNPC != null) {
+            return Set.of(this);
+        }
+        return Set.of();
+    }
+
+    @Override
+    public boolean onCreatureDeath(ICreature creature) {
+        if (creature == null || creature.isAlive()) {
+            return false;
+        }
+        if (creature == this || creature == this.innerNPC) {
+            ICreature.announceDeath(this); // forward
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public final boolean addCreature(ICreature creature) {
+        throw new UnsupportedOperationException("Cannot add a creature to an already-wrapped Creature");
+    }
+
+    @Override
+    public final boolean removeCreature(ICreature creature) {
+        throw new UnsupportedOperationException("Cannot remove a creature from a wrapped Creature");
+    }
+
+    @Override
+    public final Optional<ICreature> removeCreature(String name) {
+        throw new UnsupportedOperationException("Cannot remove a creature from a wrapped Creature");
+    }
+
+    @Override
+    public final boolean addPlayer(Player player) {
+        throw new UnsupportedOperationException("Cannot add Player to a wrapped Creature");
+    }
+
+    @Override
+    public final boolean removePlayer(Player player) {
+        throw new UnsupportedOperationException("Cannot remove Player from a wrapped Creature");
+    }
+
+    @Override
+    public final Optional<Player> removePlayer(UserID id) {
+        throw new UnsupportedOperationException("Cannot remove Player from a wrapped Creature");
+    }
+
+    @Override
+    public final Optional<Player> removePlayer(String name) {
+        throw new UnsupportedOperationException("Cannot remove Player from a wrapped Creature");
     }
 
     @Override
@@ -87,8 +152,8 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
-    public void setSuccessor(CommandChainHandler successor) {
-        innerNPC.setSuccessor(successor);
+    public final void setSuccessor(CommandChainHandler successor) {
+        this.successor = successor;
     }
 
     @Override
@@ -107,8 +172,8 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
-    public CommandChainHandler getSuccessor() {
-        return innerNPC.getSuccessor();
+    public final CommandChainHandler getSuccessor() {
+        return this.successor;
     }
 
     @Override
@@ -494,8 +559,9 @@ public abstract class WrappedNPC implements INonPlayerCharacter {
     }
 
     @Override
-    public void intercept(CommandChainHandler interceptor) {
-        innerNPC.intercept(interceptor);
+    public final void intercept(CommandChainHandler interceptor) {
+        interceptor.setSuccessor(this.getSuccessor());
+        this.setSuccessor(interceptor);
     }
 
     @Override

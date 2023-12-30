@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
+import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.Monster.MonsterBuilder;
@@ -46,26 +47,90 @@ import com.lhf.messages.events.GameEvent.Builder;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.CommandInvoker;
+import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
 
-public abstract class WrappedMonster implements IMonster {
+public abstract class WrappedMonster implements IMonster, CreatureContainer {
     protected final IMonster innerMonster;
+    protected CommandChainHandler successor;
 
     protected WrappedMonster(@NotNull WrappedMonster monster) {
         this.innerMonster = monster;
+        if (monster != null) {
+            monster.setSuccessor(this);
+        }
     }
 
     protected WrappedMonster(@NotNull Monster monster) {
         this.innerMonster = monster;
+        if (monster != null) {
+            monster.setSuccessor(this);
+        }
     }
 
     protected WrappedMonster(@NotNull MonsterBuilder builder, AIRunner aiRunner, CommandChainHandler successor,
             StatblockManager statblockManager, ConversationManager conversationManager) throws FileNotFoundException {
-        this.innerMonster = builder.build(aiRunner, successor, statblockManager, conversationManager);
+        this.innerMonster = builder.build(aiRunner, this, statblockManager, conversationManager);
+        this.successor = successor;
     }
 
     public IMonster unwrap() {
         return this.innerMonster;
+    }
+
+    @Override
+    public final Collection<ICreature> getCreatures() {
+        if (this.innerMonster != null) {
+            return Set.of(this);
+        }
+        return Set.of();
+    }
+
+    @Override
+    public boolean onCreatureDeath(ICreature creature) {
+        if (creature == null || creature.isAlive()) {
+            return false;
+        }
+        if (creature == this || creature == this.innerMonster) {
+            ICreature.announceDeath(this); // forward
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public final boolean addCreature(ICreature creature) {
+        throw new UnsupportedOperationException("Cannot add a creature to an already-wrapped Creature");
+    }
+
+    @Override
+    public final boolean removeCreature(ICreature creature) {
+        throw new UnsupportedOperationException("Cannot remove a creature from a wrapped Creature");
+    }
+
+    @Override
+    public final Optional<ICreature> removeCreature(String name) {
+        throw new UnsupportedOperationException("Cannot remove a creature from a wrapped Creature");
+    }
+
+    @Override
+    public final boolean addPlayer(Player player) {
+        throw new UnsupportedOperationException("Cannot add Player to a wrapped Creature");
+    }
+
+    @Override
+    public final boolean removePlayer(Player player) {
+        throw new UnsupportedOperationException("Cannot remove Player from a wrapped Creature");
+    }
+
+    @Override
+    public final Optional<Player> removePlayer(UserID id) {
+        throw new UnsupportedOperationException("Cannot remove Player from a wrapped Creature");
+    }
+
+    @Override
+    public final Optional<Player> removePlayer(String name) {
+        throw new UnsupportedOperationException("Cannot remove Player from a wrapped Creature");
     }
 
     @Override
@@ -79,8 +144,8 @@ public abstract class WrappedMonster implements IMonster {
     }
 
     @Override
-    public void setSuccessor(CommandChainHandler successor) {
-        innerMonster.setSuccessor(successor);
+    public final void setSuccessor(CommandChainHandler successor) {
+        this.successor = successor;
     }
 
     @Override
@@ -99,8 +164,8 @@ public abstract class WrappedMonster implements IMonster {
     }
 
     @Override
-    public CommandChainHandler getSuccessor() {
-        return innerMonster.getSuccessor();
+    public final CommandChainHandler getSuccessor() {
+        return this.successor;
     }
 
     @Override
@@ -491,8 +556,9 @@ public abstract class WrappedMonster implements IMonster {
     }
 
     @Override
-    public void intercept(CommandChainHandler interceptor) {
-        innerMonster.intercept(interceptor);
+    public final void intercept(CommandChainHandler interceptor) {
+        interceptor.setSuccessor(this.getSuccessor());
+        this.setSuccessor(interceptor);
     }
 
     @Override
