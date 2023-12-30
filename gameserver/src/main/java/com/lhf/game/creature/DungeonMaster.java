@@ -25,6 +25,13 @@ public class DungeonMaster extends NonPlayerCharacter {
         }
 
         @Override
+        public DungeonMasterBuilder makeCopy() {
+            DungeonMasterBuilder builder = new DungeonMasterBuilder();
+            builder.copyFrom(this);
+            return builder;
+        }
+
+        @Override
         public DungeonMaster quickBuild(Supplier<CommandInvoker> controllerSupplier, CommandChainHandler successor) {
             Statblock block = this.getStatblock();
             if (block == null) {

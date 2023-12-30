@@ -81,7 +81,7 @@ public abstract class Creature implements ICreature {
         this.statblock = statblockSupplier.get();
         this.controller = controllerSupplier.get();
         this.successor = successorSupplier.get();
-        ItemContainer.transfer(builder.getCorpse(), this.getInventory(), null);
+        ItemContainer.transfer(builder.getCorpse(), this.getInventory(), null, false);
 
         // We don't start them in battle
         this.inBattle = false;
