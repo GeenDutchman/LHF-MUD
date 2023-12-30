@@ -3,6 +3,8 @@ package com.lhf.messages.events;
 import java.util.StringJoiner;
 
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.IMonster;
+import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.item.Item;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomEffect;
@@ -84,6 +86,14 @@ public class RoomAffectedEvent extends GameEvent {
         return reversed;
     }
 
+    public IMonster getSummonedMonster() {
+        return this.effect.getCachedMonster();
+    }
+
+    public INonPlayerCharacter getSummonedNPC() {
+        return this.effect.getCachedNPC();
+    }
+
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
@@ -103,15 +113,13 @@ public class RoomAffectedEvent extends GameEvent {
             sj.add("But the effects have EXPIRED, and will now REVERSE!").add("\r\n");
         }
 
-        StringJoiner lister = null;
-
-        if (this.effect.getNPCToSummon() != null) {
-            lister = new StringJoiner(", ", "", this.reversed ? " are de-summoned.\r\n" : " are summoned.\r\n")
-                    .setEmptyValue("No creatures ");
-            for (ICreature creature : this.effect.getCreaturesToSummon()) {
-                lister.add(creature.getColorTaggedName());
-            }
-            sj.add(lister.toString());
+        IMonster summonedMonster = this.effect.getCachedMonster();
+        if (summonedMonster != null) {
+            sj.add("The monster").add(summonedMonster.getColorTaggedName()).add("was summoned.");
+        }
+        INonPlayerCharacter summonedNPC = this.effect.getCachedNPC();
+        if (summonedNPC != null) {
+            sj.add("The NPC").add(summonedNPC.getColorTaggedName()).add("was summoned.");
         }
 
         return sj.toString();
