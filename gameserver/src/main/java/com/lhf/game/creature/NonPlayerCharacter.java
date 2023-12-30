@@ -55,8 +55,8 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
             if (composedlazyLoaders != null) {
                 composedlazyLoaders.apply(this.getThis());
             }
-            return NonPlayerCharacter.buildNPC(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
-                    () -> this.getConversationTree(), null);
+            return new NonPlayerCharacter(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
+                    () -> this.getConversationTree());
         }
 
         @Override
@@ -88,7 +88,10 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     protected NonPlayerCharacter(AbstractNPCBuilder<?, ? extends INonPlayerCharacter> builder,
             Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
             Supplier<Statblock> statblockSupplier, Supplier<ConversationTree> conversationSupplier) {
-        super(builder, controllerSupplier, successorSupplier, statblockSupplier);
+        super(builder,
+                controllerSupplier != null ? controllerSupplier
+                        : () -> INonPlayerCharacter.defaultAIRunner.produceAI(builder.getAiHandlersAsArray()),
+                successorSupplier, statblockSupplier);
         if (conversationSupplier != null) {
             this.convoTree = conversationSupplier.get();
         }

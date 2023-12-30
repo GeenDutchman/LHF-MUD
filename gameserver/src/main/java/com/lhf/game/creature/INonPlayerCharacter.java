@@ -17,6 +17,8 @@ import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.creature.intelligence.GroupAIRunner;
+import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
@@ -45,6 +47,7 @@ import com.lhf.server.interfaces.NotNull;
  * @see {@link com.lhf.game.creature.ICreature ICreature}
  */
 public interface INonPlayerCharacter extends ICreature {
+    public static final AIRunner defaultAIRunner = new GroupAIRunner(true);
 
     /**
      * A BlessedFist is a {@link com.lhf.game.item.Weapon Weapon} used by those NPCs
@@ -353,19 +356,30 @@ public interface INonPlayerCharacter extends ICreature {
             return this.getThis();
         }
 
-        public abstract NPCType quickBuild(Supplier<CommandInvoker> controllerSupplier,
-                CommandChainHandler successor);
+        public abstract NPCType quickBuild(Supplier<CommandInvoker> controllerSupplier, CommandChainHandler successor);
+
+        public final NPCType quickBuild(AIRunner aiRunner, CommandChainHandler successor) {
+            Statblock block = this.getStatblock();
+            if (block == null) {
+                this.useBlankStatblock();
+            }
+            Supplier<CommandInvoker> controllerSupplier = aiRunner != null
+                    ? () -> aiRunner.produceAI(getAiHandlersAsArray())
+                    : () -> INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
+            return this.quickBuild(controllerSupplier, successor);
+        }
 
         @Override
         public abstract NPCType build(Supplier<CommandInvoker> controllerSupplier,
                 CommandChainHandler successor, StatblockManager statblockManager,
                 UnaryOperator<NPCBuilderType> composedlazyLoaders) throws FileNotFoundException;
 
-        public NPCType build(AIRunner aiRunner, CommandChainHandler successor,
+        public final NPCType build(AIRunner aiRunner, CommandChainHandler successor,
                 StatblockManager statblockManager, ConversationManager conversationManager)
                 throws FileNotFoundException {
             Supplier<CommandInvoker> controllerSupplier = () -> {
-                return aiRunner.produceAI(getAiHandlersAsArray());
+                return aiRunner != null ? aiRunner.produceAI(getAiHandlersAsArray())
+                        : INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
             };
 
             UnaryOperator<NPCBuilderType> conversationLoader = (builder) -> {
