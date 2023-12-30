@@ -34,4 +34,9 @@ public class BossClub extends Weapon {
 
     }
 
+    @Override
+    public BossClub makeCopy() {
+        return new BossClub(this.checkVisibility());
+    }
+
 }

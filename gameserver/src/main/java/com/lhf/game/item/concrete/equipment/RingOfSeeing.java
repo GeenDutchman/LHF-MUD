@@ -40,4 +40,9 @@ public class RingOfSeeing extends Equipable {
         this.descriptionString += "It can only be used so many times though, and then the ring itself disappears... \n";
     }
 
+    @Override
+    public RingOfSeeing makeCopy() {
+        return new RingOfSeeing(this.checkVisibility());
+    }
+
 }

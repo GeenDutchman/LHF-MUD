@@ -12,6 +12,11 @@ public class Note extends Item {
     }
 
     @Override
+    public Note makeCopy() {
+        return new Note(this.getName(), this.checkVisibility(), this.noteContent);
+    }
+
+    @Override
     public String printDescription() {
         return noteContent;
     }

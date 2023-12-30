@@ -28,4 +28,9 @@ public class Shield extends Equipable {
     public String printDescription() {
         return "This is a simple shield, it should protect you a little bit. \n";
     }
+
+    @Override
+    public Shield makeCopy() {
+        return new Shield(this.checkVisibility());
+    }
 }

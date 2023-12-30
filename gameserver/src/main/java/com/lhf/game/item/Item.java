@@ -1,5 +1,6 @@
 package com.lhf.game.item;
 
+import java.util.function.Consumer;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.TaggedExaminable;
@@ -30,6 +31,12 @@ public abstract class Item implements TaggedExaminable {
         this.isVisible = isVisible;
         this.descriptionString = description;
     }
+
+    protected void copyOverwriteTo(Item other) {
+        other.descriptionString = this.descriptionString;
+    }
+
+    public abstract Item makeCopy();
 
     public String getClassName() {
         return this.className;

@@ -43,6 +43,15 @@ public class CarnivorousArmor extends Equipable {
     }
 
     @Override
+    public CarnivorousArmor makeCopy() {
+        CarnivorousArmor copy = new CarnivorousArmor(this.checkVisibility());
+        copy.equipped = this.equipped;
+        copy.equippedAndUsed = this.equippedAndUsed;
+        this.copyOverwriteTo(copy);
+        return copy;
+    }
+
+    @Override
     public String getName() {
         if (this.equippedAndUsed) {
             return "Carnivorous Armor";

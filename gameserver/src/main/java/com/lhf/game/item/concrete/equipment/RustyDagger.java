@@ -33,4 +33,9 @@ public class RustyDagger extends Weapon {
         this.descriptionString = "Rusty Dagger to stab monsters with. \n";
     }
 
+    @Override
+    public RustyDagger makeCopy() {
+        return new RustyDagger(this.checkVisibility());
+    }
+
 }

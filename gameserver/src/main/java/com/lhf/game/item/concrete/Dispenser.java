@@ -11,6 +11,11 @@ public class Dispenser extends InteractObject {
         count = 0;
     }
 
+    @Override
+    public Dispenser makeCopy() {
+        return new Dispenser(this.getName(), hasBeenInteracted, isRepeatable, descriptionString);
+    }
+
     public int getCount() {
         return count;
     }

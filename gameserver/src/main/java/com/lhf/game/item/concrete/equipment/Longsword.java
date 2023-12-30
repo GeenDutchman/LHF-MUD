@@ -32,4 +32,9 @@ public class Longsword extends Weapon {
         this.descriptionString = "This is a nice, long, shiny sword.  It's a bit simple though...\n";
     }
 
+    @Override
+    public Longsword makeCopy() {
+        return new Longsword(this.checkVisibility());
+    }
+
 }

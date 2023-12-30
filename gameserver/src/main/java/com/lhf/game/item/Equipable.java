@@ -36,6 +36,26 @@ public class Equipable extends Usable {
         this.initLists();
     }
 
+    protected void copyOverwriteTo(Equipable other) {
+        other.types = new ArrayList<>(this.types);
+        other.slots = new ArrayList<>(this.slots);
+        other.equipEffects = new ArrayList<>();
+        for (final CreatureEffectSource source : this.equipEffects) {
+            other.equipEffects.add(source.makeCopy());
+        }
+        for (final CreatureEffectSource source : this.hiddenEquipEffects) {
+            other.hiddenEquipEffects.add(source.makeCopy());
+        }
+        super.copyOverwriteTo(other);
+    }
+
+    @Override
+    public Equipable makeCopy() {
+        Equipable equipable = new Equipable(this.getName(), this.checkVisibility(), this.numCanUseTimes);
+        this.copyOverwriteTo(equipable);
+        return equipable;
+    }
+
     // returns unmodifiable
     public List<EquipmentTypes> getTypes() {
         return Collections.unmodifiableList(this.types);
