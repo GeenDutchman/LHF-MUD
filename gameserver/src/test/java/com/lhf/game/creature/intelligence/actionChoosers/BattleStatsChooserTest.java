@@ -43,19 +43,19 @@ public class BattleStatsChooserTest {
         @Test
         void testChoose() {
                 AIComBundle finder = new AIComBundle();
-                finder.npc.setFaction(CreatureFaction.RENEGADE);
+                finder.getNPC().setFaction(CreatureFaction.RENEGADE);
                 AIComBundle attacker = new AIComBundle();
                 AIComBundle subAttacker = new AIComBundle();
 
                 BattleStats battleStats = new BattleStats()
-                                .initialize(List.of(finder.npc, attacker.npc, subAttacker.npc));
+                                .initialize(List.of(finder.getNPC(), attacker.getNPC(), subAttacker.getNPC()));
 
                 BattleStatsChooser chooser = new BattleStatsChooser();
 
                 SortedMap<String, Double> targets = chooser.choose(
                                 battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING).stream()
                                                 .collect(Collectors.toSet()),
-                                finder.npc.getHarmMemories(),
+                                finder.getNPC().getHarmMemories(),
                                 List.of());
 
                 Truth.assertThat(targets).hasSize(3); // includes finder
@@ -71,23 +71,23 @@ public class BattleStatsChooserTest {
                                 "For a test", false)
                                 .addDamage(new DamageDice(1, DieType.HUNDRED, DamageFlavor.BLUDGEONING));
 
-                CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.npc)
-                                .setEffect(new CreatureEffect(source, attacker.npc, attacker.npc)).Build();
+                CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
+                                .setEffect(new CreatureEffect(source, attacker.getNPC(), attacker.getNPC())).Build();
 
-                finder.npc.getHarmMemories().update(cam);
+                finder.getNPC().getHarmMemories().update(cam);
                 battleStats.update(cam);
 
                 targets = chooser.choose(
                                 battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING).stream()
                                                 .collect(Collectors.toSet()),
-                                finder.npc.getHarmMemories(),
+                                finder.getNPC().getHarmMemories(),
                                 List.of());
 
                 Truth.assertThat(targets).hasSize(3); // includes finder
-                Truth.assertThat(targets.get(attacker.npc.getName()))
+                Truth.assertThat(targets.get(attacker.getNPC().getName()))
                                 .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
                                 .of(AIChooser.MIN_VALUE);
-                Truth.assertThat(targets.get(subAttacker.npc.getName()))
+                Truth.assertThat(targets.get(subAttacker.getNPC().getName()))
                                 .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
                                 .of(AIChooser.MIN_VALUE);
 
@@ -99,23 +99,24 @@ public class BattleStatsChooserTest {
                                 "For a test", false)
                                 .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO));
 
-                CreatureAffectedEvent cam2 = CreatureAffectedEvent.getBuilder().setAffected(finder.npc)
-                                .setEffect(new CreatureEffect(source2, subAttacker.npc, subAttacker.npc)).Build();
+                CreatureAffectedEvent cam2 = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
+                                .setEffect(new CreatureEffect(source2, subAttacker.getNPC(), subAttacker.getNPC()))
+                                .Build();
 
-                finder.npc.getHarmMemories().update(cam2);
+                finder.getNPC().getHarmMemories().update(cam2);
                 battleStats.update(cam2);
 
                 targets = chooser.choose(
                                 battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING).stream()
                                                 .collect(Collectors.toSet()),
-                                finder.npc.getHarmMemories(),
+                                finder.getNPC().getHarmMemories(),
                                 List.of());
 
                 Truth.assertThat(targets).hasSize(3); // includes finder
-                Truth.assertThat(targets.get(subAttacker.npc.getName()))
+                Truth.assertThat(targets.get(subAttacker.getNPC().getName()))
                                 .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
                                 .of((double) 1);
-                Truth.assertThat(targets.get(attacker.npc.getName()))
+                Truth.assertThat(targets.get(attacker.getNPC().getName()))
                                 .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
                                 .of(AIChooser.MIN_VALUE);
 
@@ -124,11 +125,11 @@ public class BattleStatsChooserTest {
         @Test
         void testAggroAccumulation() {
                 AIComBundle finder = new AIComBundle();
-                finder.npc.setFaction(CreatureFaction.RENEGADE);
+                finder.getNPC().setFaction(CreatureFaction.RENEGADE);
                 AIComBundle attacker = new AIComBundle();
 
                 BattleStats battleStats = new BattleStats()
-                                .initialize(List.of(finder.npc, attacker.npc));
+                                .initialize(List.of(finder.getNPC(), attacker.getNPC()));
 
                 CreatureEffectSource source = new CreatureEffectSource("test", new EffectPersistence(TickType.INSTANT),
                                 null,
@@ -137,7 +138,7 @@ public class BattleStatsChooserTest {
                                 .addDamage(new DamageDice(2, DieType.SIX, DamageFlavor.AGGRO));
 
                 MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
-                CreatureEffect effect = new CreatureEffect(source, attacker.npc, attacker.npc);
+                CreatureEffect effect = new CreatureEffect(source, attacker.getNPC(), attacker.getNPC());
 
                 for (RollResult rr : effect.getDamageResult()) {
                         if (rr instanceof FlavoredRollResult) {
@@ -152,7 +153,7 @@ public class BattleStatsChooserTest {
 
                 effect.updateDamageResult(mrrBuilder.Build());
 
-                CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.npc)
+                CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
                                 .setEffect(effect).Build();
 
                 System.out.println(cam.print());
@@ -162,7 +163,8 @@ public class BattleStatsChooserTest {
                 System.out.println(battleStats.toString());
 
                 Truth.assertThat(
-                                battleStats.getBattleStats(BattleStatsQuery.ONLY_LIVING).get(attacker.npc.getName())
+                                battleStats.getBattleStats(BattleStatsQuery.ONLY_LIVING)
+                                                .get(attacker.getNPC().getName())
                                                 .getStats()
                                                 .get(BattleStat.AGGRO_DAMAGE))
                                 .isAtLeast(1);

@@ -44,21 +44,21 @@ public class BattleTurnHandlerTest {
     @Test
     void testChooseEnemyTarget() {
         AIComBundle finder = new AIComBundle();
-        finder.npc.setFaction(CreatureFaction.RENEGADE);
+        finder.getNPC().setFaction(CreatureFaction.RENEGADE);
         AIComBundle attacker = new AIComBundle();
         AIComBundle subAttacker = new AIComBundle();
 
         BattleTurnHandler handler = new BattleTurnHandler();
         finder.brain.addHandler(handler);
         BattleStats battleStats = new BattleStats()
-                .initialize(List.of(finder.npc, attacker.npc, subAttacker.npc));
+                .initialize(List.of(finder.getNPC(), attacker.getNPC(), subAttacker.getNPC()));
 
         TargetLists targets = handler.chooseTargets(
                 Optional.of(BattleStatsRequestedEvent.getBuilder()
                         .addRecords(battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING))
                         .Build()),
-                finder.npc.getHarmMemories(),
-                finder.npc.getFaction());
+                finder.getNPC().getHarmMemories(),
+                finder.getNPC().getFaction());
         Truth.assertThat(targets.enemies()).hasSize(2);
         Truth.assertThat(targets.enemies().get(0).getValue()).isAtLeast(targets.enemies().get(1).getValue());
 
@@ -67,7 +67,7 @@ public class BattleTurnHandlerTest {
     @Test
     void testMeleeAttackTargets() {
         AIComBundle searcher = new AIComBundle();
-        searcher.npc.setInBattle(true);
+        searcher.getNPC().setInBattle(true);
 
         CommandChainHandler interceptor = Mockito.mock(CommandChainHandler.class);
         Mockito.doNothing().when(interceptor).setSuccessor(Mockito.any());
@@ -98,14 +98,14 @@ public class BattleTurnHandlerTest {
 
                 });
 
-        searcher.npc.intercept(interceptor);
+        searcher.getNPC().intercept(interceptor);
 
         // trigger it
-        AIComBundle.eventAccepter.accept(searcher.npc,
-                BattleRoundEvent.getBuilder().setAboutCreature(searcher.npc).setNeeded()
+        AIComBundle.eventAccepter.accept(searcher.getNPC(),
+                BattleRoundEvent.getBuilder().setAboutCreature(searcher.getNPC()).setNeeded()
                         .Build());
 
-        Truth8.assertThat(searcher.npc.getHarmMemories().getLastAttackerName()).isEmpty();
+        Truth8.assertThat(searcher.getNPC().getHarmMemories().getLastAttackerName()).isEmpty();
         Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains("PASS")));
     }

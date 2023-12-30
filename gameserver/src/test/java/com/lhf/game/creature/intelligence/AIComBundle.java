@@ -36,7 +36,6 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
         return AIComBundle.aiRunner;
     }
 
-    public INonPlayerCharacter npc;
     public BasicAI brain;
     private final GameEventProcessorID gameEventProcessorID;
     @Mock
@@ -48,13 +47,17 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
         this.mockedWrappedHandler = Mockito.mock(CommandChainHandler.class);
 
         this.brain = AIComBundle.getAIRunner().produceAI();
-        this.npc = NonPlayerCharacter.getNPCBuilder().useBlankStatblock().quickBuild(() -> this.brain, this);
+        this.brain.setNPC(NonPlayerCharacter.getNPCBuilder().useBlankStatblock().quickBuild(() -> this.brain, this));
         this.brain.SetOut(this.sssb);
+    }
+
+    public INonPlayerCharacter getNPC() {
+        return this.brain.getNpc();
     }
 
     @Override
     protected String getName() {
-        return super.getName() + ' ' + this.npc.getName();
+        return super.getName() + ' ' + this.brain.npc.getName();
     }
 
     @Override
@@ -99,12 +102,12 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
 
     @Override
     public void log(Level logLevel, String logMessage) {
-        this.npc.log(logLevel, logMessage);
+        this.brain.log(logLevel, logMessage);
     }
 
     @Override
     public void log(Level logLevel, Supplier<String> logMessageSupplier) {
-        this.npc.log(logLevel, logMessageSupplier);
+        this.brain.log(logLevel, logMessageSupplier);
     }
 
     @Override

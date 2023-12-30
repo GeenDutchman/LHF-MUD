@@ -50,7 +50,7 @@ public class CloseableDoorwayTest {
                 Truth.assertThat(closeable.isOpen()).isFalse();
 
                 AIComBundle bundle = new AIComBundle();
-                roomA.addCreature(bundle.npc);
+                roomA.addCreature(bundle.getNPC());
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000)).send(Mockito.argThat(
                                 new MessageMatcher(GameEventType.SEE,
                                                 List.of(roomA.getName(), Directions.WEST.toString().toLowerCase()),

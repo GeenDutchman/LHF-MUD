@@ -51,7 +51,7 @@ public class KeyedDoorwayTest {
                 Truth.assertThat(keyed.isOpen()).isFalse();
 
                 AIComBundle bundle = new AIComBundle();
-                roomA.addCreature(bundle.npc);
+                roomA.addCreature(bundle.getNPC());
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000)).send(Mockito.argThat(
                                 new MessageMatcher(GameEventType.SEE,
                                                 List.of(roomA.getName(), Directions.WEST.toString().toLowerCase()),
@@ -62,8 +62,8 @@ public class KeyedDoorwayTest {
                                 .send(Mockito.argThat(new MessageMatcher(GameEventType.BAD_GO, "blocked")));
 
                 LockKey key = keyed.generateKey();
-                bundle.npc.addItem(key);
-                Truth.assertThat(bundle.npc.hasItem(key.getName()));
+                bundle.getNPC().addItem(key);
+                Truth.assertThat(bundle.getNPC().hasItem(key.getName()));
                 Truth.assertThat(LockKey.generateKeyName(keyed.getLockUUID())).isEqualTo(key.getName());
 
                 bundle.brain.ProcessString("go west");
@@ -72,7 +72,7 @@ public class KeyedDoorwayTest {
                                                 List.of(roomB.getName(), Directions.EAST.toString().toLowerCase()),
                                                 null)));
 
-                Truth.assertThat(bundle.npc.hasItem(key.getName())).isFalse();
+                Truth.assertThat(bundle.getNPC().hasItem(key.getName())).isFalse();
                 Truth.assertThat(keyed.isOpen()).isTrue();
 
                 bundle.brain.ProcessString("go east");

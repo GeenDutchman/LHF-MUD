@@ -39,19 +39,19 @@ public class AggroHighwaterChooserTest {
         @Test
         void testChoose() {
                 AIComBundle finder = new AIComBundle();
-                finder.npc.setFaction(CreatureFaction.RENEGADE);
+                finder.getNPC().setFaction(CreatureFaction.RENEGADE);
                 AIComBundle attacker = new AIComBundle();
                 AIComBundle subAttacker = new AIComBundle();
 
                 BattleStats battleStats = new BattleStats()
-                                .initialize(List.of(finder.npc, attacker.npc, subAttacker.npc));
+                                .initialize(List.of(finder.getNPC(), attacker.getNPC(), subAttacker.getNPC()));
 
                 AggroHighwaterChooser chooser = new AggroHighwaterChooser();
 
                 SortedMap<String, Double> targets = chooser.choose(
                                 battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING).stream()
                                                 .collect(Collectors.toSet()),
-                                finder.npc.getHarmMemories(),
+                                finder.getNPC().getHarmMemories(),
                                 List.of());
 
                 Truth.assertThat(targets).hasSize(3); // includes finder
@@ -67,23 +67,23 @@ public class AggroHighwaterChooserTest {
                                 "For a test", false)
                                 .addDamage(new DamageDice(6, DieType.SIX, DamageFlavor.BLUDGEONING));
 
-                CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.npc)
-                                .setEffect(new CreatureEffect(source, attacker.npc, attacker.npc)).Build();
+                CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
+                                .setEffect(new CreatureEffect(source, attacker.getNPC(), attacker.getNPC())).Build();
 
-                finder.npc.getHarmMemories().update(cam);
+                finder.getNPC().getHarmMemories().update(cam);
                 battleStats.update(cam);
 
                 targets = chooser.choose(
                                 battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING).stream()
                                                 .collect(Collectors.toSet()),
-                                finder.npc.getHarmMemories(),
+                                finder.getNPC().getHarmMemories(),
                                 List.of());
 
                 Truth.assertThat(targets).hasSize(3); // includes finder
-                Truth.assertThat(targets.get(attacker.npc.getName()))
+                Truth.assertThat(targets.get(attacker.getNPC().getName()))
                                 .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
                                 .of(chooser.getWeight());
-                Truth.assertThat(targets.get(subAttacker.npc.getName()))
+                Truth.assertThat(targets.get(subAttacker.getNPC().getName()))
                                 .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
                                 .of(AIChooser.MIN_VALUE);
 
@@ -95,23 +95,24 @@ public class AggroHighwaterChooserTest {
                                 "For a test", false)
                                 .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO));
 
-                CreatureAffectedEvent cam2 = CreatureAffectedEvent.getBuilder().setAffected(finder.npc)
-                                .setEffect(new CreatureEffect(source2, subAttacker.npc, subAttacker.npc)).Build();
+                CreatureAffectedEvent cam2 = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
+                                .setEffect(new CreatureEffect(source2, subAttacker.getNPC(), subAttacker.getNPC()))
+                                .Build();
 
-                finder.npc.getHarmMemories().update(cam2);
+                finder.getNPC().getHarmMemories().update(cam2);
                 battleStats.update(cam2);
 
                 targets = chooser.choose(
                                 battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING).stream()
                                                 .collect(Collectors.toSet()),
-                                finder.npc.getHarmMemories(),
+                                finder.getNPC().getHarmMemories(),
                                 List.of());
 
                 Truth.assertThat(targets).hasSize(3); // includes finder
-                Truth.assertThat(targets.get(attacker.npc.getName()))
+                Truth.assertThat(targets.get(attacker.getNPC().getName()))
                                 .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
                                 .of(chooser.getWeight());
-                Truth.assertThat(targets.get(subAttacker.npc.getName()))
+                Truth.assertThat(targets.get(subAttacker.getNPC().getName()))
                                 .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
                                 .of(AIChooser.MIN_VALUE);
 

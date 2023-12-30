@@ -24,17 +24,17 @@ public class VrijPartijTest {
         AIComBundle first = new AIComBundle();
         TreeSet<ICreature> party = new TreeSet<>();
         AIComBundle second = new AIComBundle();
-        party.add(second.npc);
-        VrijPartij vrijPartij = new VrijPartij(first.npc, party);
+        party.add(second.getNPC());
+        VrijPartij vrijPartij = new VrijPartij(first.getNPC(), party);
 
         Set<ICreature> participants = vrijPartij.getParticipants();
         Truth.assertThat(participants).hasSize(1);
-        Truth.assertThat(participants).contains(first.npc);
-        Truth.assertThat(participants).doesNotContain(second.npc);
+        Truth.assertThat(participants).contains(first.getNPC());
+        Truth.assertThat(participants).doesNotContain(second.getNPC());
 
         participants = vrijPartij.getParticipants(LewdAnswer.INCLUDED);
         Truth.assertThat(participants).hasSize(1);
-        Truth.assertThat(participants).contains(second.npc);
+        Truth.assertThat(participants).contains(second.getNPC());
 
         participants = vrijPartij.getParticipants(LewdAnswer.ASKED);
         Truth.assertThat(participants).hasSize(0);
@@ -50,7 +50,7 @@ public class VrijPartijTest {
             }
             try {
                 LewdEvent lom = (LewdEvent) message;
-                return LewdOutMessageType.PROPOSED.equals(lom.getSubType()) && first.npc.equals(lom.getCreature());
+                return LewdOutMessageType.PROPOSED.equals(lom.getSubType()) && first.getNPC().equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
@@ -62,20 +62,20 @@ public class VrijPartijTest {
 
         participants = vrijPartij.getParticipants();
         Truth.assertThat(participants).hasSize(1);
-        Truth.assertThat(participants).contains(first.npc);
-        Truth.assertThat(participants).doesNotContain(second.npc);
+        Truth.assertThat(participants).contains(first.getNPC());
+        Truth.assertThat(participants).doesNotContain(second.getNPC());
 
         participants = vrijPartij.getParticipants(LewdAnswer.INCLUDED);
         Truth.assertThat(participants).hasSize(0);
 
         participants = vrijPartij.getParticipants(LewdAnswer.ASKED);
         Truth.assertThat(participants).hasSize(1);
-        Truth.assertThat(participants).contains(second.npc);
+        Truth.assertThat(participants).contains(second.getNPC());
 
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(0);
 
-        vrijPartij.accept(second.npc);
+        vrijPartij.accept(second.getNPC());
 
         ArgumentMatcher<GameEvent> acceptanceChecker = (message) -> {
             if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
@@ -83,7 +83,8 @@ public class VrijPartijTest {
             }
             try {
                 LewdEvent lom = (LewdEvent) message;
-                return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && second.npc.equals(lom.getCreature());
+                return LewdOutMessageType.ACCEPTED.equals(lom.getSubType())
+                        && second.getNPC().equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
@@ -94,8 +95,8 @@ public class VrijPartijTest {
 
         participants = vrijPartij.getParticipants();
         Truth.assertThat(participants).hasSize(2);
-        Truth.assertThat(participants).contains(first.npc);
-        Truth.assertThat(participants).contains(second.npc);
+        Truth.assertThat(participants).contains(first.getNPC());
+        Truth.assertThat(participants).contains(second.getNPC());
 
         participants = vrijPartij.getParticipants(LewdAnswer.INCLUDED);
         Truth.assertThat(participants).hasSize(0);
@@ -110,20 +111,20 @@ public class VrijPartijTest {
         AIComBundle first = new AIComBundle();
         TreeSet<ICreature> party = new TreeSet<>();
         AIComBundle second = new AIComBundle();
-        party.add(second.npc);
+        party.add(second.getNPC());
         AIComBundle third = new AIComBundle();
-        party.add(third.npc);
-        VrijPartij vrijPartij = new VrijPartij(first.npc, party);
+        party.add(third.getNPC());
+        VrijPartij vrijPartij = new VrijPartij(first.getNPC(), party);
 
         Set<ICreature> participants = vrijPartij.getParticipants();
         Truth.assertThat(participants).hasSize(1);
-        Truth.assertThat(participants).contains(first.npc);
-        Truth.assertThat(participants).doesNotContain(second.npc);
+        Truth.assertThat(participants).contains(first.getNPC());
+        Truth.assertThat(participants).doesNotContain(second.getNPC());
 
         participants = vrijPartij.getParticipants(LewdAnswer.INCLUDED);
         Truth.assertThat(participants).hasSize(2);
-        Truth.assertThat(participants).contains(second.npc);
-        Truth.assertThat(participants).contains(third.npc);
+        Truth.assertThat(participants).contains(second.getNPC());
+        Truth.assertThat(participants).contains(third.getNPC());
 
         participants = vrijPartij.getParticipants(LewdAnswer.ASKED);
         Truth.assertThat(participants).hasSize(0);
@@ -137,25 +138,26 @@ public class VrijPartijTest {
             }
             try {
                 LewdEvent lom = (LewdEvent) message;
-                return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && second.npc.equals(lom.getCreature());
+                return LewdOutMessageType.ACCEPTED.equals(lom.getSubType())
+                        && second.getNPC().equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
         };
 
-        Truth.assertThat(vrijPartij.acceptAndCheck(second.npc)).isFalse();
+        Truth.assertThat(vrijPartij.acceptAndCheck(second.getNPC())).isFalse();
         Mockito.verify(first.sssb, Mockito.timeout(500)).send(Mockito.argThat(secondAcceptanceChecker));
         Mockito.verify(second.sssb, Mockito.timeout(500)).send(Mockito.argThat(secondAcceptanceChecker));
         Mockito.verify(third.sssb, Mockito.timeout(500)).send(Mockito.argThat(secondAcceptanceChecker));
 
         participants = vrijPartij.getParticipants();
         Truth.assertThat(participants).hasSize(2);
-        Truth.assertThat(participants).contains(first.npc);
-        Truth.assertThat(participants).contains(second.npc);
+        Truth.assertThat(participants).contains(first.getNPC());
+        Truth.assertThat(participants).contains(second.getNPC());
 
         participants = vrijPartij.getParticipants(LewdAnswer.INCLUDED);
         Truth.assertThat(participants).hasSize(1);
-        Truth.assertThat(participants).contains(third.npc);
+        Truth.assertThat(participants).contains(third.getNPC());
 
         participants = vrijPartij.getParticipants(LewdAnswer.ASKED);
         Truth.assertThat(participants).hasSize(0);
@@ -169,7 +171,7 @@ public class VrijPartijTest {
             }
             try {
                 LewdEvent lom = (LewdEvent) message;
-                return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && third.npc.equals(lom.getCreature());
+                return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && third.getNPC().equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
@@ -187,7 +189,7 @@ public class VrijPartijTest {
             }
         };
 
-        Truth.assertThat(vrijPartij.acceptAndCheck(third.npc)).isTrue();
+        Truth.assertThat(vrijPartij.acceptAndCheck(third.getNPC())).isTrue();
         Mockito.verify(first.sssb, Mockito.timeout(500)).send(Mockito.argThat(thirdAcceptanceChecker));
         Mockito.verify(second.sssb, Mockito.timeout(500)).send(Mockito.argThat(thirdAcceptanceChecker));
         Mockito.verify(third.sssb, Mockito.timeout(500)).send(Mockito.argThat(thirdAcceptanceChecker));
@@ -198,9 +200,9 @@ public class VrijPartijTest {
 
         participants = vrijPartij.getParticipants();
         Truth.assertThat(participants).hasSize(3);
-        Truth.assertThat(participants).contains(first.npc);
-        Truth.assertThat(participants).contains(second.npc);
-        Truth.assertThat(participants).contains(third.npc);
+        Truth.assertThat(participants).contains(first.getNPC());
+        Truth.assertThat(participants).contains(second.getNPC());
+        Truth.assertThat(participants).contains(third.getNPC());
 
         participants = vrijPartij.getParticipants(LewdAnswer.INCLUDED);
         Truth.assertThat(participants).hasSize(0);
@@ -217,16 +219,16 @@ public class VrijPartijTest {
         AIComBundle first = new AIComBundle();
         TreeSet<ICreature> party = new TreeSet<>();
         AIComBundle second = new AIComBundle();
-        party.add(second.npc);
+        party.add(second.getNPC());
         AIComBundle third = new AIComBundle();
-        party.add(third.npc);
-        VrijPartij vrijPartij = new VrijPartij(first.npc, party);
+        party.add(third.getNPC());
+        VrijPartij vrijPartij = new VrijPartij(first.getNPC(), party);
 
         Set<ICreature> participants = vrijPartij.getParticipants();
         Truth.assertThat(participants).hasSize(1);
-        Truth.assertThat(participants).contains(first.npc);
-        Truth.assertThat(participants).doesNotContain(second.npc);
-        Truth.assertThat(participants).doesNotContain(third.npc);
+        Truth.assertThat(participants).contains(first.getNPC());
+        Truth.assertThat(participants).doesNotContain(second.getNPC());
+        Truth.assertThat(participants).doesNotContain(third.getNPC());
 
         vrijPartij.propose();
 
@@ -236,7 +238,7 @@ public class VrijPartijTest {
             }
             try {
                 LewdEvent lom = (LewdEvent) message;
-                return LewdOutMessageType.PROPOSED.equals(lom.getSubType()) && first.npc.equals(lom.getCreature());
+                return LewdOutMessageType.PROPOSED.equals(lom.getSubType()) && first.getNPC().equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
@@ -249,7 +251,7 @@ public class VrijPartijTest {
 
         participants = vrijPartij.getParticipants(LewdAnswer.ASKED);
         Truth.assertThat(participants).hasSize(2);
-        Truth.assertThat(participants).contains(second.npc);
+        Truth.assertThat(participants).contains(second.getNPC());
 
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(0);
@@ -260,25 +262,26 @@ public class VrijPartijTest {
             }
             try {
                 LewdEvent lom = (LewdEvent) message;
-                return LewdOutMessageType.ACCEPTED.equals(lom.getSubType()) && second.npc.equals(lom.getCreature());
+                return LewdOutMessageType.ACCEPTED.equals(lom.getSubType())
+                        && second.getNPC().equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
         };
 
-        Truth.assertThat(vrijPartij.acceptAndCheck(second.npc)).isFalse();
+        Truth.assertThat(vrijPartij.acceptAndCheck(second.getNPC())).isFalse();
         Mockito.verify(first.sssb, Mockito.timeout(500)).send(Mockito.argThat(secondAcceptanceChecker));
         Mockito.verify(second.sssb, Mockito.timeout(500)).send(Mockito.argThat(secondAcceptanceChecker));
         Mockito.verify(third.sssb, Mockito.timeout(500)).send(Mockito.argThat(secondAcceptanceChecker));
 
         participants = vrijPartij.getParticipants();
         Truth.assertThat(participants).hasSize(2);
-        Truth.assertThat(participants).contains(first.npc);
-        Truth.assertThat(participants).contains(second.npc);
+        Truth.assertThat(participants).contains(first.getNPC());
+        Truth.assertThat(participants).contains(second.getNPC());
 
         participants = vrijPartij.getParticipants(LewdAnswer.ASKED);
         Truth.assertThat(participants).hasSize(1);
-        Truth.assertThat(participants).contains(third.npc);
+        Truth.assertThat(participants).contains(third.getNPC());
 
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(0);
@@ -289,13 +292,13 @@ public class VrijPartijTest {
             }
             try {
                 LewdEvent lom = (LewdEvent) message;
-                return LewdOutMessageType.DENIED.equals(lom.getSubType()) && third.npc.equals(lom.getCreature());
+                return LewdOutMessageType.DENIED.equals(lom.getSubType()) && third.getNPC().equals(lom.getCreature());
             } catch (ClassCastException e) {
                 return false;
             }
         };
 
-        vrijPartij.pass(third.npc);
+        vrijPartij.pass(third.getNPC());
 
         Mockito.verify(first.sssb, Mockito.timeout(500)).send(Mockito.argThat(thirdPass));
         Mockito.verify(second.sssb, Mockito.timeout(500)).send(Mockito.argThat(thirdPass));
@@ -320,15 +323,15 @@ public class VrijPartijTest {
 
         participants = vrijPartij.getParticipants();
         Truth.assertThat(participants).hasSize(2);
-        Truth.assertThat(participants).contains(first.npc);
-        Truth.assertThat(participants).contains(second.npc);
-        Truth.assertThat(participants).doesNotContain(third.npc);
+        Truth.assertThat(participants).contains(first.getNPC());
+        Truth.assertThat(participants).contains(second.getNPC());
+        Truth.assertThat(participants).doesNotContain(third.getNPC());
 
         participants = vrijPartij.getParticipants(LewdAnswer.ASKED);
         Truth.assertThat(participants).hasSize(0);
         participants = vrijPartij.getParticipants(LewdAnswer.DENIED);
         Truth.assertThat(participants).hasSize(1);
-        Truth.assertThat(participants).contains(third.npc);
+        Truth.assertThat(participants).contains(third.getNPC());
 
         Mockito.verifyNoMoreInteractions(first.sssb, second.sssb, third.sssb);
 

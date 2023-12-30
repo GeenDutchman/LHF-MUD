@@ -20,6 +20,11 @@ public class DungeonMaster extends NonPlayerCharacter {
             this.setVocation(new DMVocation());
         }
 
+        @Override
+        protected DungeonMasterBuilder getThis() {
+            return this;
+        }
+
         public static DungeonMasterBuilder getInstance() {
             return new DungeonMasterBuilder();
         }

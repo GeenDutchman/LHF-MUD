@@ -29,7 +29,7 @@ public class DoorwayTest {
                 Truth.assertThat(roomB).isNotNull();
 
                 AIComBundle bundle = new AIComBundle();
-                roomA.addCreature(bundle.npc);
+                roomA.addCreature(bundle.getNPC());
 
                 MessageMatcher hasWest = new MessageMatcher(GameEventType.SEE,
                                 List.of(roomA.getName(), Directions.WEST.toString().toLowerCase()), null);

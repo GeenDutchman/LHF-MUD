@@ -23,6 +23,11 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
             super();
         }
 
+        @Override
+        protected NPCBuilder getThis() {
+            return this;
+        }
+
         public static NPCBuilder getInstance() {
             return new NPCBuilder();
         }

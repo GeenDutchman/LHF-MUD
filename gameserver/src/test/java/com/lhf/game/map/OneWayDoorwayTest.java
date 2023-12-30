@@ -23,7 +23,7 @@ public class OneWayDoorwayTest {
                 System.out.println(dungeon.toMermaid(false));
 
                 AIComBundle bundle = new AIComBundle();
-                dungeon.addCreature(bundle.npc);
+                dungeon.addCreature(bundle.getNPC());
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000))
                                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SEE,
                                                 List.of(roomB.getName(), Directions.EAST.toString().toLowerCase()),

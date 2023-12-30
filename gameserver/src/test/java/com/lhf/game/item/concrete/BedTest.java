@@ -30,28 +30,28 @@ public class BedTest {
         AIComBundle second = new AIComBundle();
         AIComBundle third = new AIComBundle();
         Room room = builder.setName("Occupancy Room").quickBuild(null, null, null);
-        room.addCreatures(Set.of(first.npc, second.npc, third.npc), true);
+        room.addCreatures(Set.of(first.getNPC(), second.getNPC(), third.getNPC()), true);
         Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(2).setSleepSeconds(2));
         room.addItem(bed);
 
-        GameEvent out = bed.doUseAction(first.npc);
+        GameEvent out = bed.doUseAction(first.getNPC());
         Truth.assertThat(out.toString()).contains("You are now in the bed");
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 
-        out = bed.doUseAction(second.npc);
+        out = bed.doUseAction(second.getNPC());
         Truth.assertThat(out.toString()).contains("You are now in the bed");
         Truth.assertThat(bed.getOccupancy()).isEqualTo(2);
 
-        out = bed.doUseAction(third.npc);
+        out = bed.doUseAction(third.getNPC());
         Truth.assertThat(out.toString()).doesNotContain("You are now in the bed");
         Truth.assertThat(bed.getOccupancy()).isEqualTo(2);
 
         // one gets out
 
-        bed.removeCreature(first.npc);
+        bed.removeCreature(first.getNPC());
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 
-        out = bed.doUseAction(third.npc);
+        out = bed.doUseAction(third.getNPC());
         Truth.assertThat(out.toString()).contains("You are now in the bed");
         Truth.assertThat(bed.getOccupancy()).isEqualTo(2);
 
@@ -61,10 +61,10 @@ public class BedTest {
     void testBedTime() {
         AIComBundle first = new AIComBundle();
         Room room = builder.setName("Sleeping Room").quickBuild(null, null, null);
-        room.addCreature(first.npc);
+        room.addCreature(first.getNPC());
         Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(1).setSleepSeconds(1));
 
-        GameEvent out = bed.doUseAction(first.npc);
+        GameEvent out = bed.doUseAction(first.getNPC());
         Truth.assertThat(out.toString()).contains("You are now in the bed");
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 
