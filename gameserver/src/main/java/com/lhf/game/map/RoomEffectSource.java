@@ -15,15 +15,15 @@ public class RoomEffectSource extends EntityEffectSource {
 
     public RoomEffectSource(RoomEffectSource other) {
         super(other.name, other.persistence, other.resistance, other.description);
-        this.npcToSummon = other.npcToSummon.makeCopy();
-        this.monsterToSummon = other.monsterToSummon.makeCopy();
+        this.npcToSummon = other.npcToSummon != null ? other.npcToSummon.makeCopy() : null;
+        this.monsterToSummon = other.monsterToSummon != null ? other.monsterToSummon.makeCopy() : null;
     }
 
     public RoomEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
             String description) {
         super(name, persistence, resistance, description);
-        this.npcToSummon = NPCBuilder.getInstance();
-        this.monsterToSummon = MonsterBuilder.getInstance();
+        this.npcToSummon = null;
+        this.monsterToSummon = null;
     }
 
     @Override

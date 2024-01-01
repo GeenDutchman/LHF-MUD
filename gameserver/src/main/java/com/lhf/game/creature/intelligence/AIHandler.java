@@ -7,7 +7,7 @@ import com.lhf.messages.GameEventType;
 import com.lhf.server.interfaces.NotNull;
 
 public abstract class AIHandler implements AIChunk, Comparable<AIHandler> {
-    protected Logger logger;
+    protected final transient Logger logger;
     protected final GameEventType outMessageType;
 
     public AIHandler(@NotNull GameEventType outMessageType) {

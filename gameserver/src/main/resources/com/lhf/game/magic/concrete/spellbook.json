@@ -40,10 +40,6 @@
     ]
   },
   {
-    "itemClassNamesToSummon": {},
-    "creaturesToSummon": {},
-    "banishesItems": false,
-    "banishesCreatures": false,
     "className": "com.lhf.game.magic.concrete.Thaumaturgy",
     "level": "NO_COST",
     "name": "Thaumaturgy",
@@ -52,10 +48,6 @@
     "allowedVocations": [],
     "effectSources": [
       {
-        "itemsToSummon": [],
-        "itemsToBanish": [],
-        "creaturesToSummon": [],
-        "creaturesToBanish": [],
         "className": "com.lhf.game.map.RoomEffectSource",
         "name": "Announce yourself",
         "persistence": {
@@ -161,10 +153,6 @@
     ]
   },
   {
-    "itemClassNamesToSummon": {},
-    "creaturesToSummon": {},
-    "banishesItems": false,
-    "banishesCreatures": false,
     "className": "com.lhf.game.magic.concrete.Ensouling",
     "level": "TENTH_MAGNITUDE",
     "name": "Ensouling",
@@ -176,10 +164,6 @@
     "effectSources": [
       {
         "ensoulUserAndSend": true,
-        "itemsToSummon": [],
-        "itemsToBanish": [],
-        "creaturesToSummon": [],
-        "creaturesToBanish": [],
         "className": "com.lhf.game.map.DMRoomEffectSource",
         "name": "Ensoul and send",
         "persistence": {
