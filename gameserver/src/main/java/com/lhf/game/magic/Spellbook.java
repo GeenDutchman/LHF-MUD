@@ -32,6 +32,7 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.ItemDeserializer;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.TakeableDeserializer;
+import com.lhf.game.magic.concrete.ElectricWisp;
 import com.lhf.game.magic.concrete.Ensouling;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
@@ -96,6 +97,7 @@ public class Spellbook {
                 .registerSubtype(ThunderStrike.class, ThunderStrike.class.getName())
                 .registerSubtype(Thaumaturgy.class, Thaumaturgy.class.getName())
                 .registerSubtype(Ensouling.class, Ensouling.class.getName())
+                .registerSubtype(ElectricWisp.class, ElectricWisp.class.getName())
                 .recognizeSubtypes();
         RuntimeTypeAdapterFactory<EntityEffectSource> effectSourceAdapter = RuntimeTypeAdapterFactory
                 .of(EntityEffectSource.class, "className", true)
