@@ -164,7 +164,7 @@ public abstract class Creature implements ICreature {
         };
         switch (stat) {
             case MAXHP:
-                this.getStats().merge(stat, value, merger);
+                this.statblock.getStats().merge(stat, value, merger);
                 // fallthrough
             case CURRENTHP:
                 int current = this.getHealth();
@@ -184,7 +184,7 @@ public abstract class Creature implements ICreature {
             case XPWORTH:
                 // fallthrough
             default:
-                this.getStats().merge(stat, value, merger);
+                this.statblock.getStats().merge(stat, value, merger);
                 break;
         }
 
