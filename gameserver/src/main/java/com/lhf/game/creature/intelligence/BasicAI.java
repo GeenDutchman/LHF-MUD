@@ -155,10 +155,6 @@ public class BasicAI extends Client {
 
     @Override
     public void setSuccessor(CommandChainHandler successor) {
-        if (successor != null) {
-            throw new IllegalArgumentException(
-                    String.format("The client successor '%s' should be an INonPlayerCharacter", successor));
-        }
         super.setSuccessor(null);
     }
 

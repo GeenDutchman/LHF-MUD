@@ -32,18 +32,18 @@ public class Statblock {
     private AttributeBlock attributes;
 
     /** contains CurrentHp, MaxHp, Xp, proficiencyBonus, AC */
-    private Map<Stats, Integer> stats;
+    private EnumMap<Stats, Integer> stats;
     /**
      * contains subtypes and items
      * // an example subtype would be MARTIAL_WEAPONS or HEAVY_ARMOR
      * // and example item would be lightCrossbow
      */
-    private Set<EquipmentTypes> proficiencies;
+    private EnumSet<EquipmentTypes> proficiencies;
 
     // Inventory
     private Inventory inventory;
     // Equipment slots
-    private Map<EquipmentSlots, Equipable> equipmentSlots;
+    private EnumMap<EquipmentSlots, Equipable> equipmentSlots;
 
     private EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> damageFlavorReactions;
 
@@ -54,10 +54,10 @@ public class Statblock {
     public static class StatblockBuilder implements Serializable {
         private String creatureRace;
         private AttributeBlock attributeBlock;
-        private Map<Stats, Integer> stats;
-        private Set<EquipmentTypes> proficiencies;
+        private EnumMap<Stats, Integer> stats;
+        private EnumSet<EquipmentTypes> proficiencies;
         private Inventory inventory;
-        private Map<EquipmentSlots, Equipable> equipmentSlots;
+        private EnumMap<EquipmentSlots, Equipable> equipmentSlots;
         private EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> damageFlavorReactions;
 
         public StatblockBuilder() {
@@ -188,11 +188,11 @@ public class Statblock {
             return new AttributeBlock(attributeBlock);
         }
 
-        public Map<Stats, Integer> getStats() {
+        public EnumMap<Stats, Integer> getStats() {
             return new EnumMap<>(this.stats);
         }
 
-        public Set<EquipmentTypes> getProficiencies() {
+        public EnumSet<EquipmentTypes> getProficiencies() {
             return EnumSet.copyOf(proficiencies);
         }
 
@@ -200,7 +200,7 @@ public class Statblock {
             return new Inventory(inventory);
         }
 
-        public Map<EquipmentSlots, Equipable> getEquipmentSlots() {
+        public EnumMap<EquipmentSlots, Equipable> getEquipmentSlots() {
             return new EnumMap<>(this.equipmentSlots); // this is a shallow copy of the equipables, but whatever
         }
 
@@ -233,10 +233,10 @@ public class Statblock {
     private Statblock(StatblockBuilder builder) {
         this.creatureRace = builder.getCreatureRace();
         this.attributes = builder.getAttributeBlock();
-        this.stats = Collections.synchronizedMap(builder.getStats());
-        this.proficiencies = Collections.synchronizedSet(builder.getProficiencies());
+        this.stats = builder.getStats();
+        this.proficiencies = builder.getProficiencies();
         this.inventory = builder.getInventory();
-        this.equipmentSlots = Collections.synchronizedMap(builder.getEquipmentSlots());
+        this.equipmentSlots = builder.getEquipmentSlots();
         this.damageFlavorReactions = builder.getDamageFlavorReactions();
     }
 
@@ -247,10 +247,10 @@ public class Statblock {
             EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> reactions) {
         this.creatureRace = creatureRace;
         this.attributes = attributes;
-        this.stats = Collections.synchronizedMap(stats.clone());
-        this.proficiencies = Collections.synchronizedSet(proficiencies.clone());
+        this.stats = stats.clone();
+        this.proficiencies = proficiencies.clone();
         this.inventory = inventory;
-        this.equipmentSlots = Collections.synchronizedMap(equipmentSlots.clone());
+        this.equipmentSlots = equipmentSlots.clone();
         if (reactions == null) {
             this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReaction.class);
             StatblockBuilder.setDefaultFlavorReactions(this.damageFlavorReactions);
@@ -262,10 +262,10 @@ public class Statblock {
     public Statblock(Statblock other) {
         this.creatureRace = other.getCreatureRace();
         this.attributes = new AttributeBlock(other.attributes);
-        this.stats = Collections.synchronizedMap(new EnumMap<>(other.stats));
-        this.proficiencies = Collections.synchronizedSet(EnumSet.copyOf(other.proficiencies));
+        this.stats = new EnumMap<>(other.stats);
+        this.proficiencies = EnumSet.copyOf(other.proficiencies);
         this.inventory = new Inventory(other.inventory);
-        this.equipmentSlots = Collections.synchronizedMap(new EnumMap<>(other.equipmentSlots));
+        this.equipmentSlots = new EnumMap<>(other.equipmentSlots);
         this.damageFlavorReactions = StatblockBuilder.deepCloneDamageFlavorReactions(other.damageFlavorReactions);
     }
 
