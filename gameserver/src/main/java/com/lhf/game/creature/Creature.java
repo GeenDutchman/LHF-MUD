@@ -51,6 +51,7 @@ import com.lhf.messages.in.InventoryMessage;
 import com.lhf.messages.in.StatusMessage;
 import com.lhf.messages.in.UnequipMessage;
 import com.lhf.server.client.CommandInvoker;
+import com.lhf.server.interfaces.NotNull;
 
 public abstract class Creature implements ICreature {
     private final String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
@@ -69,19 +70,25 @@ public abstract class Creature implements ICreature {
     private transient final Logger logger;
 
     protected Creature(ICreature.CreatureBuilder<?, ? extends ICreature> builder,
-            Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
-            Supplier<Statblock> statblockSupplier) {
+            @NotNull CommandInvoker controller, CommandChainHandler successor,
+            @NotNull Statblock statblock) {
         this.gameEventProcessorID = new GameEventProcessorID();
-        this.cmds = this.buildCommands();
-        // Instantiate creature with no name and type Monster
         this.name = builder.getName();
+        if (statblock == null) {
+            throw new IllegalArgumentException("Creature cannot have a null statblock!");
+        }
+        if (controller == null) {
+            throw new IllegalArgumentException("Creature cannot have a null controller!");
+        }
+        this.cmds = this.buildCommands();
         this.faction = builder.getFaction();
         this.vocation = builder.getVocation();
 
         this.effects = new TreeSet<>();
-        this.statblock = statblockSupplier.get();
-        this.controller = controllerSupplier.get();
-        this.successor = successorSupplier.get();
+        this.statblock = new Statblock(statblock);
+        this.controller = controller;
+        this.controller.setSuccessor(this);
+        this.successor = successor;
         ItemContainer.transfer(builder.getCorpse(), this.getInventory(), null, false);
 
         // We don't start them in battle

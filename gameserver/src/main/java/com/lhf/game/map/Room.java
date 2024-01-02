@@ -182,7 +182,7 @@ public class Room implements Area {
                 if (builder == null) {
                     continue;
                 }
-                built.add(builder.quickBuild(() -> aiRunner.produceAI(), successor));
+                built.add(builder.quickBuild(aiRunner, successor));
             }
             return Collections.unmodifiableSet(built);
         }

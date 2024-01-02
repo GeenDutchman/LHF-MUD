@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import com.lhf.game.EffectPersistence;
@@ -17,6 +16,7 @@ import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
@@ -358,17 +358,25 @@ public interface INonPlayerCharacter extends ICreature {
             return this.getThis();
         }
 
-        public abstract NPCType quickBuild(Supplier<CommandInvoker> controllerSupplier, CommandChainHandler successor);
+        public abstract NPCType quickBuild(CommandInvoker controllerSupplier, CommandChainHandler successor);
 
-        public final NPCType quickBuild(AIRunner aiRunner, CommandChainHandler successor) {
+        public final NPCType quickBuild(BasicAI basicAI, CommandChainHandler successor) {
             Statblock block = this.getStatblock();
             if (block == null) {
                 this.useBlankStatblock();
             }
-            Supplier<CommandInvoker> controllerSupplier = aiRunner != null
-                    ? () -> aiRunner.produceAI(getAiHandlersAsArray())
-                    : () -> INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
-            return this.quickBuild(controllerSupplier, successor);
+            if (basicAI == null) {
+                basicAI = INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
+            }
+            NPCType npc = this.quickBuild(basicAI, successor);
+            basicAI.setNPC(npc);
+            return npc;
+        }
+
+        public final NPCType quickBuild(AIRunner aiRunner, CommandChainHandler successor) {
+            BasicAI producedAI = aiRunner != null ? aiRunner.produceAI(getAiHandlersAsArray())
+                    : INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
+            return this.quickBuild(producedAI, successor);
         }
 
         public final NPCType quickBuild(CommandChainHandler successor) {
@@ -376,23 +384,23 @@ public interface INonPlayerCharacter extends ICreature {
         }
 
         @Override
-        public abstract NPCType build(Supplier<CommandInvoker> controllerSupplier,
+        public abstract NPCType build(CommandInvoker controller,
                 CommandChainHandler successor, StatblockManager statblockManager,
                 UnaryOperator<NPCBuilderType> composedlazyLoaders) throws FileNotFoundException;
 
         public final NPCType build(AIRunner aiRunner, CommandChainHandler successor,
                 StatblockManager statblockManager, ConversationManager conversationManager)
                 throws FileNotFoundException {
-            Supplier<CommandInvoker> controllerSupplier = () -> {
-                return aiRunner != null ? aiRunner.produceAI(getAiHandlersAsArray())
-                        : INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
-            };
+            BasicAI producedAI = aiRunner != null ? aiRunner.produceAI(getAiHandlersAsArray())
+                    : INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
 
             UnaryOperator<NPCBuilderType> conversationLoader = (builder) -> {
                 builder.loadConversationTree(conversationManager);
                 return builder;
             };
-            return this.build(controllerSupplier, successor, statblockManager, conversationLoader);
+            NPCType npc = this.build(producedAI, successor, statblockManager, conversationLoader);
+            producedAI.setNPC(npc);
+            return npc;
         }
 
         @Override

@@ -1,7 +1,6 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import com.lhf.game.EntityEffect;
@@ -15,6 +14,7 @@ import com.lhf.game.magic.concrete.DMBlessing;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.server.client.CommandInvoker;
+import com.lhf.server.interfaces.NotNull;
 
 public class NonPlayerCharacter extends Creature implements INonPlayerCharacter {
 
@@ -40,18 +40,18 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
         }
 
         @Override
-        public NonPlayerCharacter quickBuild(Supplier<CommandInvoker> controllerSupplier,
+        public NonPlayerCharacter quickBuild(CommandInvoker controller,
                 CommandChainHandler successor) {
             Statblock block = this.getStatblock();
             if (block == null) {
                 this.useBlankStatblock();
             }
-            return NonPlayerCharacter.buildNPC(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
-                    () -> null, null);
+            return NonPlayerCharacter.buildNPC(this, controller, successor, this.getStatblock(),
+                    null, null);
         }
 
         @Override
-        public NonPlayerCharacter build(Supplier<CommandInvoker> controllerSupplier,
+        public NonPlayerCharacter build(CommandInvoker controller,
                 CommandChainHandler successor, StatblockManager statblockManager,
                 UnaryOperator<NPCBuilder> composedlazyLoaders) throws FileNotFoundException {
             if (statblockManager != null) {
@@ -60,8 +60,8 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
             if (composedlazyLoaders != null) {
                 composedlazyLoaders.apply(this.getThis());
             }
-            return new NonPlayerCharacter(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
-                    () -> this.getConversationTree());
+            return NonPlayerCharacter.buildNPC(this, controller, successor, this.getStatblock(),
+                    this.getConversationTree(), null);
         }
 
         @Override
@@ -79,11 +79,11 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     private transient final HarmMemories harmMemories = HarmMemories.makeMemories(this);
 
     public static NonPlayerCharacter buildNPC(AbstractNPCBuilder<?, ? extends INonPlayerCharacter> builder,
-            Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
-            Supplier<Statblock> statblockSupplier, Supplier<ConversationTree> conversationSupplier,
+            CommandInvoker controller, CommandChainHandler successor,
+            Statblock statblock, ConversationTree converstionTree,
             UnaryOperator<NonPlayerCharacter> transformer) {
-        NonPlayerCharacter made = new NonPlayerCharacter(builder, controllerSupplier, successorSupplier,
-                statblockSupplier, conversationSupplier);
+        NonPlayerCharacter made = new NonPlayerCharacter(builder, controller, successor,
+                statblock, converstionTree);
         if (transformer != null) {
             made = transformer.apply(made);
         }
@@ -91,15 +91,10 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     }
 
     protected NonPlayerCharacter(AbstractNPCBuilder<?, ? extends INonPlayerCharacter> builder,
-            Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
-            Supplier<Statblock> statblockSupplier, Supplier<ConversationTree> conversationSupplier) {
-        super(builder,
-                controllerSupplier != null ? controllerSupplier
-                        : () -> INonPlayerCharacter.defaultAIRunner.produceAI(builder.getAiHandlersAsArray()),
-                successorSupplier, statblockSupplier);
-        if (conversationSupplier != null) {
-            this.convoTree = conversationSupplier.get();
-        }
+            @NotNull CommandInvoker controller, CommandChainHandler successor,
+            @NotNull Statblock statblock, ConversationTree conversationTree) {
+        super(builder, controller, successor, statblock);
+        this.convoTree = conversationTree;
     }
 
     @Override

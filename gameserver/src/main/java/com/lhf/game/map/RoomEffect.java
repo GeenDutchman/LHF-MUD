@@ -1,7 +1,6 @@
 package com.lhf.game.map;
 
 import java.io.FileNotFoundException;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import com.lhf.Taggable;
@@ -13,9 +12,9 @@ import com.lhf.game.creature.Monster.MonsterBuilder;
 import com.lhf.game.creature.NonPlayerCharacter.NPCBuilder;
 import com.lhf.game.creature.SummonedMonster;
 import com.lhf.game.creature.SummonedNPC;
+import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.messages.CommandChainHandler;
-import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
 
 public class RoomEffect extends EntityEffect {
@@ -76,30 +75,32 @@ public class RoomEffect extends EntityEffect {
         return this.summonedMonster;
     }
 
-    public INonPlayerCharacter getSummonedNPC(Supplier<CommandInvoker> controllerSupplier,
+    public INonPlayerCharacter getSummonedNPC(BasicAI controller,
             CommandChainHandler successor, StatblockManager statblockManager,
             UnaryOperator<NPCBuilder> composedlazyLoaders) throws FileNotFoundException {
         if (this.summonedNPC == null) {
             NPCBuilder builder = getNPCToSummon();
             if (builder != null) {
                 this.summonedNPC = new SummonedNPC(
-                        builder.build(controllerSupplier, successor, statblockManager, composedlazyLoaders),
+                        builder.build(controller, successor, statblockManager, composedlazyLoaders),
                         builder.getSummonState(), this.creatureResponsible(), this.getTicker());
+                controller.setNPC(summonedNPC);
             }
         }
         return this.summonedNPC;
     }
 
-    public IMonster getSummonedMonster(Supplier<CommandInvoker> controllerSupplier,
+    public IMonster getSummonedMonster(BasicAI controller,
             CommandChainHandler successor, StatblockManager statblockManager,
             UnaryOperator<MonsterBuilder> composedlazyLoaders) throws FileNotFoundException {
         if (this.summonedMonster == null) {
             MonsterBuilder builder = getMonsterToSummon();
             if (builder != null) {
                 this.summonedMonster = new SummonedMonster(
-                        builder.build(controllerSupplier, successor, statblockManager,
+                        builder.build(controller, successor, statblockManager,
                                 composedlazyLoaders),
                         builder.getSummonState(), this.creatureResponsible(), this.getTicker());
+                controller.setNPC(summonedMonster);
             }
         }
         return this.summonedMonster;

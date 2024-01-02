@@ -1,7 +1,6 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import com.lhf.game.creature.conversation.ConversationTree;
@@ -10,6 +9,7 @@ import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.DMVocation;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.server.client.CommandInvoker;
+import com.lhf.server.interfaces.NotNull;
 
 public class DungeonMaster extends NonPlayerCharacter {
 
@@ -37,18 +37,18 @@ public class DungeonMaster extends NonPlayerCharacter {
         }
 
         @Override
-        public DungeonMaster quickBuild(Supplier<CommandInvoker> controllerSupplier, CommandChainHandler successor) {
+        public DungeonMaster quickBuild(CommandInvoker controller, CommandChainHandler successor) {
             Statblock block = this.getStatblock();
             if (block == null) {
                 this.useBlankStatblock();
             }
-            return new DungeonMaster(this, controllerSupplier,
-                    () -> successor, () -> this.getStatblock(),
-                    () -> null);
+            return new DungeonMaster(this, controller,
+                    successor, this.getStatblock(),
+                    null);
         }
 
         @Override
-        public DungeonMaster build(Supplier<CommandInvoker> controllerSupplier,
+        public DungeonMaster build(CommandInvoker controller,
                 CommandChainHandler successor, StatblockManager statblockManager,
                 UnaryOperator<DungeonMasterBuilder> composedlazyLoaders) throws FileNotFoundException {
             if (statblockManager != null) {
@@ -57,8 +57,8 @@ public class DungeonMaster extends NonPlayerCharacter {
             if (composedlazyLoaders != null) {
                 composedlazyLoaders.apply(this.getThis());
             }
-            return new DungeonMaster(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
-                    () -> this.getConversationTree());
+            return new DungeonMaster(this, controller, successor, this.getStatblock(),
+                    this.getConversationTree());
         }
 
         @Override
@@ -68,9 +68,9 @@ public class DungeonMaster extends NonPlayerCharacter {
     }
 
     public DungeonMaster(DungeonMasterBuilder builder,
-            Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
-            Supplier<Statblock> statblockSupplier, Supplier<ConversationTree> conversationSupplier) {
-        super(builder, controllerSupplier, successorSupplier, statblockSupplier, conversationSupplier);
+            @NotNull CommandInvoker controller, CommandChainHandler successor,
+            @NotNull Statblock statblock, ConversationTree conversationTree) {
+        super(builder, controller, successor, statblock, conversationTree);
     }
 
     public static DungeonMasterBuilder getDMBuilder() {

@@ -15,7 +15,6 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.regex.PatternSyntaxException;
@@ -329,7 +328,7 @@ public interface ICreature
             return this.corpse;
         }
 
-        public abstract CreatureType build(Supplier<CommandInvoker> controllerSupplier,
+        public abstract CreatureType build(CommandInvoker controller,
                 CommandChainHandler successor, StatblockManager statblockManager,
                 UnaryOperator<BuilderType> composedLazyLoaders) throws FileNotFoundException;
 

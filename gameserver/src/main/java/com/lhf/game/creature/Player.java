@@ -1,7 +1,6 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import com.lhf.game.creature.statblock.Statblock;
@@ -12,6 +11,7 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
+import com.lhf.server.interfaces.NotNull;
 
 public class Player extends Creature {
     private User user;
@@ -54,7 +54,7 @@ public class Player extends Creature {
         }
 
         @Override
-        public Player build(Supplier<CommandInvoker> controllerSupplier,
+        public Player build(CommandInvoker controller,
                 CommandChainHandler successor, StatblockManager statblockManager,
                 UnaryOperator<PlayerBuilder> composedLazyLoaders)
                 throws FileNotFoundException {
@@ -65,14 +65,13 @@ public class Player extends Creature {
             if (composedLazyLoaders != null) {
                 composedLazyLoaders.apply(this.getThis());
             }
-            return new Player(this.getThis(), controllerSupplier, () -> successor, () -> this.getStatblock());
+            return new Player(this.getThis(), controller, successor, this.getStatblock());
         }
 
         public Player build(User user, CommandChainHandler successor, StatblockManager statblockManager,
                 UnaryOperator<PlayerBuilder> composedLazyLoaders) throws FileNotFoundException {
             this.setUser(user);
-            Supplier<CommandInvoker> controllerSupplier = () -> user;
-            return this.build(controllerSupplier, successor, statblockManager, composedLazyLoaders);
+            return this.build(user, successor, statblockManager, composedLazyLoaders);
         }
 
         public Player build(CommandChainHandler successor) {
@@ -90,14 +89,14 @@ public class Player extends Creature {
                 currStatBlock = currVocation.createNewDefaultStatblock("Player").build();
                 this.setStatblock(currStatBlock);
             }
-            return new Player(this.getThis(), () -> foundUser, () -> successor, () -> this.getStatblock());
+            return new Player(this.getThis(), foundUser, successor, this.getStatblock());
         }
     }
 
     public Player(PlayerBuilder builder,
-            Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
-            Supplier<Statblock> statblockSupplier) {
-        super(builder, controllerSupplier, successorSupplier, statblockSupplier);
+            @NotNull CommandInvoker controller, CommandChainHandler successor,
+            @NotNull Statblock statblock) {
+        super(builder, controller, successor, statblock);
         this.user = builder.getUser();
         this.user.setSuccessor(this);
     }

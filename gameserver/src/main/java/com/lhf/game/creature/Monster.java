@@ -2,7 +2,6 @@ package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
 import java.util.Objects;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import com.lhf.game.creature.conversation.ConversationTree;
@@ -11,6 +10,7 @@ import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.server.client.CommandInvoker;
+import com.lhf.server.interfaces.NotNull;
 
 public class Monster extends NonPlayerCharacter implements IMonster {
     private final long monsterNumber;
@@ -59,17 +59,17 @@ public class Monster extends NonPlayerCharacter implements IMonster {
         }
 
         @Override
-        public Monster quickBuild(Supplier<CommandInvoker> controllerSupplier, CommandChainHandler successor) {
+        public Monster quickBuild(CommandInvoker controller, CommandChainHandler successor) {
             Statblock block = this.getStatblock();
             if (block == null) {
                 this.useBlankStatblock();
             }
-            return Monster.buildMonster(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
-                    () -> null, null);
+            return Monster.buildMonster(this, controller, successor, this.getStatblock(),
+                    null, null);
         }
 
         @Override
-        public Monster build(Supplier<CommandInvoker> controllerSupplier,
+        public Monster build(CommandInvoker controller,
                 CommandChainHandler successor, StatblockManager statblockManager,
                 UnaryOperator<MonsterBuilder> composedlazyLoaders) throws FileNotFoundException {
             if (statblockManager != null) {
@@ -78,8 +78,8 @@ public class Monster extends NonPlayerCharacter implements IMonster {
             if (composedlazyLoaders != null) {
                 composedlazyLoaders.apply(this.getThis());
             }
-            return Monster.buildMonster(this, controllerSupplier, () -> successor, () -> this.getStatblock(),
-                    () -> this.getConversationTree(), null);
+            return Monster.buildMonster(this, controller, successor, this.getStatblock(),
+                    this.getConversationTree(), null);
         }
 
         @Override
@@ -89,11 +89,11 @@ public class Monster extends NonPlayerCharacter implements IMonster {
     }
 
     public static Monster buildMonster(MonsterBuilder builder,
-            Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
-            Supplier<Statblock> statblockSupplier, Supplier<ConversationTree> conversationSupplier,
+            CommandInvoker controller, CommandChainHandler successor,
+            Statblock statblock, ConversationTree converstionTree,
             UnaryOperator<Monster> transformer) {
-        Monster made = new Monster(builder, controllerSupplier, successorSupplier, statblockSupplier,
-                conversationSupplier);
+        Monster made = new Monster(builder, controller, successor, statblock,
+                converstionTree);
         if (transformer != null) {
             made = transformer.apply(made);
         }
@@ -101,9 +101,9 @@ public class Monster extends NonPlayerCharacter implements IMonster {
     }
 
     protected Monster(MonsterBuilder builder,
-            Supplier<CommandInvoker> controllerSupplier, Supplier<CommandChainHandler> successorSupplier,
-            Supplier<Statblock> statblockSupplier, Supplier<ConversationTree> conversationSupplier) {
-        super(builder, controllerSupplier, successorSupplier, statblockSupplier, conversationSupplier);
+            @NotNull CommandInvoker controller, CommandChainHandler successor,
+            @NotNull Statblock statblock, ConversationTree conversationTree) {
+        super(builder, controller, successor, statblock, conversationTree);
         this.monsterNumber = builder.getMonsterNumber();
     }
 

@@ -47,7 +47,7 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
         this.mockedWrappedHandler = Mockito.mock(CommandChainHandler.class);
 
         this.brain = AIComBundle.getAIRunner().produceAI();
-        this.brain.setNPC(NonPlayerCharacter.getNPCBuilder().useBlankStatblock().quickBuild(() -> this.brain, this));
+        this.brain.setNPC(NonPlayerCharacter.getNPCBuilder().useBlankStatblock().quickBuild(this.brain, this));
         this.brain.SetOut(this.sssb);
     }
 
