@@ -246,7 +246,8 @@ public class DMRoom extends Room {
 
             LewdBed.Builder bedBuilder = LewdBed.Builder.getInstance().setCapacity(2)
                     .setLewdProduct(new LewdBabyMaker());
-            for (ICreature dm : built.getCreaturesLike("Lovejax")) {
+            for (ICreature dm : built.filterCreatures(EnumSet.of(CreatureFilters.NAME), "Lovejax", 7, null, null, null,
+                    null)) {
                 if (dm != null) {
                     bedBuilder.addOccupant(dm);
                 }
