@@ -24,6 +24,7 @@ public class CreatureStatusRequestedEvent extends GameEvent implements ITickEven
     private final AttributeBlock attributes;
     private final VocationName vocationName;
     private final Integer vocationLevel;
+    private final String vocationResources;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private boolean full;
@@ -38,6 +39,7 @@ public class CreatureStatusRequestedEvent extends GameEvent implements ITickEven
         private AttributeBlock attributes;
         private VocationName vocationName;
         private Integer vocationLevel;
+        private String vocationResources;
 
         protected Builder() {
             super(GameEventType.STATUS);
@@ -54,11 +56,16 @@ public class CreatureStatusRequestedEvent extends GameEvent implements ITickEven
             this.vocationName = creature.getVocation() != null ? creature.getVocation().getVocationName() : null;
             this.vocationLevel = creature.getVocation() != null ? creature.getVocation().getLevel() : null;
             if (this.full) {
+                this.vocationResources = creature.getVocation() != null
+                        && creature.getVocation().getResourcePool() != null
+                                ? creature.getVocation().getResourcePool().print()
+                                : null;
                 this.currentHealth = creature.getStats().get(Stats.CURRENTHP);
                 this.maxHealth = creature.getStats().get(Stats.MAXHP);
                 this.armorClass = creature.getStats().get(Stats.AC);
                 this.attributes = creature.getAttributes();
             } else {
+                this.vocationResources = null;
                 this.currentHealth = null;
                 this.maxHealth = null;
                 this.armorClass = null;
@@ -113,6 +120,10 @@ public class CreatureStatusRequestedEvent extends GameEvent implements ITickEven
 
         public Integer getVocationLevel() {
             return vocationLevel;
+        }
+
+        public String getVocationResources() {
+            return vocationResources;
         }
 
         /*
@@ -198,6 +209,7 @@ public class CreatureStatusRequestedEvent extends GameEvent implements ITickEven
         this.healthBucket = builder.getHealthBucket();
         this.vocationName = builder.getVocationName();
         this.vocationLevel = builder.getVocationLevel();
+        this.vocationResources = builder.getVocationResources();
         this.currentHealth = builder.getCurrentHealth();
         this.maxHealth = builder.getMaxHealth();
         this.armorClass = builder.getArmorClass();
@@ -222,6 +234,9 @@ public class CreatureStatusRequestedEvent extends GameEvent implements ITickEven
             sb.append("Vocation: ").append(this.vocationName.getColorTaggedName());
             if (this.vocationLevel != null) {
                 sb.append(" ").append(this.vocationLevel);
+            }
+            if (this.vocationResources != null) {
+                sb.append(" ").append(this.vocationResources);
             }
             sb.append("\r\n");
         }

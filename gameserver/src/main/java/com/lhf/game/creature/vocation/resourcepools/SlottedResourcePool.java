@@ -58,8 +58,13 @@ public abstract class SlottedResourcePool implements ResourcePool {
 
     @Override
     public String print() {
-        return String.format("%s: \n%s", this.getClass().getName(),
-                this.slots.values().stream().map(slot -> slot.print()).collect(Collectors.joining("\n")));
+        return String.format("%s: \n%s", this.getClass().getSimpleName(),
+                ResourceCost.NO_COST.toString() + ": Infinite\r\n" +
+                        this.slots.entrySet().stream()
+                                .filter(entry -> entry.getValue().getLevelMaxAmount() > 0
+                                        || ResourceCost.NO_COST.equals(entry.getKey()))
+                                .map(entry -> entry.getKey().toString() + " " + entry.getValue().print())
+                                .collect(Collectors.joining("\n")));
     }
 
     @Override

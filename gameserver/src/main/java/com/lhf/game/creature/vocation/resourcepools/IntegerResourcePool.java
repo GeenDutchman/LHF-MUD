@@ -47,7 +47,7 @@ public abstract class IntegerResourcePool implements ResourcePool {
 
     @Override
     public String print() {
-        return String.format("%s: %d/%d", this.getClass().getName(), this.amount, this.levelMaxAmount);
+        return String.format("%s: %d/%d", this.getClass().getSimpleName(), this.amount, this.levelMaxAmount);
     }
 
     @Override

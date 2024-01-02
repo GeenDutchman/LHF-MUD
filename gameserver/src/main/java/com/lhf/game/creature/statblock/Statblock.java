@@ -1,7 +1,6 @@
 package com.lhf.game.creature.statblock;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;

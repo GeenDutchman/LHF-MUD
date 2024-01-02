@@ -21,9 +21,9 @@ public class Healer extends Vocation implements CubeHolder {
         protected SpellPoints() {
             super(22, level -> {
                 int calculated = 0;
-                for (int i = 1; i <= level; i++) {
+                for (int i = 0; i <= level; i++) {
                     calculated += 1;
-                    if (i < 7 && i % 2 != 0) {
+                    if (i < 7 && i % 2 == 0) {
                         calculated += 1;
                     }
                 }

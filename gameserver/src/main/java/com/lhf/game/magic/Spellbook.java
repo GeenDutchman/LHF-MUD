@@ -73,6 +73,8 @@ public class Spellbook {
         this.entries.add(thunderStrike);
         SpellEntry ensouling = new Ensouling();
         this.entries.add(ensouling);
+        SpellEntry electricWisp = new ElectricWisp();
+        this.entries.add(electricWisp);
         this.setupPath();
     }
 
