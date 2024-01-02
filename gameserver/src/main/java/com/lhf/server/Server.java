@@ -56,7 +56,7 @@ public class Server implements ServerInterface, ConnectionListener {
         this.acceptedCommands.put(CommandMessage.EXIT, new ExitHandler());
         this.acceptedCommands.put(CommandMessage.CREATE, new CreateHandler());
         this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
-        this.game = new GameBuilder().setDefaults().build(userManager);
+        this.game = new GameBuilder().setServer(this).setDefaults().build(userManager);
         this.logger.exiting(this.getClass().getName(), "NoArgConstructor", "NoArgConstructor");
     }
 
