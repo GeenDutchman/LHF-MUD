@@ -6,6 +6,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
+import java.util.function.UnaryOperator;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
@@ -14,6 +16,9 @@ import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.creature.intelligence.BasicAI;
+import com.lhf.game.creature.intelligence.GroupAIRunner;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.dice.MultiRollResult;
@@ -27,6 +32,7 @@ import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
@@ -40,6 +46,7 @@ import com.lhf.server.interfaces.NotNull;
  * @see {@link com.lhf.game.creature.ICreature ICreature}
  */
 public interface INonPlayerCharacter extends ICreature {
+    public static final AIRunner defaultAIRunner = new GroupAIRunner(true);
 
     /**
      * A BlessedFist is a {@link com.lhf.game.item.Weapon Weapon} used by those NPCs
@@ -70,6 +77,11 @@ public interface INonPlayerCharacter extends ICreature {
             this.slots = List.of(EquipmentSlots.WEAPON);
             this.descriptionString = "This is a Fist attached to a Creature who is blessed\n";
 
+        }
+
+        @Override
+        public BlessedFist makeCopy() {
+            return new BlessedFist();
         }
     }
 
@@ -211,64 +223,102 @@ public interface INonPlayerCharacter extends ICreature {
     /**
      * Builder pattern root for all NPCs.
      */
-    public static abstract class AbstractNPCBuilder<T extends AbstractNPCBuilder<T>>
-            extends ICreature.CreatureBuilder<T> {
-        private ConversationTree conversationTree = null;
-        private AIRunner aiRunner;
-        private List<AIHandler> aiHandlers;
+    public static abstract class AbstractNPCBuilder<NPCBuilderType extends AbstractNPCBuilder<NPCBuilderType, NPCType>, NPCType extends INonPlayerCharacter>
+            extends ICreature.CreatureBuilder<NPCBuilderType, INonPlayerCharacter> {
+        public enum SummonData {
+            /**
+             * When the summoner dies, the summon dies
+             */
+            LIFELINE_SUMMON,
+            /**
+             * While the summoner is alive, summon maintains the same faction as the
+             * summoner
+             */
+            SYMPATHETIC_SUMMON,
+            /**
+             * If the summon is survives the summoner, maintains the same faction as the
+             * summoner
+             */
+            LOYAL_SUMMON
+        };
 
-        protected AbstractNPCBuilder(AIRunner aiRunner) {
+        private String conversationFileName = null;
+        private ConversationTree conversationTree = null;
+        private List<AIHandler> aiHandlers;
+        private EnumSet<SummonData> summonState;
+        private String leaderName;
+
+        protected AbstractNPCBuilder() {
             super();
             this.setFaction(CreatureFaction.NPC);
-            this.aiRunner = aiRunner;
             this.aiHandlers = new ArrayList<>();
+            this.summonState = EnumSet.noneOf(SummonData.class);
+            this.leaderName = null;
         }
 
-        @Override
-        protected T getThis() {
-            return this.thisObject;
+        protected void copyFrom(NPCBuilderType other) {
+            this.conversationFileName = other.getConversationFileName() != null
+                    ? new String(other.getConversationFileName())
+                    : null;
+            this.conversationTree = null;
+            ConversationTree otherTree = other.getConversationTree();
+            if (otherTree != null) {
+                this.conversationTree = otherTree.makeCopy();
+            }
+            this.aiHandlers = new ArrayList<>(other.getAIHandlers());
+            this.summonState = EnumSet.copyOf(other.getSummonState());
         }
 
-        public T setConversationTree(ConversationTree tree) {
-            this.conversationTree = tree;
-            return this.getThis();
+        public String getConversationFileName() {
+            if (this.conversationTree != null) {
+                this.conversationFileName = this.conversationTree.getTreeName();
+            }
+            return conversationFileName;
         }
 
-        public T setConversationTree(ConversationManager manager, String name) {
-            if (name != null && manager != null) {
-                try {
-                    this.conversationTree = manager.convoTreeFromFile(name);
-                } catch (FileNotFoundException e) {
-                    System.err.println("Cannot load that convo file");
-                    e.printStackTrace();
-                }
-            } else {
+        public NPCBuilderType setConversationFileName(String conversationFileName) {
+            this.conversationFileName = conversationFileName;
+            if (this.conversationTree != null && !this.conversationTree.getTreeName().equals(conversationFileName)) {
                 this.conversationTree = null;
             }
             return this.getThis();
         }
 
-        public ConversationTree getConversationTree() {
-            return this.conversationTree;
-        }
-
-        public T useDefaultConversation(ConversationManager convoManager) throws FileNotFoundException {
-            if (convoManager != null) {
-                this.conversationTree = convoManager.convoTreeFromFile(INonPlayerCharacter.defaultConvoTreeName);
+        public NPCBuilderType setConversationTree(ConversationTree tree) {
+            this.conversationTree = tree;
+            if (tree != null) {
+                this.conversationFileName = tree.getTreeName();
             }
             return this.getThis();
         }
 
-        public AIRunner getAiRunner() {
-            return aiRunner;
+        public ConversationTree loadConversationTree(ConversationManager conversationManager) {
+            String filename = this.getConversationFileName();
+            if (this.conversationTree == null && filename != null) {
+                if (conversationManager == null) {
+                    throw new IllegalArgumentException("Cannot create conversation Tree without converation manager");
+                }
+                try {
+                    this.setConversationTree(conversationManager.convoTreeFromFile(filename));
+                } catch (FileNotFoundException e) {
+                    System.err.printf("Cannot load that convo file '%s'\n", filename);
+                    e.printStackTrace();
+                    this.conversationTree = null;
+                }
+            }
+            return this.conversationTree;
         }
 
-        public T setAiRunner(AIRunner aiRunner) {
-            this.aiRunner = aiRunner;
+        public ConversationTree getConversationTree() {
+            return conversationTree;
+        }
+
+        public NPCBuilderType useDefaultConversation() {
+            this.setConversationFileName(INonPlayerCharacter.defaultConvoTreeName);
             return this.getThis();
         }
 
-        public T addAIHandler(AIHandler handler) {
+        public NPCBuilderType addAIHandler(AIHandler handler) {
             if (handler != null) {
                 this.aiHandlers.add(handler);
             }
@@ -283,29 +333,97 @@ public interface INonPlayerCharacter extends ICreature {
             return this.aiHandlers.toArray(new AIHandler[this.aiHandlers.size()]);
         }
 
-        public T clearAIHandlers() {
+        public NPCBuilderType clearAIHandlers() {
             this.aiHandlers.clear();
             return this.getThis();
         }
 
-        protected INonPlayerCharacter register(INonPlayerCharacter npc) {
-            if (this.aiRunner != null) {
-                this.aiRunner.register(npc, this.getAiHandlersAsArray());
+        public EnumSet<SummonData> getSummonState() {
+            return summonState;
+        }
+
+        public NPCBuilderType resetSummonState() {
+            this.summonState.clear();
+            return this.getThis();
+        }
+
+        public NPCBuilderType addSummonState(SummonData data) {
+            if (data != null) {
+                this.summonState.add(data);
             }
+            return this.getThis();
+        }
+
+        public NPCBuilderType setSummonStates(Set<SummonData> summonData) {
+            if (summonData != null) {
+                this.summonState = EnumSet.copyOf(summonData);
+            }
+            return this.getThis();
+        }
+
+        public String getLeaderName() {
+            return leaderName;
+        }
+
+        public NPCBuilderType setLeaderName(String leaderName) {
+            this.leaderName = leaderName;
+            return this.getThis();
+        }
+
+        public abstract NPCType quickBuild(BasicAI basicAI, CommandChainHandler successor);
+
+        public final NPCType quickBuild(AIRunner aiRunner, CommandChainHandler successor) {
+            BasicAI producedAI = aiRunner != null ? aiRunner.produceAI(getAiHandlersAsArray())
+                    : INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
+            return this.quickBuild(producedAI, successor);
+        }
+
+        public final NPCType quickBuild(CommandChainHandler successor) {
+            return this.quickBuild(INonPlayerCharacter.defaultAIRunner, successor);
+        }
+
+        @Override
+        public abstract NPCType build(CommandInvoker controller,
+                CommandChainHandler successor, StatblockManager statblockManager,
+                UnaryOperator<NPCBuilderType> composedlazyLoaders) throws FileNotFoundException;
+
+        public final NPCType build(AIRunner aiRunner, CommandChainHandler successor,
+                StatblockManager statblockManager, ConversationManager conversationManager)
+                throws FileNotFoundException {
+            BasicAI producedAI = aiRunner != null ? aiRunner.produceAI(getAiHandlersAsArray())
+                    : INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
+
+            UnaryOperator<NPCBuilderType> conversationLoader = (builder) -> {
+                builder.loadConversationTree(conversationManager);
+                return builder;
+            };
+            NPCType npc = this.build(producedAI, successor, statblockManager, conversationLoader);
+            producedAI.setNPC(npc);
             return npc;
         }
 
-        /**
-         * Builds an NPC that is potentially not registered with an
-         * {@link com.lhf.game.creature.intelligence.AIRunner AIRunner}.
-         * 
-         * @return the built NPC
-         */
-        protected abstract INonPlayerCharacter preEnforcedRegistrationBuild();
-
         @Override
-        public INonPlayerCharacter build() {
-            return this.register(this.preEnforcedRegistrationBuild());
+        public String toString() {
+            StringBuilder sb = new StringBuilder(super.toString());
+            if (this.conversationFileName != null) {
+                sb.append("With conversation like: ").append(this.conversationFileName);
+                if (this.conversationTree != null) {
+                    sb.append(" (concrete conversation tree present)");
+                }
+                sb.append(".\r\n");
+            }
+            if (this.aiHandlers != null && !this.aiHandlers.isEmpty()) {
+                StringJoiner sj = new StringJoiner(", ", "With handlers for ", ".\r\n");
+                for (final AIHandler handler : this.aiHandlers) {
+                    sj.add(handler.getOutMessageType().toString());
+                }
+                sb.append(sj.toString());
+            }
+            if (this.summonState != null && !this.summonState.isEmpty()) {
+                sb.append("With the following summon characteristics: ").append(this.summonState.toString())
+                        .append("\r\n");
+            }
+            return sb.toString();
         }
 
     }
@@ -406,5 +524,19 @@ public interface INonPlayerCharacter extends ICreature {
      * @param cont {@link com.lhf.server.client.CommandInvoker Controller}
      */
     public abstract void setController(CommandInvoker cont);
+
+    /**
+     * Gets the name of the Creature that this NPC will follow, or null
+     * 
+     * @return
+     */
+    public abstract String getLeaderName();
+
+    /**
+     * Sets the name of the Creature that this NPC will follow, can be null
+     * 
+     * @param leaderName
+     */
+    public abstract void setLeaderName(String leaderName);
 
 }

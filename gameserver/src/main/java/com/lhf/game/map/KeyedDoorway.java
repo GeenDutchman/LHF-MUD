@@ -4,14 +4,16 @@ import java.util.UUID;
 
 import com.lhf.game.Lockable;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.map.DoorwayFactory.DoorwayType;
 
 class KeyedDoorway extends CloseableDoorway implements Lockable {
-    private UUID doorwayUuid;
+    private final UUID doorwayUuid;
 
-    public KeyedDoorway(UUID roomAUuid, Directions fromBtoA, UUID roomBUuid) {
-        super(roomAUuid, fromBtoA, roomBUuid);
-        this.close();
+    public KeyedDoorway() {
+        this.doorwayUuid = UUID.randomUUID();
+    }
+
+    public KeyedDoorway(boolean opened) {
+        super(opened);
         this.doorwayUuid = UUID.randomUUID();
     }
 
@@ -41,14 +43,14 @@ class KeyedDoorway extends CloseableDoorway implements Lockable {
     }
 
     @Override
-    public boolean canTraverse(ICreature creature, Directions whichWay) {
+    public boolean testTraversal(ICreature creature, Directions direction, Area source, Area dest) {
         if (!this.canAccess(creature)) {
             return false;
         }
         if (this.accessUnlocks()) {
             this.open();
         }
-        return true;
+        return super.testTraversal(creature, direction, source, dest);
     }
 
 }

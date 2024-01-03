@@ -9,7 +9,7 @@ public class DungeonEffect extends EntityEffect {
     protected String createdRoomName;
     protected Directions toCreatedRoom;
     protected String createdRoomDescription;
-    protected Room createdRoom;
+    protected RoomBuilder roomToMake;
 
     private void setDefaultDescription() {
         this.createdRoomDescription = "Created by " + this.creatureResponsible().getColorTaggedName();
@@ -20,7 +20,7 @@ public class DungeonEffect extends EntityEffect {
         super(source, creatureResponsible, generatedBy);
         this.createdRoomName = createdRoomName;
         this.toCreatedRoom = toCreatedRoom;
-        this.createdRoom = null;
+        this.roomToMake = null;
         this.setDefaultDescription();
     }
 
@@ -31,7 +31,7 @@ public class DungeonEffect extends EntityEffect {
         this.toCreatedRoom = toCreatedRoom;
         this.setDefaultDescription();
         this.createdRoomDescription += "\r\n" + createdRoomDescription;
-        this.createdRoom = null;
+        this.roomToMake = null;
     }
 
     public DungeonEffectSource getSource() {
@@ -50,17 +50,13 @@ public class DungeonEffect extends EntityEffect {
         return createdRoomDescription;
     }
 
-    public Room getCreatedRoom() {
-        if (this.createdRoom == null) {
-            if (this.createdRoom == null) {
-                RoomBuilder rb = RoomBuilder.getInstance();
-                rb.setName(this.getRoomName());
-                rb.setDescription(this.getRoomDescription());
-                this.createdRoom = rb.build();
-            }
-            return this.createdRoom;
+    public RoomBuilder getRoomToMake() {
+        if (this.roomToMake == null) {
+            this.roomToMake = RoomBuilder.getInstance();
+            this.roomToMake.setName(this.getRoomName())
+                    .setDescription(this.getRoomDescription());
         }
-        return createdRoom;
+        return roomToMake;
     }
 
     public boolean isAddsRoomToDungeon() {

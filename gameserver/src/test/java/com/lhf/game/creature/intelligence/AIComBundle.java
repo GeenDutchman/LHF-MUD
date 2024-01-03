@@ -36,7 +36,6 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
         return AIComBundle.aiRunner;
     }
 
-    public INonPlayerCharacter npc;
     public BasicAI brain;
     private final GameEventProcessorID gameEventProcessorID;
     @Mock
@@ -47,16 +46,18 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
         this.gameEventProcessorID = new GameEventProcessorID();
         this.mockedWrappedHandler = Mockito.mock(CommandChainHandler.class);
 
-        this.npc = NonPlayerCharacter.getNPCBuilder(AIComBundle.getAIRunner()).build();
-        this.brain = AIComBundle.getAIRunner().register(this.npc);
-        brain.SetOut(this.sssb);
-        this.npc.setController(this.brain);
-        this.npc.setSuccessor(this);
+        this.brain = AIComBundle.getAIRunner().produceAI();
+        this.brain.setNPC(NonPlayerCharacter.getNPCBuilder().useBlankStatblock().quickBuild(this.brain, this));
+        this.brain.SetOut(this.sssb);
+    }
+
+    public INonPlayerCharacter getNPC() {
+        return this.brain.getNpc();
     }
 
     @Override
     protected String getName() {
-        return super.getName() + ' ' + this.npc.getName();
+        return super.getName() + ' ' + this.brain.npc.getName();
     }
 
     @Override
@@ -95,18 +96,18 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
     }
 
     @Override
-    public Collection<GameEventProcessor> getClientMessengers() {
+    public Collection<GameEventProcessor> getGameEventProcessors() {
         return Set.of();
     }
 
     @Override
     public void log(Level logLevel, String logMessage) {
-        this.npc.log(logLevel, logMessage);
+        this.brain.log(logLevel, logMessage);
     }
 
     @Override
     public void log(Level logLevel, Supplier<String> logMessageSupplier) {
-        this.npc.log(logLevel, logMessageSupplier);
+        this.brain.log(logLevel, logMessageSupplier);
     }
 
     @Override

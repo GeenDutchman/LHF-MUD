@@ -4,15 +4,9 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.stream.Collectors;
 
-import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.resourcepools.IntegerResourcePool;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
-import com.lhf.game.enums.Attributes;
-import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.ResourceCost;
-import com.lhf.game.enums.Stats;
-import com.lhf.game.item.concrete.HealPotion;
-import com.lhf.game.item.concrete.equipment.LeatherArmor;
 import com.lhf.game.magic.CubeHolder;
 
 public class Healer extends Vocation implements CubeHolder {
@@ -21,9 +15,9 @@ public class Healer extends Vocation implements CubeHolder {
         protected SpellPoints() {
             super(22, level -> {
                 int calculated = 0;
-                for (int i = 1; i <= level; i++) {
+                for (int i = 0; i <= level; i++) {
                     calculated += 1;
-                    if (i < 7 && i % 2 != 0) {
+                    if (i < 7 && i % 2 == 0) {
                         calculated += 1;
                     }
                 }
@@ -42,6 +36,15 @@ public class Healer extends Vocation implements CubeHolder {
         super(VocationName.HEALER);
     }
 
+    public Healer(Integer level) {
+        super(VocationName.HEALER, level);
+    }
+
+    @Override
+    public Vocation copy() {
+        return new Healer();
+    }
+
     @Override
     protected ResourcePool initPool() {
         return new SpellPoints();
@@ -50,31 +53,6 @@ public class Healer extends Vocation implements CubeHolder {
     @Override
     public String getCasterVocation() {
         return this.getName();
-    }
-
-    @Override
-    public Statblock createNewDefaultStatblock(String creatureRace) {
-        Statblock built = new Statblock(creatureRace);
-        built.getProficiencies().add(EquipmentTypes.SIMPLEMELEEWEAPONS);
-        built.getProficiencies().add(EquipmentTypes.LIGHTARMOR);
-
-        built.getInventory().addItem(new LeatherArmor(false));
-        built.getInventory().addItem(new HealPotion(true));
-
-        // Set default stats
-        built.getStats().put(Stats.MAXHP, 9);
-        built.getStats().put(Stats.CURRENTHP, 9);
-        built.getStats().put(Stats.AC, 11);
-        built.getStats().put(Stats.XPWORTH, 500);
-
-        built.getAttributes().setScore(Attributes.STR, 8);
-        built.getAttributes().setScore(Attributes.DEX, 10);
-        built.getAttributes().setScore(Attributes.CON, 12);
-        built.getAttributes().setScore(Attributes.INT, 14);
-        built.getAttributes().setScore(Attributes.WIS, 16);
-        built.getAttributes().setScore(Attributes.CHA, 12);
-
-        return built;
     }
 
     @Override

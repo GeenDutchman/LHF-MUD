@@ -1,0 +1,62 @@
+{
+  "creatureRace": "Stickman",
+  "attributes": {
+    "strength": {
+      "score": 16,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "dexterity": {
+      "score": 24,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "constitution": {
+      "score": 4,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "intelligence": {
+      "score": 1,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "wisdom": {
+      "score": 1,
+      "scoreBonus": 0,
+      "modBonus": 0
+    },
+    "charisma": {
+      "score": 16,
+      "scoreBonus": 0,
+      "modBonus": 0
+    }
+  },
+  "stats": {
+    "MAXHP": 17,
+    "CURRENTHP": 17,
+    "XPEARNED": 0,
+    "XPWORTH": 24,
+    "PROFICIENCYBONUS": 0,
+    "AC": 17
+  },
+  "proficiencies": [
+    "SIMPLEMELEEWEAPONS",
+    "MONSTERPART"
+  ],
+  "inventory": {
+    "items": []
+  },
+  "equipmentSlots": {},
+  "damageFlavorReactions": {
+    "weaknesses": [
+      "BLUDGEONING"
+    ],
+    "resistances": [],
+    "immunities": [
+      "AGGRO",
+      "HEALING"
+    ],
+    "healing": []
+  }
+}

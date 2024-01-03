@@ -25,6 +25,11 @@ public class Inventory implements ItemContainer {
         items = new ArrayList<>();
     }
 
+    public Inventory(Inventory other) {
+        this.items = new ArrayList<>();
+        ItemContainer.transfer(other, this, null, true);
+    }
+
     @Override
     public Collection<Item> getItems() {
         return Collections.unmodifiableList(this.items);

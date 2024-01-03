@@ -42,45 +42,48 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
 
     public abstract boolean removePlayer(Player player);
 
-    public enum Filters {
+    public enum CreatureFilters {
         NAME, FACTION, VOCATION, TYPE, BATTLING;
     }
 
-    public default Collection<ICreature> filterCreatures(EnumSet<Filters> filters, String name, Integer nameRegexLen,
+    public default Collection<ICreature> filterCreatures(EnumSet<CreatureFilters> filters, String name,
+            Integer nameRegexLen,
             CreatureFaction faction, VocationName vocation, Class<? extends ICreature> clazz, Boolean isBattling) {
         Collection<ICreature> retrieved = this.getCreatures();
         Supplier<Collection<ICreature>> sortSupplier = () -> new TreeSet<ICreature>();
         return Collections.unmodifiableCollection(retrieved.stream()
                 .filter(creature -> creature != null)
-                .filter(creature -> !filters.contains(Filters.NAME)
+                .filter(creature -> !filters.contains(CreatureFilters.NAME)
                         || (name != null && (nameRegexLen != null ? creature.CheckNameRegex(name, nameRegexLen)
                                 : creature.checkName(name))))
-                .filter(creature -> !filters.contains(Filters.FACTION)
+                .filter(creature -> !filters.contains(CreatureFilters.FACTION)
                         || (faction != null && faction.equals(creature.getFaction())))
                 .filter(creature -> {
-                    if (!filters.contains(Filters.VOCATION)) {
+                    if (!filters.contains(CreatureFilters.VOCATION)) {
                         return true;
                     }
                     Vocation cVocation = creature.getVocation();
                     return cVocation == null ? vocation == null
                             : (vocation != null && vocation.equals(cVocation.getVocationName()));
                 })
-                .filter(creature -> !filters.contains(Filters.TYPE) || (clazz != null && clazz.isInstance(creature)))
-                .filter(creature -> !filters.contains(Filters.BATTLING)
+                .filter(creature -> !filters.contains(CreatureFilters.TYPE)
+                        || (clazz != null && clazz.isInstance(creature)))
+                .filter(creature -> !filters.contains(CreatureFilters.BATTLING)
                         || (isBattling != null && isBattling == creature.isInBattle()))
                 .collect(Collectors.toCollection(sortSupplier)));
     }
 
     public default Optional<ICreature> getCreature(String name) {
-        return this.filterCreatures(EnumSet.of(Filters.NAME), name, null, null, null, null, null).stream().findFirst();
+        return this.filterCreatures(EnumSet.of(CreatureFilters.NAME), name, null, null, null, null, null).stream()
+                .findFirst();
     }
 
     public default Collection<ICreature> getCreaturesLike(String name) {
-        return this.filterCreatures(EnumSet.of(Filters.NAME), name, null, null, null, null, null);
+        return this.filterCreatures(EnumSet.of(CreatureFilters.NAME), name, null, null, null, null, null);
     }
 
     public default Collection<ICreature> getPlayers() {
-        return this.filterCreatures(EnumSet.of(Filters.TYPE), null, null, null, null, Player.class, null);
+        return this.filterCreatures(EnumSet.of(CreatureFilters.TYPE), null, null, null, null, Player.class, null);
     }
 
     public default Optional<Player> getPlayer(UserID id) {
@@ -95,7 +98,8 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
 
     public default Optional<Player> getPlayer(String name) {
         Optional<ICreature> asCreature = this
-                .filterCreatures(EnumSet.of(Filters.TYPE, Filters.NAME), name, null, null, null, Player.class, null)
+                .filterCreatures(EnumSet.of(CreatureFilters.TYPE, CreatureFilters.NAME), name, null, null, null,
+                        Player.class, null)
                 .stream().findFirst();
         if (asCreature.isPresent()) {
             return Optional.of((Player) asCreature.get());
@@ -104,7 +108,8 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
     }
 
     public default boolean hasCreature(String name, Integer minimumLength) {
-        return this.filterCreatures(EnumSet.of(Filters.NAME), name, minimumLength, null, null, null, null).size() > 0;
+        return this.filterCreatures(EnumSet.of(CreatureFilters.NAME), name, minimumLength, null, null, null, null)
+                .size() > 0;
     }
 
     public default boolean hasCreature(String name) {
@@ -116,7 +121,7 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
     }
 
     @Override
-    default Collection<GameEventProcessor> getClientMessengers() {
+    default Collection<GameEventProcessor> getGameEventProcessors() {
         TreeSet<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
         messengers.addAll(this.getCreatures().stream()
                 .filter(creature -> creature != null)

@@ -1,7 +1,5 @@
 package com.lhf.game.creature.intelligence;
 
-import com.lhf.game.creature.INonPlayerCharacter;
-
 /**
  * This interface is meant to give a thread control of a BasicAI.
  */
@@ -41,14 +39,10 @@ public interface AIRunner extends Runnable {
     public void getAttention(BasicAI ai) throws InterruptedException;
 
     /**
-     * Registers an NPC with the AIRunner, and as well, will register the variadic
-     * handlers
-     * with the BasicAI.
+     * Produces a BasicAI that is already registered and has the provided handlers.
      * 
-     * @param npc      to register
-     * @param handlers variadic argument of handlers to register
-     * @return null if cannot be registered, or populated if can be or is already
-     *         registered
+     * @param handlers
+     * @return
      */
-    public BasicAI register(INonPlayerCharacter npc, AIHandler... handlers);
+    public BasicAI produceAI(AIHandler... handlers);
 }

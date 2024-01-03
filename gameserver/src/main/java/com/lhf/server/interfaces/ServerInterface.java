@@ -9,6 +9,8 @@ import com.lhf.server.client.user.UserID;
 public interface ServerInterface extends CommandChainHandler {
     void registerCallback(UserListener listener);
 
+    void unregisterCallback(UserListener listener);
+
     void start();
 
     void removeUser(UserID id);

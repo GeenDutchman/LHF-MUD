@@ -28,6 +28,19 @@ public class Weapon extends Equipable {
         this.subtype = subtype;
     }
 
+    @Override
+    public Weapon makeCopy() {
+        Set<CreatureEffectSource> copiedEffectSources = new HashSet<>();
+        for (final CreatureEffectSource source : this.effectSources) {
+            copiedEffectSources.add(source.makeCopy());
+        }
+        Weapon copy = new Weapon(this.getName(), this.checkVisibility(), copiedEffectSources, this.mainFlavor,
+                this.subtype);
+        copy.toHitBonus = this.toHitBonus;
+        this.copyOverwriteTo(copy);
+        return copy;
+    }
+
     public Attack generateAttack(ICreature attacker) {
         return this.generateAttack(attacker, null);
     }

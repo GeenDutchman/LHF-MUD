@@ -3,23 +3,42 @@ package com.lhf.game.creature.vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 
 public class VocationFactory {
-    public static Vocation getVocation(String vocationName) {
-        VocationName name = VocationName.getVocationName(vocationName);
-        if (name == null) {
+    public static Vocation getVocation(VocationName vocationName, Integer level) {
+        if (vocationName == null) {
             return null;
         }
 
-        switch (name) {
+        switch (vocationName) {
             case DUNGEON_MASTER: // not allowed to just make
                 return null;
             case FIGHTER:
-                return new Fighter();
+                return new Fighter(level);
             case HEALER:
-                return new Healer();
+                return new Healer(level);
             case MAGE:
-                return new Mage();
+                return new Mage(level);
             default:
                 return null;
         }
     }
+
+    public static Vocation getVocation(VocationName vocationName) {
+        return VocationFactory.getVocation(vocationName, null);
+    }
+
+    public static Vocation getVocation(String vocation, Integer level) {
+        if (vocation == null) {
+            return null;
+        }
+        VocationName name = VocationName.getVocationName(vocation);
+        if (name == null) {
+            return null;
+        }
+        return VocationFactory.getVocation(name, level);
+    }
+
+    public static Vocation getVocation(String vocationName) {
+        return VocationFactory.getVocation(vocationName, null);
+    }
+
 }

@@ -31,4 +31,9 @@ public class MantleOfDeath extends Equipable {
                 "This fearsome hooded robe seems a little bit overpowered to be in your puny hands. \n");
         return sb.toString();
     }
+
+    @Override
+    public MantleOfDeath makeCopy() {
+        return new MantleOfDeath(this.checkVisibility());
+    }
 }

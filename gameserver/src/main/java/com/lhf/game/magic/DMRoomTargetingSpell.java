@@ -2,7 +2,6 @@ package com.lhf.game.magic;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -11,7 +10,6 @@ import java.util.TreeSet;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation;
-import com.lhf.game.item.Item;
 import com.lhf.game.map.DMRoomEffect;
 import com.lhf.game.map.DMRoomEffectSource;
 import com.lhf.game.map.RoomEffectSource;
@@ -51,52 +49,16 @@ public class DMRoomTargetingSpell extends ISpell<DMRoomEffect> {
         return playersToSendOff;
     }
 
-    public DMRoomTargetingSpell addItemToSummon(Item item) {
-        this.inner.addItemToSummon(item);
-        return this;
-    }
-
-    public DMRoomTargetingSpell addItemToBanish(Item item) {
-        this.inner.addItemToBanish(item);
-        return this;
-    }
-
-    public DMRoomTargetingSpell addCreatureToSummon(ICreature creature) {
-        this.inner.addCreatureToSummon(creature);
-        return this;
-    }
-
-    public DMRoomTargetingSpell addCreatureToBanish(ICreature creature) {
-        this.inner.addCreatureToBanish(creature);
-        return this;
-    }
-
-    public List<Item> getItemsToSummon() {
-        return this.inner.getItemsToSummon();
-    }
-
-    public List<Item> getItemsToBanish() {
-        return this.inner.getItemsToBanish();
-    }
-
-    public Set<ICreature> getCreaturesToSummon() {
-        return this.inner.getCreaturesToSummon();
-    }
-
-    public Set<ICreature> getCreaturesToBanish() {
-        return this.inner.getCreaturesToBanish();
-    }
-
     @Override
     public Set<DMRoomEffect> getEffects() {
         if (this.effects == null) {
             this.effects = new HashSet<>();
             for (EntityEffectSource source : this.getEntry().getEffectSources()) {
                 DMRoomEffectSource dmRoomEffectSource;
-                if (source instanceof DMRoomEffectSource) {
-                    dmRoomEffectSource = (DMRoomEffectSource) source;
+                if (source instanceof DMRoomEffectSource correctlyTypedSource) {
+                    dmRoomEffectSource = correctlyTypedSource.makeCopy();
                 } else if (source instanceof RoomEffectSource) {
-                    dmRoomEffectSource = new DMRoomEffectSource((RoomEffectSource) source);
+                    dmRoomEffectSource = new DMRoomEffectSource((RoomEffectSource) source); // already copies
                 } else {
                     continue;
                 }

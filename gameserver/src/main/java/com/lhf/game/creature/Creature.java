@@ -9,24 +9,26 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.Statblock.DamageFlavorReactions;
+import com.lhf.game.creature.statblock.Statblock.DamgeFlavorReaction;
 import com.lhf.game.creature.vocation.Vocation;
+import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.dice.DamageDice.FlavoredRollResult;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.HealthBuckets;
@@ -50,6 +52,7 @@ import com.lhf.messages.in.InventoryMessage;
 import com.lhf.messages.in.StatusMessage;
 import com.lhf.messages.in.UnequipMessage;
 import com.lhf.server.client.CommandInvoker;
+import com.lhf.server.interfaces.NotNull;
 
 public abstract class Creature implements ICreature {
     private final String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
@@ -58,8 +61,8 @@ public abstract class Creature implements ICreature {
     private Vocation vocation;
     // private MonsterType monsterType; // I dont know if we'll need this
 
-    private TreeSet<CreatureEffect> effects;
-    private Statblock statblock;
+    private final TreeSet<CreatureEffect> effects;
+    private final Statblock statblock;
 
     private boolean inBattle; // Boolean to determine if this creature is in combat
     private transient CommandInvoker controller;
@@ -67,19 +70,27 @@ public abstract class Creature implements ICreature {
     private Map<CommandMessage, CommandHandler> cmds;
     private transient final Logger logger;
 
-    protected Creature(ICreature.CreatureBuilder<?> builder) {
+    protected Creature(ICreature.CreatureBuilder<?, ? extends ICreature> builder,
+            @NotNull CommandInvoker controller, CommandChainHandler successor,
+            @NotNull Statblock statblock) {
         this.gameEventProcessorID = new GameEventProcessorID();
-        this.cmds = this.buildCommands();
-        // Instantiate creature with no name and type Monster
         this.name = builder.getName();
+        if (statblock == null) {
+            throw new IllegalArgumentException("Creature cannot have a null statblock!");
+        }
+        if (controller == null) {
+            throw new IllegalArgumentException("Creature cannot have a null controller!");
+        }
+        this.cmds = this.buildCommands();
         this.faction = builder.getFaction();
-        this.vocation = builder.getVocation();
+        this.vocation = VocationFactory.getVocation(builder.getVocation(), builder.getVocationLevel());
 
         this.effects = new TreeSet<>();
-        this.statblock = builder.getStatblock();
-        this.controller = builder.getController();
-        this.successor = builder.getSuccessor();
-        ItemContainer.transfer(builder.getCorpse(), this.getInventory(), null);
+        this.statblock = new Statblock(statblock);
+        this.controller = controller;
+        this.controller.setSuccessor(this);
+        this.successor = successor;
+        ItemContainer.transfer(builder.getCorpse(), this.getInventory(), null, false);
 
         // We don't start them in battle
         this.inBattle = false;
@@ -87,19 +98,10 @@ public abstract class Creature implements ICreature {
                 .getLogger(String.format("%s.%s", this.getClass().getName(), this.name.replaceAll("\\W", "_")));
     }
 
-    private Map<CommandMessage, CommandHandler> buildCommands() {
-        StringJoiner sj = new StringJoiner(" ");
+    protected Map<CommandMessage, CommandHandler> buildCommands() {
         Map<CommandMessage, CommandHandler> cmds = new EnumMap<>(CommandMessage.class);
-        sj.add("\"equip [item]\"").add("Equips the item from your inventory to its default slot").add("\r\n");
-        sj.add("\"equip [item] to [slot]\"")
-                .add("Equips the item from your inventory to the specified slot, if such exists.");
-        sj.add("In the unlikely event that either the item or the slot's name contains 'to', enclose the name in quotation marks.");
         cmds.put(CommandMessage.EQUIP, new EquipHandler());
-        sj = new StringJoiner(" ");
-
         cmds.put(CommandMessage.UNEQUIP, new UnequipHandler());
-        sj = new StringJoiner(" ");
-
         cmds.put(CommandMessage.INVENTORY, new InventoryHandler());
         cmds.put(CommandMessage.STATUS, new StatusHandler());
         return cmds;
@@ -109,33 +111,28 @@ public abstract class Creature implements ICreature {
         return this.statblock.getStats().getOrDefault(Stats.CURRENTHP, 0);
     }
 
+    private int getMaxHealth() {
+        return this.statblock.getStats().getOrDefault(Stats.MAXHP, 0);
+    }
+
     @Override
     public HealthBuckets getHealthBucket() {
-        return HealthBuckets.calculate(getHealth(), this.statblock.getStats().getOrDefault(Stats.MAXHP, 0));
+        return HealthBuckets.calculate(this.getHealth(), this.getMaxHealth());
     }
 
     @Override
     public boolean isAlive() {
-        return getHealth() > 0;
+        return this.getHealth() > 0 && this.getMaxHealth() > 0;
     }
 
     @Override
     public void updateHitpoints(int value) {
-        int current = this.statblock.getStats().getOrDefault(Stats.CURRENTHP, 0);
-        int max = this.statblock.getStats().getOrDefault(Stats.MAXHP, 0);
+        int current = this.getHealth();
+        int max = this.getMaxHealth();
         current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
         this.statblock.getStats().replace(Stats.CURRENTHP, current);
         if (current <= 0) {
-            CommandChainHandler next = this.getSuccessor();
-            while (next != null) {
-                if (next instanceof CreatureContainer container) {
-                    container.onCreatureDeath(this); // the rest of the chain should be handled here as well
-                    return; // break out of here, because it is handled
-                }
-                next = next.getSuccessor();
-            }
-            // if it gets to here, welcome to undeath (not literally)
-            this.log(Level.WARNING, "died while not in a `CreatureContainer`!");
+            ICreature.announceDeath(this);
         }
     }
 
@@ -155,16 +152,41 @@ public abstract class Creature implements ICreature {
     }
 
     private void updateStat(Stats stat, int value) {
-        Map<Stats, Integer> stats = this.statblock.getStats();
-        stats.merge(stat, value, (a, b) -> {
+        if (stat == null) {
+            return;
+        }
+        final BiFunction<Integer, Integer, Integer> merger = (a, b) -> {
             if (a != null && b != null) {
                 return a + b;
             }
             return a != null ? a : b;
-        });
-        if (Stats.XPEARNED.equals(stat) && this.vocation != null) {
-            this.vocation.addExperience(value);
+        };
+        switch (stat) {
+            case MAXHP:
+                this.statblock.getStats().merge(stat, value, merger);
+                // fallthrough
+            case CURRENTHP:
+                int current = this.getHealth();
+                int max = this.getMaxHealth();
+                current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
+                this.statblock.getStats().replace(Stats.CURRENTHP, current);
+                break;
+            case XPEARNED:
+                if (this.vocation != null) {
+                    this.vocation.addExperience(value);
+                }
+                // fallthrough
+            case AC:
+                // fallthrough
+            case PROFICIENCYBONUS:
+                // fallthrough
+            case XPWORTH:
+                // fallthrough
+            default:
+                this.statblock.getStats().merge(stat, value, merger);
+                break;
         }
+
     }
 
     /* start getters */
@@ -217,25 +239,25 @@ public abstract class Creature implements ICreature {
             return null;
         }
         MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
-        DamageFlavorReactions dfr = this.statblock.getDamageFlavorReactions();
+        EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> dfr = this.statblock.getDamageFlavorReactions();
         for (RollResult rr : mrr) {
             if (rr instanceof FlavoredRollResult) {
                 FlavoredRollResult frr = (FlavoredRollResult) rr;
-                if (dfr.getHealing().contains(frr.getDamageFlavor())) {
+                if (dfr.get(DamgeFlavorReaction.CURATIVES).contains(frr.getDamageFlavor())) {
                     if (reverse) {
                         mrrBuilder.addRollResults(frr.negative());
                     } else {
                         mrrBuilder.addRollResults(frr);
                     }
-                } else if (dfr.getImmunities().contains(frr.getDamageFlavor())) {
+                } else if (dfr.get(DamgeFlavorReaction.IMMUNITIES).contains(frr.getDamageFlavor())) {
                     mrrBuilder.addRollResults(frr.none());
-                } else if (dfr.getResistances().contains(frr.getDamageFlavor())) {
+                } else if (dfr.get(DamgeFlavorReaction.RESISTANCES).contains(frr.getDamageFlavor())) {
                     if (reverse) {
                         mrrBuilder.addRollResults(frr.half());
                     } else {
                         mrrBuilder.addRollResults(frr.negative().half());
                     }
-                } else if (dfr.getWeaknesses().contains(frr.getDamageFlavor())) {
+                } else if (dfr.get(DamgeFlavorReaction.WEAKNESSES).contains(frr.getDamageFlavor())) {
                     if (reverse) {
                         mrrBuilder.addRollResults(frr.twice());
                     } else {
@@ -249,7 +271,7 @@ public abstract class Creature implements ICreature {
                     }
                 }
             } else {
-                if (dfr.getImmunities().size() > 0) {
+                if (dfr.get(DamgeFlavorReaction.IMMUNITIES).size() > 0) {
                     mrrBuilder.addRollResults(rr.none()); // if they have any immunities, unflavored damge does nothing
                 } else if (reverse) {
                     mrrBuilder.addRollResults(rr.negative());
@@ -259,7 +281,8 @@ public abstract class Creature implements ICreature {
             }
         }
 
-        if (dfr.getImmunities().size() == 0) { // if they have any immunities, unflavored damge does nothing
+        if (dfr.get(DamgeFlavorReaction.IMMUNITIES).size() == 0) { // if they have any immunities, unflavored damge
+                                                                   // does nothing
             mrrBuilder.addBonuses(mrr.getBonuses());
         }
 
@@ -313,6 +336,8 @@ public abstract class Creature implements ICreature {
             if (creatureEffect.isRestoreFaction()) {
                 this.restoreFaction();
             }
+        } else {
+            ICreature.announceDeath(this);
         }
 
         CreatureAffectedEvent camOut = CreatureAffectedEvent.getBuilder().setAffected(this)
@@ -500,7 +525,7 @@ public abstract class Creature implements ICreature {
         return this.controller;
     }
 
-    public void setController(CommandInvoker cont) {
+    protected void setController(CommandInvoker cont) {
         this.controller = cont;
     }
 
@@ -532,14 +557,6 @@ public abstract class Creature implements ICreature {
     @Override
     public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
         this.logger.log(logLevel, logMessageSupplier);
-    }
-
-    @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
-        if (ctx.getCreature() == null) {
-            ctx.setCreature(this);
-        }
-        return ctx;
     }
 
     protected class EquipHandler implements CreatureCommandHandler {

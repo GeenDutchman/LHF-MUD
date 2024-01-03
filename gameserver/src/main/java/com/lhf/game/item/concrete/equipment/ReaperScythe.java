@@ -26,7 +26,8 @@ public class ReaperScythe extends Weapon {
     public ReaperScythe(boolean isVisible) {
         super("Reaper Scythe", isVisible, Set.of(
                 new CreatureEffectSource("Scythe", new EffectPersistence(TickType.INSTANT),
-                        new EffectResistance(EnumSet.of(Attributes.STR, Attributes.DEX), Stats.AC),
+                        new EffectResistance(EnumSet.of(Attributes.STR, Attributes.DEX),
+                                Stats.AC),
                         "Scythes reap things.",
                         false)
                         .addDamage(new DamageDice(1, DieType.EIGHT, DamageFlavor.NECROTIC))),
@@ -43,10 +44,17 @@ public class ReaperScythe extends Weapon {
                 - attacker.getStats().getOrDefault(Stats.CURRENTHP, 0));
         Set<CreatureEffectSource> extraSources = Set
                 .of(new CreatureEffectSource("Necrotic Damage", new EffectPersistence(TickType.INSTANT),
-                        new EffectResistance(null, null, actorDC, null, Stats.AC, null, TargetResistAmount.HALF),
-                        "This weapon does extra necrotic damage.", false).addStatChange(Stats.CURRENTHP, -100));
+                        new EffectResistance(null, null, actorDC, null, Stats.AC, null,
+                                TargetResistAmount.HALF),
+                        "This weapon does extra necrotic damage.", false)
+                        .addStatChange(Stats.CURRENTHP, -100));
 
         return super.generateAttack(attacker, extraSources);
+    }
+
+    @Override
+    public ReaperScythe makeCopy() {
+        return new ReaperScythe(this.checkVisibility());
     }
 
 }

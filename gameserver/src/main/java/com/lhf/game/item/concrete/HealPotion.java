@@ -3,9 +3,9 @@ package com.lhf.game.item.concrete;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleManager;
-import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
@@ -14,14 +14,14 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.interfaces.UseAction;
 import com.lhf.messages.events.BattleRoundEvent;
+import com.lhf.messages.events.BattleRoundEvent.RoundAcceptance;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemUsedEvent;
-import com.lhf.messages.events.BattleRoundEvent.RoundAcceptance;
 import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 
 public class HealPotion extends Usable {
 
-    private HealType healtype;
+    private final HealType healtype;
 
     private void setUp() {
         UseAction useAction = (ctx, object) -> {
@@ -86,6 +86,11 @@ public class HealPotion extends Usable {
         super(healtype.toString() + " Potion of Healing", isVisible);
         this.healtype = healtype;
         setUp();
+    }
+
+    @Override
+    public HealPotion makeCopy() {
+        return new HealPotion(this.healtype, this.checkVisibility());
     }
 
     private CreatureEffectSource setHealing(CreatureEffectSource effect) {

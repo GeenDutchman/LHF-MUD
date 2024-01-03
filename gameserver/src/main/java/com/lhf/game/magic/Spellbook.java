@@ -22,8 +22,17 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.conversation.ConversationPattern;
+import com.lhf.game.creature.conversation.ConversationPatternSerializer;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
+import com.lhf.game.item.Equipable;
+import com.lhf.game.item.EquipableDeserializer;
+import com.lhf.game.item.Item;
+import com.lhf.game.item.ItemDeserializer;
+import com.lhf.game.item.Takeable;
+import com.lhf.game.item.TakeableDeserializer;
+import com.lhf.game.magic.concrete.ElectricWisp;
 import com.lhf.game.magic.concrete.Ensouling;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
@@ -64,6 +73,8 @@ public class Spellbook {
         this.entries.add(thunderStrike);
         SpellEntry ensouling = new Ensouling();
         this.entries.add(ensouling);
+        SpellEntry electricWisp = new ElectricWisp();
+        this.entries.add(electricWisp);
         this.setupPath();
     }
 
@@ -88,6 +99,7 @@ public class Spellbook {
                 .registerSubtype(ThunderStrike.class, ThunderStrike.class.getName())
                 .registerSubtype(Thaumaturgy.class, Thaumaturgy.class.getName())
                 .registerSubtype(Ensouling.class, Ensouling.class.getName())
+                .registerSubtype(ElectricWisp.class, ElectricWisp.class.getName())
                 .recognizeSubtypes();
         RuntimeTypeAdapterFactory<EntityEffectSource> effectSourceAdapter = RuntimeTypeAdapterFactory
                 .of(EntityEffectSource.class, "className", true)
@@ -98,6 +110,11 @@ public class Spellbook {
                 .recognizeSubtypes();
         GsonBuilder gb = new GsonBuilder().registerTypeAdapterFactory(spellEntryAdapter)
                 .registerTypeAdapterFactory(effectSourceAdapter).setPrettyPrinting();
+        gb.registerTypeAdapter(Equipable.class, new EquipableDeserializer<Equipable>());
+        gb.registerTypeAdapter(Takeable.class, new TakeableDeserializer<>());
+        gb.registerTypeAdapter(Item.class, new ItemDeserializer<>());
+        gb.registerTypeAdapter(ConversationPattern.class, new ConversationPatternSerializer());
+
         return gb.create();
     }
 

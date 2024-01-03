@@ -45,6 +45,10 @@ public class ConversationTree implements Serializable {
         this.tagkeywords = true;
     }
 
+    public ConversationTree makeCopy() {
+        return new ConversationTree(this.start);
+    }
+
     protected ConversationTree init() {
         this.initBookmarks();
         this.addDefaultGreetings();

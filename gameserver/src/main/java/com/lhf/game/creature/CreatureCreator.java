@@ -54,7 +54,6 @@ public class CreatureCreator {
     }
 
     public static Statblock writeStatblock(Statblock towrite) {
-        StatblockManager loader_unloader = new StatblockManager();
         loader_unloader.statblockToFile(towrite);
         try {
             return loader_unloader.statblockFromfile(towrite.getCreatureRace());
@@ -65,12 +64,11 @@ public class CreatureCreator {
     }
 
     public static Statblock readStatblock(String statblockname) throws FileNotFoundException {
-        StatblockManager loader_unloader = new StatblockManager();
         return loader_unloader.statblockFromfile(statblockname);
     }
 
     private static Statblock makeStatblock(CreatorAdaptor adapter) {
-        Statblock built = new Statblock();
+        Statblock built = Statblock.getBuilder().build();
 
         // name
         built.setCreatureRace(adapter.buildStatblockName());
@@ -99,6 +97,7 @@ public class CreatureCreator {
     }
 
     private static final AIRunner aiRunner = new GroupAIRunner(false);
+    private static final StatblockManager loader_unloader = new StatblockManager();
 
     public static IMonster makeMonsterFromStatblock(CreatorAdaptor adapter) throws FileNotFoundException {
 
@@ -110,28 +109,28 @@ public class CreatureCreator {
             return null;
         }
 
-        MonsterBuilder builder = MonsterBuilder.getInstance(CreatureCreator.aiRunner);
+        MonsterBuilder builder = MonsterBuilder.getInstance();
 
         builder.setName(adapter.buildCreatureName());
 
         builder.setStatblock(monStatblock);
 
-        return builder.build();
+        return builder.build(aiRunner, null, loader_unloader, null);
     }
 
-    public static INonPlayerCharacter makeNPC() {
-        NonPlayerCharacter.NPCBuilder builder = NonPlayerCharacter.getNPCBuilder(aiRunner);
+    public static INonPlayerCharacter makeNPC() throws FileNotFoundException {
+        NonPlayerCharacter.NPCBuilder builder = NonPlayerCharacter.getNPCBuilder();
 
-        return builder.build();
+        return builder.build(aiRunner, null, loader_unloader, null);
     }
 
-    public static DungeonMaster makeDM(String name) {
+    public static DungeonMaster makeDM(String name) throws FileNotFoundException {
         DungeonMaster.DungeonMasterBuilder builder = DungeonMaster.DungeonMasterBuilder
-                .getInstance(CreatureCreator.aiRunner);
+                .getInstance();
 
         builder.setName(name);
 
-        return builder.build();
+        return builder.build(aiRunner, null, loader_unloader, null);
     }
 
     public static Player makePlayer(PlayerCreatorAdaptor adapter) {
@@ -151,7 +150,7 @@ public class CreatureCreator {
 
         builder.setVocation(adapter.buildVocation());
 
-        Player p = builder.build();
+        Player p = builder.build(null);
 
         return p;
 

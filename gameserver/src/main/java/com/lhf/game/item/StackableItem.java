@@ -21,6 +21,11 @@ public class StackableItem extends Usable {
         this.count = initialCount;
     }
 
+    @Override
+    public StackableItem makeCopy() {
+        return new StackableItem(this.getName(), this.checkVisibility(), this.count);
+    }
+
     private int getCount() {
         return this.count;
     }

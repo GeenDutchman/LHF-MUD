@@ -1,5 +1,7 @@
 package com.lhf.game.item.concrete;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -16,7 +18,7 @@ public class BedTest {
 
     @Test
     void testGetCapacity() {
-        Area room = builder.setName("Capacity Room").build();
+        Area room = builder.setName("Capacity Room").quickBuild(null, null, null);
         int capacity = 2;
         Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(capacity).setSleepSeconds(0));
         Truth.assertThat(bed.getCapacity()).isEqualTo(capacity);
@@ -27,29 +29,29 @@ public class BedTest {
         AIComBundle first = new AIComBundle();
         AIComBundle second = new AIComBundle();
         AIComBundle third = new AIComBundle();
-        Room room = builder.setName("Occupancy Room").addCreature(first.npc).addCreature(second.npc)
-                .addCreature(third.npc).build();
+        Room room = builder.setName("Occupancy Room").quickBuild(null, null, null);
+        room.addCreatures(Set.of(first.getNPC(), second.getNPC(), third.getNPC()), true);
         Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(2).setSleepSeconds(2));
         room.addItem(bed);
 
-        GameEvent out = bed.doUseAction(first.npc);
+        GameEvent out = bed.doUseAction(first.getNPC());
         Truth.assertThat(out.toString()).contains("You are now in the bed");
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 
-        out = bed.doUseAction(second.npc);
+        out = bed.doUseAction(second.getNPC());
         Truth.assertThat(out.toString()).contains("You are now in the bed");
         Truth.assertThat(bed.getOccupancy()).isEqualTo(2);
 
-        out = bed.doUseAction(third.npc);
+        out = bed.doUseAction(third.getNPC());
         Truth.assertThat(out.toString()).doesNotContain("You are now in the bed");
         Truth.assertThat(bed.getOccupancy()).isEqualTo(2);
 
         // one gets out
 
-        bed.removeCreature(first.npc);
+        bed.removeCreature(first.getNPC());
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 
-        out = bed.doUseAction(third.npc);
+        out = bed.doUseAction(third.getNPC());
         Truth.assertThat(out.toString()).contains("You are now in the bed");
         Truth.assertThat(bed.getOccupancy()).isEqualTo(2);
 
@@ -58,10 +60,11 @@ public class BedTest {
     @Test
     void testBedTime() {
         AIComBundle first = new AIComBundle();
-        Room room = builder.setName("Sleeping Room").addCreature(first.npc).build();
+        Room room = builder.setName("Sleeping Room").quickBuild(null, null, null);
+        room.addCreature(first.getNPC());
         Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(1).setSleepSeconds(1));
 
-        GameEvent out = bed.doUseAction(first.npc);
+        GameEvent out = bed.doUseAction(first.getNPC());
         Truth.assertThat(out.toString()).contains("You are now in the bed");
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 

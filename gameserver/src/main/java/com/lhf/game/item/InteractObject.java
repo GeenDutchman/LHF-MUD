@@ -23,6 +23,11 @@ public class InteractObject extends Item {
         this.isRepeatable = isRepeatable;
     }
 
+    @Override
+    public InteractObject makeCopy() {
+        return new InteractObject(this.getName(), this.checkVisibility(), isRepeatable, descriptionString);
+    }
+
     public void setAction(InteractAction interactMethod) {
         method = interactMethod;
     }

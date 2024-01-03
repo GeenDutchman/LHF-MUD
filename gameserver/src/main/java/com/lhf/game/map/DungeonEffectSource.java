@@ -13,6 +13,11 @@ public class DungeonEffectSource extends EntityEffectSource {
         this.addsRoomToDungeon = addsRoomToDungeon;
     }
 
+    @Override
+    public DungeonEffectSource makeCopy() {
+        return new DungeonEffectSource(this.getName(), persistence, resistance, description, addsRoomToDungeon);
+    }
+
     public boolean isAddsRoomToDungeon() {
         return addsRoomToDungeon;
     }

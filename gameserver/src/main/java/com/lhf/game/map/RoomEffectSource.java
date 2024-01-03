@@ -1,123 +1,77 @@
 package com.lhf.game.map;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.StringJoiner;
-
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffectSource;
-import com.lhf.game.creature.ICreature;
-import com.lhf.game.item.Item;
+import com.lhf.game.creature.Monster.MonsterBuilder;
+import com.lhf.game.creature.NonPlayerCharacter.NPCBuilder;
 
 public class RoomEffectSource extends EntityEffectSource {
 
-    protected List<Item> itemsToSummon;
+    // TODO: implement banishment, with limited to how many
 
-    protected List<Item> itemsToBanish;
-
-    protected Set<ICreature> creaturesToSummon;
-
-    protected Set<ICreature> creaturesToBanish;
+    protected NPCBuilder npcToSummon;
+    protected MonsterBuilder monsterToSummon;
 
     public RoomEffectSource(RoomEffectSource other) {
         super(other.name, other.persistence, other.resistance, other.description);
-        this.itemsToBanish = new ArrayList<>(other.itemsToBanish);
-        this.itemsToSummon = new ArrayList<>(other.itemsToSummon);
-        this.creaturesToBanish = new HashSet<>(other.creaturesToBanish);
-        this.creaturesToSummon = new HashSet<>(other.creaturesToSummon);
+        this.npcToSummon = other.npcToSummon != null ? other.npcToSummon.makeCopy() : null;
+        this.monsterToSummon = other.monsterToSummon != null ? other.monsterToSummon.makeCopy() : null;
     }
 
     public RoomEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
             String description) {
         super(name, persistence, resistance, description);
-        this.itemsToSummon = new ArrayList<>();
-        this.itemsToBanish = new ArrayList<>();
-        this.creaturesToBanish = new HashSet<>();
-        this.creaturesToSummon = new HashSet<>();
+        this.npcToSummon = null;
+        this.monsterToSummon = null;
     }
 
-    public RoomEffectSource addItemToSummon(Item toSummon) {
-        this.itemsToSummon.add(toSummon);
+    @Override
+    public RoomEffectSource makeCopy() {
+        return new RoomEffectSource(this);
+    }
+
+    public RoomEffectSource setCreatureToSummon(MonsterBuilder toSummon) {
+        this.monsterToSummon = toSummon;
         return this;
     }
 
-    public RoomEffectSource addItemToBanish(Item toBanish) {
-        this.itemsToBanish.add(toBanish);
+    public RoomEffectSource setCreatureToSummon(NPCBuilder toSummon) {
+        this.npcToSummon = toSummon;
         return this;
     }
 
-    public RoomEffectSource addCreatureToSummon(ICreature toSummon) {
-        this.creaturesToSummon.add(toSummon);
-        return this;
+    public NPCBuilder getNpcToSummon() {
+        return npcToSummon;
     }
 
-    public RoomEffectSource addCreatureToBanish(ICreature toBanish) {
-        this.creaturesToBanish.add(toBanish);
-        return this;
-    }
-
-    public List<Item> getItemsToSummon() {
-        return itemsToSummon;
-    }
-
-    public List<Item> getItemsToBanish() {
-        return itemsToBanish;
-    }
-
-    public Set<ICreature> getCreaturesToSummon() {
-        return creaturesToSummon;
-    }
-
-    public Set<ICreature> getCreaturesToBanish() {
-        return creaturesToBanish;
+    public MonsterBuilder getMonsterToSummon() {
+        return monsterToSummon;
     }
 
     @Override
     public boolean isOffensive() {
-        if (this.creaturesToBanish != null && this.creaturesToBanish.size() > 0) {
-            return true;
-        }
+        // can be offensive when banished
         return false;
     }
 
     @Override
     public int aiScore() {
-        return (this.creaturesToBanish != null ? this.creaturesToBanish.size() : 0) +
-                (this.creaturesToSummon != null ? this.creaturesToSummon.size() : 0);
-    }
-
-    private void printCreatures(StringBuilder sb, Set<ICreature> creatures, String action) {
-        if (creatures.size() > 0) {
-            sb.append("Creatures it will ").append(action).append(":\r\n");
-            StringJoiner sj = new StringJoiner(", ");
-            for (ICreature creature : creatures) {
-                sj.add(creature.getColorTaggedName());
-            }
-            sb.append(sj.toString()).append("\r\n");
-        }
-    }
-
-    private void printItems(StringBuilder sb, List<Item> items, String action) {
-        if (items.size() > 0) {
-            sb.append("Items it will ").append(action).append(":\r\n");
-            StringJoiner sj = new StringJoiner(", ");
-            for (Item item : items) {
-                sj.add(item.getColorTaggedName());
-            }
-            sb.append(sj.toString()).append("\r\n");
-        }
+        return (this.monsterToSummon != null ? 2 : 1) *
+                (this.npcToSummon != null ? 10 : 1);
     }
 
     @Override
     public String printDescription() {
         StringBuilder sb = new StringBuilder(super.printDescription());
-        this.printCreatures(sb, this.creaturesToBanish, "banish");
-        this.printCreatures(sb, this.creaturesToSummon, "summon");
-        this.printItems(sb, this.itemsToBanish, "banish");
-        this.printItems(sb, this.itemsToSummon, "summon");
+        if (this.monsterToSummon != null) {
+            sb.append("\r\nWill summon the following Monster:\r\n");
+            sb.append(this.monsterToSummon.toString());
+        }
+        if (this.npcToSummon != null) {
+            sb.append("\r\nWill summon the following NPC:\r\n");
+            sb.append(this.npcToSummon.toString());
+        }
         return sb.toString();
     }
 

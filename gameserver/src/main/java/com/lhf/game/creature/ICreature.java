@@ -1,20 +1,26 @@
 package com.lhf.game.creature;
 
+import java.io.FileNotFoundException;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.AffectableEntity;
+import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.ItemContainer;
@@ -24,7 +30,9 @@ import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD20;
@@ -42,16 +50,16 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
-import com.lhf.messages.GameEventProcessor;
-import com.lhf.messages.CommandContext;
-import com.lhf.messages.ITickEvent;
 import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
-import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.Client.ClientID;
+import com.lhf.server.client.CommandInvoker;
 
 /**
  * An interface for all things Creature. This way we can create wrappers, mocks,
@@ -94,6 +102,11 @@ public interface ICreature
             this.descriptionString = "This is a Fist attached to a Creature \n";
         }
 
+        @Override
+        public Fist makeCopy() {
+            return new Fist();
+        }
+
     }
 
     /**
@@ -123,94 +136,214 @@ public interface ICreature
         return defaultFist;
     }
 
+    public interface ControllerAssigner {
+        public abstract void assign();
+    }
+
     /**
      * Builder pattern root for Creature
      */
-    public abstract static class CreatureBuilder<T extends CreatureBuilder<T>> {
-        protected T thisObject;
-        private String name;
-        private CreatureFaction faction;
-        private Vocation vocation;
-        private Statblock statblock;
-        private CommandInvoker controller;
-        private CommandChainHandler successor;
-        private Corpse corpse;
+    public abstract static class CreatureBuilder<BuilderType extends CreatureBuilder<BuilderType, CreatureType>, CreatureType extends ICreature>
+            implements Serializable {
+        public static class CreatureBuilderID implements Comparable<CreatureBuilderID> {
+            private final UUID id = UUID.randomUUID();
+
+            public UUID getId() {
+                return id;
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(id);
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (!(obj instanceof CreatureBuilderID))
+                    return false;
+                CreatureBuilderID other = (CreatureBuilderID) obj;
+                return Objects.equals(id, other.id);
+            }
+
+            @Override
+            public int compareTo(CreatureBuilderID arg0) {
+                return this.id.compareTo(arg0.id);
+            }
+
+        }
+
+        protected final transient BuilderType thisObject;
+        protected final CreatureBuilderID id;
+        protected String name;
+        protected CreatureFaction faction;
+        protected VocationName vocation;
+        protected Integer vocationLevel;
+        protected String statblockName;
+        protected Statblock statblock;
+        protected Corpse corpse;
 
         protected CreatureBuilder() {
-            this.name = NameGenerator.Generate(null);
-            this.faction = CreatureFaction.NPC;
-            this.vocation = null;
-            this.statblock = new Statblock();
-            this.controller = null;
-            this.successor = null;
-            this.corpse = null;
             this.thisObject = getThis();
+            this.id = new CreatureBuilderID();
+            this.name = null;
+            this.faction = null;
+            this.vocation = null;
+            this.vocationLevel = null;
+            this.statblockName = null;
+            this.statblock = null;
+            this.corpse = null;
+        }
+
+        protected void copyFrom(BuilderType other) {
+            this.name = new String(other.name);
+            this.faction = other.faction;
+            this.vocation = other.vocation;
+            this.vocationLevel = other.vocationLevel != null ? other.vocationLevel.intValue() : null;
+            this.statblockName = new String(other.statblockName);
+            this.statblock = this.statblock != null ? new Statblock(other.statblock) : null;
+            this.corpse = null;
+            if (other.corpse != null) {
+                this.corpse = other.corpse.makeCopy();
+                ItemContainer.transfer(other.corpse, this.corpse, null, true);
+            }
+        }
+
+        public abstract CreatureBuilder<BuilderType, CreatureType> makeCopy();
+
+        public CreatureBuilderID getCreatureBuilderID() {
+            return this.id;
         }
 
         // used for the generics and safe casts
         // https://stackoverflow.com/questions/17164375/subclassing-a-java-builder-class
-        protected abstract T getThis();
+        protected abstract BuilderType getThis();
 
-        public T setName(String name) {
-            this.name = name != null && !name.isBlank() ? name : NameGenerator.Generate(null);
+        public BuilderType setName(String name) {
+            this.name = name;
             return this.getThis();
         }
 
-        public String getName() {
+        /**
+         * Will lazily generate a name if none is already set
+         * 
+         * @return
+         */
+        public synchronized String getName() {
+            if (this.name == null || name.isBlank()) {
+                this.name = NameGenerator.Generate(null);
+            }
             return this.name;
         }
 
-        public T setFaction(CreatureFaction faction) {
-            this.faction = faction != null ? faction : CreatureFaction.RENEGADE;
+        public BuilderType setFaction(CreatureFaction faction) {
+            this.faction = faction;
             return this.getThis();
         }
 
+        /**
+         * Will lazily generate a faction (default to
+         * {@link com.lhf.game.enums.CreatureFaction#RENEGADE RENEGADE}) if none is
+         * already set
+         * 
+         * @return
+         */
         public CreatureFaction getFaction() {
+            if (this.faction == null) {
+                this.faction = CreatureFaction.RENEGADE;
+            }
             return this.faction;
         }
 
-        public T setVocation(Vocation vocation) {
-            this.vocation = vocation;
+        public BuilderType setVocation(Vocation vocation) {
+            if (vocation == null) {
+                this.vocation = null;
+                this.vocationLevel = null;
+            } else {
+                this.vocation = vocation.getVocationName();
+                this.vocationLevel = vocation.getLevel();
+            }
             return this.getThis();
         }
 
-        public Vocation getVocation() {
+        public BuilderType setVocation(VocationName vocationName) {
+            this.vocation = vocationName;
+            return this.getThis();
+        }
+
+        public BuilderType setVocationLevel(int level) {
+            this.vocationLevel = level;
+            return this.getThis();
+        }
+
+        public VocationName getVocation() {
             return this.vocation;
         }
 
-        public T setStatblock(Statblock statblock) {
+        public Integer getVocationLevel() {
+            return this.vocationLevel;
+        }
+
+        public BuilderType setStatblock(Statblock statblock) {
             this.statblock = statblock;
+            if (this.statblock != null) {
+                this.statblockName = this.statblock.getCreatureRace();
+            }
             return this.getThis();
         }
 
-        public Statblock getStatblock() {
-            if (this.vocation != null) {
-                this.statblock = this.vocation.createNewDefaultStatblock("creature");
-            } else if (this.statblock == null) {
-                this.statblock = new Statblock();
+        public BuilderType setStatblockName(String statblockName) {
+            this.statblockName = statblockName;
+            if (this.statblock != null && !this.statblock.getCreatureRace().equals(statblockName)) {
+                this.statblock = null;
             }
+            return this.getThis();
+        }
+
+        public String getStatblockName() {
+            return statblockName;
+        }
+
+        /**
+         * Will lazily generate a {@link com.lhf.game.creature.statblock.Statblock
+         * Statblock} if none is provided.
+         * <p>
+         * If this has a vocationName set, it'll try to use the provided
+         * {@link com.lhf.game.creature.statblock.StatblockManager StatblockManager}.
+         * Elsewise if this has a {@link com.lhf.game.creature.vocation.Vocation
+         * Vocation} set,
+         * it will use the default for the Vocation.
+         * Otherwise it'll be a plain statblock.
+         * 
+         * @return
+         * @throws FileNotFoundException
+         */
+        public Statblock loadStatblock(StatblockManager statblockManager) throws FileNotFoundException {
+            if (this.statblock == null) {
+                String nextname = this.getStatblockName();
+                if (nextname != null) {
+                    this.setStatblock(statblockManager.statblockFromfile(nextname));
+                } else if (this.vocation != null) {
+                    this.setStatblock(this.vocation.createNewDefaultStatblock("creature").build());
+                } else {
+                    this.setStatblock(Statblock.getBuilder().build());
+                }
+            }
+
             return this.statblock;
         }
 
-        public T setController(CommandInvoker controller) {
-            this.controller = controller;
+        public BuilderType useBlankStatblock() {
+            this.setStatblock(Statblock.getBuilder().build());
             return this.getThis();
         }
 
-        public CommandInvoker getController() {
-            return this.controller;
+        protected Statblock getStatblock() {
+            return this.statblock;
         }
 
-        public T setSuccessor(CommandChainHandler successor) {
-            this.successor = successor;
-            return this.getThis();
-        }
-
-        public CommandChainHandler getSuccessor() {
-            return this.successor;
-        }
-
-        public T setCorpse(Corpse corpse) {
+        public BuilderType setCorpse(Corpse corpse) {
             this.corpse = corpse;
             return this.getThis();
         }
@@ -219,7 +352,50 @@ public interface ICreature
             return this.corpse;
         }
 
-        public abstract ICreature build();
+        public abstract CreatureType build(CommandInvoker controller,
+                CommandChainHandler successor, StatblockManager statblockManager,
+                UnaryOperator<BuilderType> composedLazyLoaders) throws FileNotFoundException;
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof CreatureBuilder))
+                return false;
+            CreatureBuilder<?, ?> other = (CreatureBuilder<?, ?>) obj;
+            return Objects.equals(id, other.id);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(this.getThis().getClass().getSimpleName()).append(" with the following characteristics: \r\n");
+            if (this.name == null) {
+                sb.append("Name will be generated.\r\n");
+            } else {
+                sb.append("Name is:").append(this.name).append(".\r\n");
+            }
+            if (this.vocation != null) {
+                sb.append("Vocation of ").append(this.vocation);
+                if (this.vocationLevel != null) {
+                    sb.append("with level of").append(this.vocationLevel);
+                }
+                sb.append(".\r\n");
+            }
+            if (this.statblockName != null) {
+                sb.append("Statblock similar to: ").append(this.statblockName);
+                if (this.statblock != null) {
+                    sb.append(" (concrete statblock present)");
+                }
+                sb.append(".\r\n");
+            }
+            return sb.toString();
+        }
 
     }
 
@@ -574,9 +750,40 @@ public interface ICreature
                 deadCreature.unequipItem(slot, deadCreature.getEquipmentSlots().get(slot).getName());
             }
         }
-        Corpse deadCorpse = new Corpse(deadCreature.getName() + "'s corpse", true);
-        ItemContainer.transfer(deadCreature, deadCorpse, null);
+        Corpse deadCorpse = deadCreature.generateCorpse(true);
         return deadCorpse;
+    }
+
+    /**
+     * Generates a corpse from the Creature
+     * 
+     * @param transfer if the items are to be take from this creature and put in the
+     *                 corpse
+     * @return
+     */
+    default Corpse generateCorpse(boolean transfer) {
+        return new Corpse(this, transfer);
+    }
+
+    /**
+     * Finds the nearest CreatureContainer announces the death.
+     * 
+     * @param dead
+     */
+    static public void announceDeath(ICreature dead) {
+        if (dead == null || dead.isAlive()) {
+            return;
+        }
+        CommandChainHandler next = dead.getSuccessor();
+        while (next != null) {
+            if (next instanceof CreatureContainer container) {
+                container.onCreatureDeath(dead); // the rest of the chain should be handled here as well
+                return; // break out of here, because it is handled
+            }
+            next = next.getSuccessor();
+        }
+        // if it gets to here, welcome to undeath (not literally)
+        dead.log(Level.WARNING, "died while not in a `CreatureContainer`!");
     }
 
     /**
@@ -600,6 +807,14 @@ public interface ICreature
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public default CommandContext addSelfToContext(CommandContext ctx) {
+        if (ctx.getCreature() == null) {
+            ctx.setCreature(this);
+        }
+        return ctx;
     }
 
     /**
@@ -655,7 +870,7 @@ public interface ICreature
     }
 
     @Override
-    public default Collection<GameEventProcessor> getClientMessengers() {
+    public default Collection<GameEventProcessor> getGameEventProcessors() {
         TreeSet<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
         GameEventProcessor controller = this.getController();
         if (controller != null) {

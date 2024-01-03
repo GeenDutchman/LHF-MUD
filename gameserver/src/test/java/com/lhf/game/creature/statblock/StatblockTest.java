@@ -24,7 +24,7 @@ public class StatblockTest {
     @Test
     void testSerialization() {
 
-        Statblock s = new Statblock("goober");
+        Statblock s = Statblock.getBuilder().build();
         s.setCreatureRace("goober");
         s.setAttributes(new AttributeBlock());
         EnumMap<Stats, Integer> stats = new EnumMap<>(Stats.class);

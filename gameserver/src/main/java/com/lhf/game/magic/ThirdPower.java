@@ -618,7 +618,7 @@ public class ThirdPower implements CommandChainHandler {
     }
 
     @Override
-    public Collection<GameEventProcessor> getClientMessengers() {
+    public Collection<GameEventProcessor> getGameEventProcessors() {
         this.log(Level.FINE, "No client messengers here!");
         return Set.of();
     }

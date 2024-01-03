@@ -29,4 +29,9 @@ public class LeatherArmor extends Equipable {
     public String printDescription() {
         return "This is some simple leather armor. " + "There is only a little blood on it...\n";
     }
+
+    @Override
+    public LeatherArmor makeCopy() {
+        return new LeatherArmor(this.checkVisibility());
+    }
 }

@@ -33,4 +33,9 @@ public class Shortsword extends Weapon {
         this.descriptionString = "This is a nice, short, shiny sword with a leather grip.  It's a bit simple though...\n";
     }
 
+    @Override
+    public Shortsword makeCopy() {
+        return new Shortsword(this.checkVisibility());
+    }
+
 }

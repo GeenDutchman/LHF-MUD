@@ -16,7 +16,7 @@ import com.lhf.game.battle.BattleStats.BattleStatsQuery;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
-import com.lhf.game.creature.vocation.DMV;
+import com.lhf.game.creature.vocation.DMVocation;
 import com.lhf.game.creature.vocation.Fighter;
 import com.lhf.game.creature.vocation.Healer;
 import com.lhf.game.creature.vocation.Mage;
@@ -35,40 +35,44 @@ public class VocationChooserTest {
         @Test
         void testChoose() {
                 AIComBundle finder = new AIComBundle();
-                finder.npc.setFaction(CreatureFaction.RENEGADE);
+                finder.getNPC().setFaction(CreatureFaction.RENEGADE);
                 AIComBundle magi = new AIComBundle();
-                magi.npc.setVocation(new Mage());
+                magi.getNPC().setVocation(new Mage());
                 AIComBundle cleric = new AIComBundle();
-                cleric.npc.setVocation(new Healer());
+                cleric.getNPC().setVocation(new Healer());
                 AIComBundle barbarian = new AIComBundle();
-                barbarian.npc.setVocation(new Fighter());
+                barbarian.getNPC().setVocation(new Fighter());
                 AIComBundle supreme = new AIComBundle();
-                supreme.npc.setVocation(new DMV());
+                supreme.getNPC().setVocation(new DMVocation());
 
                 VocationChooser chooser = new VocationChooser();
 
                 BattleStats battleStats = new BattleStats()
-                                .initialize(List.of(finder.npc, magi.npc, cleric.npc, barbarian.npc, supreme.npc));
+                                .initialize(List.of(finder.getNPC(), magi.getNPC(), cleric.getNPC(), barbarian.getNPC(),
+                                                supreme.getNPC()));
 
                 SortedMap<String, Double> targets = chooser.choose(
                                 battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING).stream()
                                                 .collect(Collectors.toSet()),
-                                finder.npc.getHarmMemories(),
+                                finder.getNPC().getHarmMemories(),
                                 List.of());
 
                 Truth.assertThat(targets).hasSize(5); // us being a renegade makes us included
-                Truth.assertThat(targets).containsKey(magi.npc.getName());
-                Truth.assertThat(targets.get(magi.npc.getName())).isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
+                Truth.assertThat(targets).containsKey(magi.getNPC().getName());
+                Truth.assertThat(targets.get(magi.getNPC().getName()))
+                                .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
                                 .of(2 / (double) 3);
-                Truth.assertThat(targets).containsKey(cleric.npc.getName());
-                Truth.assertThat(targets.get(cleric.npc.getName())).isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
+                Truth.assertThat(targets).containsKey(cleric.getNPC().getName());
+                Truth.assertThat(targets.get(cleric.getNPC().getName()))
+                                .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
                                 .of(3 / (double) 3);
-                Truth.assertThat(targets).containsKey(barbarian.npc.getName());
-                Truth.assertThat(targets.get(barbarian.npc.getName()))
+                Truth.assertThat(targets).containsKey(barbarian.getNPC().getName());
+                Truth.assertThat(targets.get(barbarian.getNPC().getName()))
                                 .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
                                 .of(1 / (double) 3);
-                Truth.assertThat(targets).containsKey(supreme.npc.getName());
-                Truth.assertThat(targets.get(supreme.npc.getName())).isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
+                Truth.assertThat(targets).containsKey(supreme.getNPC().getName());
+                Truth.assertThat(targets.get(supreme.getNPC().getName()))
+                                .isWithin(AIChooser.MIN_VALUE * AIChooser.MIN_VALUE)
                                 .of(AIChooser.MIN_VALUE);
 
         }

@@ -1,14 +1,12 @@
 package com.lhf.game.map;
 
-import java.util.UUID;
-
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.map.DoorwayFactory.DoorwayType;
 
 class OneWayDoorway extends Doorway {
+    private final Directions allowed;
 
-    public OneWayDoorway(UUID roomAUuid, Directions fromBtoA, UUID roomBUuid) {
-        super(roomAUuid, fromBtoA, roomBUuid);
+    public OneWayDoorway(Directions allowed) {
+        this.allowed = allowed;
     }
 
     @Override
@@ -16,11 +14,12 @@ class OneWayDoorway extends Doorway {
         return DoorwayType.ONE_WAY;
     }
 
-    public boolean canTraverse(ICreature creature, Directions whichWay) {
-        if (whichWay != this.getFromBtoA()) {
+    @Override
+    public boolean testTraversal(ICreature creature, Directions direction, Area source, Area dest) {
+        if (this.allowed != null && !this.allowed.equals(direction)) {
             return false;
         }
-        return super.canTraverse(creature, whichWay);
+        return super.testTraversal(creature, direction, source, dest);
     }
 
 }

@@ -1,47 +1,24 @@
 package com.lhf.game.map;
 
-import java.util.UUID;
-
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.map.DoorwayFactory.DoorwayType;
+import com.lhf.game.map.Land.TraversalTester;
 
-class Doorway {
-    private UUID roomAUuid;
-    private Directions fromBtoA;
-    private UUID roomBUuid;
+class Doorway implements TraversalTester {
 
-    public Doorway(UUID roomAUuid, Directions fromBtoA, UUID roomBUuid) {
-        this.roomAUuid = roomAUuid;
-        this.fromBtoA = fromBtoA;
-        this.roomBUuid = roomBUuid;
+    public enum DoorwayType {
+        STANDARD, ONE_WAY, CLOSEABLE, KEYED;
+    }
+
+    public Doorway() {
+
     }
 
     public DoorwayType getType() {
         return DoorwayType.STANDARD;
     }
 
-    public UUID getRoomAUuid() {
-        return roomAUuid;
-    }
-
-    public UUID getRoomBUuid() {
-        return roomBUuid;
-    }
-
-    public Directions getFromBtoA() {
-        return fromBtoA;
-    }
-
-    public UUID getRoomAccross(UUID presentUuid) {
-        if (this.getRoomAUuid().equals(presentUuid)) {
-            return this.getRoomBUuid();
-        } else if (this.getRoomBUuid().equals(presentUuid)) {
-            return this.getRoomAUuid();
-        }
-        return null;
-    }
-
-    public boolean canTraverse(ICreature creature, Directions whichWay) {
+    @Override
+    public boolean testTraversal(ICreature creature, Directions direction, Area source, Area dest) {
         return true;
     }
 

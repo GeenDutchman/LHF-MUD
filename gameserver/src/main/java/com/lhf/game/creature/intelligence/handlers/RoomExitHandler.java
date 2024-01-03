@@ -1,13 +1,15 @@
 package com.lhf.game.creature.intelligence.handlers;
 
+import com.lhf.Taggable;
+import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.RoomExitedEvent;
 
-public class ForgetOnOtherExit extends AIHandler {
-    public ForgetOnOtherExit() {
+public class RoomExitHandler extends AIHandler {
+    public RoomExitHandler() {
         super(GameEventType.ROOM_EXITED);
     }
 
@@ -16,8 +18,12 @@ public class ForgetOnOtherExit extends AIHandler {
         if (GameEventType.ROOM_EXITED.equals(event.getEventType())) {
             RoomExitedEvent slr = (RoomExitedEvent) event;
             if (slr.getLeaveTaker() != null) {
-                if (bai.getNpc().getConvoTree() != null) {
-                    bai.getNpc().getConvoTree().forgetBookmark(slr.getLeaveTaker());
+                INonPlayerCharacter npc = bai.getNpc();
+                if (npc.getConvoTree() != null) {
+                    npc.getConvoTree().forgetBookmark(slr.getLeaveTaker());
+                }
+                if (npc.getLeaderName() != null && npc.getLeaderName().equals(Taggable.extract(slr.getLeaveTaker()))) {
+                    bai.ProcessString("GO " + slr.getWhichWay().toString()); // TODO: find out how to do interact doors
                 }
             }
         }

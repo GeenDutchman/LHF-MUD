@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.server.client.Client.ClientID;
 
 // see https://gamedev.stackexchange.com/questions/12458/how-to-manage-all-the-npc-ai-objects-on-the-server/12512#12512
@@ -89,28 +88,17 @@ public class GroupAIRunner implements AIRunner {
         return this;
     }
 
-    private BasicAI produceAI(INonPlayerCharacter npc) {
-        this.logger.log(Level.FINE, "Producing an AI for " + npc.getName());
-        return new BasicAI(npc, this);
-    }
-
     @Override
-    public synchronized BasicAI register(INonPlayerCharacter npc, AIHandler... handlers) {
-        this.logger.entering(this.getClass().getName(), "register()", npc.getName());
-        if (npc.getController() == null) {
-            this.logger.log(Level.FINE, "NPC " + npc.getName() + " does not have a controller");
-            BasicAI basicAI = this.produceAI(npc);
-            this.aiMap.put(basicAI.getClientID(), new AIPair<BasicAI>(basicAI));
-            npc.setController(basicAI);
-        }
-        if (npc.getController() instanceof BasicAI) {
-            BasicAI basicAI = (BasicAI) npc.getController();
+    public BasicAI produceAI(AIHandler... handlers) {
+        BasicAI ai = new BasicAI(this);
+        this.logger.log(Level.FINE, "Producing an AI " + ai.getClientID().toString());
+        this.aiMap.put(ai.getClientID(), new AIPair<BasicAI>(ai));
+        if (handlers != null) {
             for (AIHandler handler : handlers) {
-                basicAI.addHandler(handler);
+                ai.addHandler(handler);
             }
-            return basicAI;
         }
-        return null;
+        return ai;
     }
 
     protected void process(ClientID id) throws InterruptedException {
@@ -129,6 +117,10 @@ public class GroupAIRunner implements AIRunner {
                     this.logger.log(Level.FINEST,
                             () -> String.format("%s still has messages enqueued", aiPair.ai.toString()));
                     this.getAttention(id);
+                } else if (aiPair.ai.size() <= 0 && aiPair.ai.npc != null && !aiPair.ai.npc.isAlive()) {
+                    // disconnect and garbage
+                    aiPair.ai.setNPC(null);
+                    this.aiMap.remove(id);
                 }
             }
         }

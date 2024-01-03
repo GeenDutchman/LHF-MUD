@@ -12,7 +12,7 @@ import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 
 public class Usable extends Takeable {
-    private final Integer numCanUseTimes;
+    protected final Integer numCanUseTimes;
     private Integer hasBeenUsedTimes = 0;
     private Map<String, UseAction> methods;
 
@@ -34,6 +34,18 @@ public class Usable extends Takeable {
         super(name, isVisible);
         methods = new HashMap<>();
         numCanUseTimes = useSoManyTimes;
+    }
+
+    protected void copyOverwriteTo(Usable other) {
+        other.methods = new HashMap<>(this.methods);
+        super.copyOverwriteTo(other);
+    }
+
+    @Override
+    public Usable makeCopy() {
+        Usable usable = new Usable(this.getName(), this.checkVisibility(), this.numCanUseTimes);
+        this.copyOverwriteTo(usable);
+        return usable;
     }
 
     protected Usable setUseAction(String whenItIsThis, UseAction doThis) {

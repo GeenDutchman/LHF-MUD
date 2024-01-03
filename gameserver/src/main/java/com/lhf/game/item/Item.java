@@ -31,6 +31,12 @@ public abstract class Item implements TaggedExaminable {
         this.descriptionString = description;
     }
 
+    protected void copyOverwriteTo(Item other) {
+        other.descriptionString = this.descriptionString;
+    }
+
+    public abstract Item makeCopy();
+
     public String getClassName() {
         return this.className;
     }

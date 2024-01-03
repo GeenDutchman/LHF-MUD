@@ -12,13 +12,13 @@ public class DMRoomTargetingSpellEntry extends RoomTargetingSpellEntry {
 
     public DMRoomTargetingSpellEntry(ResourceCost level, String name, String invocation,
             Set<DMRoomEffectSource> effectSources,
-            Set<VocationName> allowed, String description, boolean banishesItems, boolean banishesCreatures) {
-        super(level, name, invocation, effectSources, allowed, description, banishesItems, banishesCreatures);
+            Set<VocationName> allowed, String description) {
+        super(level, name, invocation, effectSources, allowed, description);
     }
 
     public DMRoomTargetingSpellEntry(ResourceCost level, String name, Set<DMRoomEffectSource> effectSources,
-            Set<VocationName> allowed, String description, boolean banishesItems, boolean banishesCreatures) {
-        super(level, name, effectSources, allowed, description, banishesItems, banishesCreatures);
+            Set<VocationName> allowed, String description) {
+        super(level, name, effectSources, allowed, description);
     }
 
     public boolean isEnsoulsUsers() {

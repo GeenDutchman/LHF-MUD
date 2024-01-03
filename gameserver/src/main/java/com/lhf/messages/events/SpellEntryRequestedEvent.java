@@ -90,6 +90,7 @@ public class SpellEntryRequestedEvent extends GameEvent {
         StringJoiner sj = new StringJoiner("\r\n").setEmptyValue("No spells found.");
         for (SpellEntry entry : this.getEntries()) {
             sj.add(entry.getColorTaggedName()).add("\r\n");
+            sj.add(entry.getInvocation()).add("\r\n");
             sj.add(entry.printDescription());
         }
         return (this.cubeHolder ? "" : "Only cubeholders can cast spells. ") + sj.toString();

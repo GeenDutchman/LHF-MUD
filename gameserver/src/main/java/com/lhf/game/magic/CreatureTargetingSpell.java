@@ -30,8 +30,8 @@ public class CreatureTargetingSpell extends ISpell<CreatureEffect> {
         if (this.effects == null) {
             this.effects = new HashSet<>();
             for (EntityEffectSource source : this.getEntry().getEffectSources()) {
-                if (source instanceof CreatureEffectSource) {
-                    this.effects.add(new CreatureEffect((CreatureEffectSource) source, this.getCaster(), this));
+                if (source instanceof CreatureEffectSource creatureEffectSource) {
+                    this.effects.add(new CreatureEffect(creatureEffectSource.makeCopy(), this.getCaster(), this));
                 }
             }
         }

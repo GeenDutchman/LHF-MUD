@@ -2,8 +2,8 @@ package com.lhf.messages.events;
 
 import java.util.StringJoiner;
 
-import com.lhf.game.creature.ICreature;
-import com.lhf.game.item.Item;
+import com.lhf.game.creature.IMonster;
+import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomEffect;
 import com.lhf.messages.GameEventType;
@@ -84,6 +84,14 @@ public class RoomAffectedEvent extends GameEvent {
         return reversed;
     }
 
+    public IMonster getSummonedMonster() {
+        return this.effect.getCachedMonster();
+    }
+
+    public INonPlayerCharacter getSummonedNPC() {
+        return this.effect.getCachedNPC();
+    }
+
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
@@ -103,40 +111,13 @@ public class RoomAffectedEvent extends GameEvent {
             sj.add("But the effects have EXPIRED, and will now REVERSE!").add("\r\n");
         }
 
-        StringJoiner lister = null;
-
-        if (this.effect.getItemsToSummon().size() > 0) {
-            lister = new StringJoiner(", ", "", this.reversed ? " are de-summoned.\r\n" : " are summoned.\r\n")
-                    .setEmptyValue("No items ");
-            for (Item item : this.effect.getItemsToSummon()) {
-                lister.add(item.getColorTaggedName());
-            }
-            sj.add(lister.toString());
+        IMonster summonedMonster = this.effect.getCachedMonster();
+        if (summonedMonster != null) {
+            sj.add("The monster").add(summonedMonster.getColorTaggedName()).add("was summoned.");
         }
-        if (this.effect.getItemsToBanish().size() > 0) {
-            lister = new StringJoiner(", ", "", this.reversed ? " are de-banished.\r\n" : " are banished.\r\n")
-                    .setEmptyValue("No items ");
-            for (Item item : this.effect.getItemsToBanish()) {
-                lister.add(item.getColorTaggedName());
-            }
-            sj.add(lister.toString());
-        }
-
-        if (this.effect.getCreaturesToSummon().size() > 0) {
-            lister = new StringJoiner(", ", "", this.reversed ? " are de-summoned.\r\n" : " are summoned.\r\n")
-                    .setEmptyValue("No creatures ");
-            for (ICreature creature : this.effect.getCreaturesToSummon()) {
-                lister.add(creature.getColorTaggedName());
-            }
-            sj.add(lister.toString());
-        }
-        if (this.effect.getCreaturesToBanish().size() > 0) {
-            lister = new StringJoiner(", ", "", this.reversed ? " are de-banished.\r\n" : " are banished.\r\n")
-                    .setEmptyValue("No creatures ");
-            for (ICreature creature : this.effect.getCreaturesToBanish()) {
-                lister.add(creature.getColorTaggedName());
-            }
-            sj.add(lister.toString());
+        INonPlayerCharacter summonedNPC = this.effect.getCachedNPC();
+        if (summonedNPC != null) {
+            sj.add("The NPC").add(summonedNPC.getColorTaggedName()).add("was summoned.");
         }
 
         return sj.toString();

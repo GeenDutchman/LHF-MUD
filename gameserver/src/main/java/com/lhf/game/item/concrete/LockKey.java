@@ -36,6 +36,11 @@ public class LockKey extends Usable {
         this.descriptionString = "A key for ... something.";
     }
 
+    @Override
+    public LockKey makeCopy() {
+        return new LockKey(lockedItemUuid, this.numCanUseTimes.intValue());
+    }
+
     public static String generateKeyName(UUID lockedItemUuid) {
         return "Key " + lockedItemUuid.toString();
     }

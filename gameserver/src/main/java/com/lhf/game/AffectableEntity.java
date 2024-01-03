@@ -101,13 +101,16 @@ public interface AffectableEntity<Effect extends EntityEffect> {
         if (tickEvent == null) {
             return;
         }
-        this.getMutableEffects().removeIf(effect -> {
-            if (effect.tick(tickEvent.getTickType()) == 0) {
-                this.applyEffect(effect, true);
-                return true;
-            }
-            return false;
-        });
+        NavigableSet<Effect> effects = this.getMutableEffects();
+        if (effects != null) {
+            effects.removeIf(effect -> {
+                if (effect.tick(tickEvent.getTickType()) == 0) {
+                    this.applyEffect(effect, true);
+                    return true;
+                }
+                return false;
+            });
+        }
     }
 
     /**

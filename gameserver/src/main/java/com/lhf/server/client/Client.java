@@ -80,7 +80,7 @@ public class Client implements CommandInvoker {
         this.id = new ClientID();
         this.gameEventProcessorID = new GameEventProcessorID();
         this.logger = Logger
-                .getLogger(String.format("%s.%d", this.getClass().getName(), this.getEventProcessorID().hashCode()));
+                .getLogger(String.format("%s.%d", this.getClass().getName(), this.getClientID().hashCode()));
         this.log(Level.FINEST,
                 () -> String.format("Creating client %s.%d", this.getClass().getName(),
                         this.getEventProcessorID().hashCode()));
@@ -249,7 +249,7 @@ public class Client implements CommandInvoker {
     }
 
     @Override
-    public Collection<GameEventProcessor> getClientMessengers() {
+    public Collection<GameEventProcessor> getGameEventProcessors() {
         return Set.of();
     }
 

@@ -4,16 +4,12 @@ import java.util.EnumSet;
 
 import com.lhf.game.EntityEffect;
 import com.lhf.game.battle.MultiAttacker;
-import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.enums.Attributes;
-import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.ResourceCost;
-import com.lhf.game.enums.Stats;
-import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.magic.CubeHolder;
 
-public class DMV extends Vocation implements CubeHolder, MultiAttacker {
+public class DMVocation extends Vocation implements CubeHolder, MultiAttacker {
 
     private class UnlimitedPool implements ResourcePool {
 
@@ -24,7 +20,7 @@ public class DMV extends Vocation implements CubeHolder, MultiAttacker {
 
         @Override
         public int getLevel() {
-            return DMV.this.level;
+            return DMVocation.this.level;
         }
 
         @Override
@@ -52,38 +48,23 @@ public class DMV extends Vocation implements CubeHolder, MultiAttacker {
 
     }
 
-    public DMV() {
+    public DMVocation() {
         super(VocationName.DUNGEON_MASTER);
+    }
+
+    public DMVocation(Integer level) {
+        super(VocationName.DUNGEON_MASTER, level);
+    }
+
+    @Override
+    public DMVocation copy() {
+        DMVocation aCopy = new DMVocation();
+        return aCopy;
     }
 
     @Override
     protected ResourcePool initPool() {
         return new UnlimitedPool();
-    }
-
-    @Override
-    public Statblock createNewDefaultStatblock(String creatureRace) {
-        Statblock built = new Statblock(creatureRace);
-
-        built.setProficiencies(EnumSet.allOf(EquipmentTypes.class));
-
-        built.getInventory().addItem(new HealPotion(true));
-
-        // Set default stats
-        built.getStats().put(Stats.MAXHP, Integer.MAX_VALUE / 3);
-        built.getStats().put(Stats.CURRENTHP, Integer.MAX_VALUE / 3);
-        built.getStats().put(Stats.AC, Integer.MAX_VALUE / 3);
-        built.getStats().put(Stats.XPWORTH, Integer.MAX_VALUE / 3);
-        built.getStats().put(Stats.PROFICIENCYBONUS, Integer.MAX_VALUE / 3);
-
-        built.getAttributes().setScore(Attributes.STR, 100);
-        built.getAttributes().setScore(Attributes.DEX, 100);
-        built.getAttributes().setScore(Attributes.CON, 100);
-        built.getAttributes().setScore(Attributes.INT, 100);
-        built.getAttributes().setScore(Attributes.WIS, 100);
-        built.getAttributes().setScore(Attributes.CHA, 100);
-
-        return built;
     }
 
     @Override

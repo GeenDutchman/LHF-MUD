@@ -69,6 +69,11 @@ public class Chest extends Item implements LockableItemContainer {
     }
 
     @Override
+    public Chest makeCopy() {
+        return new Chest(this.getName(), this.checkVisibility(), this.locked.get(), this.removeOnEmpty);
+    }
+
+    @Override
     public String printDescription() {
         StringJoiner sj = new StringJoiner(" ");
         sj.add(super.printDescription() + ".");
