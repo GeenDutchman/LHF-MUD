@@ -154,6 +154,9 @@ public class Statblock {
             if (needDefaults == null) {
                 needDefaults = new EnumMap<>(DamgeFlavorReaction.class);
             }
+            for (DamgeFlavorReaction reaction : DamgeFlavorReaction.values()) {
+                needDefaults.computeIfAbsent(reaction, key -> EnumSet.noneOf(DamageFlavor.class));
+            }
             needDefaults
                     .computeIfAbsent(DamgeFlavorReaction.CURATIVES, key -> EnumSet.of(DamageFlavor.HEALING))
                     .add(DamageFlavor.HEALING);
@@ -169,6 +172,9 @@ public class Statblock {
 
         public StatblockBuilder resetFlavorReactions() {
             this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReaction.class);
+            for (DamgeFlavorReaction reaction : DamgeFlavorReaction.values()) {
+                this.damageFlavorReactions.computeIfAbsent(reaction, key -> EnumSet.noneOf(DamageFlavor.class));
+            }
             return this;
         }
 
@@ -207,6 +213,9 @@ public class Statblock {
                 EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> from) {
             EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> reactions = new EnumMap<>(
                     DamgeFlavorReaction.class);
+            for (DamgeFlavorReaction reaction : DamgeFlavorReaction.values()) {
+                reactions.computeIfAbsent(reaction, key -> EnumSet.noneOf(DamageFlavor.class));
+            }
             if (from != null) {
                 for (final Entry<DamgeFlavorReaction, EnumSet<DamageFlavor>> entry : from.entrySet()) {
                     reactions.put(entry.getKey(), EnumSet.copyOf(entry.getValue()));
@@ -334,6 +343,10 @@ public class Statblock {
     public void setDamageFlavorReactions(EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> reactions) {
         if (reactions == null) {
             StatblockBuilder.setDefaultFlavorReactions(reactions);
+        } else {
+            for (DamgeFlavorReaction reaction : DamgeFlavorReaction.values()) {
+                reactions.computeIfAbsent(reaction, key -> EnumSet.noneOf(DamageFlavor.class));
+            }
         }
         this.damageFlavorReactions = reactions;
     }
