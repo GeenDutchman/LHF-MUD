@@ -28,7 +28,7 @@ public class DungeonTargetingSpellEntry extends SpellEntry {
 
     @Override
     public SpellCastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
-        StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("nothing");
+        StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("Targeting nothing");
         if (targets != null) {
             for (Taggable taggable : targets) {
                 sj.add(taggable.getColorTaggedName());
