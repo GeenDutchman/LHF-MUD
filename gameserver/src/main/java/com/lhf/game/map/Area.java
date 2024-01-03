@@ -23,6 +23,8 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
+import com.lhf.game.map.SubArea.SubAreaBuilder;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.ITickEvent;
@@ -112,6 +114,31 @@ public interface Area
     public abstract Land getLand();
 
     public abstract NavigableSet<SubArea> getSubAreas();
+
+    public boolean addSubArea(SubAreaBuilder<?, ?> builder);
+
+    public default SubArea getSubAreaForSort(SubAreaSort sort) {
+        if (sort == null) {
+            return null;
+        }
+        final NavigableSet<SubArea> subAreas = this.getSubAreas();
+        if (subAreas == null) {
+            return null;
+        }
+        for (final SubArea subArea : subAreas) {
+            if (sort.equals(subArea.getSubAreaSort())) {
+                return subArea;
+            }
+        }
+        return null;
+    }
+
+    public default boolean hasSubAreaSort(SubAreaSort sort) {
+        if (sort == null) {
+            return false;
+        }
+        return this.getSubAreaForSort(sort) != null;
+    }
 
     @Override
     default SeeEvent produceMessage() {

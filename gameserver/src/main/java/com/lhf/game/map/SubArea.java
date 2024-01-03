@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,7 +21,6 @@ import java.util.logging.Logger;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandMessage;
@@ -39,6 +37,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     protected final static int MAX_POOLED_ACTIONS = 1;
     protected final static int MAX_MILLISECONDS = 120000;
     protected final static int DEFAULT_MILLISECONDS = 90000;
+    protected final SubAreaSort sort;
     protected final GameEventProcessorID gameEventProcessorID;
     protected final int roundDurationMilliseconds;
     protected final Logger logger;
@@ -81,15 +80,19 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         protected final SubAreaBuilderID id;
         private int waitMilliseconds;
         private Set<CreatureFilterQuery> creatureQueries;
+        private boolean queryOnBuild;
 
         protected SubAreaBuilder() {
             this.thisObject = getThis();
             this.id = new SubAreaBuilderID();
             this.waitMilliseconds = DEFAULT_MILLISECONDS;
             this.creatureQueries = new HashSet<>();
+            this.queryOnBuild = true;
         }
 
         protected abstract BuilderType getThis();
+
+        public abstract SubAreaSort getSubAreaSort();
 
         public BuilderType setWaitMilliseconds(int count) {
             this.waitMilliseconds = Integer.min(SubArea.MAX_MILLISECONDS, Integer.max(1, count));
@@ -116,6 +119,14 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             return creatureQueries;
         }
 
+        public boolean isQueryOnBuild() {
+            return queryOnBuild;
+        }
+
+        public void setQueryOnBuild(boolean queryOnBuild) {
+            this.queryOnBuild = queryOnBuild;
+        }
+
         @Override
         public int hashCode() {
             return Objects.hash(id);
@@ -132,23 +143,32 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         }
 
         public abstract SubAreaType build(@NotNull Area area);
+
     }
 
     protected SubArea(SubAreaBuilder<? extends SubArea, ?> builder, @NotNull Area area) {
         this.gameEventProcessorID = new GameEventProcessorID();
+        this.sort = builder.getSubAreaSort();
+        if (this.sort == null) {
+            throw new NullPointerException("Builder must provide a sort!");
+        }
         this.area = area;
         this.logger = Logger.getLogger(this.getClass().getName() + "." + this.getName().replaceAll("\\W", "_"));
         this.roundDurationMilliseconds = builder.getWaitMilliseconds();
         this.cmds = this.buildCommands();
         this.actionPools = Collections.synchronizedNavigableMap(new TreeMap<>());
-        for (final CreatureFilterQuery query : builder.getCreatureQueries()) {
-            for (ICreature creature : this.area.filterCreatures(query)) {
-                this.addCreature(creature);
+        if (builder.isQueryOnBuild()) {
+            for (final CreatureFilterQuery query : builder.getCreatureQueries()) {
+                for (ICreature creature : this.area.filterCreatures(query)) {
+                    this.addCreature(creature);
+                }
             }
         }
     }
 
-    public abstract SubAreaSort getSubAreaSort();
+    public final SubAreaSort getSubAreaSort() {
+        return this.sort;
+    }
 
     protected abstract EnumMap<CommandMessage, CommandHandler> buildCommands();
 
@@ -184,10 +204,19 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         return Collections.unmodifiableNavigableMap(this.actionPools);
     }
 
+    public void clearPools(boolean flush) {
+        if (flush) {
+            this.flush();
+        }
+        this.actionPools.clear();
+    }
+
     @Override
     public final Collection<ICreature> getCreatures() {
         return this.getPools().keySet();
     }
+
+    public abstract void onAreaEntry(ICreature creature);
 
     protected abstract boolean basicAddCreature(ICreature creature);
 

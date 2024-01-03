@@ -27,7 +27,6 @@ import com.lhf.Examinable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.LockableItemContainer;
-import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
@@ -36,13 +35,13 @@ import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
-import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.map.Area.AreaBuilder.PostBuildRoomOperations;
+import com.lhf.game.map.SubArea.SubAreaBuilder;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
@@ -87,7 +86,7 @@ public class Room implements Area {
     private transient Long interactableCount;
     private final String description;
     private final String name;
-    private final BattleManager battleManager;
+    private final NavigableSet<SubArea> subAreas;
     private final Set<ICreature> allCreatures;
     private final transient Land land;
     private final transient TreeSet<RoomEffect> effects;
@@ -102,7 +101,7 @@ public class Room implements Area {
         private String description;
         private List<Item> items;
         private Set<INonPlayerCharacter.AbstractNPCBuilder<?, ?>> npcsToBuild;
-        private BattleManager.Builder battleManagerBuilder;
+        private Set<SubAreaBuilder<?, ?>> subAreasToBuild;
 
         private RoomBuilder() {
             this.logger = Logger.getLogger(this.getClass().getName());
@@ -111,7 +110,7 @@ public class Room implements Area {
             this.description = "An area that Creatures and Items can be in";
             this.items = new ArrayList<>();
             this.npcsToBuild = new HashSet<>();
-            this.battleManagerBuilder = BattleManager.Builder.getInstance();
+            this.subAreasToBuild = new HashSet<>();
         }
 
         public static RoomBuilder getInstance() {
@@ -158,6 +157,20 @@ public class Room implements Area {
             return this.npcsToBuild;
         }
 
+        public RoomBuilder addSubAreaBuilder(SubAreaBuilder<?, ?> builder) {
+            if (this.subAreasToBuild == null) {
+                this.subAreasToBuild = new HashSet<>();
+            }
+            if (builder != null) {
+                this.subAreasToBuild.add(builder);
+            }
+            return this;
+        }
+
+        public Collection<SubAreaBuilder<?, ?>> getSubAreasToBuild() {
+            return this.subAreasToBuild;
+        }
+
         @Override
         public String getDescription() {
             return this.description;
@@ -194,6 +207,9 @@ public class Room implements Area {
             return Room.quickBuilder(this, () -> land, () -> successor, () -> (room) -> {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.quickBuildCreatures(aiRunner, room);
                 room.addCreatures(creaturesBuilt, true);
+                for (final SubAreaBuilder<?, ?> subAreaBuilder : this.getSubAreasToBuild()) {
+                    room.addSubArea(subAreaBuilder);
+                }
             });
         }
 
@@ -223,6 +239,9 @@ public class Room implements Area {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.buildCreatures(aiRunner, room, statblockManager,
                         conversationManager);
                 room.addCreatures(creaturesBuilt, false);
+                for (final SubAreaBuilder<?, ?> subAreaBuilder : this.getSubAreasToBuild()) {
+                    room.addSubArea(subAreaBuilder);
+                }
             });
         }
 
@@ -281,7 +300,7 @@ public class Room implements Area {
         this.land = landSupplier.get();
         this.successor = successorSupplier.get();
         this.effects = new TreeSet<>();
-        this.battleManager = builder.battleManagerBuilder.Build(this);
+        this.subAreas = new TreeSet<>();
         this.commands = this.buildCommands();
     }
 
@@ -339,9 +358,8 @@ public class Room implements Area {
                         ICreature.eventAccepter.accept(c, this.produceMessage());
                         this.announce(RoomEnteredEvent.getBuilder().setNewbie(c).setBroacast().Build(), c);
                     }
-                    if (this.battleManager.isBattleOngoing("Room.addCreatures(Set<ICreature>)")
-                            && !CreatureFaction.NPC.equals(c.getFaction())) {
-                        this.battleManager.addCreature(c);
+                    for (final SubArea subArea : this.subAreas) {
+                        subArea.onAreaEntry(c);
                     }
                 }
             });
@@ -356,9 +374,8 @@ public class Room implements Area {
             this.logger.log(Level.FINER, () -> String.format("%s entered the room", c.getName()));
             ICreature.eventAccepter.accept(c, this.produceMessage());
             this.announce(RoomEnteredEvent.getBuilder().setNewbie(c).setBroacast().Build(), c);
-            if (this.battleManager.isBattleOngoing("Room.addCreature()")
-                    && !CreatureFaction.NPC.equals(c.getFaction())) {
-                this.battleManager.addCreature(c);
+            for (final SubArea subArea : this.subAreas) {
+                subArea.onAreaEntry(c);
             }
             return true;
         }
@@ -376,10 +393,8 @@ public class Room implements Area {
 
     @Override
     public boolean removeCreature(ICreature c) {
-        if (this.battleManager.hasCreature(c)) {
-            this.battleManager.removeCreature(c);
-            c.removeSubArea(SubAreaSort.BATTLE);
-            c.setSuccessor(this.getSuccessor());
+        for (final SubArea subArea : this.getSubAreas()) {
+            subArea.removeCreature(c);
         }
         if (this.allCreatures.remove(c)) {
             c.setSuccessor(this.getSuccessor());
@@ -555,8 +570,8 @@ public class Room implements Area {
         SeeEvent.Builder seeOutMessage = (SeeEvent.Builder) Area.super.produceMessage(seeInvisible,
                 seeDirections).copyBuilder();
 
-        if (this.battleManager.isBattleOngoing("Room.produceMessage()")) {
-            seeOutMessage.addExtraInfo("There is a battle going on!");
+        for (final SubArea subArea : this.subAreas) {
+            seeOutMessage.addExtraInfo(subArea.printDescription());
         }
         return seeOutMessage.Build();
     }
@@ -591,8 +606,26 @@ public class Room implements Area {
         return this.effects;
     }
 
-    public String getBattleInfo() {
-        return battleManager.produceMessage().print();
+    @Override
+    public NavigableSet<SubArea> getSubAreas() {
+        return Collections.unmodifiableNavigableSet(this.subAreas);
+    }
+
+    @Override
+    public boolean addSubArea(SubAreaBuilder<?, ?> builder) {
+        if (builder != null && !this.hasSubAreaSort(builder.getSubAreaSort())) {
+            SubArea built = builder.build(this);
+            boolean done = this.subAreas.add(built);
+            if (done && built != null && !builder.isQueryOnBuild()) {
+                for (final CreatureFilterQuery query : builder.getCreatureQueries()) {
+                    for (ICreature creature : this.filterCreatures(query)) {
+                        built.addCreature(creature);
+                    }
+                }
+            }
+            return done;
+        }
+        return false;
     }
 
     @Override
@@ -650,7 +683,7 @@ public class Room implements Area {
         private final static Predicate<CommandContext> enabledPredicate = AttackHandler.defaultRoomPredicate
                 .and(ctx -> {
                     Room room = ctx.getRoom();
-                    if (room.battleManager == null) {
+                    if (!room.hasSubAreaSort(SubAreaSort.BATTLE)) {
                         room.logger.warning(() -> String.format("No battle manager for room: %s", room.getName()));
                         return false;
                     }
@@ -683,7 +716,12 @@ public class Room implements Area {
                         .setHelps(ctx.getHelps()).setCommand(cmd).Build());
                 return ctx.handled();
             }
-            return Room.this.battleManager.handleChain(ctx, cmd);
+            final SubArea subArea = Room.this.getSubAreaForSort(SubAreaSort.BATTLE);
+            if (subArea == null) {
+                this.log(Level.WARNING, "No battle sub area found!");
+                return ctx.failhandle();
+            }
+            return subArea.handleChain(ctx, cmd);
         }
 
         @Override
@@ -712,7 +750,6 @@ public class Room implements Area {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            ctx.setBattleManager(Room.this.battleManager);
             if (ctx.getCreature() == null) {
                 ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                         .setHelps(ctx.getHelps()).setCommand(cmd).Build());
@@ -1202,8 +1239,15 @@ public class Room implements Area {
                     ICreature targetCreature = creatureList.get(0);
                     // if we aren't in battle, but our target is in battle, join the battle
                     if (!ctx.getCreature().isInBattle() && targetCreature.isInBattle()) {
-                        Room.this.battleManager.addCreature(ctx.getCreature());
-                        return Room.this.battleManager.handleChain(ctx, cmd);
+                        final SubArea subArea = Room.this.getSubAreaForSort(SubAreaSort.BATTLE);
+                        if (subArea == null) {
+                            this.log(Level.SEVERE, String.format(
+                                    "How can we target someone in battle without the Room having a battle sub area? %s",
+                                    Room.this.getSubAreas()));
+                            return ctx.failhandle();
+                        }
+                        subArea.addCreature(ctx.getCreature());
+                        return subArea.handleChain(ctx, cmd);
                     }
                     usable.doUseAction(ctx, creatureList.get(0));
                     return ctx.handled();
