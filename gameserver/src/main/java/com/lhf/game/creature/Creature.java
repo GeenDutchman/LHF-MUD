@@ -97,19 +97,10 @@ public abstract class Creature implements ICreature {
                 .getLogger(String.format("%s.%s", this.getClass().getName(), this.name.replaceAll("\\W", "_")));
     }
 
-    private Map<CommandMessage, CommandHandler> buildCommands() {
-        StringJoiner sj = new StringJoiner(" ");
+    protected Map<CommandMessage, CommandHandler> buildCommands() {
         Map<CommandMessage, CommandHandler> cmds = new EnumMap<>(CommandMessage.class);
-        sj.add("\"equip [item]\"").add("Equips the item from your inventory to its default slot").add("\r\n");
-        sj.add("\"equip [item] to [slot]\"")
-                .add("Equips the item from your inventory to the specified slot, if such exists.");
-        sj.add("In the unlikely event that either the item or the slot's name contains 'to', enclose the name in quotation marks.");
         cmds.put(CommandMessage.EQUIP, new EquipHandler());
-        sj = new StringJoiner(" ");
-
         cmds.put(CommandMessage.UNEQUIP, new UnequipHandler());
-        sj = new StringJoiner(" ");
-
         cmds.put(CommandMessage.INVENTORY, new InventoryHandler());
         cmds.put(CommandMessage.STATUS, new StatusHandler());
         return cmds;

@@ -76,6 +76,8 @@ public class InMessage {
                 return new StatsInMessage(arguments);
             case REPEAT:
                 return new RepeatInMessage(arguments);
+            case FOLLOW:
+                return new FollowMessage(arguments);
             default:
                 return new HelpInMessage(arguments);
 

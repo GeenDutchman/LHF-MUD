@@ -1,7 +1,12 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
+import java.util.Map;
+import java.util.Optional;
+import java.util.StringJoiner;
+import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
+import java.util.logging.Level;
 
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.conversation.ConversationManager;
@@ -12,8 +17,13 @@ import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.magic.concrete.DMBlessing;
+import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.CommandMessage;
 import com.lhf.messages.events.CreatureAffectedEvent;
+import com.lhf.messages.in.FollowMessage;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
 
@@ -102,6 +112,61 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
         super(builder, controller, successor, statblock);
         this.convoTree = conversationTree;
         this.leaderName = builder.getLeaderName();
+    }
+
+    @Override
+    protected Map<CommandMessage, CommandHandler> buildCommands() {
+        Map<CommandMessage, CommandHandler> generated = super.buildCommands();
+        generated.put(CommandMessage.FOLLOW, new FollowHandler());
+        return generated;
+    }
+
+    protected class FollowHandler implements CreatureCommandHandler {
+        private static String helpString = new StringJoiner(" ").add("\"follow [personName]\"")
+                .add("Attemps to set this NPC to follow the person whose name exactly matches.")
+                .add("If this NPC is already following a person, this command will fail.").add("\r\n")
+                .add("\"follow [person] with override\"").add("Will override any previous following with the current.")
+                .toString();
+
+        @Override
+        public CommandChainHandler getChainHandler() {
+            return NonPlayerCharacter.this;
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return FollowHandler.defaultCreaturePredicate;
+        }
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.FOLLOW;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(FollowHandler.helpString);
+        }
+
+        private Reply handleFor(CommandContext ctx, INonPlayerCharacter npc, FollowMessage message) {
+            if (message.isOverride() || npc.getLeaderName() == null) {
+                npc.setLeaderName(message.getPersonToFollow());
+            } else {
+                npc.log(Level.INFO, () -> String.format("Cannot follow %s because I am already following %s",
+                        message.getPersonToFollow(), npc.getLeaderName()));
+            }
+            return ctx.handled();
+        }
+
+        @Override
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
+            if (cmd != null && cmd instanceof FollowMessage followMessage
+                    && ctx.getCreature() instanceof INonPlayerCharacter npc) {
+                return this.handleFor(ctx, npc, followMessage);
+            }
+            return ctx.failhandle();
+        }
+
     }
 
     @Override
