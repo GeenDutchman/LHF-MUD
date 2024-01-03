@@ -23,6 +23,7 @@ import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.events.BadTargetSelectedEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.CreatureAffectedEvent;
@@ -89,7 +90,7 @@ public class BasicAITest {
 
                 Truth8.assertThat(victim.getNPC().getHarmMemories().getLastAttackerName()).isEmpty();
 
-                victim.getNPC().setInBattle(true); // turn it on!
+                victim.getNPC().addSubArea(SubAreaSort.BATTLE); // turn it on!
 
                 Truth.assertThat(effect.getDamageResult().getTotal()).isNotEqualTo(0);
                 CreatureAffectedEvent doneAttack = CreatureAffectedEvent.getBuilder().setAffected(victim.getNPC())
@@ -112,7 +113,7 @@ public class BasicAITest {
         @Test
         void testBadTargetDiffFaction() {
                 AIComBundle searcher = new AIComBundle();
-                searcher.getNPC().setInBattle(true);
+                searcher.getNPC().addSubArea(SubAreaSort.BATTLE);
                 AIComBundle victim = new AIComBundle();
                 victim.getNPC().setFaction(CreatureFaction.MONSTER);
                 ArrayList<Taggable> stuff = new ArrayList<>();
@@ -126,7 +127,7 @@ public class BasicAITest {
         @Test
         void testBadTargetSameFaction() {
                 AIComBundle searcher = new AIComBundle();
-                searcher.getNPC().setInBattle(true);
+                searcher.getNPC().addSubArea(SubAreaSort.BATTLE);
                 AIComBundle samefaction = new AIComBundle();
                 ArrayList<Taggable> stuff = new ArrayList<>();
                 stuff.add(samefaction.getNPC());

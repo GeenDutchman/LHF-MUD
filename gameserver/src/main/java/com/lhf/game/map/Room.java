@@ -43,6 +43,7 @@ import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.map.Area.AreaBuilder.PostBuildRoomOperations;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -377,7 +378,7 @@ public class Room implements Area {
     public boolean removeCreature(ICreature c) {
         if (this.battleManager.hasCreature(c)) {
             this.battleManager.removeCreature(c);
-            c.setInBattle(false);
+            c.removeSubArea(SubAreaSort.BATTLE);
             c.setSuccessor(this.getSuccessor());
         }
         if (this.allCreatures.remove(c)) {

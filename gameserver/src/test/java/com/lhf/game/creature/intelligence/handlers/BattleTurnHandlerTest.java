@@ -21,6 +21,7 @@ import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler.TargetLists;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -67,7 +68,7 @@ public class BattleTurnHandlerTest {
     @Test
     void testMeleeAttackTargets() {
         AIComBundle searcher = new AIComBundle();
-        searcher.getNPC().setInBattle(true);
+        searcher.getNPC().addSubArea(SubAreaSort.BATTLE);
 
         CommandChainHandler interceptor = Mockito.mock(CommandChainHandler.class);
         Mockito.doNothing().when(interceptor).setSuccessor(Mockito.any());

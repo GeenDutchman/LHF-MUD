@@ -44,6 +44,7 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.map.Area;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -484,7 +485,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         synchronized (this.actionPools) {
             if (c != null && !c.isInBattle() && !this.hasCreature(c)) {
                 if (this.actionPools.putIfAbsent(c, new LinkedBlockingDeque<>(MAX_POOLED_ACTIONS)) == null) {
-                    c.setInBattle(true);
+                    c.addSubArea(SubAreaSort.BATTLE);
                     c.setSuccessor(this);
                     this.battleStats.initialize(this.getCreatures());
                     boolean ongoing = this.isBattleOngoing("addCreature()");
@@ -671,7 +672,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                     iterator.remove();
                 } else if (clearPredicate.test(creature)) {
                     iterator.remove();
-                    creature.setInBattle(false);
+                    creature.removeSubArea(SubAreaSort.BATTLE);
                     creature.setSuccessor(this.successor);
                     if (!creature.isAlive()) {
                         this.battleStats.setDead(creature.getName(),
