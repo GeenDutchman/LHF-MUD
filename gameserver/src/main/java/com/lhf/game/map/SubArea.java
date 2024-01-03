@@ -5,11 +5,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -78,13 +80,13 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         protected final transient BuilderType thisObject;
         protected final SubAreaBuilderID id;
         private int waitMilliseconds;
-        private NavigableMap<ICreature, Deque<IPoolEntry>> actionPools;
+        private Set<CreatureFilterQuery> creatureQueries;
 
         protected SubAreaBuilder() {
             this.thisObject = getThis();
             this.id = new SubAreaBuilderID();
             this.waitMilliseconds = DEFAULT_MILLISECONDS;
-            this.actionPools = new TreeMap<>();
+            this.creatureQueries = new HashSet<>();
         }
 
         protected abstract BuilderType getThis();
@@ -98,32 +100,35 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             return this.waitMilliseconds;
         }
 
-        public BuilderType addCreature(ICreature creature) {
-            if (creature != null) {
-                this.actionPools.computeIfAbsent(creature,
-                        key -> new LinkedBlockingDeque<>(SubArea.MAX_POOLED_ACTIONS));
+        public BuilderType addCreatureQuery(CreatureFilterQuery query) {
+            if (query != null) {
+                this.creatureQueries.add(query);
             }
             return this.getThis();
         }
 
-        public BuilderType empool(ICreature creature, CommandContext ctx, Command cmd) {
-            if (creature != null) {
-                this.addCreature(creature);
-                Deque<IPoolEntry> pool = this.actionPools.get(creature);
-                if (pool != null && cmd != null) {
-                    pool.offerLast(new PoolEntry(ctx, cmd));
-                }
-            }
+        public BuilderType resetCreatureQueries() {
+            this.creatureQueries.clear();
             return this.getThis();
         }
 
-        public BuilderType clearPool() {
-            this.actionPools.clear();
-            return this.getThis();
+        public Set<CreatureFilterQuery> getCreatureQueries() {
+            return creatureQueries;
         }
 
-        public NavigableMap<ICreature, Deque<IPoolEntry>> getActionPools() {
-            return actionPools;
+        @Override
+        public int hashCode() {
+            return Objects.hash(id);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof SubAreaBuilder))
+                return false;
+            SubAreaBuilder<?, ?> other = (SubAreaBuilder<?, ?>) obj;
+            return Objects.equals(id, other.id);
         }
 
         public abstract SubAreaType build(@NotNull Area area);
@@ -135,7 +140,12 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         this.logger = Logger.getLogger(this.getClass().getName() + "." + this.getName().replaceAll("\\W", "_"));
         this.roundDurationMilliseconds = builder.getWaitMilliseconds();
         this.cmds = this.buildCommands();
-        this.actionPools = Collections.synchronizedNavigableMap(new TreeMap<>(builder.getActionPools()));
+        this.actionPools = Collections.synchronizedNavigableMap(new TreeMap<>());
+        for (final CreatureFilterQuery query : builder.getCreatureQueries()) {
+            for (ICreature creature : this.area.filterCreatures(query)) {
+                this.addCreature(creature);
+            }
+        }
     }
 
     public abstract SubAreaSort getSubAreaSort();
