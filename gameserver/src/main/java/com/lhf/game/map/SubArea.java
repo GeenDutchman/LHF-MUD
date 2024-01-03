@@ -186,6 +186,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         boolean basicAdd = this.basicAddCreature(creature);
         if (basicAdd) {
             creature.setSuccessor(this);
+            creature.addSubArea(getSubAreaSort());
             final NavigableSet<SubArea> areasSubAreas = this.area.getSubAreas();
             if (areasSubAreas == null) {
                 return basicAdd;
@@ -212,7 +213,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         boolean basicRemove = this.basicRemoveCreature(creature);
         if (basicRemove) {
             creature.setSuccessor(this.area);
-
+            creature.removeSubArea(getSubAreaSort());
             final NavigableSet<SubArea> areasSubAreas = this.area.getSubAreas();
             if (areasSubAreas == null) {
                 return basicRemove;
