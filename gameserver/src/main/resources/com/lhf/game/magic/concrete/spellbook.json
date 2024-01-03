@@ -108,6 +108,107 @@
     ]
   },
   {
+    "className": "com.lhf.game.magic.concrete.ElectricWisp",
+    "level": "FIRST_MAGNITUDE",
+    "name": "Summon Electric Wisp",
+    "invocation": "nosk aklo Astra",
+    "description": "Summons an Electric Wisp to fight by your side",
+    "allowedVocations": [
+      "HEALER"
+    ],
+    "effectSources": [
+      {
+        "monsterToSummon": {
+          "aiHandlers": [],
+          "summonState": [
+            "LIFELINE_SUMMON",
+            "SYMPATHETIC_SUMMON"
+          ],
+          "id": {
+            "id": "fcd6e677-0337-41be-891c-15d803ef02c4"
+          },
+          "faction": "MONSTER",
+          "vocation": "MAGE",
+          "vocationLevel": 1,
+          "statblockName": "Wisp",
+          "statblock": {
+            "creatureRace": "Wisp",
+            "attributes": {
+              "strength": {
+                "score": 1,
+                "scoreBonus": 0,
+                "modBonus": 0
+              },
+              "dexterity": {
+                "score": 12,
+                "scoreBonus": 0,
+                "modBonus": 0
+              },
+              "constitution": {
+                "score": 1,
+                "scoreBonus": 0,
+                "modBonus": 0
+              },
+              "intelligence": {
+                "score": 16,
+                "scoreBonus": 0,
+                "modBonus": 0
+              },
+              "wisdom": {
+                "score": 10,
+                "scoreBonus": 0,
+                "modBonus": 0
+              },
+              "charisma": {
+                "score": 16,
+                "scoreBonus": 0,
+                "modBonus": 0
+              }
+            },
+            "stats": {
+              "MAXHP": 12,
+              "CURRENTHP": 12,
+              "XPWORTH": 500,
+              "AC": 11
+            },
+            "proficiencies": [],
+            "inventory": {
+              "items": []
+            },
+            "equipmentSlots": {},
+            "damageFlavorReactions": {
+              "WEAKNESSES": [
+                "PSYCHIC"
+              ],
+              "RESISTANCES": [],
+              "IMMUNITIES": [
+                "LIGHTNING",
+                "AGGRO"
+              ],
+              "CURATIVES": [
+                "HEALING"
+              ]
+            }
+          }
+        },
+        "className": "com.lhf.game.map.RoomEffectSource",
+        "name": "Summon Electric Wisp",
+        "persistence": {
+          "count": 2,
+          "tickSize": "ROUND"
+        },
+        "resistance": {
+          "actorAttrs": [
+            "WIS"
+          ],
+          "targetDC": 5,
+          "resistAmount": "ALL"
+        },
+        "description": "Summons an Electric Wisp to fight by your side!"
+      }
+    ]
+  },
+  {
     "singleTarget": true,
     "className": "com.lhf.game.magic.concrete.ThunderStrike",
     "level": "FIRST_MAGNITUDE",
