@@ -117,6 +117,10 @@ public class GroupAIRunner implements AIRunner {
                     this.logger.log(Level.FINEST,
                             () -> String.format("%s still has messages enqueued", aiPair.ai.toString()));
                     this.getAttention(id);
+                } else if (aiPair.ai.size() <= 0 && aiPair.ai.npc != null && !aiPair.ai.npc.isAlive()) {
+                    // disconnect and garbage
+                    aiPair.ai.setNPC(null);
+                    this.aiMap.remove(id);
                 }
             }
         }

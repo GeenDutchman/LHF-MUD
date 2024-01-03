@@ -137,7 +137,12 @@ public class BasicAI extends Client {
 
     public void setNPC(INonPlayerCharacter nextNPC) {
         this.logger.log(Level.CONFIG,
-                () -> String.format("Transitioning BasicAI %s to back %s", this.getClientID(), nextNPC));
+                () -> String.format("Transitioning BasicAI %s from %s to back %s", this.getClientID(), this.npc,
+                        nextNPC));
+        if (nextNPC == null && this.npc != null) {
+            this.npc.log(Level.WARNING, () -> String.format("Controller %s detaching!", this.getClientID()));
+            this.npc.setController(null); // detach controller
+        }
         this.npc = nextNPC;
         if (this.npc != null) {
             this.npc.setController(this);

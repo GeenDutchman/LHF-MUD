@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
@@ -353,13 +354,21 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
 
     @Override
     public synchronized boolean isAlive() {
+        Consumer<SummonedType> killit = toDie -> {
+            EnumMap<Stats, Integer> foundStats = new EnumMap<>(toDie.getStats());
+            foundStats.put(Stats.CURRENTHP, 0);
+            toDie.setStats(foundStats);
+        };
+
         if (this.timeLeft != null && this.timeLeft.getCountdown() <= 0) {
             this.log(Level.INFO, () -> "Countdown ended");
+            killit.accept(this.wrapped);
             return false;
         }
         if (this.summoner != null && !this.summoner.isAlive() && this.summonData != null
                 && this.summonData.contains(SummonData.LIFELINE_SUMMON)) {
             this.log(Level.INFO, () -> "Summoner died");
+            killit.accept(this.wrapped);
             return false;
         }
         if (!super.isAlive()) {

@@ -2,6 +2,7 @@ package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
 import java.util.function.UnaryOperator;
+import java.util.logging.Level;
 
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
@@ -129,6 +130,7 @@ public class Player extends Creature {
 
     public CommandInvoker disconnectController() {
         CommandInvoker stored = this.getController();
+        this.log(Level.WARNING, () -> String.format("Disconnecting controller %s", stored));
         this.setController(null);
         return stored;
     }
