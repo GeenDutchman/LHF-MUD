@@ -38,9 +38,11 @@ import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.ITickEvent;
+import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.GameEvent.Builder;
 import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.SeeEvent.SeeCategory;
 import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.user.UserID;
@@ -486,12 +488,34 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public String printDescription() {
-        return wrapped.printDescription();
+        StringBuilder sb = new StringBuilder();
+        String statusString = CreatureStatusRequestedEvent.getBuilder().setFromCreature(this, false).Build().toString();
+        sb.append(statusString).append("\r\n");
+        Map<EquipmentSlots, Equipable> equipped = this.getEquipmentSlots();
+        if (equipped.get(EquipmentSlots.HAT) != null) {
+            sb.append("On their head is:").append(equipped.get(EquipmentSlots.HAT).getColorTaggedName());
+        }
+        if (equipped.get(EquipmentSlots.ARMOR) != null) {
+            sb.append("They are wearing:").append(equipped.get(EquipmentSlots.ARMOR).getColorTaggedName());
+        } else {
+            if (equipped.get(EquipmentSlots.NECKLACE) != null) {
+                sb.append("Around their neck is:")
+                        .append(equipped.get(EquipmentSlots.NECKLACE).getColorTaggedName());
+            }
+        }
+        return sb.toString();
     }
 
     @Override
     public SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
-        return wrapped.produceMessage(seeOutMessage); // TODO: SELF REFERENTIAL
+        if (seeOutMessage == null) {
+            seeOutMessage = SeeEvent.getBuilder();
+        }
+        seeOutMessage.setExaminable(this);
+        for (CreatureEffect effect : this.getEffects()) {
+            seeOutMessage.addSeen(SeeCategory.EFFECTS, effect);
+        }
+        return seeOutMessage.Build();
     }
 
     @Override
@@ -604,6 +628,13 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
             return false;
         WrappedINonPlayerCharacter<?> other = (WrappedINonPlayerCharacter<?>) obj;
         return Objects.equals(wrapped, other.wrapped);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("WrappedINonPlayerCharacter [wrapped=").append(wrapped).append("]");
+        return builder.toString();
     }
 
 }

@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -478,4 +479,35 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     public String getColorTaggedName() {
         return this.getStartTag() + this.getName() + this.getEndTag();
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(this.getClass().getSimpleName()).append(" [wrapped=").append(this.wrapped)
+                .append(", summonData=")
+                .append(summonData).append(", summoner=")
+                .append(summoner).append(", timeLeft=").append(timeLeft).append("]");
+        return builder.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + Objects.hash(summonData, summoner);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (!(obj instanceof SummonedINonPlayerCharacter))
+            return false;
+        SummonedINonPlayerCharacter<?> other = (SummonedINonPlayerCharacter<?>) obj;
+        return Objects.equals(summonData, other.summonData) && Objects.equals(summoner, other.summoner);
+    }
+
 }
