@@ -1,0 +1,481 @@
+package com.lhf.game.creature;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+
+import com.lhf.game.EffectPersistence.Ticker;
+import com.lhf.game.EntityEffect;
+import com.lhf.game.creature.INonPlayerCharacter.AbstractNPCBuilder.SummonData;
+import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.creature.statblock.AttributeBlock;
+import com.lhf.game.dice.MultiRollResult;
+import com.lhf.game.enums.Attributes;
+import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.enums.HealthBuckets;
+import com.lhf.game.enums.Stats;
+import com.lhf.game.item.Equipable;
+import com.lhf.game.item.Item;
+import com.lhf.messages.events.GameEvent;
+
+public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlayerCharacter>
+        extends WrappedINonPlayerCharacter<SummonedType> {
+    protected final EnumSet<SummonData> summonData;
+    protected final ICreature summoner;
+    protected final Ticker timeLeft;
+
+    protected SummonedINonPlayerCharacter(SummonedType toSummon, EnumSet<SummonData> summonData, ICreature summoner,
+            Ticker timeLeft) {
+        super(toSummon);
+        this.summonData = summonData;
+        this.summoner = summoner;
+        this.timeLeft = timeLeft;
+    }
+
+    @Override
+    public boolean equipItem(String itemName, EquipmentSlots slot) {
+        if (this.isAlive()) {
+            return super.equipItem(itemName, slot);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'equipItem(itemName, slot)'");
+        return false;
+    }
+
+    @Override
+    public void restoreFaction() {
+        if (this.isAlive()) {
+            super.restoreFaction();
+            return;
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'restoreFaction()'");
+    }
+
+    @Override
+    public Inventory getInventory() {
+        if (this.isAlive()) {
+            return super.getInventory();
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'getInventory()'");
+        return new Inventory();
+    }
+
+    @Override
+    public boolean unequipItem(EquipmentSlots slot, String weapon) {
+        if (this.isAlive()) {
+            return super.unequipItem(slot, weapon);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'unequipItem(slot, weapon)'");
+        return false;
+    }
+
+    @Override
+    public void setInventory(Inventory inventory) {
+        if (this.isAlive()) {
+            super.setInventory(inventory);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'setInventory(inventory)'");
+    }
+
+    @Override
+    public String printInventory() {
+        if (this.isAlive()) {
+            return super.printInventory();
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'printInventory()'");
+        return "";
+    }
+
+    @Override
+    public Equipable getEquipped(EquipmentSlots slot) {
+        if (this.isAlive()) {
+            return super.getEquipped(slot);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'getEquipped(slot)'");
+        return null;
+    }
+
+    @Override
+    public GameEvent processEffect(EntityEffect effect, boolean reverse) {
+        if (this.isAlive()) {
+            return super.processEffect(effect, reverse);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'processEffect(effect, reverse)'");
+        return null;
+    }
+
+    @Override
+    public Collection<Item> getItems() {
+        if (this.isAlive()) {
+            return super.getItems();
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'getItems()'");
+        return Set.of();
+    }
+
+    @Override
+    public Map<EquipmentSlots, Equipable> getEquipmentSlots() {
+        if (this.isAlive()) {
+            return super.getEquipmentSlots();
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'getEquipmentSlots()'");
+        return Map.of();
+    }
+
+    @Override
+    public void setEquipmentSlots(EnumMap<EquipmentSlots, Equipable> equipmentSlots) {
+        if (this.isAlive()) {
+            super.setEquipmentSlots(equipmentSlots);
+            return;
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'setEquipmentSlots(equipmentSlots)'");
+    }
+
+    @Override
+    public Optional<Item> getItem(String name) {
+        if (this.isAlive()) {
+            return super.getItem(name);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'getItem(name)'");
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean addItem(Item item) {
+        if (this.isAlive()) {
+            return super.addItem(item);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'addItem(item)'");
+        return false;
+    }
+
+    @Override
+    public boolean hasItem(String name) {
+        if (this.isAlive()) {
+            return super.hasItem(name);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'hasItem(name)'");
+        return false;
+    }
+
+    @Override
+    public boolean shouldAdd(EntityEffect effect, boolean reverse) {
+        if (this.isAlive()) {
+            return super.shouldAdd(effect, reverse);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'shouldAdd(effect, reverse)'");
+        return false;
+    }
+
+    @Override
+    public Optional<Item> removeItem(String name) {
+        if (this.isAlive()) {
+            return super.removeItem(name);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'removeItem(name)'");
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean removeItem(Item item) {
+        if (this.isAlive()) {
+            return super.removeItem(item);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'removeItem(item)'");
+        return false;
+    }
+
+    @Override
+    public Iterator<? extends Item> itemIterator() {
+        if (this.isAlive()) {
+            return super.itemIterator();
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'itemIterator()'");
+        return new ArrayList<Item>().iterator();
+    }
+
+    @Override
+    public boolean shouldRemove(EntityEffect effect, boolean reverse) {
+        if (this.isAlive()) {
+            return super.shouldRemove(effect, reverse);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'shouldRemove(effect, reverse)'");
+        return false;
+    }
+
+    @Override
+    public Collection<Item> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
+            Integer objNameRegexLen, Class<? extends Item> clazz, Boolean isVisible) {
+        if (this.isAlive()) {
+            return super.filterItems(filters, className, objectName, objNameRegexLen, clazz, isVisible);
+        }
+        this.log(Level.WARNING,
+                "This summon is dead, and cannot perform 'filterItems(filters, className, objectName, objNameRegexLen, clazz, isVisible)'");
+        return List.of();
+    }
+
+    @Override
+    public GameEvent applyEffect(CreatureEffect effect, boolean reverse) {
+        if (this.isAlive()) {
+            return super.applyEffect(effect, reverse);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'applyEffect(effect, reverse)'");
+        return null;
+    }
+
+    @Override
+    public void log(Level logLevel, String logMessage) {
+        super.log(logLevel, logMessage != null ? "Summon: " + logMessage : logMessage);
+    }
+
+    @Override
+    public void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        Supplier<String> nextSupplier = logMessageSupplier != null ? () -> "Summon: " + logMessageSupplier.get()
+                : logMessageSupplier;
+        super.log(logLevel, nextSupplier);
+    }
+
+    @Override
+    public GameEvent applyEffect(CreatureEffect effect) {
+        if (this.isAlive()) {
+            return super.applyEffect(effect);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'applyEffect(effect)'");
+        return null;
+    }
+
+    @Override
+    public boolean hasItem(String name, Integer minimumLength) {
+        if (this.isAlive()) {
+            return super.hasItem(name, minimumLength);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'hasItem(name, minimumLength)'");
+        return false;
+    }
+
+    @Override
+    public boolean hasItem(Item item) {
+        if (this.isAlive()) {
+            return super.hasItem(item);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'hasItem(item)'");
+        return false;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        if (this.isAlive()) {
+            return super.isEmpty();
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'isEmpty()'");
+        return true;
+    }
+
+    @Override
+    public int size() {
+        if (this.isAlive()) {
+            return super.size();
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'size()'");
+        return 0;
+    }
+
+    @Override
+    public NavigableSet<CreatureEffect> getEffects() {
+        if (this.isAlive()) {
+            return super.getEffects();
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'getEffects()'");
+        return new TreeSet<>();
+    }
+
+    @Override
+    public NavigableSet<CreatureEffect> getMutableEffects() {
+        if (this.isAlive()) {
+            return super.getMutableEffects();
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'getMutableEffects()'");
+        return new TreeSet<>();
+    }
+
+    @Override
+    public void removeEffectByName(String name) {
+        if (this.isAlive()) {
+            super.removeEffectByName(name);
+            return;
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'removeEffectByName(name)'");
+    }
+
+    @Override
+    public boolean hasEffect(String name) {
+        if (this.isAlive()) {
+            return super.hasEffect(name);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'hasEffect(name)'");
+        return false;
+    }
+
+    @Override
+    public HealthBuckets getHealthBucket() {
+        if (this.isAlive()) {
+            return super.getHealthBucket();
+        }
+        return HealthBuckets.DEAD;
+    }
+
+    @Override
+    public synchronized boolean isAlive() {
+        if (this.timeLeft != null && this.timeLeft.getCountdown() <= 0) {
+            ICreature.announceDeath(this);
+            return false;
+        }
+        if (this.summoner != null && !this.summoner.isAlive() && this.summonData != null
+                && !this.summonData.contains(SummonData.LIFELINE_SUMMON)) {
+            ICreature.announceDeath(this);
+            return false;
+        }
+        if (!super.isAlive()) {
+            ICreature.announceDeath(this);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void updateHitpoints(int value) {
+        if (this.isAlive()) {
+            super.updateHitpoints(value);
+            return;
+        }
+    }
+
+    @Override
+    public AttributeBlock getAttributes() {
+        if (this.isAlive()) {
+            return super.getAttributes();
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'getAttributes()'");
+        Integer newScore = Integer.MIN_VALUE + 20;
+        return new AttributeBlock(newScore, newScore, newScore, newScore, newScore, newScore);
+    }
+
+    @Override
+    @Deprecated
+    public void setAttributes(AttributeBlock attributes) {
+        if (this.isAlive()) {
+            super.setAttributes(attributes);
+            return;
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'setAttributes(attributes)'");
+    }
+
+    @Override
+    public MultiRollResult check(Attributes attribute) {
+        if (this.isAlive()) {
+            return super.check(attribute);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'check(attribute)'");
+        return null;
+    }
+
+    @Override
+    public void updateModifier(Attributes modifier, int value) {
+        if (this.isAlive()) {
+            super.updateModifier(modifier, value);
+            return;
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'updateModifier(modifier, value)'");
+    }
+
+    @Override
+    public Map<Stats, Integer> getStats() {
+        if (this.isAlive()) {
+            return super.getStats();
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'getStats()'");
+        return Map.of();
+    }
+
+    @Override
+    public void setStats(EnumMap<Stats, Integer> stats) {
+        if (this.isAlive()) {
+            super.setStats(stats);
+            return;
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'setStats(stats)'");
+    }
+
+    @Override
+    public CreatureFaction getFaction() {
+        if (this.summoner != null && this.summonData != null) {
+            boolean summonerAlive = this.summoner.isAlive();
+            if (summonerAlive && this.summonData.contains(SummonData.SYMPATHETIC_SUMMON)) {
+                return this.summoner.getFaction();
+            } else if (!summonerAlive && this.summonData.contains(SummonData.LOYAL_SUMMON)) {
+                super.setFaction(this.summoner.getFaction());
+                return super.getFaction();
+            }
+        }
+        return super.getFaction();
+    }
+
+    @Override
+    public void setFaction(CreatureFaction faction) {
+        if (this.summoner == null || (!this.summoner.isAlive() && this.summonData != null
+                && !this.summonData.contains(SummonData.LOYAL_SUMMON))) {
+            super.setFaction(faction);
+            return;
+        }
+        this.log(Level.WARNING, "The summoner is alive, and thus you cannot perform 'setFaction(faction)'");
+    }
+
+    @Override
+    public Attributes getHighestAttributeBonus(EnumSet<Attributes> attrs) {
+        if (this.isAlive()) {
+            return super.getHighestAttributeBonus(attrs);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'getHighestAttributeBonus(attrs)'");
+        return null;
+    }
+
+    @Override
+    public String printDescription() {
+        String summonString = this.summoner != null
+                ? " Has been summoned by " + this.summoner.getColorTaggedName() + ". "
+                : " Is a summoned creature. ";
+        String description = super.printDescription();
+        if (description == null) {
+            return summonString;
+        }
+        if (!description.contains(summonString)) {
+            return description + summonString;
+        }
+        return description;
+    }
+
+    @Override
+    public String getStartTag() {
+        return "<summon>";
+    }
+
+    @Override
+    public String getEndTag() {
+        return "</summon>";
+    }
+
+    @Override
+    public String getColorTaggedName() {
+        return this.getStartTag() + this.getName() + this.getEndTag();
+    }
+}

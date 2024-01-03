@@ -18,7 +18,6 @@ import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
-import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
@@ -256,7 +255,9 @@ public interface INonPlayerCharacter extends ICreature {
         }
 
         protected void copyFrom(NPCBuilderType other) {
-            this.conversationFileName = new String(other.getConversationFileName());
+            this.conversationFileName = other.getConversationFileName() != null
+                    ? new String(other.getConversationFileName())
+                    : null;
             this.conversationTree = null;
             ConversationTree otherTree = other.getConversationTree();
             if (otherTree != null) {
@@ -358,20 +359,7 @@ public interface INonPlayerCharacter extends ICreature {
             return this.getThis();
         }
 
-        public abstract NPCType quickBuild(CommandInvoker controllerSupplier, CommandChainHandler successor);
-
-        public final NPCType quickBuild(BasicAI basicAI, CommandChainHandler successor) {
-            Statblock block = this.getStatblock();
-            if (block == null) {
-                this.useBlankStatblock();
-            }
-            if (basicAI == null) {
-                basicAI = INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
-            }
-            NPCType npc = this.quickBuild(basicAI, successor);
-            basicAI.setNPC(npc);
-            return npc;
-        }
+        public abstract NPCType quickBuild(BasicAI basicAI, CommandChainHandler successor);
 
         public final NPCType quickBuild(AIRunner aiRunner, CommandChainHandler successor) {
             BasicAI producedAI = aiRunner != null ? aiRunner.produceAI(getAiHandlersAsArray())

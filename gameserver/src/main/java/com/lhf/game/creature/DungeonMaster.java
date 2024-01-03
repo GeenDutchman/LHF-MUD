@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.util.function.UnaryOperator;
 
 import com.lhf.game.creature.conversation.ConversationTree;
+import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.DMVocation;
@@ -37,14 +38,19 @@ public class DungeonMaster extends NonPlayerCharacter {
         }
 
         @Override
-        public DungeonMaster quickBuild(CommandInvoker controller, CommandChainHandler successor) {
+        public DungeonMaster quickBuild(BasicAI basicAI, CommandChainHandler successor) {
             Statblock block = this.getStatblock();
             if (block == null) {
                 this.useBlankStatblock();
             }
-            return new DungeonMaster(this, controller,
+            if (basicAI == null) {
+                basicAI = INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
+            }
+            DungeonMaster dm = new DungeonMaster(this, basicAI,
                     successor, this.getStatblock(),
                     null);
+            basicAI.setNPC(dm);
+            return dm;
         }
 
         @Override

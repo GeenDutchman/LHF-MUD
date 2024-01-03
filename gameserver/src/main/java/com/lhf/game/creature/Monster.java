@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 import com.lhf.game.creature.conversation.ConversationTree;
+import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.CreatureFaction;
@@ -59,13 +60,18 @@ public class Monster extends NonPlayerCharacter implements IMonster {
         }
 
         @Override
-        public Monster quickBuild(CommandInvoker controller, CommandChainHandler successor) {
+        public Monster quickBuild(BasicAI basicAI, CommandChainHandler successor) {
             Statblock block = this.getStatblock();
             if (block == null) {
                 this.useBlankStatblock();
             }
-            return Monster.buildMonster(this, controller, successor, this.getStatblock(),
+            if (basicAI == null) {
+                basicAI = IMonster.defaultAIRunner.produceAI(getAiHandlersAsArray());
+            }
+            Monster monster = Monster.buildMonster(this, basicAI, successor, this.getStatblock(),
                     null, null);
+            basicAI.setNPC(monster);
+            return monster;
         }
 
         @Override

@@ -6,6 +6,7 @@ import java.util.function.UnaryOperator;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
+import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.CreatureFaction;
@@ -40,14 +41,18 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
         }
 
         @Override
-        public NonPlayerCharacter quickBuild(CommandInvoker controller,
-                CommandChainHandler successor) {
+        public NonPlayerCharacter quickBuild(BasicAI basicAI, CommandChainHandler successor) {
             Statblock block = this.getStatblock();
             if (block == null) {
                 this.useBlankStatblock();
             }
-            return NonPlayerCharacter.buildNPC(this, controller, successor, this.getStatblock(),
+            if (basicAI == null) {
+                basicAI = INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
+            }
+            NonPlayerCharacter npc = NonPlayerCharacter.buildNPC(this, basicAI, successor, this.getStatblock(),
                     null, null);
+            basicAI.setNPC(npc);
+            return npc;
         }
 
         @Override
