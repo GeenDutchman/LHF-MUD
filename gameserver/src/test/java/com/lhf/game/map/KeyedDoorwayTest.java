@@ -24,7 +24,7 @@ public class KeyedDoorwayTest {
                 RoomBuilder roomBBuilder = RoomBuilder.getInstance().setName("roomB");
                 builder.addStartingRoom(roomABuilder);
                 KeyedDoorway keyed = new KeyedDoorway();
-                builder.connectRoom(keyed, roomBBuilder, Directions.EAST, roomABuilder);
+                builder.connectRoom(roomBBuilder, Directions.EAST, roomABuilder, keyed);
                 Dungeon dungeon = builder.quickBuild(null, null);
                 System.out.println(dungeon.toMermaid(false));
 

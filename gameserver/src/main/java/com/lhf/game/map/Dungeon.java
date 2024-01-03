@@ -93,22 +93,26 @@ public class Dungeon implements Land {
             return this;
         }
 
-        public DungeonBuilder connectRoom(Doorway type, AreaBuilder toAdd, Directions toExistingRoom,
-                AreaBuilder existing) {
-            if (this.atlas == null) {
+        public DungeonBuilder connectRoom(AreaBuilder first, Directions toSecond,
+                AreaBuilder second, Doorway type) {
+            if (this.atlas == null || this.startingRoom == null) {
                 throw new IllegalStateException("Cannot connect a room without first specifying a starting room!");
             }
-            this.atlas.connect(existing, toExistingRoom.opposite(), toAdd, type);
+            this.atlas.connect(first, toSecond, second, type);
             return this;
         }
 
-        public DungeonBuilder connectRoom(AreaBuilder toAdd, Directions toExistingRoom, AreaBuilder existing) {
-            return this.connectRoom(new Doorway(), toAdd, toExistingRoom, existing);
+        public DungeonBuilder connectRoom(AreaBuilder first, Directions toSecond, AreaBuilder second) {
+            return this.connectRoom(first, toSecond, second, new Doorway());
         }
 
-        public DungeonBuilder connectRoomOneWay(AreaBuilder secretRoom, Directions toExistingRoom,
-                AreaBuilder existing) {
-            return this.connectRoom(new OneWayDoorway(toExistingRoom), secretRoom, toExistingRoom, existing);
+        public DungeonBuilder connectRoomOneWay(AreaBuilder first, Directions toSecond,
+                AreaBuilder second) {
+            if (this.atlas == null || this.startingRoom == null) {
+                throw new IllegalStateException("Cannot connect a room without first specifying a starting room!");
+            }
+            this.atlas.connectOneWay(first, toSecond, second, new OneWayDoorway(toSecond));
+            return this;
         }
 
         @Override

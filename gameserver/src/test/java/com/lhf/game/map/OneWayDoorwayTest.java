@@ -18,7 +18,7 @@ public class OneWayDoorwayTest {
                 RoomBuilder roomA = RoomBuilder.getInstance().setName("roomA");
                 RoomBuilder roomB = RoomBuilder.getInstance().setName("roomB");
                 builder.addStartingRoom(roomA);
-                builder.connectRoomOneWay(roomB, Directions.EAST, roomA);
+                builder.connectRoomOneWay(roomA, Directions.EAST, roomB);
                 Dungeon dungeon = builder.quickBuild(null, null);
                 System.out.println(dungeon.toMermaid(false));
 
@@ -26,13 +26,13 @@ public class OneWayDoorwayTest {
                 dungeon.addCreature(bundle.getNPC());
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000))
                                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SEE,
-                                                List.of(roomB.getName(), Directions.EAST.toString().toLowerCase()),
+                                                List.of(roomA.getName(), Directions.EAST.toString().toLowerCase()),
                                                 null)));
 
                 bundle.brain.ProcessString("go east");
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000))
                                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SEE,
-                                                List.of(roomA.getName()), null)));
+                                                List.of(roomB.getName()), null)));
 
                 bundle.brain.ProcessString("go west");
                 Mockito.verify(bundle.sssb, Mockito.timeout(1000))

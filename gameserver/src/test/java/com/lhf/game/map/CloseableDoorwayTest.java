@@ -23,7 +23,7 @@ public class CloseableDoorwayTest {
                 RoomBuilder roomBBuilder = RoomBuilder.getInstance().setName("roomB");
                 builder.addStartingRoom(roomABuilder);
                 CloseableDoorway closeable = new CloseableDoorway();
-                builder.connectRoom(closeable, roomBBuilder, Directions.EAST, roomABuilder);
+                builder.connectRoom(roomBBuilder, Directions.EAST, roomABuilder, closeable);
                 Dungeon dungeon = builder.quickBuild(null, null);
                 System.out.println(dungeon.toMermaid(false));
 

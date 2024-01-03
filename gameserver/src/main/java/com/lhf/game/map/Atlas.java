@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -73,6 +74,21 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             return this.getDirections().keySet();
         }
 
+        @Override
+        public int hashCode() {
+            return Objects.hash(atlasMember);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof AtlasMappingItem))
+                return false;
+            AtlasMappingItem<?, ?> other = (AtlasMappingItem<?, ?>) obj;
+            return Objects.equals(atlasMember, other.atlasMember);
+        }
+
     }
 
     private final Map<AtlasMemberID, AtlasMappingItem<AtlasMemberType, AtlasMemberID>> mapping;
@@ -104,55 +120,47 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
         }
     }
 
-    public final synchronized void connectOneWay(final AtlasMemberID existingMemberID, final Directions toExisting,
-            final AtlasMemberType next, final TraversalTester predicate) {
+    public final synchronized void connectOneWay(final AtlasMemberType first, final Directions toSecond,
+            final AtlasMemberType second, TraversalTester predicate) {
         synchronized (this.mapping) {
-            if (existingMemberID == null) {
-                throw new IllegalArgumentException("The existing memberID must not be null!");
+            if (first == null) {
+                throw new IllegalArgumentException("The 'first' argument must not be null!");
+            } else if (second == null) {
+                throw new IllegalArgumentException("the 'second' argument must not be null!");
             }
-            final AtlasMappingItem<AtlasMemberType, AtlasMemberID> memberItem = this
-                    .getAtlasMappingItem(existingMemberID);
-            if (memberItem == null) {
-                throw new IllegalStateException(
-                        String.format("Cannot retrieve member item for ID %s", existingMemberID));
-            }
-            if (toExisting == null) {
+
+            if (toSecond == null) {
                 throw new IllegalArgumentException("The provided direction must not be null!");
             }
-            final AtlasMemberID nextKey = this.getIDForMemberType(next);
-            if (nextKey == null) {
-                throw new IllegalStateException(
-                        String.format("The key obtained from \"next\" argument '%s' must not be null!", next));
+
+            final AtlasMemberID firstID = this.getIDForMemberType(first);
+            final AtlasMemberID secondID = this.getIDForMemberType(second);
+            if (firstID == null) {
+                throw new IllegalStateException(String.format("Cannot retrieve member ID for %s", first));
+            } else if (secondID == null) {
+                throw new IllegalStateException(String.format("Cannot retrieve member ID for %s", second));
             }
-            if (next == null) {
-                throw new IllegalArgumentException("The 'next' argument must not be null!");
+
+            AtlasMappingItem<AtlasMemberType, AtlasMemberID> firstMappingItem = this.getAtlasMappingItem(firstID);
+            AtlasMappingItem<AtlasMemberType, AtlasMemberID> secondMappingItem = this.getAtlasMappingItem(secondID);
+            if (firstMappingItem == null && secondMappingItem == null) {
+                throw new IllegalStateException(String
+                        .format("One or both of the following MUST already exist in the Atlas! %s %s", first, second));
+            } else if (firstMappingItem == null) {
+                firstMappingItem = this.emplaceMember(first);
+            } else if (secondMappingItem == null) {
+                secondMappingItem = this.emplaceMember(second);
             }
-            final AtlasMappingItem<AtlasMemberType, AtlasMemberID> nextEntry = this.emplaceMember(next);
-            nextEntry.directions.put(toExisting, new TargetedTester<>(toExisting, existingMemberID, predicate));
+
+            firstMappingItem.directions.put(toSecond, new TargetedTester<>(toSecond, secondID, predicate));
         }
     }
 
-    public final synchronized void connectOneWay(final AtlasMemberType existing, final Directions toExisting,
-            final AtlasMemberType next,
+    public final synchronized void connect(AtlasMemberType first, Directions toSecond, AtlasMemberType second,
             TraversalTester predicate) {
         synchronized (this.mapping) {
-            if (existing == null) {
-                throw new IllegalArgumentException("The 'existing' argument must not be null!");
-            }
-            final AtlasMemberID existingKey = this.getIDForMemberType(existing);
-            this.connectOneWay(existingKey, toExisting, next, predicate);
-        }
-    }
-
-    public final synchronized void connect(AtlasMemberType existing, Directions toNext, AtlasMemberType next,
-            TraversalTester predicate) {
-        synchronized (this.mapping) {
-            final AtlasMemberID existingKey = this.getIDForMemberType(existing);
-            this.connectOneWay(existingKey, toNext.opposite(), next, predicate);
-            final AtlasMappingItem<AtlasMemberType, AtlasMemberID> existingMapItem = this.mapping
-                    .get(existingKey);
-            final AtlasMemberID nextKey = this.getIDForMemberType(next);
-            existingMapItem.directions.put(toNext, new TargetedTester<>(toNext, nextKey, predicate));
+            this.connectOneWay(first, toSecond, second, predicate);
+            this.connectOneWay(second, toSecond.opposite(), first, predicate);
         }
     }
 
@@ -324,8 +332,8 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 final AtlasMemberID targetMemberID = tester.getTargetId();
                 final AtlasMappingItem<TT, TID> translatedTarget = translation
                         .getAtlasMappingItem(visited.get(targetMemberID));
-                translation.connectOneWay(translatedTarget.getAtlasMember(), tester.getDirection(),
-                        translatedMember.getAtlasMember(), tester.getPredicate());
+                translation.connectOneWay(translatedMember.getAtlasMember(), tester.getDirection(),
+                        translatedTarget.getAtlasMember(), tester.getPredicate());
             }
         }
 
