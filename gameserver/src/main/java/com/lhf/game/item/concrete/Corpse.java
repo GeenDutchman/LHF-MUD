@@ -1,10 +1,19 @@
 package com.lhf.game.item.concrete;
 
+import com.lhf.game.ItemContainer;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.inventory.InventoryOwner;
 
 public class Corpse extends Chest {
     public Corpse(String name, boolean isVisible) {
         super(name, isVisible, false, true);
+    }
+
+    public Corpse(ICreature creature, boolean transfer) {
+        super(creature != null ? creature.getName() + "'s corpse" : "a corpse", true, false, true);
+        if (transfer) {
+            ItemContainer.transfer(creature, this, null, false);
+        }
     }
 
     @Override

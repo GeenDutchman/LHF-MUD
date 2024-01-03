@@ -722,9 +722,19 @@ public interface ICreature
                 deadCreature.unequipItem(slot, deadCreature.getEquipmentSlots().get(slot).getName());
             }
         }
-        Corpse deadCorpse = new Corpse(deadCreature.getName() + "'s corpse", true);
-        ItemContainer.transfer(deadCreature, deadCorpse, null, false);
+        Corpse deadCorpse = deadCreature.generateCorpse(true);
         return deadCorpse;
+    }
+
+    /**
+     * Generates a corpse from the Creature
+     * 
+     * @param transfer if the items are to be take from this creature and put in the
+     *                 corpse
+     * @return
+     */
+    default Corpse generateCorpse(boolean transfer) {
+        return new Corpse(this, transfer);
     }
 
     /**

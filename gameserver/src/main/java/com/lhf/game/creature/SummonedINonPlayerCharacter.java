@@ -28,6 +28,7 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.concrete.Corpse;
 import com.lhf.messages.events.GameEvent;
 
 public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlayerCharacter>
@@ -342,6 +343,12 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
             return false;
         }
         return true;
+    }
+
+    @Override
+    public final Corpse generateCorpse(boolean transfer) {
+        // returns no corpse for a summon
+        return null;
     }
 
     @Override

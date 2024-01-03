@@ -447,6 +447,9 @@ public class Room implements Area {
 
     @Override
     public boolean addItem(Item obj) {
+        if (obj == null) {
+            return false;
+        }
         long takeCount = this.getTakeableCount();
         long interactCount = this.getInteractableCount();
         items.add(obj);
