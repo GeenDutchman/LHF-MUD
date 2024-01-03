@@ -22,6 +22,7 @@ import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.Statblock.DamgeFlavorReaction;
 import com.lhf.game.creature.vocation.Vocation;
+import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.dice.DamageDice.FlavoredRollResult;
 import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.dice.MultiRollResult;
@@ -82,7 +83,7 @@ public abstract class Creature implements ICreature {
         }
         this.cmds = this.buildCommands();
         this.faction = builder.getFaction();
-        this.vocation = builder.getVocation();
+        this.vocation = VocationFactory.getVocation(builder.getVocation(), builder.getVocationLevel());
 
         this.effects = new TreeSet<>();
         this.statblock = new Statblock(statblock);

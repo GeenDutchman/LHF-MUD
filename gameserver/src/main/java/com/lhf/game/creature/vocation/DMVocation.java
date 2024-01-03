@@ -4,14 +4,9 @@ import java.util.EnumSet;
 
 import com.lhf.game.EntityEffect;
 import com.lhf.game.battle.MultiAttacker;
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.Statblock.StatblockBuilder;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.enums.Attributes;
-import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.ResourceCost;
-import com.lhf.game.enums.Stats;
-import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.magic.CubeHolder;
 
 public class DMVocation extends Vocation implements CubeHolder, MultiAttacker {
@@ -57,6 +52,10 @@ public class DMVocation extends Vocation implements CubeHolder, MultiAttacker {
         super(VocationName.DUNGEON_MASTER);
     }
 
+    public DMVocation(Integer level) {
+        super(VocationName.DUNGEON_MASTER, level);
+    }
+
     @Override
     public DMVocation copy() {
         DMVocation aCopy = new DMVocation();
@@ -66,26 +65,6 @@ public class DMVocation extends Vocation implements CubeHolder, MultiAttacker {
     @Override
     protected ResourcePool initPool() {
         return new UnlimitedPool();
-    }
-
-    @Override
-    public StatblockBuilder createNewDefaultStatblock(String creatureRace) {
-        StatblockBuilder builder = Statblock.getBuilder().setCreatureRace(creatureRace);
-
-        builder.addProficiencies(EnumSet.allOf(EquipmentTypes.class));
-
-        builder.addItemToInventory(new HealPotion(true));
-
-        // Set default stats
-        builder.setStat(Stats.MAXHP, Integer.MAX_VALUE / 3);
-        builder.setStat(Stats.CURRENTHP, Integer.MAX_VALUE / 3);
-        builder.setStat(Stats.AC, Integer.MAX_VALUE / 3);
-        builder.setStat(Stats.XPWORTH, Integer.MAX_VALUE / 3);
-        builder.setStat(Stats.PROFICIENCYBONUS, Integer.MAX_VALUE / 3);
-
-        builder.setAttributeBlock(100, 100, 100, 100, 100, 100);
-
-        return builder;
     }
 
     @Override

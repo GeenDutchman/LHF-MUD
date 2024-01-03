@@ -6,7 +6,7 @@ import java.util.logging.Level;
 
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
-import com.lhf.game.creature.vocation.Vocation;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.server.client.CommandInvoker;
@@ -82,7 +82,7 @@ public class Player extends Creature {
             }
             Statblock currStatBlock = this.getStatblock();
             if (currStatBlock == null) {
-                Vocation currVocation = this.getVocation();
+                VocationName currVocation = this.getVocation();
                 if (currVocation == null) {
                     throw new IllegalStateException(
                             "Must have a statblock or a Vocation from which to define the statblock!");

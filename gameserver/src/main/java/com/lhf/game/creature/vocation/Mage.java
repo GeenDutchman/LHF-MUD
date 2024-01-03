@@ -6,15 +6,9 @@ import java.util.EnumSet;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.Statblock.StatblockBuilder;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.creature.vocation.resourcepools.SlottedResourcePool;
-import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.ResourceCost;
-import com.lhf.game.enums.Stats;
-import com.lhf.game.item.concrete.HealPotion;
-import com.lhf.game.item.concrete.equipment.LeatherArmor;
 import com.lhf.game.magic.CubeHolder;
 
 public class Mage extends Vocation implements CubeHolder {
@@ -68,6 +62,10 @@ public class Mage extends Vocation implements CubeHolder {
         super(VocationName.MAGE);
     }
 
+    public Mage(Integer level) {
+        super(VocationName.MAGE, level);
+    }
+
     @Override
     public Vocation copy() {
         return new Mage();
@@ -81,26 +79,6 @@ public class Mage extends Vocation implements CubeHolder {
     @Override
     public String getCasterVocation() {
         return this.getName();
-    }
-
-    @Override
-    public StatblockBuilder createNewDefaultStatblock(String creatureRace) {
-        StatblockBuilder builder = Statblock.getBuilder().setCreatureRace(creatureRace);
-        builder.addProficiency(EquipmentTypes.SIMPLEMELEEWEAPONS);
-        builder.addProficiency(EquipmentTypes.LIGHTARMOR);
-
-        builder.addItemToInventory(new LeatherArmor(true));
-        builder.addItemToInventory(new HealPotion(true));
-
-        // Set default stats
-        builder.setStat(Stats.MAXHP, 9);
-        builder.setStat(Stats.CURRENTHP, 9);
-        builder.setStat(Stats.AC, 11);
-        builder.setStat(Stats.XPWORTH, 500);
-
-        builder.setAttributeBlock(8, 12, 10, 16, 14, 12);
-
-        return builder;
     }
 
     @Override

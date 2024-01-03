@@ -32,6 +32,7 @@ import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD20;
@@ -177,7 +178,8 @@ public interface ICreature
         protected final CreatureBuilderID id;
         protected String name;
         protected CreatureFaction faction;
-        protected Vocation vocation;
+        protected VocationName vocation;
+        protected Integer vocationLevel;
         protected String statblockName;
         protected Statblock statblock;
         protected Corpse corpse;
@@ -188,6 +190,7 @@ public interface ICreature
             this.name = null;
             this.faction = null;
             this.vocation = null;
+            this.vocationLevel = null;
             this.statblockName = null;
             this.statblock = null;
             this.corpse = null;
@@ -196,7 +199,8 @@ public interface ICreature
         protected void copyFrom(BuilderType other) {
             this.name = new String(other.name);
             this.faction = other.faction;
-            this.vocation = other.vocation != null ? other.vocation.copy() : null;
+            this.vocation = other.vocation;
+            this.vocationLevel = other.vocationLevel != null ? other.vocationLevel.intValue() : null;
             this.statblockName = new String(other.statblockName);
             this.statblock = this.statblock != null ? new Statblock(other.statblock) : null;
             this.corpse = null;
@@ -253,12 +257,32 @@ public interface ICreature
         }
 
         public BuilderType setVocation(Vocation vocation) {
-            this.vocation = vocation;
+            if (vocation == null) {
+                this.vocation = null;
+                this.vocationLevel = null;
+            } else {
+                this.vocation = vocation.getVocationName();
+                this.vocationLevel = vocation.getLevel();
+            }
             return this.getThis();
         }
 
-        public Vocation getVocation() {
+        public BuilderType setVocation(VocationName vocationName) {
+            this.vocation = vocationName;
+            return this.getThis();
+        }
+
+        public BuilderType setVocationLevel(int level) {
+            this.vocationLevel = level;
+            return this.getThis();
+        }
+
+        public VocationName getVocation() {
             return this.vocation;
+        }
+
+        public Integer getVocationLevel() {
+            return this.vocationLevel;
         }
 
         public BuilderType setStatblock(Statblock statblock) {
@@ -357,7 +381,11 @@ public interface ICreature
                 sb.append("Name is:").append(this.name).append(".\r\n");
             }
             if (this.vocation != null) {
-                sb.append("Vocation of ").append(this.vocation.getName()).append(".\r\n");
+                sb.append("Vocation of ").append(this.vocation);
+                if (this.vocationLevel != null) {
+                    sb.append("with level of").append(this.vocationLevel);
+                }
+                sb.append(".\r\n");
             }
             if (this.statblockName != null) {
                 sb.append("Statblock similar to: ").append(this.statblockName);
