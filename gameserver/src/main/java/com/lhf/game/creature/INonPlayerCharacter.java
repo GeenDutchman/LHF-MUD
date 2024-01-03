@@ -246,12 +246,14 @@ public interface INonPlayerCharacter extends ICreature {
         private ConversationTree conversationTree = null;
         private List<AIHandler> aiHandlers;
         private EnumSet<SummonData> summonState;
+        private String leaderName;
 
         protected AbstractNPCBuilder() {
             super();
             this.setFaction(CreatureFaction.NPC);
             this.aiHandlers = new ArrayList<>();
             this.summonState = EnumSet.noneOf(SummonData.class);
+            this.leaderName = null;
         }
 
         protected void copyFrom(NPCBuilderType other) {
@@ -356,6 +358,15 @@ public interface INonPlayerCharacter extends ICreature {
             if (summonData != null) {
                 this.summonState = EnumSet.copyOf(summonData);
             }
+            return this.getThis();
+        }
+
+        public String getLeaderName() {
+            return leaderName;
+        }
+
+        public NPCBuilderType setLeaderName(String leaderName) {
+            this.leaderName = leaderName;
             return this.getThis();
         }
 
@@ -513,5 +524,19 @@ public interface INonPlayerCharacter extends ICreature {
      * @param cont {@link com.lhf.server.client.CommandInvoker Controller}
      */
     public abstract void setController(CommandInvoker cont);
+
+    /**
+     * Gets the name of the Creature that this NPC will follow, or null
+     * 
+     * @return
+     */
+    public abstract String getLeaderName();
+
+    /**
+     * Sets the name of the Creature that this NPC will follow, can be null
+     * 
+     * @param leaderName
+     */
+    public abstract void setLeaderName(String leaderName);
 
 }

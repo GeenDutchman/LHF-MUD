@@ -43,6 +43,9 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
         super(toSummon);
         this.summonData = summonData;
         this.summoner = summoner;
+        if (summoner != null) {
+            this.setLeaderName(summoner.getName());
+        }
         this.timeLeft = timeLeft;
         this.getFaction(); // to set the faction according to the summoner
     }
@@ -346,6 +349,17 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
         return true;
     }
 
+    public final boolean checkSummonerIsAlive() {
+        if (this.summoner == null) {
+            return false;
+        }
+        if (!this.summoner.isAlive()) {
+            this.setLeaderName(null);
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public final Corpse generateCorpse(boolean transfer) {
         // returns no corpse for a summon
@@ -365,7 +379,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
             killit.accept(this.wrapped);
             return false;
         }
-        if (this.summoner != null && !this.summoner.isAlive() && this.summonData != null
+        if (this.checkSummonerIsAlive() && this.summonData != null
                 && this.summonData.contains(SummonData.LIFELINE_SUMMON)) {
             this.log(Level.INFO, () -> "Summoner died");
             killit.accept(this.wrapped);
@@ -445,7 +459,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     @Override
     public CreatureFaction getFaction() {
         if (this.summoner != null && this.summonData != null) {
-            boolean summonerAlive = this.summoner.isAlive();
+            boolean summonerAlive = this.checkSummonerIsAlive();
             if (summonerAlive && this.summonData.contains(SummonData.SYMPATHETIC_SUMMON)) {
                 super.setFaction(this.summoner.getFaction());
             } else if (!summonerAlive && this.summonData.contains(SummonData.LOYAL_SUMMON)) {
@@ -459,7 +473,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
 
     @Override
     public void setFaction(CreatureFaction faction) {
-        if (this.summoner == null || (!this.summoner.isAlive() && this.summonData != null
+        if (this.summoner == null || (!this.checkSummonerIsAlive() && this.summonData != null
                 && !this.summonData.contains(SummonData.LOYAL_SUMMON))) {
             super.setFaction(faction);
             return;

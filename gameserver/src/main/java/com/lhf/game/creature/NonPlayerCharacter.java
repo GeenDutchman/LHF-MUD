@@ -82,6 +82,7 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
 
     private ConversationTree convoTree = null;
     private transient final HarmMemories harmMemories = HarmMemories.makeMemories(this);
+    private String leaderName;
 
     public static NonPlayerCharacter buildNPC(AbstractNPCBuilder<?, ? extends INonPlayerCharacter> builder,
             CommandInvoker controller, CommandChainHandler successor,
@@ -100,6 +101,7 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
             @NotNull Statblock statblock, ConversationTree conversationTree) {
         super(builder, controller, successor, statblock);
         this.convoTree = conversationTree;
+        this.leaderName = builder.getLeaderName();
     }
 
     @Override
@@ -159,4 +161,15 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     public void setController(CommandInvoker cont) {
         super.setController(cont);
     }
+
+    @Override
+    public String getLeaderName() {
+        return leaderName;
+    }
+
+    @Override
+    public void setLeaderName(String leaderName) {
+        this.leaderName = leaderName;
+    }
+
 }

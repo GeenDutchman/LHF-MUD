@@ -616,6 +616,16 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
+    public String getLeaderName() {
+        return wrapped.getLeaderName();
+    }
+
+    @Override
+    public void setLeaderName(String leaderName) {
+        wrapped.setLeaderName(leaderName);
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(wrapped);
     }

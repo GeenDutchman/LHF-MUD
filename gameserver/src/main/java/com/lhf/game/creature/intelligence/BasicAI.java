@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler;
-import com.lhf.game.creature.intelligence.handlers.ForgetOnOtherExit;
+import com.lhf.game.creature.intelligence.handlers.RoomExitHandler;
 import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
@@ -97,7 +97,7 @@ public class BasicAI extends Client {
 
         this.addHandler(new BattleTurnHandler());
         this.addHandler(new SpokenPromptChunk());
-        this.addHandler(new ForgetOnOtherExit());
+        this.addHandler(new RoomExitHandler());
         this.addHandler(new HandleCreatureAffected());
         this.addHandler(new LewdAIHandler().setPartnersOnly());
     }
