@@ -121,7 +121,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public SeeEvent produceMessage() {
-        return wrapped.produceMessage(); // TODO: NEEDS TO SELF-REFERENCE THE WRAPPED
+        return this.produceMessage(SeeEvent.getBuilder());
     }
 
     @Override
