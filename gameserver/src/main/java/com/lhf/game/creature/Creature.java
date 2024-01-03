@@ -35,6 +35,7 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -64,7 +65,7 @@ public abstract class Creature implements ICreature {
     private final TreeSet<CreatureEffect> effects;
     private final Statblock statblock;
 
-    private boolean inBattle; // Boolean to determine if this creature is in combat
+    private EnumSet<SubAreaSort> subAreaSorts; // what sub area engagements is the creature in?
     private transient CommandInvoker controller;
     private transient CommandChainHandler successor;
     private Map<CommandMessage, CommandHandler> cmds;
@@ -93,7 +94,7 @@ public abstract class Creature implements ICreature {
         ItemContainer.transfer(builder.getCorpse(), this.getInventory(), null, false);
 
         // We don't start them in battle
-        this.inBattle = false;
+        this.subAreaSorts = EnumSet.noneOf(SubAreaSort.class);
         this.logger = Logger
                 .getLogger(String.format("%s.%s", this.getClass().getName(), this.name.replaceAll("\\W", "_")));
     }
@@ -230,8 +231,29 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public boolean isInBattle() {
-        return this.inBattle;
+    public final EnumSet<SubAreaSort> getSubAreaSorts() {
+        return this.subAreaSorts;
+    }
+
+    @Override
+    public final boolean addSubArea(SubAreaSort subAreaSort) {
+        if (subAreaSort == null) {
+            return false;
+        }
+        return this.subAreaSorts.add(subAreaSort);
+    }
+
+    @Override
+    public final boolean removeSubArea(SubAreaSort subAreaSort) {
+        if (subAreaSort == null) {
+            return false;
+        }
+        return this.subAreaSorts.remove(subAreaSort);
+    }
+
+    @Override
+    public final boolean isInBattle() {
+        return this.getSubAreaSorts().contains(SubAreaSort.BATTLE);
     }
 
     protected MultiRollResult adjustDamageByFlavor(MultiRollResult mrr, boolean reverse) {
@@ -393,11 +415,6 @@ public abstract class Creature implements ICreature {
     @Override
     public void setEquipmentSlots(EnumMap<EquipmentSlots, Equipable> equipmentSlots) {
         this.statblock.setEquipmentSlots(equipmentSlots);
-    }
-
-    @Override
-    public void setInBattle(boolean inBattle) {
-        this.inBattle = inBattle;
     }
 
     @Override

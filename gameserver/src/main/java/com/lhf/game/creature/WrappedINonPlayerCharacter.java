@@ -31,6 +31,7 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -447,13 +448,23 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public boolean isInBattle() {
-        return wrapped.isInBattle();
+    public final EnumSet<SubAreaSort> getSubAreaSorts() {
+        return wrapped.getSubAreaSorts();
     }
 
     @Override
-    public void setInBattle(boolean inBattle) {
-        wrapped.setInBattle(inBattle);
+    public final boolean addSubArea(SubAreaSort subAreaSort) {
+        return wrapped.addSubArea(subAreaSort);
+    }
+
+    @Override
+    public final boolean removeSubArea(SubAreaSort subAreaSort) {
+        return wrapped.removeSubArea(subAreaSort);
+    }
+
+    @Override
+    public final boolean isInBattle() {
+        return wrapped.isInBattle();
     }
 
     @Override

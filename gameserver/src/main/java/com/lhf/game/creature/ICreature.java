@@ -50,6 +50,7 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
@@ -658,18 +659,38 @@ public interface ICreature
     public abstract void setProficiencies(EnumSet<EquipmentTypes> proficiences);
 
     /**
+     * Returns the set of which sorts of Sub Area engagement the Creature is in
+     * 
+     * @see {@link com.lhf.game.map.SubArea SubArea}
+     * @return set of subareas
+     */
+    public abstract EnumSet<SubAreaSort> getSubAreaSorts();
+
+    /**
+     * Used to set which sub area engagement the Creature is in
+     * 
+     * @param subAreaSort
+     * @see {@link com.lhf.game.map.SubArea SubArea}
+     * @return true if successfully added, false if was already present
+     */
+    public abstract boolean addSubArea(SubAreaSort subAreaSort);
+
+    /**
+     * Used to indicate the sub area engagement the Creature just left
+     * 
+     * @param subAreaSort
+     * @return
+     */
+    public abstract boolean removeSubArea(SubAreaSort subAreaSort);
+
+    /**
      * Reveals if the Creature is set to be in a battle
      * 
      * @return true or false
      */
-    public abstract boolean isInBattle();
-
-    /**
-     * Used to set the Creature in a battle.
-     * 
-     * @param inBattle
-     */
-    public abstract void setInBattle(boolean inBattle);
+    public default boolean isInBattle() {
+        return this.getSubAreaSorts().contains(SubAreaSort.BATTLE);
+    }
 
     /**
      * Performs the calculations for an Attack based on a
