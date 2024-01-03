@@ -4,8 +4,10 @@ import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -109,6 +111,8 @@ public interface Area
     public abstract boolean removeCreature(ICreature c, Directions dir);
 
     public abstract Land getLand();
+
+    public abstract NavigableSet<SubArea> getSubAreas();
 
     @Override
     default SeeEvent produceMessage() {
