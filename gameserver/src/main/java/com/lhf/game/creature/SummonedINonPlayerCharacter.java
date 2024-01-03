@@ -42,6 +42,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
         this.summonData = summonData;
         this.summoner = summoner;
         this.timeLeft = timeLeft;
+        this.getFaction(); // to set the faction according to the summoner
     }
 
     @Override
@@ -54,7 +55,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public void restoreFaction() {
+    public final void restoreFaction() {
         if (this.isAlive()) {
             super.restoreFaction();
             return;
@@ -342,7 +343,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
             return false;
         }
         if (this.summoner != null && !this.summoner.isAlive() && this.summonData != null
-                && !this.summonData.contains(SummonData.LIFELINE_SUMMON)) {
+                && this.summonData.contains(SummonData.LIFELINE_SUMMON)) {
             ICreature.announceDeath(this);
             return false;
         }
@@ -422,10 +423,11 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
         if (this.summoner != null && this.summonData != null) {
             boolean summonerAlive = this.summoner.isAlive();
             if (summonerAlive && this.summonData.contains(SummonData.SYMPATHETIC_SUMMON)) {
-                return this.summoner.getFaction();
+                super.setFaction(this.summoner.getFaction());
             } else if (!summonerAlive && this.summonData.contains(SummonData.LOYAL_SUMMON)) {
                 super.setFaction(this.summoner.getFaction());
-                return super.getFaction();
+            } else {
+                this.restoreFaction();
             }
         }
         return super.getFaction();
