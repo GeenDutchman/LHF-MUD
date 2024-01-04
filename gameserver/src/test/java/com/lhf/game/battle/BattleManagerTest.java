@@ -1,6 +1,7 @@
 package com.lhf.game.battle;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
@@ -44,11 +45,11 @@ public class BattleManagerTest {
                 Mockito.when(npc.getHealthBucket()).thenReturn(HealthBuckets.LIGHTLY_INJURED);
                 Mockito.when(npc.getAcceptHook()).thenReturn(npcHook);
                 // Mockito.when(npc.getColorTaggedName()).thenCallRealMethod();
+                // Mockito.when(area.getCreatures()).thenReturn(Set.of(npc, monster));
+                Mockito.when(area.getName()).thenReturn("Simple Battle Test Area");
 
                 BattleManager battleManager = BattleManager.Builder.getInstance()
-                                .addCreature(npc)
-                                .addCreature(monster)
-                                .Build(area);
+                                .build(area);
 
                 battleManager.instigate(monster, List.of(npc));
                 MessageMatcher startBattle = new MessageMatcher(GameEventType.START_FIGHT);
@@ -87,11 +88,15 @@ public class BattleManagerTest {
                 Mockito.when(npc.getHealthBucket()).thenReturn(HealthBuckets.LIGHTLY_INJURED);
                 Mockito.when(npc.getAcceptHook()).thenReturn(npcHook);
 
-                BattleManager battleManager = BattleManager.Builder.getInstance().addCreature(npc).addCreature(monster)
-                                .setWaitMilliseconds(1000).Build(area);
-                Truth.assertThat(battleManager.getCreatures()).hasSize(2);
+                // Mockito.when(area.getCreatures()).thenReturn(Set.of(npc, monster));
+                Mockito.when(area.getName()).thenReturn("Simple Battle Test Area");
+
+                BattleManager battleManager = BattleManager.Builder.getInstance()
+                                .setWaitMilliseconds(1000).build(area);
+                Truth.assertThat(battleManager.getCreatures()).hasSize(0);
 
                 battleManager.instigate(monster, List.of(npc));
+                Truth.assertThat(battleManager.getCreatures()).hasSize(2);
 
                 MessageMatcher startBattle = new MessageMatcher(GameEventType.START_FIGHT).setPrint(true);
                 MessageMatcher turnMessage = new MessageMatcher(GameEventType.BATTLE_ROUND,
