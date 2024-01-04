@@ -5,12 +5,14 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Optional;
 
-import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.Room;
+import com.lhf.game.map.SubArea;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.user.User;
@@ -20,8 +22,8 @@ public class CommandContext {
     protected Client client;
     protected User user;
     protected ICreature creature;
+    protected NavigableSet<SubArea> subAreas;
     protected Room room;
-    protected BattleManager bManager;
     protected Dungeon dungeon;
     protected EnumMap<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
     protected List<GameEvent> messages = new ArrayList<>();
@@ -85,8 +87,8 @@ public class CommandContext {
         theCopy.client = this.client;
         theCopy.user = this.user;
         theCopy.creature = this.creature;
+        theCopy.subAreas = this.subAreas;
         theCopy.room = this.room;
-        theCopy.bManager = this.bManager;
         theCopy.dungeon = this.dungeon;
         theCopy.helps = new EnumMap<>(this.helps);
         theCopy.messages = new ArrayList<>(this.messages);
@@ -190,20 +192,46 @@ public class CommandContext {
         this.user = user;
     }
 
+    public final NavigableSet<SubArea> getSubAreas() {
+        return Collections.unmodifiableNavigableSet(this.subAreas);
+    }
+
+    public boolean addSubArea(SubArea subArea) {
+        if (subArea == null) {
+            return false;
+        }
+        return this.subAreas.add(subArea);
+    }
+
+    public final SubArea getSubAreaForSort(SubAreaSort sort) {
+        if (sort == null) {
+            return null;
+        }
+        final NavigableSet<SubArea> subAreas = this.getSubAreas();
+        if (subAreas == null) {
+            return null;
+        }
+        for (final SubArea subArea : subAreas) {
+            if (sort.equals(subArea.getSubAreaSort())) {
+                return subArea;
+            }
+        }
+        return null;
+    }
+
+    public final boolean hasSubAreaSort(SubAreaSort sort) {
+        if (sort == null) {
+            return false;
+        }
+        return this.getSubAreaForSort(sort) != null;
+    }
+
     public void setRoom(Room room) {
         this.room = room;
     }
 
     public Room getRoom() {
         return this.room;
-    }
-
-    public BattleManager getBattleManager() {
-        return this.bManager;
-    }
-
-    public void setBattleManager(BattleManager battleManager) {
-        this.bManager = battleManager;
     }
 
     public Dungeon getDungeon() {
@@ -218,7 +246,7 @@ public class CommandContext {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("CommandContext [client=").append(client).append(", user=").append(user).append(", creature=")
-                .append(creature).append(", room=").append(room).append(", bManager=").append(bManager)
+                .append(creature).append(", room=").append(room).append(", subAreas=").append(subAreas)
                 .append(", dungeon=").append(dungeon).append("]");
         return builder.toString();
     }

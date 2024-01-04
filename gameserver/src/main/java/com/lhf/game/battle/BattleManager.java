@@ -13,7 +13,6 @@ import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Phaser;
@@ -23,12 +22,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.battle.BattleStats.BattleStatsQuery;
@@ -44,29 +41,29 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.map.Area;
-import com.lhf.game.map.SubArea.SubAreaSort;
-import com.lhf.messages.GameEventProcessor;
+import com.lhf.game.map.SubArea;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.CommandMessage;
+import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.PooledMessageChainHandler;
 import com.lhf.messages.events.BadTargetSelectedEvent;
+import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
+import com.lhf.messages.events.BattleCreatureFledEvent;
 import com.lhf.messages.events.BattleJoinedEvent;
+import com.lhf.messages.events.BattleOverEvent;
 import com.lhf.messages.events.BattleRoundEvent;
+import com.lhf.messages.events.BattleRoundEvent.RoundAcceptance;
 import com.lhf.messages.events.BattleStartedEvent;
 import com.lhf.messages.events.BattleStatsRequestedEvent;
-import com.lhf.messages.events.BattleCreatureFledEvent;
 import com.lhf.messages.events.FactionReinforcementsCallEvent;
 import com.lhf.messages.events.FactionRenegadeJoined;
-import com.lhf.messages.events.BattleOverEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemNotPossessedEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.TargetDefendedEvent;
-import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
-import com.lhf.messages.events.BattleRoundEvent.RoundAcceptance;
-import com.lhf.messages.CommandMessage;
-import com.lhf.messages.CommandChainHandler;
-import com.lhf.messages.PooledMessageChainHandler;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.PassMessage;
@@ -75,233 +72,102 @@ import com.lhf.messages.in.UseMessage;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
 
-public class BattleManager implements CreatureContainer, PooledMessageChainHandler<ICreature> {
-    private final static int MAX_POOLED_ACTIONS = 1;
-    private final static int MAX_MILLISECONDS = 120000;
-    private final static int DEFAULT_MILLISECONDS = 90000;
-    private final int roundDurationMilliseconds;
-    private final AtomicReference<RoundThread> battleThread;
-    private NavigableMap<ICreature, Deque<IPoolEntry>> actionPools;
+public class BattleManager extends SubArea {
     private BattleStats battleStats;
-    private Area room;
-    private transient CommandChainHandler successor;
-    private transient Map<CommandMessage, CommandHandler> cmds;
-    private Logger battleLogger;
-    private final GameEventProcessorID gameEventProcessorID;
 
-    public static class Builder {
-        private int waitMilliseconds;
-        private NavigableMap<ICreature, Deque<IPoolEntry>> actionPools;
+    public static class Builder extends SubAreaBuilder<BattleManager, Builder> {
 
         public static Builder getInstance() {
             return new Builder();
         }
 
-        private Builder() {
-            this.waitMilliseconds = BattleManager.DEFAULT_MILLISECONDS;
-            this.actionPools = new TreeMap<>();
-        }
-
-        public Builder setWaitMilliseconds(int count) {
-            this.waitMilliseconds = Integer.min(BattleManager.MAX_MILLISECONDS, Integer.max(1, count));
+        @Override
+        protected Builder getThis() {
             return this;
         }
 
-        public Builder addCreature(ICreature creature) {
-            if (creature != null) {
-                this.actionPools.put(creature, new LinkedBlockingDeque<>(BattleManager.MAX_POOLED_ACTIONS));
-            }
-            return this;
+        @Override
+        public SubAreaSort getSubAreaSort() {
+            return SubAreaSort.BATTLE;
         }
 
-        public Builder empool(ICreature creature, CommandContext ctx, Command cmd) {
-            if (creature != null) {
-                this.addCreature(creature);
-                Deque<IPoolEntry> pool = this.actionPools.get(creature);
-                if (pool != null && cmd != null) {
-                    pool.offerLast(new PoolEntry(ctx, cmd));
-                }
-            }
-            return this;
-        }
-
-        public Builder clearPool() {
-            this.actionPools = new TreeMap<>();
-            return this;
-        }
-
-        public NavigableMap<ICreature, Deque<IPoolEntry>> getActionPools() {
-            return actionPools;
-        }
-
-        public BattleManager Build(Area room) {
-            return new BattleManager(room, this);
-        }
-
-        public int getWaitMilliseconds() {
-            return waitMilliseconds;
+        @Override
+        public BattleManager build(Area area) {
+            return new BattleManager(this, area);
         }
 
     }
 
-    protected class RoundThread extends Thread {
-        private Phaser parentPhaser;
-        private Phaser roundPhaser;
-        protected Logger threadLogger;
+    protected class BattleRoundThread extends RoundThread {
 
-        protected RoundThread() {
-            this.parentPhaser = new Phaser();
-            this.roundPhaser = new Phaser(this.parentPhaser, BattleManager.this.actionPools.size());
-            this.threadLogger = Logger
-                    .getLogger(this.getClass().getName() + "." + BattleManager.this.getName().replaceAll("\\W", "_"));
-            this.threadLogger.log(Level.FINEST, () -> String.format("Created like so: %s", this));
+        protected BattleRoundThread() {
+            super(BattleManager.this.getName());
         }
 
         @Override
-        public void run() {
-            try {
-                this.parentPhaser.register();
-                this.threadLogger.log(Level.INFO, "Running");
-                while (!parentPhaser.isTerminated() && !this.roundPhaser.isTerminated()) {
-                    this.threadLogger.log(Level.INFO, () -> String.format("Phase start: %s", this));
-                    Map<Boolean, Set<ICreature>> partitions = BattleManager.this.getCreatures().stream()
-                            .filter(c -> c != null).collect(Collectors.partitioningBy(
-                                    creature -> BattleManager.this.isReadyToFlush(creature), Collectors.toSet()));
-                    BattleManager.this.announce(
-                            BattleRoundEvent.getBuilder().setNeedSubmission(BattleRoundEvent.RoundAcceptance.NEEDED)
-                                    .setNotBroadcast().setRoundCount(this.parentPhaser.getPhase())
-                                    .Build(),
-                            partitions.getOrDefault(true, null));
-
-                    this.threadLogger.log(Level.FINE,
-                            () -> String.format("Waiting for actions from: %s", partitions.get(false)));
-                    try {
-                        this.parentPhaser.awaitAdvanceInterruptibly(this.parentPhaser.arrive(),
-                                BattleManager.this.getTurnWaitCount(), TimeUnit.MILLISECONDS);
-                        this.threadLogger.log(Level.FINE,
-                                () -> String.format("Actions received -> Phase Update: %s", this));
-                    } catch (TimeoutException e) {
-                        synchronized (this.roundPhaser) {
-                            for (int i = this.roundPhaser.getUnarrivedParties(); i > 0; i--) {
-                                this.roundPhaser.arrive();
-                            }
-                            this.threadLogger.log(Level.INFO,
-                                    () -> String.format("Timer ended round: %s, Thread: %s",
-                                            BattleManager.this.actionPools.toString(), this.toString()));
-                        }
-                    } finally {
-                        this.endRound();
-                    }
-                }
-            } catch (InterruptedException e) {
-                this.threadLogger.log(Level.WARNING, e, () -> String.format("Thread interrupted! %s %s",
-                        this.toString(), BattleManager.this.toString()));
-            } finally {
-                threadLogger.exiting(this.getClass().getName(), "run()", this.toString());
-                BattleManager.this.endBattle();
-            }
+        public void onThreadStart() {
+            // does nothing so far
         }
 
-        public synchronized void endRound() {
-            this.threadLogger.log(Level.FINE, "Ending Round");
+        @Override
+        public void onRoundStart() {
+            Map<Boolean, Set<ICreature>> partitions = BattleManager.this.getCreatures().stream()
+                    .filter(c -> c != null).collect(Collectors.partitioningBy(
+                            creature -> BattleManager.this.isReadyToFlush(creature),
+                            Collectors.toSet()));
+            BattleManager.this.announce(
+                    BattleRoundEvent.getBuilder().setNeedSubmission(BattleRoundEvent.RoundAcceptance.NEEDED)
+                            .setNotBroadcast().setRoundCount(this.getPhase())
+                            .Build(),
+                    partitions.getOrDefault(true, null));
+        }
+
+        @Override
+        public synchronized void onRoundEnd() {
+            this.logger.log(Level.FINE, "Ending Round");
             BattleManager.this.flush();
             BattleManager.this.battleStats.initialize(getCreatures());
             BattleManager.this.clearDead();
             if (!BattleManager.this.checkCompetingFactionsPresent("endRound()")) {
-                this.roundPhaser.forceTermination();
+                this.killIt();
                 return;
             }
-        }
-
-        public synchronized void register(ICreature c) {
-            if (c == null || this.roundPhaser == null) {
-                this.threadLogger.log(Level.SEVERE,
-                        String.format("Registration has nulls for Creature %s or Phaser %s", c, this));
-                return;
-            }
-            synchronized (this.roundPhaser) {
-                this.threadLogger.log(Level.FINER,
-                        () -> String.format("Attempting Registration of %s -> Phase pre-update: %s", c, this));
-                this.roundPhaser.register();
-            }
-        }
-
-        public synchronized void arrive(ICreature c) {
-            if (c == null || this.roundPhaser == null) {
-                this.threadLogger.log(Level.SEVERE,
-                        String.format("Arrivalhas nulls for Creature %s or Phaser %s", c, this));
-                return;
-            }
-            synchronized (this.roundPhaser) {
-                this.threadLogger.log(Level.FINER,
-                        () -> String.format("Attempting Arrival %s -> Phase pre-update: %s",
-                                c.getName(),
-                                this));
-                this.roundPhaser.arrive();
-            }
-        }
-
-        public synchronized void arriveAndDeregister(ICreature c) {
-            if (c == null || this.roundPhaser == null) {
-                this.threadLogger.log(Level.SEVERE,
-                        String.format("Deregistration has nulls for Creature %s or Phaser %s", c, this));
-                return;
-            }
-            synchronized (this.roundPhaser) {
-                this.threadLogger.log(Level.FINER,
-                        () -> String.format("Attempting Deregister %s -> Phase pre-update: %s",
-                                c.getName(),
-                                this));
-                this.roundPhaser.arriveAndDeregister();
-            }
-        }
-
-        public synchronized int getPhase() {
-            if (this.parentPhaser == null) {
-                return -1;
-            }
-            synchronized (this.parentPhaser) {
-                return this.parentPhaser.getPhase();
-            }
-        }
-
-        public synchronized boolean getIsRunning() {
-            return !this.parentPhaser.isTerminated() && this.parentPhaser.getRegisteredParties() > 0 && this.isAlive();
-        }
-
-        protected synchronized void killIt() {
-            this.parentPhaser.forceTermination();
         }
 
         @Override
-        public String toString() {
-            StringBuilder builder = new StringBuilder();
-            builder.append("RoundThread [parentPhaser=").append(parentPhaser)
-                    .append(", parentTerminated=").append(parentPhaser != null ? parentPhaser.isTerminated() : true)
-                    .append(", roundPhaser=").append(roundPhaser).append("]");
-            return builder.toString();
+        public void onThreadEnd() {
+            // does nothing so far
+        }
+
+        @Override
+        protected void onRegister(ICreature creature) {
+            // does nothing
+        }
+
+        @Override
+        protected void onArriaval(ICreature creature) {
+            // does nothing
+        }
+
+        @Override
+        protected void onArriveAndDeregister(ICreature creature) {
+            // does nothing
+        }
+
+        public synchronized boolean getIsRunning() {
+            return super.getIsRunning();
         }
 
     }
 
-    public BattleManager(Area room, Builder builder) {
-        this.actionPools = Collections.synchronizedNavigableMap(new TreeMap<>(builder.getActionPools()));
-        this.battleStats = new BattleStats().initialize(builder.getActionPools().keySet());
-        this.room = room;
-        this.successor = this.room;
-        this.roundDurationMilliseconds = builder.waitMilliseconds;
-        this.cmds = this.buildCommands();
-        this.battleThread = new AtomicReference<BattleManager.RoundThread>(null);
-        this.gameEventProcessorID = new GameEventProcessorID();
-        this.battleLogger = Logger.getLogger(this.getClass().getName() + "." + this.getName().replaceAll("\\W", "_"));
+    public BattleManager(Builder builder, Area room) {
+        super(builder, room);
+        this.battleStats = new BattleStats().initialize(this.getCreatures());
     }
 
-    protected int getTurnWaitCount() {
-        return this.roundDurationMilliseconds;
-    }
-
-    private Map<CommandMessage, CommandHandler> buildCommands() {
-        Map<CommandMessage, CommandHandler> cmds = new EnumMap<>(CommandMessage.class);
+    @Override
+    protected EnumMap<CommandMessage, CommandHandler> buildCommands() {
+        EnumMap<CommandMessage, CommandHandler> cmds = new EnumMap<>(CommandMessage.class);
         cmds.put(CommandMessage.SEE, new SeeHandler());
         cmds.put(CommandMessage.GO, new GoHandler());
         cmds.put(CommandMessage.PASS, new PassHandler());
@@ -312,21 +178,6 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public String getName() {
-        return this.room != null ? this.room.getName() + " Battle" : "Battle";
-    }
-
-    @Override
-    public GameEventProcessorID getEventProcessorID() {
-        return this.gameEventProcessorID;
-    }
-
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.getName() + this.getEndTag();
-    }
-
-    @Override
     public String getEndTag() {
         return "</battle>";
     }
@@ -334,6 +185,19 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     @Override
     public String getStartTag() {
         return "<battle>";
+    }
+
+    @Override
+    public void onAreaEntry(ICreature creature) {
+        if (creature == null) {
+            return;
+        }
+        if (CreatureFaction.NPC.equals(creature.getFaction())) {
+            return;
+        }
+        if (this.hasRunningThread(String.format("onAreaEntry(%s)", creature))) {
+            this.addCreature(creature);
+        }
     }
 
     @Override
@@ -403,7 +267,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             Deque<IPoolEntry> poolEntries = ordering.entry;
             this.log(Level.FINEST, () -> String.format("Flush Initiative: %d, Actions: %d, Creature: %s",
                     ordering.roll, poolEntries != null ? poolEntries.size() : 0, ordering.creature));
-            if (!this.isBattleOngoing("flushProcessor")) {
+            if (!this.hasRunningThread("flushProcessor")) {
                 this.log(Level.FINE,
                         () -> String.format("The battle is over but %s still tried to go!", ordering.creature));
                 return;
@@ -444,11 +308,6 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public Collection<ICreature> getCreatures() {
-        return this.getPools().keySet();
-    }
-
-    @Override
     public Optional<ICreature> removeCreature(String name) {
         Optional<ICreature> found = this.getCreature(name);
         if (found.isPresent()) {
@@ -481,25 +340,25 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public synchronized boolean addCreature(ICreature c) {
+    public synchronized boolean basicAddCreature(ICreature c) {
         synchronized (this.actionPools) {
             if (c != null && !c.isInBattle() && !this.hasCreature(c)) {
                 if (this.actionPools.putIfAbsent(c, new LinkedBlockingDeque<>(MAX_POOLED_ACTIONS)) == null) {
                     c.addSubArea(SubAreaSort.BATTLE);
                     c.setSuccessor(this);
                     this.battleStats.initialize(this.getCreatures());
-                    boolean ongoing = this.isBattleOngoing("addCreature()");
+                    boolean ongoing = this.hasRunningThread("addCreature()");
                     BattleJoinedEvent.Builder joinedMessage = BattleJoinedEvent.getBuilder().setJoiner(c)
                             .setOngoing(ongoing).setBroacast();// new JoinBattleMessage(c, this.isBattleOngoing(),
                                                                // false);
-                    if (this.room != null) {
-                        this.room.announce(joinedMessage.Build(), c);
+                    if (this.area != null) {
+                        this.area.announce(joinedMessage.Build(), c);
                     } else {
                         this.announce(joinedMessage.Build(), c);
                     }
                     ICreature.eventAccepter.accept(c, joinedMessage.setNotBroadcast().Build());
                     if (ongoing) {
-                        RoundThread thread = this.battleThread.get();
+                        RoundThread thread = this.getRoundThread();
                         if (thread != null) {
                             synchronized (thread) {
                                 thread.register(c);
@@ -514,7 +373,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     }
 
     @Override
-    public synchronized boolean removeCreature(ICreature c) {
+    public synchronized boolean basicRemoveCreature(ICreature c) {
         if (c == null) {
             return false;
         }
@@ -530,7 +389,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     private boolean checkCompetingFactionsPresent(final String whochecks) {
         Collection<ICreature> battlers = this.getCreatures();
         if (battlers == null || battlers.size() <= 1) {
-            this.battleLogger.log(Level.FINER,
+            this.log(Level.FINER,
                     () -> String.format("%s Checking for competing factions ... No or too few battlers", whochecks));
             return false;
         }
@@ -543,7 +402,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 factionCounts.put(thatone, 1);
             }
         }
-        this.battleLogger.log(Level.FINER, () -> {
+        this.log(Level.FINER, () -> {
             StringJoiner sj = new StringJoiner(" ", String.format("%s Checking for competing factions...", whochecks),
                     "")
                     .setEmptyValue("No factions found");
@@ -567,19 +426,10 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         return false;
     }
 
-    public boolean isBattleOngoing(final String whochecks) {
-        RoundThread thread = this.battleThread.get();
-        if (thread == null) {
-            this.log(Level.FINE, String.format("%s found Null thread, no battle ongoing", whochecks));
-            return false;
-        }
-        return thread.getIsRunning();
-    }
-
     public synchronized RoundThread startBattle(ICreature instigator, Collection<ICreature> victims) {
-        RoundThread curThread = this.battleThread.get();
+        RoundThread curThread = this.getRoundThread();
         if (curThread == null || !curThread.getIsRunning()) {
-            this.battleLogger.log(Level.FINER, () -> String.format("%s starts a fight", instigator.getName()));
+            this.log(Level.FINER, () -> String.format("%s starts a fight", instigator.getName()));
             this.battleStats.reset();
             this.addCreature(instigator);
             if (victims != null) {
@@ -590,37 +440,36 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             }
             BattleStartedEvent.Builder startMessage = BattleStartedEvent.getBuilder().setInstigator(instigator)
                     .setBroacast();
-            if (this.room != null) {
-                this.room.announce(startMessage.Build());
+            if (this.area != null) {
+                this.area.announce(startMessage.Build());
             }
             this.announce(startMessage.setNotBroadcast().Build());
             // if someone started a fight, no need to prompt them for their turn
-            RoundThread thread = new RoundThread();
-            this.battleLogger.log(Level.INFO, "Starting thread");
+            BattleRoundThread thread = new BattleRoundThread();
+            this.log(Level.INFO, "Starting thread");
             thread.start();
-            this.battleThread.set(thread);
+            this.roundThread.set(thread);
         } else {
-            this.battleLogger
-                    .warning(() -> String.format("%s tried to start an already started fight",
-                            instigator.getName()));
+            this.log(Level.WARNING, () -> String.format("%s tried to start an already started fight",
+                    instigator.getName()));
         }
-        return this.battleThread.get();
+        return this.roundThread.get();
     }
 
     public void endBattle() {
-        this.battleLogger.log(Level.INFO, "Ending battle");
+        this.log(Level.INFO, "Ending battle");
         BattleOverEvent.Builder foverBuilder = BattleOverEvent.getBuilder().setNotBroadcast();
         this.announce(foverBuilder.Build());
-        if (this.room != null) {
-            this.room.announce(foverBuilder.setBroacast().Build());
+        if (this.area != null) {
+            this.area.announce(foverBuilder.setBroacast().Build());
         }
-        RoundThread thread = this.battleThread.get();
+        RoundThread thread = this.roundThread.get();
         if (thread != null) {
             synchronized (thread) {
                 thread.killIt();
             }
         }
-        this.battleThread.set(null);
+        this.roundThread.set(null);
         int participants = Integer.min(
                 (int) this.getCreatures().stream().filter(creature -> creature != null && creature.isAlive()).count(),
                 1);
@@ -630,8 +479,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 return;
             }
             if (!creature.isAlive()) {
-                if (this.room != null) {
-                    this.room.onCreatureDeath(creature);
+                if (this.area != null) {
+                    this.area.onCreatureDeath(creature);
                 }
             } else {
                 int xpForCreature = xpFromDeath;
@@ -650,13 +499,13 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         if (creature == null || creature.isAlive()) {
             return false;
         }
-        RoundThread thread = BattleManager.this.battleThread.get();
+        RoundThread thread = this.getRoundThread();
         if (thread != null && thread.isAlive()) {
             this.log(Level.FINE,
                     () -> String.format("Event onCreatureDeath(%s) ignored until clearDead() sweeps", creature));
         } else {
             this.clearCreatures(c -> c != null && creature.equals(c), true,
-                    this.room != null ? c -> this.room.onCreatureDeath(c) : null);
+                    this.area != null ? c -> this.area.onCreatureDeath(c) : null);
         }
         return true;
     }
@@ -673,12 +522,12 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 } else if (clearPredicate.test(creature)) {
                     iterator.remove();
                     creature.removeSubArea(SubAreaSort.BATTLE);
-                    creature.setSuccessor(this.successor);
+                    BattleManager.removalSuccessorSet(this, creature);
                     if (!creature.isAlive()) {
                         this.battleStats.setDead(creature.getName(),
                                 creature.getStats().getOrDefault(Stats.XPWORTH, 1));
                     }
-                    RoundThread thread = BattleManager.this.battleThread.get();
+                    RoundThread thread = this.getRoundThread();
                     if (thread != null && thread.isAlive()) {
                         synchronized (thread) {
                             thread.arriveAndDeregister(creature);
@@ -699,7 +548,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         synchronized (this.actionPools) {
             this.log(Level.FINE, () -> "Clearing the dead");
             this.clearCreatures(creature -> creature != null && !creature.isAlive(), false,
-                    this.room != null ? creature -> this.room.onCreatureDeath(creature) : null);
+                    this.area != null ? creature -> this.area.onCreatureDeath(creature) : null);
         }
     }
 
@@ -709,8 +558,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             FactionRenegadeJoined.Builder builder = FactionRenegadeJoined.getBuilder(turned);
             ICreature.eventAccepter.accept(turned, builder.setNotBroadcast().Build());
             builder.setBroacast();
-            if (this.room != null) {
-                room.announce(builder.Build(), turned);
+            if (this.area != null) {
+                area.announce(builder.Build(), turned);
             } else {
                 this.announce(builder.Build(), turned);
             }
@@ -752,8 +601,8 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     @Override
     public String toString() {
         StringBuilder builder2 = new StringBuilder();
-        builder2.append("BattleManager [participants=").append(this.actionPools.keySet()).append(", room=").append(room)
-                .append(", ongoing=").append(this.isBattleOngoing("toString()")).append("]");
+        builder2.append("BattleManager [participants=").append(this.actionPools.keySet()).append(", room=").append(area)
+                .append(", ongoing=").append(this.hasRunningThread("toString()")).append("]");
         return builder2.toString();
     }
 
@@ -768,23 +617,13 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
     @Override
     public String printDescription() {
         StringBuilder sb = new StringBuilder();
-        if (this.isBattleOngoing("printDescription()")) {
+        if (this.hasRunningThread("printDescription()")) {
             sb.append("The battle is on! ");
             // TODO: round count?
         } else {
             sb.append("There is no fight right now. ");
         }
         return sb.toString();
-    }
-
-    @Override
-    public void setSuccessor(CommandChainHandler successor) {
-        this.successor = successor;
-    }
-
-    @Override
-    public CommandChainHandler getSuccessor() {
-        return this.successor;
     }
 
     @Override
@@ -795,33 +634,15 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         return Collections.unmodifiableMap(this.cmds);
     }
 
-    @Override
-    public synchronized void log(Level logLevel, String logMessage) {
-        this.battleLogger.log(logLevel, logMessage);
-    }
-
-    @Override
-    public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
-        this.battleLogger.log(logLevel, logMessageSupplier);
-    }
-
-    @Override
-    public CommandContext addSelfToContext(CommandContext ctx) {
-        if (ctx.getBattleManager() == null) {
-            ctx.setBattleManager(this);
-        }
-        return ctx;
-    }
-
     public interface BattleManagerCommandHandler extends ICreature.CreatureCommandHandler {
         static final Predicate<CommandContext> defaultBattlePredicate = ICreature.CreatureCommandHandler.defaultCreaturePredicate
-                .and(ctx -> ctx.getBattleManager() != null);
+                .and(ctx -> ctx.hasSubAreaSort(SubAreaSort.BATTLE));
 
     }
 
     public interface PooledBattleManagerCommandHandler extends PooledCommandHandler {
         static final Predicate<CommandContext> defaultTurnPredicate = BattleManagerCommandHandler.defaultBattlePredicate
-                .and(ctx -> ctx.getBattleManager().isBattleOngoing(".defaultTurnPredicate"));
+                .and(ctx -> ctx.getSubAreaForSort(SubAreaSort.BATTLE).hasRunningThread(".defaultTurnPredicate"));
 
         @Override
         public default Predicate<CommandContext> getPoolingPredicate() {
@@ -830,7 +651,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
         @Override
         default boolean onEmpool(CommandContext ctx, boolean empoolResult) {
-            RoundThread thread = ctx.getBattleManager().battleThread.get();
+            RoundThread thread = ctx.getSubAreaForSort(SubAreaSort.BATTLE).getRoundThread();
             BattleRoundEvent.Builder roundMessage = BattleRoundEvent.getBuilder()
                     .setAboutCreature(ctx.getCreature()).setNotBroadcast()
                     .setNeedSubmission(empoolResult ? RoundAcceptance.ACCEPTED : RoundAcceptance.REJECTED);
@@ -850,7 +671,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
         @Override
         default PooledMessageChainHandler<?> getPooledChainHandler(CommandContext ctx) {
-            return ctx.getBattleManager();
+            return ctx.getSubAreaForSort(SubAreaSort.BATTLE);
         }
     }
 
@@ -1003,7 +824,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         private final static String helpString = "\"go [direction]\" Try to move in the desired direction and flee the battle, if that direction exists.  Like \"go east\"";
         private final static Predicate<CommandContext> enabledPredicate = BattleManagerCommandHandler.defaultBattlePredicate
                 .and(ctx -> {
-                    BattleManager bm = ctx.getBattleManager();
+                    SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
                     CommandChainHandler chainHandler = bm.getSuccessor();
                     CommandContext copyContext = ctx.copy();
 
@@ -1053,15 +874,15 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 if (BattleManager.this.hasCreature(ctx.getCreature())) { // if it is still here, it failed to flee
                     builder.setFled(false);
                     ctx.receive(builder.setFled(false).setNotBroadcast().Build());
-                    if (BattleManager.this.room != null) {
-                        BattleManager.this.room.announce(builder.setBroacast().Build(), ctx.getCreature());
+                    if (BattleManager.this.area != null) {
+                        BattleManager.this.area.announce(builder.setBroacast().Build(), ctx.getCreature());
                     } else {
                         BattleManager.this.announce(builder.setBroacast().Build(), ctx.getCreature());
                     }
                 } else {
                     builder.setFled(true).setBroacast();
-                    if (BattleManager.this.room != null) {
-                        BattleManager.this.room.announce(builder.Build(), ctx.getCreature());
+                    if (BattleManager.this.area != null) {
+                        BattleManager.this.area.announce(builder.Build(), ctx.getCreature());
                     } else {
                         BattleManager.this.announce(builder.Build(), ctx.getCreature());
                     }
@@ -1095,7 +916,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         }
         for (String targetName : names) {
             btMessBuilder.setBadTarget(targetName);
-            List<ICreature> possTargets = new ArrayList<>(this.room.getCreaturesLike(targetName));
+            List<ICreature> possTargets = new ArrayList<>(this.area.getCreaturesLike(targetName));
             if (possTargets.size() == 1) {
                 ICreature targeted = possTargets.get(0);
                 if (targeted.equals(attacker)) {
@@ -1124,14 +945,14 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                 .toString();
         private final static Predicate<CommandContext> enabledPredicate = ICreature.CreatureCommandHandler.defaultCreaturePredicate
                 .and(ctx -> {
-                    BattleManager bm = ctx.getBattleManager();
+                    SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
                     if (bm == null) {
                         return false;
                     }
-                    if (bm.room == null) {
+                    if (bm.getArea() == null) {
                         return false;
                     }
-                    return bm.room.getCreatures().size() > 1 || bm.getCreatures().size() > 1;
+                    return bm.getArea().getCreatures().size() > 1 || bm.getCreatures().size() > 1;
                 });
 
         @Override
@@ -1139,7 +960,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             if (cmd == null || !(cmd instanceof AttackMessage)) {
                 return ctx.failhandle();
             }
-            if (!BattleManager.this.isBattleOngoing("AttackHandler.handle()")) {
+            if (!BattleManager.this.hasRunningThread("AttackHandler.handle()")) {
                 ICreature attacker = ctx.getCreature();
                 List<ICreature> collected = BattleManager.this.collectTargetsFromRoom(attacker,
                         ((AttackMessage) cmd).getTargets());
@@ -1258,7 +1079,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         @Override
         public Reply flushHandle(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof AttackMessage aMessage) {
-                BattleManager.this.battleLogger.log(Level.INFO,
+                BattleManager.this.log(Level.INFO,
                         ctx.getCreature().getName() + " attempts attacking " + aMessage.getTargets());
 
                 ICreature attacker = ctx.getCreature();
@@ -1329,10 +1150,10 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
                     reBuilder.setNotBroadcast().setCaller(targetCreature).setCallerAddressed(true).Build());
             return;
         }
-        if (this.room == null) {
+        if (this.area == null) {
             return;
         }
-        Map<CreatureFaction, Set<ICreature>> remainingCreatures = this.room.getCreatures().stream()
+        Map<CreatureFaction, Set<ICreature>> remainingCreatures = this.area.getCreatures().stream()
                 .filter(creature -> creature != null && !this.actionPools.keySet().contains(creature))
                 .collect(Collectors.groupingBy(creature -> {
                     CreatureFaction faction = creature.getFaction();
@@ -1349,7 +1170,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
         if (allies == null || allies.size() == 0) {
             return;
         }
-        this.room.announce(reBuilder.setCaller(targetCreature).setBroacast().Build());
+        this.area.announce(reBuilder.setCaller(targetCreature).setBroacast().Build());
         for (ICreature c : allies) {
             this.addCreature(c);
         }
@@ -1364,7 +1185,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
             if (enemies == null || enemies.size() == 0) {
                 return;
             }
-            this.room.announce(reBuilder.setBroacast().setCaller(attackingCreature).Build());
+            this.area.announce(reBuilder.setBroacast().setCaller(attackingCreature).Build());
             for (ICreature c : enemies) {
                 this.addCreature(c);
             }
@@ -1373,7 +1194,7 @@ public class BattleManager implements CreatureContainer, PooledMessageChainHandl
 
     @Override
     public Collection<GameEventProcessor> getGameEventProcessors() {
-        Collection<GameEventProcessor> messengers = CreatureContainer.super.getGameEventProcessors();
+        Collection<GameEventProcessor> messengers = super.getGameEventProcessors();
         messengers.add(this.battleStats);
         return messengers;
     }

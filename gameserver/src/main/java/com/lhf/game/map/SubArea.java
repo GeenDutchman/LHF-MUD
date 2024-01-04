@@ -14,6 +14,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,8 +46,148 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     protected final int roundDurationMilliseconds;
     protected final Logger logger;
     protected final transient Area area;
+    protected final transient AtomicReference<RoundThread> roundThread;
     protected transient EnumMap<CommandMessage, CommandHandler> cmds;
     protected NavigableMap<ICreature, Deque<IPoolEntry>> actionPools;
+
+    protected abstract class RoundThread extends Thread {
+        protected final Logger logger;
+        private Phaser parentPhaser;
+        private Phaser roundPhaser;
+
+        protected RoundThread(String loggerName) {
+            if (loggerName == null) {
+                loggerName = "SubAreaThread";
+            }
+
+            this.logger = Logger.getLogger(this.getClass().getName() + "." + loggerName.replaceAll("\\W", "_"));
+            this.parentPhaser = new Phaser();
+            this.roundPhaser = new Phaser(parentPhaser, SubArea.this.actionPools.size());
+        }
+
+        public abstract void onThreadStart();
+
+        public abstract void onRoundStart();
+
+        public abstract void onRoundEnd();
+
+        public abstract void onThreadEnd();
+
+        protected abstract void onRegister(final ICreature creature);
+
+        @Override
+        public void run() {
+            try {
+                this.parentPhaser.register();
+                this.logger.log(Level.INFO, "Running");
+                this.onThreadStart();
+                while (!parentPhaser.isTerminated() && !roundPhaser.isTerminated()) {
+                    this.logger.log(Level.INFO, () -> String.format("Phase start: %s", this));
+                    this.onRoundStart();
+                    this.logger.log(Level.FINE,
+                            () -> String.format("Waiting for actions from: %s", SubArea.this.getCreatures().stream()
+                                    .filter(c -> c != null && SubArea.this.isReadyToFlush(c)).toList()));
+                    try {
+                        this.parentPhaser.awaitAdvanceInterruptibly(this.parentPhaser.arrive(),
+                                SubArea.this.getTurnWaitCount(), TimeUnit.MILLISECONDS);
+                        this.logger.log(Level.FINE, () -> String.format("Actions received -> Phase Update: %s", this));
+                    } catch (TimeoutException e) {
+                        synchronized (this.roundPhaser) {
+                            for (int i = this.roundPhaser.getUnarrivedParties(); i > 0; i--) {
+                                this.roundPhaser.arrive();
+                            }
+                            this.logger.log(Level.INFO, () -> String.format("Timer ended round: %s, Thread: %s",
+                                    SubArea.this.actionPools.toString(), this.toString()));
+                        }
+                    } finally {
+                        this.onRoundEnd();
+                    }
+                }
+            } catch (InterruptedException e) {
+                this.logger.log(Level.WARNING, e,
+                        () -> String.format("Thread interrupted! %s %s", this.toString(), SubArea.this.toString()));
+            } finally {
+                this.logger.exiting(this.getClass().getName(), "run()", this.toString());
+                this.onThreadEnd();
+            }
+        }
+
+        public final synchronized void register(ICreature c) {
+            if (c == null || this.roundPhaser == null) {
+                this.logger.log(Level.SEVERE,
+                        String.format("Registration has nulls for Creature %s or Phaser %s", c, this));
+                return;
+            }
+            synchronized (this.roundPhaser) {
+                this.logger.log(Level.FINER,
+                        () -> String.format("Attempting Registration of %s -> Phase pre-update: %s", c, this));
+                this.roundPhaser.register();
+                this.onRegister(c);
+            }
+        }
+
+        protected abstract void onArriaval(final ICreature creature);
+
+        public final synchronized void arrive(ICreature c) {
+            if (c == null || this.roundPhaser == null) {
+                this.logger.log(Level.SEVERE,
+                        String.format("Arrivalhas nulls for Creature %s or Phaser %s", c, this));
+                return;
+            }
+            synchronized (this.roundPhaser) {
+                this.logger.log(Level.FINER,
+                        () -> String.format("Attempting Arrival %s -> Phase pre-update: %s",
+                                c.getName(),
+                                this));
+                this.roundPhaser.arrive();
+                this.onArriaval(c);
+            }
+        }
+
+        protected abstract void onArriveAndDeregister(final ICreature creature);
+
+        public final synchronized void arriveAndDeregister(ICreature c) {
+            if (c == null || this.roundPhaser == null) {
+                this.logger.log(Level.SEVERE,
+                        String.format("Deregistration has nulls for Creature %s or Phaser %s", c, this));
+                return;
+            }
+            synchronized (this.roundPhaser) {
+                this.logger.log(Level.FINER,
+                        () -> String.format("Attempting Deregister %s -> Phase pre-update: %s",
+                                c.getName(),
+                                this));
+                this.roundPhaser.arriveAndDeregister();
+                this.onArriveAndDeregister(c);
+            }
+        }
+
+        public final synchronized int getPhase() {
+            if (this.parentPhaser == null) {
+                return -1;
+            }
+            synchronized (this.parentPhaser) {
+                return this.parentPhaser.getPhase();
+            }
+        }
+
+        public final synchronized void killIt() {
+            this.parentPhaser.forceTermination();
+        }
+
+        public synchronized boolean getIsRunning() {
+            return !this.parentPhaser.isTerminated() && this.parentPhaser.getRegisteredParties() > 0 && this.isAlive();
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName()).append(" [parentPhaser=").append(parentPhaser)
+                    .append(", parentTerminated=").append(parentPhaser != null ? parentPhaser.isTerminated() : true)
+                    .append(", roundPhaser=").append(roundPhaser).append("]");
+            return builder.toString();
+        }
+    }
 
     public static abstract class SubAreaBuilder<SubAreaType extends SubArea, BuilderType extends SubAreaBuilder<SubAreaType, BuilderType>>
             implements Serializable {
@@ -157,6 +301,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         this.roundDurationMilliseconds = builder.getWaitMilliseconds();
         this.cmds = this.buildCommands();
         this.actionPools = Collections.synchronizedNavigableMap(new TreeMap<>());
+        this.roundThread = new AtomicReference<>(null);
         if (builder.isQueryOnBuild()) {
             for (final CreatureFilterQuery query : builder.getCreatureQueries()) {
                 for (ICreature creature : this.area.filterCreatures(query)) {
@@ -166,8 +311,25 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         }
     }
 
+    protected final int getTurnWaitCount() {
+        return this.roundDurationMilliseconds;
+    }
+
     public final SubAreaSort getSubAreaSort() {
         return this.sort;
+    }
+
+    public final synchronized RoundThread getRoundThread() {
+        return this.roundThread.get();
+    }
+
+    public final synchronized boolean hasRunningThread(final String whoIsAsking) {
+        RoundThread thread = this.roundThread.get();
+        if (thread == null) {
+            this.log(Level.FINE, String.format("%s found null thread, not ongoing", whoIsAsking));
+            return false;
+        }
+        return thread.getIsRunning();
     }
 
     protected abstract EnumMap<CommandMessage, CommandHandler> buildCommands();
@@ -220,22 +382,29 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
     protected abstract boolean basicAddCreature(ICreature creature);
 
+    public static void additionSuccessorSet(SubArea subArea, ICreature creature) {
+        if (subArea == null || creature == null) {
+            return;
+        }
+        final NavigableSet<SubArea> areasSubAreas = subArea.getArea().getSubAreas();
+        if (areasSubAreas == null) {
+            return;
+        }
+        final NavigableSet<SubArea> inferiors = areasSubAreas.headSet(subArea, false);
+        for (final SubArea inferior : inferiors) {
+            if (inferior.getCreatures().contains(creature)) {
+                creature.setSuccessor(inferior);
+            }
+        }
+    }
+
     @Override
     public final boolean addCreature(ICreature creature) {
         boolean basicAdd = this.basicAddCreature(creature);
         if (basicAdd) {
             creature.setSuccessor(this);
             creature.addSubArea(getSubAreaSort());
-            final NavigableSet<SubArea> areasSubAreas = this.area.getSubAreas();
-            if (areasSubAreas == null) {
-                return basicAdd;
-            }
-            final NavigableSet<SubArea> inferiors = areasSubAreas.headSet(this, false);
-            for (final SubArea inferior : inferiors) {
-                if (inferior.getCreatures().contains(creature)) {
-                    creature.setSuccessor(inferior);
-                }
-            }
+            SubArea.additionSuccessorSet(this, creature);
         }
         return basicAdd;
     }
@@ -247,20 +416,27 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
     protected abstract boolean basicRemoveCreature(ICreature creature);
 
+    public static void removalSuccessorSet(SubArea subArea, ICreature creature) {
+        if (subArea == null || creature == null) {
+            return;
+        }
+        final NavigableSet<SubArea> areasSubAreas = subArea.getArea().getSubAreas();
+        if (areasSubAreas == null) {
+            return;
+        }
+        final SubArea superior = areasSubAreas.higher(subArea);
+        if (superior != null && superior.getCreatures().contains(creature)) {
+            creature.setSuccessor(superior);
+        }
+    }
+
     @Override
     public final boolean removeCreature(ICreature creature) {
         boolean basicRemove = this.basicRemoveCreature(creature);
         if (basicRemove) {
             creature.setSuccessor(this.area);
             creature.removeSubArea(getSubAreaSort());
-            final NavigableSet<SubArea> areasSubAreas = this.area.getSubAreas();
-            if (areasSubAreas == null) {
-                return basicRemove;
-            }
-            final SubArea superior = areasSubAreas.higher(this);
-            if (superior != null && superior.getCreatures().contains(creature)) {
-                creature.setSuccessor(superior);
-            }
+            SubArea.removalSuccessorSet(this, creature);
         }
         return basicRemove;
     }
@@ -305,6 +481,12 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     @Override
     public CommandChainHandler getSuccessor() {
         return this.area;
+    }
+
+    @Override
+    public CommandContext addSelfToContext(CommandContext ctx) {
+        ctx.addSubArea(this);
+        return ctx;
     }
 
     @Override
