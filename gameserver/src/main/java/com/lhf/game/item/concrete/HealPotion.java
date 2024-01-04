@@ -50,10 +50,10 @@ public class HealPotion extends Usable {
                     ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
                     GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     bm.announce(results);
-                } else if (ctx.getRoom() != null) {
+                } else if (ctx.getArea() != null) {
                     ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
                     GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
-                    ctx.getRoom().announce(results);
+                    ctx.getArea().announce(results);
                 } else {
                     ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
                     GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));

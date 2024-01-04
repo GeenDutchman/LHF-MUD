@@ -7,10 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Optional;
+import java.util.TreeSet;
 
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.map.Area;
 import com.lhf.game.map.Dungeon;
-import com.lhf.game.map.Room;
 import com.lhf.game.map.SubArea;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.events.GameEvent;
@@ -22,8 +23,8 @@ public class CommandContext {
     protected Client client;
     protected User user;
     protected ICreature creature;
-    protected NavigableSet<SubArea> subAreas;
-    protected Room room;
+    protected NavigableSet<SubArea> subAreas = new TreeSet<>();
+    protected Area area;
     protected Dungeon dungeon;
     protected EnumMap<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
     protected List<GameEvent> messages = new ArrayList<>();
@@ -88,7 +89,7 @@ public class CommandContext {
         theCopy.user = this.user;
         theCopy.creature = this.creature;
         theCopy.subAreas = this.subAreas;
-        theCopy.room = this.room;
+        theCopy.area = this.area;
         theCopy.dungeon = this.dungeon;
         theCopy.helps = new EnumMap<>(this.helps);
         theCopy.messages = new ArrayList<>(this.messages);
@@ -226,12 +227,17 @@ public class CommandContext {
         return this.getSubAreaForSort(sort) != null;
     }
 
-    public void setRoom(Room room) {
-        this.room = room;
+    public void setArea(Area room) {
+        this.area = room;
+        if (room != null) {
+            for (final SubArea subArea : room.getSubAreas()) {
+                this.addSubArea(subArea);
+            }
+        }
     }
 
-    public Room getRoom() {
-        return this.room;
+    public Area getArea() {
+        return this.area;
     }
 
     public Dungeon getDungeon() {
@@ -246,7 +252,7 @@ public class CommandContext {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("CommandContext [client=").append(client).append(", user=").append(user).append(", creature=")
-                .append(creature).append(", room=").append(room).append(", subAreas=").append(subAreas)
+                .append(creature).append(", room=").append(area).append(", subAreas=").append(subAreas)
                 .append(", dungeon=").append(dungeon).append("]");
         return builder.toString();
     }

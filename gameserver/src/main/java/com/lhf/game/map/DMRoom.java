@@ -414,7 +414,7 @@ public class DMRoom extends Room {
 
     protected class SayHandler extends Room.SayHandler {
         private static final Predicate<CommandContext> enabledPredicate = SayHandler.defaultPredicate
-                .and(ctx -> ctx.getUser() != null).and(ctx -> ctx.getRoom() != null)
+                .and(ctx -> ctx.getUser() != null).and(ctx -> ctx.getArea() != null)
                 .or(SayHandler.defaultRoomPredicate);
 
         @Override

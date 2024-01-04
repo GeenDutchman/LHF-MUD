@@ -472,11 +472,11 @@ public class Dungeon implements Land {
                     return ctx.handled();
                 }
                 Directions toGo = goMessage.getDirection();
-                if (ctx.getRoom() == null) {
+                if (ctx.getArea() == null) {
                     ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(toGo).Build());
                     return ctx.handled();
                 }
-                Room presentRoom = ctx.getRoom();
+                Area presentRoom = ctx.getArea();
                 final AtlasMappingItem<Area, UUID> mappingItem = Dungeon.this.atlas
                         .getAtlasMappingItem(presentRoom.getUuid());
                 if (mappingItem != null) {
@@ -547,7 +547,7 @@ public class Dungeon implements Land {
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == CommandMessage.SEE) {
-                Room presentRoom = ctx.getRoom();
+                Area presentRoom = ctx.getArea();
                 if (presentRoom != null) {
                     SeeEvent roomSeen = presentRoom.produceMessage();
                     ctx.receive(roomSeen);

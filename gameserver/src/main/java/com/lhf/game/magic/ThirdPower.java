@@ -32,7 +32,6 @@ import com.lhf.game.magic.Spellbook.Filters;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
-import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomEffect;
 import com.lhf.game.map.SubArea;
 import com.lhf.game.map.SubArea.SubAreaSort;
@@ -96,7 +95,7 @@ public class ThirdPower implements CommandChainHandler {
 
     public interface ThirdPowerCommandHandler extends Dungeon.DungeonCommandHandler {
         final static Predicate<CommandContext> prerequisites = ctx -> {
-            if (!(ctx.getDungeon() != null || ctx.getRoom() instanceof DMRoom)) {
+            if (!(ctx.getDungeon() != null || ctx.getArea() instanceof DMRoom)) {
                 return false;
             }
             ICreature attempter = ctx.getCreature();
@@ -186,7 +185,7 @@ public class ThirdPower implements CommandChainHandler {
                 return ctx.failhandle();
             }
             ICreature caster = ctx.getCreature();
-            Room localRoom = ctx.getRoom();
+            Area localRoom = ctx.getArea();
             if (caster == null || localRoom == null) {
                 ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster)
                         .setNotBroadcast().setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
@@ -237,7 +236,7 @@ public class ThirdPower implements CommandChainHandler {
                 return ctx.failhandle();
             }
             final ICreature caster = ctx.getCreature();
-            final Room localRoom = ctx.getRoom();
+            final Area localRoom = ctx.getArea();
             if (caster == null || localRoom == null) {
                 ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster)
                         .setNotBroadcast().setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
@@ -307,7 +306,7 @@ public class ThirdPower implements CommandChainHandler {
 
                 if (resistance == null || targetResult == null
                         || (casterResult != null && (casterResult.getTotal() > targetResult.getTotal()))) {
-                    GameEvent ram = ctx.getRoom().applyEffect(effect);
+                    GameEvent ram = ctx.getArea().applyEffect(effect);
                     ThirdPower.this.channelizeMessage(ctx, ram, spell.isOffensive(), caster);
                 } else {
                     SpellFizzledEvent fizzleMessage = SpellFizzledEvent.getBuilder().setAttempter(caster)
@@ -327,7 +326,7 @@ public class ThirdPower implements CommandChainHandler {
             }
 
             final ICreature caster = ctx.getCreature();
-            final Room localRoom = ctx.getRoom();
+            final Area localRoom = ctx.getArea();
             if (caster == null || localRoom == null || !(localRoom instanceof DMRoom)) {
                 ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster)
                         .setNotBroadcast().setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
@@ -398,7 +397,7 @@ public class ThirdPower implements CommandChainHandler {
                 return ctx.handled();
             }
             final ICreature caster = ctx.getCreature();
-            final Room localRoom = ctx.getRoom();
+            final Area localRoom = ctx.getArea();
             if (caster == null || localRoom == null) {
                 ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster)
                         .setNotBroadcast().setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
@@ -449,8 +448,8 @@ public class ThirdPower implements CommandChainHandler {
                 SpellFizzledEvent.Builder spellFizzleMessage = SpellFizzledEvent.getBuilder().setAttempter(caster)
                         .setNotBroadcast();
                 ctx.receive(spellFizzleMessage.setSubType(SpellFizzleType.MISPRONOUNCE).setNotBroadcast().Build());
-                if (ctx.getRoom() != null) {
-                    ctx.getRoom().announce(spellFizzleMessage.setBroacast().Build());
+                if (ctx.getArea() != null) {
+                    ctx.getArea().announce(spellFizzleMessage.setBroacast().Build());
                 }
                 return ctx.handled();
             }
@@ -484,8 +483,8 @@ public class ThirdPower implements CommandChainHandler {
                     SpellFizzledEvent.Builder spellFizzle = SpellFizzledEvent.getBuilder()
                             .setSubType(SpellFizzleType.NOT_CASTER).setAttempter(attempter).setNotBroadcast();
                     ctx.receive(spellFizzle.Build());
-                    if (ctx.getRoom() != null) {
-                        ctx.getRoom().announce(spellFizzle.setBroacast().Build());
+                    if (ctx.getArea() != null) {
+                        ctx.getArea().announce(spellFizzle.setBroacast().Build());
                     }
                     return ctx.handled();
                 } else if (!attempter.isInBattle() && ctx.getSubAreaForSort(SubAreaSort.BATTLE) != null
@@ -574,8 +573,8 @@ public class ThirdPower implements CommandChainHandler {
         SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
         if (includeBattle && bm != null && bm.hasRunningThread("ThirdPower.channelizeMessage()")) {
             SubArea.eventAccepter.accept(bm, message);
-        } else if (ctx.getRoom() != null) {
-            Area.eventAccepter.accept(ctx.getRoom(), message);
+        } else if (ctx.getArea() != null) {
+            Area.eventAccepter.accept(ctx.getArea(), message);
         } else if (directs != null) {
             for (GameEventProcessor direct : directs) {
                 GameEventProcessor.eventAccepter.accept(direct, message);

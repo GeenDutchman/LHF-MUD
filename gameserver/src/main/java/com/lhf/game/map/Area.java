@@ -26,6 +26,7 @@ import com.lhf.game.item.Takeable;
 import com.lhf.game.map.SubArea.SubAreaBuilder;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.GameEvent;
@@ -219,6 +220,14 @@ public interface Area
             return nameCompare;
         }
         return this.getUuid().compareTo(o.getUuid());
+    }
+
+    @Override
+    default CommandContext addSelfToContext(CommandContext ctx) {
+        if (ctx.getArea() == null) {
+            ctx.setArea(this);
+        }
+        return ctx;
     }
 
     @Override

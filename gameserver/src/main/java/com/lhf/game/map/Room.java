@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -82,8 +83,6 @@ public class Room implements Area {
     private final UUID uuid = gameEventProcessorID.getUuid();
     protected final Logger logger;
     private final List<Item> items;
-    private transient Long takeableCount;
-    private transient Long interactableCount;
     private final String description;
     private final String name;
     private final NavigableSet<SubArea> subAreas;
@@ -466,16 +465,7 @@ public class Room implements Area {
         if (obj == null) {
             return false;
         }
-        long takeCount = this.getTakeableCount();
-        long interactCount = this.getInteractableCount();
-        items.add(obj);
-        if (obj instanceof InteractObject) {
-            this.interactableCount = interactCount - 1;
-        }
-        if (obj instanceof Takeable) {
-            this.takeableCount = takeCount - 1;
-        }
-        return true;
+        return items.add(obj);
     }
 
     /**
@@ -488,18 +478,10 @@ public class Room implements Area {
 
     @Override
     public Optional<Item> removeItem(String name) {
-        long takeCount = this.getTakeableCount();
-        long interactCount = this.getInteractableCount();
         for (Iterator<Item> iterator = this.items.iterator(); iterator.hasNext();) {
             Item item = iterator.next();
             if (item != null && item.checkName(name)) {
                 iterator.remove();
-                if (item instanceof InteractObject) {
-                    this.interactableCount = interactCount - 1;
-                }
-                if (item instanceof Takeable) {
-                    this.takeableCount = takeCount - 1;
-                }
                 return Optional.of(item);
             }
         }
@@ -508,48 +490,12 @@ public class Room implements Area {
 
     @Override
     public boolean removeItem(Item item) {
-        long takeCount = this.getTakeableCount();
-        long interactCount = this.getInteractableCount();
-        boolean did = this.items.remove(item);
-        if (did) {
-            if (item instanceof InteractObject) {
-                this.interactableCount = interactCount - 1;
-            }
-            if (item instanceof Takeable) {
-                this.takeableCount = takeCount - 1;
-            }
-        }
-        return did;
+        return this.items.remove(item);
     }
 
     @Override
     public Iterator<? extends Item> itemIterator() {
         return this.items.iterator();
-    }
-
-    /**
-     * Pull-through cache of TakeableCount
-     * 
-     * @return
-     */
-    public long getTakeableCount() {
-        if (this.takeableCount == null) {
-            this.takeableCount = this.items.stream().filter(item -> item != null && item instanceof Takeable).count();
-        }
-        return this.takeableCount;
-    }
-
-    /**
-     * Pull-through cache of InteractableCount
-     * 
-     * @return
-     */
-    public long getInteractableCount() {
-        if (this.interactableCount == null) {
-            this.interactableCount = this.items.stream().filter(item -> item != null && item instanceof InteractObject)
-                    .count();
-        }
-        return this.interactableCount;
     }
 
     @Override
@@ -660,15 +606,15 @@ public class Room implements Area {
 
     @Override
     public CommandContext addSelfToContext(CommandContext ctx) {
-        if (ctx.getRoom() == null) {
-            ctx.setRoom(this);
+        if (ctx.getArea() == null) {
+            ctx.setArea(this);
         }
         return ctx;
     }
 
     public interface RoomCommandHandler extends ICreature.CreatureCommandHandler {
         final static Predicate<CommandContext> defaultRoomPredicate = ICreature.CreatureCommandHandler.defaultCreaturePredicate
-                .and(ctx -> ctx.getRoom() != null);
+                .and(ctx -> ctx.getArea() != null);
         final static Predicate<CommandContext> defaultNoBattlePredicate = RoomCommandHandler.defaultRoomPredicate
                 .and(ctx -> !ctx.getCreature().isInBattle());
         final static String inBattleString = "You appear to be in a fight, so you cannot do that.";
@@ -682,9 +628,9 @@ public class Room implements Area {
                 .toString();
         private final static Predicate<CommandContext> enabledPredicate = AttackHandler.defaultRoomPredicate
                 .and(ctx -> {
-                    Room room = ctx.getRoom();
+                    Area room = ctx.getArea();
                     if (!room.hasSubAreaSort(SubAreaSort.BATTLE)) {
-                        room.logger.warning(() -> String.format("No battle manager for room: %s", room.getName()));
+                        room.log(Level.WARNING, () -> String.format("No battle manager for room: %s", room.getName()));
                         return false;
                     }
                     return room.getCreatures().size() > 1;
@@ -767,7 +713,8 @@ public class Room implements Area {
 
     protected class TakeHandler implements RoomCommandHandler {
         private final static Predicate<CommandContext> enabledPredicate = InteractHandler.defaultNoBattlePredicate
-                .and(ctx -> ctx.getRoom().getTakeableCount() > 0);
+                .and(ctx -> ctx.getArea()
+                        .filterItems(EnumSet.of(ItemFilters.TYPE), null, null, null, Takeable.class, null).size() > 0);
         private final static String helpString = new StringJoiner(" ").add("\"take [item]\"")
                 .add("Take an item from the room and add it to your inventory.\n")
                 .add("\"take [item] from \"[someone]'s corpse\"")
@@ -885,7 +832,9 @@ public class Room implements Area {
 
     protected class InteractHandler implements RoomCommandHandler {
         private final static Predicate<CommandContext> enabledPredicate = InteractHandler.defaultNoBattlePredicate
-                .and(ctx -> ctx.getRoom().getInteractableCount() > 0);
+                .and(ctx -> ctx.getArea()
+                        .filterItems(EnumSet.of(ItemFilters.TYPE), null, null, null, InteractObject.class, null)
+                        .size() > 0);
         private final static String helpString = "\"interact [item]\" Certain items in the room may be interactable. Like \"interact lever\"";
 
         @Override
