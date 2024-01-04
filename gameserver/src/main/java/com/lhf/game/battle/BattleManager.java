@@ -17,6 +17,7 @@ import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -64,7 +65,6 @@ import com.lhf.messages.in.PassMessage;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.UseMessage;
 import com.lhf.server.client.user.UserID;
-import com.lhf.server.interfaces.NotNull;
 
 public class BattleManager extends SubArea {
     private BattleStats battleStats;
@@ -126,6 +126,7 @@ public class BattleManager extends SubArea {
                 this.killIt();
                 return;
             }
+            BattleManager.this.callReinforcements();
         }
 
         @Override
@@ -1015,7 +1016,6 @@ public class BattleManager extends SubArea {
                 if (!BattleManager.this.hasCreature(target)) {
                     BattleManager.this.addCreature(target);
                 }
-                BattleManager.this.callReinforcements(attacker, target);
                 Attack a = attacker.attack(weapon);
                 Vocation attackerVocation = attacker.getVocation();
                 if (attackerVocation != null && attackerVocation instanceof MultiAttacker) {
@@ -1103,63 +1103,72 @@ public class BattleManager extends SubArea {
     }
 
     /**
-     * Calls for reinforcements for the targetCreature.
+     * Calls for reinforcements for the battling creatures.
      * If the targetCreature is a renegade or has no faction, it cannot call for
      * reinforcements.
-     * If the targetCreature *does* call reinforcements, then the attackingCreature
-     * gets to
-     * call for reinforcements as well.
      * 
-     * @param attackingCreature
-     * @param targetCreature
      */
-    public void callReinforcements(@NotNull ICreature attackingCreature, @NotNull ICreature targetCreature) {
-        FactionReinforcementsCallEvent.Builder reBuilder = FactionReinforcementsCallEvent.getBuilder();
-        if (targetCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(targetCreature.getFaction())) {
-            ICreature.eventAccepter.accept(targetCreature,
-                    reBuilder.setNotBroadcast().setCaller(targetCreature).setCallerAddressed(true).Build());
+    public void callReinforcements() {
+        final Collection<ICreature> battleCreatures = this.getCreatures();
+        if (battleCreatures == null || battleCreatures.size() == 0) {
+            this.log(Level.INFO, "No creatures retrieved from battle");
             return;
         }
-        if (this.area == null) {
-            return;
-        }
-        Map<CreatureFaction, Set<ICreature>> remainingCreatures = this.area.getCreatures().stream()
-                .filter(creature -> creature != null && !this.actionPools.keySet().contains(creature))
-                .collect(Collectors.groupingBy(creature -> {
-                    CreatureFaction faction = creature.getFaction();
-                    if (faction == null) {
-                        return CreatureFaction.RENEGADE;
-                    }
-                    return faction;
-                }, Collectors.toCollection(() -> new TreeSet<>())));
+        final Function<ICreature, CreatureFaction> factionGetter = creature -> {
+            CreatureFaction faction = creature.getFaction();
+            if (faction == null) {
+                return CreatureFaction.RENEGADE;
+            }
+            return faction;
+        };
+        final Map<Boolean, EnumMap<CreatureFaction, TreeSet<ICreature>>> coalated = this.area.getCreatures().stream()
+                .filter(creature -> creature != null)
+                .collect(Collectors.partitioningBy(creature -> battleCreatures.contains(creature),
+                        Collectors.groupingBy(factionGetter, () -> new EnumMap<>(CreatureFaction.class),
+                                Collectors.toCollection(() -> new TreeSet<>()))));
 
-        if (remainingCreatures == null || remainingCreatures.size() == 0) {
+        this.log(Level.FINEST, () -> String.format("Creature distribution: %s", coalated));
+        if (coalated == null || coalated.isEmpty()) {
             return;
-        }
-        Set<ICreature> allies = remainingCreatures.get(targetCreature.getFaction());
-        if (allies == null || allies.size() == 0) {
-            return;
-        }
-        this.area.announce(reBuilder.setCaller(targetCreature).setBroacast().Build());
-        for (ICreature c : allies) {
-            this.addCreature(c);
         }
 
-        if (attackingCreature.getFaction() == null || CreatureFaction.RENEGADE.equals(attackingCreature.getFaction())) {
-            ICreature.eventAccepter.accept(attackingCreature,
-                    reBuilder.setCallerAddressed(true).setNotBroadcast().setCaller(attackingCreature).Build());
+        final EnumMap<CreatureFaction, TreeSet<ICreature>> inBattle = coalated.get(true);
+        if (inBattle == null || inBattle.size() == 0) {
+            this.log(Level.INFO, "No creatures found IN battle!");
             return;
         }
-        if (!CreatureFaction.NPC.equals(targetCreature.getFaction())) {
-            Set<ICreature> enemies = remainingCreatures.get(attackingCreature.getFaction());
-            if (enemies == null || enemies.size() == 0) {
-                return;
+
+        final EnumMap<CreatureFaction, TreeSet<ICreature>> outBattle = coalated.get(false);
+        if (outBattle == null || outBattle.size() == 0) {
+            this.log(Level.INFO, "No creatures found that are NOT in battle!");
+            return;
+        }
+
+        FactionReinforcementsCallEvent.Builder reBuilder = FactionReinforcementsCallEvent.getBuilder()
+                .setNotBroadcast();
+
+        for (CreatureFaction faction : CreatureFaction.values()) {
+            final TreeSet<ICreature> factionInCreatures = inBattle.getOrDefault(faction, new TreeSet<>());
+            if (factionInCreatures.isEmpty()) {
+                continue;
             }
-            this.area.announce(reBuilder.setBroacast().setCaller(attackingCreature).Build());
-            for (ICreature c : enemies) {
-                this.addCreature(c);
+            if (CreatureFaction.RENEGADE.equals(faction)) {
+                // tell all the renegades that no help is coming for them
+                for (ICreature creature : factionInCreatures) {
+                    ICreature.eventAccepter.accept(creature, reBuilder.setNotBroadcast().setCaller(creature).Build());
+                }
+                continue;
+            }
+            final TreeSet<ICreature> factionOutCreatures = outBattle.getOrDefault(faction, new TreeSet<>());
+            if (factionOutCreatures.isEmpty()) {
+                continue;
+            }
+            Area.eventAccepter.accept(this.area, reBuilder.setBroacast().setCaller(factionInCreatures.first()).Build());
+            for (ICreature creature : factionOutCreatures) {
+                this.addCreature(creature);
             }
         }
+
     }
 
     @Override
@@ -1167,6 +1176,18 @@ public class BattleManager extends SubArea {
         Collection<GameEventProcessor> messengers = super.getGameEventProcessors();
         messengers.add(this.battleStats);
         return messengers;
+    }
+
+    @Override
+    public Consumer<GameEvent> getAcceptHook() {
+        return (event) -> {
+            if (event == null) {
+                return;
+            }
+            this.log(Level.FINEST,
+                    () -> String.format("Received message %s, announcing", event.getUuid()));
+            this.announceDirect(event, this.getGameEventProcessors());
+        };
     }
 
 }
