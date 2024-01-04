@@ -311,6 +311,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         }
     }
 
+    public abstract RoundThread instigate(ICreature instigator, Collection<ICreature> others);
+
     protected final int getTurnWaitCount() {
         return this.roundDurationMilliseconds;
     }

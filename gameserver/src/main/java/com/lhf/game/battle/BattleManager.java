@@ -15,15 +15,10 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.Phaser;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.lhf.game.EffectResistance;
@@ -59,7 +54,6 @@ import com.lhf.messages.events.BattleRoundEvent.RoundAcceptance;
 import com.lhf.messages.events.BattleStartedEvent;
 import com.lhf.messages.events.BattleStatsRequestedEvent;
 import com.lhf.messages.events.FactionReinforcementsCallEvent;
-import com.lhf.messages.events.FactionRenegadeJoined;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemNotPossessedEvent;
 import com.lhf.messages.events.SeeEvent;
@@ -426,7 +420,8 @@ public class BattleManager extends SubArea {
         return false;
     }
 
-    public synchronized RoundThread startBattle(ICreature instigator, Collection<ICreature> victims) {
+    @Override
+    public synchronized RoundThread instigate(ICreature instigator, Collection<ICreature> victims) {
         RoundThread curThread = this.getRoundThread();
         if (curThread == null || !curThread.getIsRunning()) {
             this.log(Level.FINER, () -> String.format("%s starts a fight", instigator.getName()));
@@ -435,7 +430,7 @@ public class BattleManager extends SubArea {
             if (victims != null) {
                 for (ICreature c : victims) {
                     this.addCreature(c);
-                    BattleManager.this.checkAndHandleTurnRenegade(instigator, c);
+                    CreatureFaction.checkAndHandleTurnRenegade(instigator, c, this);
                 }
             }
             BattleStartedEvent.Builder startMessage = BattleStartedEvent.getBuilder().setInstigator(instigator)
@@ -550,31 +545,6 @@ public class BattleManager extends SubArea {
             this.clearCreatures(creature -> creature != null && !creature.isAlive(), false,
                     this.area != null ? creature -> this.area.onCreatureDeath(creature) : null);
         }
-    }
-
-    public void handleTurnRenegade(ICreature turned) {
-        if (!CreatureFaction.RENEGADE.equals(turned.getFaction())) {
-            turned.setFaction(CreatureFaction.RENEGADE);
-            FactionRenegadeJoined.Builder builder = FactionRenegadeJoined.getBuilder(turned);
-            ICreature.eventAccepter.accept(turned, builder.setNotBroadcast().Build());
-            builder.setBroacast();
-            if (this.area != null) {
-                area.announce(builder.Build(), turned);
-            } else {
-                this.announce(builder.Build(), turned);
-            }
-        }
-    }
-
-    public boolean checkAndHandleTurnRenegade(ICreature attacker, ICreature target) {
-        if (!CreatureFaction.RENEGADE.equals(target.getFaction())
-                && !CreatureFaction.RENEGADE.equals(attacker.getFaction())
-                && attacker.getFaction() != null
-                && attacker.getFaction().allied(target.getFaction())) {
-            this.handleTurnRenegade(attacker);
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -970,7 +940,7 @@ public class BattleManager extends SubArea {
                     return ctx.handled();
                 }
                 this.log(Level.FINE, "No current battle detected, starting battle");
-                BattleManager.this.startBattle(attacker, collected);
+                BattleManager.this.instigate(attacker, collected);
             } else {
                 this.log(Level.FINE, "Battle detected, empooling command");
             }
@@ -1041,7 +1011,7 @@ public class BattleManager extends SubArea {
             for (ICreature target : targets) {
                 this.log(Level.FINEST,
                         () -> String.format("Applying attack from %s on %s", attacker.getName(), target.getName()));
-                BattleManager.this.checkAndHandleTurnRenegade(attacker, target);
+                CreatureFaction.checkAndHandleTurnRenegade(attacker, target, BattleManager.this);
                 if (!BattleManager.this.hasCreature(target)) {
                     BattleManager.this.addCreature(target);
                 }

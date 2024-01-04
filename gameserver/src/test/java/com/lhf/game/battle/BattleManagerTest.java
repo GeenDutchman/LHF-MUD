@@ -50,7 +50,7 @@ public class BattleManagerTest {
                                 .addCreature(monster)
                                 .Build(area);
 
-                battleManager.startBattle(monster, List.of(npc));
+                battleManager.instigate(monster, List.of(npc));
                 MessageMatcher startBattle = new MessageMatcher(GameEventType.START_FIGHT);
                 MessageMatcher turnMessage = new MessageMatcher(GameEventType.BATTLE_ROUND);
                 Mockito.verify(npcHook, Mockito.timeout(1000).atLeastOnce())
@@ -91,7 +91,7 @@ public class BattleManagerTest {
                                 .setWaitMilliseconds(1000).Build(area);
                 Truth.assertThat(battleManager.getCreatures()).hasSize(2);
 
-                battleManager.startBattle(monster, List.of(npc));
+                battleManager.instigate(monster, List.of(npc));
 
                 MessageMatcher startBattle = new MessageMatcher(GameEventType.START_FIGHT).setPrint(true);
                 MessageMatcher turnMessage = new MessageMatcher(GameEventType.BATTLE_ROUND,

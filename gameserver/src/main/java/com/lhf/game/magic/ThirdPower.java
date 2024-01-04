@@ -34,6 +34,8 @@ import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.RoomEffect;
+import com.lhf.game.map.SubArea;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -139,13 +141,13 @@ public class ThirdPower implements CommandChainHandler {
         private CommandContext.Reply affectCreatures(CommandContext ctx, ISpell<CreatureEffect> spell,
                 Collection<ICreature> targets) {
             final ICreature caster = ctx.getCreature();
-            final BattleManager battleManager = ctx.getBattleManager();
+            final SubArea battleManager = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
             final CubeHolder vocation = caster.getVocation() instanceof CubeHolder ? (CubeHolder) caster.getVocation()
                     : null;
 
             for (ICreature target : targets) {
                 if (spell.isOffensive() && battleManager != null) {
-                    battleManager.checkAndHandleTurnRenegade(caster, target);
+                    CreatureFaction.checkAndHandleTurnRenegade(caster, target, battleManager);
                     if (!battleManager.hasCreature(target)) {
                         battleManager.addCreature(target);
                     }
@@ -209,11 +211,11 @@ public class ThirdPower implements CommandChainHandler {
                         targetName));
             }
 
-            BattleManager bm = ctx.getBattleManager();
-            if (bm != null && !bm.isBattleOngoing("handleCastCreatureTargeting()") && spell.isOffensive()) {
+            SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
+            if (bm != null && !bm.hasRunningThread("handleCastCreatureTargeting()") && spell.isOffensive()) {
                 CastHandler.logger.log(Level.INFO,
                         () -> String.format("Starting battle with offensive spell %s", spell));
-                bm.startBattle(caster, possTargets);
+                bm.instigate(caster, possTargets);
                 this.onEmpool(ctx, bm.empool(ctx, casting));
                 return ctx.handled();
             }
@@ -271,11 +273,11 @@ public class ThirdPower implements CommandChainHandler {
                 }
             }
 
-            BattleManager bm = ctx.getBattleManager();
-            if (bm != null && !bm.isBattleOngoing("handleCastCreatureAOETargeting()") && spell.isOffensive()) {
+            SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
+            if (bm != null && !bm.hasRunningThread("handleCastCreatureAOETargeting()") && spell.isOffensive()) {
                 CastHandler.logger.log(Level.INFO,
                         () -> String.format("Starting battle with offensive AOE spell %s", spell));
-                bm.startBattle(caster, targets);
+                bm.instigate(caster, targets);
                 this.onEmpool(ctx, bm.empool(ctx, casting));
                 return ctx.handled();
             }
@@ -487,9 +489,10 @@ public class ThirdPower implements CommandChainHandler {
                         ctx.getRoom().announce(spellFizzle.setBroacast().Build());
                     }
                     return ctx.handled();
-                } else if (!attempter.isInBattle() && ctx.getBattleManager() != null
-                        && ctx.getBattleManager().isBattleOngoing("ThirdPower.CastHandler.flushHandle()")) {
-                    BattleManager bm = ctx.getBattleManager();
+                } else if (!attempter.isInBattle() && ctx.getSubAreaForSort(SubAreaSort.BATTLE) != null
+                        && ctx.getSubAreaForSort(SubAreaSort.BATTLE)
+                                .hasRunningThread("ThirdPower.CastHandler.flushHandle()")) {
+                    SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
                     bm.addCreature(attempter);
                     return bm.handleChain(ctx, castmessage);
                 } else {
@@ -569,8 +572,8 @@ public class ThirdPower implements CommandChainHandler {
         if (message == null) {
             return;
         }
-        BattleManager bm = ctx.getBattleManager();
-        if (includeBattle && bm != null && bm.isBattleOngoing("ThirdPower.channelizeMessage()")) {
+        SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
+        if (includeBattle && bm != null && bm.hasRunningThread("ThirdPower.channelizeMessage()")) {
             bm.announce(message);
         } else if (ctx.getRoom() != null) {
             ctx.getRoom().announce(message);
