@@ -19,7 +19,6 @@ import java.util.logging.Logger;
 
 import com.lhf.Taggable;
 import com.lhf.game.EffectResistance;
-import com.lhf.game.battle.BattleManager;
 import com.lhf.game.battle.BattleManager.PooledBattleManagerCommandHandler;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.ICreature;
@@ -30,6 +29,7 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.magic.CreatureAOESpellEntry.AutoTargeted;
 import com.lhf.game.magic.Spellbook.Filters;
+import com.lhf.game.map.Area;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.Room;
@@ -151,7 +151,6 @@ public class ThirdPower implements CommandChainHandler {
                     if (!battleManager.hasCreature(target)) {
                         battleManager.addCreature(target);
                     }
-                    battleManager.callReinforcements(caster, target);
                 }
 
                 for (CreatureEffect effect : spell) {
@@ -574,9 +573,9 @@ public class ThirdPower implements CommandChainHandler {
         }
         SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
         if (includeBattle && bm != null && bm.hasRunningThread("ThirdPower.channelizeMessage()")) {
-            bm.announce(message);
+            SubArea.eventAccepter.accept(bm, message);
         } else if (ctx.getRoom() != null) {
-            ctx.getRoom().announce(message);
+            Area.eventAccepter.accept(ctx.getRoom(), message);
         } else if (directs != null) {
             for (GameEventProcessor direct : directs) {
                 GameEventProcessor.eventAccepter.accept(direct, message);
