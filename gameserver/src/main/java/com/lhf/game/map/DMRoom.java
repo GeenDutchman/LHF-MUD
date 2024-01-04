@@ -37,6 +37,7 @@ import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.game.map.Area.AreaBuilder.PostBuildRoomOperations;
+import com.lhf.game.map.SubArea.SubAreaBuilder;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -136,6 +137,11 @@ public class DMRoom extends Room {
         @Override
         public Collection<AbstractNPCBuilder<?, ?>> getNPCsToBuild() {
             return delegate.getNPCsToBuild();
+        }
+
+        @Override
+        public Collection<SubAreaBuilder<?, ?>> getSubAreasToBuild() {
+            return delegate.getSubAreasToBuild();
         }
 
         private List<Land> quickBuildLands(AIRunner aiRunner, DMRoom dmRoom) {

@@ -146,7 +146,7 @@ public class ThirdPower implements CommandChainHandler {
 
             for (ICreature target : targets) {
                 if (spell.isOffensive() && battleManager != null) {
-                    CreatureFaction.checkAndHandleTurnRenegade(caster, target, battleManager);
+                    CreatureFaction.checkAndHandleTurnRenegade(caster, target, battleManager.getArea());
                     if (!battleManager.hasCreature(target)) {
                         battleManager.addCreature(target);
                     }

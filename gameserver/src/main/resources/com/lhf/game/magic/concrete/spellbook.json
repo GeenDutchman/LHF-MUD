@@ -124,9 +124,6 @@
             "LIFELINE_SUMMON",
             "SYMPATHETIC_SUMMON"
           ],
-          "id": {
-            "id": "3453720e-036b-42fd-9b64-4b4e221aa017"
-          },
           "faction": "MONSTER",
           "vocation": "MAGE",
           "vocationLevel": 1,

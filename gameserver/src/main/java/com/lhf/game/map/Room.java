@@ -95,7 +95,7 @@ public class Room implements Area {
 
     public static class RoomBuilder implements Area.AreaBuilder {
         private final transient Logger logger;
-        private final AreaBuilderID id;
+        private final transient AreaBuilderID id;
         private String name;
         private String description;
         private List<Item> items;
@@ -166,6 +166,7 @@ public class Room implements Area {
             return this;
         }
 
+        @Override
         public Collection<SubAreaBuilder<?, ?>> getSubAreasToBuild() {
             return this.subAreasToBuild;
         }

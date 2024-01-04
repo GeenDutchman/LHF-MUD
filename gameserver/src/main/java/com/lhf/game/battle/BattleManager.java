@@ -431,7 +431,7 @@ public class BattleManager extends SubArea {
             if (victims != null) {
                 for (ICreature c : victims) {
                     this.addCreature(c);
-                    CreatureFaction.checkAndHandleTurnRenegade(instigator, c, this);
+                    CreatureFaction.checkAndHandleTurnRenegade(instigator, c, this.area);
                 }
             }
             BattleStartedEvent.Builder startMessage = BattleStartedEvent.getBuilder().setInstigator(instigator)
@@ -1012,7 +1012,7 @@ public class BattleManager extends SubArea {
             for (ICreature target : targets) {
                 this.log(Level.FINEST,
                         () -> String.format("Applying attack from %s on %s", attacker.getName(), target.getName()));
-                CreatureFaction.checkAndHandleTurnRenegade(attacker, target, BattleManager.this);
+                CreatureFaction.checkAndHandleTurnRenegade(attacker, target, BattleManager.this.area);
                 if (!BattleManager.this.hasCreature(target)) {
                     BattleManager.this.addCreature(target);
                 }

@@ -176,7 +176,7 @@ public interface ICreature
         }
 
         protected final transient BuilderType thisObject;
-        protected final CreatureBuilderID id;
+        protected final transient CreatureBuilderID id;
         protected String name;
         protected CreatureFaction faction;
         protected VocationName vocation;

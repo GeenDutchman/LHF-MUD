@@ -54,7 +54,7 @@ public class Dungeon implements Land {
     public static class DungeonBuilder implements Land.LandBuilder {
 
         private final transient Logger logger;
-        private final LandBuilderID id;
+        private final transient LandBuilderID id;
         private String name;
         private AreaBuilder startingRoom = null;
         private AreaBuilderAtlas atlas = null;

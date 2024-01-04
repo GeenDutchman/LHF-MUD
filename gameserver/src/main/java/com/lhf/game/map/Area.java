@@ -95,6 +95,8 @@ public interface Area
 
         public abstract Collection<INonPlayerCharacter.AbstractNPCBuilder<?, ?>> getNPCsToBuild();
 
+        public abstract Collection<SubAreaBuilder<?, ?>> getSubAreasToBuild();
+
         public abstract Area quickBuild(CommandChainHandler successor, Land land,
                 AIRunner aiRunner);
 
