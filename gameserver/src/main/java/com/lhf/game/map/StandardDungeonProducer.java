@@ -37,9 +37,10 @@ public final class StandardDungeonProducer {
                 Statblock hobgoblin = statblockLoader.statblockFromfile("hobgoblin");
 
                 BattleManager.Builder battleBuilder = BattleManager.Builder.getInstance();
+                RestArea.Builder restBuilder = RestArea.Builder.getInstance();
 
                 // Entry Room RM1
-                Room.RoomBuilder entryRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder);
+                Room.RoomBuilder entryRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(restBuilder);
                 entryRoomBuilder.setName("Entry Room").setDescription("This is the entry room.");
 
                 Note addNote = new Note("interact note", true, "This note is to test the switch action.");
