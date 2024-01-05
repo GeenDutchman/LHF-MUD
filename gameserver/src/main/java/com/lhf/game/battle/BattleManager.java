@@ -71,7 +71,7 @@ public class BattleManager extends SubArea {
     public static class Builder extends SubAreaBuilder<BattleManager, Builder> {
 
         public static Builder getInstance() {
-            return new Builder();
+            return new Builder().setAllowCasting(true);
         }
 
         @Override

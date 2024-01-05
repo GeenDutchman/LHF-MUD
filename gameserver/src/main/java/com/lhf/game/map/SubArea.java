@@ -32,6 +32,8 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.events.BadMessageEvent;
+import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
@@ -242,6 +244,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
         protected final transient BuilderType thisObject;
         protected final SubAreaBuilderID id;
+        protected boolean allowCasting;
         private int waitMilliseconds;
         private Set<CreatureFilterQuery> creatureQueries;
         private boolean queryOnBuild;
@@ -257,6 +260,15 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         protected abstract BuilderType getThis();
 
         public abstract SubAreaSort getSubAreaSort();
+
+        public BuilderType setAllowCasting(boolean allowCasting) {
+            this.allowCasting = allowCasting;
+            return this.getThis();
+        }
+
+        public boolean isAllowCasting() {
+            return allowCasting;
+        }
 
         public BuilderType setWaitMilliseconds(int count) {
             this.waitMilliseconds = Integer.min(SubArea.MAX_MILLISECONDS, Integer.max(1, count));
@@ -319,7 +331,13 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         this.area = area;
         this.logger = Logger.getLogger(this.getClass().getName() + "." + this.getName().replaceAll("\\W", "_"));
         this.roundDurationMilliseconds = builder.getWaitMilliseconds();
+        this.allowCasting = builder.isAllowCasting();
         this.cmds = this.buildCommands();
+        this.cmds.computeIfAbsent(CommandMessage.EXIT, key -> new SubAreaExitHandler());
+        if (this.allowCasting) {
+            this.cmds.computeIfAbsent(CommandMessage.CAST, key -> new SubAreaCastHandler());
+            this.cmds.computeIfAbsent(CommandMessage.SPELLBOOK, key -> new SubAreaSpellbookHandler());
+        }
         this.actionPools = Collections.synchronizedNavigableMap(new TreeMap<>());
         this.roundThread = new AtomicReference<>(null);
         if (builder.isQueryOnBuild()) {
@@ -335,6 +353,10 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
     protected final int getTurnWaitCount() {
         return this.roundDurationMilliseconds;
+    }
+
+    public boolean isAllowCasting() {
+        return allowCasting;
     }
 
     public final SubAreaSort getSubAreaSort() {
@@ -726,5 +748,75 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             return SubArea.this;
         }
 
+    }
+
+    protected class SubAreaCastHandler implements SubAreaCommandHandler {
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.CAST;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.empty();
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return SubAreaCastHandler.defaultSubAreaPredicate;
+        }
+
+        @Override
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
+            if (ctx.getCreature() == null) {
+                ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                        .setHelps(ctx.getHelps()).setCommand(cmd).Build());
+                return ctx.handled();
+            }
+            if (SubArea.this.area != null) {
+                return SubArea.this.area.handleChain(ctx, cmd);
+            }
+            return CommandChainHandler.passUpChain(SubArea.this, ctx, cmd);
+        }
+
+        @Override
+        public CommandChainHandler getChainHandler() {
+            return SubArea.this;
+        }
+    }
+
+    protected class SubAreaSpellbookHandler implements SubAreaCommandHandler {
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.SPELLBOOK;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.empty();
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return SubAreaSpellbookHandler.defaultSubAreaPredicate;
+        }
+
+        @Override
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
+            if (ctx.getCreature() == null) {
+                ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                        .setHelps(ctx.getHelps()).setCommand(cmd).Build());
+                return ctx.handled();
+            }
+            if (SubArea.this.area != null) {
+                return SubArea.this.area.handleChain(ctx, cmd);
+            }
+            return CommandChainHandler.passUpChain(SubArea.this, ctx, cmd);
+        }
+
+        @Override
+        public CommandChainHandler getChainHandler() {
+            return SubArea.this;
+        }
     }
 }
