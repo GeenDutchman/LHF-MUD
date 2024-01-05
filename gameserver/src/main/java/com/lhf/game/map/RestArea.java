@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 
@@ -101,6 +102,14 @@ public class RestArea extends SubArea {
 
         @Override
         public void onRoundStart() {
+            ItemInteractionEvent.Builder iom = ItemInteractionEvent.getBuilder().setPerformed();
+            final long minutes = TimeUnit.MINUTES.convert(RestArea.this.getTurnWaitCount(), TimeUnit.MILLISECONDS);
+            final long seconds = TimeUnit.SECONDS
+                    .convert(RestArea.this.getTurnWaitCount() - (TimeUnit.MINUTES.toMillis(minutes)),
+                            TimeUnit.MILLISECONDS);
+            iom.setDescription(String.format("This round %d of resting will complete in %d m %d s", this.getPhase(),
+                    minutes, seconds));
+            RestArea.eventAccepter.accept(RestArea.this, iom.Build());
             synchronized (RestArea.this.parties) {
                 final VrijPartij first = RestArea.this.parties.peekFirst();
                 if (first != null) {
@@ -111,9 +120,12 @@ public class RestArea extends SubArea {
 
         @Override
         public void onRoundEnd() {
+            this.logger.log(Level.FINE, "Ending round");
             RestArea.this.flush();
-            Collection<ICreature> creatures = RestArea.this.getCreatures();
+            final Collection<ICreature> creatures = RestArea.this.getCreatures();
             if (creatures == null || creatures.isEmpty()) {
+                this.logger.log(Level.FINE, "No creatures found, ending thread");
+                this.killIt();
                 return;
             }
             for (final ICreature creature : creatures) {
@@ -129,7 +141,8 @@ public class RestArea extends SubArea {
                     creatureVocation.onRestTick();
                 }
                 ItemInteractionEvent.Builder iom = ItemInteractionEvent.getBuilder().setPerformed()
-                        .setDescription("You slept and got back " + sleepCheck.getColorTaggedName() + " hit points!")
+                        .setDescription(String.format("You slept and got back %s hit points, leaving you %s!",
+                                sleepCheck.getColorTaggedName(), creature.getHealthBucket().getColorTaggedName()))
                         .setTaggable(RestArea.this);
                 ICreature.eventAccepter.accept(creature, iom.Build());
             }
@@ -137,7 +150,10 @@ public class RestArea extends SubArea {
 
         @Override
         public void onThreadEnd() {
-            // does nothing
+            this.killIt();
+            synchronized (RestArea.this.roundThread) {
+                RestArea.this.roundThread.set(null);
+            }
         }
 
         @Override
@@ -293,6 +309,7 @@ public class RestArea extends SubArea {
     @Override
     protected EnumMap<CommandMessage, CommandHandler> buildCommands() {
         EnumMap<CommandMessage, CommandHandler> cmds = new EnumMap<>(CommandMessage.class);
+        cmds.put(CommandMessage.REST, new RestHandler());
         cmds.put(CommandMessage.PASS, new PassHandler());
         cmds.put(CommandMessage.GO, new GoHandler());
         cmds.put(CommandMessage.STATS, new StatsHandler());
@@ -355,6 +372,40 @@ public class RestArea extends SubArea {
     public interface RestingCommandHandler extends SubAreaCommandHandler {
         static final Predicate<CommandContext> defaultRestPredicate = RestingCommandHandler.defaultSubAreaPredicate
                 .and(ctx -> ctx.getCreature().getSubAreaSorts().contains(SubAreaSort.RECUPERATION));
+    }
+
+    protected class RestHandler implements RestingCommandHandler {
+        private final static String helpString = "\"REST\" puts yourself in state of REST, use \"GO UP\" to get out of it";
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.REST;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(RestHandler.helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return RestHandler.defaultRestPredicate;
+        }
+
+        @Override
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
+            if (cmd == null || !CommandMessage.REST.equals(cmd.getType())) {
+                return ctx.failhandle();
+            }
+            RestArea.this.addCreature(ctx.getCreature());
+            return ctx.handled();
+        }
+
+        @Override
+        public CommandChainHandler getChainHandler() {
+            return RestArea.this;
+        }
+
     }
 
     /**

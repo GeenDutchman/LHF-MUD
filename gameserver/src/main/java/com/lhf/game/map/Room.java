@@ -312,6 +312,7 @@ public class Room implements Area {
         cmds.put(CommandMessage.USE, new UseHandler());
         cmds.put(CommandMessage.CAST, new CastHandler());
         cmds.put(CommandMessage.ATTACK, new AttackHandler());
+        cmds.put(CommandMessage.REST, new RestHandler());
         cmds.put(CommandMessage.INTERACT, new InteractHandler());
         cmds.put(CommandMessage.TAKE, new TakeHandler());
         return cmds;
@@ -668,6 +669,7 @@ public class Room implements Area {
                 this.log(Level.WARNING, "No battle sub area found!");
                 return ctx.failhandle();
             }
+            ctx.getCreature().addSubArea(SubAreaSort.BATTLE);
             return subArea.handleChain(ctx, cmd);
         }
 
@@ -1265,7 +1267,7 @@ public class Room implements Area {
                 this.log(Level.WARNING, "No rest sub area found!");
                 return ctx.failhandle();
             }
-            subArea.addCreature(ctx.getCreature());
+            ctx.getCreature().addSubArea(SubAreaSort.RECUPERATION);
             return subArea.handleChain(ctx, cmd);
         }
 

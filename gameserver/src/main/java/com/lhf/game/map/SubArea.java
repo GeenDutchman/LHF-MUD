@@ -51,7 +51,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
                 return true;
             }
             for (final SubAreaSort sort : set) {
-                if (this.compareTo(sort) >= 0) {
+                if (this.compareTo(sort) > 0) {
                     return false;
                 }
             }
@@ -115,13 +115,14 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
                         this.logger.log(Level.FINE, () -> String.format("Actions received -> Phase Update: %s", this));
                     } catch (TimeoutException e) {
                         synchronized (this.roundPhaser) {
+                            this.logger.log(Level.INFO, () -> String.format("Timer ended round: %s, Thread: %s",
+                                    SubArea.this.actionPools.toString(), this.toString()));
                             for (int i = this.roundPhaser.getUnarrivedParties(); i > 0; i--) {
                                 this.roundPhaser.arrive();
                             }
-                            this.logger.log(Level.INFO, () -> String.format("Timer ended round: %s, Thread: %s",
-                                    SubArea.this.actionPools.toString(), this.toString()));
                         }
                     } finally {
+                        this.logger.log(Level.FINE, () -> String.format("Round ended: %s", this.toString()));
                         this.onRoundEnd();
                     }
                 }
@@ -129,8 +130,11 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
                 this.logger.log(Level.WARNING, e,
                         () -> String.format("Thread interrupted! %s %s", this.toString(), SubArea.this.toString()));
             } finally {
-                this.logger.exiting(this.getClass().getName(), "run()", this.toString());
+                this.logger.log(Level.INFO, () -> String.format("Ending Thread run: %s", this.toString()));
                 this.onThreadEnd();
+                synchronized (SubArea.this.roundThread) {
+                    SubArea.this.roundThread.set(null);
+                }
             }
         }
 
@@ -193,8 +197,9 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             }
         }
 
-        public final synchronized void killIt() {
+        public final synchronized RoundThread killIt() {
             this.parentPhaser.forceTermination();
+            return this;
         }
 
         public synchronized boolean getIsRunning() {
@@ -456,6 +461,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             creature.setSuccessor(this);
             creature.addSubArea(getSubAreaSort());
             SubArea.additionSuccessorSet(this, creature);
+            ICreature.eventAccepter.accept(creature, this.produceMessage());
         }
         return basicAdd;
     }
@@ -488,6 +494,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             creature.setSuccessor(this.area);
             creature.removeSubArea(getSubAreaSort());
             SubArea.removalSuccessorSet(this, creature);
+            ICreature.eventAccepter.accept(creature, this.area.produceMessage());
         }
         return basicRemove;
     }

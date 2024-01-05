@@ -130,7 +130,7 @@ public class BattleManager extends SubArea {
 
         @Override
         public void onThreadEnd() {
-            // does nothing so far
+            BattleManager.this.endBattle();
         }
 
         @Override
