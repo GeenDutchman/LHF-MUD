@@ -18,6 +18,7 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
@@ -826,6 +827,11 @@ public interface ICreature
                 sb.append("Around their neck is:")
                         .append(equipped.get(EquipmentSlots.NECKLACE).getColorTaggedName());
             }
+        }
+        final EnumSet<SubAreaSort> subAreas = this.getSubAreaSorts();
+        if (subAreas != null && !subAreas.isEmpty()) {
+            sb.append("\r\n").append(subAreas.stream().map(sort -> sort.toString())
+                    .collect(Collectors.joining(" and ", "They are in the state(s) of ", ".")));
         }
         return sb.toString();
     }

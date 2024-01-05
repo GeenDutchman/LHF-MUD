@@ -186,7 +186,7 @@ public interface Area
                         item);
             }
         }
-        return seen.Build();
+        return produceMessage(seen);
     }
 
     @Override
