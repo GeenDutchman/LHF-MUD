@@ -268,20 +268,22 @@ public class RestArea extends SubArea {
 
     @Override
     public synchronized RoundThread instigate(ICreature instigator, Collection<ICreature> others) {
-        this.addCreature(instigator);
-        if (others != null) {
-            for (final ICreature creature : others) {
-                this.addCreature(creature);
+        synchronized (this.roundThread) {
+            this.addCreature(instigator);
+            if (others != null) {
+                for (final ICreature creature : others) {
+                    this.addCreature(creature);
+                }
             }
+            RoundThread curThread = this.getRoundThread();
+            if (curThread == null || !curThread.getIsRunning()) {
+                this.log(Level.INFO, "Starting rest area thread");
+                RestThread thread = new RestThread();
+                thread.start();
+                this.roundThread.set(thread);
+            }
+            return this.getRoundThread();
         }
-        RoundThread curThread = this.getRoundThread();
-        if (curThread == null || !curThread.getIsRunning()) {
-            this.log(Level.INFO, "Starting rest area thread");
-            RestThread thread = new RestThread();
-            thread.start();
-            this.roundThread.set(thread);
-        }
-        return this.getRoundThread();
     }
 
     @Override
@@ -311,12 +313,16 @@ public class RestArea extends SubArea {
             if (this.actionPools.putIfAbsent(creature, new LinkedBlockingDeque<>(MAX_POOLED_ACTIONS)) == null) {
                 creature.addSubArea(this.getSubAreaSort());
                 creature.setSuccessor(this);
-                if (this.hasRunningThread(String.format("basicAddCreature(%s)", creature.getName()))) {
-                    RoundThread thread = this.getRoundThread();
-                    if (thread != null) {
-                        synchronized (thread) {
-                            thread.register(creature);
+                synchronized (this.roundThread) {
+                    if (this.hasRunningThread(String.format("basicAddCreature(%s)", creature.getName()))) {
+                        RoundThread thread = this.getRoundThread();
+                        if (thread != null) {
+                            synchronized (thread) {
+                                thread.register(creature);
+                            }
                         }
+                    } else {
+                        this.instigate(creature, Set.of());
                     }
                 }
                 return true;
@@ -332,6 +338,12 @@ public class RestArea extends SubArea {
         }
         synchronized (this.actionPools) {
             this.actionPools.remove(creature);
+            RoundThread thread = this.getRoundThread();
+            if (thread != null && thread.isAlive()) {
+                synchronized (thread) {
+                    thread.arriveAndDeregister(creature);
+                }
+            }
             return true;
         }
     }

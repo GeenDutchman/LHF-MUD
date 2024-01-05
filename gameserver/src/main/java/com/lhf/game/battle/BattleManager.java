@@ -343,24 +343,26 @@ public class BattleManager extends SubArea {
                     c.addSubArea(SubAreaSort.BATTLE);
                     c.setSuccessor(this);
                     this.battleStats.initialize(this.getCreatures());
-                    boolean ongoing = this.hasRunningThread("addCreature()");
                     BattleJoinedEvent.Builder joinedMessage = BattleJoinedEvent.getBuilder().setJoiner(c)
-                            .setOngoing(ongoing).setBroacast();// new JoinBattleMessage(c, this.isBattleOngoing(),
-                                                               // false);
+                            .setBroacast();// new JoinBattleMessage(c, this.isBattleOngoing(),
+                                           // false);
+                    synchronized (this.roundThread) {
+                        boolean ongoing = this.hasRunningThread("addCreature()");
+                        joinedMessage.setOngoing(ongoing);
+                        if (ongoing) {
+                            RoundThread thread = this.getRoundThread();
+                            if (thread != null) {
+                                thread.register(c);
+                            }
+                        }
+                    }
+                    ICreature.eventAccepter.accept(c, joinedMessage.setNotBroadcast().Build());
                     if (this.area != null) {
                         this.area.announce(joinedMessage.Build(), c);
                     } else {
                         this.announce(joinedMessage.Build(), c);
                     }
-                    ICreature.eventAccepter.accept(c, joinedMessage.setNotBroadcast().Build());
-                    if (ongoing) {
-                        RoundThread thread = this.getRoundThread();
-                        if (thread != null) {
-                            synchronized (thread) {
-                                thread.register(c);
-                            }
-                        }
-                    }
+
                     return true;
                 }
             }
@@ -424,33 +426,35 @@ public class BattleManager extends SubArea {
 
     @Override
     public synchronized RoundThread instigate(ICreature instigator, Collection<ICreature> victims) {
-        RoundThread curThread = this.getRoundThread();
-        if (curThread == null || !curThread.getIsRunning()) {
-            this.log(Level.FINER, () -> String.format("%s starts a fight", instigator.getName()));
-            this.battleStats.reset();
-            this.addCreature(instigator);
-            if (victims != null) {
-                for (ICreature c : victims) {
-                    this.addCreature(c);
-                    CreatureFaction.checkAndHandleTurnRenegade(instigator, c, this.area);
+        synchronized (this.roundThread) {
+            RoundThread curThread = this.getRoundThread();
+            if (curThread == null || !curThread.getIsRunning()) {
+                this.log(Level.FINER, () -> String.format("%s starts a fight", instigator.getName()));
+                this.battleStats.reset();
+                this.addCreature(instigator);
+                if (victims != null) {
+                    for (ICreature c : victims) {
+                        this.addCreature(c);
+                        CreatureFaction.checkAndHandleTurnRenegade(instigator, c, this.area);
+                    }
                 }
+                BattleStartedEvent.Builder startMessage = BattleStartedEvent.getBuilder().setInstigator(instigator)
+                        .setBroacast();
+                if (this.area != null) {
+                    this.area.announce(startMessage.Build());
+                }
+                this.announce(startMessage.setNotBroadcast().Build());
+                // if someone started a fight, no need to prompt them for their turn
+                BattleRoundThread thread = new BattleRoundThread();
+                this.log(Level.INFO, "Starting thread");
+                thread.start();
+                this.roundThread.set(thread);
+            } else {
+                this.log(Level.WARNING, () -> String.format("%s tried to start an already started fight",
+                        instigator.getName()));
             }
-            BattleStartedEvent.Builder startMessage = BattleStartedEvent.getBuilder().setInstigator(instigator)
-                    .setBroacast();
-            if (this.area != null) {
-                this.area.announce(startMessage.Build());
-            }
-            this.announce(startMessage.setNotBroadcast().Build());
-            // if someone started a fight, no need to prompt them for their turn
-            BattleRoundThread thread = new BattleRoundThread();
-            this.log(Level.INFO, "Starting thread");
-            thread.start();
-            this.roundThread.set(thread);
-        } else {
-            this.log(Level.WARNING, () -> String.format("%s tried to start an already started fight",
-                    instigator.getName()));
+            return this.roundThread.get();
         }
-        return this.roundThread.get();
     }
 
     public void endBattle() {
@@ -460,13 +464,13 @@ public class BattleManager extends SubArea {
         if (this.area != null) {
             this.area.announce(foverBuilder.setBroacast().Build());
         }
-        RoundThread thread = this.roundThread.get();
-        if (thread != null) {
-            synchronized (thread) {
+        synchronized (this.roundThread) {
+            RoundThread thread = this.roundThread.get();
+            if (thread != null) {
                 thread.killIt();
             }
+            this.roundThread.set(null);
         }
-        this.roundThread.set(null);
         int participants = Integer.min(
                 (int) this.getCreatures().stream().filter(creature -> creature != null && creature.isAlive()).count(),
                 1);
@@ -524,9 +528,9 @@ public class BattleManager extends SubArea {
                         this.battleStats.setDead(creature.getName(),
                                 creature.getStats().getOrDefault(Stats.XPWORTH, 1));
                     }
-                    RoundThread thread = this.getRoundThread();
-                    if (thread != null && thread.isAlive()) {
-                        synchronized (thread) {
+                    synchronized (this.roundThread) {
+                        RoundThread thread = this.getRoundThread();
+                        if (thread != null && thread.isAlive()) {
                             thread.arriveAndDeregister(creature);
                         }
                     }

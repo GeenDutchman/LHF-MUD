@@ -1229,6 +1229,52 @@ public class Room implements Area {
         }
     }
 
+    protected class RestHandler implements RoomCommandHandler {
+        private final static String helpString = "\"REST\" puts yourself in state of REST, use \"GO UP\" to get out of it";
+        private final static Predicate<CommandContext> enabledPredicate = RestHandler.defaultRoomPredicate
+                .and(ctx -> ctx.getArea().hasSubAreaSort(SubAreaSort.RECUPERATION));
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.REST;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(RestHandler.helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return RestHandler.enabledPredicate;
+        }
+
+        @Override
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
+            if (cmd == null || cmd.getType() != CommandMessage.REST) {
+                return ctx.failhandle();
+            }
+            ctx = Room.this.addSelfToContext(ctx);
+            if (ctx.getCreature() == null) {
+                ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                        .setHelps(ctx.getHelps()).setCommand(cmd).Build());
+                return ctx.handled();
+            }
+            final SubArea subArea = Room.this.getSubAreaForSort(SubAreaSort.RECUPERATION);
+            if (subArea == null) {
+                this.log(Level.WARNING, "No rest sub area found!");
+                return ctx.failhandle();
+            }
+            subArea.addCreature(ctx.getCreature());
+            return subArea.handleChain(ctx, cmd);
+        }
+
+        @Override
+        public CommandChainHandler getChainHandler() {
+            return Room.this;
+        }
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(name, uuid);

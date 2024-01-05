@@ -78,6 +78,8 @@ public class InMessage {
                 return new RepeatInMessage(arguments);
             case FOLLOW:
                 return new FollowMessage(arguments);
+            case REST:
+                return new RestMessage(arguments);
             default:
                 return new HelpInMessage(arguments);
 

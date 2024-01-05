@@ -70,7 +70,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     protected final transient AtomicReference<RoundThread> roundThread;
     protected final boolean allowCasting;
     protected transient EnumMap<CommandMessage, CommandHandler> cmds;
-    protected NavigableMap<ICreature, Deque<IPoolEntry>> actionPools;
+    protected transient NavigableMap<ICreature, Deque<IPoolEntry>> actionPools;
 
     protected abstract class RoundThread extends Thread {
         protected final Logger logger;
@@ -368,12 +368,14 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     }
 
     public final synchronized boolean hasRunningThread(final String whoIsAsking) {
-        RoundThread thread = this.roundThread.get();
-        if (thread == null) {
-            this.log(Level.FINE, String.format("%s found null thread, not ongoing", whoIsAsking));
-            return false;
+        synchronized (this.roundThread) {
+            RoundThread thread = this.roundThread.get();
+            if (thread == null) {
+                this.log(Level.FINE, String.format("%s found null thread, not ongoing", whoIsAsking));
+                return false;
+            }
+            return thread.getIsRunning();
         }
-        return thread.getIsRunning();
     }
 
     protected abstract EnumMap<CommandMessage, CommandHandler> buildCommands();
