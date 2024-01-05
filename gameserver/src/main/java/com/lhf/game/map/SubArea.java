@@ -66,6 +66,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     protected final Logger logger;
     protected final transient Area area;
     protected final transient AtomicReference<RoundThread> roundThread;
+    protected final boolean allowCasting;
     protected transient EnumMap<CommandMessage, CommandHandler> cmds;
     protected NavigableMap<ICreature, Deque<IPoolEntry>> actionPools;
 
