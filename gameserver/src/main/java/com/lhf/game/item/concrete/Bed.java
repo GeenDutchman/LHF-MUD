@@ -22,6 +22,7 @@ import com.lhf.game.CreatureContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreature.CreatureCommandHandler;
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.item.InteractObject;
@@ -108,7 +109,10 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
             Attributes best = this.occupant.getHighestAttributeBonus(sleepAttrs);
             MultiRollResult sleepCheck = this.occupant.check(best);
             this.occupant.updateHitpoints(sleepCheck.getTotal());
-            // TODO: regain spell energy?
+            final Vocation creatureVocation = occupant.getVocation();
+            if (creatureVocation != null) {
+                creatureVocation.onRestTick();
+            }
             ItemInteractionEvent.Builder iom = ItemInteractionEvent.getBuilder().setPerformed()
                     .setDescription("You slept and got back " + sleepCheck.getColorTaggedName() + " hit points!")
                     .setTaggable(Bed.this);

@@ -13,6 +13,7 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
@@ -123,7 +124,10 @@ public class RestArea extends SubArea {
                 Attributes best = creature.getHighestAttributeBonus(sleepAttrs);
                 MultiRollResult sleepCheck = creature.check(best);
                 creature.updateHitpoints(sleepCheck.getTotal());
-                // TODO: regain spell energy?
+                final Vocation creatureVocation = creature.getVocation();
+                if (creatureVocation != null) {
+                    creatureVocation.onRestTick();
+                }
                 ItemInteractionEvent.Builder iom = ItemInteractionEvent.getBuilder().setPerformed()
                         .setDescription("You slept and got back " + sleepCheck.getColorTaggedName() + " hit points!")
                         .setTaggable(RestArea.this);
