@@ -169,6 +169,8 @@ public class BattleManager extends SubArea {
         cmds.put(CommandMessage.USE, new UseHandler());
         cmds.put(CommandMessage.STATS, new StatsHandler());
         cmds.put(CommandMessage.ATTACK, new AttackHandler());
+        cmds.put(CommandMessage.EXIT, new SubAreaExitHandler());
+        cmds.put(CommandMessage.SAY, new SubAreaSayHandler());
         return cmds;
     }
 
@@ -605,8 +607,8 @@ public class BattleManager extends SubArea {
         return Collections.unmodifiableMap(this.cmds);
     }
 
-    public interface BattleManagerCommandHandler extends ICreature.CreatureCommandHandler {
-        static final Predicate<CommandContext> defaultBattlePredicate = ICreature.CreatureCommandHandler.defaultCreaturePredicate
+    public interface BattleManagerCommandHandler extends SubAreaCommandHandler {
+        static final Predicate<CommandContext> defaultBattlePredicate = SubAreaCommandHandler.defaultSubAreaPredicate
                 .and(ctx -> ctx.hasSubAreaSort(SubAreaSort.BATTLE));
 
     }
