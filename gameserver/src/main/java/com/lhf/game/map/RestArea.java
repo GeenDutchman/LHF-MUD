@@ -389,7 +389,7 @@ public class RestArea extends SubArea {
 
         @Override
         public Predicate<CommandContext> getEnabledPredicate() {
-            return RestHandler.defaultRestPredicate;
+            return RestHandler.defaultCreaturePredicate;
         }
 
         @Override

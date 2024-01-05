@@ -669,7 +669,6 @@ public class Room implements Area {
                 this.log(Level.WARNING, "No battle sub area found!");
                 return ctx.failhandle();
             }
-            ctx.getCreature().addSubArea(SubAreaSort.BATTLE);
             return subArea.handleChain(ctx, cmd);
         }
 
@@ -1267,7 +1266,6 @@ public class Room implements Area {
                 this.log(Level.WARNING, "No rest sub area found!");
                 return ctx.failhandle();
             }
-            ctx.getCreature().addSubArea(SubAreaSort.RECUPERATION);
             return subArea.handleChain(ctx, cmd);
         }
 
