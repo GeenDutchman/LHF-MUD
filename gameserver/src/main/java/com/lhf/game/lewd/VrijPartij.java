@@ -145,7 +145,7 @@ public class VrijPartij {
         return this.party.get(creature);
     }
 
-    protected synchronized VrijPartij accept(ICreature creature) {
+    public synchronized VrijPartij accept(ICreature creature) {
         if (this.party.containsKey(creature)) {
             this.party.put(creature, LewdAnswer.ACCEPTED);
             LewdEvent lom = LewdEvent.getBuilder().setSubType(LewdOutMessageType.ACCEPTED)
@@ -172,11 +172,6 @@ public class VrijPartij {
         return allDone;
     }
 
-    public boolean acceptAndCheck(ICreature creature) {
-        this.accept(creature);
-        return this.check();
-    }
-
     public synchronized VrijPartij pass(ICreature creature) {
         if (party.containsKey(creature)) {
             party.put(creature, LewdAnswer.DENIED);
@@ -186,11 +181,6 @@ public class VrijPartij {
             this.messageParticipants(lom);
         }
         return this;
-    }
-
-    public boolean passAndCheck(ICreature creature) {
-        this.pass(creature);
-        return this.check();
     }
 
     public int size() {

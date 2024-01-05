@@ -145,7 +145,7 @@ public class VrijPartijTest {
             }
         };
 
-        Truth.assertThat(vrijPartij.acceptAndCheck(second.getNPC())).isFalse();
+        Truth.assertThat(vrijPartij.accept(second.getNPC()).check()).isFalse();
         Mockito.verify(first.sssb, Mockito.timeout(500)).send(Mockito.argThat(secondAcceptanceChecker));
         Mockito.verify(second.sssb, Mockito.timeout(500)).send(Mockito.argThat(secondAcceptanceChecker));
         Mockito.verify(third.sssb, Mockito.timeout(500)).send(Mockito.argThat(secondAcceptanceChecker));
@@ -189,7 +189,7 @@ public class VrijPartijTest {
             }
         };
 
-        Truth.assertThat(vrijPartij.acceptAndCheck(third.getNPC())).isTrue();
+        Truth.assertThat(vrijPartij.accept(third.getNPC()).check()).isTrue();
         Mockito.verify(first.sssb, Mockito.timeout(500)).send(Mockito.argThat(thirdAcceptanceChecker));
         Mockito.verify(second.sssb, Mockito.timeout(500)).send(Mockito.argThat(thirdAcceptanceChecker));
         Mockito.verify(third.sssb, Mockito.timeout(500)).send(Mockito.argThat(thirdAcceptanceChecker));
@@ -269,7 +269,7 @@ public class VrijPartijTest {
             }
         };
 
-        Truth.assertThat(vrijPartij.acceptAndCheck(second.getNPC())).isFalse();
+        Truth.assertThat(vrijPartij.accept(second.getNPC()).check()).isFalse();
         Mockito.verify(first.sssb, Mockito.timeout(500)).send(Mockito.argThat(secondAcceptanceChecker));
         Mockito.verify(second.sssb, Mockito.timeout(500)).send(Mockito.argThat(secondAcceptanceChecker));
         Mockito.verify(third.sssb, Mockito.timeout(500)).send(Mockito.argThat(secondAcceptanceChecker));

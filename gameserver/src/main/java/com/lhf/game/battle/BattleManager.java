@@ -62,7 +62,6 @@ import com.lhf.messages.events.TargetDefendedEvent;
 import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.PassMessage;
-import com.lhf.messages.in.SeeMessage;
 import com.lhf.messages.in.UseMessage;
 import com.lhf.server.client.user.UserID;
 
@@ -580,11 +579,17 @@ public class BattleManager extends SubArea {
     }
 
     @Override
-    public SeeEvent produceMessage() {
-        SeeEvent.Builder seeMessage = SeeEvent.getBuilder().setExaminable(this);
-        this.getCreatures().stream().filter(creature -> creature != null && creature.isInBattle())
-                .forEach(creature -> seeMessage.addSeen("Participants", creature));
-        return seeMessage.Build();
+    public SeeEvent produceMessage(SeeEvent.Builder seeMessage) {
+        if (seeMessage == null) {
+            seeMessage = SeeEvent.getBuilder().setExaminable(this);
+        }
+        for (final ICreature creature : this.getCreatures()) {
+            if (creature == null || !creature.getSubAreaSorts().contains(this.getSubAreaSort())) {
+                continue;
+            }
+            seeMessage.addSeen("Battling", creature);
+        }
+        return super.produceMessage(seeMessage);
     }
 
     @Override
@@ -756,34 +761,12 @@ public class BattleManager extends SubArea {
 
     }
 
-    private class SeeHandler implements BattleManagerCommandHandler {
+    private class SeeHandler extends SubAreaSeeHandler {
         private static final String helpString = "\"see\" Will give you some information about the battle.\r\n";
-
-        @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.SEE;
-        }
 
         @Override
         public Optional<String> getHelp(CommandContext ctx) {
             return Optional.of(SeeHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return SeeHandler.defaultBattlePredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.SEE && cmd instanceof SeeMessage seeMessage) {
-                if (seeMessage.getThing() != null) {
-                    return CommandChainHandler.passUpChain(BattleManager.this, ctx, seeMessage);
-                }
-                ctx.receive(BattleManager.this.produceMessage());
-                return ctx.handled();
-            }
-            return ctx.failhandle();
         }
 
         @Override

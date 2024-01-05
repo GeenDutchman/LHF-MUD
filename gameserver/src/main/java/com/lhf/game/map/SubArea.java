@@ -28,8 +28,6 @@ import com.lhf.game.CreatureContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreature.CreatureCommandHandler;
 import com.lhf.game.creature.Player;
-import com.lhf.game.item.concrete.Bed;
-import com.lhf.game.item.concrete.Bed.BedCommandHandler;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -37,6 +35,7 @@ import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.PooledMessageChainHandler;
+import com.lhf.messages.in.SeeMessage;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
 
@@ -685,4 +684,40 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
     }
 
+    protected class SubAreaSeeHandler implements SubAreaCommandHandler {
+        private static final String helpString = "\"see\" Will give you some information about the area immediately around you.\r\n";
+
+        @Override
+        public CommandMessage getHandleType() {
+            return CommandMessage.SEE;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(SubAreaSeeHandler.helpString);
+        }
+
+        @Override
+        public Predicate<CommandContext> getEnabledPredicate() {
+            return SubAreaSeeHandler.defaultSubAreaPredicate;
+        }
+
+        @Override
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
+            if (cmd != null && cmd.getType() == CommandMessage.SEE && cmd instanceof SeeMessage seeMessage) {
+                if (seeMessage.getThing() != null && SubArea.this.area != null) {
+                    return SubArea.this.area.handleChain(ctx, cmd);
+                }
+                ctx.receive(SubArea.this.produceMessage());
+                return ctx.handled();
+            }
+            return ctx.failhandle();
+        }
+
+        @Override
+        public CommandChainHandler getChainHandler() {
+            return SubArea.this;
+        }
+
+    }
 }

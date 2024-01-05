@@ -147,7 +147,8 @@ public class LewdEvent extends GameEvent {
         switch (this.subType) {
             case DENIED:
                 if (this.creature != null) {
-                    sb.append(this.creature.getColorTaggedName()).append(" does not wish to do it. ");
+                    sb.append(this.creature.getColorTaggedName())
+                            .append(" does not wish to do it or is wearing ARMOR and cannot participate. ");
                     sb.append("\r\n").append(this.statusString());
                 } else {
                     sb.append("No one wants to do it.");
@@ -179,6 +180,7 @@ public class LewdEvent extends GameEvent {
             case NOT_READY:
                 sb.append("Your ").append(EquipmentSlots.ARMOR)
                         .append(" equipment slot must be empty in order to participate and you must be in bed and not in a fight! ");
+                sb.append(" The same goes for everyone you invite!");
                 break;
             case NO_BODY:
                 sb.append("You need to have a body in order to participate in that! ");

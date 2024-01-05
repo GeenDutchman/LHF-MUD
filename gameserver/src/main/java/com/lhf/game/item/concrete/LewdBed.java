@@ -130,7 +130,7 @@ public class LewdBed extends Bed {
             Iterator<VrijPartij> it = LewdBed.this.vrijPartijen.values().iterator();
             while (it.hasNext()) {
                 VrijPartij party = it.next();
-                if (party.passAndCheck(ctx.getCreature())) {
+                if (party.pass(ctx.getCreature()).check()) {
                     it.remove();
                 }
             }
@@ -222,7 +222,7 @@ public class LewdBed extends Bed {
             return true;
         }
         lewdOutMessage.setParty(party.getParty());
-        if (party.acceptAndCheck(joiner)) {
+        if (party.accept(joiner).check()) {
             if (this.lewdProduct != null) {
                 this.lewdProduct.onLewd(this.room, party);
             }
