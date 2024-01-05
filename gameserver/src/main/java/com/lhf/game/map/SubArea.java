@@ -32,6 +32,7 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.PooledMessageChainHandler;
@@ -369,6 +370,11 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     @Override
     public final String getName() {
         return this.area.getName() + " " + this.getClass().getSimpleName();
+    }
+
+    @Override
+    public final SeeEvent produceMessage() {
+        return this.produceMessage(SeeEvent.getBuilder().setExaminable(this));
     }
 
     @Override
