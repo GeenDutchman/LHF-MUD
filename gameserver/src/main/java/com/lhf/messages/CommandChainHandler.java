@@ -24,12 +24,11 @@ public interface CommandChainHandler extends GameEventProcessorHub {
     public abstract CommandContext addSelfToContext(CommandContext ctx);
 
     /**
-     * An abstract class meant to statically handle commands, with the issue of who
+     * An interface meant to handle commands, with the issue of who
      * it is taking care
-     * of commands *for* retrieved from the context.
+     * of commands *for* retrieved from the context to allow for static classes.
      */
-    public abstract class CommandHandler implements Comparable<CommandHandler> {
-        protected final Logger logger = Logger.getLogger(this.getClass().getName());
+    public interface CommandHandler extends Comparable<CommandHandler> {
 
         /**
          * Adapt the command to the type of lens we expect
@@ -37,7 +36,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
          * @param command
          * @return
          */
-        protected abstract CommandAdapter adaptCommand(Command command);
+        // public abstract CommandAdapter adaptCommand(Command command);
 
         /**
          * Gets what type of command we're meant to handle
@@ -66,7 +65,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
          * Handles a Command by internally adapting it to the expected shape.
          * <p>
          * 
-         * @throws IllegalStateException if the adaptation results in a null
+         * @throws IllegalArgumentException if the adaptation results in a null
          * @param ctx
          * @param command
          * @return reply.handled() if it was handled, reply.failHandle() if it isn't our
@@ -82,33 +81,19 @@ public interface CommandChainHandler extends GameEventProcessorHub {
          */
         public abstract CommandChainHandler getChainHandler(CommandContext ctx);
 
-        public final void log(Level logLevel, String logMessage) {
-            this.logger.log(logLevel, logMessage);
+        public default void log(Level logLevel, String logMessage) {
+            Logger.getLogger(this.getClass().getName()).log(logLevel, logMessage);
         }
 
-        public final void log(Level logLevel, Supplier<String> logMessageSupplier) {
-            this.logger.log(logLevel, logMessageSupplier);
+        public default void log(Level logLevel, Supplier<String> logMessageSupplier) {
+            Logger.getLogger(this.getClass().getName()).log(logLevel, logMessageSupplier);
         }
 
         @Override
-        public int compareTo(CommandHandler arg0) {
+        public default int compareTo(CommandHandler arg0) {
             return this.getHandleType().compareTo(arg0.getHandleType());
         }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(this.getHandleType());
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (!(obj instanceof CommandHandler))
-                return false;
-            CommandHandler other = (CommandHandler) obj;
-            return this.getHandleType() == other.getHandleType();
-        }
     }
 
     public abstract Map<AMessageType, CommandHandler> getCommands(CommandContext ctx);

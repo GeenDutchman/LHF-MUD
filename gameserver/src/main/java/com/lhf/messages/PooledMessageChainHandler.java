@@ -176,7 +176,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
      * {@link com.lhf.messages.CommandChainHandler CommandChainHandler} then it will
      * do nothing special.
      */
-    public abstract class PooledCommandHandler extends CommandChainHandler.CommandHandler {
+    public interface PooledCommandHandler extends CommandChainHandler.CommandHandler {
 
         /**
          * Retrieves {@link #getPoolingPredicate()} and tests it, if present.
@@ -194,7 +194,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
          * @param empoolResult
          * @return
          */
-        public boolean onEmpool(CommandContext ctx, boolean empoolResult) {
+        public default boolean onEmpool(CommandContext ctx, boolean empoolResult) {
             this.log(Level.FINEST, () -> String.format("Empooling %b for context %s", empoolResult, ctx));
             return empoolResult;
         }
@@ -214,7 +214,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
          * @return a Reply
          */
         @Override
-        public final Reply handleCommand(CommandContext ctx, Command cmd) {
+        public default Reply handleCommand(CommandContext ctx, Command cmd) {
             if (this.isPoolingEnabled(ctx)) {
                 PooledMessageChainHandler<?> pooledChainHandler = this.getPooledChainHandler(ctx);
                 if (pooledChainHandler != null) {
