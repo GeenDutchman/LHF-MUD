@@ -28,7 +28,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
      * it is taking care
      * of commands *for* retrieved from the context.
      */
-    public abstract class CommandHandler<T extends CommandAdapter> implements Comparable<CommandHandler<?>> {
+    public abstract class CommandHandler implements Comparable<CommandHandler> {
         protected final Logger logger = Logger.getLogger(this.getClass().getName());
 
         /**
@@ -37,7 +37,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
          * @param command
          * @return
          */
-        protected abstract T adaptCommand(Command command);
+        protected abstract CommandAdapter adaptCommand(Command command);
 
         /**
          * Gets what type of command we're meant to handle
@@ -69,32 +69,10 @@ public interface CommandChainHandler extends GameEventProcessorHub {
          * @throws IllegalStateException if the adaptation results in a null
          * @param ctx
          * @param command
-         * @return
-         */
-        public final CommandContext.Reply handleCommand(CommandContext ctx, Command command) {
-            if (command == null) {
-                this.log(Level.WARNING, "Cannot handle null command");
-                return ctx.failhandle();
-            }
-            T lensed = this.adaptCommand(command);
-            if (lensed == null) {
-                IllegalStateException exception = new IllegalStateException(
-                        String.format("command '%s' should not be adapted to null: ctx %s", command, ctx));
-                this.logger.log(Level.SEVERE, "Command should not adapt to a null value!", exception);
-                throw exception;
-            }
-            return this.handleCommand(ctx, lensed);
-        }
-
-        /**
-         * Handles a Command of type T
-         * 
-         * @param ctx
-         * @param cmd
          * @return reply.handled() if it was handled, reply.failHandle() if it isn't our
          *         problem
          */
-        public abstract CommandContext.Reply handleCommand(CommandContext ctx, T cmd);
+        public abstract CommandContext.Reply handleCommand(CommandContext ctx, Command command);
 
         /**
          * Gets the chainHandler that we want to deal with from the context
@@ -113,7 +91,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
         }
 
         @Override
-        public int compareTo(CommandHandler<?> arg0) {
+        public int compareTo(CommandHandler arg0) {
             return this.getHandleType().compareTo(arg0.getHandleType());
         }
 
@@ -128,22 +106,22 @@ public interface CommandChainHandler extends GameEventProcessorHub {
                 return true;
             if (!(obj instanceof CommandHandler))
                 return false;
-            CommandHandler<?> other = (CommandHandler<?>) obj;
+            CommandHandler other = (CommandHandler) obj;
             return this.getHandleType() == other.getHandleType();
         }
     }
 
-    public abstract Map<AMessageType, CommandHandler<? extends CommandAdapter>> getCommands(CommandContext ctx);
+    public abstract Map<AMessageType, CommandHandler> getCommands(CommandContext ctx);
 
     public default CommandContext.Reply handle(CommandContext ctx, Command cmd) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
         ctx = this.addSelfToContext(ctx);
-        Map<AMessageType, CommandHandler<?>> handlers = this.getCommands(ctx);
+        Map<AMessageType, CommandHandler> handlers = this.getCommands(ctx);
         ctx = CommandChainHandler.addHelps(handlers, ctx);
         if (cmd != null && handlers != null) {
-            CommandHandler<?> handler = handlers.get(cmd.getType());
+            CommandHandler handler = handlers.get(cmd.getType());
             if (handler == null) {
                 this.log(Level.FINEST,
                         () -> String.format("No CommandHandler for type %s at this level", cmd.getType()));
@@ -168,14 +146,14 @@ public interface CommandChainHandler extends GameEventProcessorHub {
         return CommandChainHandler.passUpChain(this, ctx, cmd);
     }
 
-    private static CommandContext addHelps(Map<AMessageType, CommandHandler<?>> handlers, CommandContext ctx) {
+    private static CommandContext addHelps(Map<AMessageType, CommandHandler> handlers, CommandContext ctx) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
         if (handlers == null) {
             return ctx;
         }
-        for (CommandHandler<?> handler : handlers.values()) {
+        for (CommandHandler handler : handlers.values()) {
             if (handler != null && handler.isEnabled(ctx)) {
                 Optional<String> helpString = handler.getHelp(ctx);
                 if (helpString != null && helpString.isPresent()) {
