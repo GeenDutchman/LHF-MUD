@@ -3,33 +3,11 @@ package com.lhf.messages;
 import java.util.Deque;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
-import com.lhf.messages.in.AttackMessage;
-import com.lhf.messages.in.CastMessage;
-import com.lhf.messages.in.CreateInMessage;
-import com.lhf.messages.in.DropMessage;
-import com.lhf.messages.in.EquipMessage;
-import com.lhf.messages.in.ExitMessage;
-import com.lhf.messages.in.FollowMessage;
-import com.lhf.messages.in.GoMessage;
-import com.lhf.messages.in.HelpInMessage;
-import com.lhf.messages.in.InteractMessage;
-import com.lhf.messages.in.InventoryMessage;
-import com.lhf.messages.in.LewdInMessage;
-import com.lhf.messages.in.ListPlayersMessage;
-import com.lhf.messages.in.PassMessage;
-import com.lhf.messages.in.RepeatInMessage;
-import com.lhf.messages.in.RestMessage;
-import com.lhf.messages.in.SayMessage;
-import com.lhf.messages.in.SeeMessage;
-import com.lhf.messages.in.ShoutMessage;
-import com.lhf.messages.in.SpellbookMessage;
-import com.lhf.messages.in.StatsInMessage;
-import com.lhf.messages.in.StatusMessage;
-import com.lhf.messages.in.TakeMessage;
-import com.lhf.messages.in.UnequipMessage;
-import com.lhf.messages.in.UseMessage;
+import com.lhf.messages.CommandContext.Reply;
 
 /**
  * Meant to hold a buffer of {@link com.lhf.messages.Command Command}s for a
@@ -191,407 +169,179 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
      */
     public void flush();
 
-    public static class FlushableCommandHandlerMetadata extends CommandHandlerMetadata {
-        protected boolean empoolEnabled;
+    /**
+     * Used in conjuction with the {@link com.lhf.messages.PooledMessageChainHandler
+     * PooledMessageChainHandler} to pool {@link com.lhf.messages.Command Command}s.
+     * If a PooledCommandHandler is in a normal
+     * {@link com.lhf.messages.CommandChainHandler CommandChainHandler} then it will
+     * do nothing special.
+     */
+    public interface PooledCommandHandler extends CommandChainHandler.CommandHandler {
 
+        /**
+         * Said predicate should check if the {@link com.lhf.messages.CommandContext
+         * Context} allows for pooling.
+         * 
+         * @return Predicate to check for if the command can be pooled.
+         */
+        public Predicate<CommandContext> getPoolingPredicate();
+
+        /**
+         * Retrieves {@link #getPoolingPredicate()} and tests it, if present.
+         * 
+         * @param ctx
+         * @return true when the predicate is retrieved and tests positive, false
+         *         otherwise
+         */
+        public default boolean isPoolingEnabled(CommandContext ctx) {
+            Predicate<CommandContext> predicate = this.getPoolingPredicate();
+            if (predicate == null) {
+                // this.log(Level.FINEST, "No pooling predicate found, thus disabled");
+                return false;
+            }
+            boolean testResult = predicate.test(ctx);
+            // this.log(Level.FINEST, () -> String.format("Pooling enabled %b per context:
+            // %s", testResult, ctx));
+            return testResult;
+        }
+
+        /**
+         * An overrideable method for when the empooling happens
+         * 
+         * @param ctx
+         * @param empoolResult
+         * @return
+         */
+        public default boolean onEmpool(CommandContext ctx, boolean empoolResult) {
+            this.log(Level.FINEST, () -> String.format("Empooling %b for context %s", empoolResult, ctx));
+            return empoolResult;
+        }
+
+        /**
+         * If the result of {@link #isPoolingEnabled(CommandContext)} is true and a
+         * {@link com.lhf.messages.PooledMessageChainHandler PooledMessageChainHandler}
+         * is available, then it
+         * will call {@link #empool(CommandContext, Command)} and return a handled
+         * reply.
+         * Otherwise, then it will call
+         * {@link #flushHandle(CommandContext, Command)} which should hold the actual
+         * logic for processing the command and return that resulting reply.
+         * 
+         * @param ctx
+         * @param cmd
+         * @return a Reply
+         */
         @Override
-        public boolean isEmpoolEnabled() {
-            return this.empoolEnabled;
+        default Reply handleCommand(CommandContext ctx, Command cmd) {
+            if (this.isPoolingEnabled(ctx)) {
+                PooledMessageChainHandler<?> pooledChainHandler = this.getPooledChainHandler(ctx);
+                if (pooledChainHandler != null) {
+                    this.onEmpool(ctx, pooledChainHandler.empool(ctx, cmd));
+                    return ctx.handled();
+                }
+                this.log(Level.FINE, () -> String.format("No PooledChainHandler available per context: %s", ctx));
+            }
+            this.log(Level.FINE, "Proceeding from handle() -> flushHandle()");
+            return this.flushHandle(ctx, cmd);
         }
 
+        /**
+         * Holds the actual logic for handling the command with its context.
+         * 
+         * @param ctx
+         * @param cmd
+         * @return
+         */
+        public CommandContext.Reply flushHandle(CommandContext ctx, Command cmd);
+
+        /**
+         * Retrieves the PooledChainHandler, potentially using the context
+         */
+        public PooledMessageChainHandler<?> getPooledChainHandler(CommandContext ctx);
+
     }
 
-    // dispatch
-    public default boolean empoolOrHandle(CommandContext ctx, Command cmd) {
-        final Map<CommandMessage, ICommandHandlerMetadata> commands = this.getCommands(ctx);
-        final ICommandHandlerMetadata metadata = commands.get(cmd.getType());
-        return metadata == null ? false : metadata.isEmpoolEnabled();
-
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, AttackMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
+    private static CommandContext addHelps(Map<CommandMessage, CommandHandler> handlers, CommandContext ctx) {
+        if (ctx == null) {
+            ctx = new CommandContext();
         }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, CastMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
+        if (handlers == null) {
+            return ctx;
         }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, CreateInMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
+        for (CommandHandler handler : handlers.values()) {
+            if (handler != null && handler.isEnabled(ctx)) {
+                Optional<String> helpString = handler.getHelp(ctx);
+                if (helpString != null && helpString.isPresent()) {
+                    ctx.addHelp(handler.getHandleType(), helpString.get());
+                }
+            }
         }
-        return this.flushHandleInCommand(ctx, cmd);
+        return ctx;
     }
 
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, DropMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
+    public default Reply flushHandle(CommandContext ctx, Command cmd) {
+        if (ctx == null) {
+            ctx = new CommandContext();
         }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, EquipMessage cmd) {
         ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
+        Map<CommandMessage, CommandHandler> handlers = this.getCommands(ctx);
+        ctx = PooledMessageChainHandler.addHelps(handlers, ctx);
+        if (cmd != null && handlers != null) {
+            CommandHandler handler = handlers.get(cmd.getType());
+            if (handler == null) {
+                this.log(Level.FINEST,
+                        () -> String.format("No CommandHandler for type %s at this level", cmd.getType()));
+            } else if (handler.isEnabled(ctx)) {
+                CommandContext.Reply reply = null;
+                if (handler instanceof PooledCommandHandler pooledCommandHandler) {
+                    reply = pooledCommandHandler.flushHandle(ctx, cmd);
+                } else {
+                    reply = handler.handleCommand(ctx, cmd);
+                }
+                if (reply == null) {
+                    this.log(Level.SEVERE,
+                            () -> String.format("No reply for handler of type %s", handler.getHandleType()));
+                } else if (reply.isHandled()) {
+                    return reply;
+                }
+            }
         }
-        return this.flushHandleInCommand(ctx, cmd);
+        return ctx.failhandle();
     }
 
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, ExitMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
+    default Reply handleFlushChain(CommandContext ctx, Command cmd) {
+        CommandContext.Reply thisLevelReply = this.flushHandle(ctx, cmd);
+        if (thisLevelReply != null && thisLevelReply.isHandled()) {
+            return thisLevelReply;
         }
-        return this.flushHandleInCommand(ctx, cmd);
+        return PooledMessageChainHandler.flushUpChain(this, ctx, cmd);
     }
 
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, FollowMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
+    public static CommandContext.Reply flushUpChain(CommandChainHandler presentChainHandler, CommandContext ctx,
+            Command msg) {
+        if (ctx == null) {
+            ctx = new CommandContext();
         }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, GoMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
+        if (presentChainHandler == null) {
+            return ctx.failhandle();
         }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, HelpInMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
+        ctx = presentChainHandler.addSelfToContext(ctx);
+        ctx = PooledMessageChainHandler.addHelps(presentChainHandler.getCommands(ctx), ctx);
+        CommandChainHandler currentChainHandler = presentChainHandler.getSuccessor();
+        while (currentChainHandler != null) {
+            CommandContext.Reply thisLevelReply = null;
+            if (currentChainHandler instanceof PooledMessageChainHandler<?> pooledChainHandler) {
+                thisLevelReply = pooledChainHandler.flushHandle(ctx, msg);
+            } else {
+                thisLevelReply = currentChainHandler.handle(ctx, msg);
+            }
+            if (thisLevelReply != null && thisLevelReply.isHandled()) {
+                return thisLevelReply;
+            }
+            currentChainHandler = currentChainHandler.getSuccessor();
         }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, InteractMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, InventoryMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, LewdInMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, ListPlayersMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, PassMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, RepeatInMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, RestMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, SayMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, SeeMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, ShoutMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, SpellbookMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, StatsInMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, StatusMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, TakeMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, UnequipMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    @Override
-    public default CommandContext.Reply handleInCommand(CommandContext ctx, UseMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        if (this.empoolOrHandle(ctx, cmd)) {
-            this.empool(ctx, cmd);
-            return ctx.handled();
-        }
-        return this.flushHandleInCommand(ctx, cmd);
-    }
-
-    // dispatch
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, Command cmd) {
-        ctx = this.addSelfToContext(ctx);
-        this.log(Level.SEVERE,
-                String.format("Need to add a specific implementation for this command. Type %s, String %s, Context %s",
-                        cmd.getClass().getName(), cmd, ctx));
-        throw new UnsupportedOperationException(
-                String.format("Need to add a specific implementation for this command. Type %s, String %s, Context %s",
-                        cmd.getClass().getName(), cmd, ctx));
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, AttackMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, CastMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, CreateInMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, DropMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, EquipMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, ExitMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, FollowMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, GoMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, HelpInMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, InteractMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, InventoryMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, LewdInMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, ListPlayersMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, PassMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, RepeatInMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, RestMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, SayMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, SeeMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, ShoutMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, SpellbookMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, StatsInMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, StatusMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, TakeMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, UnequipMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
-    }
-
-    public default CommandContext.Reply flushHandleInCommand(CommandContext ctx, UseMessage cmd) {
-        ctx = this.addSelfToContext(ctx);
-        return CommandChainHandler.super.handleInCommand(ctx, cmd);
+        presentChainHandler.log(Level.INFO,
+                String.format("No successor handled message: %s\n%s", ctx.toString(), ctx.getHelps()));
+        return ctx.failhandle();
     }
 }
