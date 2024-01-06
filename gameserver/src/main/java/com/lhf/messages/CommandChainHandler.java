@@ -3,14 +3,12 @@ package com.lhf.messages;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.messages.in.CommandAdapter;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.CommandAdapter;
 
 public interface CommandChainHandler extends GameEventProcessorHub {
 
