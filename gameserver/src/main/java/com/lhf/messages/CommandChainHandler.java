@@ -2,9 +2,36 @@ package com.lhf.messages;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Map.Entry;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
+
+import com.lhf.messages.in.AttackMessage;
+import com.lhf.messages.in.CastMessage;
+import com.lhf.messages.in.CreateInMessage;
+import com.lhf.messages.in.DropMessage;
+import com.lhf.messages.in.EquipMessage;
+import com.lhf.messages.in.ExitMessage;
+import com.lhf.messages.in.FollowMessage;
+import com.lhf.messages.in.GoMessage;
+import com.lhf.messages.in.HelpInMessage;
+import com.lhf.messages.in.InteractMessage;
+import com.lhf.messages.in.InventoryMessage;
+import com.lhf.messages.in.LewdInMessage;
+import com.lhf.messages.in.ListPlayersMessage;
+import com.lhf.messages.in.PassMessage;
+import com.lhf.messages.in.RepeatInMessage;
+import com.lhf.messages.in.RestMessage;
+import com.lhf.messages.in.SayMessage;
+import com.lhf.messages.in.SeeMessage;
+import com.lhf.messages.in.ShoutMessage;
+import com.lhf.messages.in.SpellbookMessage;
+import com.lhf.messages.in.StatsInMessage;
+import com.lhf.messages.in.StatusMessage;
+import com.lhf.messages.in.TakeMessage;
+import com.lhf.messages.in.UnequipMessage;
+import com.lhf.messages.in.UseMessage;
 
 public interface CommandChainHandler extends GameEventProcessorHub {
 
@@ -19,119 +46,353 @@ public interface CommandChainHandler extends GameEventProcessorHub {
 
     public abstract CommandContext addSelfToContext(CommandContext ctx);
 
-    public interface CommandHandler extends Comparable<CommandHandler> {
-        final static Predicate<CommandContext> defaultPredicate = (ctx) -> ctx != null;
+    public static interface ICommandHandlerMetadata {
+        public boolean isEnabled();
 
-        public CommandMessage getHandleType();
+        public String getHelpString();
 
-        public default boolean isEnabled(CommandContext ctx) {
-            Predicate<CommandContext> predicate = this.getEnabledPredicate();
-            if (predicate == null) {
-                // this.log(Level.FINEST, "No enabling predicate found, thus disabled");
-                return false;
-            }
-            boolean testResult = predicate.test(ctx);
-            // this.log(Level.FINEST, () -> String.format("Predicate enabled %b per context:
-            // %s", testResult, ctx));
-            return testResult;
-        }
+        public boolean isEmpoolEnabled();
+    }
 
-        public Optional<String> getHelp(CommandContext ctx);
+    public static class CommandHandlerMetadata implements ICommandHandlerMetadata {
+        protected boolean enabled;
+        protected String helpString;
 
-        public Predicate<CommandContext> getEnabledPredicate();
-
-        public CommandContext.Reply handleCommand(CommandContext ctx, Command cmd);
-
-        public CommandChainHandler getChainHandler();
-
-        public default void log(Level logLevel, String logMessage) {
-            this.getChainHandler().log(logLevel, logMessage);
-        }
-
-        public default void log(Level logLevel, Supplier<String> logMessageSupplier) {
-            this.getChainHandler().log(logLevel, logMessageSupplier);
+        @Override
+        public boolean isEnabled() {
+            return enabled;
         }
 
         @Override
-        default int compareTo(CommandHandler arg0) {
-            return this.getHandleType().compareTo(arg0.getHandleType());
+        public String getHelpString() {
+            return helpString;
         }
+
+        @Override
+        public boolean isEmpoolEnabled() {
+            return false;
+        }
+
     }
 
-    public abstract Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx);
+    public abstract Map<CommandMessage, ICommandHandlerMetadata> getCommands(CommandContext ctx);
 
-    public default CommandContext.Reply handle(CommandContext ctx, Command cmd) {
+    private static CommandContext addHelps(Map<CommandMessage, ICommandHandlerMetadata> commands, CommandContext ctx) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
-        ctx = this.addSelfToContext(ctx);
-        Map<CommandMessage, CommandHandler> handlers = this.getCommands(ctx);
-        ctx = CommandChainHandler.addHelps(handlers, ctx);
-        if (cmd != null && handlers != null) {
-            CommandHandler handler = handlers.get(cmd.getType());
-            if (handler == null) {
-                this.log(Level.FINEST,
-                        () -> String.format("No CommandHandler for type %s at this level", cmd.getType()));
-            } else if (handler.isEnabled(ctx)) {
-                CommandContext.Reply reply = handler.handleCommand(ctx, cmd);
-                if (reply == null) {
-                    this.log(Level.SEVERE,
-                            () -> String.format("No reply for handler of type %s", handler.getHandleType()));
-                } else if (reply.isHandled()) {
-                    return reply;
-                }
-            }
-        }
-        return ctx.failhandle();
-    }
-
-    public default CommandContext.Reply handleChain(CommandContext ctx, Command cmd) {
-        CommandContext.Reply thisLevelReply = this.handle(ctx, cmd);
-        if (thisLevelReply != null && thisLevelReply.isHandled()) {
-            return thisLevelReply;
-        }
-        return CommandChainHandler.passUpChain(this, ctx, cmd);
-    }
-
-    private static CommandContext addHelps(Map<CommandMessage, CommandHandler> handlers, CommandContext ctx) {
-        if (ctx == null) {
-            ctx = new CommandContext();
-        }
-        if (handlers == null) {
+        if (commands == null) {
             return ctx;
         }
-        for (CommandHandler handler : handlers.values()) {
-            if (handler != null && handler.isEnabled(ctx)) {
-                Optional<String> helpString = handler.getHelp(ctx);
-                if (helpString != null && helpString.isPresent()) {
-                    ctx.addHelp(handler.getHandleType(), helpString.get());
-                }
+
+        for (final Entry<CommandMessage, ICommandHandlerMetadata> entry : commands.entrySet()) {
+            final ICommandHandlerMetadata metadata = entry.getValue();
+            if (metadata != null && metadata.isEnabled() && metadata.getHelpString() != null) {
+                ctx.addHelp(entry.getKey(), metadata.getHelpString());
             }
         }
         return ctx;
     }
 
-    public static CommandContext.Reply passUpChain(CommandChainHandler presentChainHandler, CommandContext ctx,
-            Command msg) {
-        if (ctx == null) {
-            ctx = new CommandContext();
-        }
-        if (presentChainHandler == null) {
+    // dispatch
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, AttackMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
             return ctx.failhandle();
         }
-        ctx = presentChainHandler.addSelfToContext(ctx);
-        ctx = CommandChainHandler.addHelps(presentChainHandler.getCommands(ctx), ctx);
-        CommandChainHandler currentChainHandler = presentChainHandler.getSuccessor();
-        while (currentChainHandler != null) {
-            CommandContext.Reply thisLevelReply = currentChainHandler.handle(ctx, msg);
-            if (thisLevelReply != null && thisLevelReply.isHandled()) {
-                return thisLevelReply;
-            }
-            currentChainHandler = currentChainHandler.getSuccessor();
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, CastMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
         }
-        presentChainHandler.log(Level.INFO,
-                String.format("No successor handled message: %s\n%s", ctx.toString(), ctx.getHelps()));
-        return ctx.failhandle();
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, CreateInMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, DropMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, EquipMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, ExitMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, FollowMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, GoMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, HelpInMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, InteractMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, InventoryMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, LewdInMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, ListPlayersMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, PassMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, RepeatInMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, RestMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, SayMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, SeeMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, ShoutMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, SpellbookMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, StatsInMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, StatusMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, TakeMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, UnequipMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
+    }
+
+    public default CommandContext.Reply handleInCommand(CommandContext ctx, UseMessage cmd) {
+        ctx = this.addSelfToContext(ctx);
+        ctx = CommandChainHandler.addHelps(this.getCommands(ctx), ctx);
+        CommandChainHandler successor = this.getSuccessor();
+        if (successor == null) {
+            this.log(Level.WARNING,
+                    String.format("No successor handled message: %s\n%s", cmd, ctx.toString()));
+            return ctx.failhandle();
+        }
+        return successor.handleInCommand(ctx, cmd);
     }
 
 }
