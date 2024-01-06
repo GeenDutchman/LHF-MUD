@@ -1,10 +1,15 @@
 package com.lhf.messages;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.lhf.messages.in.CommandAdapter;
 
 public interface CommandChainHandler extends GameEventProcessorHub {
 
@@ -19,56 +24,127 @@ public interface CommandChainHandler extends GameEventProcessorHub {
 
     public abstract CommandContext addSelfToContext(CommandContext ctx);
 
-    public interface CommandHandler extends Comparable<CommandHandler> {
-        final static Predicate<CommandContext> defaultPredicate = (ctx) -> ctx != null;
+    /**
+     * An abstract class meant to statically handle commands, with the issue of who
+     * it is taking care
+     * of commands *for* retrieved from the context.
+     */
+    public abstract class CommandHandler<T extends CommandAdapter> implements Comparable<CommandHandler<?>> {
+        protected final Logger logger = Logger.getLogger(this.getClass().getName());
 
-        public CommandMessage getHandleType();
+        /**
+         * Adapt the command to the type of lens we expect
+         * 
+         * @param command
+         * @return
+         */
+        protected abstract T adaptCommand(Command command);
 
-        public default boolean isEnabled(CommandContext ctx) {
-            Predicate<CommandContext> predicate = this.getEnabledPredicate();
-            if (predicate == null) {
-                // this.log(Level.FINEST, "No enabling predicate found, thus disabled");
-                return false;
+        /**
+         * Gets what type of command we're meant to handle
+         * 
+         * @return
+         */
+        public abstract CommandMessage getHandleType();
+
+        /**
+         * Checks to see if the CommandHandler is enabled per the context
+         * 
+         * @param ctx
+         * @return
+         */
+        public abstract boolean isEnabled(CommandContext ctx);
+
+        /**
+         * Gets an optional String of help about this command
+         * 
+         * @param ctx
+         * @return
+         */
+        public abstract Optional<String> getHelp(CommandContext ctx);
+
+        /**
+         * Handles a Command by internally adapting it to the expected shape.
+         * <p>
+         * 
+         * @throws IllegalStateException if the adaptation results in a null
+         * @param ctx
+         * @param command
+         * @return
+         */
+        public final CommandContext.Reply handleCommand(CommandContext ctx, Command command) {
+            if (command == null) {
+                this.log(Level.WARNING, "Cannot handle null command");
+                return ctx.failhandle();
             }
-            boolean testResult = predicate.test(ctx);
-            // this.log(Level.FINEST, () -> String.format("Predicate enabled %b per context:
-            // %s", testResult, ctx));
-            return testResult;
+            T lensed = this.adaptCommand(command);
+            if (lensed == null) {
+                IllegalStateException exception = new IllegalStateException(
+                        String.format("command '%s' should not be adapted to null: ctx %s", command, ctx));
+                this.logger.log(Level.SEVERE, "Command should not adapt to a null value!", exception);
+                throw exception;
+            }
+            return this.handleCommand(ctx, lensed);
         }
 
-        public Optional<String> getHelp(CommandContext ctx);
+        /**
+         * Handles a Command of type T
+         * 
+         * @param ctx
+         * @param cmd
+         * @return reply.handled() if it was handled, reply.failHandle() if it isn't our
+         *         problem
+         */
+        public abstract CommandContext.Reply handleCommand(CommandContext ctx, T cmd);
 
-        public Predicate<CommandContext> getEnabledPredicate();
+        /**
+         * Gets the chainHandler that we want to deal with from the context
+         * 
+         * @param ctx
+         * @return
+         */
+        public abstract CommandChainHandler getChainHandler(CommandContext ctx);
 
-        public CommandContext.Reply handleCommand(CommandContext ctx, Command cmd);
-
-        public CommandChainHandler getChainHandler();
-
-        public default void log(Level logLevel, String logMessage) {
-            this.getChainHandler().log(logLevel, logMessage);
+        public final void log(Level logLevel, String logMessage) {
+            this.logger.log(logLevel, logMessage);
         }
 
-        public default void log(Level logLevel, Supplier<String> logMessageSupplier) {
-            this.getChainHandler().log(logLevel, logMessageSupplier);
+        public final void log(Level logLevel, Supplier<String> logMessageSupplier) {
+            this.logger.log(logLevel, logMessageSupplier);
         }
 
         @Override
-        default int compareTo(CommandHandler arg0) {
+        public int compareTo(CommandHandler<?> arg0) {
             return this.getHandleType().compareTo(arg0.getHandleType());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.getHandleType());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof CommandHandler))
+                return false;
+            CommandHandler<?> other = (CommandHandler<?>) obj;
+            return this.getHandleType() == other.getHandleType();
         }
     }
 
-    public abstract Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx);
+    public abstract Map<CommandMessage, CommandHandler<? extends CommandAdapter>> getCommands(CommandContext ctx);
 
     public default CommandContext.Reply handle(CommandContext ctx, Command cmd) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
         ctx = this.addSelfToContext(ctx);
-        Map<CommandMessage, CommandHandler> handlers = this.getCommands(ctx);
+        Map<CommandMessage, CommandHandler<?>> handlers = this.getCommands(ctx);
         ctx = CommandChainHandler.addHelps(handlers, ctx);
         if (cmd != null && handlers != null) {
-            CommandHandler handler = handlers.get(cmd.getType());
+            CommandHandler<?> handler = handlers.get(cmd.getType());
             if (handler == null) {
                 this.log(Level.FINEST,
                         () -> String.format("No CommandHandler for type %s at this level", cmd.getType()));
@@ -93,14 +169,14 @@ public interface CommandChainHandler extends GameEventProcessorHub {
         return CommandChainHandler.passUpChain(this, ctx, cmd);
     }
 
-    private static CommandContext addHelps(Map<CommandMessage, CommandHandler> handlers, CommandContext ctx) {
+    private static CommandContext addHelps(Map<CommandMessage, CommandHandler<?>> handlers, CommandContext ctx) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
         if (handlers == null) {
             return ctx;
         }
-        for (CommandHandler handler : handlers.values()) {
+        for (CommandHandler<?> handler : handlers.values()) {
             if (handler != null && handler.isEnabled(ctx)) {
                 Optional<String> helpString = handler.getHelp(ctx);
                 if (helpString != null && helpString.isPresent()) {
