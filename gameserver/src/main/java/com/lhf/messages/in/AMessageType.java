@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import com.lhf.Taggable;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.map.Directions;
+import com.lhf.messages.Command;
 import com.lhf.messages.ICommand;
 import com.lhf.messages.grammar.Prepositions;
 
@@ -18,6 +19,11 @@ public enum AMessageType implements Taggable {
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.allOf(Prepositions.class);
+        }
+
+        @Override
+        public HelpInMessage adaptCommand(Command command) {
+            return new HelpInMessage(command);
         }
     },
     SAY {
@@ -37,6 +43,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.of(Prepositions.TO);
         }
+
+        @Override
+        public SayMessage adaptCommand(Command command) {
+            return new SayMessage(command);
+        }
     },
     SEE {
         @Override
@@ -51,6 +62,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.noneOf(Prepositions.class);
         }
+
+        @Override
+        public SeeMessage adaptCommand(Command command) {
+            return new SeeMessage(command);
+        }
     },
     GO {
         @Override
@@ -63,6 +79,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.noneOf(Prepositions.class);
         }
+
+        @Override
+        public GoMessage adaptCommand(Command command) {
+            return new GoMessage(command);
+        }
     },
     ATTACK {
         @Override
@@ -73,6 +94,11 @@ public enum AMessageType implements Taggable {
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.of(Prepositions.WITH);
+        }
+
+        @Override
+        public AttackMessage adaptCommand(Command command) {
+            return new AttackMessage(command);
         }
     },
     CAST {
@@ -93,6 +119,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.of(Prepositions.AT, Prepositions.USE);
         }
+
+        @Override
+        public CastMessage adaptCommand(Command command) {
+            return new CastMessage(command);
+        }
     },
     DROP {
         @Override
@@ -112,6 +143,11 @@ public enum AMessageType implements Taggable {
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.of(Prepositions.IN);
+        }
+
+        @Override
+        public DropMessage adaptCommand(Command command) {
+            return new DropMessage(command);
         }
     },
     EQUIP {
@@ -136,6 +172,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.of(Prepositions.TO);
         }
+
+        @Override
+        public EquipMessage adaptCommand(Command command) {
+            return new EquipMessage(command);
+        }
     },
     UNEQUIP {
         @Override
@@ -146,6 +187,11 @@ public enum AMessageType implements Taggable {
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.noneOf(Prepositions.class);
+        }
+
+        @Override
+        public UnequipMessage adaptCommand(Command command) {
+            return new UnequipMessage(command);
         }
     },
     INTERACT {
@@ -158,6 +204,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.noneOf(Prepositions.class);
         }
+
+        @Override
+        public InteractMessage adaptCommand(Command command) {
+            return new InteractMessage(command);
+        }
     },
     INVENTORY {
         @Override
@@ -168,6 +219,11 @@ public enum AMessageType implements Taggable {
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.noneOf(Prepositions.class);
+        }
+
+        @Override
+        public InventoryMessage adaptCommand(Command command) {
+            return new InventoryMessage(command);
         }
     },
     TAKE {
@@ -189,6 +245,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.of(Prepositions.FROM);
         }
+
+        @Override
+        public TakeMessage adaptCommand(Command command) {
+            return new TakeMessage(command);
+        }
     },
     USE {
         @Override
@@ -207,6 +268,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.of(Prepositions.ON);
         }
+
+        @Override
+        public UseMessage adaptCommand(Command command) {
+            return new UseMessage(command);
+        }
     },
     STATUS {
         @Override
@@ -217,6 +283,11 @@ public enum AMessageType implements Taggable {
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.noneOf(Prepositions.class);
+        }
+
+        @Override
+        public StatusMessage adaptCommand(Command command) {
+            return new StatusMessage(command);
         }
     },
     PLAYERS {
@@ -229,6 +300,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.noneOf(Prepositions.class);
         }
+
+        @Override
+        public ListPlayersMessage adaptCommand(Command command) {
+            return new ListPlayersMessage(command);
+        }
     },
     EXIT {
         @Override
@@ -239,6 +315,11 @@ public enum AMessageType implements Taggable {
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.allOf(Prepositions.class);
+        }
+
+        @Override
+        public ExitMessage adaptCommand(Command command) {
+            return new ExitMessage(command);
         }
     },
     CREATE {
@@ -252,6 +333,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.of(Prepositions.WITH, Prepositions.AS);
         }
+
+        @Override
+        public CreateInMessage adaptCommand(Command command) {
+            return new CreateInMessage(command);
+        }
     },
     SHOUT {
         @Override
@@ -263,6 +349,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.noneOf(Prepositions.class);
         }
+
+        @Override
+        public ShoutMessage adaptCommand(Command command) {
+            return new ShoutMessage(command);
+        }
     },
     PASS {
         @Override
@@ -273,6 +364,11 @@ public enum AMessageType implements Taggable {
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.noneOf(Prepositions.class);
+        }
+
+        @Override
+        public PassMessage adaptCommand(Command command) {
+            return new PassMessage(command);
         }
     },
     LEWD {
@@ -293,6 +389,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.of(Prepositions.USE);
         }
+
+        @Override
+        public LewdInMessage adaptCommand(Command command) {
+            return new LewdInMessage(command);
+        }
     },
     SPELLBOOK {
         @Override
@@ -307,6 +408,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.of(Prepositions.WITH);
         }
+
+        @Override
+        public SpellbookMessage adaptCommand(Command command) {
+            return new SpellbookMessage(command);
+        }
     },
     STATS {
         @Override
@@ -318,6 +424,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.allOf(Prepositions.class);
         }
+
+        @Override
+        public StatsInMessage adaptCommand(Command command) {
+            return new StatsInMessage(command);
+        }
     },
     REPEAT {
         @Override
@@ -328,6 +439,11 @@ public enum AMessageType implements Taggable {
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.noneOf(Prepositions.class);
+        }
+
+        @Override
+        public RepeatInMessage adaptCommand(Command command) {
+            return new RepeatInMessage(command);
         }
     },
     FOLLOW {
@@ -357,6 +473,11 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.of(Prepositions.USE, Prepositions.AS);
         }
+
+        @Override
+        public FollowMessage adaptCommand(Command command) {
+            return new FollowMessage(command);
+        }
     },
     REST {
         @Override
@@ -367,6 +488,11 @@ public enum AMessageType implements Taggable {
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.noneOf(Prepositions.class);
+        }
+
+        @Override
+        public RestMessage adaptCommand(Command command) {
+            return new RestMessage(command);
         }
     };
 
@@ -391,6 +517,8 @@ public enum AMessageType implements Taggable {
     public abstract boolean checkValidity(ICommand command);
 
     public abstract EnumSet<Prepositions> getAllowedPrepositions();
+
+    public abstract CommandAdapter adaptCommand(Command command);
 
     @Override
     public String getStartTag() {

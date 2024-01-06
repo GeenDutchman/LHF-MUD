@@ -7,11 +7,15 @@ import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
 import com.lhf.messages.grammar.Prepositions;
+import com.lhf.server.interfaces.NotNull;
 
 abstract class CommandAdapter {
     protected final Command command;
 
-    protected CommandAdapter(Command command) {
+    protected CommandAdapter(@NotNull Command command) {
+        if (command == null) {
+            throw new IllegalArgumentException("Cannot adapt null command!");
+        }
         this.command = command;
     }
 
