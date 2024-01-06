@@ -8,7 +8,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
+import com.lhf.messages.grammar.GrammaredCommandPhrase;
+import com.lhf.messages.grammar.Phrase;
+import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.grammar.Prepositions;
 
 public final class Command implements ICommand {
@@ -19,7 +27,51 @@ public final class Command implements ICommand {
     protected final EnumMap<Prepositions, String> indirects;
     protected final EnumSet<Prepositions> prepositions;
 
-    protected Command(CommandMessage command, String whole, Boolean isValid) {
+    public static Command parse(String messageIn) {
+        String toParse = messageIn.trim();
+        GrammaredCommandPhrase parser = new GrammaredCommandPhrase();
+
+        try {
+            Pattern splitter = Pattern.compile("\\w+|[^\\s]|\\s+");
+            Matcher matcher = splitter.matcher(toParse);
+            Boolean accepted = true;
+            while (matcher.find()) {
+                accepted = accepted && parser.parse(matcher.group());
+            }
+            CommandMessage commandWord = parser.getCommandWord().getCommand();
+            if (commandWord == null) {
+                Logger.getLogger(Command.class.getName()).log(Level.WARNING, "Bad parsing, converting to help");
+                return new Command(CommandMessage.HELP, toParse, false);
+            }
+            Command parsed = new Command(commandWord, toParse, accepted);
+            parsed.setValid(accepted && parser.isValid());
+            if (parser.getWhat().isPresent()) {
+                for (Phrase direct : parser.getWhat().get()) {
+                    parsed.addDirect(direct.getResult());
+                }
+            }
+            if (parser.getPreps().isPresent()) {
+                PrepositionalPhrases pp = parser.getPreps().get();
+                for (final Prepositions preposition : pp) {
+                    // TODO: use the list associated per preposition
+                    parsed.addIndirect(preposition, pp.getPhraseListByPreposition(preposition).getResult());
+                }
+            }
+            parsed.setValid(parsed.isValid() && commandWord.checkValidity(parsed));
+            return parsed;
+        } catch (PatternSyntaxException e) {
+            Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, e);
+            return new Command(CommandMessage.HELP, toParse, false);
+        } catch (IllegalArgumentException iae) {
+            Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, iae);
+            return new Command(CommandMessage.HELP, toParse, false);
+        } catch (NullPointerException npe) {
+            Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, npe);
+            return new Command(CommandMessage.HELP, toParse, false);
+        }
+    }
+
+    private Command(CommandMessage command, String whole, Boolean isValid) {
         this.command = command;
         this.whole = whole;
         this.isValid = isValid;
@@ -53,20 +105,17 @@ public final class Command implements ICommand {
         return this.isValid;
     }
 
-    // package private
-    Command setValid(Boolean valid) {
+    protected Command setValid(Boolean valid) {
         this.isValid = valid;
         return this;
     }
 
-    // package private
-    Command addDirect(String direct) {
+    protected Command addDirect(String direct) {
         this.directs.add(direct);
         return this;
     }
 
-    // package private
-    Command addIndirect(Prepositions preposition, String phrase) {
+    protected Command addIndirect(Prepositions preposition, String phrase) {
         this.indirects.put(preposition, phrase);
         return this;
     }

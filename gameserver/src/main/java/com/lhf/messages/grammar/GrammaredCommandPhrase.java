@@ -1,8 +1,9 @@
 package com.lhf.messages.grammar;
 
+import java.util.EnumSet;
 import java.util.Optional;
-import java.util.Set;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 import com.lhf.messages.GrammarStateMachine;
 
@@ -11,11 +12,11 @@ public class GrammaredCommandPhrase implements GrammarStateMachine {
     protected Optional<PhraseList> optWhat;
     protected Optional<PrepositionalPhrases> optPreps;
     protected Boolean invalidated;
-    protected Set<String> prepositions;
+    protected EnumSet<Prepositions> prepositions;
 
     public GrammaredCommandPhrase() {
 
-        this.prepositions = Prepositions.asStringSet();
+        this.prepositions = Prepositions.asEnumSet();
 
         this.commandWord = new CommandWord();
         this.optWhat = Optional.empty();
@@ -24,11 +25,11 @@ public class GrammaredCommandPhrase implements GrammarStateMachine {
 
     }
 
-    public GrammaredCommandPhrase(Set<String> prepositions) {
+    public GrammaredCommandPhrase(EnumSet<Prepositions> prepositions) {
         if (prepositions != null) {
             this.prepositions = prepositions;
         } else {
-            this.prepositions = Prepositions.asStringSet();
+            this.prepositions = Prepositions.asEnumSet();
         }
 
         this.commandWord = new CommandWord();
@@ -69,7 +70,8 @@ public class GrammaredCommandPhrase implements GrammarStateMachine {
 
         if (this.optWhat.isEmpty()) {
             // this should only happen on the second token or later
-            this.optWhat = Optional.of(new PhraseList(this.prepositions));
+            this.optWhat = Optional.of(new PhraseList(
+                    this.prepositions.stream().map(prep -> prep.name().toLowerCase()).collect(Collectors.toSet())));
             accepted = this.optWhat.get().parse(token);
             if (!accepted) {
                 this.invalidated = true; // e.g. if we get a preposition right off

@@ -1,5 +1,6 @@
 package com.lhf.messages.grammar;
 
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -12,6 +13,10 @@ public enum Prepositions {
             preps.add(prep.toString().toLowerCase());
         }
         return preps;
+    }
+
+    public static EnumSet<Prepositions> asEnumSet() {
+        return EnumSet.allOf(Prepositions.class);
     }
 
     public static boolean isPreposition(String word) {
