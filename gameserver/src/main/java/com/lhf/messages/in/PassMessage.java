@@ -3,17 +3,11 @@ package com.lhf.messages.in;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
 
-public class PassMessage extends Command {
+public class PassMessage extends CommandAdapter {
 
-    PassMessage(String whole) {
-        super(CommandMessage.PASS, whole, true);
-    }
-
-    @Override
-    public Boolean isValid() {
-        return super.isValid() && this.directs.size() == 0 && this.indirects.size() == 0;
+    PassMessage(Command command) {
+        super(command);
     }
 
     @Override

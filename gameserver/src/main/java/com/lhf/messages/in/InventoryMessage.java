@@ -3,17 +3,11 @@ package com.lhf.messages.in;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
 
-public class InventoryMessage extends Command {
+public class InventoryMessage extends CommandAdapter {
 
-    InventoryMessage(String payload) {
-        super(CommandMessage.INVENTORY, payload, true);
-    }
-
-    @Override
-    public Boolean isValid() {
-        return super.isValid() && this.directs.size() == 0 && this.indirects.size() == 0;
+    InventoryMessage(Command command) {
+        super(command);
     }
 
     @Override

@@ -1,37 +1,40 @@
 package com.lhf.messages;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 
-public abstract class Command {
-    protected String whole;
+import com.lhf.messages.grammar.Prepositions;
+
+public final class Command implements ICommand {
+    protected final String whole;
     protected Boolean isValid;
-    protected CommandMessage command;
-    protected List<String> directs;
-    protected Map<String, String> indirects;
-    protected Set<String> prepositions;
+    protected final CommandMessage command;
+    protected final List<String> directs;
+    protected final EnumMap<Prepositions, String> indirects;
+    protected final EnumSet<Prepositions> prepositions;
 
     protected Command(CommandMessage command, String whole, Boolean isValid) {
         this.command = command;
         this.whole = whole;
         this.isValid = isValid;
         this.directs = new ArrayList<>();
-        this.indirects = new HashMap<>();
-        this.prepositions = new HashSet<>();
+        this.indirects = new EnumMap<>(Prepositions.class);
+        this.prepositions = EnumSet.noneOf(Prepositions.class);
     }
 
-    protected Command addPreposition(String preposition) {
+    protected Command addPreposition(Prepositions preposition) {
         this.prepositions.add(preposition);
         return this;
     }
 
-    protected Set<String> getPrepositions() {
-        return this.prepositions;
+    protected Set<Prepositions> getPrepositions() {
+        return Collections.unmodifiableSet(this.prepositions);
     }
 
     public String getWhole() {
@@ -63,21 +66,22 @@ public abstract class Command {
     }
 
     // package private
-    Command addIndirect(String preposition, String phrase) {
+    Command addIndirect(Prepositions preposition, String phrase) {
         this.indirects.put(preposition, phrase);
         return this;
     }
 
+    @Deprecated(forRemoval = true)
     public List<String> getWhat() {
         return this.directs;
     }
 
-    public String getByPreposition(String preposition) {
+    public String getByPreposition(Prepositions preposition) {
         return this.indirects.get(preposition);
     }
 
-    public Map<String, String> getIndirects() {
-        return this.indirects;
+    public Map<Prepositions, String> getIndirects() {
+        return Collections.unmodifiableMap(this.indirects);
     }
 
     @Override
@@ -143,6 +147,7 @@ public abstract class Command {
         StringJoiner sj = new StringJoiner(" ");
         sj.add("Message:").add(this.getType().toString());
         sj.add("Valid:").add(this.isValid().toString());
+        sj.add("Whole:").add(this.getWhole());
         return sj.toString();
     }
 

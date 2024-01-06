@@ -6,41 +6,27 @@ import java.util.StringJoiner;
 import java.util.regex.Pattern;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
+import com.lhf.messages.grammar.Prepositions;
 
-public class SpellbookMessage extends Command {
+public class SpellbookMessage extends CommandAdapter {
 
-    SpellbookMessage(String arguments) {
-        super(CommandMessage.SPELLBOOK, arguments, true);
-        this.addPreposition("with");
-    }
-
-    public String getTarget() {
-        if (this.directs.size() < 1) {
-            return null;
-        }
-        return this.directs.get(0);
+    SpellbookMessage(Command command) {
+        super(command);
     }
 
     public String getSpellName() {
-        return this.getTarget();
-    }
-
-    @Override
-    public Boolean isValid() {
-        Boolean indirectsvalid = true;
-        if (this.indirects.size() >= 1) {
-            indirectsvalid = this.indirects.containsKey("with");
+        if (this.getDirects().size() < 1) {
+            return null;
         }
-        return super.isValid() && this.directs.size() >= 0 && indirectsvalid;
+        return this.getDirects().get(0);
     }
 
     public List<String> getWithFilters() {
-        if (!this.indirects.containsKey("with")) {
+        if (!this.getIndirects().containsKey(Prepositions.WITH)) {
             return new ArrayList<>();
         }
         List<String> filters = new ArrayList<>();
-        String[] splitten = this.indirects.get("with").split(Pattern.quote(","));
+        String[] splitten = this.getIndirects().get(Prepositions.WITH).split(Pattern.quote(","));
         for (String filter : splitten) {
             filters.add(filter.trim());
         }
@@ -52,7 +38,7 @@ public class SpellbookMessage extends Command {
         StringJoiner sj = new StringJoiner(" ");
         sj.add(super.toString());
         sj.add("SpellName:");
-        String thing = this.getTarget();
+        String thing = this.getSpellName();
         if (thing != null) {
             sj.add(thing);
         } else {

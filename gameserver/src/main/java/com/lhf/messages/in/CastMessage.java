@@ -6,38 +6,27 @@ import java.util.StringJoiner;
 import java.util.regex.Pattern;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
+import com.lhf.messages.grammar.Prepositions;
 
-public class CastMessage extends Command {
+public class CastMessage extends CommandAdapter {
 
-    CastMessage(String payload) {
-        super(CommandMessage.CAST, payload, true);
-        this.addPreposition("at");
-        this.addPreposition("use");
-    }
-
-    @Override
-    public Boolean isValid() {
-        Boolean indirectsvalid = true;
-        if (this.indirects.size() >= 1) {
-            indirectsvalid = this.indirects.containsKey("at") || this.indirects.containsKey("use");
-        }
-        return super.isValid() && this.directs.size() == 1 && indirectsvalid;
+    CastMessage(Command command) {
+        super(command);
     }
 
     public String getInvocation() {
-        if (this.directs.size() < 1) {
+        if (this.getDirects().size() < 1) {
             return null;
         }
-        return this.directs.get(0);
+        return this.getDirects().get(0);
     }
 
     public List<String> getTargets() {
-        if (!this.indirects.containsKey("at")) {
+        if (!this.getIndirects().containsKey(Prepositions.AT)) {
             return new ArrayList<>();
         }
         List<String> targets = new ArrayList<>();
-        String[] splitten = this.indirects.get("at").split(Pattern.quote(", ")); // TODO: test this
+        String[] splitten = this.getIndirects().get(Prepositions.AT).split(Pattern.quote(", ")); // TODO: test this
         for (String target : splitten) {
             targets.add(target);
         }
@@ -45,7 +34,7 @@ public class CastMessage extends Command {
     }
 
     public Integer getLevel() {
-        String value = this.indirects.getOrDefault("use", null);
+        String value = this.getIndirects().getOrDefault(Prepositions.USE, null);
         if (value == null) {
             return null;
         }

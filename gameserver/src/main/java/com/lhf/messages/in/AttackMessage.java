@@ -5,38 +5,29 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
 
-public class AttackMessage extends Command {
+public class AttackMessage extends CommandAdapter {
 
-    AttackMessage(String payload) {
-        super(CommandMessage.ATTACK, payload, true);
-        this.addPreposition("with");
-    }
-
-    @Override
-    public Boolean isValid() {
-        // have to attack at least one target, and can only attack with at most one
-        // weapon
-        return super.isValid() && this.directs.size() >= 1 && this.indirects.size() <= 1;
+    AttackMessage(Command command) {
+        super(command);
     }
 
     public String getWeapon() {
-        return this.indirects.getOrDefault("with", null);
+        return this.getIndirects().getOrDefault("with", null);
     }
 
     public int getNumTargets() {
-        if (this.directs == null) {
+        if (this.getDirects() == null) {
             return 0;
         }
-        return this.directs.size();
+        return this.getDirects().size();
     }
 
     public List<String> getTargets() {
-        if (this.directs == null || this.directs.size() < 1) {
+        if (this.getDirects() == null || this.getDirects().size() < 1) {
             return null;
         }
-        return new ArrayList<>(this.directs);
+        return new ArrayList<>(this.getDirects());
     }
 
     @Override

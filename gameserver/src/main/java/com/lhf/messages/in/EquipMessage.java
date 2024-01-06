@@ -4,36 +4,22 @@ import java.util.StringJoiner;
 
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
+import com.lhf.messages.grammar.Prepositions;
 
-public class EquipMessage extends Command {
-    EquipMessage(String args) {
-        super(CommandMessage.EQUIP, args, true);
-        this.addPreposition("to");
-    }
-
-    @Override
-    public Boolean isValid() {
-        Boolean validated = true;
-        if (this.indirects.size() > 1) {
-            validated = false;
-        } else {
-            if (this.indirects.containsKey("to")) {
-                validated = this.directs.size() == 1 && EquipmentSlots.isEquipmentSlot(this.getByPreposition("to"));
-            }
-        }
-        return super.isValid() && this.directs.size() >= 1 && validated;
+public class EquipMessage extends CommandAdapter {
+    EquipMessage(Command command) {
+        super(command);
     }
 
     public String getItemName() {
-        if (this.directs.size() < 1) {
+        if (this.getDirects().size() < 1) {
             return null;
         }
-        return this.directs.get(0);
+        return this.getDirects().get(0);
     }
 
     public EquipmentSlots getEquipSlot() {
-        String strSlot = this.getByPreposition("to");
+        String strSlot = this.getByPreposition(Prepositions.TO);
         if (strSlot == null) {
             return null;
         }

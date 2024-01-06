@@ -6,45 +6,24 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
+import com.lhf.messages.grammar.Prepositions;
 
-public class LewdInMessage extends Command {
-    LewdInMessage(String payload) {
-        super(CommandMessage.LEWD, payload, true);
-        this.addPreposition("use");
-    }
-
-    @Override
-    public Boolean isValid() {
-        if (!super.isValid()) {
-            return false;
-        }
-        boolean directsValid = this.directs.size() >= 0 && this.directs.size() == this.getPartners().size();
-        if (!directsValid) {
-            return directsValid;
-        }
-        if (this.indirects.size() > 0 && !this.indirects.containsKey("use")) {
-            return false;
-        }
-        if (this.indirects.containsKey("use")) {
-            String[] splitten = this.split();
-            Set<String> babyNames = this.makeSet(splitten);
-            return splitten.length == babyNames.size();
-        }
-        return true;
+public class LewdInMessage extends CommandAdapter {
+    LewdInMessage(Command command) {
+        super(command);
     }
 
     public Set<String> getPartners() {
-        if (this.directs.size() < 1) {
+        if (this.getDirects().size() < 1) {
             return new TreeSet<>();
         }
         Set<String> partners = new TreeSet<>();
-        partners.addAll(this.directs);
+        partners.addAll(this.getDirects());
         return partners;
     }
 
     private String[] split() {
-        String[] splitten = this.indirects.getOrDefault("use", "").split(Pattern.quote(", "));
+        String[] splitten = this.getIndirects().getOrDefault(Prepositions.USE, "").split(Pattern.quote(", "));
         return splitten;
     }
 
@@ -57,7 +36,7 @@ public class LewdInMessage extends Command {
     }
 
     public Set<String> getNames() {
-        if (this.indirects.size() < 1) {
+        if (this.getIndirects().size() < 1) {
             return new TreeSet<>();
         }
         String[] splitten = this.split();

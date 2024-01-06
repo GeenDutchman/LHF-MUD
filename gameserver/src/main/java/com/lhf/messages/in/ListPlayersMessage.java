@@ -3,17 +3,11 @@ package com.lhf.messages.in;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
 
-public class ListPlayersMessage extends Command {
+public class ListPlayersMessage extends CommandAdapter {
 
-    ListPlayersMessage(String payload) {
-        super(CommandMessage.PLAYERS, payload, true);
-    }
-
-    @Override
-    public Boolean isValid() {
-        return super.isValid() && this.directs.size() == 0 && this.indirects.size() == 0;
+    ListPlayersMessage(Command command) {
+        super(command);
     }
 
     @Override

@@ -3,12 +3,11 @@ package com.lhf.messages.in;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
 
-public class HelpInMessage extends Command {
+public class HelpInMessage extends CommandAdapter {
 
-    protected HelpInMessage(String payload) {
-        super(CommandMessage.HELP, payload, true);
+    protected HelpInMessage(Command command) {
+        super(command);
     }
 
     @Override

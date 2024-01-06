@@ -1,12 +1,11 @@
 package com.lhf.messages.in;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
 
-public class StatsInMessage extends Command {
+public class StatsInMessage extends CommandAdapter {
 
-    StatsInMessage(String whole) {
-        super(CommandMessage.STATS, whole, true);
+    StatsInMessage(Command command) {
+        super(command);
     }
 
 }

@@ -3,44 +3,23 @@ package com.lhf.messages.in;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
+import com.lhf.messages.grammar.Prepositions;
 
-public class FollowMessage extends Command {
+public class FollowMessage extends CommandAdapter {
     private static String AS_OVERRIDE = "override";
     private static String USE_NULL = "null";
 
-    FollowMessage(String payload) {
-        super(CommandMessage.FOLLOW, payload, true);
-        this.addPreposition("as");
-        this.addPreposition("use");
-    }
-
-    @Override
-    public Boolean isValid() {
-        if (!(super.isValid() && this.directs.size() == 1)) {
-            return false;
-        }
-        if (this.indirects.size() > 2) {
-            return false;
-        } else if (this.indirects.size() == 0) {
-            return true;
-        }
-        if (this.indirects.size() == 1 && (AS_OVERRIDE.equalsIgnoreCase(this.indirects.get("as"))
-                || USE_NULL.equalsIgnoreCase(this.indirects.get("use")))) {
-            return true;
-        } else if (this.indirects.size() == 2 && (AS_OVERRIDE.equalsIgnoreCase(this.indirects.get("as"))
-                && USE_NULL.equalsIgnoreCase(this.indirects.get("use")))) {
-            return true;
-        }
-        return false;
+    FollowMessage(Command command) {
+        super(command);
     }
 
     public String getPersonToFollow() {
-        return USE_NULL.equalsIgnoreCase(this.indirects.get("use")) ? null : this.directs.get(0);
+        return USE_NULL.equalsIgnoreCase(this.getIndirects().get(Prepositions.USE)) ? null : this.getDirects().get(0);
     }
 
     public Boolean isOverride() {
-        return this.indirects.size() == 1 && "override".equalsIgnoreCase(this.indirects.get("as"));
+        return this.getIndirects().size() == 1
+                && AS_OVERRIDE.equalsIgnoreCase(this.getIndirects().get(Prepositions.AS));
     }
 
     @Override
