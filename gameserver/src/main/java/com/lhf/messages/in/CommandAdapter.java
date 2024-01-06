@@ -16,7 +16,7 @@ public abstract class CommandAdapter {
         this.command = command;
     }
 
-    protected final Command getCommand() {
+    public final Command getCommand() {
         return this.command;
     }
 
