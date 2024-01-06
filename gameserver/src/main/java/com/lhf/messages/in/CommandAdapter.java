@@ -9,7 +9,7 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandMessage;
 import com.lhf.messages.grammar.Prepositions;
 
-public abstract class CommandAdapter {
+abstract class CommandAdapter {
     protected final Command command;
 
     protected CommandAdapter(Command command) {
