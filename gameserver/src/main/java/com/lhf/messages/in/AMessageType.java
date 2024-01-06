@@ -23,6 +23,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public HelpInMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new HelpInMessage(command);
         }
     },
@@ -46,6 +49,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public SayMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new SayMessage(command);
         }
     },
@@ -65,6 +71,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public SeeMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new SeeMessage(command);
         }
     },
@@ -82,6 +91,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public GoMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new GoMessage(command);
         }
     },
@@ -98,6 +110,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public AttackMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new AttackMessage(command);
         }
     },
@@ -122,6 +137,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public CastMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new CastMessage(command);
         }
     },
@@ -147,6 +165,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public DropMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new DropMessage(command);
         }
     },
@@ -175,6 +196,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public EquipMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new EquipMessage(command);
         }
     },
@@ -191,6 +215,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public UnequipMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new UnequipMessage(command);
         }
     },
@@ -207,6 +234,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public InteractMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new InteractMessage(command);
         }
     },
@@ -223,6 +253,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public InventoryMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new InventoryMessage(command);
         }
     },
@@ -248,6 +281,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public TakeMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new TakeMessage(command);
         }
     },
@@ -271,6 +307,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public UseMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new UseMessage(command);
         }
     },
@@ -287,6 +326,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public StatusMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new StatusMessage(command);
         }
     },
@@ -303,6 +345,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public ListPlayersMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new ListPlayersMessage(command);
         }
     },
@@ -319,6 +364,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public ExitMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new ExitMessage(command);
         }
     },
@@ -336,6 +384,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public CreateInMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new CreateInMessage(command);
         }
     },
@@ -352,6 +403,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public ShoutMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new ShoutMessage(command);
         }
     },
@@ -368,6 +422,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public PassMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new PassMessage(command);
         }
     },
@@ -392,6 +449,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public LewdInMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new LewdInMessage(command);
         }
     },
@@ -411,6 +471,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public SpellbookMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new SpellbookMessage(command);
         }
     },
@@ -427,6 +490,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public StatsInMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new StatsInMessage(command);
         }
     },
@@ -443,6 +509,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public RepeatInMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new RepeatInMessage(command);
         }
     },
@@ -476,6 +545,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public FollowMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new FollowMessage(command);
         }
     },
@@ -492,6 +564,9 @@ public enum AMessageType implements Taggable {
 
         @Override
         public RestMessage adaptCommand(Command command) {
+            if (command == null || this != command.getType()) {
+                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
+            }
             return new RestMessage(command);
         }
     };
