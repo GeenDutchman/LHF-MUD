@@ -98,7 +98,7 @@ public final class Command implements ICommand {
     }
 
     public List<String> getDirects() {
-        return directs;
+        return Collections.unmodifiableList(directs);
     }
 
     public Boolean isValid() {
@@ -122,7 +122,7 @@ public final class Command implements ICommand {
 
     @Deprecated(forRemoval = true)
     public List<String> getWhat() {
-        return this.directs;
+        return Collections.unmodifiableList(this.directs);
     }
 
     public String getByPreposition(Prepositions preposition) {
