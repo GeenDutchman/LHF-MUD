@@ -20,11 +20,11 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.BadUserDuplicationEvent;
 import com.lhf.messages.events.UserLeftEvent;
 import com.lhf.messages.events.WelcomeEvent;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.Client.ClientID;
@@ -44,7 +44,7 @@ public class Server implements ServerInterface, ConnectionListener {
     protected ClientManager clientManager;
     protected Logger logger;
     protected Set<UserListener> userListeners;
-    protected Map<CommandMessage, CommandHandler> acceptedCommands;
+    protected Map<AMessageType, CommandHandler> acceptedCommands;
 
     public Server() throws IOException {
         this.gameEventProcessorID = new GameEventProcessorID();
@@ -52,9 +52,9 @@ public class Server implements ServerInterface, ConnectionListener {
         this.userManager = new UserManager();
         this.userListeners = new LinkedHashSet<>();
         this.clientManager = new ClientManager();
-        this.acceptedCommands = new EnumMap<>(CommandMessage.class);
-        this.acceptedCommands.put(CommandMessage.EXIT, new ExitHandler());
-        this.acceptedCommands.put(CommandMessage.CREATE, new CreateHandler());
+        this.acceptedCommands = new EnumMap<>(AMessageType.class);
+        this.acceptedCommands.put(AMessageType.EXIT, new ExitHandler());
+        this.acceptedCommands.put(AMessageType.CREATE, new CreateHandler());
         this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
         this.game = new GameBuilder().setServer(this).setDefaults().build(userManager);
         this.logger.exiting(this.getClass().getName(), "NoArgConstructor", "NoArgConstructor");
@@ -67,9 +67,9 @@ public class Server implements ServerInterface, ConnectionListener {
         this.userManager = userManager;
         this.userListeners = new LinkedHashSet<>();
         this.clientManager = clientManager;
-        this.acceptedCommands = new EnumMap<>(CommandMessage.class);
-        this.acceptedCommands.put(CommandMessage.EXIT, new ExitHandler());
-        this.acceptedCommands.put(CommandMessage.CREATE, new CreateHandler());
+        this.acceptedCommands = new EnumMap<>(AMessageType.class);
+        this.acceptedCommands.put(AMessageType.EXIT, new ExitHandler());
+        this.acceptedCommands.put(AMessageType.CREATE, new CreateHandler());
         this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
         this.game = null;
         if (gameBuilder != null) {
@@ -164,7 +164,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.acceptedCommands);
     }
 
@@ -192,8 +192,8 @@ public class Server implements ServerInterface, ConnectionListener {
         private static final String helpString = "Disconnect and leave Ibaif!";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.EXIT;
+        public AMessageType getHandleType() {
+            return AMessageType.EXIT;
         }
 
         @Override
@@ -208,7 +208,7 @@ public class Server implements ServerInterface, ConnectionListener {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.EXIT) {
+            if (cmd != null && cmd.getType() == AMessageType.EXIT) {
                 Server.this.logger.log(Level.INFO, "client " + ctx.getClient().toString() + " is exiting");
                 Client ch = Server.this.clientManager.getConnection(ctx.getClient().getClientID());
 
@@ -245,8 +245,8 @@ public class Server implements ServerInterface, ConnectionListener {
         private static final String helpString = "Create a character in Ibaif!";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.CREATE;
+        public AMessageType getHandleType() {
+            return AMessageType.CREATE;
         }
 
         @Override

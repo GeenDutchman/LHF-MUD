@@ -1,13 +1,13 @@
 package com.lhf.messages.grammar;
 
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GrammarStateMachine;
+import com.lhf.messages.in.AMessageType;
 
 public class CommandWord implements GrammarStateMachine {
-    protected CommandMessage theCommand = null;
+    protected AMessageType theCommand = null;
     protected Boolean dupedEntry = false;
 
-    public CommandMessage getCommand() {
+    public AMessageType getCommand() {
         return this.theCommand;
     }
 
@@ -17,7 +17,7 @@ public class CommandWord implements GrammarStateMachine {
             this.dupedEntry = true;
             return false;
         }
-        this.theCommand = CommandMessage.getCommandMessage(token);
+        this.theCommand = AMessageType.getCommandMessage(token);
         return this.theCommand != null;
     }
 

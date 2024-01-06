@@ -8,6 +8,7 @@ import java.util.logging.Level;
 
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.in.CommandAdapter;
+import com.lhf.messages.in.AMessageType;
 
 /**
  * Meant to hold a buffer of {@link com.lhf.messages.Command Command}s for a
@@ -267,7 +268,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
 
     }
 
-    private static CommandContext addHelps(Map<CommandMessage, CommandHandler<?>> handlers, CommandContext ctx) {
+    private static CommandContext addHelps(Map<AMessageType, CommandHandler<?>> handlers, CommandContext ctx) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
@@ -290,7 +291,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
             ctx = new CommandContext();
         }
         ctx = this.addSelfToContext(ctx);
-        Map<CommandMessage, CommandHandler<?>> handlers = this.getCommands(ctx);
+        Map<AMessageType, CommandHandler<?>> handlers = this.getCommands(ctx);
         ctx = PooledMessageChainHandler.addHelps(handlers, ctx);
         if (cmd != null && handlers != null) {
             CommandHandler<?> handler = handlers.get(cmd.getType());

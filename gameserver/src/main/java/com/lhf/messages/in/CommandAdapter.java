@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.grammar.Prepositions;
 
 abstract class CommandAdapter {
@@ -24,7 +23,7 @@ abstract class CommandAdapter {
         return command.getWhole();
     }
 
-    public CommandMessage getType() {
+    public AMessageType getType() {
         return command.getType();
     }
 

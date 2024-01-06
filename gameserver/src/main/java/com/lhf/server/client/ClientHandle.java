@@ -14,8 +14,8 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.events.BadFatalEvent;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.server.interfaces.ConnectionListener;
 
 public class ClientHandle extends Client implements Runnable {
@@ -31,7 +31,7 @@ public class ClientHandle extends Client implements Runnable {
     private RepeatHandler repeatHandler = new RepeatHandler();
 
     protected class RepeatHandler implements CommandHandler {
-        private static final Set<String> noPrefix = Set.of(CommandMessage.REPEAT.name(), CommandMessage.CREATE.name());
+        private static final Set<String> noPrefix = Set.of(AMessageType.REPEAT.name(), AMessageType.CREATE.name());
 
         public static final boolean isValidRepeatCommand(String prospective) {
             if (prospective == null || prospective.isBlank()) {
@@ -50,8 +50,8 @@ public class ClientHandle extends Client implements Runnable {
         });
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.REPEAT;
+        public AMessageType getHandleType() {
+            return AMessageType.REPEAT;
         }
 
         @Override
@@ -161,9 +161,9 @@ public class ClientHandle extends Client implements Runnable {
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
-        Map<CommandMessage, CommandHandler> cmdMap = super.getCommands(ctx);
-        cmdMap.put(CommandMessage.REPEAT, this.repeatHandler);
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
+        Map<AMessageType, CommandHandler> cmdMap = super.getCommands(ctx);
+        cmdMap.put(AMessageType.REPEAT, this.repeatHandler);
         return cmdMap;
     }
 

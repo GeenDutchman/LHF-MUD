@@ -33,7 +33,6 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.BadGoEvent;
 import com.lhf.messages.events.BadGoEvent.BadGoType;
@@ -45,6 +44,7 @@ import com.lhf.messages.events.PlayerReincarnatedEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SpeakingEvent;
 import com.lhf.messages.events.TickEvent;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.ShoutMessage;
 import com.lhf.server.client.user.UserID;
@@ -181,7 +181,7 @@ public class Dungeon implements Land {
     private final Land.AreaAtlas atlas;
     private UUID startingAreaUUID;
     private transient CommandChainHandler successor;
-    private Map<CommandMessage, CommandHandler> commands;
+    private Map<AMessageType, CommandHandler> commands;
     private transient TreeSet<DungeonEffect> effects;
     private transient final Logger logger;
     private final GameEventProcessorID gameEventProcessorID;
@@ -225,11 +225,11 @@ public class Dungeon implements Land {
         return this.startingAreaUUID;
     }
 
-    private Map<CommandMessage, CommandHandler> buildCommands() {
-        Map<CommandMessage, CommandHandler> cmds = new EnumMap<>(CommandMessage.class);
-        cmds.put(CommandMessage.SHOUT, new ShoutHandler());
-        cmds.put(CommandMessage.GO, new GoHandler());
-        cmds.put(CommandMessage.SEE, new SeeHandler());
+    private Map<AMessageType, CommandHandler> buildCommands() {
+        Map<AMessageType, CommandHandler> cmds = new EnumMap<>(AMessageType.class);
+        cmds.put(AMessageType.SHOUT, new ShoutHandler());
+        cmds.put(AMessageType.GO, new GoHandler());
+        cmds.put(AMessageType.SEE, new SeeHandler());
         return cmds;
     }
 
@@ -405,8 +405,8 @@ public class Dungeon implements Land {
         private final static String helpString = "\"shout [message]\" Tells everyone in the dungeon your message!";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.SHOUT;
+        public AMessageType getHandleType() {
+            return AMessageType.SHOUT;
         }
 
         @Override
@@ -421,7 +421,7 @@ public class Dungeon implements Land {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.SHOUT && cmd instanceof ShoutMessage shoutMessage) {
+            if (cmd != null && cmd.getType() == AMessageType.SHOUT && cmd instanceof ShoutMessage shoutMessage) {
                 if (ctx.getCreature() == null) {
                     ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                             .setHelps(ctx.getHelps()).setCommand(cmd).Build());
@@ -449,8 +449,8 @@ public class Dungeon implements Land {
         private final static String helpString = "\"go [direction]\" Move in the desired direction, if that direction exists.  Like \"go east\"";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.GO;
+        public AMessageType getHandleType() {
+            return AMessageType.GO;
         }
 
         @Override
@@ -465,7 +465,7 @@ public class Dungeon implements Land {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.GO && cmd instanceof GoMessage goMessage) {
+            if (cmd != null && cmd.getType() == AMessageType.GO && cmd instanceof GoMessage goMessage) {
                 if (ctx.getCreature() == null) {
                     ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                             .setHelps(ctx.getHelps()).setCommand(cmd).Build());
@@ -530,8 +530,8 @@ public class Dungeon implements Land {
                 .toString();
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.SEE;
+        public AMessageType getHandleType() {
+            return AMessageType.SEE;
         }
 
         @Override
@@ -546,7 +546,7 @@ public class Dungeon implements Land {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.SEE) {
+            if (cmd != null && cmd.getType() == AMessageType.SEE) {
                 Area presentRoom = ctx.getArea();
                 if (presentRoom != null) {
                     SeeEvent roomSeen = presentRoom.produceMessage();
@@ -581,7 +581,7 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.commands);
     }
 

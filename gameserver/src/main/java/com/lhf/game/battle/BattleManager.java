@@ -42,7 +42,6 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.PooledMessageChainHandler;
 import com.lhf.messages.events.BadTargetSelectedEvent;
@@ -60,6 +59,7 @@ import com.lhf.messages.events.ItemNotPossessedEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.TargetDefendedEvent;
 import com.lhf.messages.in.AttackMessage;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.PassMessage;
 import com.lhf.messages.in.UseMessage;
@@ -160,16 +160,16 @@ public class BattleManager extends SubArea {
     }
 
     @Override
-    protected EnumMap<CommandMessage, CommandHandler> buildCommands() {
-        EnumMap<CommandMessage, CommandHandler> cmds = new EnumMap<>(CommandMessage.class);
-        cmds.put(CommandMessage.SEE, new SeeHandler());
-        cmds.put(CommandMessage.GO, new GoHandler());
-        cmds.put(CommandMessage.PASS, new PassHandler());
-        cmds.put(CommandMessage.USE, new UseHandler());
-        cmds.put(CommandMessage.STATS, new StatsHandler());
-        cmds.put(CommandMessage.ATTACK, new AttackHandler());
-        cmds.put(CommandMessage.EXIT, new SubAreaExitHandler());
-        cmds.put(CommandMessage.SAY, new SubAreaSayHandler());
+    protected EnumMap<AMessageType, CommandHandler> buildCommands() {
+        EnumMap<AMessageType, CommandHandler> cmds = new EnumMap<>(AMessageType.class);
+        cmds.put(AMessageType.SEE, new SeeHandler());
+        cmds.put(AMessageType.GO, new GoHandler());
+        cmds.put(AMessageType.PASS, new PassHandler());
+        cmds.put(AMessageType.USE, new UseHandler());
+        cmds.put(AMessageType.STATS, new StatsHandler());
+        cmds.put(AMessageType.ATTACK, new AttackHandler());
+        cmds.put(AMessageType.EXIT, new SubAreaExitHandler());
+        cmds.put(AMessageType.SAY, new SubAreaSayHandler());
         return cmds;
     }
 
@@ -609,7 +609,7 @@ public class BattleManager extends SubArea {
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         if (this.cmds == null) {
             this.cmds = this.buildCommands();
         }
@@ -661,8 +661,8 @@ public class BattleManager extends SubArea {
         private final static String helpString = "\"stats\" Retrieves the statistics about the current battle.";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.STATS;
+        public AMessageType getHandleType() {
+            return AMessageType.STATS;
         }
 
         @Override
@@ -700,8 +700,8 @@ public class BattleManager extends SubArea {
                 .add("Like \"use potion on Bob\"").toString();
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.USE;
+        public AMessageType getHandleType() {
+            return AMessageType.USE;
         }
 
         @Override
@@ -736,8 +736,8 @@ public class BattleManager extends SubArea {
         private static String helpString = "\"pass\" Skips your turn in battle!";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.PASS;
+        public AMessageType getHandleType() {
+            return AMessageType.PASS;
         }
 
         @Override
@@ -792,9 +792,9 @@ public class BattleManager extends SubArea {
                     // have GO, else not
                     while (chainHandler != null) {
                         copyContext = chainHandler.addSelfToContext(copyContext);
-                        Map<CommandMessage, CommandHandler> handlers = chainHandler.getCommands(copyContext);
+                        Map<AMessageType, CommandHandler> handlers = chainHandler.getCommands(copyContext);
                         if (handlers != null) {
-                            CommandHandler handler = handlers.get(CommandMessage.GO);
+                            CommandHandler handler = handlers.get(AMessageType.GO);
                             if (handler != null && handler.isEnabled(copyContext)) {
                                 return true;
                             }
@@ -805,8 +805,8 @@ public class BattleManager extends SubArea {
                 });
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.GO;
+        public AMessageType getHandleType() {
+            return AMessageType.GO;
         }
 
         @Override
@@ -821,7 +821,7 @@ public class BattleManager extends SubArea {
 
         @Override
         public Reply flushHandle(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.GO && cmd instanceof GoMessage goMessage) {
+            if (cmd != null && cmd.getType() == AMessageType.GO && cmd instanceof GoMessage goMessage) {
                 Integer check = 10 + BattleManager.this.actionPools.size();
                 MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
                 BattleCreatureFledEvent.Builder builder = BattleCreatureFledEvent.getBuilder()
@@ -939,8 +939,8 @@ public class BattleManager extends SubArea {
         }
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.ATTACK;
+        public AMessageType getHandleType() {
+            return AMessageType.ATTACK;
         }
 
         @Override

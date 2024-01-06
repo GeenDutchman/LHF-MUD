@@ -4,11 +4,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.lhf.messages.grammar.Prepositions;
+import com.lhf.messages.in.AMessageType;
 
 public interface ICommand {
     public String getWhole();
 
-    public CommandMessage getType();
+    public AMessageType getType();
 
     public List<String> getDirects();
 

@@ -24,7 +24,6 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.PooledMessageChainHandler;
 import com.lhf.messages.events.BadGoEvent;
 import com.lhf.messages.events.BadGoEvent.BadGoType;
@@ -32,6 +31,7 @@ import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.LewdEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.LewdInMessage;
 
@@ -307,15 +307,15 @@ public class RestArea extends SubArea {
     }
 
     @Override
-    protected EnumMap<CommandMessage, CommandHandler> buildCommands() {
-        EnumMap<CommandMessage, CommandHandler> cmds = new EnumMap<>(CommandMessage.class);
-        cmds.put(CommandMessage.REST, new RestHandler());
-        cmds.put(CommandMessage.PASS, new PassHandler());
-        cmds.put(CommandMessage.GO, new GoHandler());
-        cmds.put(CommandMessage.STATS, new StatsHandler());
-        cmds.put(CommandMessage.SEE, new SubAreaSeeHandler());
-        cmds.put(CommandMessage.SAY, new SubAreaSayHandler());
-        cmds.put(CommandMessage.EXIT, new SubAreaExitHandler());
+    protected EnumMap<AMessageType, CommandHandler> buildCommands() {
+        EnumMap<AMessageType, CommandHandler> cmds = new EnumMap<>(AMessageType.class);
+        cmds.put(AMessageType.REST, new RestHandler());
+        cmds.put(AMessageType.PASS, new PassHandler());
+        cmds.put(AMessageType.GO, new GoHandler());
+        cmds.put(AMessageType.STATS, new StatsHandler());
+        cmds.put(AMessageType.SEE, new SubAreaSeeHandler());
+        cmds.put(AMessageType.SAY, new SubAreaSayHandler());
+        cmds.put(AMessageType.EXIT, new SubAreaExitHandler());
         return cmds;
     }
 
@@ -378,8 +378,8 @@ public class RestArea extends SubArea {
         private final static String helpString = "\"REST\" puts yourself in state of REST, use \"GO UP\" to get out of it";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.REST;
+        public AMessageType getHandleType() {
+            return AMessageType.REST;
         }
 
         @Override
@@ -394,7 +394,7 @@ public class RestArea extends SubArea {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd == null || !CommandMessage.REST.equals(cmd.getType())) {
+            if (cmd == null || !AMessageType.REST.equals(cmd.getType())) {
                 return ctx.failhandle();
             }
             RestArea.this.addCreature(ctx.getCreature());
@@ -415,8 +415,8 @@ public class RestArea extends SubArea {
         private static final String helpString = "Use the command <command>GO UP</command> to get out of bed. ";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.GO;
+        public AMessageType getHandleType() {
+            return AMessageType.GO;
         }
 
         @Override
@@ -431,7 +431,7 @@ public class RestArea extends SubArea {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.GO && cmd instanceof GoMessage goMessage) {
+            if (cmd != null && cmd.getType() == AMessageType.GO && cmd instanceof GoMessage goMessage) {
                 if (Directions.UP.equals(goMessage.getDirection())) {
                     RestArea.this.removeCreature(ctx.getCreature());
                     return ctx.handled();
@@ -456,8 +456,8 @@ public class RestArea extends SubArea {
         private final static String helpString = "\"stats\" Retrieves the statistics about the current battle.";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.STATS;
+        public AMessageType getHandleType() {
+            return AMessageType.STATS;
         }
 
         @Override
@@ -524,8 +524,8 @@ public class RestArea extends SubArea {
                 .and(ctx -> ctx.getCreature().getEquipped(EquipmentSlots.ARMOR) == null);
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.LEWD;
+        public AMessageType getHandleType() {
+            return AMessageType.LEWD;
         }
 
         @Override
@@ -574,7 +574,7 @@ public class RestArea extends SubArea {
 
         @Override
         public Reply flushHandle(CommandContext ctx, Command cmd) {
-            if (cmd != null && CommandMessage.LEWD.equals(cmd.getType())
+            if (cmd != null && AMessageType.LEWD.equals(cmd.getType())
                     && cmd instanceof LewdInMessage lewdInMessage) {
 
                 Set<String> partners = lewdInMessage.getPartners();
@@ -608,8 +608,8 @@ public class RestArea extends SubArea {
         private final static String helpString = "\"pass\" to decline the current lewdness";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.LEWD;
+        public AMessageType getHandleType() {
+            return AMessageType.LEWD;
         }
 
         @Override
@@ -629,7 +629,7 @@ public class RestArea extends SubArea {
 
         @Override
         public Reply flushHandle(CommandContext ctx, Command cmd) {
-            if (cmd == null || !CommandMessage.PASS.equals(cmd.getType())) {
+            if (cmd == null || !AMessageType.PASS.equals(cmd.getType())) {
                 return ctx.failhandle();
             }
             synchronized (RestArea.this.parties) {

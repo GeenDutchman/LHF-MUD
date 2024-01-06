@@ -35,9 +35,9 @@ import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.SeeEvent;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.PooledMessageChainHandler;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.SeeMessage;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
@@ -69,7 +69,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     protected final transient Area area;
     protected final transient AtomicReference<RoundThread> roundThread;
     protected final boolean allowCasting;
-    protected transient EnumMap<CommandMessage, CommandHandler> cmds;
+    protected transient EnumMap<AMessageType, CommandHandler> cmds;
     protected transient NavigableMap<ICreature, Deque<IPoolEntry>> actionPools;
 
     protected abstract class RoundThread extends Thread {
@@ -338,10 +338,10 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         this.roundDurationMilliseconds = builder.getWaitMilliseconds();
         this.allowCasting = builder.isAllowCasting();
         this.cmds = this.buildCommands();
-        this.cmds.computeIfAbsent(CommandMessage.EXIT, key -> new SubAreaExitHandler());
+        this.cmds.computeIfAbsent(AMessageType.EXIT, key -> new SubAreaExitHandler());
         if (this.allowCasting) {
-            this.cmds.computeIfAbsent(CommandMessage.CAST, key -> new SubAreaCastHandler());
-            this.cmds.computeIfAbsent(CommandMessage.SPELLBOOK, key -> new SubAreaSpellbookHandler());
+            this.cmds.computeIfAbsent(AMessageType.CAST, key -> new SubAreaCastHandler());
+            this.cmds.computeIfAbsent(AMessageType.SPELLBOOK, key -> new SubAreaSpellbookHandler());
         }
         this.actionPools = Collections.synchronizedNavigableMap(new TreeMap<>());
         this.roundThread = new AtomicReference<>(null);
@@ -383,14 +383,14 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         }
     }
 
-    protected abstract EnumMap<CommandMessage, CommandHandler> buildCommands();
+    protected abstract EnumMap<AMessageType, CommandHandler> buildCommands();
 
     public final Area getArea() {
         return this.area;
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         if (this.cmds == null) {
             this.cmds = this.buildCommands();
         }
@@ -613,8 +613,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         }
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.EXIT;
+        public AMessageType getHandleType() {
+            return AMessageType.EXIT;
         }
 
         @Override
@@ -629,7 +629,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.EXIT) {
+            if (cmd != null && cmd.getType() == AMessageType.EXIT) {
                 SubArea.this.log(Level.WARNING, String.format("%s is full-out EXITING sub-area", ctx));
                 SubArea.this.removeCreature(ctx.getCreature());
                 if (SubArea.this.area != null) {
@@ -654,8 +654,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         }
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.SAY;
+        public AMessageType getHandleType() {
+            return AMessageType.SAY;
         }
 
         @Override
@@ -670,7 +670,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.SAY) {
+            if (cmd != null && cmd.getType() == AMessageType.SAY) {
                 if (SubArea.this.area != null) {
                     return SubArea.this.area.handleChain(ctx, cmd);
                 }
@@ -690,8 +690,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         private static final String helpString = "Shouts stuff to the people in the land.";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.SHOUT;
+        public AMessageType getHandleType() {
+            return AMessageType.SHOUT;
         }
 
         @Override
@@ -706,7 +706,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.SHOUT) {
+            if (cmd != null && cmd.getType() == AMessageType.SHOUT) {
                 if (SubArea.this.area != null) {
                     return SubArea.this.area.handleChain(ctx, cmd);
                 }
@@ -726,8 +726,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         private static final String helpString = "\"see\" Will give you some information about the area immediately around you.\r\n";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.SEE;
+        public AMessageType getHandleType() {
+            return AMessageType.SEE;
         }
 
         @Override
@@ -742,7 +742,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.SEE && cmd instanceof SeeMessage seeMessage) {
+            if (cmd != null && cmd.getType() == AMessageType.SEE && cmd instanceof SeeMessage seeMessage) {
                 if (seeMessage.getThing() != null && SubArea.this.area != null) {
                     return SubArea.this.area.handleChain(ctx, cmd);
                 }
@@ -761,8 +761,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
     protected class SubAreaCastHandler implements SubAreaCommandHandler {
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.CAST;
+        public AMessageType getHandleType() {
+            return AMessageType.CAST;
         }
 
         @Override
@@ -796,8 +796,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
     protected class SubAreaSpellbookHandler implements SubAreaCommandHandler {
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.SPELLBOOK;
+        public AMessageType getHandleType() {
+            return AMessageType.SPELLBOOK;
         }
 
         @Override

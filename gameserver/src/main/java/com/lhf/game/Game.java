@@ -30,9 +30,9 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.PlayersListedEvent;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
@@ -49,7 +49,7 @@ public class Game implements UserListener, CommandChainHandler {
 	private final AIRunner aiRunner;
 	private final ConversationManager conversationManager;
 	private final StatblockManager statblockManager;
-	private Map<CommandMessage, CommandHandler> commands;
+	private Map<AMessageType, CommandHandler> commands;
 	private final GameEventProcessorID gameEventProcessorID;
 
 	public static class GameBuilder {
@@ -203,8 +203,8 @@ public class Game implements UserListener, CommandChainHandler {
 		}
 		this.userManager = userManager;
 		this.logger.log(Level.INFO, "Created Game");
-		this.commands = new EnumMap<>(CommandMessage.class);
-		this.commands.put(CommandMessage.PLAYERS, new PlayersHandler());
+		this.commands = new EnumMap<>(AMessageType.class);
+		this.commands.put(AMessageType.PLAYERS, new PlayersHandler());
 	}
 
 	@Override
@@ -256,8 +256,8 @@ public class Game implements UserListener, CommandChainHandler {
 		private static final String helpString = "List the players currently in the game.";
 
 		@Override
-		public CommandMessage getHandleType() {
-			return CommandMessage.PLAYERS;
+		public AMessageType getHandleType() {
+			return AMessageType.PLAYERS;
 		}
 
 		@Override
@@ -284,7 +284,7 @@ public class Game implements UserListener, CommandChainHandler {
 	}
 
 	@Override
-	public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+	public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
 		return Collections.unmodifiableMap(this.commands);
 	}
 

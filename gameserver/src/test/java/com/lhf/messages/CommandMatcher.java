@@ -5,26 +5,28 @@ import java.util.List;
 
 import org.mockito.ArgumentMatcher;
 
+import com.lhf.messages.in.AMessageType;
+
 public class CommandMatcher implements ArgumentMatcher<Command> {
-    protected CommandMessage cmd;
+    protected AMessageType cmd;
     protected List<String> contained;
     protected List<String> notContained;
     protected boolean printIt = false;
     protected String sentBy = "";
 
-    public CommandMatcher(CommandMessage cmd, List<String> contained, List<String> notContained) {
+    public CommandMatcher(AMessageType cmd, List<String> contained, List<String> notContained) {
         this.cmd = cmd;
         this.contained = contained;
         this.notContained = notContained;
     }
 
-    public CommandMatcher(CommandMessage cmd, String contained) {
+    public CommandMatcher(AMessageType cmd, String contained) {
         this.cmd = cmd;
         this.contained = List.of(contained);
         this.notContained = null;
     }
 
-    public CommandMatcher(CommandMessage cmd) {
+    public CommandMatcher(AMessageType cmd) {
         this.cmd = cmd;
         this.contained = null;
         this.notContained = null;

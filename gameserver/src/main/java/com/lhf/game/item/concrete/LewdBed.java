@@ -28,8 +28,8 @@ import com.lhf.messages.events.LewdEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.LewdInMessage;
 
 public class LewdBed extends Bed {
@@ -84,8 +84,8 @@ public class LewdBed extends Bed {
         super(room, builder.subBuilder);
         this.vrijPartijen = Collections.synchronizedNavigableMap(new TreeMap<>());
         this.lewdProduct = builder.lewdProduct;
-        this.commands.put(CommandMessage.LEWD, new LewdHandler());
-        this.commands.put(CommandMessage.PASS, new PassHandler());
+        this.commands.put(AMessageType.LEWD, new LewdHandler());
+        this.commands.put(AMessageType.PASS, new PassHandler());
     }
 
     public LewdBed setLewdProduct(LewdProduct lewdProduct) {
@@ -108,8 +108,8 @@ public class LewdBed extends Bed {
         private final static String helpString = "\"pass\" to decline all the lewdness";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.LEWD;
+        public AMessageType getHandleType() {
+            return AMessageType.LEWD;
         }
 
         @Override
@@ -124,7 +124,7 @@ public class LewdBed extends Bed {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd == null || !CommandMessage.PASS.equals(cmd.getType())) {
+            if (cmd == null || !AMessageType.PASS.equals(cmd.getType())) {
                 return ctx.failhandle();
             }
             Iterator<VrijPartij> it = LewdBed.this.vrijPartijen.values().iterator();
@@ -148,8 +148,8 @@ public class LewdBed extends Bed {
         private final static String helpString = "\"lewd [creature]\" lewd another person in the bed";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.LEWD;
+        public AMessageType getHandleType() {
+            return AMessageType.LEWD;
         }
 
         @Override
@@ -165,7 +165,7 @@ public class LewdBed extends Bed {
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             LewdEvent.Builder lewdOutMessage = LewdEvent.getBuilder();
-            if (cmd == null || cmd.getType() != CommandMessage.LEWD || !(cmd instanceof LewdInMessage)) {
+            if (cmd == null || cmd.getType() != AMessageType.LEWD || !(cmd instanceof LewdInMessage)) {
                 return ctx.failhandle();
             }
             if (ctx.getCreature() == null) {

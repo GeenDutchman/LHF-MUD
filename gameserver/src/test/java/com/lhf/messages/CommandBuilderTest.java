@@ -11,6 +11,7 @@ import org.junit.jupiter.api.TestFactory;
 
 import com.google.common.truth.Truth;
 import com.lhf.messages.in.CommandAdapter;
+import com.lhf.messages.in.AMessageType;
 
 public class CommandBuilderTest {
         class ParseTestCase {
@@ -20,7 +21,7 @@ public class CommandBuilderTest {
                 public Boolean isValid;
 
                 public ParseTestCase(String testName, String input, Boolean isValid,
-                                CommandMessage type) {
+                                AMessageType type) {
                         this.testName = testName;
                         this.input = input;
                         this.isValid = isValid;
@@ -86,40 +87,40 @@ public class CommandBuilderTest {
         Stream<DynamicTest> testParse() {
                 ArrayList<ParseTestCase> testCases = new ArrayList<>();
                 testCases.add(new ParseTestCase("Command only, CAPS", "SAY", true,
-                                CommandMessage.SAY));
+                                AMessageType.SAY));
                 testCases.add(new ParseTestCase("Command only, lower", "equip", true,
-                                CommandMessage.EQUIP));
+                                AMessageType.EQUIP));
                 testCases.add(
-                                new ParseTestCase("Command only, enum", CommandMessage.ATTACK.toString(),
-                                                true, CommandMessage.ATTACK));
+                                new ParseTestCase("Command only, enum", AMessageType.ATTACK.toString(),
+                                                true, AMessageType.ATTACK));
                 testCases.add(new ParseTestCase("Not command", "Zirtech", false, null));
                 testCases.add(
                                 new ParseTestCase("Single direct object", "Say hello", true,
-                                                CommandMessage.SAY).addDirect("hello"));
+                                                AMessageType.SAY).addDirect("hello"));
                 testCases.add(new ParseTestCase("Quoted direct object", "Say \"hello\"",
-                                true, CommandMessage.SAY)
+                                true, AMessageType.SAY)
                                 .addDirect("\"hello\""));
                 testCases.add(new ParseTestCase("Quoted direct object with preposition",
                                 "Say\"hello to my little friend\"",
-                                true, CommandMessage.SAY).addDirect("\"hello to my little friend\""));
+                                true, AMessageType.SAY).addDirect("\"hello to my little friend\""));
                 testCases.add(new ParseTestCase("Quoted direct object with preposition",
-                                "Say \"hello to my little friend\" to arnold", true, CommandMessage.SAY)
+                                "Say \"hello to my little friend\" to arnold", true, AMessageType.SAY)
                                 .addDirect("\"hello to my little friend\"").addPrepPhrase("to", "arnold"));
                 testCases.add(new ParseTestCase("Quoted direct object with preposition and punctuation",
                                 "Say \"hello there!\" to arnold", true,
-                                CommandMessage.SAY).addDirect("\"hello there!\"")
+                                AMessageType.SAY).addDirect("\"hello there!\"")
                                 .addPrepPhrase("to", "arnold"));
                 testCases.add(
                                 new ParseTestCase("Quoted comma list", "Say \"one, two, three\" to arnold",
-                                                true, CommandMessage.SAY)
+                                                true, AMessageType.SAY)
                                                 .addDirect("\"one, two, three\"").addPrepPhrase("to", "arnold"));
-                testCases.add(new ParseTestCase("Trailing quoted space", "say \"one \"", true, CommandMessage.SAY)
+                testCases.add(new ParseTestCase("Trailing quoted space", "say \"one \"", true, AMessageType.SAY)
                                 .addDirect("\"one \""));
                 testCases.add(new ParseTestCase("Posessive preposition", "Take longsword from John's corpse", false,
-                                CommandMessage.TAKE).addDirect("longsword").addPrepPhrase("from", "John's corpse"));
+                                AMessageType.TAKE).addDirect("longsword").addPrepPhrase("from", "John's corpse"));
                 testCases.add(new ParseTestCase("Quoted Posessive preposition", "Take longsword from \"John's corpse\"",
                                 true,
-                                CommandMessage.TAKE).addDirect("longsword").addPrepPhrase("from", "\"John's corpse\""));
+                                AMessageType.TAKE).addDirect("longsword").addPrepPhrase("from", "\"John's corpse\""));
 
                 return testCases.stream().map(testCase -> testCase.toDynamicTest());
 

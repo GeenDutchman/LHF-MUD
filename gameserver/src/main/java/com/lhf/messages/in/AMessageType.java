@@ -1,13 +1,14 @@
-package com.lhf.messages;
+package com.lhf.messages.in;
 
 import java.util.EnumSet;
 
 import com.lhf.Taggable;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.map.Directions;
+import com.lhf.messages.ICommand;
 import com.lhf.messages.grammar.Prepositions;
 
-public enum CommandMessage implements Taggable {
+public enum AMessageType implements Taggable {
     HELP {
         @Override
         public boolean checkValidity(ICommand command) {
@@ -369,12 +370,8 @@ public enum CommandMessage implements Taggable {
         }
     };
 
-    public abstract boolean checkValidity(ICommand command);
-
-    public abstract EnumSet<Prepositions> getAllowedPrepositions();
-
-    public static CommandMessage getCommandMessage(String value) {
-        for (CommandMessage v : values()) {
+    public static AMessageType getCommandMessage(String value) {
+        for (AMessageType v : values()) {
             if (v.toString().equalsIgnoreCase(value)) {
                 return v;
             }
@@ -383,13 +380,17 @@ public enum CommandMessage implements Taggable {
     }
 
     public static Boolean isCommandMessage(String value) {
-        for (CommandMessage v : values()) {
+        for (AMessageType v : values()) {
             if (v.toString().equalsIgnoreCase(value)) {
                 return true;
             }
         }
         return false;
     }
+
+    public abstract boolean checkValidity(ICommand command);
+
+    public abstract EnumSet<Prepositions> getAllowedPrepositions();
 
     @Override
     public String getStartTag() {

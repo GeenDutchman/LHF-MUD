@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.truth.Truth;
-import com.lhf.messages.CommandMessage;
+import com.lhf.messages.in.AMessageType;
 
 public class CommandWordTest {
     private class testcase extends GrammarTestCase {
-        public CommandMessage expected;
+        public AMessageType expected;
 
-        public testcase(CommandMessage exp, Boolean valid) {
+        public testcase(AMessageType exp, Boolean valid) {
             super("null", valid); // just in case
             if (exp != null) {
                 this.result = exp.toString();
@@ -28,13 +28,13 @@ public class CommandWordTest {
     @Test
     void testParse() {
         ArrayList<testcase> testcases = new ArrayList<>();
-        testcases.add(new testcase(CommandMessage.GO, true).addToken(CommandMessage.GO.toString(), true));
-        testcases.add(new testcase(CommandMessage.ATTACK, true).addToken("ATTACK", true));
-        testcases.add(new testcase(CommandMessage.ATTACK, true).addToken("attack", true));
-        testcases.add(new testcase(CommandMessage.ATTACK, true).addToken("Attack", true));
+        testcases.add(new testcase(AMessageType.GO, true).addToken(AMessageType.GO.toString(), true));
+        testcases.add(new testcase(AMessageType.ATTACK, true).addToken("ATTACK", true));
+        testcases.add(new testcase(AMessageType.ATTACK, true).addToken("attack", true));
+        testcases.add(new testcase(AMessageType.ATTACK, true).addToken("Attack", true));
         testcases.add(new testcase(null, false).addToken(this.getClass().getName(), false));
-        testcases.add(new testcase(CommandMessage.SAY, false).addToken("SAY", true).addToken("SHOUT", false));
-        testcases.add(new testcase(CommandMessage.SAY, false).addToken("SAY", true).addToken(this.getClass().getName(),
+        testcases.add(new testcase(AMessageType.SAY, false).addToken("SAY", true).addToken("SHOUT", false));
+        testcases.add(new testcase(AMessageType.SAY, false).addToken("SAY", true).addToken(this.getClass().getName(),
                 false));
 
         for (testcase tcase : testcases) {

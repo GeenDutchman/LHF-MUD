@@ -42,7 +42,6 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.BadTargetSelectedEvent;
@@ -53,6 +52,7 @@ import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.messages.events.RoomExitedEvent;
 import com.lhf.messages.events.SpeakingEvent;
 import com.lhf.messages.events.UserLeftEvent;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.user.User;
@@ -61,7 +61,7 @@ import com.lhf.server.interfaces.NotNull;
 public class DMRoom extends Room {
     private Set<User> users;
     private List<Land> lands;
-    private transient Map<CommandMessage, CommandHandler> commands;
+    private transient Map<AMessageType, CommandHandler> commands;
 
     public static class DMRoomBuilder implements Area.AreaBuilder {
         private final transient Logger logger;
@@ -425,7 +425,7 @@ public class DMRoom extends Room {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.SAY && cmd instanceof SayMessage sayMessage) {
+            if (cmd != null && cmd.getType() == AMessageType.SAY && cmd instanceof SayMessage sayMessage) {
                 if (sayMessage.getTarget() != null && !sayMessage.getTarget().isBlank()) {
                     boolean sent = false;
                     for (User u : DMRoom.this.users) {
@@ -478,15 +478,15 @@ public class DMRoom extends Room {
     }
 
     @Override
-    protected Map<CommandMessage, CommandHandler> buildCommands() {
-        Map<CommandMessage, CommandHandler> gathered = super.buildCommands();
-        gathered.put(CommandMessage.SAY, new DMRoom.SayHandler());
-        gathered.put(CommandMessage.CAST, new DMRoom.CastHandler());
+    protected Map<AMessageType, CommandHandler> buildCommands() {
+        Map<AMessageType, CommandHandler> gathered = super.buildCommands();
+        gathered.put(AMessageType.SAY, new DMRoom.SayHandler());
+        gathered.put(AMessageType.CAST, new DMRoom.CastHandler());
         return gathered;
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.commands);
     }
 

@@ -48,7 +48,6 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.BadSpeakingTargetEvent;
@@ -69,6 +68,7 @@ import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.messages.events.RoomExitedEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SpeakingEvent;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.DropMessage;
 import com.lhf.messages.in.InteractMessage;
 import com.lhf.messages.in.SayMessage;
@@ -90,7 +90,7 @@ public class Room implements Area {
     private final transient Land land;
     private final transient TreeSet<RoomEffect> effects;
 
-    private transient Map<CommandMessage, CommandHandler> commands;
+    private transient Map<AMessageType, CommandHandler> commands;
     private transient CommandChainHandler successor;
 
     public static class RoomBuilder implements Area.AreaBuilder {
@@ -304,17 +304,17 @@ public class Room implements Area {
         this.commands = this.buildCommands();
     }
 
-    protected Map<CommandMessage, CommandHandler> buildCommands() {
-        Map<CommandMessage, CommandHandler> cmds = new EnumMap<>(CommandMessage.class);
-        cmds.put(CommandMessage.SAY, new SayHandler());
-        cmds.put(CommandMessage.SEE, new SeeHandler());
-        cmds.put(CommandMessage.DROP, new DropHandler());
-        cmds.put(CommandMessage.USE, new UseHandler());
-        cmds.put(CommandMessage.CAST, new CastHandler());
-        cmds.put(CommandMessage.ATTACK, new AttackHandler());
-        cmds.put(CommandMessage.REST, new RestHandler());
-        cmds.put(CommandMessage.INTERACT, new InteractHandler());
-        cmds.put(CommandMessage.TAKE, new TakeHandler());
+    protected Map<AMessageType, CommandHandler> buildCommands() {
+        Map<AMessageType, CommandHandler> cmds = new EnumMap<>(AMessageType.class);
+        cmds.put(AMessageType.SAY, new SayHandler());
+        cmds.put(AMessageType.SEE, new SeeHandler());
+        cmds.put(AMessageType.DROP, new DropHandler());
+        cmds.put(AMessageType.USE, new UseHandler());
+        cmds.put(AMessageType.CAST, new CastHandler());
+        cmds.put(AMessageType.ATTACK, new AttackHandler());
+        cmds.put(AMessageType.REST, new RestHandler());
+        cmds.put(AMessageType.INTERACT, new InteractHandler());
+        cmds.put(AMessageType.TAKE, new TakeHandler());
         return cmds;
     }
 
@@ -592,7 +592,7 @@ public class Room implements Area {
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.commands);
     }
 
@@ -639,8 +639,8 @@ public class Room implements Area {
                 });
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.ATTACK;
+        public AMessageType getHandleType() {
+            return AMessageType.ATTACK;
         }
 
         @Override
@@ -655,7 +655,7 @@ public class Room implements Area {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd == null || cmd.getType() != CommandMessage.ATTACK) {
+            if (cmd == null || cmd.getType() != AMessageType.ATTACK) {
                 return ctx.failhandle();
             }
             ctx = Room.this.addSelfToContext(ctx);
@@ -682,8 +682,8 @@ public class Room implements Area {
     protected class CastHandler implements RoomCommandHandler {
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.CAST;
+        public AMessageType getHandleType() {
+            return AMessageType.CAST;
         }
 
         @Override
@@ -724,8 +724,8 @@ public class Room implements Area {
                 .toString();
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.TAKE;
+        public AMessageType getHandleType() {
+            return AMessageType.TAKE;
         }
 
         @Override
@@ -744,7 +744,7 @@ public class Room implements Area {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.TAKE && cmd instanceof TakeMessage tMessage) {
+            if (cmd != null && cmd.getType() == AMessageType.TAKE && cmd instanceof TakeMessage tMessage) {
                 if (ctx.getCreature() == null) {
                     ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                             .setHelps(ctx.getHelps()).setCommand(tMessage).Build());
@@ -840,8 +840,8 @@ public class Room implements Area {
         private final static String helpString = "\"interact [item]\" Certain items in the room may be interactable. Like \"interact lever\"";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.INTERACT;
+        public AMessageType getHandleType() {
+            return AMessageType.INTERACT;
         }
 
         @Override
@@ -860,7 +860,7 @@ public class Room implements Area {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.INTERACT && cmd instanceof InteractMessage intMessage) {
+            if (cmd != null && cmd.getType() == AMessageType.INTERACT && cmd instanceof InteractMessage intMessage) {
                 if (ctx.getCreature() == null) {
                     ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                             .setHelps(ctx.getHelps()).setCommand(cmd).Build());
@@ -903,8 +903,8 @@ public class Room implements Area {
                 .and(ctx -> ctx.getCreature().getItems().size() > 1);
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.DROP;
+        public AMessageType getHandleType() {
+            return AMessageType.DROP;
         }
 
         @Override
@@ -919,7 +919,7 @@ public class Room implements Area {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.DROP && cmd instanceof DropMessage dMessage) {
+            if (cmd != null && cmd.getType() == AMessageType.DROP && cmd instanceof DropMessage dMessage) {
                 if (ctx.getCreature() == null) {
                     ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                             .setHelps(ctx.getHelps()).setCommand(dMessage).Build());
@@ -987,8 +987,8 @@ public class Room implements Area {
                 .toString();
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.SEE;
+        public AMessageType getHandleType() {
+            return AMessageType.SEE;
         }
 
         @Override
@@ -1003,7 +1003,7 @@ public class Room implements Area {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.SEE && cmd instanceof SeeMessage sMessage) {
+            if (cmd != null && cmd.getType() == AMessageType.SEE && cmd instanceof SeeMessage sMessage) {
                 if (sMessage.getThing() != null && !sMessage.getThing().isBlank()) {
                     String name = sMessage.getThing();
                     Collection<ICreature> found = Room.this.getCreaturesLike(name);
@@ -1088,8 +1088,8 @@ public class Room implements Area {
                 .toString();
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.SAY;
+        public AMessageType getHandleType() {
+            return AMessageType.SAY;
         }
 
         @Override
@@ -1104,7 +1104,7 @@ public class Room implements Area {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.SAY && cmd instanceof SayMessage sMessage) {
+            if (cmd != null && cmd.getType() == AMessageType.SAY && cmd instanceof SayMessage sMessage) {
                 SpeakingEvent.Builder speakMessage = SpeakingEvent.getBuilder().setSayer(ctx.getCreature())
                         .setMessage(sMessage.getMessage());
                 if (sMessage.getTarget() != null) {
@@ -1151,8 +1151,8 @@ public class Room implements Area {
                 ctx -> ctx.getCreature().getItems().stream().anyMatch(item -> item != null && item instanceof Usable));
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.USE;
+        public AMessageType getHandleType() {
+            return AMessageType.USE;
         }
 
         @Override
@@ -1167,7 +1167,7 @@ public class Room implements Area {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.USE && cmd instanceof UseMessage useMessage) {
+            if (cmd != null && cmd.getType() == AMessageType.USE && cmd instanceof UseMessage useMessage) {
                 if (ctx.getCreature() == null) {
                     ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                             .setHelps(ctx.getHelps()).setCommand(useMessage).Build());
@@ -1236,8 +1236,8 @@ public class Room implements Area {
                 .and(ctx -> ctx.getArea().hasSubAreaSort(SubAreaSort.RECUPERATION));
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.REST;
+        public AMessageType getHandleType() {
+            return AMessageType.REST;
         }
 
         @Override
@@ -1252,7 +1252,7 @@ public class Room implements Area {
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd == null || cmd.getType() != CommandMessage.REST) {
+            if (cmd == null || cmd.getType() != AMessageType.REST) {
                 return ctx.failhandle();
             }
             ctx = Room.this.addSelfToContext(ctx);

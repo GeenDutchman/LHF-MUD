@@ -6,7 +6,6 @@ import java.util.logging.Level;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.PooledMessageChainHandler;
 import com.lhf.messages.CommandChainHandler.CommandHandler;
 
@@ -17,12 +16,12 @@ public class CommandDispatcher {
                     String.format("Cannot use a null context, command, or handler: %s, %s, %s", ctx, command,
                             chainHandler));
         }
-        CommandMessage commandType = command.getType();
+        AMessageType commandType = command.getType();
         if (commandType == null) {
             throw new IllegalStateException(String.format("Command '%s' must not have a null type", command));
         }
         chainHandler.addSelfToContext(ctx);
-        Map<CommandMessage, CommandHandler<?>> handlers = chainHandler.getCommands(ctx);
+        Map<AMessageType, CommandHandler<?>> handlers = chainHandler.getCommands(ctx);
         if (handlers == null) {
             chainHandler.log(Level.FINEST,
                     () -> String.format("No CommandHandler for type %s at this level", commandType));
@@ -96,7 +95,7 @@ public class CommandDispatcher {
             throw new IllegalArgumentException(
                     String.format("Cannot use a null context, command, or handler: %s, %s, %s", ctx, command, handler));
         }
-        CommandMessage commandType = command.getType();
+        AMessageType commandType = command.getType();
         if (commandType == null) {
             throw new IllegalStateException(String.format("Command '%s' must not have a null type", command));
         }

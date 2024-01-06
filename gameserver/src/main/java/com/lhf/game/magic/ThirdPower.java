@@ -39,7 +39,6 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
@@ -52,6 +51,7 @@ import com.lhf.messages.events.SpellFizzledEvent;
 import com.lhf.messages.events.SpellFizzledEvent.SpellFizzleType;
 import com.lhf.messages.events.TargetDefendedEvent;
 import com.lhf.messages.in.CastMessage;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.SpellbookMessage;
 
 public class ThirdPower implements CommandChainHandler {
@@ -68,7 +68,7 @@ public class ThirdPower implements CommandChainHandler {
      * 
      */
     private transient CommandChainHandler successor;
-    private EnumMap<CommandMessage, CommandHandler> cmds;
+    private EnumMap<AMessageType, CommandHandler> cmds;
     private Spellbook spellbook;
     private transient final Logger logger;
     public final GameEventProcessorID gameEventProcessorID;
@@ -86,10 +86,10 @@ public class ThirdPower implements CommandChainHandler {
         }
     }
 
-    private EnumMap<CommandMessage, CommandHandler> generateCommands() {
-        EnumMap<CommandMessage, CommandHandler> toGenerate = new EnumMap<>(CommandMessage.class);
-        toGenerate.put(CommandMessage.CAST, new CastHandler());
-        toGenerate.put(CommandMessage.SPELLBOOK, new SpellbookHandler());
+    private EnumMap<AMessageType, CommandHandler> generateCommands() {
+        EnumMap<AMessageType, CommandHandler> toGenerate = new EnumMap<>(AMessageType.class);
+        toGenerate.put(AMessageType.CAST, new CastHandler());
+        toGenerate.put(AMessageType.SPELLBOOK, new SpellbookHandler());
         return toGenerate;
     }
 
@@ -118,8 +118,8 @@ public class ThirdPower implements CommandChainHandler {
         private final static Logger logger = Logger.getLogger(CastHandler.class.getName());
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.CAST;
+        public AMessageType getHandleType() {
+            return AMessageType.CAST;
         }
 
         @Override
@@ -472,7 +472,7 @@ public class ThirdPower implements CommandChainHandler {
 
         @Override
         public Reply flushHandle(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.CAST && cmd instanceof CastMessage castmessage) {
+            if (cmd != null && cmd.getType() == AMessageType.CAST && cmd instanceof CastMessage castmessage) {
                 if (ctx.getCreature() == null) {
                     ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
                             .setHelps(ctx.getHelps()).setCommand(castmessage).Build());
@@ -516,8 +516,8 @@ public class ThirdPower implements CommandChainHandler {
                 .add("Looks up a specific spell by name, as long as your vocation allows it.").add("\n").toString();
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.SPELLBOOK;
+        public AMessageType getHandleType() {
+            return AMessageType.SPELLBOOK;
         }
 
         @Override
@@ -603,7 +603,7 @@ public class ThirdPower implements CommandChainHandler {
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.cmds);
     }
 

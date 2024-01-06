@@ -14,11 +14,11 @@ import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SpeakingEvent;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.server.client.user.User;
 
@@ -48,7 +48,7 @@ public class SpokenPromptChunk extends AIHandler {
             ConversationTreeNodeResult result = tree.listen(sm.getSayer(), sm.getMessage());
             if (result != null && result.getBody() != null) {
                 String name = Taggable.extract(sm.getSayer());
-                SayMessage say = (SayMessage) CommandBuilder.fromCommand(CommandMessage.SAY,
+                SayMessage say = (SayMessage) CommandBuilder.fromCommand(AMessageType.SAY,
                         "say \"" + result.getBody() + "\" to " + name);
                 CommandBuilder.addDirect(say, result.getBody());
                 CommandBuilder.addIndirect(say, "to", name);

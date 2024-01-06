@@ -5,14 +5,14 @@ import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.truth.Truth;
-import com.lhf.messages.CommandMessage;
+import com.lhf.messages.in.AMessageType;
 
 public class GrammaredCommandPhraseTest {
 
     @Test
     void testParse() {
         ArrayList<GrammarTestCase> testcases = new ArrayList<>();
-        testcases.add(new GrammarTestCase("GO east", true).addToken(CommandMessage.GO.toString(), true)
+        testcases.add(new GrammarTestCase("GO east", true).addToken(AMessageType.GO.toString(), true)
                 .addToken(" ", true).addToken("east",
                         true));
         testcases.add(

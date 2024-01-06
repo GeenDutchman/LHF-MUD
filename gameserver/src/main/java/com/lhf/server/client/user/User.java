@@ -11,8 +11,8 @@ import java.util.logging.Logger;
 
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.Client.ClientID;
@@ -75,8 +75,8 @@ public class User implements CommandInvoker, Comparable<User> {
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
-        return new EnumMap<>(CommandMessage.class);
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
+        return new EnumMap<>(AMessageType.class);
     }
 
     @Override

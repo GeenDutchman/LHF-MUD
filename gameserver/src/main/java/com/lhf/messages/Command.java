@@ -18,11 +18,12 @@ import com.lhf.messages.grammar.GrammaredCommandPhrase;
 import com.lhf.messages.grammar.Phrase;
 import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.grammar.Prepositions;
+import com.lhf.messages.in.AMessageType;
 
 public final class Command implements ICommand {
     protected final String whole;
     protected Boolean isValid;
-    protected final CommandMessage command;
+    protected final AMessageType command;
     protected final List<String> directs;
     protected final EnumMap<Prepositions, String> indirects;
     protected final EnumSet<Prepositions> prepositions;
@@ -38,10 +39,10 @@ public final class Command implements ICommand {
             while (matcher.find()) {
                 accepted = accepted && parser.parse(matcher.group());
             }
-            CommandMessage commandWord = parser.getCommandWord().getCommand();
+            AMessageType commandWord = parser.getCommandWord().getCommand();
             if (commandWord == null) {
                 Logger.getLogger(Command.class.getName()).log(Level.WARNING, "Bad parsing, converting to help");
-                return new Command(CommandMessage.HELP, toParse, false);
+                return new Command(AMessageType.HELP, toParse, false);
             }
             Command parsed = new Command(commandWord, toParse, accepted);
             parsed.setValid(accepted && parser.isValid());
@@ -61,17 +62,17 @@ public final class Command implements ICommand {
             return parsed;
         } catch (PatternSyntaxException e) {
             Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, e);
-            return new Command(CommandMessage.HELP, toParse, false);
+            return new Command(AMessageType.HELP, toParse, false);
         } catch (IllegalArgumentException iae) {
             Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, iae);
-            return new Command(CommandMessage.HELP, toParse, false);
+            return new Command(AMessageType.HELP, toParse, false);
         } catch (NullPointerException npe) {
             Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, npe);
-            return new Command(CommandMessage.HELP, toParse, false);
+            return new Command(AMessageType.HELP, toParse, false);
         }
     }
 
-    private Command(CommandMessage command, String whole, Boolean isValid) {
+    private Command(AMessageType command, String whole, Boolean isValid) {
         this.command = command;
         this.whole = whole;
         this.isValid = isValid;
@@ -93,7 +94,7 @@ public final class Command implements ICommand {
         return this.whole;
     }
 
-    public CommandMessage getType() {
+    public AMessageType getType() {
         return this.command;
     }
 

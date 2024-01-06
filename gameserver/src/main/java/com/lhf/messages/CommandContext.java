@@ -15,6 +15,7 @@ import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.SubArea;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
@@ -26,7 +27,7 @@ public class CommandContext {
     protected NavigableSet<SubArea> subAreas = new TreeSet<>();
     protected Area area;
     protected Dungeon dungeon;
-    protected EnumMap<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
+    protected EnumMap<AMessageType, String> helps = new EnumMap<>(AMessageType.class);
     protected List<GameEvent> messages = new ArrayList<>();
 
     public class Reply {
@@ -36,9 +37,9 @@ public class CommandContext {
             this.handled = isHandled;
         }
 
-        public Map<CommandMessage, String> getHelps() {
+        public Map<AMessageType, String> getHelps() {
             if (CommandContext.this.helps == null) {
-                CommandContext.this.helps = new EnumMap<>(CommandMessage.class);
+                CommandContext.this.helps = new EnumMap<>(AMessageType.class);
             }
             return Collections.unmodifiableMap(CommandContext.this.helps);
         }
@@ -119,21 +120,21 @@ public class CommandContext {
      * @param helpsFound help data to collect in the context
      * @return the helpsFound
      */
-    public Map<CommandMessage, String> addHelps(Map<CommandMessage, String> helpsFound) {
+    public Map<AMessageType, String> addHelps(Map<AMessageType, String> helpsFound) {
         if (this.helps == null) {
-            this.helps = new EnumMap<>(CommandMessage.class);
+            this.helps = new EnumMap<>(AMessageType.class);
         }
         if (helpsFound != null) {
-            for (Map.Entry<CommandMessage, String> entry : helpsFound.entrySet()) {
+            for (Map.Entry<AMessageType, String> entry : helpsFound.entrySet()) {
                 this.helps.putIfAbsent(entry.getKey(), entry.getValue());
             }
         }
         return helpsFound;
     }
 
-    public CommandContext addHelp(CommandMessage cmd, String help) {
+    public CommandContext addHelp(AMessageType cmd, String help) {
         if (this.helps == null) {
-            this.helps = new EnumMap<>(CommandMessage.class);
+            this.helps = new EnumMap<>(AMessageType.class);
         }
         if (cmd != null && help != null) {
             this.helps.putIfAbsent(cmd, help);
@@ -141,7 +142,7 @@ public class CommandContext {
         return this;
     }
 
-    public Map<CommandMessage, String> getHelps() {
+    public Map<AMessageType, String> getHelps() {
         return Collections.unmodifiableMap(helps);
     }
 

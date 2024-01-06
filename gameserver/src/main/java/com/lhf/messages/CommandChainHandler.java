@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.messages.in.CommandAdapter;
+import com.lhf.messages.in.AMessageType;
 
 public interface CommandChainHandler extends GameEventProcessorHub {
 
@@ -45,7 +46,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
          * 
          * @return
          */
-        public abstract CommandMessage getHandleType();
+        public abstract AMessageType getHandleType();
 
         /**
          * Checks to see if the CommandHandler is enabled per the context
@@ -134,14 +135,14 @@ public interface CommandChainHandler extends GameEventProcessorHub {
         }
     }
 
-    public abstract Map<CommandMessage, CommandHandler<? extends CommandAdapter>> getCommands(CommandContext ctx);
+    public abstract Map<AMessageType, CommandHandler<? extends CommandAdapter>> getCommands(CommandContext ctx);
 
     public default CommandContext.Reply handle(CommandContext ctx, Command cmd) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
         ctx = this.addSelfToContext(ctx);
-        Map<CommandMessage, CommandHandler<?>> handlers = this.getCommands(ctx);
+        Map<AMessageType, CommandHandler<?>> handlers = this.getCommands(ctx);
         ctx = CommandChainHandler.addHelps(handlers, ctx);
         if (cmd != null && handlers != null) {
             CommandHandler<?> handler = handlers.get(cmd.getType());
@@ -169,7 +170,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
         return CommandChainHandler.passUpChain(this, ctx, cmd);
     }
 
-    private static CommandContext addHelps(Map<CommandMessage, CommandHandler<?>> handlers, CommandContext ctx) {
+    private static CommandContext addHelps(Map<AMessageType, CommandHandler<?>> handlers, CommandContext ctx) {
         if (ctx == null) {
             ctx = new CommandContext();
         }

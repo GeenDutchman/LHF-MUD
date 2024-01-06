@@ -5,15 +5,15 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventType;
+import com.lhf.messages.in.AMessageType;
 
 public class HelpNeededEvent extends GameEvent {
 
     protected static abstract class AbstractBuilder<T extends AbstractBuilder<T>> extends GameEvent.Builder<T> {
 
-        private SortedMap<CommandMessage, String> helps = new TreeMap<>();
-        private CommandMessage singleHelp;
+        private SortedMap<AMessageType, String> helps = new TreeMap<>();
+        private AMessageType singleHelp;
 
         protected AbstractBuilder() {
             super(GameEventType.HELP);
@@ -24,19 +24,19 @@ public class HelpNeededEvent extends GameEvent {
         }
 
         // this stores a copy of helps;
-        public T setHelps(Map<CommandMessage, String> helps) {
+        public T setHelps(Map<AMessageType, String> helps) {
             this.helps = helps != null ? new TreeMap<>(helps) : new TreeMap<>();
             return this.getThis();
         }
 
-        public T removeHelp(CommandMessage commandMessage) {
+        public T removeHelp(AMessageType commandMessage) {
             if (this.helps != null && commandMessage != null) {
                 this.helps.remove(commandMessage);
             }
             return this.getThis();
         }
 
-        public T addHelp(CommandMessage commandMessage, String description) {
+        public T addHelp(AMessageType commandMessage, String description) {
             if (this.helps == null) {
                 this.helps = new TreeMap<>();
             }
@@ -44,16 +44,16 @@ public class HelpNeededEvent extends GameEvent {
             return this.getThis();
         }
 
-        public Map<CommandMessage, String> getConcreteHelps() {
+        public Map<AMessageType, String> getConcreteHelps() {
             return Collections.unmodifiableSortedMap(this.helps);
         }
 
-        public T setSingleHelp(CommandMessage commandMessage) {
+        public T setSingleHelp(AMessageType commandMessage) {
             this.singleHelp = commandMessage;
             return this.getThis();
         }
 
-        public CommandMessage getSingleHelp() {
+        public AMessageType getSingleHelp() {
             return this.singleHelp;
         }
 
@@ -75,8 +75,8 @@ public class HelpNeededEvent extends GameEvent {
         }
     }
 
-    private final Map<CommandMessage, String> helps;
-    private final CommandMessage singleHelp;
+    private final Map<AMessageType, String> helps;
+    private final AMessageType singleHelp;
 
     public static Builder getHelpBuilder() {
         return new Builder();
@@ -95,7 +95,7 @@ public class HelpNeededEvent extends GameEvent {
             sb.append(this.singleHelp.getColorTaggedName()).append(":").append("\r\n").append("<description>")
                     .append(this.helps.get(this.singleHelp)).append("</description>").append("\r\n");
         } else {
-            for (CommandMessage cmdMsg : this.helps.keySet()) {
+            for (AMessageType cmdMsg : this.helps.keySet()) {
                 sb.append(cmdMsg.getColorTaggedName()).append(":").append("\r\n").append("<description>")
                         .append(helps.get(cmdMsg)).append("</description>").append("\r\n");
             }
@@ -103,11 +103,11 @@ public class HelpNeededEvent extends GameEvent {
         return sb.toString();
     }
 
-    public Map<CommandMessage, String> getHelps() {
+    public Map<AMessageType, String> getHelps() {
         return helps;
     }
 
-    public CommandMessage getSingleHelp() {
+    public AMessageType getSingleHelp() {
         return singleHelp;
     }
 

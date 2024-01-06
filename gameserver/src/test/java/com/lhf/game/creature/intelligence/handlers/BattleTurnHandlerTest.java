@@ -29,7 +29,7 @@ import com.lhf.messages.events.BadTargetSelectedEvent;
 import com.lhf.messages.events.BattleRoundEvent;
 import com.lhf.messages.events.BattleStatsRequestedEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
-import com.lhf.messages.CommandMessage;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.CommandChainHandler;
 
 public class BattleTurnHandlerTest {
@@ -81,7 +81,7 @@ public class BattleTurnHandlerTest {
                     public Reply answer(InvocationOnMock invocation) throws Throwable {
                         CommandContext ctx = invocation.getArgument(0);
                         Command cmd = invocation.getArgument(1);
-                        if (cmd.getType().equals(CommandMessage.ATTACK)
+                        if (cmd.getType().equals(AMessageType.ATTACK)
                                 && cmd.getWhole().contains("bloohoo")) {
                             BadTargetSelectedEvent btsm = BadTargetSelectedEvent
                                     .getBuilder()
@@ -91,7 +91,7 @@ public class BattleTurnHandlerTest {
                             ctx.receive(btsm);
                             return ctx.handled();
                         }
-                        if (cmd.getType().equals(CommandMessage.SEE)) {
+                        if (cmd.getType().equals(AMessageType.SEE)) {
                             return ctx.handled();
                         }
                         return interceptor.getSuccessor().handleChain(ctx, cmd);

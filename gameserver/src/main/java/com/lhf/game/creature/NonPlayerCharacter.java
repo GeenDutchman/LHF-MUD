@@ -21,8 +21,8 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.events.CreatureAffectedEvent;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.FollowMessage;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
@@ -115,9 +115,9 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     }
 
     @Override
-    protected Map<CommandMessage, CommandHandler> buildCommands() {
-        Map<CommandMessage, CommandHandler> generated = super.buildCommands();
-        generated.put(CommandMessage.FOLLOW, new FollowHandler());
+    protected Map<AMessageType, CommandHandler> buildCommands() {
+        Map<AMessageType, CommandHandler> generated = super.buildCommands();
+        generated.put(AMessageType.FOLLOW, new FollowHandler());
         return generated;
     }
 
@@ -139,8 +139,8 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
         }
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.FOLLOW;
+        public AMessageType getHandleType() {
+            return AMessageType.FOLLOW;
         }
 
         @Override

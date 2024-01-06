@@ -40,7 +40,6 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.ItemEquippedEvent;
@@ -48,6 +47,7 @@ import com.lhf.messages.events.ItemEquippedEvent.EquipResultType;
 import com.lhf.messages.events.ItemNotPossessedEvent;
 import com.lhf.messages.events.ItemUnequippedEvent;
 import com.lhf.messages.events.ItemUnequippedEvent.UnequipResultType;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.EquipMessage;
 import com.lhf.messages.in.InventoryMessage;
 import com.lhf.messages.in.StatusMessage;
@@ -68,7 +68,7 @@ public abstract class Creature implements ICreature {
     private EnumSet<SubAreaSort> subAreaSorts; // what sub area engagements is the creature in?
     private transient CommandInvoker controller;
     private transient CommandChainHandler successor;
-    private Map<CommandMessage, CommandHandler> cmds;
+    private Map<AMessageType, CommandHandler> cmds;
     private transient final Logger logger;
 
     protected Creature(ICreature.CreatureBuilder<?, ? extends ICreature> builder,
@@ -99,12 +99,12 @@ public abstract class Creature implements ICreature {
                 .getLogger(String.format("%s.%s", this.getClass().getName(), this.name.replaceAll("\\W", "_")));
     }
 
-    protected Map<CommandMessage, CommandHandler> buildCommands() {
-        Map<CommandMessage, CommandHandler> cmds = new EnumMap<>(CommandMessage.class);
-        cmds.put(CommandMessage.EQUIP, new EquipHandler());
-        cmds.put(CommandMessage.UNEQUIP, new UnequipHandler());
-        cmds.put(CommandMessage.INVENTORY, new InventoryHandler());
-        cmds.put(CommandMessage.STATUS, new StatusHandler());
+    protected Map<AMessageType, CommandHandler> buildCommands() {
+        Map<AMessageType, CommandHandler> cmds = new EnumMap<>(AMessageType.class);
+        cmds.put(AMessageType.EQUIP, new EquipHandler());
+        cmds.put(AMessageType.UNEQUIP, new UnequipHandler());
+        cmds.put(AMessageType.INVENTORY, new InventoryHandler());
+        cmds.put(AMessageType.STATUS, new StatusHandler());
         return cmds;
     }
 
@@ -562,7 +562,7 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.cmds);
     }
 
@@ -592,8 +592,8 @@ public abstract class Creature implements ICreature {
         }
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.EQUIP;
+        public AMessageType getHandleType() {
+            return AMessageType.EQUIP;
         }
 
         @Override
@@ -637,8 +637,8 @@ public abstract class Creature implements ICreature {
         }
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.EQUIP;
+        public AMessageType getHandleType() {
+            return AMessageType.EQUIP;
         }
 
         @Override
@@ -672,8 +672,8 @@ public abstract class Creature implements ICreature {
         private final static String helpString = "\"status\" Show you how much HP you currently have, among other things.";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.STATUS;
+        public AMessageType getHandleType() {
+            return AMessageType.STATUS;
         }
 
         @Override
@@ -708,8 +708,8 @@ public abstract class Creature implements ICreature {
         private final static String helpString = "\"inventory\" List what you have in your inventory and what you have equipped";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.INVENTORY;
+        public AMessageType getHandleType() {
+            return AMessageType.INVENTORY;
         }
 
         @Override

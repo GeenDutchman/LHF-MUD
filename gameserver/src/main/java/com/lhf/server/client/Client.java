@@ -19,10 +19,10 @@ import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.HelpNeededEvent;
 
@@ -160,8 +160,8 @@ public class Client implements CommandInvoker {
     private class HelpHandler implements CommandHandler {
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.HELP;
+        public AMessageType getHandleType() {
+            return AMessageType.HELP;
         }
 
         @Override
@@ -191,7 +191,7 @@ public class Client implements CommandInvoker {
 
     private CommandContext.Reply handleHelpMessage(Command msg, BadMessageType badMessageType,
             CommandContext.Reply reply) {
-        Map<CommandMessage, String> helps = reply.getHelps();
+        Map<AMessageType, String> helps = reply.getHelps();
 
         if (badMessageType != null) {
             Client.eventAccepter.accept(this,
@@ -216,9 +216,9 @@ public class Client implements CommandInvoker {
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
-        Map<CommandMessage, CommandHandler> cmdMap = new EnumMap<>(CommandMessage.class);
-        cmdMap.put(CommandMessage.HELP, this.helpHandler);
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
+        Map<AMessageType, CommandHandler> cmdMap = new EnumMap<>(AMessageType.class);
+        cmdMap.put(AMessageType.HELP, this.helpHandler);
         return cmdMap;
     }
 

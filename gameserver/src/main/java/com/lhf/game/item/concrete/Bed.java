@@ -33,12 +33,12 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.events.BadGoEvent;
 import com.lhf.messages.events.BadGoEvent.BadGoType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.InteractMessage;
 import com.lhf.server.client.user.UserID;
@@ -50,7 +50,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
     protected final int sleepSeconds;
     protected Set<BedTime> occupants;
     protected transient Area room;
-    protected transient EnumMap<CommandMessage, CommandHandler> commands;
+    protected transient EnumMap<AMessageType, CommandHandler> commands;
 
     protected class BedTime implements Runnable, Comparable<Bed.BedTime> {
         protected ICreature occupant;
@@ -201,12 +201,12 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
             return this.bedAction(creature, triggerObject, args);
         };
         this.setAction(sleepAction);
-        this.commands = new EnumMap<>(CommandMessage.class);
-        commands.put(CommandMessage.EXIT, new ExitHandler());
-        commands.put(CommandMessage.GO, new GoHandler());
-        commands.put(CommandMessage.INTERACT, new InteractHandler());
-        commands.put(CommandMessage.SAY, new SayHandler());
-        commands.put(CommandMessage.SHOUT, new ShoutHandler());
+        this.commands = new EnumMap<>(AMessageType.class);
+        commands.put(AMessageType.EXIT, new ExitHandler());
+        commands.put(AMessageType.GO, new GoHandler());
+        commands.put(AMessageType.INTERACT, new InteractHandler());
+        commands.put(AMessageType.SAY, new SayHandler());
+        commands.put(AMessageType.SHOUT, new ShoutHandler());
     }
 
     protected GameEvent bedAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
@@ -379,7 +379,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.commands);
     }
 
@@ -404,8 +404,8 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         private static final String helpString = "Use the command <command>GO UP</command> to get out of bed. ";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.GO;
+        public AMessageType getHandleType() {
+            return AMessageType.GO;
         }
 
         @Override
@@ -420,7 +420,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.GO && cmd instanceof GoMessage goMessage) {
+            if (cmd != null && cmd.getType() == AMessageType.GO && cmd instanceof GoMessage goMessage) {
                 if (Directions.UP.equals(goMessage.getDirection())) {
                     Bed.this.removeCreature(ctx.getCreature());
                     return ctx.handled();
@@ -445,8 +445,8 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         private static final String helpString = "Disconnect and leave Ibaif!";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.EXIT;
+        public AMessageType getHandleType() {
+            return AMessageType.EXIT;
         }
 
         @Override
@@ -461,7 +461,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.EXIT) {
+            if (cmd != null && cmd.getType() == AMessageType.EXIT) {
                 Bed.this.removeCreature(ctx.getCreature());
                 if (Bed.this.room != null) {
                     return Bed.this.room.handleChain(ctx, cmd);
@@ -483,8 +483,8 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
                 + "</command> to get out of bed. ";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.INTERACT;
+        public AMessageType getHandleType() {
+            return AMessageType.INTERACT;
         }
 
         @Override
@@ -499,7 +499,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.INTERACT
+            if (cmd != null && cmd.getType() == AMessageType.INTERACT
                     && cmd instanceof InteractMessage interactMessage) {
                 if (Bed.this.getName().equalsIgnoreCase(interactMessage.getObject())) {
                     Bed.this.removeCreature(ctx.getCreature());
@@ -520,8 +520,8 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         private static final String helpString = "Says stuff to the people in the area.";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.SAY;
+        public AMessageType getHandleType() {
+            return AMessageType.SAY;
         }
 
         @Override
@@ -536,7 +536,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.SAY) {
+            if (cmd != null && cmd.getType() == AMessageType.SAY) {
                 if (Bed.this.room != null) {
                     return Bed.this.room.handleChain(ctx, cmd);
                 }
@@ -556,8 +556,8 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         private static final String helpString = "Shouts stuff to the people in the land.";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.SHOUT;
+        public AMessageType getHandleType() {
+            return AMessageType.SHOUT;
         }
 
         @Override
@@ -572,7 +572,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.SHOUT) {
+            if (cmd != null && cmd.getType() == AMessageType.SHOUT) {
                 if (Bed.this.room != null) {
                     return Bed.this.room.handleChain(ctx, cmd);
                 }
