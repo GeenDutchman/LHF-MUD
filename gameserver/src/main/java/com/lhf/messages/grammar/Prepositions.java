@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public enum Prepositions {
-    AT, TO, WITH, IN, USE, FROM, AS;
+    AT, TO, WITH, IN, USE, FROM, AS, ON;
 
     public static Set<String> asStringSet() {
         Set<String> preps = new TreeSet<>();
