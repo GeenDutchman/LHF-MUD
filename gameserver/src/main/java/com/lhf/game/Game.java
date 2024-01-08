@@ -8,7 +8,6 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -266,8 +265,8 @@ public class Game implements UserListener, CommandChainHandler {
 		}
 
 		@Override
-		public Predicate<CommandContext> getEnabledPredicate() {
-			return PlayersHandler.defaultPredicate;
+		public boolean isEnabled(CommandContext ctx) {
+			return ctx != null;
 		}
 
 		@Override
@@ -277,7 +276,7 @@ public class Game implements UserListener, CommandChainHandler {
 		}
 
 		@Override
-		public CommandChainHandler getChainHandler() {
+		public CommandChainHandler getChainHandler(CommandContext ctx) {
 			return Game.this;
 		}
 
