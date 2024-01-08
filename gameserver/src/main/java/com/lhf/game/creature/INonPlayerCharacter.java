@@ -12,6 +12,7 @@ import java.util.function.UnaryOperator;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
+import com.lhf.game.creature.commandHandlers.FollowHandler;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
@@ -47,6 +48,7 @@ import com.lhf.server.interfaces.NotNull;
  */
 public interface INonPlayerCharacter extends ICreature {
     public static final AIRunner defaultAIRunner = new GroupAIRunner(true);
+    public static final FollowHandler followHandler = new FollowHandler();
 
     /**
      * A BlessedFist is a {@link com.lhf.game.item.Weapon Weapon} used by those NPCs

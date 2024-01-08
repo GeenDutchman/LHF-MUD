@@ -69,12 +69,12 @@ public class Client implements CommandInvoker {
 
     }
 
+    protected final static transient HelpHandler helpHandler = new HelpHandler();
     protected final ClientID id;
     protected SendStrategy out;
     protected final GameEventProcessorID gameEventProcessorID;
     protected Logger logger;
     protected transient CommandChainHandler _successor;
-    protected final HelpHandler helpHandler = new HelpHandler();
 
     protected Client() {
         this.id = new ClientID();
@@ -99,7 +99,7 @@ public class Client implements CommandInvoker {
 
     public CommandContext.Reply ProcessString(String value) {
         this.log(Level.FINE, "message received: " + value);
-        Command cmd = CommandBuilder.parse(value);
+        Command cmd = Command.parse(value);
         CommandContext ctx = new CommandContext();
         ctx.setClient(this);
         CommandContext.Reply accepted = ctx.failhandle();
@@ -157,7 +157,7 @@ public class Client implements CommandInvoker {
         return this.id;
     }
 
-    private class HelpHandler implements CommandHandler {
+    private static class HelpHandler implements CommandHandler {
 
         @Override
         public AMessageType getHandleType() {
@@ -170,19 +170,20 @@ public class Client implements CommandInvoker {
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return CommandHandler.defaultPredicate;
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
+            return ctx.getClient();
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
-            return Client.this;
+        public boolean isEnabled(CommandContext ctx) {
+            return ctx != null && ctx.getClient() != null;
         }
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            Reply reply = CommandChainHandler.passUpChain(Client.this, ctx, null); // this will collect all the helps
-            Client.eventAccepter.accept(Client.this,
+            Reply reply = CommandChainHandler.passUpChain(this.getChainHandler(ctx), ctx, null); // this will collect
+                                                                                                 // all the helps
+            Client.eventAccepter.accept(this.getChainHandler(ctx),
                     HelpNeededEvent.getHelpBuilder().setHelps(reply.getHelps()).Build());
             return reply.resolve();
         }
@@ -218,7 +219,7 @@ public class Client implements CommandInvoker {
     @Override
     public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         Map<AMessageType, CommandHandler> cmdMap = new EnumMap<>(AMessageType.class);
-        cmdMap.put(AMessageType.HELP, this.helpHandler);
+        cmdMap.put(AMessageType.HELP, Client.helpHandler);
         return cmdMap;
     }
 

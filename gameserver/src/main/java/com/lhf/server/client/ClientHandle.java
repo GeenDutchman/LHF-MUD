@@ -41,14 +41,6 @@ public class ClientHandle extends Client implements Runnable {
                     .noneMatch(prefix -> prospective.regionMatches(true, 0, prefix, 0, prefix.length()));
         }
 
-        private static final Predicate<CommandContext> enabledPredicate = RepeatHandler.defaultPredicate.and(ctx -> {
-            Client client = ctx.getClient();
-            if (client != null && client instanceof ClientHandle cHandle) {
-                return RepeatHandler.isValidRepeatCommand(cHandle.getRepeatCommand());
-            }
-            return false;
-        });
-
         @Override
         public AMessageType getHandleType() {
             return AMessageType.REPEAT;
@@ -71,8 +63,12 @@ public class ClientHandle extends Client implements Runnable {
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return RepeatHandler.enabledPredicate;
+        public boolean isEnabled(CommandContext ctx) {
+            Client client = ctx.getClient();
+            if (client != null && client instanceof ClientHandle cHandle) {
+                return RepeatHandler.isValidRepeatCommand(cHandle.getRepeatCommand());
+            }
+            return false;
         }
 
         @Override
@@ -88,7 +84,7 @@ public class ClientHandle extends Client implements Runnable {
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return ClientHandle.this;
         }
 

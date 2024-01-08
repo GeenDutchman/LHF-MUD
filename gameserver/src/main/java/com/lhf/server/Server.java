@@ -25,6 +25,7 @@ import com.lhf.messages.events.BadUserDuplicationEvent;
 import com.lhf.messages.events.UserLeftEvent;
 import com.lhf.messages.events.WelcomeEvent;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.CommandAdapter;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.Client.ClientID;
@@ -202,8 +203,8 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return ExitHandler.defaultPredicate;
+        public boolean isEnabled(CommandContext ctx) {
+            return ctx != null;
         }
 
         @Override
@@ -235,7 +236,7 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return Server.this;
         }
 
@@ -255,13 +256,14 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return CreateHandler.alreadyCreatedPredicate;
+        public boolean isEnabled(CommandContext ctx) {
+            return ctx != null && ctx.getUserID() == null; // user not yet created
         }
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof CreateInMessage msg) {
+            if (cmd != null && cmd.getType() == this.getHandleType()) {
+                CreateInMessage msg = new CreateInMessage(cmd);
                 if (Server.this.userManager.getForbiddenUsernames().contains(msg.getUsername())) {
                     ctx.receive(BadUserDuplicationEvent.getBuilder().Build());
                     return ctx.handled();
@@ -283,7 +285,7 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return Server.this;
         }
 

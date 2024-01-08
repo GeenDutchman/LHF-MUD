@@ -27,6 +27,10 @@ import com.lhf.game.EffectResistance;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
+import com.lhf.game.creature.commandHandlers.EquipHandler;
+import com.lhf.game.creature.commandHandlers.InventoryHandler;
+import com.lhf.game.creature.commandHandlers.StatusHandler;
+import com.lhf.game.creature.commandHandlers.UnequipHandler;
 import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.creature.statblock.AttributeBlock;
@@ -60,6 +64,7 @@ import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.CommandInvoker;
 
@@ -892,8 +897,21 @@ public interface ICreature
     }
 
     public interface CreatureCommandHandler extends CommandHandler {
-        static final Predicate<CommandContext> defaultCreaturePredicate = CommandHandler.defaultPredicate
-                .and((ctx) -> ctx.getCreature() != null && ctx.getCreature().isAlive());
+        final static EnumMap<AMessageType, CommandHandler> creatureCommandHandlers = new EnumMap<>(
+                Map.of(AMessageType.EQUIP, new EquipHandler(), AMessageType.UNEQUIP, new UnequipHandler(),
+                        AMessageType.INVENTORY, new InventoryHandler(), AMessageType.STATUS, new StatusHandler()));
+
+        @Override
+        default boolean isEnabled(CommandContext ctx) {
+            if (ctx == null) {
+                return false;
+            }
+            ICreature creature = ctx.getCreature();
+            if (creature == null || !creature.isAlive()) {
+                return false;
+            }
+            return true;
+        }
     }
 
     @Override
