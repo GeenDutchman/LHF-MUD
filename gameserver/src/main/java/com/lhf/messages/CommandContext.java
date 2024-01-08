@@ -11,7 +11,7 @@ import java.util.TreeSet;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.Area;
-import com.lhf.game.map.Dungeon;
+import com.lhf.game.map.Land;
 import com.lhf.game.map.SubArea;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.events.GameEvent;
@@ -26,7 +26,7 @@ public class CommandContext {
     protected ICreature creature;
     protected NavigableSet<SubArea> subAreas = new TreeSet<>();
     protected Area area;
-    protected Dungeon dungeon;
+    protected Land land;
     protected EnumMap<AMessageType, String> helps = new EnumMap<>(AMessageType.class);
     protected List<GameEvent> messages = new ArrayList<>();
 
@@ -91,7 +91,7 @@ public class CommandContext {
         theCopy.creature = this.creature;
         theCopy.subAreas = this.subAreas;
         theCopy.area = this.area;
-        theCopy.dungeon = this.dungeon;
+        theCopy.land = this.land;
         theCopy.helps = new EnumMap<>(this.helps);
         theCopy.messages = new ArrayList<>(this.messages);
         return theCopy;
@@ -241,12 +241,12 @@ public class CommandContext {
         return this.area;
     }
 
-    public Dungeon getDungeon() {
-        return dungeon;
+    public Land getLand() {
+        return land;
     }
 
-    public void setDungeon(Dungeon dungeon) {
-        this.dungeon = dungeon;
+    public void setLand(Land dungeon) {
+        this.land = dungeon;
     }
 
     @Override
@@ -254,7 +254,7 @@ public class CommandContext {
         StringBuilder builder = new StringBuilder();
         builder.append("CommandContext [client=").append(client).append(", user=").append(user).append(", creature=")
                 .append(creature).append(", room=").append(area).append(", subAreas=").append(subAreas)
-                .append(", dungeon=").append(dungeon).append("]");
+                .append(", land=").append(land).append("]");
         return builder.toString();
     }
 

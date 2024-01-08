@@ -95,7 +95,7 @@ public class ThirdPower implements CommandChainHandler {
 
     public interface ThirdPowerCommandHandler extends Dungeon.DungeonCommandHandler {
         final static Predicate<CommandContext> prerequisites = ctx -> {
-            if (!(ctx.getDungeon() != null || ctx.getArea() instanceof DMRoom)) {
+            if (!(ctx.getLand() != null || ctx.getArea() instanceof DMRoom)) {
                 return false;
             }
             ICreature attempter = ctx.getCreature();
