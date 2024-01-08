@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Set;
@@ -25,6 +27,15 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.map.SubArea.SubAreaBuilder;
 import com.lhf.game.map.SubArea.SubAreaSort;
+import com.lhf.game.map.commandHandlers.AreaAttackHandler;
+import com.lhf.game.map.commandHandlers.AreaRestHandler;
+import com.lhf.game.map.commandHandlers.AreaCastHandler;
+import com.lhf.game.map.commandHandlers.AreaDropHandler;
+import com.lhf.game.map.commandHandlers.AreaInteractHandler;
+import com.lhf.game.map.commandHandlers.AreaSayHandler;
+import com.lhf.game.map.commandHandlers.AreaSeeHandler;
+import com.lhf.game.map.commandHandlers.AreaTakeHandler;
+import com.lhf.game.map.commandHandlers.AreaUseHandler;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
@@ -32,6 +43,7 @@ import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
+import com.lhf.messages.in.AMessageType;
 
 public interface Area
         extends ItemContainer, CreatureContainer, CommandChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
@@ -187,6 +199,39 @@ public interface Area
             }
         }
         return produceMessage(seen);
+    }
+
+    public interface AreaCommandHandler extends CommandHandler {
+
+        final static String inBattleString = "You appear to be in a fight, so you cannot do that.";
+
+        final static EnumMap<AMessageType, CommandHandler> areaCommandHandlers = new EnumMap<>(
+                Map.of(AMessageType.ATTACK, new AreaAttackHandler(),
+                        AMessageType.CAST, new AreaCastHandler(),
+                        AMessageType.DROP, new AreaDropHandler(),
+                        AMessageType.INTERACT, new AreaInteractHandler(),
+                        AMessageType.REST, new AreaRestHandler(),
+                        AMessageType.SAY, new AreaSayHandler(),
+                        AMessageType.SEE, new AreaSeeHandler(),
+                        AMessageType.TAKE, new AreaTakeHandler(),
+                        AMessageType.USE, new AreaUseHandler()));
+
+        @Override
+        public default boolean isEnabled(CommandContext ctx) {
+            if (ctx == null) {
+                return false;
+            }
+            ICreature creature = ctx.getCreature();
+            if (creature == null || !creature.isAlive()) {
+                return false;
+            }
+            return ctx.getArea() != null;
+        }
+
+        @Override
+        default CommandChainHandler getChainHandler(CommandContext ctx) {
+            return ctx.getArea();
+        }
     }
 
     @Override

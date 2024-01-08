@@ -38,6 +38,8 @@ import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.game.map.Area.AreaBuilder.PostBuildRoomOperations;
 import com.lhf.game.map.SubArea.SubAreaBuilder;
+import com.lhf.game.map.commandHandlers.AreaCastHandler;
+import com.lhf.game.map.commandHandlers.AreaSayHandler;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -418,7 +420,7 @@ public class DMRoom extends Room {
         return super.processEffect(effect, reverse);
     }
 
-    protected class SayHandler extends Room.SayHandler {
+    protected class SayHandler extends AreaSayHandler {
         private static final Predicate<CommandContext> enabledPredicate = SayHandler.defaultPredicate
                 .and(ctx -> ctx.getUser() != null).and(ctx -> ctx.getArea() != null)
                 .or(SayHandler.defaultRoomPredicate);
@@ -462,8 +464,8 @@ public class DMRoom extends Room {
         }
     }
 
-    protected class CastHandler extends Room.CastHandler {
-        private final static Predicate<CommandContext> enabledPredicate = Room.CastHandler.defaultRoomPredicate
+    protected class CastHandler extends AreaCastHandler {
+        private final static Predicate<CommandContext> enabledPredicate = CastHandler.defaultRoomPredicate
                 .and(ctx -> ctx.getCreature() instanceof DungeonMaster);
 
         @Override

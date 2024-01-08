@@ -897,8 +897,10 @@ public interface ICreature
 
     public interface CreatureCommandHandler extends CommandHandler {
         final static EnumMap<AMessageType, CommandHandler> creatureCommandHandlers = new EnumMap<>(
-                Map.of(AMessageType.EQUIP, new EquipHandler(), AMessageType.UNEQUIP, new UnequipHandler(),
-                        AMessageType.INVENTORY, new InventoryHandler(), AMessageType.STATUS, new StatusHandler()));
+                Map.of(AMessageType.EQUIP, new EquipHandler(),
+                        AMessageType.UNEQUIP, new UnequipHandler(),
+                        AMessageType.INVENTORY, new InventoryHandler(),
+                        AMessageType.STATUS, new StatusHandler()));
 
         @Override
         default boolean isEnabled(CommandContext ctx) {
@@ -910,6 +912,11 @@ public interface ICreature
                 return false;
             }
             return true;
+        }
+
+        @Override
+        default CommandChainHandler getChainHandler(CommandContext ctx) {
+            return ctx.getCreature();
         }
     }
 

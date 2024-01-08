@@ -1,5 +1,6 @@
 package com.lhf.messages.in;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.StringJoiner;
 
@@ -13,6 +14,10 @@ public class DropMessage extends CommandAdapter {
 
     public String getTarget() {
         return this.getDirects().get(0);
+    }
+
+    public List<String> getTargets() {
+        return this.getDirects();
     }
 
     public Optional<String> inContainer() {
