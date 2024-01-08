@@ -6,7 +6,7 @@ import com.lhf.messages.Command;
 
 public class SeeMessage extends CommandAdapter {
 
-    SeeMessage(Command command) {
+    public SeeMessage(Command command) {
         super(command);
     }
 

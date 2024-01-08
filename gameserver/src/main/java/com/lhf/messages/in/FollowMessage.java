@@ -9,7 +9,7 @@ public class FollowMessage extends CommandAdapter {
     private static String AS_OVERRIDE = "override";
     private static String USE_NULL = "null";
 
-    FollowMessage(Command command) {
+    public FollowMessage(Command command) {
         super(command);
     }
 

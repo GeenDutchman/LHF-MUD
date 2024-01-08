@@ -5,7 +5,6 @@ import java.util.EnumSet;
 import com.lhf.Taggable;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.map.Directions;
-import com.lhf.messages.Command;
 import com.lhf.messages.ICommand;
 import com.lhf.messages.grammar.Prepositions;
 

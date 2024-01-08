@@ -6,7 +6,7 @@ import com.lhf.messages.Command;
 
 public class HelpInMessage extends CommandAdapter {
 
-    protected HelpInMessage(Command command) {
+    public HelpInMessage(Command command) {
         super(command);
     }
 

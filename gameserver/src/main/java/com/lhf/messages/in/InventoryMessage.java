@@ -6,7 +6,7 @@ import com.lhf.messages.Command;
 
 public class InventoryMessage extends CommandAdapter {
 
-    InventoryMessage(Command command) {
+    public InventoryMessage(Command command) {
         super(command);
     }
 

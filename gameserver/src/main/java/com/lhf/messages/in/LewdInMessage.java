@@ -9,7 +9,7 @@ import com.lhf.messages.Command;
 import com.lhf.messages.grammar.Prepositions;
 
 public class LewdInMessage extends CommandAdapter {
-    LewdInMessage(Command command) {
+    public LewdInMessage(Command command) {
         super(command);
     }
 

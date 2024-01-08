@@ -4,7 +4,7 @@ import com.lhf.messages.Command;
 
 public class StatusMessage extends CommandAdapter {
 
-    StatusMessage(Command command) {
+    public StatusMessage(Command command) {
         super(command);
     }
 

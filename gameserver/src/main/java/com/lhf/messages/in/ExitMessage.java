@@ -3,7 +3,7 @@ package com.lhf.messages.in;
 import com.lhf.messages.Command;
 
 public class ExitMessage extends CommandAdapter {
-    ExitMessage(Command command) {
+    public ExitMessage(Command command) {
         super(command);
     }
 

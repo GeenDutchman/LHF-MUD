@@ -8,7 +8,7 @@ import com.lhf.messages.grammar.Prepositions;
 
 public class TakeMessage extends CommandAdapter {
 
-    TakeMessage(Command command) {
+    public TakeMessage(Command command) {
         super(command);
     }
 

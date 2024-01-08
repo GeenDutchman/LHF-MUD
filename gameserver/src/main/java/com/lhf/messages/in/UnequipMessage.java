@@ -7,7 +7,7 @@ import com.lhf.messages.Command;
 
 public class UnequipMessage extends CommandAdapter {
 
-    UnequipMessage(Command command) {
+    public UnequipMessage(Command command) {
         super(command);
     }
 

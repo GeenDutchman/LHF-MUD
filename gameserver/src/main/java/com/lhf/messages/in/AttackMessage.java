@@ -8,7 +8,7 @@ import com.lhf.messages.Command;
 
 public class AttackMessage extends CommandAdapter {
 
-    AttackMessage(Command command) {
+    public AttackMessage(Command command) {
         super(command);
     }
 

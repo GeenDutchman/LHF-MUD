@@ -4,7 +4,7 @@ import com.lhf.messages.Command;
 
 public class StatsInMessage extends CommandAdapter {
 
-    StatsInMessage(Command command) {
+    public StatsInMessage(Command command) {
         super(command);
     }
 

@@ -6,7 +6,7 @@ import com.lhf.messages.Command;
 import com.lhf.messages.grammar.Prepositions;
 
 public class SayMessage extends CommandAdapter {
-    SayMessage(Command command) {
+    public SayMessage(Command command) {
         super(command);
     }
 

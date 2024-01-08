@@ -6,7 +6,7 @@ import com.lhf.messages.Command;
 
 public class ListPlayersMessage extends CommandAdapter {
 
-    ListPlayersMessage(Command command) {
+    public ListPlayersMessage(Command command) {
         super(command);
     }
 

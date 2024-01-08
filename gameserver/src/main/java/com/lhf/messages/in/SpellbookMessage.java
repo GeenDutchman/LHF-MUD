@@ -10,7 +10,7 @@ import com.lhf.messages.grammar.Prepositions;
 
 public class SpellbookMessage extends CommandAdapter {
 
-    SpellbookMessage(Command command) {
+    public SpellbookMessage(Command command) {
         super(command);
     }
 

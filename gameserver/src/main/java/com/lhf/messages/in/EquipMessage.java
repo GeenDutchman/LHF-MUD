@@ -7,7 +7,7 @@ import com.lhf.messages.Command;
 import com.lhf.messages.grammar.Prepositions;
 
 public class EquipMessage extends CommandAdapter {
-    EquipMessage(Command command) {
+    public EquipMessage(Command command) {
         super(command);
     }
 

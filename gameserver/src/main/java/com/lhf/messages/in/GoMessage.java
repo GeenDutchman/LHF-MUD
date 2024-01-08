@@ -6,7 +6,7 @@ import com.lhf.game.map.Directions;
 import com.lhf.messages.Command;
 
 public class GoMessage extends CommandAdapter {
-    GoMessage(Command command) {
+    public GoMessage(Command command) {
         super(command);
     }
 

@@ -6,7 +6,7 @@ import com.lhf.messages.Command;
 
 public class ShoutMessage extends CommandAdapter {
 
-    ShoutMessage(Command command) {
+    public ShoutMessage(Command command) {
         super(command);
     }
 

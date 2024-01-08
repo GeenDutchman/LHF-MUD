@@ -6,7 +6,7 @@ import com.lhf.messages.Command;
 
 public class PassMessage extends CommandAdapter {
 
-    PassMessage(Command command) {
+    public PassMessage(Command command) {
         super(command);
     }
 

@@ -10,7 +10,7 @@ import com.lhf.messages.grammar.Prepositions;
 
 public class CastMessage extends CommandAdapter {
 
-    CastMessage(Command command) {
+    public CastMessage(Command command) {
         super(command);
     }
 

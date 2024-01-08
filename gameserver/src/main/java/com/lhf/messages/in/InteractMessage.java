@@ -6,7 +6,7 @@ import com.lhf.messages.Command;
 
 public class InteractMessage extends CommandAdapter {
 
-    InteractMessage(Command command) {
+    public InteractMessage(Command command) {
         super(command);
     }
 
