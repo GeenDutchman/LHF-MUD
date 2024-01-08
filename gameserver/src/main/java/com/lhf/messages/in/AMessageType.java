@@ -20,14 +20,6 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.allOf(Prepositions.class);
         }
-
-        @Override
-        public HelpInMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new HelpInMessage(command);
-        }
     },
     SAY {
         @Override
@@ -47,13 +39,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.of(Prepositions.TO);
         }
 
-        @Override
-        public SayMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new SayMessage(command);
-        }
     },
     SEE {
         @Override
@@ -69,13 +54,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.noneOf(Prepositions.class);
         }
 
-        @Override
-        public SeeMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new SeeMessage(command);
-        }
     },
     GO {
         @Override
@@ -89,13 +67,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.noneOf(Prepositions.class);
         }
 
-        @Override
-        public GoMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new GoMessage(command);
-        }
     },
     ATTACK {
         @Override
@@ -108,13 +79,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.of(Prepositions.WITH);
         }
 
-        @Override
-        public AttackMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new AttackMessage(command);
-        }
     },
     CAST {
         @Override
@@ -135,13 +99,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.of(Prepositions.AT, Prepositions.USE);
         }
 
-        @Override
-        public CastMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new CastMessage(command);
-        }
     },
     DROP {
         @Override
@@ -163,13 +120,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.of(Prepositions.IN);
         }
 
-        @Override
-        public DropMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new DropMessage(command);
-        }
     },
     EQUIP {
         @Override
@@ -194,13 +144,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.of(Prepositions.TO);
         }
 
-        @Override
-        public EquipMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new EquipMessage(command);
-        }
     },
     UNEQUIP {
         @Override
@@ -213,13 +156,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.noneOf(Prepositions.class);
         }
 
-        @Override
-        public UnequipMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new UnequipMessage(command);
-        }
     },
     INTERACT {
         @Override
@@ -232,13 +168,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.noneOf(Prepositions.class);
         }
 
-        @Override
-        public InteractMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new InteractMessage(command);
-        }
     },
     INVENTORY {
         @Override
@@ -249,14 +178,6 @@ public enum AMessageType implements Taggable {
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.noneOf(Prepositions.class);
-        }
-
-        @Override
-        public InventoryMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new InventoryMessage(command);
         }
     },
     TAKE {
@@ -279,13 +200,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.of(Prepositions.FROM);
         }
 
-        @Override
-        public TakeMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new TakeMessage(command);
-        }
     },
     USE {
         @Override
@@ -305,13 +219,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.of(Prepositions.ON);
         }
 
-        @Override
-        public UseMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new UseMessage(command);
-        }
     },
     STATUS {
         @Override
@@ -324,13 +231,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.noneOf(Prepositions.class);
         }
 
-        @Override
-        public StatusMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new StatusMessage(command);
-        }
     },
     PLAYERS {
         @Override
@@ -343,13 +243,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.noneOf(Prepositions.class);
         }
 
-        @Override
-        public ListPlayersMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new ListPlayersMessage(command);
-        }
     },
     EXIT {
         @Override
@@ -362,13 +255,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.allOf(Prepositions.class);
         }
 
-        @Override
-        public ExitMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new ExitMessage(command);
-        }
     },
     CREATE {
         @Override
@@ -382,13 +268,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.of(Prepositions.WITH, Prepositions.AS);
         }
 
-        @Override
-        public CreateInMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new CreateInMessage(command);
-        }
     },
     SHOUT {
         @Override
@@ -401,13 +280,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.noneOf(Prepositions.class);
         }
 
-        @Override
-        public ShoutMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new ShoutMessage(command);
-        }
     },
     PASS {
         @Override
@@ -420,13 +292,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.noneOf(Prepositions.class);
         }
 
-        @Override
-        public PassMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new PassMessage(command);
-        }
     },
     LEWD {
         @Override
@@ -446,14 +311,6 @@ public enum AMessageType implements Taggable {
         public EnumSet<Prepositions> getAllowedPrepositions() {
             return EnumSet.of(Prepositions.USE);
         }
-
-        @Override
-        public LewdInMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new LewdInMessage(command);
-        }
     },
     SPELLBOOK {
         @Override
@@ -469,13 +326,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.of(Prepositions.WITH);
         }
 
-        @Override
-        public SpellbookMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new SpellbookMessage(command);
-        }
     },
     STATS {
         @Override
@@ -488,13 +338,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.allOf(Prepositions.class);
         }
 
-        @Override
-        public StatsInMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new StatsInMessage(command);
-        }
     },
     REPEAT {
         @Override
@@ -507,13 +350,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.noneOf(Prepositions.class);
         }
 
-        @Override
-        public RepeatInMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new RepeatInMessage(command);
-        }
     },
     FOLLOW {
         @Override
@@ -543,13 +379,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.of(Prepositions.USE, Prepositions.AS);
         }
 
-        @Override
-        public FollowMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new FollowMessage(command);
-        }
     },
     REST {
         @Override
@@ -562,13 +391,6 @@ public enum AMessageType implements Taggable {
             return EnumSet.noneOf(Prepositions.class);
         }
 
-        @Override
-        public RestMessage adaptCommand(Command command) {
-            if (command == null || this != command.getType()) {
-                throw new IllegalArgumentException(String.format("%s cannot adapt a command like '%s'", this, command));
-            }
-            return new RestMessage(command);
-        }
     };
 
     public static AMessageType getCommandMessage(String value) {
@@ -592,8 +414,6 @@ public enum AMessageType implements Taggable {
     public abstract boolean checkValidity(ICommand command);
 
     public abstract EnumSet<Prepositions> getAllowedPrepositions();
-
-    public abstract CommandAdapter adaptCommand(Command command);
 
     @Override
     public String getStartTag() {
