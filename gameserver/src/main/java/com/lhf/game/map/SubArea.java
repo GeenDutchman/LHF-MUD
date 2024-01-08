@@ -27,18 +27,19 @@ import java.util.logging.Logger;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreature.CreatureCommandHandler;
+import com.lhf.game.map.commandHandlers.SubAreaCastHandler;
+import com.lhf.game.map.commandHandlers.SubAreaExitHandler;
+import com.lhf.game.map.commandHandlers.SubAreaSayHandler;
+import com.lhf.game.map.commandHandlers.SubAreaSeeHandler;
+import com.lhf.game.map.commandHandlers.SubAreaShoutHandler;
+import com.lhf.game.map.commandHandlers.SubAreaSpellbookHandler;
 import com.lhf.game.creature.Player;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.events.BadMessageEvent;
-import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.PooledMessageChainHandler;
 import com.lhf.messages.in.AMessageType;
-import com.lhf.messages.in.SeeMessage;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.NotNull;
 
@@ -590,242 +591,52 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         return Objects.equals(area, other.area) && Objects.equals(this.getSubAreaSort(), other.getSubAreaSort());
     }
 
-    public interface SubAreaCommandHandler extends CreatureCommandHandler {
-        static final Predicate<CommandContext> defaultSubAreaPredicate = SubAreaCommandHandler.defaultCreaturePredicate
-                .and(ctx -> {
-                    final EnumSet<SubAreaSort> cSubs = ctx.getCreature().getSubAreaSorts();
-                    if (cSubs == null || cSubs.isEmpty()) {
-                        return false;
-                    }
-                    for (SubAreaSort sort : cSubs) {
-                        if (!ctx.hasSubAreaSort(sort)) {
-                            return false;
-                        }
-                    }
-                    return true;
-                });
-    }
+    public interface SubAreaCommandHandler extends CommandHandler {
 
-    protected class SubAreaExitHandler implements SubAreaCommandHandler {
-        private static final String helpString = "**ENTIRELY** Disconnect and leave Ibaif!";
+        final static EnumMap<AMessageType, CommandHandler> subAreaCommandHandlers = new EnumMap<>(
+                Map.of(AMessageType.EXIT, new SubAreaExitHandler(),
+                        AMessageType.SAY, new SubAreaSayHandler(),
+                        AMessageType.SEE, new SubAreaSeeHandler(),
+                        AMessageType.SHOUT, new SubAreaShoutHandler()));
 
-        public SubAreaExitHandler() {
-        }
+        final static EnumMap<AMessageType, CommandHandler> subAreaThirdPowerHandlers = new EnumMap<>(Map.of(
+                AMessageType.CAST, new SubAreaCastHandler(),
+                AMessageType.SPELLBOOK, new SubAreaSpellbookHandler()));
 
         @Override
-        public AMessageType getHandleType() {
-            return AMessageType.EXIT;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(SubAreaExitHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return SubAreaExitHandler.defaultSubAreaPredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == AMessageType.EXIT) {
-                SubArea.this.log(Level.WARNING, String.format("%s is full-out EXITING sub-area", ctx));
-                SubArea.this.removeCreature(ctx.getCreature());
-                if (SubArea.this.area != null) {
-                    return SubArea.this.area.handleChain(ctx, cmd);
+        public default boolean isEnabled(CommandContext ctx) {
+            if (ctx == null) {
+                return false;
+            }
+            ICreature creature = ctx.getCreature();
+            if (creature == null || !creature.isAlive()) {
+                return false;
+            }
+            final EnumSet<SubAreaSort> cSubs = ctx.getCreature().getSubAreaSorts();
+            if (cSubs == null || cSubs.isEmpty()) {
+                return false;
+            }
+            for (final SubAreaSort sort : cSubs) {
+                if (!ctx.hasSubAreaSort(sort)) {
+                    return false;
                 }
-                return CommandChainHandler.passUpChain(SubArea.this, ctx, cmd);
             }
-            return ctx.failhandle();
+            return true;
         }
 
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return SubArea.this;
-        }
-
-    }
-
-    protected class SubAreaSayHandler implements SubAreaCommandHandler {
-        private static final String helpString = "Says stuff to the people in the area.";
-
-        public SubAreaSayHandler() {
-        }
-
-        @Override
-        public AMessageType getHandleType() {
-            return AMessageType.SAY;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(SubAreaSayHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return SubAreaSayHandler.defaultSubAreaPredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == AMessageType.SAY) {
-                if (SubArea.this.area != null) {
-                    return SubArea.this.area.handleChain(ctx, cmd);
+        default SubArea firstSubArea(CommandContext ctx) {
+            for (final SubArea subArea : ctx.getSubAreas()) {
+                if (subArea != null) {
+                    return subArea;
                 }
-                return CommandChainHandler.passUpChain(SubArea.this, ctx, cmd);
             }
-            return ctx.failhandle();
+            return null;
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
-            return SubArea.this;
+        default CommandChainHandler getChainHandler(CommandContext ctx) {
+            return this.firstSubArea(ctx);
         }
 
-    }
-
-    protected class SubAreaShoutHandler implements SubAreaCommandHandler {
-        private static final String helpString = "Shouts stuff to the people in the land.";
-
-        @Override
-        public AMessageType getHandleType() {
-            return AMessageType.SHOUT;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(SubAreaShoutHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return SubAreaShoutHandler.defaultSubAreaPredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == AMessageType.SHOUT) {
-                if (SubArea.this.area != null) {
-                    return SubArea.this.area.handleChain(ctx, cmd);
-                }
-                return CommandChainHandler.passUpChain(SubArea.this, ctx, cmd);
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return SubArea.this;
-        }
-
-    }
-
-    protected class SubAreaSeeHandler implements SubAreaCommandHandler {
-        private static final String helpString = "\"see\" Will give you some information about the area immediately around you.\r\n";
-
-        @Override
-        public AMessageType getHandleType() {
-            return AMessageType.SEE;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(SubAreaSeeHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return SubAreaSeeHandler.defaultSubAreaPredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == AMessageType.SEE && cmd instanceof SeeMessage seeMessage) {
-                if (seeMessage.getThing() != null && SubArea.this.area != null) {
-                    return SubArea.this.area.handleChain(ctx, cmd);
-                }
-                ctx.receive(SubArea.this.produceMessage());
-                return ctx.handled();
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return SubArea.this;
-        }
-
-    }
-
-    protected class SubAreaCastHandler implements SubAreaCommandHandler {
-        @Override
-        public AMessageType getHandleType() {
-            return AMessageType.CAST;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.empty();
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return SubAreaCastHandler.defaultSubAreaPredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (ctx.getCreature() == null) {
-                ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(ctx.getHelps()).setCommand(cmd).Build());
-                return ctx.handled();
-            }
-            if (SubArea.this.area != null) {
-                return SubArea.this.area.handleChain(ctx, cmd);
-            }
-            return CommandChainHandler.passUpChain(SubArea.this, ctx, cmd);
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return SubArea.this;
-        }
-    }
-
-    protected class SubAreaSpellbookHandler implements SubAreaCommandHandler {
-        @Override
-        public AMessageType getHandleType() {
-            return AMessageType.SPELLBOOK;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.empty();
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return SubAreaSpellbookHandler.defaultSubAreaPredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (ctx.getCreature() == null) {
-                ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(ctx.getHelps()).setCommand(cmd).Build());
-                return ctx.handled();
-            }
-            if (SubArea.this.area != null) {
-                return SubArea.this.area.handleChain(ctx, cmd);
-            }
-            return CommandChainHandler.passUpChain(SubArea.this, ctx, cmd);
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return SubArea.this;
-        }
     }
 }

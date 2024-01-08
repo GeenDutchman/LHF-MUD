@@ -108,7 +108,7 @@ public class ThirdPower implements CommandChainHandler {
                 .and(ThirdPowerCommandHandler.prerequisites);
     }
 
-    protected class CastHandler implements PooledBattleManagerCommandHandler {
+    protected class CastHandler implements PooledBattleManagerCommandHandlerx {
         private final static String helpString = new StringJoiner(" ")
                 .add("\"cast [invocation]\"").add("Casts the spell that has the matching invocation.").add("\n")
                 .add("\"cast [invocation] at [target]\"").add("Some spells need you to name a target.").add("\n")

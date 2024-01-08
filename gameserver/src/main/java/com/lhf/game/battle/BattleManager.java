@@ -1,13 +1,12 @@
 package com.lhf.game.battle;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
@@ -22,20 +21,18 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import com.lhf.game.EffectResistance;
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.battle.BattleStats.BattleStatsQuery;
+import com.lhf.game.battle.commandHandlers.BattleAttackHandler;
+import com.lhf.game.battle.commandHandlers.BattleGoHandler;
+import com.lhf.game.battle.commandHandlers.BattlePassHandler;
+import com.lhf.game.battle.commandHandlers.BattleUseHandler;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
-import com.lhf.game.creature.vocation.Vocation;
-import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.Item;
-import com.lhf.game.item.Usable;
-import com.lhf.game.item.Weapon;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.SubArea;
 import com.lhf.messages.Command;
@@ -44,9 +41,6 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.PooledMessageChainHandler;
-import com.lhf.messages.events.BadTargetSelectedEvent;
-import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
-import com.lhf.messages.events.BattleCreatureFledEvent;
 import com.lhf.messages.events.BattleJoinedEvent;
 import com.lhf.messages.events.BattleOverEvent;
 import com.lhf.messages.events.BattleRoundEvent;
@@ -55,18 +49,12 @@ import com.lhf.messages.events.BattleStartedEvent;
 import com.lhf.messages.events.BattleStatsRequestedEvent;
 import com.lhf.messages.events.FactionReinforcementsCallEvent;
 import com.lhf.messages.events.GameEvent;
-import com.lhf.messages.events.ItemNotPossessedEvent;
 import com.lhf.messages.events.SeeEvent;
-import com.lhf.messages.events.TargetDefendedEvent;
-import com.lhf.messages.in.AttackMessage;
 import com.lhf.messages.in.AMessageType;
-import com.lhf.messages.in.GoMessage;
-import com.lhf.messages.in.PassMessage;
-import com.lhf.messages.in.UseMessage;
 import com.lhf.server.client.user.UserID;
 
 public class BattleManager extends SubArea {
-    private BattleStats battleStats;
+    BattleStats battleStats;
 
     public static class Builder extends SubAreaBuilder<BattleManager, Builder> {
 
@@ -161,15 +149,11 @@ public class BattleManager extends SubArea {
 
     @Override
     protected EnumMap<AMessageType, CommandHandler> buildCommands() {
-        EnumMap<AMessageType, CommandHandler> cmds = new EnumMap<>(AMessageType.class);
-        cmds.put(AMessageType.SEE, new SeeHandler());
-        cmds.put(AMessageType.GO, new GoHandler());
-        cmds.put(AMessageType.PASS, new PassHandler());
-        cmds.put(AMessageType.USE, new UseHandler());
-        cmds.put(AMessageType.STATS, new StatsHandler());
-        cmds.put(AMessageType.ATTACK, new AttackHandler());
-        cmds.put(AMessageType.EXIT, new SubAreaExitHandler());
-        cmds.put(AMessageType.SAY, new SubAreaSayHandler());
+        EnumMap<AMessageType, CommandHandler> cmds = new EnumMap<>(
+                SubArea.SubAreaCommandHandler.subAreaCommandHandlers);
+        cmds.putAll(SubArea.SubAreaCommandHandler.subAreaThirdPowerHandlers);
+        cmds.putAll(PooledBattleManagerCommandHandler.pooledBattleManagerCommandHandlers);
+        cmds.put(AMessageType.STATS, new BattleStatsHandler());
         return cmds;
     }
 
@@ -617,18 +601,107 @@ public class BattleManager extends SubArea {
     }
 
     public interface BattleManagerCommandHandler extends SubAreaCommandHandler {
-        static final Predicate<CommandContext> defaultBattlePredicate = SubAreaCommandHandler.defaultSubAreaPredicate
-                .and(ctx -> ctx.hasSubAreaSort(SubAreaSort.BATTLE));
+
+        @Override
+        default boolean isEnabled(CommandContext ctx) {
+            if (ctx == null) {
+                return false;
+            }
+            ICreature creature = ctx.getCreature();
+            if (creature == null || !creature.isAlive()) {
+                return false;
+            }
+            final EnumSet<SubAreaSort> cSubs = ctx.getCreature().getSubAreaSorts();
+            if (cSubs == null || cSubs.isEmpty()) {
+                return false;
+            }
+            for (final SubAreaSort sort : cSubs) {
+                if (!ctx.hasSubAreaSort(sort)) {
+                    return false;
+                }
+            }
+            final SubArea first = this.firstSubArea(ctx);
+            return first.getSubAreaSort() == SubAreaSort.BATTLE;
+        }
 
     }
 
-    public interface PooledBattleManagerCommandHandler extends PooledCommandHandler {
-        static final Predicate<CommandContext> defaultTurnPredicate = BattleManagerCommandHandler.defaultBattlePredicate
-                .and(ctx -> ctx.getSubAreaForSort(SubAreaSort.BATTLE).hasRunningThread(".defaultTurnPredicate"));
+    private class BattleStatsHandler implements BattleManagerCommandHandler {
+
+        private final static String helpString = "\"stats\" Retrieves the statistics about the current battle.";
 
         @Override
-        public default Predicate<CommandContext> getPoolingPredicate() {
-            return PooledBattleManagerCommandHandler.defaultTurnPredicate;
+        public AMessageType getHandleType() {
+            return AMessageType.STATS;
+        }
+
+        @Override
+        public Optional<String> getHelp(CommandContext ctx) {
+            return Optional.of(BattleStatsHandler.helpString);
+        }
+
+        @Override
+        public Reply handleCommand(CommandContext ctx, Command cmd) {
+            ctx.receive(BattleStatsRequestedEvent.getBuilder()
+                    .addRecords(BattleManager.this.battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING))
+                    .setNotBroadcast());
+            return ctx.handled();
+        }
+
+        @Override
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
+            return BattleManager.this;
+        }
+    }
+
+    public interface PooledBattleManagerCommandHandler extends PooledCommandHandler {
+        static final EnumMap<AMessageType, CommandHandler> pooledBattleManagerCommandHandlers = new EnumMap<>(Map.of(
+                AMessageType.ATTACK, new BattleAttackHandler(),
+                AMessageType.GO, new BattleGoHandler(),
+                AMessageType.PASS, new BattlePassHandler(),
+                AMessageType.USE, new BattleUseHandler()));
+
+        default SubArea firstSubArea(CommandContext ctx) {
+            for (final SubArea subArea : ctx.getSubAreas()) {
+                if (subArea != null) {
+                    return subArea;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        default boolean isEnabled(CommandContext ctx) {
+            if (ctx == null) {
+                return false;
+            }
+            ICreature creature = ctx.getCreature();
+            if (creature == null || !creature.isAlive()) {
+                return false;
+            }
+            final EnumSet<SubAreaSort> cSubs = ctx.getCreature().getSubAreaSorts();
+            if (cSubs == null || cSubs.isEmpty()) {
+                return false;
+            }
+            for (final SubAreaSort sort : cSubs) {
+                if (!ctx.hasSubAreaSort(sort)) {
+                    return false;
+                }
+            }
+            final SubArea first = this.firstSubArea(ctx);
+            if (first.getSubAreaSort() != SubAreaSort.BATTLE) {
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        default boolean isPoolingEnabled(CommandContext ctx) {
+            final SubArea first = this.firstSubArea(ctx);
+            if (first == null || first.getSubAreaSort() != SubAreaSort.BATTLE) {
+                return false;
+            }
+            return this.isEnabled(ctx) && first.hasRunningThread(this.getClass().getName() + "::isPoolingEnabled(ctx)");
         }
 
         @Override
@@ -655,439 +728,10 @@ public class BattleManager extends SubArea {
         default PooledMessageChainHandler<?> getPooledChainHandler(CommandContext ctx) {
             return ctx.getSubAreaForSort(SubAreaSort.BATTLE);
         }
-    }
-
-    private class StatsHandler implements BattleManagerCommandHandler {
-        private final static String helpString = "\"stats\" Retrieves the statistics about the current battle.";
 
         @Override
-        public AMessageType getHandleType() {
-            return AMessageType.STATS;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(StatsHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return StatsHandler.defaultBattlePredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            ctx.receive(BattleStatsRequestedEvent.getBuilder()
-                    .addRecords(BattleManager.this.battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING))
-                    .setNotBroadcast());
-            return ctx.handled();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return BattleManager.this;
-        }
-    }
-
-    private class UseHandler implements PooledBattleManagerCommandHandler {
-        private final static Predicate<CommandContext> enabledPredicate = UseHandler.defaultTurnPredicate.and(
-                ctx -> ctx.getCreature().getItems().stream().anyMatch(item -> item != null && item instanceof Usable));
-        private final static String helpString = new StringJoiner(" ")
-                .add("\"use [itemname]\"").add("Uses an item that you have on yourself, if applicable.")
-                .add("Like \"use potion\"").add("\r\n")
-                .add("\"use [itemname] on [otherthing]\"")
-                .add("Uses an item that you have on something or someone else, if applicable.")
-                .add("Like \"use potion on Bob\"").toString();
-
-        @Override
-        public AMessageType getHandleType() {
-            return AMessageType.USE;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(UseHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return UseHandler.enabledPredicate;
-        }
-
-        @Override
-        public Reply flushHandle(CommandContext ctx, Command cmd) {
-            // TODO: #127 test me!
-            if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof UseMessage useMessage) {
-                Reply reply = CommandChainHandler.passUpChain(BattleManager.this, ctx, useMessage);
-                return reply;
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return BattleManager.this;
-        }
-
-    }
-
-    private class PassHandler implements PooledBattleManagerCommandHandler {
-
-        private static String helpString = "\"pass\" Skips your turn in battle!";
-
-        @Override
-        public AMessageType getHandleType() {
-            return AMessageType.PASS;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(PassHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return PassHandler.defaultTurnPredicate;
-        }
-
-        @Override
-        public Reply flushHandle(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof PassMessage passMessage) {
-                return ctx.handled();
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return BattleManager.this;
-        }
-
-    }
-
-    private class SeeHandler extends SubAreaSeeHandler {
-        private static final String helpString = "\"see\" Will give you some information about the battle.\r\n";
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(SeeHandler.helpString);
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return BattleManager.this;
-        }
-
-    }
-
-    private class GoHandler implements PooledBattleManagerCommandHandler {
-        private final static String helpString = "\"go [direction]\" Try to move in the desired direction and flee the battle, if that direction exists.  Like \"go east\"";
-        private final static Predicate<CommandContext> enabledPredicate = BattleManagerCommandHandler.defaultBattlePredicate
-                .and(ctx -> {
-                    SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
-                    CommandChainHandler chainHandler = bm.getSuccessor();
-                    CommandContext copyContext = ctx.copy();
-
-                    // this whole block means: if someone further up in the chain has GO, then I
-                    // have GO, else not
-                    while (chainHandler != null) {
-                        copyContext = chainHandler.addSelfToContext(copyContext);
-                        Map<AMessageType, CommandHandler> handlers = chainHandler.getCommands(copyContext);
-                        if (handlers != null) {
-                            CommandHandler handler = handlers.get(AMessageType.GO);
-                            if (handler != null && handler.isEnabled(copyContext)) {
-                                return true;
-                            }
-                        }
-                        chainHandler = chainHandler.getSuccessor();
-                    }
-                    return false;
-                });
-
-        @Override
-        public AMessageType getHandleType() {
-            return AMessageType.GO;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(GoHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return GoHandler.enabledPredicate;
-        }
-
-        @Override
-        public Reply flushHandle(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == AMessageType.GO && cmd instanceof GoMessage goMessage) {
-                Integer check = 10 + BattleManager.this.actionPools.size();
-                MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
-                BattleCreatureFledEvent.Builder builder = BattleCreatureFledEvent.getBuilder()
-                        .setRunner(ctx.getCreature())
-                        .setRoll(result);
-                Reply reply = null;
-                if (result.getRoll() >= check) {
-                    reply = CommandChainHandler.passUpChain(BattleManager.this, ctx, goMessage);
-                }
-                if (BattleManager.this.hasCreature(ctx.getCreature())) { // if it is still here, it failed to flee
-                    builder.setFled(false);
-                    ctx.receive(builder.setFled(false).setNotBroadcast().Build());
-                    if (BattleManager.this.area != null) {
-                        BattleManager.this.area.announce(builder.setBroacast().Build(), ctx.getCreature());
-                    } else {
-                        BattleManager.this.announce(builder.setBroacast().Build(), ctx.getCreature());
-                    }
-                } else {
-                    builder.setFled(true).setBroacast();
-                    if (BattleManager.this.area != null) {
-                        BattleManager.this.area.announce(builder.Build(), ctx.getCreature());
-                    } else {
-                        BattleManager.this.announce(builder.Build(), ctx.getCreature());
-                    }
-                }
-                return reply != null ? reply.resolve() : ctx.handled();
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return BattleManager.this;
-        }
-
-    }
-
-    /**
-     * Collect the targeted creatures from the room.
-     * If it is unclear which target is meant, it will skip that name.
-     * If the self is targeted, then it will be skipped.
-     * 
-     * @param attacker Creature who selected the targets
-     * @param names    names of the targets
-     * @return Best effort list of Creatures, possibly size 0
-     */
-    private List<ICreature> collectTargetsFromRoom(ICreature attacker, List<String> names) {
-        List<ICreature> targets = new ArrayList<>();
-        BadTargetSelectedEvent.Builder btMessBuilder = BadTargetSelectedEvent.getBuilder().setNotBroadcast();
-        if (names == null || names.size() == 0) {
-            return targets;
-        }
-        for (String targetName : names) {
-            btMessBuilder.setBadTarget(targetName);
-            List<ICreature> possTargets = new ArrayList<>(this.area.getCreaturesLike(targetName));
-            if (possTargets.size() == 1) {
-                ICreature targeted = possTargets.get(0);
-                if (targeted.equals(attacker)) {
-                    ICreature.eventAccepter.accept(attacker, btMessBuilder.setBde(BadTargetOption.SELF).Build());
-                    continue; // go to next name
-                }
-                targets.add(targeted);
-            } else {
-                btMessBuilder.setPossibleTargets(possTargets);
-                if (possTargets.size() == 0) {
-                    ICreature.eventAccepter.accept(attacker, btMessBuilder.setBde(BadTargetOption.DNE).Build());
-                } else {
-                    ICreature.eventAccepter.accept(attacker, btMessBuilder.setBde(BadTargetOption.UNCLEAR).Build());
-                }
-                continue; // go to next name
-            }
-        }
-        return targets;
-    }
-
-    private class AttackHandler implements PooledBattleManagerCommandHandler {
-        private final static String helpString = new StringJoiner(" ")
-                .add("\"attack [name]\"").add("Attacks a creature").add("\r\n")
-                .add("\"attack [name] with [weapon]\"").add("Attack the named creature with a weapon that you have.")
-                .add("In the unlikely event that either the creature or the weapon's name contains 'with', enclose the name in quotation marks.")
-                .toString();
-        private final static Predicate<CommandContext> enabledPredicate = ICreature.CreatureCommandHandler.defaultCreaturePredicate
-                .and(ctx -> {
-                    SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
-                    if (bm == null) {
-                        return false;
-                    }
-                    if (bm.getArea() == null) {
-                        return false;
-                    }
-                    return bm.getArea().getCreatures().size() > 1 || bm.getCreatures().size() > 1;
-                });
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd == null || !(cmd instanceof AttackMessage)) {
-                return ctx.failhandle();
-            }
-            if (!BattleManager.this.hasRunningThread("AttackHandler.handle()")) {
-                ICreature attacker = ctx.getCreature();
-                List<ICreature> collected = BattleManager.this.collectTargetsFromRoom(attacker,
-                        ((AttackMessage) cmd).getTargets());
-                if (collected == null || collected.size() == 0) {
-                    ctx.receive(BadTargetSelectedEvent.getBuilder()
-                            .setNotBroadcast().setBde(BadTargetOption.NOTARGET).Build());
-                    return ctx.handled();
-                }
-                this.log(Level.FINE, "No current battle detected, starting battle");
-                BattleManager.this.instigate(attacker, collected);
-            } else {
-                this.log(Level.FINE, "Battle detected, empooling command");
-            }
-            this.onEmpool(ctx, BattleManager.this.empool(ctx, cmd));
-            return ctx.handled();
-        }
-
-        @Override
-        public AMessageType getHandleType() {
-            return AMessageType.ATTACK;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(AttackHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return AttackHandler.enabledPredicate;
-        }
-
-        @Override
-        public boolean isEnabled(CommandContext ctx) {
-            this.log(Level.FINEST, "Handling enabled check");
-            boolean result = PooledBattleManagerCommandHandler.super.isEnabled(ctx);
-            this.log(Level.FINEST, () -> String.format("Handling enabled: %b", result));
-            return result;
-        }
-
-        @Override
-        public boolean isPoolingEnabled(CommandContext ctx) {
-            this.log(Level.FINEST, "Pooling enabled check");
-            boolean result = PooledBattleManagerCommandHandler.super.isPoolingEnabled(ctx);
-            this.log(Level.FINEST, () -> String.format("Pooling enabled: %b", result));
-            return result;
-        }
-
-        /**
-         * Gets a designated weapon for a creature, either by name, or by default.
-         * If a name is provided, but is not found or the item found is not a weapon,
-         * then return NULL.
-         * 
-         * @param attacker   The creature who is attacking
-         * @param weaponName The name of a weapon
-         * @return a weapon or NULL if the item found is not a weapon or is not found
-         */
-        private Weapon getDesignatedWeapon(ICreature attacker, String weaponName) {
-            if (weaponName != null && weaponName.length() > 0) {
-                Optional<Item> inventoryItem = attacker.getItem(weaponName);
-                ItemNotPossessedEvent.Builder builder = ItemNotPossessedEvent.getBuilder().setNotBroadcast()
-                        .setItemName(weaponName).setItemType(Weapon.class.getSimpleName());
-                if (inventoryItem.isEmpty()) {
-                    ICreature.eventAccepter.accept(attacker, builder.Build());
-                    return null;
-                } else if (!(inventoryItem.get() instanceof Weapon)) {
-                    ICreature.eventAccepter.accept(attacker, builder.setFound(inventoryItem.get()).Build());
-                    return null;
-                } else {
-                    return (Weapon) inventoryItem.get();
-                }
-            } else {
-                return attacker.defaultWeapon();
-            }
-        }
-
-        private void applyAttacks(ICreature attacker, Weapon weapon, Collection<ICreature> targets) {
-            for (ICreature target : targets) {
-                this.log(Level.FINEST,
-                        () -> String.format("Applying attack from %s on %s", attacker.getName(), target.getName()));
-                CreatureFaction.checkAndHandleTurnRenegade(attacker, target, BattleManager.this.area);
-                if (!BattleManager.this.hasCreature(target)) {
-                    BattleManager.this.addCreature(target);
-                }
-                Attack a = attacker.attack(weapon);
-                Vocation attackerVocation = attacker.getVocation();
-                if (attackerVocation != null && attackerVocation instanceof MultiAttacker) {
-                    a = ((MultiAttacker) attackerVocation).modifyAttack(a, false);
-                }
-
-                for (CreatureEffect effect : a) {
-                    EffectResistance resistance = effect.getResistance();
-                    MultiRollResult attackerResult = null;
-                    MultiRollResult targetResult = null;
-                    if (resistance != null) {
-                        attackerResult = resistance.actorEffort(attacker, weapon.getToHitBonus());
-                        targetResult = resistance.targetEffort(target, 0);
-                    }
-
-                    if (resistance == null || targetResult == null
-                            || (attackerResult != null && (attackerResult.getTotal() > targetResult.getTotal()))) {
-                        GameEvent cam = target.applyEffect(effect);
-                        BattleManager.this.announce(cam);
-                    } else {
-                        BattleManager.this
-                                .announce(TargetDefendedEvent.getBuilder().setAttacker(attacker).setTarget(target)
-                                        .setOffense(attackerResult)
-                                        .setDefense(targetResult).Build());
-                    }
-                }
-
-            }
-        }
-
-        @Override
-        public Reply flushHandle(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof AttackMessage aMessage) {
-                BattleManager.this.log(Level.INFO,
-                        ctx.getCreature().getName() + " attempts attacking " + aMessage.getTargets());
-
-                ICreature attacker = ctx.getCreature();
-
-                BadTargetSelectedEvent.Builder btMessBuilder = BadTargetSelectedEvent.getBuilder()
-                        .setNotBroadcast();
-
-                if (aMessage.getNumTargets() == 0) {
-                    ctx.receive(btMessBuilder.setBde(BadTargetOption.NOTARGET).Build());
-                    return ctx.handled();
-                }
-
-                int numAllowedTargets = 1;
-                Vocation attackerVocation = attacker.getVocation();
-                if (attackerVocation != null && attackerVocation instanceof MultiAttacker) {
-                    numAllowedTargets = ((MultiAttacker) attackerVocation).maxAttackCount(false);
-                }
-
-                if (aMessage.getNumTargets() > numAllowedTargets) {
-                    String badTarget = aMessage.getTargets().get(numAllowedTargets);
-                    ctx.receive(btMessBuilder.setBadTarget(badTarget).setBde(BadTargetOption.TOO_MANY).Build());
-                    return ctx.handled();
-                }
-
-                List<ICreature> targets = BattleManager.this.collectTargetsFromRoom(attacker, aMessage.getTargets());
-                if (targets == null || targets.size() == 0) {
-                    ctx.receive(btMessBuilder.setBde(BadTargetOption.NOTARGET).Build());
-                    return ctx.handled();
-                }
-
-                if (attackerVocation != null && attackerVocation instanceof MultiAttacker) {
-                    ((MultiAttacker) attackerVocation).attackNumberOfTargets(targets.size(), false);
-                }
-
-                Weapon weapon = this.getDesignatedWeapon(attacker, aMessage.getWeapon());
-                if (weapon == null) {
-                    this.log(Level.SEVERE, () -> String.format("No weapon found! %s %s", ctx, cmd));
-                    return ctx.handled();
-                }
-
-                this.applyAttacks(attacker, weapon, targets);
-                return ctx.handled();
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return BattleManager.this;
+        default CommandChainHandler getChainHandler(CommandContext ctx) {
+            return this.getPooledChainHandler(ctx);
         }
     }
 

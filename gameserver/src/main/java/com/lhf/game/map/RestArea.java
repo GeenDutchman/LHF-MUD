@@ -5,12 +5,12 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 
 import com.lhf.game.creature.ICreature;
@@ -20,26 +20,18 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.lewd.LewdProduct;
 import com.lhf.game.lewd.VrijPartij;
-import com.lhf.game.map.SubArea.RoundThread;
-import com.lhf.game.map.SubArea.SubAreaBuilder;
-import com.lhf.game.map.SubArea.SubAreaCommandHandler;
-import com.lhf.game.map.SubArea.SubAreaExitHandler;
-import com.lhf.game.map.SubArea.SubAreaSayHandler;
-import com.lhf.game.map.SubArea.SubAreaSeeHandler;
-import com.lhf.game.map.SubArea.SubAreaSort;
+import com.lhf.game.map.commandHandlers.RestingGoHandler;
+import com.lhf.game.map.commandHandlers.RestingRestHandler;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.PooledMessageChainHandler;
-import com.lhf.messages.events.BadGoEvent;
-import com.lhf.messages.events.BadGoEvent.BadGoType;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.LewdEvent;
-import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
+import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.in.AMessageType;
-import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.LewdInMessage;
 
 public class RestArea extends SubArea {
@@ -315,14 +307,14 @@ public class RestArea extends SubArea {
 
     @Override
     protected EnumMap<AMessageType, CommandHandler> buildCommands() {
-        EnumMap<AMessageType, CommandHandler> cmds = new EnumMap<>(AMessageType.class);
-        cmds.put(AMessageType.REST, new RestHandler());
-        cmds.put(AMessageType.PASS, new PassHandler());
-        cmds.put(AMessageType.GO, new GoHandler());
-        cmds.put(AMessageType.STATS, new StatsHandler());
-        cmds.put(AMessageType.SEE, new SubAreaSeeHandler());
-        cmds.put(AMessageType.SAY, new SubAreaSayHandler());
-        cmds.put(AMessageType.EXIT, new SubAreaExitHandler());
+        EnumMap<AMessageType, CommandHandler> cmds = new EnumMap<>(
+                SubArea.SubAreaCommandHandler.subAreaCommandHandlers);
+        cmds.putAll(RestingCommandHandler.restingCommandHandlers);
+        cmds.put(AMessageType.STATS, new RestingStatsHandler());
+        if (this.lewd) {
+            cmds.put(AMessageType.LEWD, new RestingLewdHandler());
+            cmds.put(AMessageType.PASS, new RestingPassHandler());
+        }
         return cmds;
     }
 
@@ -377,89 +369,36 @@ public class RestArea extends SubArea {
     }
 
     public interface RestingCommandHandler extends SubAreaCommandHandler {
-        static final Predicate<CommandContext> defaultRestPredicate = RestingCommandHandler.defaultSubAreaPredicate
-                .and(ctx -> ctx.getCreature().getSubAreaSorts().contains(SubAreaSort.RECUPERATION));
-    }
 
-    protected class RestHandler implements RestingCommandHandler {
-        private final static String helpString = "\"REST\" puts yourself in state of REST, use \"GO UP\" to get out of it";
+        final static EnumMap<AMessageType, CommandHandler> restingCommandHandlers = new EnumMap<>(
+                Map.of(AMessageType.GO, new RestingGoHandler(),
+                        AMessageType.REST, new RestingRestHandler()));
 
         @Override
-        public AMessageType getHandleType() {
-            return AMessageType.REST;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(RestHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return RestHandler.defaultCreaturePredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd == null || !AMessageType.REST.equals(cmd.getType())) {
-                return ctx.failhandle();
+        default boolean isEnabled(CommandContext ctx) {
+            if (ctx == null) {
+                return false;
             }
-            RestArea.this.addCreature(ctx.getCreature());
-            return ctx.handled();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return RestArea.this;
-        }
-
-    }
-
-    /**
-     * Reduces options to just "Go UP"
-     */
-    protected class GoHandler implements RestingCommandHandler {
-        private static final String helpString = "Use the command <command>GO UP</command> to get out of bed. ";
-
-        @Override
-        public AMessageType getHandleType() {
-            return AMessageType.GO;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(GoHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return GoHandler.defaultRestPredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == AMessageType.GO && cmd instanceof GoMessage goMessage) {
-                if (Directions.UP.equals(goMessage.getDirection())) {
-                    RestArea.this.removeCreature(ctx.getCreature());
-                    return ctx.handled();
-                } else {
-                    ctx.receive(
-                            BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(goMessage.getDirection())
-                                    .setAvailable(EnumSet.of(Directions.UP)).Build());
-                    return ctx.handled();
+            ICreature creature = ctx.getCreature();
+            if (creature == null || !creature.isAlive()) {
+                return false;
+            }
+            final EnumSet<SubAreaSort> cSubs = ctx.getCreature().getSubAreaSorts();
+            if (cSubs == null || cSubs.isEmpty()) {
+                return false;
+            }
+            for (final SubAreaSort sort : cSubs) {
+                if (!ctx.hasSubAreaSort(sort)) {
+                    return false;
                 }
             }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return RestArea.this;
+            final SubArea first = this.firstSubArea(ctx);
+            return first.getSubAreaSort() == SubAreaSort.RECUPERATION;
         }
 
     }
 
-    private class StatsHandler implements RestingCommandHandler {
+    private class RestingStatsHandler implements RestingCommandHandler {
         private final static String helpString = "\"stats\" Retrieves the statistics about the current battle.";
 
         @Override
@@ -469,12 +408,7 @@ public class RestArea extends SubArea {
 
         @Override
         public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(StatsHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return StatsHandler.defaultRestPredicate;
+            return Optional.of(RestingStatsHandler.helpString);
         }
 
         @Override
@@ -492,18 +426,51 @@ public class RestArea extends SubArea {
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return RestArea.this;
         }
     }
 
     protected interface PooledRestingCommandHandler extends PooledCommandHandler {
-        static final Predicate<CommandContext> defaultPooledPredicate = RestingCommandHandler.defaultRestPredicate
-                .and(ctx -> ctx.getSubAreaForSort(SubAreaSort.RECUPERATION).hasRunningThread("defaultPooledPredicate"));
+
+        default SubArea firstSubArea(CommandContext ctx) {
+            for (final SubArea subArea : ctx.getSubAreas()) {
+                if (subArea != null) {
+                    return subArea;
+                }
+            }
+            return null;
+        }
 
         @Override
-        default Predicate<CommandContext> getPoolingPredicate() {
-            return PooledRestingCommandHandler.defaultPooledPredicate;
+        public default boolean isEnabled(CommandContext ctx) {
+            if (ctx == null) {
+                return false;
+            }
+            ICreature creature = ctx.getCreature();
+            if (creature == null || !creature.isAlive()) {
+                return false;
+            }
+            final EnumSet<SubAreaSort> cSubs = ctx.getCreature().getSubAreaSorts();
+            if (cSubs == null || cSubs.isEmpty()) {
+                return false;
+            }
+            for (final SubAreaSort sort : cSubs) {
+                if (!ctx.hasSubAreaSort(sort)) {
+                    return false;
+                }
+            }
+            final SubArea first = this.firstSubArea(ctx);
+            return first.getSubAreaSort() == SubAreaSort.RECUPERATION;
+        }
+
+        @Override
+        default boolean isPoolingEnabled(CommandContext ctx) {
+            final SubArea first = this.firstSubArea(ctx);
+            if (first == null || first.getSubAreaSort() != SubAreaSort.RECUPERATION) {
+                return false;
+            }
+            return this.isEnabled(ctx) && first.hasRunningThread(this.getClass().getName() + "::isPoolingEnabled(ctx)");
         }
 
         @Override
@@ -525,10 +492,8 @@ public class RestArea extends SubArea {
         }
     }
 
-    private class LewdHandler implements PooledRestingCommandHandler {
+    private class RestingLewdHandler implements PooledRestingCommandHandler {
         private final static String helpString = "\"lewd [creature]\" lewd another person in the bed";
-        private final static Predicate<CommandContext> lewdPredicate = LewdHandler.defaultPooledPredicate
-                .and(ctx -> ctx.getCreature().getEquipped(EquipmentSlots.ARMOR) == null);
 
         @Override
         public AMessageType getHandleType() {
@@ -541,8 +506,9 @@ public class RestArea extends SubArea {
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return LewdHandler.lewdPredicate.and(ctx -> RestArea.this.lewd);
+        public boolean isEnabled(CommandContext ctx) {
+            return PooledRestingCommandHandler.super.isEnabled(ctx) && RestArea.this.lewd
+                    && ctx.getCreature().getEquipped(EquipmentSlots.ARMOR) == null;
         }
 
         private Reply handlePartnered(CommandContext ctx, LewdInMessage lewdInMessage, Set<String> partners) {
@@ -581,9 +547,8 @@ public class RestArea extends SubArea {
 
         @Override
         public Reply flushHandle(CommandContext ctx, Command cmd) {
-            if (cmd != null && AMessageType.LEWD.equals(cmd.getType())
-                    && cmd instanceof LewdInMessage lewdInMessage) {
-
+            if (cmd != null && AMessageType.LEWD.equals(cmd.getType())) {
+                final LewdInMessage lewdInMessage = new LewdInMessage(cmd);
                 Set<String> partners = lewdInMessage.getPartners();
                 if (partners != null && partners.size() > 0) {
                     return this.handlePartnered(ctx, lewdInMessage, partners);
@@ -604,14 +569,12 @@ public class RestArea extends SubArea {
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return RestArea.this;
         }
     }
 
-    private class PassHandler implements PooledRestingCommandHandler {
-        private final Predicate<CommandContext> enabledPredicate = LewdHandler.lewdPredicate
-                .and(ctx -> RestArea.this.parties.size() > 0);
+    private class RestingPassHandler implements PooledRestingCommandHandler {
         private final static String helpString = "\"pass\" to decline the current lewdness";
 
         @Override
@@ -621,16 +584,16 @@ public class RestArea extends SubArea {
 
         @Override
         public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(PassHandler.helpString);
+            return Optional.of(RestingPassHandler.helpString);
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return this.enabledPredicate;
+        public boolean isEnabled(CommandContext ctx) {
+            return PooledRestingCommandHandler.super.isEnabled(ctx) && RestArea.this.parties.size() > 0;
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return RestArea.this;
         }
 
