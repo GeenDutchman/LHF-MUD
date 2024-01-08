@@ -9,22 +9,20 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
-import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.HelpNeededEvent;
+import com.lhf.messages.in.AMessageType;
 
 public class Client implements CommandInvoker {
     public final static class ClientID implements Comparable<ClientID> {
