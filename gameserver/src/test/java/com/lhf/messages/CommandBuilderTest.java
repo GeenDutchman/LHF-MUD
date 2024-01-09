@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 import com.google.common.truth.Truth;
-import com.lhf.messages.in.CommandAdapter;
+import com.lhf.messages.grammar.Prepositions;
 import com.lhf.messages.in.AMessageType;
 
 public class CommandBuilderTest {
@@ -25,7 +25,7 @@ public class CommandBuilderTest {
                         this.testName = testName;
                         this.input = input;
                         this.isValid = isValid;
-                        this.command = CommandAdapter.fromCommand(type, input);
+                        this.command = Command.parse(input);
                         if (this.command != null) {
                                 this.command = this.command.setValid(isValid);
                         }
@@ -36,7 +36,7 @@ public class CommandBuilderTest {
                         return this;
                 }
 
-                public ParseTestCase addPrepPhrase(String preposition, String phrase) {
+                public ParseTestCase addPrepPhrase(Prepositions preposition, String phrase) {
                         this.command.addIndirect(preposition, phrase);
                         return this;
                 }
@@ -47,7 +47,7 @@ public class CommandBuilderTest {
 
                 public void execute() {
                         System.out.println("Testing: " + this.testName);
-                        Command cmd = CommandBuilder.parse(this.input);
+                        Command cmd = Command.parse(this.input);
                         Truth.assertWithMessage("Expected '%s' to not make null command", this.input).that(cmd)
                                         .isNotNull();
                         System.out.println("Recieved: " + cmd.toString());
@@ -105,22 +105,25 @@ public class CommandBuilderTest {
                                 true, AMessageType.SAY).addDirect("\"hello to my little friend\""));
                 testCases.add(new ParseTestCase("Quoted direct object with preposition",
                                 "Say \"hello to my little friend\" to arnold", true, AMessageType.SAY)
-                                .addDirect("\"hello to my little friend\"").addPrepPhrase("to", "arnold"));
+                                .addDirect("\"hello to my little friend\"").addPrepPhrase(Prepositions.TO, "arnold"));
                 testCases.add(new ParseTestCase("Quoted direct object with preposition and punctuation",
                                 "Say \"hello there!\" to arnold", true,
                                 AMessageType.SAY).addDirect("\"hello there!\"")
-                                .addPrepPhrase("to", "arnold"));
+                                .addPrepPhrase(Prepositions.TO, "arnold"));
                 testCases.add(
                                 new ParseTestCase("Quoted comma list", "Say \"one, two, three\" to arnold",
                                                 true, AMessageType.SAY)
-                                                .addDirect("\"one, two, three\"").addPrepPhrase("to", "arnold"));
+                                                .addDirect("\"one, two, three\"")
+                                                .addPrepPhrase(Prepositions.TO, "arnold"));
                 testCases.add(new ParseTestCase("Trailing quoted space", "say \"one \"", true, AMessageType.SAY)
                                 .addDirect("\"one \""));
                 testCases.add(new ParseTestCase("Posessive preposition", "Take longsword from John's corpse", false,
-                                AMessageType.TAKE).addDirect("longsword").addPrepPhrase("from", "John's corpse"));
+                                AMessageType.TAKE).addDirect("longsword")
+                                .addPrepPhrase(Prepositions.FROM, "John's corpse"));
                 testCases.add(new ParseTestCase("Quoted Posessive preposition", "Take longsword from \"John's corpse\"",
                                 true,
-                                AMessageType.TAKE).addDirect("longsword").addPrepPhrase("from", "\"John's corpse\""));
+                                AMessageType.TAKE).addDirect("longsword")
+                                .addPrepPhrase(Prepositions.FROM, "\"John's corpse\""));
 
                 return testCases.stream().map(testCase -> testCase.toDynamicTest());
 

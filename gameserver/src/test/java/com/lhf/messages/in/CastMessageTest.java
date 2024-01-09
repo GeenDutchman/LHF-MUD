@@ -1,19 +1,28 @@
 package com.lhf.messages.in;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
 
 import org.junit.Test;
 
 import com.google.common.truth.Truth;
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandBuilder;
+import com.lhf.messages.grammar.Prepositions;
 
 public class CastMessageTest {
 
-        private class UnlockedCastMessage extends CastMessage {
+        private class UnlockedCastMessage {
+                protected final String whole;
+                protected final List<String> directs;
+                protected final EnumMap<Prepositions, String> indirects;
+                protected boolean isValid;
 
                 UnlockedCastMessage(String payload) {
-                        super(payload);
+                        this.whole = payload;
+                        this.directs = new ArrayList<>();
+                        this.indirects = new EnumMap<>(Prepositions.class);
+                        this.isValid = true;
                 }
 
                 public UnlockedCastMessage addADirect(String direct) {
@@ -22,7 +31,7 @@ public class CastMessageTest {
                 }
 
                 public UnlockedCastMessage addAnIndirect(String preposition, String phrase) {
-                        this.indirects.put(preposition, phrase);
+                        this.indirects.put(Prepositions.valueOf(phrase), phrase);
                         return this;
                 }
 
@@ -30,11 +39,28 @@ public class CastMessageTest {
                         this.isValid = valid;
                         return this;
                 }
+
+                public String getWhole() {
+                        return whole;
+                }
+
+                public List<String> getDirects() {
+                        return directs;
+                }
+
+                public EnumMap<Prepositions, String> getIndirects() {
+                        return indirects;
+                }
+
+                public boolean isValid() {
+                        return isValid;
+                }
+
         }
 
         @Test
         public void testParseAttack() {
-                ArrayList<CastMessage> desired = new ArrayList<>();
+                ArrayList<UnlockedCastMessage> desired = new ArrayList<>();
                 desired.add(new UnlockedCastMessage("cast turnwaster").addADirect("turnwaster"));
                 desired.add(new UnlockedCastMessage("cast \"turnwaster\"").addADirect("\"turnwaster\""));
                 desired.add(new UnlockedCastMessage("cast \"at locus with nie\"").addADirect("\"at locus with nie\""));
@@ -80,11 +106,14 @@ public class CastMessageTest {
                 desired.add(new UnlockedCastMessage("cast \"at locus with nie\", \"at locus with nie\"").setValid(false)
                                 .addADirect("\"at locus with nie\"").addADirect("\"at locus with nie\""));
 
-                for (CastMessage am : desired) {
+                for (UnlockedCastMessage am : desired) {
                         System.out.println("Testing: " + am.getWhole());
-                        Command cmd = CommandBuilder.parse(am.getWhole());
+                        Command cmd = Command.parse(am.getWhole());
                         Truth.assertThat(cmd.getType()).isEqualTo(AMessageType.CAST);
-                        Truth.assertThat(cmd).isEqualTo(am);
+                        Truth.assertThat(cmd.getWhole()).isEqualTo(am.getWhole());
+                        Truth.assertThat(cmd.getIndirects()).isEqualTo(am.getIndirects());
+                        Truth.assertThat(cmd.getDirects()).isEqualTo(am.getDirects());
+                        Truth.assertThat(cmd.isValid()).isEqualTo(am.isValid());
                 }
         }
 }

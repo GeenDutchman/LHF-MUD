@@ -12,14 +12,11 @@ import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SpeakingEvent;
-import com.lhf.messages.in.AMessageType;
-import com.lhf.messages.in.SayMessage;
 import com.lhf.server.client.user.User;
 
 public class SpokenPromptChunk extends AIHandler {
@@ -48,10 +45,7 @@ public class SpokenPromptChunk extends AIHandler {
             ConversationTreeNodeResult result = tree.listen(sm.getSayer(), sm.getMessage());
             if (result != null && result.getBody() != null) {
                 String name = Taggable.extract(sm.getSayer());
-                SayMessage say = (SayMessage) CommandBuilder.fromCommand(AMessageType.SAY,
-                        "say \"" + result.getBody() + "\" to " + name);
-                CommandBuilder.addDirect(say, result.getBody());
-                CommandBuilder.addIndirect(say, "to", name);
+                Command say = Command.parse("say \"" + result.getBody() + "\" to " + name);
                 bai.handleChain(null, say);
             }
             if (result != null && result.getPrompts() != null) {
@@ -72,7 +66,7 @@ public class SpokenPromptChunk extends AIHandler {
                     }
                     this.logger.log(Level.FINE,
                             String.format("Result has prompt \"%s\" for %s", prompt, bai.toString()));
-                    Command cmd = CommandBuilder.parse(prompt);
+                    Command cmd = Command.parse(prompt);
                     CommandContext.Reply handled = bai.handleChain(null, cmd);
                     this.logger.log(Level.FINER,
                             () -> String.format("%s: prompted command \"%s\" handled: %s", bai.toString(),
@@ -97,7 +91,7 @@ public class SpokenPromptChunk extends AIHandler {
                         this.logger.log(Level.INFO, String.format("Prompt \"%s\" received from %s for %s", prompt,
                                 sm.getSayer().getColorTaggedName(),
                                 bai.getNpc() != null ? bai.getNpc().getName() : bai.getColorTaggedName()));
-                        Command cmd = CommandBuilder.parse(prompt);
+                        Command cmd = Command.parse(prompt);
                         bai.handleChain(null, cmd);
                     } else {
                         basicHandle(bai, sm);

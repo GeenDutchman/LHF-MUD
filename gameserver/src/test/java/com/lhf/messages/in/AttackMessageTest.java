@@ -1,19 +1,28 @@
 package com.lhf.messages.in;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
 
 import org.junit.Test;
 
 import com.google.common.truth.Truth;
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandBuilder;
+import com.lhf.messages.grammar.Prepositions;
 
 public class AttackMessageTest {
 
-        private class UnlockedAttackMessage extends AttackMessage {
+        private class UnlockedAttackMessage {
+                protected final String whole;
+                protected final List<String> directs;
+                protected final EnumMap<Prepositions, String> indirects;
+                protected boolean isValid;
 
                 UnlockedAttackMessage(String payload) {
-                        super(payload);
+                        this.whole = payload;
+                        this.directs = new ArrayList<>();
+                        this.indirects = new EnumMap<>(Prepositions.class);
+                        this.isValid = true;
                 }
 
                 public UnlockedAttackMessage addADirect(String direct) {
@@ -22,7 +31,7 @@ public class AttackMessageTest {
                 }
 
                 public UnlockedAttackMessage addAnIndirect(String preposition, String phrase) {
-                        this.indirects.put(preposition, phrase);
+                        this.indirects.put(Prepositions.valueOf(phrase), phrase);
                         return this;
                 }
 
@@ -30,11 +39,28 @@ public class AttackMessageTest {
                         this.isValid = valid;
                         return this;
                 }
+
+                public String getWhole() {
+                        return whole;
+                }
+
+                public List<String> getDirects() {
+                        return directs;
+                }
+
+                public EnumMap<Prepositions, String> getIndirects() {
+                        return indirects;
+                }
+
+                public boolean isValid() {
+                        return isValid;
+                }
+
         }
 
         @Test
         public void testParseAttack() {
-                ArrayList<AttackMessage> desired = new ArrayList<>();
+                ArrayList<UnlockedAttackMessage> desired = new ArrayList<>();
                 desired.add(new UnlockedAttackMessage("attack goblin").addADirect("goblin"));
                 desired.add(new UnlockedAttackMessage("attack goblin with sword")
                                 .addADirect("goblin").addAnIndirect("with", "sword"));
@@ -69,11 +95,14 @@ public class AttackMessageTest {
                 desired.add(new UnlockedAttackMessage("attack \"goblin with eyes\" with sword")
                                 .addADirect("\"goblin with eyes\"").addAnIndirect("with", "sword"));
 
-                for (AttackMessage am : desired) {
+                for (UnlockedAttackMessage am : desired) {
                         System.out.println("Testing: " + am.getWhole());
-                        Command cmd = CommandBuilder.parse(am.getWhole());
+                        Command cmd = Command.parse(am.getWhole());
                         Truth.assertThat(cmd.getType()).isEqualTo(AMessageType.ATTACK);
-                        Truth.assertThat(cmd).isEqualTo(am);
+                        Truth.assertThat(cmd.getWhole()).isEqualTo(am.getWhole());
+                        Truth.assertThat(cmd.getIndirects()).isEqualTo(am.getIndirects());
+                        Truth.assertThat(cmd.getDirects()).isEqualTo(am.getDirects());
+                        Truth.assertThat(cmd.isValid()).isEqualTo(am.isValid());
                 }
         }
 }

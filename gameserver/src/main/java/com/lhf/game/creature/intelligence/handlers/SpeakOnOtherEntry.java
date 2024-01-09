@@ -3,12 +3,10 @@ package com.lhf.game.creature.intelligence.handlers;
 import com.lhf.Taggable;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
-import com.lhf.messages.CommandBuilder;
+import com.lhf.messages.Command;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.RoomEnteredEvent;
-import com.lhf.messages.in.AMessageType;
-import com.lhf.messages.in.SayMessage;
 
 public class SpeakOnOtherEntry extends AIHandler {
     protected String greeting;
@@ -47,10 +45,7 @@ public class SpeakOnOtherEntry extends AIHandler {
                     sayit = "Hello There!";
                 }
                 String name = Taggable.extract(reom.getNewbie());
-                SayMessage say = (SayMessage) CommandBuilder.fromCommand(AMessageType.SAY,
-                        "say \"" + sayit + "\" to " + name);
-                CommandBuilder.addDirect(say, sayit);
-                CommandBuilder.addIndirect(say, "to", name);
+                Command say = Command.parse("say \"" + sayit + "\" to " + name);
                 bai.handleChain(null, say);
             }
         }
