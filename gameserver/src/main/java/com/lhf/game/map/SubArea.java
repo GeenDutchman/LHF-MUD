@@ -36,6 +36,7 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.PooledMessageChainHandler;
+import com.lhf.messages.PooledMessageChainHandler.PooledCommandHandler;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.server.client.user.UserID;
@@ -598,7 +599,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
                         AMessageType.SHOUT, new SubAreaShoutHandler()));
 
         final static EnumMap<AMessageType, CommandHandler> subAreaThirdPowerHandlers = new EnumMap<>(Map.of(
-                AMessageType.CAST, new SubAreaCastHandler(),
+                AMessageType.CAST, new SubAreaCastHandler(true),
                 AMessageType.SPELLBOOK, new SubAreaSpellbookHandler()));
 
         @Override
@@ -634,6 +635,62 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         @Override
         default CommandChainHandler getChainHandler(CommandContext ctx) {
             return this.firstSubArea(ctx);
+        }
+
+    }
+
+    public interface PooledSubAreaCommandHandler extends PooledCommandHandler {
+        final static EnumMap<AMessageType, CommandHandler> subAreaThirdPowerHandlers = new EnumMap<>(Map.of(
+                AMessageType.CAST, new SubAreaCastHandler(false),
+                AMessageType.SPELLBOOK, new SubAreaSpellbookHandler()));
+
+        public default SubArea firstSubArea(CommandContext ctx) {
+            for (final SubArea subArea : ctx.getSubAreas()) {
+                if (subArea != null) {
+                    return subArea;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public default PooledMessageChainHandler<?> getPooledChainHandler(CommandContext ctx) {
+            return this.firstSubArea(ctx);
+        }
+
+        @Override
+        default CommandChainHandler getChainHandler(CommandContext ctx) {
+            return this.getPooledChainHandler(ctx);
+        }
+
+        @Override
+        public default boolean isEnabled(CommandContext ctx) {
+            if (ctx == null) {
+                return false;
+            }
+            ICreature creature = ctx.getCreature();
+            if (creature == null || !creature.isAlive()) {
+                return false;
+            }
+            final EnumSet<SubAreaSort> cSubs = ctx.getCreature().getSubAreaSorts();
+            if (cSubs == null || cSubs.isEmpty()) {
+                return false;
+            }
+            for (final SubAreaSort sort : cSubs) {
+                if (!ctx.hasSubAreaSort(sort)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        default boolean isPoolingEnabled(CommandContext ctx) {
+            final SubArea first = this.firstSubArea(ctx);
+            if (first == null) {
+                return false;
+            }
+            return this.isEnabled(ctx) && first.hasRunningThread(this.getClass().getName() + "::isPoolingEnabled(ctx)");
         }
 
     }
