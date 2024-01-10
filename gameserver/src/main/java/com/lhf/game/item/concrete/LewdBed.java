@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 
 import com.lhf.game.creature.ICreature;
@@ -19,16 +18,16 @@ import com.lhf.game.lewd.LewdProduct;
 import com.lhf.game.lewd.VrijPartij;
 import com.lhf.game.map.Area;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadTargetSelectedEvent;
+import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
-import com.lhf.messages.events.LewdEvent;
-import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
+import com.lhf.messages.events.LewdEvent;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
-import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.LewdInMessage;
 
@@ -103,8 +102,6 @@ public class LewdBed extends Bed {
     }
 
     protected class PassHandler implements BedCommandHandler {
-        private final Predicate<CommandContext> enabledPredicate = BedCommandHandler.defaultBedPredicate
-                .and(ctx -> LewdBed.this.vrijPartijen.size() > 0);
         private final static String helpString = "\"pass\" to decline all the lewdness";
 
         @Override
@@ -118,8 +115,8 @@ public class LewdBed extends Bed {
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return this.enabledPredicate;
+        public boolean isEnabled(CommandContext ctx) {
+            return BedCommandHandler.super.isEnabled(ctx) && LewdBed.this.vrijPartijen.size() > 0;
         }
 
         @Override
@@ -138,7 +135,7 @@ public class LewdBed extends Bed {
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return LewdBed.this;
         }
 
@@ -158,14 +155,9 @@ public class LewdBed extends Bed {
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return LewdHandler.defaultBedPredicate;
-        }
-
-        @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             LewdEvent.Builder lewdOutMessage = LewdEvent.getBuilder();
-            if (cmd == null || cmd.getType() != AMessageType.LEWD || !(cmd instanceof LewdInMessage)) {
+            if (cmd == null || cmd.getType() != this.getHandleType()) {
                 return ctx.failhandle();
             }
             if (ctx.getCreature() == null) {
@@ -190,7 +182,7 @@ public class LewdBed extends Bed {
                 return ctx.failhandle();
             }
 
-            LewdInMessage lewdInMessage = (LewdInMessage) cmd;
+            final LewdInMessage lewdInMessage = new LewdInMessage(cmd);
             if (lewdInMessage.getPartners().size() > 0) {
                 return LewdBed.this.handlePopulatedJoin(ctx.getCreature(), lewdInMessage.getPartners(),
                         lewdInMessage.getNames())
@@ -202,7 +194,7 @@ public class LewdBed extends Bed {
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return LewdBed.this;
         }
 

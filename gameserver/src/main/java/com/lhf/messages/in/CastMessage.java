@@ -41,6 +41,10 @@ public class CastMessage extends CommandAdapter {
         return Integer.valueOf(value);
     }
 
+    public String getMetadata(Prepositions prepositions) {
+        return this.getByPreposition(prepositions);
+    }
+
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");

@@ -13,7 +13,6 @@ import java.util.TreeSet;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -394,7 +393,6 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
     }
 
     public interface BedCommandHandler extends CreatureCommandHandler {
-        static final Predicate<CommandContext> defaultBedPredicate = BedCommandHandler.defaultCreaturePredicate;
     }
 
     /**
@@ -414,13 +412,9 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return GoHandler.defaultBedPredicate;
-        }
-
-        @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == AMessageType.GO && cmd instanceof GoMessage goMessage) {
+            if (cmd != null && cmd.getType() == this.getHandleType()) {
+                final GoMessage goMessage = new GoMessage(cmd);
                 if (Directions.UP.equals(goMessage.getDirection())) {
                     Bed.this.removeCreature(ctx.getCreature());
                     return ctx.handled();
@@ -435,7 +429,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return Bed.this;
         }
 
@@ -455,11 +449,6 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return ExitHandler.defaultBedPredicate;
-        }
-
-        @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == AMessageType.EXIT) {
                 Bed.this.removeCreature(ctx.getCreature());
@@ -472,7 +461,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return Bed.this;
         }
 
@@ -493,14 +482,9 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return InteractHandler.defaultBedPredicate;
-        }
-
-        @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == AMessageType.INTERACT
-                    && cmd instanceof InteractMessage interactMessage) {
+            if (cmd != null && cmd.getType() == this.getHandleType()) {
+                final InteractMessage interactMessage = new InteractMessage(cmd);
                 if (Bed.this.getName().equalsIgnoreCase(interactMessage.getObject())) {
                     Bed.this.removeCreature(ctx.getCreature());
                     return ctx.handled();
@@ -510,7 +494,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return Bed.this;
         }
 
@@ -530,11 +514,6 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return ExitHandler.defaultBedPredicate;
-        }
-
-        @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == AMessageType.SAY) {
                 if (Bed.this.room != null) {
@@ -546,7 +525,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return Bed.this;
         }
 
@@ -566,11 +545,6 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return ExitHandler.defaultBedPredicate;
-        }
-
-        @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == AMessageType.SHOUT) {
                 if (Bed.this.room != null) {
@@ -582,7 +556,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return Bed.this;
         }
 

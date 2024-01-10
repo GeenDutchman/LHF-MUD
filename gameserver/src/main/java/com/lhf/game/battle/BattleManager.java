@@ -151,7 +151,7 @@ public class BattleManager extends SubArea {
     protected EnumMap<AMessageType, CommandHandler> buildCommands() {
         EnumMap<AMessageType, CommandHandler> cmds = new EnumMap<>(
                 SubArea.SubAreaCommandHandler.subAreaCommandHandlers);
-        cmds.putAll(SubArea.SubAreaCommandHandler.subAreaThirdPowerHandlers);
+        cmds.putAll(SubArea.PooledSubAreaCommandHandler.subAreaThirdPowerHandlers);
         cmds.putAll(PooledBattleManagerCommandHandler.pooledBattleManagerCommandHandlers);
         cmds.put(AMessageType.STATS, new BattleStatsHandler());
         return cmds;
@@ -654,7 +654,7 @@ public class BattleManager extends SubArea {
         }
     }
 
-    public interface PooledBattleManagerCommandHandler extends PooledCommandHandler {
+    public interface PooledBattleManagerCommandHandler extends PooledSubAreaCommandHandler {
         static final EnumMap<AMessageType, CommandHandler> pooledBattleManagerCommandHandlers = new EnumMap<>(Map.of(
                 AMessageType.ATTACK, new BattleAttackHandler(),
                 AMessageType.GO, new BattleGoHandler(),

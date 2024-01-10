@@ -95,7 +95,7 @@ public enum AMessageType implements Taggable {
 
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
-            return EnumSet.of(Prepositions.AT, Prepositions.USE);
+            return EnumSet.of(Prepositions.AT, Prepositions.USE, Prepositions.AS);
         }
 
     },

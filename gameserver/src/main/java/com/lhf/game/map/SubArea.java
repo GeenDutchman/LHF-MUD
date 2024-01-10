@@ -36,7 +36,6 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.PooledMessageChainHandler;
-import com.lhf.messages.PooledMessageChainHandler.PooledCommandHandler;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.server.client.user.UserID;

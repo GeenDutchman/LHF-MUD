@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,6 +31,7 @@ import com.lhf.game.creature.intelligence.handlers.SilencedHandler;
 import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.concrete.LewdBed;
@@ -421,13 +421,25 @@ public class DMRoom extends Room {
     }
 
     protected class SayHandler extends AreaSayHandler {
-        private static final Predicate<CommandContext> enabledPredicate = SayHandler.defaultPredicate
-                .and(ctx -> ctx.getUser() != null).and(ctx -> ctx.getArea() != null)
-                .or(SayHandler.defaultRoomPredicate);
+
+        @Override
+        public boolean isEnabled(CommandContext ctx) {
+            if (ctx == null) {
+                return false;
+            }
+            final User user = ctx.getUser();
+            final ICreature creature = ctx.getCreature();
+            final Area area = ctx.getArea();
+            if (area == null) {
+                return false;
+            }
+            return creature != null || user != null;
+        }
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == AMessageType.SAY && cmd instanceof SayMessage sayMessage) {
+            if (cmd != null && cmd.getType() == this.getHandleType()) {
+                final SayMessage sayMessage = new SayMessage(cmd);
                 if (sayMessage.getTarget() != null && !sayMessage.getTarget().isBlank()) {
                     boolean sent = false;
                     for (User u : DMRoom.this.users) {
@@ -454,27 +466,21 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return SayHandler.enabledPredicate;
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return DMRoom.this;
         }
     }
 
     protected class CastHandler extends AreaCastHandler {
-        private final static Predicate<CommandContext> enabledPredicate = CastHandler.defaultRoomPredicate
-                .and(ctx -> ctx.getCreature() instanceof DungeonMaster);
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return CastHandler.enabledPredicate;
+        public boolean isEnabled(CommandContext ctx) {
+            return super.isEnabled(ctx) && ctx.getCreature().getVocation() != null
+                    && VocationName.DUNGEON_MASTER.equals(ctx.getCreature().getVocation().getVocationName());
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return DMRoom.this;
         }
     }
