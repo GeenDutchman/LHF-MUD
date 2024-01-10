@@ -80,11 +80,13 @@ public class PrepositionalPhrases implements GrammarStateMachine, Iterable<Prepo
 
     @Override
     public Boolean parse(String token) {
-        if (token == null) {
+        if (token == null || token.isEmpty()) {
             return false;
         }
         Prepositions prepositionToken = Prepositions.getPreposition(token);
-        if (currentPreposition == null && prepositionToken != null) {
+        if (currentPreposition == null && prepositionToken == null) {
+            return false;
+        } else if (currentPreposition == null && prepositionToken != null) {
             return this.addPrepPhrase(prepositionToken);
         }
         Boolean accepted = this.phraseMap.get(this.currentPreposition).parse(token);
