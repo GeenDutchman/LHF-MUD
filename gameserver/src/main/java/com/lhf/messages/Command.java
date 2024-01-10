@@ -26,7 +26,6 @@ public final class Command implements ICommand {
     protected final AMessageType command;
     protected final List<String> directs;
     protected final EnumMap<Prepositions, String> indirects;
-    protected final EnumSet<Prepositions> prepositions;
 
     public static Command parse(String messageIn) {
         String toParse = messageIn.trim();
@@ -37,7 +36,8 @@ public final class Command implements ICommand {
             Matcher matcher = splitter.matcher(toParse);
             Boolean accepted = true;
             while (matcher.find()) {
-                accepted = accepted && parser.parse(matcher.group());
+                final String token = matcher.group();
+                accepted = accepted && parser.parse(token);
             }
             AMessageType commandWord = parser.getCommandWord().getCommand();
             if (commandWord == null) {
@@ -78,16 +78,6 @@ public final class Command implements ICommand {
         this.isValid = isValid;
         this.directs = new ArrayList<>();
         this.indirects = new EnumMap<>(Prepositions.class);
-        this.prepositions = EnumSet.noneOf(Prepositions.class);
-    }
-
-    protected Command addPreposition(Prepositions preposition) {
-        this.prepositions.add(preposition);
-        return this;
-    }
-
-    protected Set<Prepositions> getPrepositions() {
-        return Collections.unmodifiableSet(this.prepositions);
     }
 
     public String getWhole() {
@@ -194,11 +184,11 @@ public final class Command implements ICommand {
 
     @Override
     public String toString() {
-        StringJoiner sj = new StringJoiner(" ");
-        sj.add("Message:").add(this.getType().toString());
-        sj.add("Valid:").add(this.isValid().toString());
-        sj.add("Whole:").add(this.getWhole());
-        return sj.toString();
+        StringBuilder builder = new StringBuilder();
+        builder.append("Command [whole=").append(whole).append(", isValid=").append(isValid).append(", command=")
+                .append(command).append(", directs=").append(directs).append(", indirects=").append(indirects)
+                .append("]");
+        return builder.toString();
     }
 
 }
