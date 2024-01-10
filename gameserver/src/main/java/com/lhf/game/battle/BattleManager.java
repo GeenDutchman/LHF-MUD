@@ -572,7 +572,7 @@ public class BattleManager extends SubArea {
             seeMessage = SeeEvent.getBuilder().setExaminable(this);
         }
         for (final ICreature creature : this.getCreatures()) {
-            if (creature == null || !creature.getSubAreaSorts().contains(this.getSubAreaSort())) {
+            if (creature == null) {
                 continue;
             }
             seeMessage.addSeen("Battling", creature);
