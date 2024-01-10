@@ -19,16 +19,20 @@ public enum Prepositions {
         return EnumSet.allOf(Prepositions.class);
     }
 
-    public static boolean isPreposition(String word) {
+    public static Prepositions getPreposition(String word) {
         if (word == null || word.isBlank()) {
-            return false;
+            return null;
         }
-        String trimmedWord = word.trim().toLowerCase();
-        for (Prepositions prep : Prepositions.values()) {
-            if (trimmedWord.equalsIgnoreCase(prep.toString().toLowerCase())) {
-                return true;
+        final String trimmedWord = word.trim();
+        for (final Prepositions prep : Prepositions.values()) {
+            if (trimmedWord.equalsIgnoreCase(prep.toString())) {
+                return prep;
             }
         }
-        return false;
+        return null;
+    }
+
+    public static boolean isPreposition(String word) {
+        return Prepositions.getPreposition(word) != null;
     }
 }

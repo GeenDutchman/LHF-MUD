@@ -79,10 +79,10 @@ public class PrepositionalPhrases implements GrammarStateMachine, Iterable<Prepo
 
     @Override
     public Boolean parse(String token) {
-        if (token == null) {
+        if (token == null || token.isBlank()) {
             return false;
         }
-        Prepositions prepositionToken = Prepositions.valueOf(token);
+        Prepositions prepositionToken = Prepositions.getPreposition(token);
         if (currentPreposition == null) {
             return this.addPrepPhrase(prepositionToken);
         }
