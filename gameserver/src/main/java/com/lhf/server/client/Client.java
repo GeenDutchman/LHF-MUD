@@ -102,7 +102,6 @@ public class Client implements CommandInvoker {
         ctx.setClient(this);
         CommandContext.Reply accepted = ctx.failhandle();
         if (cmd.isValid()) {
-            this.log(Level.FINEST, "the message received was deemed" + cmd.getClass().toString());
             this.log(Level.FINER, "Post Processing:" + cmd);
             accepted = this.handleChain(ctx, cmd);
             if (!accepted.isHandled()) {

@@ -23,7 +23,7 @@ public class UnequipHandler implements CreatureCommandHandler {
 
     @Override
     public AMessageType getHandleType() {
-        return AMessageType.EQUIP;
+        return AMessageType.UNEQUIP;
     }
 
     @Override
