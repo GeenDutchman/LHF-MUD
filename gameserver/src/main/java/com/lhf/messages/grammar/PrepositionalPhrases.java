@@ -39,7 +39,8 @@ public class PrepositionalPhrases implements GrammarStateMachine, Iterable<Prepo
     public String getResult() {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<Prepositions, PhraseList> entry : this.phraseMap.entrySet()) {
-            sb.append(entry.getKey()).append(" ").append(entry.getValue().getResult()).append(" ");
+            sb.append(entry.getKey().toString().toLowerCase()).append(" ").append(entry.getValue().getResult())
+                    .append(" ");
         }
         return sb.toString().trim();
     }
