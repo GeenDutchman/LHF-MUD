@@ -31,7 +31,7 @@ public class CastMessageTest {
                 }
 
                 public UnlockedCastMessage addAnIndirect(String preposition, String phrase) {
-                        this.indirects.put(Prepositions.valueOf(phrase), phrase);
+                        this.indirects.put(Prepositions.getPreposition(preposition), phrase);
                         return this;
                 }
 
@@ -54,6 +54,15 @@ public class CastMessageTest {
 
                 public boolean isValid() {
                         return isValid;
+                }
+
+                @Override
+                public String toString() {
+                        StringBuilder builder = new StringBuilder();
+                        builder.append("UnlockedCastMessage [whole=").append(whole).append(", directs=").append(directs)
+                                        .append(", indirects=").append(indirects).append(", isValid=").append(isValid)
+                                        .append("]");
+                        return builder.toString();
                 }
 
         }
@@ -110,10 +119,14 @@ public class CastMessageTest {
                         System.out.println("Testing: " + am.getWhole());
                         Command cmd = Command.parse(am.getWhole());
                         Truth.assertThat(cmd.getType()).isEqualTo(AMessageType.CAST);
-                        Truth.assertThat(cmd.getWhole()).isEqualTo(am.getWhole());
-                        Truth.assertThat(cmd.getIndirects()).isEqualTo(am.getIndirects());
-                        Truth.assertThat(cmd.getDirects()).isEqualTo(am.getDirects());
-                        Truth.assertThat(cmd.isValid()).isEqualTo(am.isValid());
+                        Truth.assertWithMessage("test case '%s' command '%s'", am, cmd).that(cmd.getWhole())
+                                        .isEqualTo(am.getWhole());
+                        Truth.assertWithMessage("test case '%s' command '%s'", am, cmd).that(cmd.getIndirects())
+                                        .isEqualTo(am.getIndirects());
+                        Truth.assertWithMessage("test case '%s' command '%s'", am, cmd).that(cmd.getDirects())
+                                        .isEqualTo(am.getDirects());
+                        Truth.assertWithMessage("test case '%s' command '%s'", am, cmd).that(cmd.isValid())
+                                        .isEqualTo(am.isValid());
                 }
         }
 }

@@ -88,14 +88,15 @@ public enum AMessageType implements Taggable {
             Boolean indirectsvalid = true;
             if (command.getIndirects().size() >= 1) {
                 indirectsvalid = command.getIndirects().containsKey(Prepositions.AT)
-                        || command.getIndirects().containsKey(Prepositions.USE);
+                        || command.getIndirects().containsKey(Prepositions.USE) ||
+                        command.getIndirects().containsKey(Prepositions.WITH);
             }
             return command.getDirects().size() == 1 && indirectsvalid;
         }
 
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
-            return EnumSet.of(Prepositions.AT, Prepositions.USE, Prepositions.AS);
+            return EnumSet.of(Prepositions.AT, Prepositions.USE, Prepositions.AS, Prepositions.WITH);
         }
 
     },

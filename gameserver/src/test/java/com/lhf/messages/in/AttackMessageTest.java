@@ -31,7 +31,7 @@ public class AttackMessageTest {
                 }
 
                 public UnlockedAttackMessage addAnIndirect(String preposition, String phrase) {
-                        this.indirects.put(Prepositions.valueOf(phrase), phrase);
+                        this.indirects.put(Prepositions.getPreposition(preposition), phrase);
                         return this;
                 }
 
