@@ -74,13 +74,13 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
     }
 
     public static class CreatureFilterQuery {
-        EnumSet<CreatureFilters> filters;
-        String name;
-        Integer nameRegexLen;
-        CreatureFaction faction;
-        VocationName vocation;
-        transient Class<? extends ICreature> clazz;
-        Boolean isBattling;
+        public EnumSet<CreatureFilters> filters = EnumSet.noneOf(CreatureFilters.class);
+        public String name;
+        public Integer nameRegexLen;
+        public CreatureFaction faction;
+        public VocationName vocation;
+        public transient Class<? extends ICreature> clazz;
+        public Boolean isBattling;
     }
 
     public default Collection<ICreature> filterCreatures(CreatureFilterQuery query) {

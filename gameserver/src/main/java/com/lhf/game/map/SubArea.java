@@ -58,6 +58,10 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         }
     }
 
+    public enum SubAreaCasting {
+        NO_CASTING, POOLED_CASTING, FLUSH_CASTING;
+    }
+
     protected final static int MAX_POOLED_ACTIONS = 1;
     protected final static int MAX_MILLISECONDS = 120000;
     protected final static int DEFAULT_MILLISECONDS = 90000;
@@ -67,7 +71,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     protected final Logger logger;
     protected final transient Area area;
     protected final transient AtomicReference<RoundThread> roundThread;
-    protected final boolean allowCasting;
+    protected final SubAreaCasting allowCasting;
     protected transient EnumMap<AMessageType, CommandHandler> cmds;
     protected transient NavigableMap<ICreature, Deque<IPoolEntry>> actionPools;
 
@@ -248,7 +252,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
         protected final transient BuilderType thisObject;
         protected final SubAreaBuilderID id;
-        protected boolean allowCasting;
+        protected SubAreaCasting allowCasting;
         private int waitMilliseconds;
         private Set<CreatureFilterQuery> creatureQueries;
         private boolean queryOnBuild;
@@ -259,19 +263,20 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             this.waitMilliseconds = DEFAULT_MILLISECONDS;
             this.creatureQueries = new HashSet<>();
             this.queryOnBuild = true;
+            this.allowCasting = SubAreaCasting.NO_CASTING;
         }
 
         protected abstract BuilderType getThis();
 
         public abstract SubAreaSort getSubAreaSort();
 
-        public BuilderType setAllowCasting(boolean allowCasting) {
-            this.allowCasting = allowCasting;
+        public BuilderType setAllowCasting(SubAreaCasting allowCasting) {
+            this.allowCasting = allowCasting != null ? allowCasting : SubAreaCasting.NO_CASTING;
             return this.getThis();
         }
 
-        public boolean isAllowCasting() {
-            return allowCasting;
+        public SubAreaCasting isAllowCasting() {
+            return allowCasting != null ? allowCasting : SubAreaCasting.NO_CASTING;
         }
 
         public BuilderType setWaitMilliseconds(int count) {
@@ -338,9 +343,19 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         this.allowCasting = builder.isAllowCasting();
         this.cmds = this.buildCommands();
         this.cmds.computeIfAbsent(AMessageType.EXIT, key -> new SubAreaExitHandler());
-        if (this.allowCasting) {
-            this.cmds.computeIfAbsent(AMessageType.CAST, key -> new SubAreaCastHandler());
-            this.cmds.computeIfAbsent(AMessageType.SPELLBOOK, key -> new SubAreaSpellbookHandler());
+        this.cmds.computeIfAbsent(AMessageType.SPELLBOOK, key -> new SubAreaSpellbookHandler());
+        switch (this.allowCasting) {
+            case FLUSH_CASTING:
+                this.cmds.computeIfAbsent(AMessageType.CAST, key -> new SubAreaCastHandler(true));
+                break;
+            case POOLED_CASTING:
+                this.cmds.computeIfAbsent(AMessageType.CAST, key -> new SubAreaCastHandler(false));
+                break;
+            case NO_CASTING:
+                break;
+            default:
+                break;
+
         }
         this.actionPools = Collections.synchronizedNavigableMap(new TreeMap<>());
         this.roundThread = new AtomicReference<>(null);
@@ -359,7 +374,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         return this.roundDurationMilliseconds;
     }
 
-    public boolean isAllowCasting() {
+    public SubAreaCasting isAllowCasting() {
         return allowCasting;
     }
 

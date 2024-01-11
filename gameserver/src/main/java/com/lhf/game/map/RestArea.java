@@ -89,6 +89,10 @@ public class RestArea extends SubArea {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     protected class RestThread extends RoundThread {
         protected RestThread() {
             super(RestArea.this.getName());
@@ -176,6 +180,10 @@ public class RestArea extends SubArea {
         this.lewd = builder.isLewd();
         this.lewdProduct = builder.getLewdProduct();
         this.parties = new ArrayDeque<>();
+        if (this.lewd) {
+            this.cmds.put(AMessageType.LEWD, new RestingLewdHandler());
+            this.cmds.put(AMessageType.PASS, new RestingPassHandler());
+        }
     }
 
     @Override
@@ -311,10 +319,6 @@ public class RestArea extends SubArea {
                 SubArea.SubAreaCommandHandler.subAreaCommandHandlers);
         cmds.putAll(RestingCommandHandler.restingCommandHandlers);
         cmds.put(AMessageType.STATS, new RestingStatsHandler());
-        if (this.lewd) {
-            cmds.put(AMessageType.LEWD, new RestingLewdHandler());
-            cmds.put(AMessageType.PASS, new RestingPassHandler());
-        }
         return cmds;
     }
 

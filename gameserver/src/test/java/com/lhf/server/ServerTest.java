@@ -157,22 +157,23 @@ public class ServerTest {
 
     @Test
     void testComplexCharacterCreation() {
+        final long waitMillis = 2000;
         Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeEvent.class));
         this.comm.handleCommand("CREATE Tester with Tester", null); // we won't see anything, just be
                                                                     // greeted
-        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "to make a character you need")));
         this.comm.handleCommand("say hi to gary lovejax");
-        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "intro lore placeholder here")));
         this.comm.handleCommand("say ok to gary lovejax");
-        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "MAGE")));
         this.comm.handleCommand("say mage to gary lovejax");
-        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "You have selected MAGE")));
         this.comm.handleCommand("say ready to gary lovejax");
-        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SEE)));
         String room1 = this.comm.handleCommand("see");
         Truth.assertThat(room1).contains("east");
