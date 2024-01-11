@@ -38,6 +38,7 @@ import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.game.map.Area.AreaBuilder.PostBuildRoomOperations;
 import com.lhf.game.map.SubArea.SubAreaBuilder;
+import com.lhf.game.map.SubArea.SubAreaCasting;
 import com.lhf.game.map.commandHandlers.AreaCastHandler;
 import com.lhf.game.map.commandHandlers.AreaSayHandler;
 import com.lhf.messages.Command;
@@ -92,6 +93,11 @@ public class DMRoom extends Room {
 
         public DMRoomBuilder addItem(Item item) {
             this.delegate = delegate.addItem(item);
+            return this;
+        }
+
+        public DMRoomBuilder addSubAreaBuilder(SubAreaBuilder<?, ?> builder) {
+            this.delegate.addSubAreaBuilder(builder);
             return this;
         }
 
@@ -167,6 +173,9 @@ public class DMRoom extends Room {
             return DMRoom.quickBuilder(this, () -> land, () -> successor, () -> (room) -> {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.delegate.quickBuildCreatures(aiRunner, room);
                 room.addCreatures(creaturesBuilt, true);
+                for (final SubAreaBuilder<?, ?> subAreaBuilder : this.getSubAreasToBuild()) {
+                    room.addSubArea(subAreaBuilder);
+                }
             }, () -> (dmRoom) -> {
                 final List<Land> landsBuilt = this.quickBuildLands(aiRunner, dmRoom);
                 for (Land toAdd : landsBuilt) {
@@ -202,6 +211,9 @@ public class DMRoom extends Room {
                         statblockManager,
                         conversationManager);
                 room.addCreatures(creaturesBuilt, true);
+                for (final SubAreaBuilder<?, ?> subAreaBuilder : this.getSubAreasToBuild()) {
+                    room.addSubArea(subAreaBuilder);
+                }
             }, () -> (dmRoom) -> {
                 final List<Land> landsBuilt = this.buildLands(aiRunner, dmRoom, null, statblockManager,
                         conversationManager);
