@@ -178,13 +178,13 @@ public class Game implements UserListener, CommandChainHandler {
 		this.conversationManager = builder.getConversationManager();
 		this.statblockManager = builder.getStatblockManager();
 		DMRoom.DMRoomBuilder dmRoomBuilder = builder.getDmRoomBuilder();
-		if (dmRoomBuilder != null) {
-			this.controlRoom = dmRoomBuilder.build(this.thirdPower, null, aiRunner, statblockManager,
-					conversationManager);
-		} else {
-			this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(aiRunner, statblockManager, conversationManager);
-			this.controlRoom.setSuccessor(this.thirdPower);
+		if (dmRoomBuilder == null) {
+			dmRoomBuilder = DMRoom.DMRoomBuilder.buildDefault(aiRunner, statblockManager, conversationManager);
 		}
+
+		this.controlRoom = dmRoomBuilder.build(this.thirdPower, null, aiRunner, statblockManager,
+				conversationManager);
+		this.controlRoom.setSuccessor(this.thirdPower);
 		ArrayList<LandBuilder> moreLands = builder.getAdditionalLands();
 		if (moreLands != null) {
 			for (LandBuilder landBuilder : moreLands) {

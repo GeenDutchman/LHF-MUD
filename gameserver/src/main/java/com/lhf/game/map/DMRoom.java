@@ -34,9 +34,9 @@ import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
-import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.game.map.Area.AreaBuilder.PostBuildRoomOperations;
+import com.lhf.game.map.RestArea.LewdStyle;
 import com.lhf.game.map.SubArea.SubAreaBuilder;
 import com.lhf.game.map.SubArea.SubAreaCasting;
 import com.lhf.game.map.commandHandlers.AreaCastHandler;
@@ -229,7 +229,7 @@ public class DMRoom extends Room {
             return this.build(land, land, aiRunner, statblockManager, conversationManager);
         }
 
-        public static DMRoom buildDefault(AIRunner aiRunner, StatblockManager statblockManager,
+        public static DMRoomBuilder buildDefault(AIRunner aiRunner, StatblockManager statblockManager,
                 ConversationManager conversationManager)
                 throws FileNotFoundException {
             DMRoomBuilder builder = DMRoomBuilder.getInstance();
@@ -259,24 +259,18 @@ public class DMRoom extends Room {
             dmGary.setName("Gary Lovejax");
 
             lewdAIHandler.addPartner(dmGary.getName()).addPartner(dmAda.getName());
+            RestArea.Builder restBuilder = RestArea.getBuilder().setLewd(LewdStyle.QUICKIE)
+                    .setLewdProduct(new LewdBabyMaker());
+            CreatureFilterQuery query = new CreatureFilterQuery();
+            query.filters.add(CreatureFilters.NAME);
+            query.name = "Lovejax";
+            query.nameRegexLen = 7;
+            restBuilder.addCreatureQuery(query).setAllowCasting(SubAreaCasting.FLUSH_CASTING).setQueryOnBuild(false);
+            builder.addSubAreaBuilder(restBuilder);
 
             builder.addDungeonMasterBuilder(dmAda).addDungeonMasterBuilder(dmGary);
 
-            DMRoom built = builder.build(null, null, aiRunner, statblockManager, conversationManager);
-
-            LewdBed.Builder bedBuilder = LewdBed.Builder.getInstance().setCapacity(2)
-                    .setLewdProduct(new LewdBabyMaker());
-            for (ICreature dm : built.filterCreatures(EnumSet.of(CreatureFilters.NAME), "Lovejax", 7, null, null, null,
-                    null)) {
-                if (dm != null) {
-                    bedBuilder.addOccupant(dm);
-                }
-            }
-            LewdBed bed = bedBuilder.build(built);
-
-            built.addItem(bed);
-
-            return built;
+            return builder;
         }
     }
 

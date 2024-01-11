@@ -9,8 +9,8 @@ public class VocationFactory {
         }
 
         switch (vocationName) {
-            case DUNGEON_MASTER: // not allowed to just make
-                return null;
+            case DUNGEON_MASTER:
+                return new DMVocation(level);
             case FIGHTER:
                 return new Fighter(level);
             case HEALER:
