@@ -102,7 +102,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
         }
         ctx = this.addSelfToContext(ctx);
         Map<AMessageType, CommandHandler> handlers = this.getCommands(ctx);
-        ctx = CommandChainHandler.addHelps(handlers, ctx);
+
         if (cmd != null && handlers != null) {
             CommandHandler handler = handlers.get(cmd.getType());
             if (handler == null) {
@@ -118,6 +118,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
                 }
             }
         }
+        ctx = CommandChainHandler.addHelps(handlers, ctx);
         return ctx.failhandle();
     }
 
@@ -147,7 +148,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
         return ctx;
     }
 
-    public static CommandContext.Reply passUpChain(CommandChainHandler presentChainHandler, CommandContext ctx,
+    public static CommandContext.Reply passUpChain(final CommandChainHandler presentChainHandler, CommandContext ctx,
             Command msg) {
         if (ctx == null) {
             ctx = new CommandContext();
@@ -156,7 +157,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
             return ctx.failhandle();
         }
         ctx = presentChainHandler.addSelfToContext(ctx);
-        ctx = CommandChainHandler.addHelps(presentChainHandler.getCommands(ctx), ctx);
+
         CommandChainHandler currentChainHandler = presentChainHandler.getSuccessor();
         while (currentChainHandler != null) {
             CommandContext.Reply thisLevelReply = currentChainHandler.handle(ctx, msg);
@@ -165,6 +166,8 @@ public interface CommandChainHandler extends GameEventProcessorHub {
             }
             currentChainHandler = currentChainHandler.getSuccessor();
         }
+
+        ctx = CommandChainHandler.addHelps(presentChainHandler.getCommands(ctx), ctx);
         presentChainHandler.log(Level.INFO,
                 String.format("No successor handled message: %s\n%s", ctx.toString(), ctx.getHelps()));
         return ctx.failhandle();

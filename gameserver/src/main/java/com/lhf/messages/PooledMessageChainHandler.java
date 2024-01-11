@@ -268,7 +268,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
         }
         ctx = this.addSelfToContext(ctx);
         Map<AMessageType, CommandHandler> handlers = this.getCommands(ctx);
-        ctx = PooledMessageChainHandler.addHelps(handlers, ctx);
+
         if (cmd != null && handlers != null) {
             CommandHandler handler = handlers.get(cmd.getType());
             if (handler == null) {
@@ -289,6 +289,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
                 }
             }
         }
+        ctx = PooledMessageChainHandler.addHelps(handlers, ctx);
         return ctx.failhandle();
     }
 
@@ -300,7 +301,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
         return PooledMessageChainHandler.flushUpChain(this, ctx, cmd);
     }
 
-    public static CommandContext.Reply flushUpChain(CommandChainHandler presentChainHandler, CommandContext ctx,
+    public static CommandContext.Reply flushUpChain(final CommandChainHandler presentChainHandler, CommandContext ctx,
             Command msg) {
         if (ctx == null) {
             ctx = new CommandContext();
@@ -309,7 +310,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
             return ctx.failhandle();
         }
         ctx = presentChainHandler.addSelfToContext(ctx);
-        ctx = PooledMessageChainHandler.addHelps(presentChainHandler.getCommands(ctx), ctx);
+
         CommandChainHandler currentChainHandler = presentChainHandler.getSuccessor();
         while (currentChainHandler != null) {
             CommandContext.Reply thisLevelReply = null;
@@ -323,6 +324,8 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
             }
             currentChainHandler = currentChainHandler.getSuccessor();
         }
+
+        ctx = PooledMessageChainHandler.addHelps(presentChainHandler.getCommands(ctx), ctx);
         presentChainHandler.log(Level.INFO,
                 String.format("No successor handled message: %s\n%s", ctx.toString(), ctx.getHelps()));
         return ctx.failhandle();
