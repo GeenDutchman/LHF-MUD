@@ -317,6 +317,9 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
 
         for (final AtlasMappingItem<AtlasMemberType, AtlasMemberID> mappingItem : this.getAtlasMappingItems()) {
             final AtlasMemberType member = mappingItem.getAtlasMember();
+            if (member == null) {
+                throw new NullPointerException(String.format("Mapping item '%s' must have a member!", mappingItem));
+            }
             final AtlasMemberID mappingItemId = this.getIDForMemberType(mappingItem.getAtlasMember());
             final TT translatedMember = transformer.apply(member);
             final TID translatedID = translation.getIDForMemberType(translatedMember);
