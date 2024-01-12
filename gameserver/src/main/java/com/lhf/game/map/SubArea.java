@@ -77,8 +77,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
     protected abstract class RoundThread extends Thread {
         protected final Logger logger;
-        private Phaser parentPhaser;
-        private Phaser roundPhaser;
+        private final Phaser parentPhaser;
+        private final Phaser roundPhaser;
 
         protected RoundThread(String loggerName) {
             if (loggerName == null) {
@@ -90,13 +90,13 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             this.roundPhaser = new Phaser(parentPhaser, SubArea.this.actionPools.size());
         }
 
-        public abstract void onThreadStart();
+        protected abstract void onThreadStart();
 
-        public abstract void onRoundStart();
+        protected abstract void onRoundStart();
 
-        public abstract void onRoundEnd();
+        protected abstract void onRoundEnd();
 
-        public abstract void onThreadEnd();
+        protected abstract void onThreadEnd();
 
         protected abstract void onRegister(final ICreature creature);
 
@@ -141,10 +141,10 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             }
         }
 
-        public final synchronized void register(ICreature c) {
-            if (c == null || this.roundPhaser == null) {
+        public final void register(ICreature c) {
+            if (c == null) {
                 this.logger.log(Level.SEVERE,
-                        String.format("Registration has nulls for Creature %s or Phaser %s", c, this));
+                        String.format("Cannot register a null creature on this: %s", this));
                 return;
             }
             synchronized (this.roundPhaser) {
@@ -157,10 +157,10 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
         protected abstract void onArriaval(final ICreature creature);
 
-        public final synchronized void arrive(ICreature c) {
-            if (c == null || this.roundPhaser == null) {
+        public final void arrive(ICreature c) {
+            if (c == null) {
                 this.logger.log(Level.SEVERE,
-                        String.format("Arrivalhas nulls for Creature %s or Phaser %s", c, this));
+                        String.format("Cannot arrive for a null creature on this: %s", this));
                 return;
             }
             synchronized (this.roundPhaser) {
@@ -175,10 +175,10 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
         protected abstract void onArriveAndDeregister(final ICreature creature);
 
-        public final synchronized void arriveAndDeregister(ICreature c) {
-            if (c == null || this.roundPhaser == null) {
+        public final void arriveAndDeregister(ICreature c) {
+            if (c == null) {
                 this.logger.log(Level.SEVERE,
-                        String.format("Deregistration has nulls for Creature %s or Phaser %s", c, this));
+                        String.format("Cannot deregister for null creature on this: %s", this));
                 return;
             }
             synchronized (this.roundPhaser) {
@@ -191,22 +191,24 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             }
         }
 
-        public final synchronized int getPhase() {
-            if (this.parentPhaser == null) {
-                return -1;
-            }
+        public final int getPhase() {
             synchronized (this.parentPhaser) {
                 return this.parentPhaser.getPhase();
             }
         }
 
-        public final synchronized RoundThread killIt() {
-            this.parentPhaser.forceTermination();
+        public final RoundThread killIt() {
+            synchronized (this.parentPhaser) {
+                this.parentPhaser.forceTermination();
+            }
             return this;
         }
 
-        public synchronized boolean getIsRunning() {
-            return !this.parentPhaser.isTerminated() && this.parentPhaser.getRegisteredParties() > 0 && this.isAlive();
+        public boolean getIsRunning() {
+            synchronized (this.parentPhaser) {
+                return !this.parentPhaser.isTerminated() && this.parentPhaser.getRegisteredParties() > 0
+                        && this.isAlive();
+            }
         }
 
         @Override
@@ -382,11 +384,13 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         return this.sort;
     }
 
-    public final synchronized RoundThread getRoundThread() {
-        return this.roundThread.get();
+    public final RoundThread getRoundThread() {
+        synchronized (this.roundThread) {
+            return this.roundThread.get();
+        }
     }
 
-    public final synchronized boolean hasRunningThread(final String whoIsAsking) {
+    public final boolean hasRunningThread(final String whoIsAsking) {
         synchronized (this.roundThread) {
             RoundThread thread = this.roundThread.get();
             if (thread == null) {
@@ -498,6 +502,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         final SubArea superior = areasSubAreas.higher(subArea);
         if (superior != null && superior.getCreatures().contains(creature)) {
             creature.setSuccessor(superior);
+        } else {
+            creature.setSuccessor(subArea.getArea());
         }
     }
 

@@ -335,7 +335,7 @@ public class RestArea extends SubArea {
     }
 
     @Override
-    protected synchronized boolean basicAddCreature(ICreature creature) {
+    protected boolean basicAddCreature(ICreature creature) {
         synchronized (this.actionPools) {
             if (creature == null || this.hasCreature(creature)
                     || !this.getSubAreaSort().canBeAdded(creature.getSubAreaSorts())) {
@@ -346,7 +346,7 @@ public class RestArea extends SubArea {
                 creature.setSuccessor(this);
                 synchronized (this.roundThread) {
                     if (this.hasRunningThread(String.format("basicAddCreature(%s)", creature.getName()))) {
-                        RoundThread thread = this.getRoundThread();
+                        RoundThread thread = this.roundThread.get();
                         if (thread != null) {
                             synchronized (thread) {
                                 thread.register(creature);
@@ -363,7 +363,7 @@ public class RestArea extends SubArea {
     }
 
     @Override
-    protected synchronized boolean basicRemoveCreature(ICreature creature) {
+    protected boolean basicRemoveCreature(ICreature creature) {
         if (creature == null) {
             return false;
         }

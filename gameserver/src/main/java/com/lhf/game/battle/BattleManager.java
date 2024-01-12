@@ -104,7 +104,7 @@ public class BattleManager extends SubArea {
         }
 
         @Override
-        public synchronized void onRoundEnd() {
+        public void onRoundEnd() {
             this.logger.log(Level.FINE, "Ending Round");
             BattleManager.this.flush();
             BattleManager.this.battleStats.initialize(getCreatures());
@@ -134,10 +134,6 @@ public class BattleManager extends SubArea {
         @Override
         protected void onArriveAndDeregister(ICreature creature) {
             // does nothing
-        }
-
-        public synchronized boolean getIsRunning() {
-            return super.getIsRunning();
         }
 
     }
@@ -320,7 +316,7 @@ public class BattleManager extends SubArea {
     }
 
     @Override
-    public synchronized boolean basicAddCreature(ICreature c) {
+    public boolean basicAddCreature(ICreature c) {
         synchronized (this.actionPools) {
             if (c != null && !c.isInBattle() && !this.hasCreature(c)) {
                 if (this.actionPools.putIfAbsent(c, new LinkedBlockingDeque<>(MAX_POOLED_ACTIONS)) == null) {
@@ -355,7 +351,7 @@ public class BattleManager extends SubArea {
     }
 
     @Override
-    public synchronized boolean basicRemoveCreature(ICreature c) {
+    public boolean basicRemoveCreature(ICreature c) {
         if (c == null) {
             return false;
         }
@@ -409,7 +405,7 @@ public class BattleManager extends SubArea {
     }
 
     @Override
-    public synchronized RoundThread instigate(ICreature instigator, Collection<ICreature> victims) {
+    public RoundThread instigate(ICreature instigator, Collection<ICreature> victims) {
         synchronized (this.roundThread) {
             RoundThread curThread = this.getRoundThread();
             if (curThread == null || !curThread.getIsRunning()) {
@@ -585,7 +581,6 @@ public class BattleManager extends SubArea {
         StringBuilder sb = new StringBuilder();
         if (this.hasRunningThread("printDescription()")) {
             sb.append("The battle is on! ");
-            // TODO: round count?
         } else {
             sb.append("There is no fight right now. ");
         }
