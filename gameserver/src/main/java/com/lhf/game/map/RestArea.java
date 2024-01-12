@@ -395,7 +395,7 @@ public class RestArea extends SubArea {
                 return false;
             }
             final EnumSet<SubAreaSort> cSubs = ctx.getCreature().getSubAreaSorts();
-            if (cSubs == null || cSubs.isEmpty()) {
+            if (cSubs == null) {
                 return false;
             }
             for (final SubAreaSort sort : cSubs) {

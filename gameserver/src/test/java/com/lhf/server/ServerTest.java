@@ -446,10 +446,13 @@ public class ServerTest {
     @Test
     void testReinforcements() throws IOException {
         this.comm.create("Tester");
+        this.comm.handleCommand("GO east");
         ServerClientComBundle second = new ServerClientComBundle(this.server);
         second.create("second");
+        second.handleCommand("GO east");
         ServerClientComBundle bystander = new ServerClientComBundle(this.server);
         bystander.create("bystander");
+        bystander.handleCommand("GO east");
 
         this.comm.handleCommand("attack " + second.name);
         Mockito.verify(this.comm.sssb, Mockito.atLeastOnce())
