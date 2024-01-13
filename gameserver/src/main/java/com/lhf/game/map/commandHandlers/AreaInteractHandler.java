@@ -7,6 +7,7 @@ import java.util.Optional;
 import com.lhf.game.ItemContainer.ItemFilters;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.map.Area.AreaCommandHandler;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -40,9 +41,12 @@ public class AreaInteractHandler implements AreaCommandHandler {
 
     @Override
     public boolean isEnabled(CommandContext ctx) {
-        return AreaCommandHandler.super.isEnabled(ctx) && !ctx.getCreature().isInBattle() && ctx.getArea()
-                .filterItems(EnumSet.of(ItemFilters.TYPE), null, null, null, InteractObject.class, null)
-                .size() > 0;
+        if (!AreaCommandHandler.super.isEnabled(ctx) || ctx.getCreature().isInBattle()) {
+            return false;
+        }
+        ItemPartitionListVisitor visitor = new ItemPartitionListVisitor();
+        ctx.getArea().acceptVisitor(visitor);
+        return !visitor.getInteractObjects().isEmpty();
     }
 
     @Override

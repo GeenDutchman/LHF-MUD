@@ -17,6 +17,7 @@ import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.ItemNameSearchVisitor;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.map.SubArea;
 import com.lhf.game.map.SubArea.SubAreaSort;
@@ -137,18 +138,16 @@ public class BattleAttackHandler implements PooledBattleManagerCommandHandler {
      */
     private Weapon getDesignatedWeapon(ICreature attacker, String weaponName) {
         if (weaponName != null && weaponName.length() > 0) {
-            Optional<Item> inventoryItem = attacker.getItem(weaponName);
+            ItemNameSearchVisitor visitor = new ItemNameSearchVisitor(weaponName);
+            attacker.acceptVisitor(visitor);
+            Optional<Weapon> inventoryItem = visitor.getWeapon();
             ItemNotPossessedEvent.Builder builder = ItemNotPossessedEvent.getBuilder().setNotBroadcast()
                     .setItemName(weaponName).setItemType(Weapon.class.getSimpleName());
             if (inventoryItem.isEmpty()) {
                 ICreature.eventAccepter.accept(attacker, builder.Build());
                 return null;
-            } else if (!(inventoryItem.get() instanceof Weapon)) {
-                ICreature.eventAccepter.accept(attacker, builder.setFound(inventoryItem.get()).Build());
-                return null;
-            } else {
-                return (Weapon) inventoryItem.get();
             }
+            return inventoryItem.get();
         } else {
             return attacker.defaultWeapon();
         }

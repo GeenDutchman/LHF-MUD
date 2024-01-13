@@ -23,7 +23,7 @@ public class ItemNameSearchVisitor implements ItemVisitor {
         if (item == null) {
             return false;
         }
-        if (this.searchName == null) {
+        if (this.searchName == null || this.searchName.isEmpty()) {
             return true;
         }
         return this.regexLength != null ? item.CheckNameRegex(searchName, regexLength) : item.checkName(searchName);
