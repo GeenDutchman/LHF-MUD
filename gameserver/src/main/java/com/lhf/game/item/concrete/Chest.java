@@ -12,13 +12,14 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lhf.game.LockableItemContainer;
+import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.Builder;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
 
-public class Chest extends Item implements LockableItemContainer {
+public class Chest extends InteractObject implements LockableItemContainer {
     protected final UUID chestUuid;
     protected final AtomicBoolean locked;
     protected final boolean removeOnEmpty;
@@ -35,7 +36,8 @@ public class Chest extends Item implements LockableItemContainer {
     }
 
     public Chest(ChestDescriptor descriptor, boolean isVisible) {
-        super(ChestDescriptor.generateDescription(descriptor), isVisible);
+        super(ChestDescriptor.generateDescription(descriptor), isVisible, true,
+                ChestDescriptor.generateDescription(descriptor));
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.descriptionString = "A " + this.descriptionString;
@@ -44,7 +46,8 @@ public class Chest extends Item implements LockableItemContainer {
     }
 
     public Chest(ChestDescriptor descriptor, boolean isVisible, boolean initialLock, boolean removeOnEmpty) {
-        super(ChestDescriptor.generateDescription(descriptor), isVisible);
+        super(ChestDescriptor.generateDescription(descriptor), isVisible, true,
+                ChestDescriptor.generateDescription(descriptor));
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.descriptionString = "A " + this.descriptionString;
@@ -53,7 +56,7 @@ public class Chest extends Item implements LockableItemContainer {
     }
 
     protected Chest(String name, boolean isVisible) {
-        super(name, isVisible);
+        super(name, isVisible, true, name);
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.locked = new AtomicBoolean(false);
@@ -61,7 +64,7 @@ public class Chest extends Item implements LockableItemContainer {
     }
 
     protected Chest(String name, boolean isVisible, boolean initialLock, boolean removeOnEmpty) {
-        super(name, isVisible);
+        super(name, isVisible, true, name);
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.locked = new AtomicBoolean(initialLock);
