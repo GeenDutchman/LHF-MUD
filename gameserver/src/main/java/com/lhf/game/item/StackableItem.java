@@ -26,6 +26,11 @@ public class StackableItem extends Usable {
         return new StackableItem(this.getName(), this.checkVisibility(), this.count);
     }
 
+    @Override
+    public void acceptVisitor(ItemVisitor visitor) {
+        visitor.visit(this);
+    }
+
     private int getCount() {
         return this.count;
     }

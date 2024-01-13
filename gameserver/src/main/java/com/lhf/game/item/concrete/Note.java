@@ -1,6 +1,7 @@
 package com.lhf.game.item.concrete;
 
 import com.lhf.game.item.Item;
+import com.lhf.game.item.ItemVisitor;
 
 public class Note extends Item {
 
@@ -9,6 +10,11 @@ public class Note extends Item {
     public Note(String name, boolean isVisible, String content) {
         super(name, isVisible);
         noteContent = content;
+    }
+
+    @Override
+    public void acceptVisitor(ItemVisitor visitor) {
+        visitor.visit(this);
     }
 
     @Override

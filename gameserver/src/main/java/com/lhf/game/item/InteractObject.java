@@ -28,6 +28,11 @@ public class InteractObject extends Item {
         return new InteractObject(this.getName(), this.checkVisibility(), isRepeatable, descriptionString);
     }
 
+    @Override
+    public void acceptVisitor(ItemVisitor visitor) {
+        visitor.visit(this);
+    }
+
     public void setAction(InteractAction interactMethod) {
         method = interactMethod;
     }

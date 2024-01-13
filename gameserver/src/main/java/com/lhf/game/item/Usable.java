@@ -48,6 +48,11 @@ public class Usable extends Takeable {
         return usable;
     }
 
+    @Override
+    public void acceptVisitor(ItemVisitor visitor) {
+        visitor.visit(this);
+    }
+
     protected Usable setUseAction(String whenItIsThis, UseAction doThis) {
         methods.put(whenItIsThis, doThis);
         return this;

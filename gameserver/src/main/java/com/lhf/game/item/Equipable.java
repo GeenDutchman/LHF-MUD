@@ -56,6 +56,11 @@ public class Equipable extends Usable {
         return equipable;
     }
 
+    @Override
+    public void acceptVisitor(ItemVisitor visitor) {
+        visitor.visit(this);
+    }
+
     // returns unmodifiable
     public List<EquipmentTypes> getTypes() {
         return Collections.unmodifiableList(this.types);
