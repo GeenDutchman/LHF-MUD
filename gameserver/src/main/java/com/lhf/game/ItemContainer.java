@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import com.lhf.Examinable;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.ItemVisitor;
 
 public interface ItemContainer extends Examinable {
 
@@ -44,6 +45,12 @@ public interface ItemContainer extends Examinable {
             }
         }
         return changed;
+    }
+
+    public default void acceptVisitor(ItemVisitor visitor) {
+        for (Item item : this.getItems()) {
+            item.acceptVisitor(visitor);
+        }
     }
 
     public enum ItemFilters {
