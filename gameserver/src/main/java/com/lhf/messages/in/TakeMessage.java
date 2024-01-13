@@ -1,37 +1,31 @@
 package com.lhf.messages.in;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
+import com.lhf.messages.grammar.Prepositions;
 
-public class TakeMessage extends Command {
+public class TakeMessage extends CommandAdapter {
 
-    TakeMessage(String arguments) {
-        super(CommandMessage.TAKE, arguments, true);
-        this.addPreposition("from");
+    public TakeMessage(Command command) {
+        super(command);
     }
 
     public String getTarget() {
-        if (this.directs.size() < 1) {
+        if (this.getDirects().size() < 1) {
             return null;
         }
-        return this.directs.get(0);
+        return this.getDirects().get(0);
     }
 
-    @Override
-    public Boolean isValid() {
-        boolean indirectsvalid = true;
-        if (this.indirects.size() >= 1) {
-            indirectsvalid = this.indirects.size() == 1 && this.indirects.containsKey("from")
-                    && this.indirects.getOrDefault("from", null) != null;
-        }
-        return super.isValid() && this.directs.size() >= 1 && indirectsvalid;
+    public List<String> getTargets() {
+        return this.getDirects();
     }
 
     public Optional<String> fromContainer() {
-        return Optional.ofNullable(this.indirects.getOrDefault("from", null));
+        return Optional.ofNullable(this.getIndirects().getOrDefault(Prepositions.FROM, null));
     }
 
     @Override

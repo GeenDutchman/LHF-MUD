@@ -21,6 +21,7 @@ import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler.TargetLists;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -28,7 +29,7 @@ import com.lhf.messages.events.BadTargetSelectedEvent;
 import com.lhf.messages.events.BattleRoundEvent;
 import com.lhf.messages.events.BattleStatsRequestedEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
-import com.lhf.messages.CommandMessage;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.CommandChainHandler;
 
 public class BattleTurnHandlerTest {
@@ -67,7 +68,7 @@ public class BattleTurnHandlerTest {
     @Test
     void testMeleeAttackTargets() {
         AIComBundle searcher = new AIComBundle();
-        searcher.getNPC().setInBattle(true);
+        searcher.getNPC().addSubArea(SubAreaSort.BATTLE);
 
         CommandChainHandler interceptor = Mockito.mock(CommandChainHandler.class);
         Mockito.doNothing().when(interceptor).setSuccessor(Mockito.any());
@@ -80,7 +81,7 @@ public class BattleTurnHandlerTest {
                     public Reply answer(InvocationOnMock invocation) throws Throwable {
                         CommandContext ctx = invocation.getArgument(0);
                         Command cmd = invocation.getArgument(1);
-                        if (cmd.getType().equals(CommandMessage.ATTACK)
+                        if (cmd.getType().equals(AMessageType.ATTACK)
                                 && cmd.getWhole().contains("bloohoo")) {
                             BadTargetSelectedEvent btsm = BadTargetSelectedEvent
                                     .getBuilder()
@@ -90,7 +91,7 @@ public class BattleTurnHandlerTest {
                             ctx.receive(btsm);
                             return ctx.handled();
                         }
-                        if (cmd.getType().equals(CommandMessage.SEE)) {
+                        if (cmd.getType().equals(AMessageType.SEE)) {
                             return ctx.handled();
                         }
                         return interceptor.getSuccessor().handleChain(ctx, cmd);

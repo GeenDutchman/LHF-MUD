@@ -4,6 +4,9 @@ import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
@@ -22,12 +25,25 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
+import com.lhf.game.map.SubArea.SubAreaBuilder;
+import com.lhf.game.map.SubArea.SubAreaSort;
+import com.lhf.game.map.commandHandlers.AreaAttackHandler;
+import com.lhf.game.map.commandHandlers.AreaRestHandler;
+import com.lhf.game.map.commandHandlers.AreaCastHandler;
+import com.lhf.game.map.commandHandlers.AreaDropHandler;
+import com.lhf.game.map.commandHandlers.AreaInteractHandler;
+import com.lhf.game.map.commandHandlers.AreaSayHandler;
+import com.lhf.game.map.commandHandlers.AreaSeeHandler;
+import com.lhf.game.map.commandHandlers.AreaTakeHandler;
+import com.lhf.game.map.commandHandlers.AreaUseHandler;
 import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
+import com.lhf.messages.in.AMessageType;
 
 public interface Area
         extends ItemContainer, CreatureContainer, CommandChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
@@ -91,6 +107,8 @@ public interface Area
 
         public abstract Collection<INonPlayerCharacter.AbstractNPCBuilder<?, ?>> getNPCsToBuild();
 
+        public abstract Collection<SubAreaBuilder<?, ?>> getSubAreasToBuild();
+
         public abstract Area quickBuild(CommandChainHandler successor, Land land,
                 AIRunner aiRunner);
 
@@ -109,6 +127,33 @@ public interface Area
     public abstract boolean removeCreature(ICreature c, Directions dir);
 
     public abstract Land getLand();
+
+    public abstract NavigableSet<SubArea> getSubAreas();
+
+    public boolean addSubArea(SubAreaBuilder<?, ?> builder);
+
+    public default SubArea getSubAreaForSort(SubAreaSort sort) {
+        if (sort == null) {
+            return null;
+        }
+        final NavigableSet<SubArea> subAreas = this.getSubAreas();
+        if (subAreas == null) {
+            return null;
+        }
+        for (final SubArea subArea : subAreas) {
+            if (sort.equals(subArea.getSubAreaSort())) {
+                return subArea;
+            }
+        }
+        return null;
+    }
+
+    public default boolean hasSubAreaSort(SubAreaSort sort) {
+        if (sort == null) {
+            return false;
+        }
+        return this.getSubAreaForSort(sort) != null;
+    }
 
     @Override
     default SeeEvent produceMessage() {
@@ -153,7 +198,40 @@ public interface Area
                         item);
             }
         }
-        return seen.Build();
+        return produceMessage(seen);
+    }
+
+    public interface AreaCommandHandler extends CommandHandler {
+
+        final static String inBattleString = "You appear to be in a fight, so you cannot do that.";
+
+        final static EnumMap<AMessageType, CommandHandler> areaCommandHandlers = new EnumMap<>(
+                Map.of(AMessageType.ATTACK, new AreaAttackHandler(),
+                        AMessageType.CAST, new AreaCastHandler(),
+                        AMessageType.DROP, new AreaDropHandler(),
+                        AMessageType.INTERACT, new AreaInteractHandler(),
+                        AMessageType.REST, new AreaRestHandler(),
+                        AMessageType.SAY, new AreaSayHandler(),
+                        AMessageType.SEE, new AreaSeeHandler(),
+                        AMessageType.TAKE, new AreaTakeHandler(),
+                        AMessageType.USE, new AreaUseHandler()));
+
+        @Override
+        public default boolean isEnabled(CommandContext ctx) {
+            if (ctx == null) {
+                return false;
+            }
+            ICreature creature = ctx.getCreature();
+            if (creature == null || !creature.isAlive()) {
+                return false;
+            }
+            return ctx.getArea() != null;
+        }
+
+        @Override
+        default CommandChainHandler getChainHandler(CommandContext ctx) {
+            return ctx.getArea();
+        }
     }
 
     @Override
@@ -189,6 +267,14 @@ public interface Area
             return nameCompare;
         }
         return this.getUuid().compareTo(o.getUuid());
+    }
+
+    @Override
+    default CommandContext addSelfToContext(CommandContext ctx) {
+        if (ctx.getArea() == null) {
+            ctx.setArea(this);
+        }
+        return ctx;
     }
 
     @Override

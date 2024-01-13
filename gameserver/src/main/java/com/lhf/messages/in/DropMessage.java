@@ -1,33 +1,27 @@
 package com.lhf.messages.in;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
+import com.lhf.messages.grammar.Prepositions;
 
-public class DropMessage extends Command {
-    DropMessage(String arguments) {
-        super(CommandMessage.DROP, arguments, true);
-        this.addPreposition("in");
-    }
-
-    @Override
-    public Boolean isValid() {
-        boolean indirectsvalid = true;
-        if (this.indirects.size() >= 1) {
-            indirectsvalid = this.indirects.size() == 1 && this.indirects.containsKey("in")
-                    && this.indirects.getOrDefault("in", null) != null;
-        }
-        return super.isValid() && this.directs.size() >= 1 && indirectsvalid;
+public class DropMessage extends CommandAdapter {
+    public DropMessage(Command command) {
+        super(command);
     }
 
     public String getTarget() {
-        return this.directs.get(0);
+        return this.getDirects().get(0);
+    }
+
+    public List<String> getTargets() {
+        return this.getDirects();
     }
 
     public Optional<String> inContainer() {
-        return Optional.ofNullable(this.indirects.getOrDefault("in", null));
+        return Optional.ofNullable(this.getIndirects().getOrDefault(Prepositions.IN, null));
     }
 
     @Override

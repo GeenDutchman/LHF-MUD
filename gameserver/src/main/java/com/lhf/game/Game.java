@@ -8,7 +8,6 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,9 +29,9 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.PlayersListedEvent;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
@@ -49,7 +48,7 @@ public class Game implements UserListener, CommandChainHandler {
 	private final AIRunner aiRunner;
 	private final ConversationManager conversationManager;
 	private final StatblockManager statblockManager;
-	private Map<CommandMessage, CommandHandler> commands;
+	private Map<AMessageType, CommandHandler> commands;
 	private final GameEventProcessorID gameEventProcessorID;
 
 	public static class GameBuilder {
@@ -179,13 +178,13 @@ public class Game implements UserListener, CommandChainHandler {
 		this.conversationManager = builder.getConversationManager();
 		this.statblockManager = builder.getStatblockManager();
 		DMRoom.DMRoomBuilder dmRoomBuilder = builder.getDmRoomBuilder();
-		if (dmRoomBuilder != null) {
-			this.controlRoom = dmRoomBuilder.build(this.thirdPower, null, aiRunner, statblockManager,
-					conversationManager);
-		} else {
-			this.controlRoom = DMRoom.DMRoomBuilder.buildDefault(aiRunner, statblockManager, conversationManager);
-			this.controlRoom.setSuccessor(this.thirdPower);
+		if (dmRoomBuilder == null) {
+			dmRoomBuilder = DMRoom.DMRoomBuilder.buildDefault(aiRunner, statblockManager, conversationManager);
 		}
+
+		this.controlRoom = dmRoomBuilder.build(this.thirdPower, null, aiRunner, statblockManager,
+				conversationManager);
+		this.controlRoom.setSuccessor(this.thirdPower);
 		ArrayList<LandBuilder> moreLands = builder.getAdditionalLands();
 		if (moreLands != null) {
 			for (LandBuilder landBuilder : moreLands) {
@@ -203,8 +202,8 @@ public class Game implements UserListener, CommandChainHandler {
 		}
 		this.userManager = userManager;
 		this.logger.log(Level.INFO, "Created Game");
-		this.commands = new EnumMap<>(CommandMessage.class);
-		this.commands.put(CommandMessage.PLAYERS, new PlayersHandler());
+		this.commands = new EnumMap<>(AMessageType.class);
+		this.commands.put(AMessageType.PLAYERS, new PlayersHandler());
 	}
 
 	@Override
@@ -256,8 +255,8 @@ public class Game implements UserListener, CommandChainHandler {
 		private static final String helpString = "List the players currently in the game.";
 
 		@Override
-		public CommandMessage getHandleType() {
-			return CommandMessage.PLAYERS;
+		public AMessageType getHandleType() {
+			return AMessageType.PLAYERS;
 		}
 
 		@Override
@@ -266,8 +265,8 @@ public class Game implements UserListener, CommandChainHandler {
 		}
 
 		@Override
-		public Predicate<CommandContext> getEnabledPredicate() {
-			return PlayersHandler.defaultPredicate;
+		public boolean isEnabled(CommandContext ctx) {
+			return ctx != null;
 		}
 
 		@Override
@@ -277,14 +276,14 @@ public class Game implements UserListener, CommandChainHandler {
 		}
 
 		@Override
-		public CommandChainHandler getChainHandler() {
+		public CommandChainHandler getChainHandler(CommandContext ctx) {
 			return Game.this;
 		}
 
 	}
 
 	@Override
-	public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+	public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
 		return Collections.unmodifiableMap(this.commands);
 	}
 

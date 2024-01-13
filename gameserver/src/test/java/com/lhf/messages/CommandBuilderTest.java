@@ -1,6 +1,8 @@
 package com.lhf.messages;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -10,33 +12,35 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 import com.google.common.truth.Truth;
-import com.lhf.messages.in.InMessage;
+import com.lhf.messages.grammar.Prepositions;
+import com.lhf.messages.in.AMessageType;
 
 public class CommandBuilderTest {
     class ParseTestCase {
-        public String testName;
-        public String input;
-        public Command command;
-        public Boolean isValid;
+        public final String testName;
+        public final String input;
+        public final Boolean isValid;
+        public final AMessageType type;
+        public final List<String> directs;
+        public final EnumMap<Prepositions, String> indirects;
 
         public ParseTestCase(String testName, String input, Boolean isValid,
-                CommandMessage type) {
+                AMessageType type) {
             this.testName = testName;
             this.input = input;
             this.isValid = isValid;
-            this.command = InMessage.fromCommand(type, input);
-            if (this.command != null) {
-                this.command = this.command.setValid(isValid);
-            }
+            this.directs = new ArrayList<>();
+            this.indirects = new EnumMap<>(Prepositions.class);
+            this.type = type;
         }
 
         public ParseTestCase addDirect(String direct) {
-            this.command.addDirect(direct);
+            this.directs.add(direct);
             return this;
         }
 
-        public ParseTestCase addPrepPhrase(String preposition, String phrase) {
-            this.command.addIndirect(preposition, phrase);
+        public ParseTestCase addPrepPhrase(Prepositions preposition, String phrase) {
+            this.indirects.put(preposition, phrase);
             return this;
         }
 
@@ -44,24 +48,34 @@ public class CommandBuilderTest {
             return DynamicTest.dynamicTest(this.testName, this::execute);
         }
 
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("ParseTestCase [testName=").append(testName).append(", input=").append(input)
+                    .append(", isValid=").append(isValid).append(", type=").append(type)
+                    .append(", directs=").append(directs).append(", indirects=").append(indirects)
+                    .append("]");
+            return builder.toString();
+        }
+
         public void execute() {
             System.out.println("Testing: " + this.testName);
-            Command cmd = CommandBuilder.parse(this.input);
-            Truth.assertWithMessage("Expected '%s' to not make null command", this.input).that(cmd).isNotNull();
+            final Command cmd = Command.parse(this.input);
+            Truth.assertWithMessage("Expected '%s' to not make null command", this).that(cmd)
+                    .isNotNull();
             System.out.println("Recieved: " + cmd.toString());
-            if (this.command != null) {
-                System.out.println("Expected: " + this.command.toString());
-                Truth.assertWithMessage("Expected validation of command '%s' -> '%s' to be %s, but was not.",
-                        this.input, this.command.toString(), this.command.isValid()).that(cmd.isValid())
-                        .isEqualTo(this.command.isValid());
-            } else {
-                Truth.assertWithMessage("Expected validation of command '%s' to be %s, but it was not.", this.input,
-                        this.isValid)
-                        .that(cmd.isValid()).isEqualTo(this.isValid);
-            }
-            if (cmd.isValid) {
-                Truth.assertWithMessage("Expected commands to match, but they were not.").that(cmd)
-                        .isEqualTo(this.command);
+            Truth.assertWithMessage("Test case '%s' input should match parsed '%s' whole", this, cmd)
+                    .that(cmd.getWhole()).isEqualTo(this.input);
+            Truth.assertWithMessage("Parsed command '%s' should be just as valid as test case '%s'", cmd,
+                    this).that(cmd.isValid()).isEqualTo(this.isValid);
+            if (this.isValid) {
+                Truth.assertWithMessage("Command types should be the same for test case '%s'",
+                        this.testName).that(cmd.getType())
+                        .isEqualTo(this.type);
+                Truth.assertWithMessage("Directs should be the same for test case '%s'", this.testName)
+                        .that(cmd.getDirects()).containsExactlyElementsIn(this.directs).inOrder();
+                Truth.assertWithMessage("Inirects should be the same for test case '%s'", this.testName)
+                        .that(cmd.getIndirects()).containsExactlyEntriesIn(this.indirects).inOrder();
             }
         }
 
@@ -81,40 +95,46 @@ public class CommandBuilderTest {
     @TestFactory
     Stream<DynamicTest> testParse() {
         ArrayList<ParseTestCase> testCases = new ArrayList<>();
-        testCases.add(new ParseTestCase("Command only, CAPS", "SAY", true,
-                CommandMessage.SAY));
-        testCases.add(new ParseTestCase("Command only, lower", "equip", true,
-                CommandMessage.EQUIP));
+        testCases.add(new ParseTestCase("Command only, CAPS", "SAY", false,
+                AMessageType.SAY));
+        testCases.add(new ParseTestCase("Command only, lower", "equip", false,
+                AMessageType.EQUIP));
         testCases.add(
-                new ParseTestCase("Command only, enum", CommandMessage.ATTACK.toString(),
-                        true, CommandMessage.ATTACK));
+                new ParseTestCase("Command only, enum", AMessageType.ATTACK.toString(),
+                        false, AMessageType.ATTACK));
         testCases.add(new ParseTestCase("Not command", "Zirtech", false, null));
         testCases.add(
                 new ParseTestCase("Single direct object", "Say hello", true,
-                        CommandMessage.SAY).addDirect("hello"));
+                        AMessageType.SAY).addDirect("hello"));
         testCases.add(new ParseTestCase("Quoted direct object", "Say \"hello\"",
-                true, CommandMessage.SAY)
+                true, AMessageType.SAY)
                 .addDirect("\"hello\""));
         testCases.add(new ParseTestCase("Quoted direct object with preposition",
                 "Say\"hello to my little friend\"",
-                true, CommandMessage.SAY).addDirect("\"hello to my little friend\""));
+                true, AMessageType.SAY).addDirect("\"hello to my little friend\""));
         testCases.add(new ParseTestCase("Quoted direct object with preposition",
-                "Say \"hello to my little friend\" to arnold", true, CommandMessage.SAY)
-                .addDirect("\"hello to my little friend\"").addPrepPhrase("to", "arnold"));
+                "Say \"hello to my little friend\" to arnold", true, AMessageType.SAY)
+                .addDirect("\"hello to my little friend\"").addPrepPhrase(Prepositions.TO,
+                        "arnold"));
         testCases.add(new ParseTestCase("Quoted direct object with preposition and punctuation",
                 "Say \"hello there!\" to arnold", true,
-                CommandMessage.SAY).addDirect("\"hello there!\"")
-                .addPrepPhrase("to", "arnold"));
+                AMessageType.SAY).addDirect("\"hello there!\"")
+                .addPrepPhrase(Prepositions.TO, "arnold"));
         testCases.add(
                 new ParseTestCase("Quoted comma list", "Say \"one, two, three\" to arnold",
-                        true, CommandMessage.SAY)
-                        .addDirect("\"one, two, three\"").addPrepPhrase("to", "arnold"));
-        testCases.add(new ParseTestCase("Trailing quoted space", "say \"one \"", true, CommandMessage.SAY)
+                        true, AMessageType.SAY)
+                        .addDirect("\"one, two, three\"")
+                        .addPrepPhrase(Prepositions.TO, "arnold"));
+        testCases.add(new ParseTestCase("Trailing quoted space", "say \"one \"",
+                true, AMessageType.SAY)
                 .addDirect("\"one \""));
         testCases.add(new ParseTestCase("Posessive preposition", "Take longsword from John's corpse", false,
-                CommandMessage.TAKE).addDirect("longsword").addPrepPhrase("from", "John's corpse"));
-        testCases.add(new ParseTestCase("Quoted Posessive preposition", "Take longsword from \"John's corpse\"", true,
-                CommandMessage.TAKE).addDirect("longsword").addPrepPhrase("from", "\"John's corpse\""));
+                AMessageType.TAKE).addDirect("longsword")
+                .addPrepPhrase(Prepositions.FROM, "John's corpse"));
+        testCases.add(new ParseTestCase("Quoted Posessive preposition", "Take longsword from \"John's corpse\"",
+                true,
+                AMessageType.TAKE).addDirect("longsword")
+                .addPrepPhrase(Prepositions.FROM, "\"John's corpse\""));
 
         return testCases.stream().map(testCase -> testCase.toDynamicTest());
 

@@ -4,6 +4,10 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
+import com.lhf.game.creature.ICreature;
+import com.lhf.messages.GameEventProcessorHub;
+import com.lhf.messages.events.FactionRenegadeJoined;
+
 public enum CreatureFaction {
     PLAYER, MONSTER, NPC, RENEGADE;
 
@@ -78,6 +82,32 @@ public enum CreatureFaction {
             return false;
         }
         return CreatureFaction.allySet(this).contains(other);
+    }
+
+    public static void handleTurnRenegade(ICreature turned, GameEventProcessorHub hub) {
+        if (turned == null) {
+            return;
+        }
+        if (!RENEGADE.equals(turned.getFaction())) {
+            turned.setFaction(RENEGADE);
+            FactionRenegadeJoined.Builder builder = FactionRenegadeJoined.getBuilder(turned);
+            ICreature.eventAccepter.accept(turned, builder.setNotBroadcast().Build());
+            builder.setBroacast();
+            if (hub != null) {
+                hub.announce(builder.Build(), turned);
+            }
+        }
+    }
+
+    public static boolean checkAndHandleTurnRenegade(ICreature attacker, ICreature target, GameEventProcessorHub hub) {
+        if (!CreatureFaction.RENEGADE.equals(target.getFaction())
+                && !CreatureFaction.RENEGADE.equals(attacker.getFaction())
+                && attacker.getFaction() != null
+                && attacker.getFaction().allied(target.getFaction())) {
+            CreatureFaction.handleTurnRenegade(attacker, hub);
+            return true;
+        }
+        return false;
     }
 
 }

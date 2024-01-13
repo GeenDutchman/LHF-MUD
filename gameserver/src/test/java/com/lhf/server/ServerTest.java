@@ -157,22 +157,23 @@ public class ServerTest {
 
     @Test
     void testComplexCharacterCreation() {
+        final long waitMillis = 2000;
         Mockito.verify(this.comm.sssb, Mockito.atLeastOnce()).send(Mockito.any(WelcomeEvent.class));
         this.comm.handleCommand("CREATE Tester with Tester", null); // we won't see anything, just be
                                                                     // greeted
-        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "to make a character you need")));
         this.comm.handleCommand("say hi to gary lovejax");
-        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "intro lore placeholder here")));
         this.comm.handleCommand("say ok to gary lovejax");
-        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "MAGE")));
         this.comm.handleCommand("say mage to gary lovejax");
-        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SPEAKING, "You have selected MAGE")));
         this.comm.handleCommand("say ready to gary lovejax");
-        Mockito.verify(this.comm.sssb, Mockito.timeout(2000))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                 .send(Mockito.argThat(new MessageMatcher(GameEventType.SEE)));
         String room1 = this.comm.handleCommand("see");
         Truth.assertThat(room1).contains("east");
@@ -397,6 +398,7 @@ public class ServerTest {
 
     @Test
     void testReincarnation() throws IOException {
+        final int waitMillis = 500;
         this.comm.create("Tester");
         this.comm.handleCommand("go east");
         String status = this.comm.handleCommand("status");
@@ -415,28 +417,51 @@ public class ServerTest {
         attacker.handleCommand("equip shield");
         attacker.handleCommand("status");
 
+        ArgumentMatcher<GameEvent> fightStarted = new MessageMatcher(GameEventType.START_FIGHT);
         ArgumentMatcher<GameEvent> battleTurn = new MessageMatcher(GameEventType.BATTLE_ROUND,
                 "should enter an action to take for the round");
         ArgumentMatcher<GameEvent> battleTurnAccepted = new MessageMatcher(GameEventType.BATTLE_ROUND,
                 "action has been submitted for the round");
 
         attacker.handleCommand("attack Tester");
+        Mockito.verify(attacker.sssb, Mockito.timeout(waitMillis).atLeastOnce()).send(Mockito.argThat(fightStarted));
+        Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis).atLeastOnce()).send(Mockito.argThat(fightStarted));
+        Mockito.verify(attacker.sssb, Mockito.timeout(waitMillis)).send(Mockito.argThat(battleTurnAccepted));
+
+        Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis)).send(Mockito.argThat(battleTurn));
         this.comm.handleCommand("PASS");
-        for (int i = 1; i < 30 && this.comm.outCaptor.getAllValues().stream()
-                .noneMatch(outy -> outy != null && GameEventType.REINCARNATION.equals(outy.getEventType())); i++) {
-            Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
+        Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis)).send(Mockito.argThat(battleTurnAccepted));
+
+        for (int i = 1; i < 30; i++) {
+            this.comm.handleCommand("SEE");
+            final GameEvent seen = this.comm.outCaptor.getAllValues().stream()
+                    .filter(event -> event != null && GameEventType.SEE.equals(event.getEventType()))
+                    .reduce((a, b) -> b).orElse(null); // watch out for infinite streams here
+            if (seen == null || !seen.toString().contains("Attacker")) {
+                System.out.printf("Attacker not found %d: \"%s\"\n", i, seen);
+                break;
+            }
+            battleTurn = new MessageMatcher(GameEventType.BATTLE_ROUND,
+                    List.of("should enter an action to take for the round", String.format("It is round %d", i)),
+                    List.of());
+            Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                     .send(Mockito.argThat(battleTurn));
-            Mockito.verify(attacker.sssb, Mockito.timeout(500).atLeast(i - 1)) // minus one because the first one is
-                                                                               // already submitted
+            Mockito.verify(attacker.sssb, Mockito.timeout(waitMillis))
                     .send(Mockito.argThat(battleTurn));
             attacker.handleCommand("attack Tester");
             this.comm.handleCommand("PASS");
-            Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
+            battleTurnAccepted = new MessageMatcher(GameEventType.BATTLE_ROUND,
+                    List.of("action has been submitted for the round", String.format("It is round %d", i)),
+                    List.of());
+            Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
                     .send(Mockito.argThat(battleTurnAccepted));
-            Mockito.verify(attacker.sssb, Mockito.timeout(500).atLeast(i))
+            Mockito.verify(attacker.sssb, Mockito.timeout(waitMillis))
                     .send(Mockito.argThat(battleTurnAccepted));
 
         }
+        System.out.println("Exited attack loop");
+        Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis))
+                .send(Mockito.argThat(new MessageMatcher(GameEventType.REINCARNATION)));
         Truth.assertThat(attacker.handleCommand("SEE")).doesNotContainMatch("<.+>Tester<.+>");
         Truth.assertThat(this.comm.handleCommand("inventory")).isEqualTo(inventory);
         Truth.assertThat(this.comm.handleCommand("status")).isEqualTo(status);
@@ -445,10 +470,13 @@ public class ServerTest {
     @Test
     void testReinforcements() throws IOException {
         this.comm.create("Tester");
+        this.comm.handleCommand("GO east");
         ServerClientComBundle second = new ServerClientComBundle(this.server);
         second.create("second");
+        second.handleCommand("GO east");
         ServerClientComBundle bystander = new ServerClientComBundle(this.server);
         bystander.create("bystander");
+        bystander.handleCommand("GO east");
 
         this.comm.handleCommand("attack " + second.name);
         Mockito.verify(this.comm.sssb, Mockito.atLeastOnce())

@@ -31,11 +31,11 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
@@ -43,6 +43,7 @@ import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.GameEvent.Builder;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.user.UserID;
@@ -241,7 +242,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         return wrapped.getCommands(ctx);
     }
 
@@ -447,13 +448,23 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public boolean isInBattle() {
-        return wrapped.isInBattle();
+    public final EnumSet<SubAreaSort> getSubAreaSorts() {
+        return wrapped.getSubAreaSorts();
     }
 
     @Override
-    public void setInBattle(boolean inBattle) {
-        wrapped.setInBattle(inBattle);
+    public final boolean addSubArea(SubAreaSort subAreaSort) {
+        return wrapped.addSubArea(subAreaSort);
+    }
+
+    @Override
+    public final boolean removeSubArea(SubAreaSort subAreaSort) {
+        return wrapped.removeSubArea(subAreaSort);
+    }
+
+    @Override
+    public final boolean isInBattle() {
+        return wrapped.isInBattle();
     }
 
     @Override

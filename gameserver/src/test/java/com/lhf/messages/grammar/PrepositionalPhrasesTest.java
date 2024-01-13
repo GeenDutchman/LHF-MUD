@@ -1,7 +1,7 @@
 package com.lhf.messages.grammar;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.EnumSet;
 
 import org.junit.jupiter.api.Test;
 
@@ -29,9 +29,7 @@ public class PrepositionalPhrasesTest {
 
     @Test
     void testParse() {
-        HashSet<String> preps = new HashSet<>();
-        preps.add("to");
-        preps.add("at");
+        EnumSet<Prepositions> preps = EnumSet.of(Prepositions.TO, Prepositions.AT);
 
         ArrayList<testcase> testcases = new ArrayList<>();
         testcases.add(new testcase("", false).addToken("", false));

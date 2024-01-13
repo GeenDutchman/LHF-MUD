@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 
 import com.lhf.game.creature.ICreature;
@@ -19,17 +18,17 @@ import com.lhf.game.lewd.LewdProduct;
 import com.lhf.game.lewd.VrijPartij;
 import com.lhf.game.map.Area;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadTargetSelectedEvent;
+import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
-import com.lhf.messages.events.LewdEvent;
-import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
+import com.lhf.messages.events.LewdEvent;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
-import com.lhf.messages.CommandMessage;
-import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.LewdInMessage;
 
 public class LewdBed extends Bed {
@@ -84,8 +83,8 @@ public class LewdBed extends Bed {
         super(room, builder.subBuilder);
         this.vrijPartijen = Collections.synchronizedNavigableMap(new TreeMap<>());
         this.lewdProduct = builder.lewdProduct;
-        this.commands.put(CommandMessage.LEWD, new LewdHandler());
-        this.commands.put(CommandMessage.PASS, new PassHandler());
+        this.commands.put(AMessageType.LEWD, new LewdHandler());
+        this.commands.put(AMessageType.PASS, new PassHandler());
     }
 
     public LewdBed setLewdProduct(LewdProduct lewdProduct) {
@@ -103,13 +102,11 @@ public class LewdBed extends Bed {
     }
 
     protected class PassHandler implements BedCommandHandler {
-        private final Predicate<CommandContext> enabledPredicate = BedCommandHandler.defaultBedPredicate
-                .and(ctx -> LewdBed.this.vrijPartijen.size() > 0);
         private final static String helpString = "\"pass\" to decline all the lewdness";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.LEWD;
+        public AMessageType getHandleType() {
+            return AMessageType.LEWD;
         }
 
         @Override
@@ -118,19 +115,19 @@ public class LewdBed extends Bed {
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return this.enabledPredicate;
+        public boolean isEnabled(CommandContext ctx) {
+            return BedCommandHandler.super.isEnabled(ctx) && LewdBed.this.vrijPartijen.size() > 0;
         }
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd == null || !CommandMessage.PASS.equals(cmd.getType())) {
+            if (cmd == null || !AMessageType.PASS.equals(cmd.getType())) {
                 return ctx.failhandle();
             }
             Iterator<VrijPartij> it = LewdBed.this.vrijPartijen.values().iterator();
             while (it.hasNext()) {
                 VrijPartij party = it.next();
-                if (party.passAndCheck(ctx.getCreature())) {
+                if (party.pass(ctx.getCreature()).check()) {
                     it.remove();
                 }
             }
@@ -138,7 +135,7 @@ public class LewdBed extends Bed {
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return LewdBed.this;
         }
 
@@ -148,8 +145,8 @@ public class LewdBed extends Bed {
         private final static String helpString = "\"lewd [creature]\" lewd another person in the bed";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.LEWD;
+        public AMessageType getHandleType() {
+            return AMessageType.LEWD;
         }
 
         @Override
@@ -158,14 +155,9 @@ public class LewdBed extends Bed {
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return LewdHandler.defaultBedPredicate;
-        }
-
-        @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             LewdEvent.Builder lewdOutMessage = LewdEvent.getBuilder();
-            if (cmd == null || cmd.getType() != CommandMessage.LEWD || !(cmd instanceof LewdInMessage)) {
+            if (cmd == null || cmd.getType() != this.getHandleType()) {
                 return ctx.failhandle();
             }
             if (ctx.getCreature() == null) {
@@ -190,7 +182,7 @@ public class LewdBed extends Bed {
                 return ctx.failhandle();
             }
 
-            LewdInMessage lewdInMessage = (LewdInMessage) cmd;
+            final LewdInMessage lewdInMessage = new LewdInMessage(cmd);
             if (lewdInMessage.getPartners().size() > 0) {
                 return LewdBed.this.handlePopulatedJoin(ctx.getCreature(), lewdInMessage.getPartners(),
                         lewdInMessage.getNames())
@@ -202,7 +194,7 @@ public class LewdBed extends Bed {
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return LewdBed.this;
         }
 
@@ -222,7 +214,7 @@ public class LewdBed extends Bed {
             return true;
         }
         lewdOutMessage.setParty(party.getParty());
-        if (party.acceptAndCheck(joiner)) {
+        if (party.accept(joiner).check()) {
             if (this.lewdProduct != null) {
                 this.lewdProduct.onLewd(this.room, party);
             }

@@ -3,32 +3,22 @@ package com.lhf.messages.in;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
+import com.lhf.messages.grammar.Prepositions;
 
-public class UseMessage extends Command {
-    UseMessage(String payload) {
-        super(CommandMessage.USE, payload, true);
-        this.addPreposition("on");
+public class UseMessage extends CommandAdapter {
+    public UseMessage(Command command) {
+        super(command);
     }
 
     public String getUsefulItem() {
-        if (this.directs.size() < 1) {
+        if (this.getDirects().size() < 1) {
             return null;
         }
-        return this.directs.get(0);
+        return this.getDirects().get(0);
     }
 
     public String getTarget() {
-        return this.indirects.getOrDefault("on", null);
-    }
-
-    @Override
-    public Boolean isValid() {
-        Boolean validated = true;
-        if (this.indirects.size() > 0) {
-            validated = this.indirects.containsKey("on") && this.indirects.size() == 1;
-        }
-        return super.isValid() && this.directs.size() == 1 && validated;
+        return this.getIndirects().getOrDefault(Prepositions.ON, null);
     }
 
     @Override

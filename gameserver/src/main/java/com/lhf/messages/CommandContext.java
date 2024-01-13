@@ -5,13 +5,17 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Optional;
+import java.util.TreeSet;
 
-import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.map.Dungeon;
-import com.lhf.game.map.Room;
+import com.lhf.game.map.Area;
+import com.lhf.game.map.Land;
+import com.lhf.game.map.SubArea;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
@@ -20,10 +24,10 @@ public class CommandContext {
     protected Client client;
     protected User user;
     protected ICreature creature;
-    protected Room room;
-    protected BattleManager bManager;
-    protected Dungeon dungeon;
-    protected EnumMap<CommandMessage, String> helps = new EnumMap<>(CommandMessage.class);
+    protected NavigableSet<SubArea> subAreas = new TreeSet<>();
+    protected Area area;
+    protected Land land;
+    protected EnumMap<AMessageType, String> helps = new EnumMap<>(AMessageType.class);
     protected List<GameEvent> messages = new ArrayList<>();
 
     public class Reply {
@@ -33,9 +37,9 @@ public class CommandContext {
             this.handled = isHandled;
         }
 
-        public Map<CommandMessage, String> getHelps() {
+        public Map<AMessageType, String> getHelps() {
             if (CommandContext.this.helps == null) {
-                CommandContext.this.helps = new EnumMap<>(CommandMessage.class);
+                CommandContext.this.helps = new EnumMap<>(AMessageType.class);
             }
             return Collections.unmodifiableMap(CommandContext.this.helps);
         }
@@ -85,9 +89,9 @@ public class CommandContext {
         theCopy.client = this.client;
         theCopy.user = this.user;
         theCopy.creature = this.creature;
-        theCopy.room = this.room;
-        theCopy.bManager = this.bManager;
-        theCopy.dungeon = this.dungeon;
+        theCopy.subAreas = this.subAreas;
+        theCopy.area = this.area;
+        theCopy.land = this.land;
         theCopy.helps = new EnumMap<>(this.helps);
         theCopy.messages = new ArrayList<>(this.messages);
         return theCopy;
@@ -116,21 +120,21 @@ public class CommandContext {
      * @param helpsFound help data to collect in the context
      * @return the helpsFound
      */
-    public Map<CommandMessage, String> addHelps(Map<CommandMessage, String> helpsFound) {
+    public Map<AMessageType, String> addHelps(Map<AMessageType, String> helpsFound) {
         if (this.helps == null) {
-            this.helps = new EnumMap<>(CommandMessage.class);
+            this.helps = new EnumMap<>(AMessageType.class);
         }
         if (helpsFound != null) {
-            for (Map.Entry<CommandMessage, String> entry : helpsFound.entrySet()) {
+            for (Map.Entry<AMessageType, String> entry : helpsFound.entrySet()) {
                 this.helps.putIfAbsent(entry.getKey(), entry.getValue());
             }
         }
         return helpsFound;
     }
 
-    public CommandContext addHelp(CommandMessage cmd, String help) {
+    public CommandContext addHelp(AMessageType cmd, String help) {
         if (this.helps == null) {
-            this.helps = new EnumMap<>(CommandMessage.class);
+            this.helps = new EnumMap<>(AMessageType.class);
         }
         if (cmd != null && help != null) {
             this.helps.putIfAbsent(cmd, help);
@@ -138,7 +142,7 @@ public class CommandContext {
         return this;
     }
 
-    public Map<CommandMessage, String> getHelps() {
+    public Map<AMessageType, String> getHelps() {
         return Collections.unmodifiableMap(helps);
     }
 
@@ -190,36 +194,67 @@ public class CommandContext {
         this.user = user;
     }
 
-    public void setRoom(Room room) {
-        this.room = room;
+    public final NavigableSet<SubArea> getSubAreas() {
+        return Collections.unmodifiableNavigableSet(this.subAreas);
     }
 
-    public Room getRoom() {
-        return this.room;
+    public boolean addSubArea(SubArea subArea) {
+        if (subArea == null) {
+            return false;
+        }
+        return this.subAreas.add(subArea);
     }
 
-    public BattleManager getBattleManager() {
-        return this.bManager;
+    public final SubArea getSubAreaForSort(SubAreaSort sort) {
+        if (sort == null) {
+            return null;
+        }
+        final NavigableSet<SubArea> subAreas = this.getSubAreas();
+        if (subAreas == null) {
+            return null;
+        }
+        for (final SubArea subArea : subAreas) {
+            if (sort.equals(subArea.getSubAreaSort())) {
+                return subArea;
+            }
+        }
+        return null;
     }
 
-    public void setBattleManager(BattleManager battleManager) {
-        this.bManager = battleManager;
+    public final boolean hasSubAreaSort(SubAreaSort sort) {
+        if (sort == null) {
+            return false;
+        }
+        return this.getSubAreaForSort(sort) != null;
     }
 
-    public Dungeon getDungeon() {
-        return dungeon;
+    public void setArea(Area room) {
+        this.area = room;
+        if (room != null) {
+            for (final SubArea subArea : room.getSubAreas()) {
+                this.addSubArea(subArea);
+            }
+        }
     }
 
-    public void setDungeon(Dungeon dungeon) {
-        this.dungeon = dungeon;
+    public Area getArea() {
+        return this.area;
+    }
+
+    public Land getLand() {
+        return land;
+    }
+
+    public void setLand(Land dungeon) {
+        this.land = dungeon;
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("CommandContext [client=").append(client).append(", user=").append(user).append(", creature=")
-                .append(creature).append(", room=").append(room).append(", bManager=").append(bManager)
-                .append(", dungeon=").append(dungeon).append("]");
+                .append(creature).append(", room=").append(area).append(", subAreas=").append(subAreas)
+                .append(", land=").append(land).append("]");
         return builder.toString();
     }
 

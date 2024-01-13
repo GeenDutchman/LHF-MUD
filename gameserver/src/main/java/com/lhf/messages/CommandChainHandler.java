@@ -2,9 +2,11 @@ package com.lhf.messages;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.lhf.messages.in.AMessageType;
 
 public interface CommandChainHandler extends GameEventProcessorHub {
 
@@ -19,54 +21,88 @@ public interface CommandChainHandler extends GameEventProcessorHub {
 
     public abstract CommandContext addSelfToContext(CommandContext ctx);
 
+    /**
+     * An interface meant to handle commands, with the issue of who
+     * it is taking care
+     * of commands *for* retrieved from the context to allow for static classes.
+     */
     public interface CommandHandler extends Comparable<CommandHandler> {
-        final static Predicate<CommandContext> defaultPredicate = (ctx) -> ctx != null;
 
-        public CommandMessage getHandleType();
+        /**
+         * Adapt the command to the type of lens we expect
+         * 
+         * @param command
+         * @return
+         */
+        // public abstract CommandAdapter adaptCommand(Command command);
 
-        public default boolean isEnabled(CommandContext ctx) {
-            Predicate<CommandContext> predicate = this.getEnabledPredicate();
-            if (predicate == null) {
-                // this.log(Level.FINEST, "No enabling predicate found, thus disabled");
-                return false;
-            }
-            boolean testResult = predicate.test(ctx);
-            // this.log(Level.FINEST, () -> String.format("Predicate enabled %b per context:
-            // %s", testResult, ctx));
-            return testResult;
-        }
+        /**
+         * Gets what type of command we're meant to handle
+         * 
+         * @return
+         */
+        public abstract AMessageType getHandleType();
 
-        public Optional<String> getHelp(CommandContext ctx);
+        /**
+         * Checks to see if the CommandHandler is enabled per the context
+         * 
+         * @param ctx
+         * @return
+         */
+        public abstract boolean isEnabled(CommandContext ctx);
 
-        public Predicate<CommandContext> getEnabledPredicate();
+        /**
+         * Gets an optional String of help about this command
+         * 
+         * @param ctx
+         * @return
+         */
+        public abstract Optional<String> getHelp(CommandContext ctx);
 
-        public CommandContext.Reply handleCommand(CommandContext ctx, Command cmd);
+        /**
+         * Handles a Command by internally adapting it to the expected shape.
+         * <p>
+         * 
+         * @throws IllegalArgumentException if the adaptation results in a null
+         * @param ctx
+         * @param command
+         * @return reply.handled() if it was handled, reply.failHandle() if it isn't our
+         *         problem
+         */
+        public abstract CommandContext.Reply handleCommand(CommandContext ctx, Command command);
 
-        public CommandChainHandler getChainHandler();
+        /**
+         * Gets the chainHandler that we want to deal with from the context
+         * 
+         * @param ctx
+         * @return
+         */
+        public abstract CommandChainHandler getChainHandler(CommandContext ctx);
 
         public default void log(Level logLevel, String logMessage) {
-            this.getChainHandler().log(logLevel, logMessage);
+            Logger.getLogger(this.getClass().getName()).log(logLevel, logMessage);
         }
 
         public default void log(Level logLevel, Supplier<String> logMessageSupplier) {
-            this.getChainHandler().log(logLevel, logMessageSupplier);
+            Logger.getLogger(this.getClass().getName()).log(logLevel, logMessageSupplier);
         }
 
         @Override
-        default int compareTo(CommandHandler arg0) {
+        public default int compareTo(CommandHandler arg0) {
             return this.getHandleType().compareTo(arg0.getHandleType());
         }
+
     }
 
-    public abstract Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx);
+    public abstract Map<AMessageType, CommandHandler> getCommands(CommandContext ctx);
 
     public default CommandContext.Reply handle(CommandContext ctx, Command cmd) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
         ctx = this.addSelfToContext(ctx);
-        Map<CommandMessage, CommandHandler> handlers = this.getCommands(ctx);
-        ctx = CommandChainHandler.addHelps(handlers, ctx);
+        Map<AMessageType, CommandHandler> handlers = this.getCommands(ctx);
+
         if (cmd != null && handlers != null) {
             CommandHandler handler = handlers.get(cmd.getType());
             if (handler == null) {
@@ -82,6 +118,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
                 }
             }
         }
+        ctx = CommandChainHandler.addHelps(handlers, ctx);
         return ctx.failhandle();
     }
 
@@ -93,7 +130,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
         return CommandChainHandler.passUpChain(this, ctx, cmd);
     }
 
-    private static CommandContext addHelps(Map<CommandMessage, CommandHandler> handlers, CommandContext ctx) {
+    private static CommandContext addHelps(Map<AMessageType, CommandHandler> handlers, CommandContext ctx) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
@@ -111,7 +148,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
         return ctx;
     }
 
-    public static CommandContext.Reply passUpChain(CommandChainHandler presentChainHandler, CommandContext ctx,
+    public static CommandContext.Reply passUpChain(final CommandChainHandler presentChainHandler, CommandContext ctx,
             Command msg) {
         if (ctx == null) {
             ctx = new CommandContext();
@@ -120,7 +157,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
             return ctx.failhandle();
         }
         ctx = presentChainHandler.addSelfToContext(ctx);
-        ctx = CommandChainHandler.addHelps(presentChainHandler.getCommands(ctx), ctx);
+
         CommandChainHandler currentChainHandler = presentChainHandler.getSuccessor();
         while (currentChainHandler != null) {
             CommandContext.Reply thisLevelReply = currentChainHandler.handle(ctx, msg);
@@ -129,6 +166,8 @@ public interface CommandChainHandler extends GameEventProcessorHub {
             }
             currentChainHandler = currentChainHandler.getSuccessor();
         }
+
+        ctx = CommandChainHandler.addHelps(presentChainHandler.getCommands(ctx), ctx);
         presentChainHandler.log(Level.INFO,
                 String.format("No successor handled message: %s\n%s", ctx.toString(), ctx.getHelps()));
         return ctx.failhandle();

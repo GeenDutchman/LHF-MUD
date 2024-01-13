@@ -14,10 +14,10 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
@@ -26,6 +26,10 @@ import com.lhf.game.EffectResistance;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
+import com.lhf.game.creature.commandHandlers.EquipHandler;
+import com.lhf.game.creature.commandHandlers.InventoryHandler;
+import com.lhf.game.creature.commandHandlers.StatusHandler;
+import com.lhf.game.creature.commandHandlers.UnequipHandler;
 import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.creature.statblock.AttributeBlock;
@@ -50,6 +54,7 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
@@ -58,6 +63,7 @@ import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.CommandInvoker;
 
@@ -175,7 +181,7 @@ public interface ICreature
         }
 
         protected final transient BuilderType thisObject;
-        protected final CreatureBuilderID id;
+        protected final transient CreatureBuilderID id;
         protected String name;
         protected CreatureFaction faction;
         protected VocationName vocation;
@@ -658,18 +664,38 @@ public interface ICreature
     public abstract void setProficiencies(EnumSet<EquipmentTypes> proficiences);
 
     /**
+     * Returns the set of which sorts of Sub Area engagement the Creature is in
+     * 
+     * @see {@link com.lhf.game.map.SubArea SubArea}
+     * @return set of subareas
+     */
+    public abstract EnumSet<SubAreaSort> getSubAreaSorts();
+
+    /**
+     * Used to set which sub area engagement the Creature is in
+     * 
+     * @param subAreaSort
+     * @see {@link com.lhf.game.map.SubArea SubArea}
+     * @return true if successfully added, false if was already present
+     */
+    public abstract boolean addSubArea(SubAreaSort subAreaSort);
+
+    /**
+     * Used to indicate the sub area engagement the Creature just left
+     * 
+     * @param subAreaSort
+     * @return
+     */
+    public abstract boolean removeSubArea(SubAreaSort subAreaSort);
+
+    /**
      * Reveals if the Creature is set to be in a battle
      * 
      * @return true or false
      */
-    public abstract boolean isInBattle();
-
-    /**
-     * Used to set the Creature in a battle.
-     * 
-     * @param inBattle
-     */
-    public abstract void setInBattle(boolean inBattle);
+    public default boolean isInBattle() {
+        return this.getSubAreaSorts().contains(SubAreaSort.BATTLE);
+    }
 
     /**
      * Performs the calculations for an Attack based on a
@@ -806,6 +832,11 @@ public interface ICreature
                         .append(equipped.get(EquipmentSlots.NECKLACE).getColorTaggedName());
             }
         }
+        final EnumSet<SubAreaSort> subAreas = this.getSubAreaSorts();
+        if (subAreas != null && !subAreas.isEmpty()) {
+            sb.append("\r\n").append(subAreas.stream().map(sort -> sort.toString())
+                    .collect(Collectors.joining(" and ", "They are in the state(s) of ", ".")));
+        }
         return sb.toString();
     }
 
@@ -865,8 +896,28 @@ public interface ICreature
     }
 
     public interface CreatureCommandHandler extends CommandHandler {
-        static final Predicate<CommandContext> defaultCreaturePredicate = CommandHandler.defaultPredicate
-                .and((ctx) -> ctx.getCreature() != null && ctx.getCreature().isAlive());
+        final static EnumMap<AMessageType, CommandHandler> creatureCommandHandlers = new EnumMap<>(
+                Map.of(AMessageType.EQUIP, new EquipHandler(),
+                        AMessageType.UNEQUIP, new UnequipHandler(),
+                        AMessageType.INVENTORY, new InventoryHandler(),
+                        AMessageType.STATUS, new StatusHandler()));
+
+        @Override
+        default boolean isEnabled(CommandContext ctx) {
+            if (ctx == null) {
+                return false;
+            }
+            ICreature creature = ctx.getCreature();
+            if (creature == null || !creature.isAlive()) {
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        default CommandChainHandler getChainHandler(CommandContext ctx) {
+            return ctx.getCreature();
+        }
     }
 
     @Override

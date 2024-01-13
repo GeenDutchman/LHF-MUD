@@ -7,8 +7,8 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.interfaces.ConnectionListener;
@@ -18,14 +18,14 @@ public class ClientManager {
     private HashMap<ClientID, Client> clientMap;
     private HashMap<ClientID, UserID> userMap;
     private Logger logger;
-    private HashMap<CommandMessage, String> helps;
+    private HashMap<AMessageType, String> helps;
 
     public ClientManager() {
         clientMap = new HashMap<>();
         userMap = new HashMap<>();
         logger = Logger.getLogger(this.getClass().getName());
         helps = new HashMap<>();
-        helps.put(CommandMessage.EXIT, "This will have you disconnect and leave Ibaif!");
+        helps.put(AMessageType.EXIT, "This will have you disconnect and leave Ibaif!");
     }
 
     public ClientHandle newClientHandle(Socket socket, ConnectionListener cl) throws IOException {

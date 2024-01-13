@@ -73,6 +73,24 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
                 .collect(Collectors.toCollection(sortSupplier)));
     }
 
+    public static class CreatureFilterQuery {
+        public EnumSet<CreatureFilters> filters = EnumSet.noneOf(CreatureFilters.class);
+        public String name;
+        public Integer nameRegexLen;
+        public CreatureFaction faction;
+        public VocationName vocation;
+        public transient Class<? extends ICreature> clazz;
+        public Boolean isBattling;
+    }
+
+    public default Collection<ICreature> filterCreatures(CreatureFilterQuery query) {
+        if (query == null) {
+            return this.filterCreatures(EnumSet.noneOf(CreatureFilters.class), null, null, null, null, null, null);
+        }
+        return this.filterCreatures(query.filters, query.name, query.nameRegexLen, query.faction, query.vocation,
+                query.clazz, query.isBattling);
+    }
+
     public default Optional<ICreature> getCreature(String name) {
         return this.filterCreatures(EnumSet.of(CreatureFilters.NAME), name, null, null, null, null, null).stream()
                 .findFirst();

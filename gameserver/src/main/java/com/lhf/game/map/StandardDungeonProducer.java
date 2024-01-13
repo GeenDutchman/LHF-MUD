@@ -3,6 +3,7 @@ package com.lhf.game.map;
 import java.io.FileNotFoundException;
 import java.util.logging.Logger;
 
+import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NameGenerator;
 import com.lhf.game.creature.statblock.Statblock;
@@ -35,8 +36,11 @@ public final class StandardDungeonProducer {
                 Statblock bugbear = statblockLoader.statblockFromfile("bugbear");
                 Statblock hobgoblin = statblockLoader.statblockFromfile("hobgoblin");
 
+                BattleManager.Builder battleBuilder = BattleManager.Builder.getInstance();
+                RestArea.Builder restBuilder = RestArea.Builder.getInstance();
+
                 // Entry Room RM1
-                Room.RoomBuilder entryRoomBuilder = Room.RoomBuilder.getInstance();
+                Room.RoomBuilder entryRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(restBuilder);
                 entryRoomBuilder.setName("Entry Room").setDescription("This is the entry room.");
 
                 Note addNote = new Note("interact note", true, "This note is to test the switch action.");
@@ -77,7 +81,7 @@ public final class StandardDungeonProducer {
                 // context aware items
 
                 // History Hall RM2
-                Room.RoomBuilder historyHallBuilder = Room.RoomBuilder.getInstance();
+                Room.RoomBuilder historyHallBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder);
                 historyHallBuilder.setName("History Hall").setDescription("This is the history hall.");
                 Note loreNote = new Note("ominous lore", true,
                                 "You read the page and it says 'This page intentionally left blank.'");
@@ -103,18 +107,21 @@ public final class StandardDungeonProducer {
                 // context aware items
 
                 // RM3
-                Room.RoomBuilder offeringRoomBuilder = Room.RoomBuilder.getInstance().setName("Offering Room")
+                Room.RoomBuilder offeringRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
+                                .setName("Offering Room")
                                 .setDescription("This is the offering room.");
                 // Room offeringRoom = offeringRoomBuilder.build();
 
                 // RM4
-                Room.RoomBuilder trappedHallBuilder = Room.RoomBuilder.getInstance().setName("Trapped Room")
+                Room.RoomBuilder trappedHallBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
+                                .setName("Trapped Room")
                                 .setDescription("This is the trapped room.");
                 HealPotion h1 = new HealPotion(true);
                 trappedHallBuilder.addItem(h1);
                 // Room trappedHall = trappedHallBuilder.build();
 
-                Room.RoomBuilder secretRoomBuilder = Room.RoomBuilder.getInstance().setName("Secret Room")
+                Room.RoomBuilder secretRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
+                                .setName("Secret Room")
                                 .setDescription("This is the secret room!");
 
                 MantleOfDeath mantle = new MantleOfDeath(false);
@@ -127,7 +134,8 @@ public final class StandardDungeonProducer {
                 // Room secretRoom = secretRoomBuilder.build();
 
                 // RM5
-                Room.RoomBuilder statueRoomBuilder = Room.RoomBuilder.getInstance().setName("Statue Room")
+                Room.RoomBuilder statueRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
+                                .setName("Statue Room")
                                 .setDescription("This is the statue room.");
                 Note bossNote = new Note("note from boss", true, "The tutorial boss is on vacation right now.");
                 statueRoomBuilder.addItem(bossNote);
@@ -168,7 +176,8 @@ public final class StandardDungeonProducer {
                 // context aware items
 
                 // RM6 The armory
-                Room.RoomBuilder armoryBuilder = Room.RoomBuilder.getInstance().setName("Armory")
+                Room.RoomBuilder armoryBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
+                                .setName("Armory")
                                 .setDescription("An armory");
                 CarnivorousArmor mimic = new CarnivorousArmor(true);
                 ChainMail mail = new ChainMail(true);
@@ -183,10 +192,12 @@ public final class StandardDungeonProducer {
                 // Room armory = armoryBuilder.build();
 
                 // RM7
-                Room.RoomBuilder passage = Room.RoomBuilder.getInstance().setName("Passageway")
+                Room.RoomBuilder passage = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
+                                .setName("Passageway")
                                 .setDescription("An old, curvy and dusty passageway");
                 // RM8
-                Room.RoomBuilder treasuryBuilder = Room.RoomBuilder.getInstance().setName("Vault")
+                Room.RoomBuilder treasuryBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
+                                .setName("Vault")
                                 .setDescription("A looted vault room.");
                 HealPotion regular = new HealPotion(true);
                 HealPotion greater = new HealPotion(HealType.Greater);

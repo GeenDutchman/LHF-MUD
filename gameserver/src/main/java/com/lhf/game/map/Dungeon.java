@@ -9,17 +9,14 @@ import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.EntityEffect;
-import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
@@ -28,25 +25,14 @@ import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.map.Area.AreaBuilder;
 import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.Atlas.AtlasMappingItem;
-import com.lhf.game.map.Atlas.TargetedTester;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
-import com.lhf.messages.events.BadGoEvent;
-import com.lhf.messages.events.BadGoEvent.BadGoType;
-import com.lhf.messages.events.BadMessageEvent;
-import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.CreatureSpawnedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.PlayerReincarnatedEvent;
 import com.lhf.messages.events.SeeEvent;
-import com.lhf.messages.events.SpeakingEvent;
-import com.lhf.messages.events.TickEvent;
-import com.lhf.messages.in.GoMessage;
-import com.lhf.messages.in.ShoutMessage;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.server.client.user.UserID;
 
 public class Dungeon implements Land {
@@ -54,7 +40,7 @@ public class Dungeon implements Land {
     public static class DungeonBuilder implements Land.LandBuilder {
 
         private final transient Logger logger;
-        private final LandBuilderID id;
+        private final transient LandBuilderID id;
         private String name;
         private AreaBuilder startingRoom = null;
         private AreaBuilderAtlas atlas = null;
@@ -181,7 +167,7 @@ public class Dungeon implements Land {
     private final Land.AreaAtlas atlas;
     private UUID startingAreaUUID;
     private transient CommandChainHandler successor;
-    private Map<CommandMessage, CommandHandler> commands;
+    private Map<AMessageType, CommandHandler> commands;
     private transient TreeSet<DungeonEffect> effects;
     private transient final Logger logger;
     private final GameEventProcessorID gameEventProcessorID;
@@ -225,11 +211,8 @@ public class Dungeon implements Land {
         return this.startingAreaUUID;
     }
 
-    private Map<CommandMessage, CommandHandler> buildCommands() {
-        Map<CommandMessage, CommandHandler> cmds = new EnumMap<>(CommandMessage.class);
-        cmds.put(CommandMessage.SHOUT, new ShoutHandler());
-        cmds.put(CommandMessage.GO, new GoHandler());
-        cmds.put(CommandMessage.SEE, new SeeHandler());
+    private Map<AMessageType, CommandHandler> buildCommands() {
+        Map<AMessageType, CommandHandler> cmds = new EnumMap<>(Land.LandCommandHandler.landCommandHandlers);
         return cmds;
     }
 
@@ -396,174 +379,6 @@ public class Dungeon implements Land {
         room.announce(event, deafened);
     }
 
-    public interface DungeonCommandHandler extends Room.RoomCommandHandler {
-        final static Predicate<CommandContext> defaultDungeonPredicate = DungeonCommandHandler.defaultRoomPredicate
-                .and(ctx -> ctx.getDungeon() != null);
-    }
-
-    protected class ShoutHandler implements DungeonCommandHandler {
-        private final static String helpString = "\"shout [message]\" Tells everyone in the dungeon your message!";
-
-        @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.SHOUT;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(ShoutHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return ShoutHandler.defaultDungeonPredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.SHOUT && cmd instanceof ShoutMessage shoutMessage) {
-                if (ctx.getCreature() == null) {
-                    ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                            .setHelps(ctx.getHelps()).setCommand(cmd).Build());
-                    return ctx.handled();
-                }
-                Dungeon.this.announceDirect(
-                        SpeakingEvent.getBuilder().setSayer(ctx.getCreature()).setShouting(true)
-                                .setMessage(shoutMessage.getMessage()).Build(),
-                        Dungeon.this.getPlayers().stream().filter(player -> player != null)
-                                .map(player -> (GameEventProcessor) player)
-                                .toList());
-                return ctx.handled();
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return Dungeon.this;
-        }
-
-    }
-
-    protected class GoHandler implements DungeonCommandHandler {
-        private final static String helpString = "\"go [direction]\" Move in the desired direction, if that direction exists.  Like \"go east\"";
-
-        @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.GO;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(GoHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return GoHandler.defaultDungeonPredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.GO && cmd instanceof GoMessage goMessage) {
-                if (ctx.getCreature() == null) {
-                    ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                            .setHelps(ctx.getHelps()).setCommand(cmd).Build());
-                    return ctx.handled();
-                }
-                Directions toGo = goMessage.getDirection();
-                if (ctx.getRoom() == null) {
-                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(toGo).Build());
-                    return ctx.handled();
-                }
-                Room presentRoom = ctx.getRoom();
-                final AtlasMappingItem<Area, UUID> mappingItem = Dungeon.this.atlas
-                        .getAtlasMappingItem(presentRoom.getUuid());
-                if (mappingItem != null) {
-                    Map<Directions, TargetedTester<UUID>> exits = mappingItem.getDirections();
-                    if (exits == null || exits.size() == 0
-                            || !exits.containsKey(toGo)
-                            || exits.get(toGo) == null) {
-                        ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
-                        return ctx.handled();
-                    }
-                    TargetedTester<UUID> doorway = exits.get(toGo);
-                    final Area nextRoom = Dungeon.this.atlas.getAtlasMember(doorway.getTargetId());
-                    if (nextRoom == null) {
-                        ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
-                                .setAvailable(exits.keySet()).Build());
-                        return ctx.handled();
-                    }
-                    TraversalTester tester = doorway.getPredicate();
-                    if (tester != null && !tester.testTraversal(ctx.getCreature(), toGo, presentRoom, presentRoom)) {
-                        ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo)
-                                .setAvailable(exits.keySet()).Build());
-                        return ctx.handled();
-                    }
-
-                    if (presentRoom.removeCreature(ctx.getCreature(), toGo)) {
-                        ICreature.eventAccepter.accept(ctx.getCreature(),
-                                TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
-                        nextRoom.addCreature(ctx.getCreature());
-                        return ctx.handled();
-                    }
-                } else {
-                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM)
-                            .setAttempted(goMessage.getDirection()).Build());
-                    return ctx.handled();
-                }
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return Dungeon.this;
-        }
-
-    }
-
-    protected class SeeHandler implements DungeonCommandHandler {
-        private final static String helpString = new StringJoiner(" ")
-                .add("\"see\"").add("Will give you some information about your surroundings.\r\n")
-                .add("\"see [name]\"").add("May tell you more about the object with that name.")
-                .toString();
-
-        @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.SEE;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(SeeHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return SeeHandler.defaultDungeonPredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.SEE) {
-                Room presentRoom = ctx.getRoom();
-                if (presentRoom != null) {
-                    SeeEvent roomSeen = presentRoom.produceMessage();
-                    ctx.receive(roomSeen);
-                    return ctx.handled();
-                }
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return Dungeon.this;
-        }
-
-    }
-
     @Override
     public void setSuccessor(CommandChainHandler successor) {
         this.successor = successor;
@@ -576,12 +391,12 @@ public class Dungeon implements Land {
 
     @Override
     public CommandContext addSelfToContext(CommandContext ctx) {
-        ctx.setDungeon(this);
+        ctx.setLand(this);
         return ctx;
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.commands);
     }
 

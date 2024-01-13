@@ -9,22 +9,20 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.HelpNeededEvent;
+import com.lhf.messages.in.AMessageType;
 
 public class Client implements CommandInvoker {
     public final static class ClientID implements Comparable<ClientID> {
@@ -69,12 +67,12 @@ public class Client implements CommandInvoker {
 
     }
 
+    protected final static transient HelpHandler helpHandler = new HelpHandler();
     protected final ClientID id;
     protected SendStrategy out;
     protected final GameEventProcessorID gameEventProcessorID;
     protected Logger logger;
     protected transient CommandChainHandler _successor;
-    protected final HelpHandler helpHandler = new HelpHandler();
 
     protected Client() {
         this.id = new ClientID();
@@ -99,12 +97,11 @@ public class Client implements CommandInvoker {
 
     public CommandContext.Reply ProcessString(String value) {
         this.log(Level.FINE, "message received: " + value);
-        Command cmd = CommandBuilder.parse(value);
+        Command cmd = Command.parse(value);
         CommandContext ctx = new CommandContext();
         ctx.setClient(this);
         CommandContext.Reply accepted = ctx.failhandle();
         if (cmd.isValid()) {
-            this.log(Level.FINEST, "the message received was deemed" + cmd.getClass().toString());
             this.log(Level.FINER, "Post Processing:" + cmd);
             accepted = this.handleChain(ctx, cmd);
             if (!accepted.isHandled()) {
@@ -157,11 +154,11 @@ public class Client implements CommandInvoker {
         return this.id;
     }
 
-    private class HelpHandler implements CommandHandler {
+    private static class HelpHandler implements CommandHandler {
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.HELP;
+        public AMessageType getHandleType() {
+            return AMessageType.HELP;
         }
 
         @Override
@@ -170,19 +167,20 @@ public class Client implements CommandInvoker {
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return CommandHandler.defaultPredicate;
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
+            return ctx.getClient();
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
-            return Client.this;
+        public boolean isEnabled(CommandContext ctx) {
+            return ctx != null && ctx.getClient() != null;
         }
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            Reply reply = CommandChainHandler.passUpChain(Client.this, ctx, null); // this will collect all the helps
-            Client.eventAccepter.accept(Client.this,
+            Reply reply = CommandChainHandler.passUpChain(this.getChainHandler(ctx), ctx, null); // this will collect
+                                                                                                 // all the helps
+            Client.eventAccepter.accept(this.getChainHandler(ctx),
                     HelpNeededEvent.getHelpBuilder().setHelps(reply.getHelps()).Build());
             return reply.resolve();
         }
@@ -191,7 +189,7 @@ public class Client implements CommandInvoker {
 
     private CommandContext.Reply handleHelpMessage(Command msg, BadMessageType badMessageType,
             CommandContext.Reply reply) {
-        Map<CommandMessage, String> helps = reply.getHelps();
+        Map<AMessageType, String> helps = reply.getHelps();
 
         if (badMessageType != null) {
             Client.eventAccepter.accept(this,
@@ -216,9 +214,9 @@ public class Client implements CommandInvoker {
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
-        Map<CommandMessage, CommandHandler> cmdMap = new EnumMap<>(CommandMessage.class);
-        cmdMap.put(CommandMessage.HELP, this.helpHandler);
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
+        Map<AMessageType, CommandHandler> cmdMap = new EnumMap<>(AMessageType.class);
+        cmdMap.put(AMessageType.HELP, Client.helpHandler);
         return cmdMap;
     }
 

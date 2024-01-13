@@ -1,83 +1,124 @@
 package com.lhf.messages;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.StringJoiner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
-public abstract class Command {
-    protected String whole;
+import com.lhf.messages.grammar.GrammaredCommandPhrase;
+import com.lhf.messages.grammar.Phrase;
+import com.lhf.messages.grammar.PrepositionalPhrases;
+import com.lhf.messages.grammar.Prepositions;
+import com.lhf.messages.in.AMessageType;
+
+public final class Command implements ICommand {
+    protected final String whole;
     protected Boolean isValid;
-    protected CommandMessage command;
-    protected List<String> directs;
-    protected Map<String, String> indirects;
-    protected Set<String> prepositions;
+    protected final AMessageType command;
+    protected final List<String> directs;
+    protected final EnumMap<Prepositions, String> indirects;
 
-    protected Command(CommandMessage command, String whole, Boolean isValid) {
+    public static Command parse(String messageIn) {
+        String toParse = messageIn.trim();
+        GrammaredCommandPhrase parser = new GrammaredCommandPhrase();
+
+        try {
+            Pattern splitter = Pattern.compile("\\w+|[^\\s]|\\s+");
+            Matcher matcher = splitter.matcher(toParse);
+            Boolean accepted = true;
+            while (matcher.find()) {
+                final String token = matcher.group();
+                accepted = accepted && parser.parse(token);
+            }
+            AMessageType commandWord = parser.getCommandWord().getCommand();
+            if (commandWord == null) {
+                Logger.getLogger(Command.class.getName()).log(Level.WARNING, "Bad parsing, converting to help");
+                return new Command(AMessageType.HELP, toParse, false);
+            }
+            Command parsed = new Command(commandWord, toParse, accepted);
+            parsed.setValid(accepted && parser.isValid());
+            if (parser.getWhat().isPresent()) {
+                for (Phrase direct : parser.getWhat().get()) {
+                    parsed.addDirect(direct.getResult());
+                }
+            }
+            if (parser.getPreps().isPresent()) {
+                PrepositionalPhrases pp = parser.getPreps().get();
+                for (final Prepositions preposition : pp) {
+                    // TODO: use the list associated per preposition
+                    parsed.addIndirect(preposition, pp.getPhraseListByPreposition(preposition).getResult());
+                }
+            }
+            parsed.setValid(parsed.isValid() && commandWord.checkValidity(parsed));
+            return parsed;
+        } catch (PatternSyntaxException e) {
+            Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, e);
+            return new Command(AMessageType.HELP, toParse, false);
+        } catch (IllegalArgumentException iae) {
+            Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, iae);
+            return new Command(AMessageType.HELP, toParse, false);
+        } catch (NullPointerException npe) {
+            Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, npe);
+            return new Command(AMessageType.HELP, toParse, false);
+        }
+    }
+
+    private Command(AMessageType command, String whole, Boolean isValid) {
         this.command = command;
         this.whole = whole;
         this.isValid = isValid;
         this.directs = new ArrayList<>();
-        this.indirects = new HashMap<>();
-        this.prepositions = new HashSet<>();
-    }
-
-    protected Command addPreposition(String preposition) {
-        this.prepositions.add(preposition);
-        return this;
-    }
-
-    protected Set<String> getPrepositions() {
-        return this.prepositions;
+        this.indirects = new EnumMap<>(Prepositions.class);
     }
 
     public String getWhole() {
         return this.whole;
     }
 
-    public CommandMessage getType() {
+    public AMessageType getType() {
         return this.command;
     }
 
     public List<String> getDirects() {
-        return directs;
+        return Collections.unmodifiableList(directs);
     }
 
     public Boolean isValid() {
         return this.isValid;
     }
 
-    // package private
-    Command setValid(Boolean valid) {
+    protected Command setValid(Boolean valid) {
         this.isValid = valid;
         return this;
     }
 
-    // package private
-    Command addDirect(String direct) {
+    protected Command addDirect(String direct) {
         this.directs.add(direct);
         return this;
     }
 
-    // package private
-    Command addIndirect(String preposition, String phrase) {
+    protected Command addIndirect(Prepositions preposition, String phrase) {
         this.indirects.put(preposition, phrase);
         return this;
     }
 
+    @Deprecated(forRemoval = true)
     public List<String> getWhat() {
-        return this.directs;
+        return Collections.unmodifiableList(this.directs);
     }
 
-    public String getByPreposition(String preposition) {
+    public String getByPreposition(Prepositions preposition) {
         return this.indirects.get(preposition);
     }
 
-    public Map<String, String> getIndirects() {
-        return this.indirects;
+    public Map<Prepositions, String> getIndirects() {
+        return Collections.unmodifiableMap(this.indirects);
     }
 
     @Override
@@ -140,10 +181,11 @@ public abstract class Command {
 
     @Override
     public String toString() {
-        StringJoiner sj = new StringJoiner(" ");
-        sj.add("Message:").add(this.getType().toString());
-        sj.add("Valid:").add(this.isValid().toString());
-        return sj.toString();
+        StringBuilder builder = new StringBuilder();
+        builder.append("Command [whole=").append(whole).append(", isValid=").append(isValid).append(", command=")
+                .append(command).append(", directs=").append(directs).append(", indirects=").append(indirects)
+                .append("]");
+        return builder.toString();
     }
 
 }

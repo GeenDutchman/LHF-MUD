@@ -8,13 +8,13 @@ public interface Examinable {
     String printDescription();
 
     default SeeEvent produceMessage() {
-        return this.produceMessage(SeeEvent.getBuilder());
+        return this.produceMessage(SeeEvent.getBuilder().setExaminable(this));
     }
 
     default SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
         if (seeOutMessage == null) {
-            seeOutMessage = SeeEvent.getBuilder();
+            seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         }
-        return seeOutMessage.setExaminable(this).Build();
+        return seeOutMessage.Build();
     }
 }

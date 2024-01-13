@@ -9,7 +9,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,11 +19,11 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.BadUserDuplicationEvent;
 import com.lhf.messages.events.UserLeftEvent;
 import com.lhf.messages.events.WelcomeEvent;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.CreateInMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.Client.ClientID;
@@ -44,7 +43,7 @@ public class Server implements ServerInterface, ConnectionListener {
     protected ClientManager clientManager;
     protected Logger logger;
     protected Set<UserListener> userListeners;
-    protected Map<CommandMessage, CommandHandler> acceptedCommands;
+    protected Map<AMessageType, CommandHandler> acceptedCommands;
 
     public Server() throws IOException {
         this.gameEventProcessorID = new GameEventProcessorID();
@@ -52,9 +51,9 @@ public class Server implements ServerInterface, ConnectionListener {
         this.userManager = new UserManager();
         this.userListeners = new LinkedHashSet<>();
         this.clientManager = new ClientManager();
-        this.acceptedCommands = new EnumMap<>(CommandMessage.class);
-        this.acceptedCommands.put(CommandMessage.EXIT, new ExitHandler());
-        this.acceptedCommands.put(CommandMessage.CREATE, new CreateHandler());
+        this.acceptedCommands = new EnumMap<>(AMessageType.class);
+        this.acceptedCommands.put(AMessageType.EXIT, new ExitHandler());
+        this.acceptedCommands.put(AMessageType.CREATE, new CreateHandler());
         this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
         this.game = new GameBuilder().setServer(this).setDefaults().build(userManager);
         this.logger.exiting(this.getClass().getName(), "NoArgConstructor", "NoArgConstructor");
@@ -67,9 +66,9 @@ public class Server implements ServerInterface, ConnectionListener {
         this.userManager = userManager;
         this.userListeners = new LinkedHashSet<>();
         this.clientManager = clientManager;
-        this.acceptedCommands = new EnumMap<>(CommandMessage.class);
-        this.acceptedCommands.put(CommandMessage.EXIT, new ExitHandler());
-        this.acceptedCommands.put(CommandMessage.CREATE, new CreateHandler());
+        this.acceptedCommands = new EnumMap<>(AMessageType.class);
+        this.acceptedCommands.put(AMessageType.EXIT, new ExitHandler());
+        this.acceptedCommands.put(AMessageType.CREATE, new CreateHandler());
         this.acceptedCommands = Collections.unmodifiableMap(this.acceptedCommands);
         this.game = null;
         if (gameBuilder != null) {
@@ -164,7 +163,7 @@ public class Server implements ServerInterface, ConnectionListener {
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.acceptedCommands);
     }
 
@@ -192,8 +191,8 @@ public class Server implements ServerInterface, ConnectionListener {
         private static final String helpString = "Disconnect and leave Ibaif!";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.EXIT;
+        public AMessageType getHandleType() {
+            return AMessageType.EXIT;
         }
 
         @Override
@@ -202,13 +201,13 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return ExitHandler.defaultPredicate;
+        public boolean isEnabled(CommandContext ctx) {
+            return ctx != null;
         }
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.EXIT) {
+            if (cmd != null && cmd.getType() == AMessageType.EXIT) {
                 Server.this.logger.log(Level.INFO, "client " + ctx.getClient().toString() + " is exiting");
                 Client ch = Server.this.clientManager.getConnection(ctx.getClient().getClientID());
 
@@ -235,7 +234,7 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return Server.this;
         }
 
@@ -245,8 +244,8 @@ public class Server implements ServerInterface, ConnectionListener {
         private static final String helpString = "Create a character in Ibaif!";
 
         @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.CREATE;
+        public AMessageType getHandleType() {
+            return AMessageType.CREATE;
         }
 
         @Override
@@ -255,13 +254,14 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return CreateHandler.alreadyCreatedPredicate;
+        public boolean isEnabled(CommandContext ctx) {
+            return ctx != null && ctx.getUserID() == null; // user not yet created
         }
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == this.getHandleType() && cmd instanceof CreateInMessage msg) {
+            if (cmd != null && cmd.getType() == this.getHandleType()) {
+                CreateInMessage msg = new CreateInMessage(cmd);
                 if (Server.this.userManager.getForbiddenUsernames().contains(msg.getUsername())) {
                     ctx.receive(BadUserDuplicationEvent.getBuilder().Build());
                     return ctx.handled();
@@ -283,7 +283,7 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return Server.this;
         }
 

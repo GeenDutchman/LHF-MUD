@@ -15,6 +15,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
+import com.lhf.messages.in.AMessageType;
 
 @ExtendWith(MockitoExtension.class)
 public class MessageHandlerTest {
@@ -77,9 +78,9 @@ public class MessageHandlerTest {
          * // });
          */
 
-        Map<CommandMessage, String> leafNodeOneHelps = new HashMap<>();
-        leafNodeOneHelps.put(CommandMessage.HELP, "When you need help");
-        leafNodeOneHelps.put(CommandMessage.INVENTORY, "When you need to know what you have");
+        Map<AMessageType, String> leafNodeOneHelps = new HashMap<>();
+        leafNodeOneHelps.put(AMessageType.HELP, "When you need help");
+        leafNodeOneHelps.put(AMessageType.INVENTORY, "When you need to know what you have");
         when(this.leafNodeOne.getCommands(Mockito.isA(CommandContext.class))).thenAnswer(i -> {
             CommandContext cc = i.getArgument(0);
             if (cc != null) {
@@ -88,8 +89,8 @@ public class MessageHandlerTest {
             return leafNodeOneHelps;
         });
 
-        Map<CommandMessage, String> leafNodeTwoHelps = new HashMap<>();
-        leafNodeTwoHelps.put(CommandMessage.CAST, "If you are a caster");
+        Map<AMessageType, String> leafNodeTwoHelps = new HashMap<>();
+        leafNodeTwoHelps.put(AMessageType.CAST, "If you are a caster");
         when(this.leafNodeTwo.getCommands(Mockito.isA(CommandContext.class))).thenAnswer(i -> {
             CommandContext cc = i.getArgument(0);
             if (cc != null) {
@@ -98,9 +99,9 @@ public class MessageHandlerTest {
             return leafNodeTwoHelps;
         });
 
-        Map<CommandMessage, String> branchNodeHelps = new HashMap<>();
-        branchNodeHelps.put(CommandMessage.HELP, "When you get higher help");
-        branchNodeHelps.put(CommandMessage.SEE, "I added something!");
+        Map<AMessageType, String> branchNodeHelps = new HashMap<>();
+        branchNodeHelps.put(AMessageType.HELP, "When you get higher help");
+        branchNodeHelps.put(AMessageType.SEE, "I added something!");
         when(this.branchNode.getCommands(Mockito.isA(CommandContext.class))).thenAnswer(i -> {
             CommandContext cc = i.getArgument(0);
             if (cc != null) {
@@ -129,22 +130,22 @@ public class MessageHandlerTest {
     @Test
     void testGetCommands() {
         buildTree();
-        Map<CommandMessage, String> receivedNodeOne = this.follow(this.leafNodeOne, null).getHelps();
+        Map<AMessageType, String> receivedNodeOne = this.follow(this.leafNodeOne, null).getHelps();
         System.out.println(receivedNodeOne);
-        Truth.assertThat(receivedNodeOne).containsKey(CommandMessage.INVENTORY);
-        Truth.assertThat(receivedNodeOne).containsKey(CommandMessage.HELP);
-        Truth.assertThat(receivedNodeOne).doesNotContainKey(CommandMessage.CAST);
-        Truth.assertThat(receivedNodeOne).containsKey(CommandMessage.SEE);
-        Truth.assertThat(receivedNodeOne).containsKey(CommandMessage.HELP);
-        Truth.assertThat(receivedNodeOne.get(CommandMessage.HELP)).doesNotContain("higher");
+        Truth.assertThat(receivedNodeOne).containsKey(AMessageType.INVENTORY);
+        Truth.assertThat(receivedNodeOne).containsKey(AMessageType.HELP);
+        Truth.assertThat(receivedNodeOne).doesNotContainKey(AMessageType.CAST);
+        Truth.assertThat(receivedNodeOne).containsKey(AMessageType.SEE);
+        Truth.assertThat(receivedNodeOne).containsKey(AMessageType.HELP);
+        Truth.assertThat(receivedNodeOne.get(AMessageType.HELP)).doesNotContain("higher");
 
-        Map<CommandMessage, String> rec = this.follow(this.leafNodeTwo, null).getHelps();
-        Truth.assertThat(rec).doesNotContainKey(CommandMessage.INVENTORY);
-        Truth.assertThat(rec).containsKey(CommandMessage.HELP);
-        Truth.assertThat(rec).containsKey(CommandMessage.CAST);
-        Truth.assertThat(rec).containsKey(CommandMessage.SEE);
-        Truth.assertThat(rec).containsKey(CommandMessage.HELP);
-        Truth.assertThat(rec.get(CommandMessage.HELP)).contains("higher");
+        Map<AMessageType, String> rec = this.follow(this.leafNodeTwo, null).getHelps();
+        Truth.assertThat(rec).doesNotContainKey(AMessageType.INVENTORY);
+        Truth.assertThat(rec).containsKey(AMessageType.HELP);
+        Truth.assertThat(rec).containsKey(AMessageType.CAST);
+        Truth.assertThat(rec).containsKey(AMessageType.SEE);
+        Truth.assertThat(rec).containsKey(AMessageType.HELP);
+        Truth.assertThat(rec.get(AMessageType.HELP)).contains("higher");
     }
 
     // @Test

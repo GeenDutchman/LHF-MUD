@@ -3,24 +3,18 @@ package com.lhf.messages.in;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
 
-public class InteractMessage extends Command {
+public class InteractMessage extends CommandAdapter {
 
-    InteractMessage(String payload) {
-        super(CommandMessage.INTERACT, payload, true);
+    public InteractMessage(Command command) {
+        super(command);
     }
 
     public String getObject() {
-        if (this.directs.size() < 1) {
+        if (this.getDirects().size() < 1) {
             return null;
         }
-        return this.directs.get(0);
-    }
-
-    @Override
-    public Boolean isValid() {
-        return super.isValid() && this.directs.size() >= 1 && this.indirects.size() == 0;
+        return this.getDirects().get(0);
     }
 
     @Override

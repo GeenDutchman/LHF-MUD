@@ -4,24 +4,17 @@ import java.util.StringJoiner;
 
 import com.lhf.game.map.Directions;
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
 
-public class GoMessage extends Command {
-    GoMessage(String payload) {
-        super(CommandMessage.GO, payload, true);
+public class GoMessage extends CommandAdapter {
+    public GoMessage(Command command) {
+        super(command);
     }
 
     public Directions getDirection() {
-        if (this.directs.size() < 1) {
+        if (this.getDirects().size() < 1) {
             return null;
         }
-        return Directions.getDirections(this.directs.get(0));
-    }
-
-    @Override
-    public Boolean isValid() {
-        return super.isValid() && this.directs.size() == 1 && Directions.isDirections(this.directs.get(0))
-                && this.indirects.size() == 0;
+        return Directions.getDirections(this.getDirects().get(0));
     }
 
     @Override

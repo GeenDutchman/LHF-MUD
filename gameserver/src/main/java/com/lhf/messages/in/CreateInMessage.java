@@ -3,34 +3,26 @@ package com.lhf.messages.in;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
+import com.lhf.messages.grammar.Prepositions;
 
-public class CreateInMessage extends Command {
-    CreateInMessage(String payload) {
-        super(CommandMessage.CREATE, payload, true);
-        this.addPreposition("with");
-        this.addPreposition("as");
-    }
-
-    @Override
-    public Boolean isValid() {
-        return super.isValid() && this.directs.size() == 1 && !this.directs.get(0).trim().isBlank()
-                && this.indirects.size() >= 1 && this.indirects.containsKey("with");
+public class CreateInMessage extends CommandAdapter {
+    public CreateInMessage(Command command) {
+        super(command);
     }
 
     public String getUsername() {
-        if (this.directs.size() < 1) {
+        if (this.getDirects().size() < 1) {
             return null;
         }
-        return this.directs.get(0).trim();
+        return this.getDirects().get(0).trim();
     }
 
     public String getPassword() {
-        return this.indirects.getOrDefault("with", null);
+        return this.getIndirects().getOrDefault(Prepositions.WITH, null);
     }
 
     public String vocationRequest() {
-        return this.indirects.getOrDefault("as", null);
+        return this.getIndirects().getOrDefault(Prepositions.AS, null);
     }
 
     @Override

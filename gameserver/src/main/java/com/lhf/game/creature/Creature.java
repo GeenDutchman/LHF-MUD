@@ -7,10 +7,8 @@ import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.function.BiFunction;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,22 +33,16 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
-import com.lhf.messages.Command;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.events.CreatureAffectedEvent;
-import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.ItemEquippedEvent;
 import com.lhf.messages.events.ItemEquippedEvent.EquipResultType;
 import com.lhf.messages.events.ItemNotPossessedEvent;
 import com.lhf.messages.events.ItemUnequippedEvent;
 import com.lhf.messages.events.ItemUnequippedEvent.UnequipResultType;
-import com.lhf.messages.in.EquipMessage;
-import com.lhf.messages.in.InventoryMessage;
-import com.lhf.messages.in.StatusMessage;
-import com.lhf.messages.in.UnequipMessage;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
 
@@ -64,10 +56,10 @@ public abstract class Creature implements ICreature {
     private final TreeSet<CreatureEffect> effects;
     private final Statblock statblock;
 
-    private boolean inBattle; // Boolean to determine if this creature is in combat
+    private EnumSet<SubAreaSort> subAreaSorts; // what sub area engagements is the creature in?
     private transient CommandInvoker controller;
     private transient CommandChainHandler successor;
-    private Map<CommandMessage, CommandHandler> cmds;
+    private Map<AMessageType, CommandHandler> cmds;
     private transient final Logger logger;
 
     protected Creature(ICreature.CreatureBuilder<?, ? extends ICreature> builder,
@@ -93,17 +85,14 @@ public abstract class Creature implements ICreature {
         ItemContainer.transfer(builder.getCorpse(), this.getInventory(), null, false);
 
         // We don't start them in battle
-        this.inBattle = false;
+        this.subAreaSorts = EnumSet.noneOf(SubAreaSort.class);
         this.logger = Logger
                 .getLogger(String.format("%s.%s", this.getClass().getName(), this.name.replaceAll("\\W", "_")));
     }
 
-    protected Map<CommandMessage, CommandHandler> buildCommands() {
-        Map<CommandMessage, CommandHandler> cmds = new EnumMap<>(CommandMessage.class);
-        cmds.put(CommandMessage.EQUIP, new EquipHandler());
-        cmds.put(CommandMessage.UNEQUIP, new UnequipHandler());
-        cmds.put(CommandMessage.INVENTORY, new InventoryHandler());
-        cmds.put(CommandMessage.STATUS, new StatusHandler());
+    protected Map<AMessageType, CommandHandler> buildCommands() {
+        Map<AMessageType, CommandHandler> cmds = new EnumMap<>(
+                ICreature.CreatureCommandHandler.creatureCommandHandlers);
         return cmds;
     }
 
@@ -230,8 +219,29 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public boolean isInBattle() {
-        return this.inBattle;
+    public final EnumSet<SubAreaSort> getSubAreaSorts() {
+        return this.subAreaSorts;
+    }
+
+    @Override
+    public final boolean addSubArea(SubAreaSort subAreaSort) {
+        if (subAreaSort == null) {
+            return false;
+        }
+        return this.subAreaSorts.add(subAreaSort);
+    }
+
+    @Override
+    public final boolean removeSubArea(SubAreaSort subAreaSort) {
+        if (subAreaSort == null) {
+            return false;
+        }
+        return this.subAreaSorts.remove(subAreaSort);
+    }
+
+    @Override
+    public final boolean isInBattle() {
+        return this.getSubAreaSorts().contains(SubAreaSort.BATTLE);
     }
 
     protected MultiRollResult adjustDamageByFlavor(MultiRollResult mrr, boolean reverse) {
@@ -396,11 +406,6 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public void setInBattle(boolean inBattle) {
-        this.inBattle = inBattle;
-    }
-
-    @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof ICreature)) {
             return false;
@@ -545,7 +550,7 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.cmds);
     }
 
@@ -557,168 +562,6 @@ public abstract class Creature implements ICreature {
     @Override
     public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
         this.logger.log(logLevel, logMessageSupplier);
-    }
-
-    protected class EquipHandler implements CreatureCommandHandler {
-        private static String helpString;
-        private static final Predicate<CommandContext> enabledPredicate = CreatureCommandHandler.defaultCreaturePredicate
-                .and(ctx -> ctx.getCreature().getItems().stream()
-                        .anyMatch(item -> item != null && item instanceof Equipable));
-
-        static {
-            StringJoiner sj = new StringJoiner(" ");
-            sj.add("\"equip [item]\"").add("Equips the item from your inventory to its default slot").add("\r\n");
-            sj.add("\"equip [item] to [slot]\"")
-                    .add("Equips the item from your inventory to the specified slot, if such exists.");
-            sj.add("In the unlikely event that either the item or the slot's name contains 'to', enclose the name in quotation marks.");
-            EquipHandler.helpString = sj.toString();
-        }
-
-        @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.EQUIP;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(EquipHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return EquipHandler.enabledPredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd instanceof EquipMessage equipMessage) {
-                Creature.this.equipItem(equipMessage.getItemName(), equipMessage.getEquipSlot());
-                return ctx.handled();
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return Creature.this;
-        }
-
-    }
-
-    protected class UnequipHandler implements CreatureCommandHandler {
-        private static String helpString;
-        private static final Predicate<CommandContext> enabledPredicate = CreatureCommandHandler.defaultCreaturePredicate
-                .and(ctx -> ctx.getCreature().getEquipmentSlots().values().size() > 0);
-
-        static {
-            StringJoiner sj = new StringJoiner(" ");
-            sj.add("\"unequip [item]\"").add("Unequips the item (if equipped) and places it in your inventory")
-                    .add("\r\n");
-            sj.add("\"unequip [slot]\"")
-                    .add("Unequips the item that is in the specified slot (if equipped) and places it in your inventory");
-            UnequipHandler.helpString = sj.toString();
-        }
-
-        @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.EQUIP;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(UnequipHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return UnequipHandler.enabledPredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd instanceof UnequipMessage unequipMessage) {
-                Creature.this.unequipItem(EquipmentSlots.getEquipmentSlot(unequipMessage.getUnequipWhat()),
-                        unequipMessage.getUnequipWhat());
-                return ctx.handled();
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return Creature.this;
-        }
-
-    }
-
-    protected class StatusHandler implements CreatureCommandHandler {
-        private final static String helpString = "\"status\" Show you how much HP you currently have, among other things.";
-
-        @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.STATUS;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(StatusHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return StatusHandler.defaultCreaturePredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd instanceof StatusMessage statusMessage) {
-                ctx.receive(
-                        CreatureStatusRequestedEvent.getBuilder().setNotBroadcast().setFromCreature(Creature.this, true)
-                                .Build());
-                return ctx.handled();
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return Creature.this;
-        }
-
-    }
-
-    protected class InventoryHandler implements CreatureCommandHandler {
-        private final static String helpString = "\"inventory\" List what you have in your inventory and what you have equipped";
-
-        @Override
-        public CommandMessage getHandleType() {
-            return CommandMessage.INVENTORY;
-        }
-
-        @Override
-        public Optional<String> getHelp(CommandContext ctx) {
-            return Optional.of(InventoryHandler.helpString);
-        }
-
-        @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return InventoryHandler.defaultCreaturePredicate;
-        }
-
-        @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd instanceof InventoryMessage inventoryMessage) {
-                ctx.receive(Creature.this.getInventory().getInventoryOutMessage(Creature.this.getEquipmentSlots()));
-                return ctx.handled();
-            }
-            return ctx.failhandle();
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
-            return Creature.this;
-        }
-
     }
 
     @Override

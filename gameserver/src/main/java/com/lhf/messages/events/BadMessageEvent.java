@@ -1,8 +1,8 @@
 package com.lhf.messages.events;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventType;
+import com.lhf.messages.in.AMessageType;
 
 public class BadMessageEvent extends HelpNeededEvent {
 
@@ -13,7 +13,7 @@ public class BadMessageEvent extends HelpNeededEvent {
     public static class Builder extends HelpNeededEvent.AbstractBuilder<Builder> {
         private BadMessageType subType;
         private String commandEntered;
-        private CommandMessage commandType;
+        private AMessageType commandType;
 
         protected Builder() {
             super(GameEventType.BAD_MESSAGE);
@@ -40,7 +40,7 @@ public class BadMessageEvent extends HelpNeededEvent {
             return this.getThis();
         }
 
-        public CommandMessage getCommandType() {
+        public AMessageType getCommandType() {
             return this.commandType;
         }
 
@@ -62,7 +62,7 @@ public class BadMessageEvent extends HelpNeededEvent {
 
     private final BadMessageType type;
     private final String cmd;
-    private final CommandMessage commandType;
+    private final AMessageType commandType;
 
     public static Builder getBuilder() {
         return new Builder();
@@ -116,7 +116,7 @@ public class BadMessageEvent extends HelpNeededEvent {
         return this.cmd;
     }
 
-    public CommandMessage getCommandType() {
+    public AMessageType getCommandType() {
         return this.commandType;
     }
 

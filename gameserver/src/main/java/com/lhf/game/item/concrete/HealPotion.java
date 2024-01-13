@@ -2,7 +2,6 @@ package com.lhf.game.item.concrete;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
-import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.ICreature;
@@ -13,6 +12,8 @@ import com.lhf.game.enums.HealType;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Usable;
 import com.lhf.game.item.interfaces.UseAction;
+import com.lhf.game.map.SubArea;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.events.BattleRoundEvent;
 import com.lhf.messages.events.BattleRoundEvent.RoundAcceptance;
 import com.lhf.messages.events.GameEvent;
@@ -37,8 +38,8 @@ public class HealPotion extends Usable {
                 CreatureEffectSource bce = new CreatureEffectSource(this.healtype.toString() + " healing",
                         new EffectPersistence(TickType.INSTANT), null, "Heals you a little bit", false);
                 bce = this.setHealing(bce);
-                if (ctx.getBattleManager() != null) {
-                    BattleManager bm = ctx.getBattleManager();
+                if (ctx.getSubAreaForSort(SubAreaSort.BATTLE) != null) {
+                    SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
                     if (bm.hasCreature(target) && !bm.hasCreature(ctx.getCreature())) {
                         // give out of turn message
                         bm.addCreature(ctx.getCreature());
@@ -49,10 +50,10 @@ public class HealPotion extends Usable {
                     ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
                     GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
                     bm.announce(results);
-                } else if (ctx.getRoom() != null) {
+                } else if (ctx.getArea() != null) {
                     ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
                     GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
-                    ctx.getRoom().announce(results);
+                    ctx.getArea().announce(results);
                 } else {
                     ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
                     GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));

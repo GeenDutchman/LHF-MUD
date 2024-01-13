@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,16 +31,20 @@ import com.lhf.game.creature.intelligence.handlers.SilencedHandler;
 import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
-import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.game.map.Area.AreaBuilder.PostBuildRoomOperations;
+import com.lhf.game.map.RestArea.LewdStyle;
+import com.lhf.game.map.SubArea.SubAreaBuilder;
+import com.lhf.game.map.SubArea.SubAreaCasting;
+import com.lhf.game.map.commandHandlers.AreaCastHandler;
+import com.lhf.game.map.commandHandlers.AreaSayHandler;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.CommandMessage;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.BadTargetSelectedEvent;
@@ -52,6 +55,7 @@ import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.messages.events.RoomExitedEvent;
 import com.lhf.messages.events.SpeakingEvent;
 import com.lhf.messages.events.UserLeftEvent;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.SayMessage;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.client.user.User;
@@ -60,7 +64,7 @@ import com.lhf.server.interfaces.NotNull;
 public class DMRoom extends Room {
     private Set<User> users;
     private List<Land> lands;
-    private transient Map<CommandMessage, CommandHandler> commands;
+    private transient Map<AMessageType, CommandHandler> commands;
 
     public static class DMRoomBuilder implements Area.AreaBuilder {
         private final transient Logger logger;
@@ -89,6 +93,11 @@ public class DMRoom extends Room {
 
         public DMRoomBuilder addItem(Item item) {
             this.delegate = delegate.addItem(item);
+            return this;
+        }
+
+        public DMRoomBuilder addSubAreaBuilder(SubAreaBuilder<?, ?> builder) {
+            this.delegate.addSubAreaBuilder(builder);
             return this;
         }
 
@@ -138,6 +147,11 @@ public class DMRoom extends Room {
             return delegate.getNPCsToBuild();
         }
 
+        @Override
+        public Collection<SubAreaBuilder<?, ?>> getSubAreasToBuild() {
+            return delegate.getSubAreasToBuild();
+        }
+
         private List<Land> quickBuildLands(AIRunner aiRunner, DMRoom dmRoom) {
             List<Land.LandBuilder> toBuild = this.getLandBuilders();
             if (toBuild == null) {
@@ -159,6 +173,9 @@ public class DMRoom extends Room {
             return DMRoom.quickBuilder(this, () -> land, () -> successor, () -> (room) -> {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.delegate.quickBuildCreatures(aiRunner, room);
                 room.addCreatures(creaturesBuilt, true);
+                for (final SubAreaBuilder<?, ?> subAreaBuilder : this.getSubAreasToBuild()) {
+                    room.addSubArea(subAreaBuilder);
+                }
             }, () -> (dmRoom) -> {
                 final List<Land> landsBuilt = this.quickBuildLands(aiRunner, dmRoom);
                 for (Land toAdd : landsBuilt) {
@@ -194,6 +211,9 @@ public class DMRoom extends Room {
                         statblockManager,
                         conversationManager);
                 room.addCreatures(creaturesBuilt, true);
+                for (final SubAreaBuilder<?, ?> subAreaBuilder : this.getSubAreasToBuild()) {
+                    room.addSubArea(subAreaBuilder);
+                }
             }, () -> (dmRoom) -> {
                 final List<Land> landsBuilt = this.buildLands(aiRunner, dmRoom, null, statblockManager,
                         conversationManager);
@@ -209,7 +229,7 @@ public class DMRoom extends Room {
             return this.build(land, land, aiRunner, statblockManager, conversationManager);
         }
 
-        public static DMRoom buildDefault(AIRunner aiRunner, StatblockManager statblockManager,
+        public static DMRoomBuilder buildDefault(AIRunner aiRunner, StatblockManager statblockManager,
                 ConversationManager conversationManager)
                 throws FileNotFoundException {
             DMRoomBuilder builder = DMRoomBuilder.getInstance();
@@ -239,24 +259,18 @@ public class DMRoom extends Room {
             dmGary.setName("Gary Lovejax");
 
             lewdAIHandler.addPartner(dmGary.getName()).addPartner(dmAda.getName());
+            RestArea.Builder restBuilder = RestArea.getBuilder().setLewd(LewdStyle.QUICKIE)
+                    .setLewdProduct(new LewdBabyMaker());
+            CreatureFilterQuery query = new CreatureFilterQuery();
+            query.filters.add(CreatureFilters.NAME);
+            query.name = "Lovejax";
+            query.nameRegexLen = 7;
+            restBuilder.addCreatureQuery(query).setAllowCasting(SubAreaCasting.FLUSH_CASTING).setQueryOnBuild(false);
+            builder.addSubAreaBuilder(restBuilder);
 
             builder.addDungeonMasterBuilder(dmAda).addDungeonMasterBuilder(dmGary);
 
-            DMRoom built = builder.build(null, null, aiRunner, statblockManager, conversationManager);
-
-            LewdBed.Builder bedBuilder = LewdBed.Builder.getInstance().setCapacity(2)
-                    .setLewdProduct(new LewdBabyMaker());
-            for (ICreature dm : built.filterCreatures(EnumSet.of(CreatureFilters.NAME), "Lovejax", 7, null, null, null,
-                    null)) {
-                if (dm != null) {
-                    bedBuilder.addOccupant(dm);
-                }
-            }
-            LewdBed bed = bedBuilder.build(built);
-
-            built.addItem(bed);
-
-            return built;
+            return builder;
         }
     }
 
@@ -412,14 +426,26 @@ public class DMRoom extends Room {
         return super.processEffect(effect, reverse);
     }
 
-    protected class SayHandler extends Room.SayHandler {
-        private static final Predicate<CommandContext> enabledPredicate = SayHandler.defaultPredicate
-                .and(ctx -> ctx.getUser() != null).and(ctx -> ctx.getRoom() != null)
-                .or(SayHandler.defaultRoomPredicate);
+    protected class SayHandler extends AreaSayHandler {
+
+        @Override
+        public boolean isEnabled(CommandContext ctx) {
+            if (ctx == null) {
+                return false;
+            }
+            final User user = ctx.getUser();
+            final ICreature creature = ctx.getCreature();
+            final Area area = ctx.getArea();
+            if (area == null) {
+                return false;
+            }
+            return creature != null || user != null;
+        }
 
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == CommandMessage.SAY && cmd instanceof SayMessage sayMessage) {
+            if (cmd != null && cmd.getType() == this.getHandleType()) {
+                final SayMessage sayMessage = new SayMessage(cmd);
                 if (sayMessage.getTarget() != null && !sayMessage.getTarget().isBlank()) {
                     boolean sent = false;
                     for (User u : DMRoom.this.users) {
@@ -446,41 +472,35 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return SayHandler.enabledPredicate;
-        }
-
-        @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return DMRoom.this;
         }
     }
 
-    protected class CastHandler extends Room.CastHandler {
-        private final static Predicate<CommandContext> enabledPredicate = Room.CastHandler.defaultRoomPredicate
-                .and(ctx -> ctx.getCreature() instanceof DungeonMaster);
+    protected class CastHandler extends AreaCastHandler {
 
         @Override
-        public Predicate<CommandContext> getEnabledPredicate() {
-            return CastHandler.enabledPredicate;
+        public boolean isEnabled(CommandContext ctx) {
+            return super.isEnabled(ctx) && ctx.getCreature().getVocation() != null
+                    && VocationName.DUNGEON_MASTER.equals(ctx.getCreature().getVocation().getVocationName());
         }
 
         @Override
-        public CommandChainHandler getChainHandler() {
+        public CommandChainHandler getChainHandler(CommandContext ctx) {
             return DMRoom.this;
         }
     }
 
     @Override
-    protected Map<CommandMessage, CommandHandler> buildCommands() {
-        Map<CommandMessage, CommandHandler> gathered = super.buildCommands();
-        gathered.put(CommandMessage.SAY, new DMRoom.SayHandler());
-        gathered.put(CommandMessage.CAST, new DMRoom.CastHandler());
+    protected Map<AMessageType, CommandHandler> buildCommands() {
+        Map<AMessageType, CommandHandler> gathered = super.buildCommands();
+        gathered.put(AMessageType.SAY, new DMRoom.SayHandler());
+        gathered.put(AMessageType.CAST, new DMRoom.CastHandler());
         return gathered;
     }
 
     @Override
-    public Map<CommandMessage, CommandHandler> getCommands(CommandContext ctx) {
+    public Map<AMessageType, CommandHandler> getCommands(CommandContext ctx) {
         return Collections.unmodifiableMap(this.commands);
     }
 

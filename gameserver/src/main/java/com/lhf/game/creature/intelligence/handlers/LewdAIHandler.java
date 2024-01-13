@@ -9,7 +9,6 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandBuilder;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.LewdEvent;
@@ -75,7 +74,7 @@ public class LewdAIHandler extends AIHandler {
                         && partyCreature != bai.getNpc()) { // or us
                     this.logger.log(Level.WARNING, String.format("%s proposed to lewd %s, but they aren't a parnter!",
                             lom.getCreature().getName(), bai.toString()));
-                    Command cmd = CommandBuilder.parse("pass"); // then don't!
+                    Command cmd = Command.parse("pass"); // then don't!
                     bai.handleChain(null, cmd);
                     return;
                 }
@@ -83,7 +82,7 @@ public class LewdAIHandler extends AIHandler {
             sj.add(partyCreature.getName());
         }
         this.logger.log(Level.FINEST, String.format("%s agreed to lewd %s", bai.toString(), sj.toString()));
-        Command cmd = CommandBuilder.parse("lewd " + sj.toString());
+        Command cmd = Command.parse("lewd " + sj.toString());
         bai.handleChain(null, cmd);
     }
 
@@ -93,7 +92,7 @@ public class LewdAIHandler extends AIHandler {
         }
 
         if (!this.stayInAfter) {
-            Command cmd = CommandBuilder.parse("GO UP");
+            Command cmd = Command.parse("GO UP");
             bai.handleChain(null, cmd);
         }
     }

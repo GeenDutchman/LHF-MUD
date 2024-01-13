@@ -1,43 +1,46 @@
 package com.lhf.messages.grammar;
 
-import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.lhf.messages.GrammarStateMachine;
 
-public class PrepositionalPhrases implements GrammarStateMachine, Iterable<String> {
-    protected Set<String> prepositions;
-    protected Map<String, PhraseList> phraseMap;
-    protected String currentPreposition;
+public class PrepositionalPhrases implements GrammarStateMachine, Iterable<Prepositions> {
+    protected EnumSet<Prepositions> prepositions;
+    protected EnumMap<Prepositions, PhraseList> phraseMap;
+    protected Prepositions currentPreposition;
     protected Boolean allowList;
 
-    public PrepositionalPhrases(Set<String> providedPreps) {
+    public PrepositionalPhrases(EnumSet<Prepositions> providedPreps) {
         this.prepositions = providedPreps;
-        this.phraseMap = new HashMap<>();
+        this.phraseMap = new EnumMap<>(Prepositions.class);
         this.allowList = false;
     }
 
-    public PrepositionalPhrases(Set<String> providedPreps, Boolean allowList) {
+    public PrepositionalPhrases(EnumSet<Prepositions> providedPreps, Boolean allowList) {
         this.prepositions = providedPreps;
-        this.phraseMap = new HashMap<>();
+        this.phraseMap = new EnumMap<>(Prepositions.class);
         this.allowList = allowList;
     }
 
-    public Set<String> getUsedPrepositions() {
+    public Set<Prepositions> getUsedPrepositions() {
         return this.phraseMap.keySet();
     }
 
-    public PhraseList getPhraseListByPreposition(String preposition) {
+    public PhraseList getPhraseListByPreposition(Prepositions preposition) {
         return this.phraseMap.get(preposition);
     }
 
     @Override
     public String getResult() {
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, PhraseList> entry : this.phraseMap.entrySet()) {
-            sb.append(entry.getKey()).append(" ").append(entry.getValue().getResult()).append(" ");
+        for (Map.Entry<Prepositions, PhraseList> entry : this.phraseMap.entrySet()) {
+            sb.append(entry.getKey().toString().toLowerCase()).append(" ").append(entry.getValue().getResult())
+                    .append(" ");
         }
         return sb.toString().trim();
     }
@@ -47,7 +50,7 @@ public class PrepositionalPhrases implements GrammarStateMachine, Iterable<Strin
         if (this.phraseMap.size() == 0) {
             return false;
         }
-        for (Map.Entry<String, PhraseList> entry : this.phraseMap.entrySet()) {
+        for (Map.Entry<Prepositions, PhraseList> entry : this.phraseMap.entrySet()) {
             if (!entry.getValue().isValid()) {
                 return false;
             }
@@ -58,16 +61,17 @@ public class PrepositionalPhrases implements GrammarStateMachine, Iterable<Strin
         return true;
     }
 
-    private Boolean addPrepPhrase(String token) {
+    private Boolean addPrepPhrase(Prepositions token) {
         if (token == null) {
             return false;
         }
-        if (this.prepositions.contains(token.toLowerCase())) {
-            this.currentPreposition = token.toLowerCase();
+        if (this.prepositions.contains(token)) {
+            this.currentPreposition = token;
             if (this.phraseMap.containsKey(this.currentPreposition)) {
                 return this.phraseMap.get(this.currentPreposition).startNextEntry() && this.allowList;
             } else {
-                this.phraseMap.put(this.currentPreposition, new PhraseList(this.prepositions));
+                this.phraseMap.put(this.currentPreposition, new PhraseList(
+                        this.prepositions.stream().map(prep -> prep.name().toLowerCase()).collect(Collectors.toSet())));
                 return true;
             }
         }
@@ -76,21 +80,24 @@ public class PrepositionalPhrases implements GrammarStateMachine, Iterable<Strin
 
     @Override
     public Boolean parse(String token) {
-        if (token == null) {
+        if (token == null || token.isEmpty()) {
             return false;
         }
-        if (currentPreposition == null) {
-            return this.addPrepPhrase(token);
+        Prepositions prepositionToken = Prepositions.getPreposition(token);
+        if (currentPreposition == null && prepositionToken == null) {
+            return false;
+        } else if (currentPreposition == null && prepositionToken != null) {
+            return this.addPrepPhrase(prepositionToken);
         }
         Boolean accepted = this.phraseMap.get(this.currentPreposition).parse(token);
         if (!accepted) {
-            return this.addPrepPhrase(token);
+            return this.addPrepPhrase(prepositionToken);
         }
         return accepted;
     }
 
     @Override
-    public Iterator<String> iterator() {
+    public Iterator<Prepositions> iterator() {
         return this.phraseMap.keySet().iterator();
     }
 

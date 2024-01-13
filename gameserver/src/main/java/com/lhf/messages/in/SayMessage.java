@@ -3,35 +3,23 @@ package com.lhf.messages.in;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
-import com.lhf.messages.CommandMessage;
+import com.lhf.messages.grammar.Prepositions;
 
-public class SayMessage extends Command {
-    SayMessage(String payload) {
-        super(CommandMessage.SAY, payload, true);
-        this.addPreposition("to");
+public class SayMessage extends CommandAdapter {
+    public SayMessage(Command command) {
+        super(command);
     }
 
     public String getMessage() {
-        if (this.directs.size() < 1) {
+        if (this.getDirects().size() < 1) {
             return null;
         }
-        return this.directs.get(0);
+        return this.getDirects().get(0);
     }
 
     public String getTarget() {
-        if (this.indirects.containsKey("to")) {
-            return this.indirects.getOrDefault("to", null);
-        }
-        return null;
-    }
+        return this.getIndirects().getOrDefault(Prepositions.TO, null);
 
-    @Override
-    public Boolean isValid() {
-        Boolean validated = true;
-        if (this.indirects.size() > 0) {
-            validated = this.indirects.size() == 1 && this.indirects.containsKey("to");
-        }
-        return super.isValid() && this.directs.size() >= 1 && validated;
     }
 
     @Override
