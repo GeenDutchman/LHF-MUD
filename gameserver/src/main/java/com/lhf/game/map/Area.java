@@ -63,7 +63,7 @@ public interface Area
             }
         }
 
-        public class AreaBuilderID implements Comparable<AreaBuilderID> {
+        public final static class AreaBuilderID implements Comparable<AreaBuilderID> {
             private final UUID id = UUID.randomUUID();
 
             public UUID getId() {

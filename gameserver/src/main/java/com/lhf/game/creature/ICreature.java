@@ -54,7 +54,6 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
-import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -89,7 +88,7 @@ public interface ICreature
         extends InventoryOwner, EquipmentOwner, Comparable<ICreature>,
         AffectableEntity<CreatureEffect>, CommandInvoker {
 
-    public static class ICreatureID implements Comparable<ICreatureID> {
+    public final static class ICreatureID implements Comparable<ICreatureID> {
         private final UUID id = UUID.randomUUID();
 
         public UUID getId() {
@@ -192,7 +191,7 @@ public interface ICreature
      */
     public abstract static class CreatureBuilder<BuilderType extends CreatureBuilder<BuilderType, CreatureType>, CreatureType extends ICreature>
             implements Serializable {
-        public static class CreatureBuilderID implements Comparable<CreatureBuilderID> {
+        public final static class CreatureBuilderID implements Comparable<CreatureBuilderID> {
             private final UUID id = UUID.randomUUID();
 
             public UUID getId() {

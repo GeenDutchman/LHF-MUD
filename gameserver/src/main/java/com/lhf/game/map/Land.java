@@ -82,7 +82,7 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             }
         }
 
-        public class LandBuilderID implements Comparable<LandBuilderID> {
+        public final static class LandBuilderID implements Comparable<LandBuilderID> {
             private final UUID id = UUID.randomUUID();
 
             public UUID getId() {

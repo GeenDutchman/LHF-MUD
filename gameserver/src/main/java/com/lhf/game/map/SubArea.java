@@ -223,7 +223,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
     public static abstract class SubAreaBuilder<SubAreaType extends SubArea, BuilderType extends SubAreaBuilder<SubAreaType, BuilderType>>
             implements Serializable {
-        public static class SubAreaBuilderID implements Comparable<SubAreaBuilderID> {
+        public final static class SubAreaBuilderID implements Comparable<SubAreaBuilderID> {
             private final UUID id = UUID.randomUUID();
 
             @Override

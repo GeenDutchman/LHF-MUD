@@ -1,11 +1,47 @@
 package com.lhf.game.item;
 
+import java.util.Objects;
+import java.util.UUID;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.TaggedExaminable;
 import com.lhf.messages.events.SeeEvent;
 
 public abstract class Item implements TaggedExaminable {
+    public final static class ItemID implements Comparable<ItemID> {
+        private final UUID id = UUID.randomUUID();
+
+        public UUID getId() {
+            return id;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof ItemID))
+                return false;
+            ItemID other = (ItemID) obj;
+            return Objects.equals(id, other.id);
+        }
+
+        @Override
+        public String toString() {
+            return this.id.toString();
+        }
+
+        @Override
+        public int compareTo(ItemID arg0) {
+            return this.id.compareTo(arg0.id);
+        }
+
+    }
+
     // Class name for discrimination
     private final String className;
     // Name it will be known by
