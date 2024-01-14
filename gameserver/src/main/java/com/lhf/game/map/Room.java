@@ -31,6 +31,8 @@ import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.ItemNoOpVisitor;
+import com.lhf.game.item.ItemVisitor;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.map.Area.AreaBuilder.PostBuildRoomOperations;
 import com.lhf.game.map.SubArea.SubAreaBuilder;
@@ -55,6 +57,22 @@ public class Room implements Area {
     private final Set<ICreature> allCreatures;
     private final transient Land land;
     private final transient TreeSet<RoomEffect> effects;
+    private final transient ItemVisitor itemAdditionVisitor = new ItemNoOpVisitor() {
+        @Override
+        public void visit(com.lhf.game.item.InteractObject interactObject) {
+            if (interactObject != null) {
+                interactObject.setArea(Room.this);
+            }
+        };
+    };
+    private final transient ItemVisitor itemRemovalVisitor = new ItemNoOpVisitor() {
+        @Override
+        public void visit(com.lhf.game.item.InteractObject interactObject) {
+            if (interactObject != null) {
+                interactObject.setArea(null);
+            }
+        };
+    };
 
     private transient Map<AMessageType, CommandHandler> commands;
     private transient CommandChainHandler successor;
@@ -262,6 +280,9 @@ public class Room implements Area {
                         : this.uuid.toString()));
         this.description = builder.getDescription() != null ? builder.getDescription() : builder.getName();
         this.items = new ArrayList<>(builder.getItems());
+        for (final Item item : this.items) {
+            item.acceptVisitor(itemAdditionVisitor);
+        }
         this.allCreatures = new TreeSet<>();
         this.land = landSupplier.get();
         this.successor = successorSupplier.get();
@@ -424,7 +445,12 @@ public class Room implements Area {
         if (obj == null) {
             return false;
         }
-        return items.add(obj);
+
+        if (items.add(obj)) {
+            obj.acceptVisitor(itemAdditionVisitor);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -449,7 +475,10 @@ public class Room implements Area {
 
     @Override
     public boolean removeItem(Item item) {
-        return this.items.remove(item);
+        if (this.items.remove(item)) {
+            item.acceptVisitor(itemRemovalVisitor);
+        }
+        return false;
     }
 
     @Override

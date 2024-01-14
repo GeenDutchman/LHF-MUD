@@ -2,6 +2,7 @@ package com.lhf.game.item;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.interfaces.InteractAction;
+import com.lhf.game.map.Area;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
@@ -10,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class InteractObject extends Item {
+    protected transient Area area;
     private Map<String, Object> interactItems;
     private InteractAction method = null;
     // Indicates if the action can be used multiple times
@@ -21,6 +23,10 @@ public class InteractObject extends Item {
         super(name, isVisible, description);
         interactItems = new HashMap<>();
         this.isRepeatable = isRepeatable;
+    }
+
+    public void setArea(Area area) {
+        this.area = area;
     }
 
     @Override
