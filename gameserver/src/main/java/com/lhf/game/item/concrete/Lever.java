@@ -6,10 +6,10 @@ import com.lhf.game.item.InteractObject;
 import com.lhf.game.map.Area;
 import com.lhf.messages.events.ItemInteractionEvent;
 
-public class Switch extends InteractObject {
+public class Lever extends InteractObject {
     protected Lockable lockable;
 
-    public Switch(String name, boolean isVisible, boolean isRepeatable, String description) {
+    public Lever(String name, boolean isVisible, boolean isRepeatable, String description) {
         super(name, isVisible, isRepeatable, description);
     }
 
@@ -18,8 +18,8 @@ public class Switch extends InteractObject {
     }
 
     @Override
-    public Switch makeCopy() {
-        Switch switcher = new Switch(this.getName(), this.checkVisibility(), this.repeatable, descriptionString);
+    public Lever makeCopy() {
+        Lever switcher = new Lever(this.getName(), this.checkVisibility(), this.repeatable, descriptionString);
         switcher.setLockable(this.lockable);
         return switcher;
     }

@@ -13,7 +13,7 @@ import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.Note;
-import com.lhf.game.item.concrete.Switch;
+import com.lhf.game.item.concrete.Lever;
 import com.lhf.game.item.concrete.equipment.CarnivorousArmor;
 import com.lhf.game.item.concrete.equipment.ChainMail;
 import com.lhf.game.item.concrete.equipment.MantleOfDeath;
@@ -65,9 +65,9 @@ public final class StandardDungeonProducer {
                                 .setName("Offering Room")
                                 .setDescription("This is the offering room.");
                 KeyedDoorway vaultDoors = new KeyedDoorway(false);
-                Switch vaultSwitch = new Switch("switch", true, true, "A lever on the wall.");
-                vaultSwitch.setLockable(vaultDoors);
-                offeringRoomBuilder.addItem(vaultSwitch);
+                Lever vaultLever = new Lever("switch", true, true, "A lever on the wall.");
+                vaultLever.setLockable(vaultDoors);
+                offeringRoomBuilder.addItem(vaultLever);
                 // Room offeringRoom = offeringRoomBuilder.build();
 
                 // RM4
@@ -98,7 +98,7 @@ public final class StandardDungeonProducer {
                 Note bossNote = new Note("note from boss", true, "The tutorial boss is on vacation right now.");
                 statueRoomBuilder.addItem(bossNote);
 
-                Switch statue = new Switch("golden statue", true, true,
+                Lever statue = new Lever("golden statue", true, true,
                                 "The statue has a start to a riddle, but it looks like it hasn't been finished yet.");
                 InteractAction statueAction = (player, triggerObject, args) -> {
                         ItemInteractionEvent.Builder interactOutMessage = ItemInteractionEvent.getBuilder()
@@ -167,7 +167,7 @@ public final class StandardDungeonProducer {
                 for (Chest.ChestDescriptor descriptor : Chest.ChestDescriptor.values()) { // it's "looted", so...
                         treasuryBuilder.addItem(new Chest(descriptor, true, false, true));
                 }
-                treasuryBuilder.addItem(vaultSwitch);
+                treasuryBuilder.addItem(vaultLever);
 
                 // Monsters
                 Monster.MonsterBuilder g1 = Monster.getMonsterBuilder().setName(NameGenerator.Generate("goblin"))
