@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.lhf.game.item.concrete.Note;
+import com.lhf.game.item.concrete.NotableFixture;
 
 public class ItemPartitionListVisitor implements ItemVisitor {
     private final List<InteractObject> interactObjects = new ArrayList<>();
-    private final List<Note> notes = new ArrayList<>();
+    private final List<NotableFixture> notes = new ArrayList<>();
     private final List<Takeable> takeables = new ArrayList<>();
     private final List<Usable> usables = new ArrayList<>();
     private final List<Equipable> equipables = new ArrayList<>();
@@ -26,7 +26,7 @@ public class ItemPartitionListVisitor implements ItemVisitor {
     }
 
     @Override
-    public void visit(Note note) {
+    public void visit(NotableFixture note) {
         if (note == null) {
             return;
         }
@@ -84,7 +84,7 @@ public class ItemPartitionListVisitor implements ItemVisitor {
         return Collections.unmodifiableList(interactObjects);
     }
 
-    public List<Note> getNotes() {
+    public List<NotableFixture> getNotes() {
         return Collections.unmodifiableList(notes);
     }
 

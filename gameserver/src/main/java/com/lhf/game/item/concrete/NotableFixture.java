@@ -3,11 +3,11 @@ package com.lhf.game.item.concrete;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.ItemVisitor;
 
-public class Note extends Item {
+public class NotableFixture extends Item {
 
     private String noteContent;
 
-    public Note(String name, boolean isVisible, String content) {
+    public NotableFixture(String name, boolean isVisible, String content) {
         super(name, isVisible);
         noteContent = content;
     }
@@ -18,8 +18,8 @@ public class Note extends Item {
     }
 
     @Override
-    public Note makeCopy() {
-        return new Note(this.getName(), this.checkVisibility(), this.noteContent);
+    public NotableFixture makeCopy() {
+        return new NotableFixture(this.getName(), this.checkVisibility(), this.noteContent);
     }
 
     @Override

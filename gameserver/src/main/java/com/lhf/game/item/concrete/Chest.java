@@ -28,7 +28,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     protected final boolean removeOnEmpty;
     protected List<Item> chestItems;
 
-    private final static Note lockedNote = new Note("Chest Locked", false, "This chest is locked.");
+    private final static NotableFixture lockedNote = new NotableFixture("Chest Locked", false, "This chest is locked.");
 
     public enum ChestDescriptor {
         RUSTY, SHINY, BLUE, SLIPPERY, WOODEN, COLORFUL, METAL, FANCY;
