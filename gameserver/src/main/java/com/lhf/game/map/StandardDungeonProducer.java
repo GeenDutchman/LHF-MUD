@@ -3,12 +3,21 @@ package com.lhf.game.map;
 import java.io.FileNotFoundException;
 import java.util.logging.Logger;
 
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.EffectResistance;
+import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleManager;
+import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NameGenerator;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.dice.DamageDice;
+import com.lhf.game.dice.DieType;
+import com.lhf.game.enums.Attributes;
+import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealType;
+import com.lhf.game.item.Trap;
 import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.concrete.HealPotion;
@@ -76,7 +85,12 @@ public final class StandardDungeonProducer {
                                 .setDescription("This is the trapped room.");
                 HealPotion h1 = new HealPotion(true);
                 trappedHallBuilder.addItem(h1);
-                // Room trappedHall = trappedHallBuilder.build();
+                trappedHallBuilder.addItem(new Trap("Spiked Pit", true, true,
+                                "A thin layer of carpet over a spiked pit.")
+                                .addEffect(new CreatureEffectSource("Spike", new EffectPersistence(TickType.INSTANT),
+                                                new EffectResistance(Attributes.DEX, 10, null),
+                                                "A spike that pierces you.", false)
+                                                .addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.PIERCING))));
 
                 Room.RoomBuilder secretRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
                                 .setName("Secret Room")

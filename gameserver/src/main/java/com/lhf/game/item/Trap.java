@@ -22,6 +22,7 @@ import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.RoomEnteredEvent;
+import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.server.client.CommandInvoker;
 
 public class Trap extends InteractObject implements GameEventProcessor {
@@ -48,10 +49,11 @@ public class Trap extends InteractObject implements GameEventProcessor {
         return nextTrap;
     }
 
-    public void addEffect(CreatureEffectSource effectSource) {
+    public Trap addEffect(CreatureEffectSource effectSource) {
         if (effectSource != null) {
             this.effectSources.add(effectSource);
         }
+        return this;
     }
 
     public Set<CreatureEffectSource> getEffectSources() {
@@ -92,11 +94,17 @@ public class Trap extends InteractObject implements GameEventProcessor {
                             roll.getColorTaggedName(), difficulty.getColorTaggedName(),
                             this.isActivated() ? "deactivate" : "activate", this.getColorTaggedName()));
         } else {
-            this.setActivated(!this.isActivated());
-            builder.setPerformed()
-                    .setDescription(String.format("%s successfully (%s vs %s) %s the %s", creature.getColorTaggedName(),
-                            roll.getColorTaggedName(), difficulty.getColorTaggedName(),
-                            this.isActivated() ? "activated" : "deactivated", this.getColorTaggedName()));
+            if (this.interactCount > 1 && !this.isRepeatable()) {
+                builder.setSubType(InteractOutMessageType.USED_UP).setDescription(String
+                        .format("%s is not repeatable and thus cannot be interacted with.", this.getColorTaggedName()));
+            } else {
+                this.setActivated(!this.isActivated());
+                builder.setPerformed()
+                        .setDescription(
+                                String.format("%s successfully (%s vs %s) %s the %s", creature.getColorTaggedName(),
+                                        roll.getColorTaggedName(), difficulty.getColorTaggedName(),
+                                        this.isActivated() ? "activated" : "deactivated", this.getColorTaggedName()));
+            }
         }
         if (this.area != null) {
             Area.eventAccepter.accept(this.area, builder.setBroacast().Build());
@@ -110,6 +118,10 @@ public class Trap extends InteractObject implements GameEventProcessor {
     public Consumer<GameEvent> getAcceptHook() {
         return (event) -> {
             if (event == null || event.getEventType() != GameEventType.ROOM_ENTERED || !Trap.this.isActivated()) {
+                return;
+            }
+            if (this.interactCount > 1 && !this.isRepeatable()) {
+                this.activated = false;
                 return;
             }
             RoomEnteredEvent enterEvent = null;
