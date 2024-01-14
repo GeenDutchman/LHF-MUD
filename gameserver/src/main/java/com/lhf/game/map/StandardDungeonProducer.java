@@ -42,43 +42,6 @@ public final class StandardDungeonProducer {
                 Room.RoomBuilder entryRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(restBuilder);
                 entryRoomBuilder.setName("Entry Room").setDescription("This is the entry room.");
 
-                Note addNote = new Note("interact note", true, "This note is to test the switch action.");
-
-                // Switch test start
-                Switch testSwitch = new Switch("test switch", true, false, "This looks like a test switch.");
-                // Set items the action is going to use
-                testSwitch.setItem("note", addNote);
-                // Create action as anonymous function
-                InteractAction testAction = (creature, triggerObject, args) -> {
-                        // You can do anything you imagine inside, just with casting overhead (for now)
-                        // This can be used for the secret room trigger, since a switch can be hidden
-                        ItemInteractionEvent.Builder interactOutMessage = ItemInteractionEvent.getBuilder()
-                                        .setTaggable(triggerObject);
-                        Object o1 = args.get("note");
-                        if (!(o1 instanceof Note)) {
-                                Logger.getLogger(triggerObject.getClassName()).warning("Note not found");
-                                return interactOutMessage.setSubType(InteractOutMessageType.ERROR).Build();
-                        }
-                        Note n = (Note) o1;
-                        Object o2 = args.get("room");
-                        if (!(o2 instanceof Room)) {
-                                Logger.getLogger(triggerObject.getClassName()).warning("Room not found");
-                                return interactOutMessage.setSubType(InteractOutMessageType.ERROR).Build();
-                        }
-                        Room r = (Room) o2;
-                        r.addItem(n);
-                        return interactOutMessage.setSubType(InteractOutMessageType.PERFORMED)
-                                        .setDescription("Switch activated. A note dropped from the ceiling.")
-                                        .setPerformed().Build();
-                };
-                // Set Action
-                testSwitch.setAction(testAction);
-                // Switch test end
-                entryRoomBuilder.addItem(testSwitch);
-                // Room entryRoom = entryRoomBuilder.build();
-                // testSwitch.setItem("room", entryRoom); // TODO: #151 find a better way for
-                // context aware items
-
                 // History Hall RM2
                 Room.RoomBuilder historyHallBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder);
                 historyHallBuilder.setName("History Hall").setDescription("This is the history hall.");
@@ -101,6 +64,10 @@ public final class StandardDungeonProducer {
                 Room.RoomBuilder offeringRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
                                 .setName("Offering Room")
                                 .setDescription("This is the offering room.");
+                KeyedDoorway vaultDoors = new KeyedDoorway(false);
+                Switch vaultSwitch = new Switch("switch", true, true, "A lever on the wall.");
+                vaultSwitch.setLockable(vaultDoors);
+                offeringRoomBuilder.addItem(vaultSwitch);
                 // Room offeringRoom = offeringRoomBuilder.build();
 
                 // RM4
@@ -200,7 +167,7 @@ public final class StandardDungeonProducer {
                 for (Chest.ChestDescriptor descriptor : Chest.ChestDescriptor.values()) { // it's "looted", so...
                         treasuryBuilder.addItem(new Chest(descriptor, true, false, true));
                 }
-                // Room treasury = treasuryBuilder.build();
+                treasuryBuilder.addItem(vaultSwitch);
 
                 // Monsters
                 Monster.MonsterBuilder g1 = Monster.getMonsterBuilder().setName(NameGenerator.Generate("goblin"))
@@ -223,8 +190,8 @@ public final class StandardDungeonProducer {
                 builder.connectRoom(armoryBuilder, Directions.SOUTH, historyHallBuilder);
                 builder.connectRoom(trappedHallBuilder, Directions.WEST, offeringRoomBuilder);
                 builder.connectRoom(passage, Directions.SOUTH, armoryBuilder);
-                builder.connectRoom(treasuryBuilder, Directions.WEST, passage);
-                builder.connectRoom(trappedHallBuilder, Directions.NORTH, treasuryBuilder);
+                builder.connectRoom(treasuryBuilder, Directions.WEST, passage, vaultDoors);
+                builder.connectRoom(trappedHallBuilder, Directions.NORTH, treasuryBuilder, vaultDoors);
                 builder.connectRoom(statueRoomBuilder, Directions.NORTH, trappedHallBuilder);
                 builder.connectRoomOneWay(secretRoomBuilder, Directions.WEST, statueRoomBuilder);
 
