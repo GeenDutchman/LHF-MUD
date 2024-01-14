@@ -12,9 +12,12 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lhf.game.LockableItemContainer;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
+import com.lhf.game.map.Area;
+import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.Builder;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
@@ -94,6 +97,32 @@ public class Chest extends InteractObject implements LockableItemContainer {
     public SeeEvent produceMessage() {
         SeeEvent.Builder seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         return this.produceMessage(seeOutMessage);
+    }
+
+    @Override
+    public void doAction(ICreature creature) {
+        if (creature == null) {
+            return;
+        }
+        ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this);
+        if (this.isUnlocked() && this.isEmpty() && this.isRemoveOnEmpty() && this.area != null) {
+            area.removeItem(this);
+            builder.setDescription(
+                    String.format("%s discovers that the %s is contains nothing and it crumbles to dust.",
+                            creature.getColorTaggedName(), this.getColorTaggedName()));
+        } else if (this.isUnlocked()) {
+            builder.setDescription(String.format("%s tries the %s and finds it unlocked", creature.getColorTaggedName(),
+                    this.getColorTaggedName()));
+        } else {
+            builder.setDescription(String.format("%s tries the %s and finds it locked", creature.getColorTaggedName(),
+                    this.getColorTaggedName()));
+        }
+        if (this.area != null) {
+            Area.eventAccepter.accept(this.area, builder.setBroacast().Build());
+        } else {
+            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().Build());
+        }
+        this.interactCount++;
     }
 
     @Override
