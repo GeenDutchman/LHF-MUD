@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
@@ -13,7 +12,6 @@ import java.util.logging.Level;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.item.InteractObject;
 import com.lhf.game.lewd.LewdProduct;
 import com.lhf.game.lewd.VrijPartij;
 import com.lhf.game.map.Area;
@@ -23,9 +21,6 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadTargetSelectedEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
-import com.lhf.messages.events.GameEvent;
-import com.lhf.messages.events.ItemInteractionEvent;
-import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.events.LewdEvent;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 import com.lhf.messages.in.AMessageType;
@@ -75,12 +70,12 @@ public class LewdBed extends Bed {
         }
 
         public LewdBed build(Area room) {
-            return new LewdBed(room, this);
+            return new LewdBed(this, room);
         }
     }
 
-    public LewdBed(Area room, Builder builder) {
-        super(room, builder.subBuilder);
+    public LewdBed(Builder builder, Area room) {
+        super(builder.subBuilder, room);
         this.vrijPartijen = Collections.synchronizedNavigableMap(new TreeMap<>());
         this.lewdProduct = builder.lewdProduct;
         this.commands.put(AMessageType.LEWD, new LewdHandler());
@@ -216,7 +211,7 @@ public class LewdBed extends Bed {
         lewdOutMessage.setParty(party.getParty());
         if (party.accept(joiner).check()) {
             if (this.lewdProduct != null) {
-                this.lewdProduct.onLewd(this.room, party);
+                this.lewdProduct.onLewd(this.area, party);
             }
             this.vrijPartijen.remove(index);
         }
@@ -309,30 +304,16 @@ public class LewdBed extends Bed {
     }
 
     @Override
-    protected GameEvent bedAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
-        ItemInteractionEvent.Builder interactOutMessage = ItemInteractionEvent.getBuilder().setTaggable(triggerObject);
+    public void doAction(ICreature creature) {
+        super.doAction(creature);
         if (creature == null) {
-            return interactOutMessage.setSubType(InteractOutMessageType.CANNOT).Build();
+            return;
         }
-        if (this.getOccupancy() >= this.getCapacity()) {
-            this.logger.log(Level.WARNING,
-                    () -> String.format("Over capacity! occupancy: %d capacity: %d", this.getOccupancy(),
-                            this.getCapacity()));
-            return interactOutMessage.setSubType(InteractOutMessageType.CANNOT).setDescription("The bed is full!")
-                    .Build();
-        }
-
         if (creature.getEquipped(EquipmentSlots.ARMOR) != null) {
             this.logger.log(Level.WARNING, () -> String.format("%s is still wearing armor!", creature.getName()));
-            return LewdEvent.getBuilder().setSubType(LewdOutMessageType.NOT_READY).setCreature(creature).Build();
+            ICreature.eventAccepter.accept(creature,
+                    LewdEvent.getBuilder().setSubType(LewdOutMessageType.NOT_READY).setCreature(creature).Build());
         }
-
-        if (this.addCreature(creature)) {
-            return interactOutMessage.setSubType(InteractOutMessageType.PERFORMED)
-                    .setDescription("You are now in the bed!").Build();
-        }
-        return interactOutMessage.setSubType(InteractOutMessageType.ERROR).setDescription("You are already in the bed!")
-                .Build();
     }
 
 }
