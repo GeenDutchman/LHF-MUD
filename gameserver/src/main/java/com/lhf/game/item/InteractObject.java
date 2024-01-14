@@ -1,61 +1,61 @@
 package com.lhf.game.item;
 
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.item.interfaces.InteractAction;
-import com.lhf.messages.events.GameEvent;
+import com.lhf.game.map.Area;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class InteractObject extends Item {
-    private Map<String, Object> interactItems;
-    private InteractAction method = null;
+    protected transient Area area;
     // Indicates if the action can be used multiple times
-    protected boolean isRepeatable;
+    protected boolean repeatable;
     // Indicates if an interaction has already happened
-    protected boolean hasBeenInteracted = false;
+    protected int interactCount;
 
     public InteractObject(String name, boolean isVisible, boolean isRepeatable, String description) {
         super(name, isVisible, description);
-        interactItems = new HashMap<>();
-        this.isRepeatable = isRepeatable;
+        this.repeatable = isRepeatable;
+        this.interactCount = 0;
+    }
+
+    public void setArea(Area area) {
+        this.area = area;
     }
 
     @Override
     public InteractObject makeCopy() {
-        return new InteractObject(this.getName(), this.checkVisibility(), isRepeatable, descriptionString);
+        return new InteractObject(this.getName(), this.checkVisibility(), repeatable, descriptionString);
     }
 
-    public void setAction(InteractAction interactMethod) {
-        method = interactMethod;
+    @Override
+    public void acceptVisitor(ItemVisitor visitor) {
+        visitor.visit(this);
     }
 
-    public void setItem(String key, Object obj) {
-        interactItems.put(key, obj);
-    }
-
-    public GameEvent doUseAction(ICreature creature) {
-        if (method == null) {
-            return ItemInteractionEvent.getBuilder().setTaggable(this).setSubType(InteractOutMessageType.NO_METHOD)
-                    .Build();
+    public void doAction(ICreature creature) {
+        if (creature == null) {
+            return;
         }
-        if (!isRepeatable && hasBeenInteracted) {
-            return ItemInteractionEvent.getBuilder().setTaggable(this).setSubType(InteractOutMessageType.USED_UP)
-                    .Build();
-        }
-        hasBeenInteracted = true;
-        return method.doAction(creature, this, interactItems);
+        ICreature.eventAccepter.accept(creature, ItemInteractionEvent.getBuilder().setTaggable(this)
+                .setSubType(InteractOutMessageType.NO_METHOD).Build());
+        this.interactCount++;
     }
 
     @Override
     public String printDescription() {
         String otherDescription = super.printDescription();
-        if (hasBeenInteracted) {
+        if (interactCount > 0) {
             otherDescription += " It looks like it has been interacted with already, it might not work again.";
         }
         return otherDescription;
+    }
+
+    public int getInteractCount() {
+        return interactCount;
+    }
+
+    public boolean isRepeatable() {
+        return repeatable;
     }
 
     @Override

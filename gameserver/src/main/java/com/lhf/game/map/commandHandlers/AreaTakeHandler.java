@@ -1,14 +1,13 @@
 package com.lhf.game.map.commandHandlers;
 
-import java.util.EnumSet;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.ItemContainer;
-import com.lhf.game.ItemContainer.ItemFilters;
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.map.Area.AreaCommandHandler;
 import com.lhf.messages.Command;
@@ -45,8 +44,12 @@ public class AreaTakeHandler implements AreaCommandHandler {
 
     @Override
     public boolean isEnabled(CommandContext ctx) {
-        return AreaCommandHandler.super.isEnabled(ctx) && ctx.getArea()
-                .filterItems(EnumSet.of(ItemFilters.TYPE), null, null, null, Takeable.class, null).size() > 0;
+        if (!AreaCommandHandler.super.isEnabled(ctx)) {
+            return false;
+        }
+        ItemPartitionListVisitor visitor = new ItemPartitionListVisitor();
+        ctx.getArea().acceptVisitor(visitor);
+        return !visitor.getTakeables().isEmpty();
     }
 
     @Override

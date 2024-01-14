@@ -97,7 +97,7 @@ public class ItemInteractionEvent extends GameEvent {
             } else {
                 sj.add(this.description);
             }
-            return this.enTag(this.description);
+            return this.enTag(sj.toString());
         }
         switch (this.subType) {
             case CANNOT:
@@ -132,7 +132,7 @@ public class ItemInteractionEvent extends GameEvent {
                 } else {
                     sj.add(this.description);
                 }
-                return this.enTag(this.description);
+                return this.enTag(sj.toString());
         }
     }
 

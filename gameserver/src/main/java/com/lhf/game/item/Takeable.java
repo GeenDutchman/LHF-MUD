@@ -22,6 +22,11 @@ public class Takeable extends Item {
     }
 
     @Override
+    public void acceptVisitor(ItemVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
     public String getStartTag() {
         return "<takeable>";
     }

@@ -25,7 +25,6 @@ import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.item.InteractObject;
-import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.Directions;
 import com.lhf.messages.Command;
@@ -34,7 +33,6 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadGoEvent;
 import com.lhf.messages.events.BadGoEvent.BadGoType;
-import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.in.AMessageType;
@@ -48,7 +46,6 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
     protected final ScheduledThreadPoolExecutor executor;
     protected final int sleepSeconds;
     protected Set<BedTime> occupants;
-    protected transient Area room;
     protected transient EnumMap<AMessageType, CommandHandler> commands;
 
     protected class BedTime implements Runnable, Comparable<Bed.BedTime> {
@@ -171,7 +168,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         public Bed build(Area room) {
-            Bed madeBed = new Bed(room, this);
+            Bed madeBed = new Bed(this, room);
             for (ICreature occupant : this.occupants) {
                 madeBed.addCreature(occupant);
             }
@@ -179,12 +176,12 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
     }
 
-    public Bed(Area room, Builder builder) {
+    public Bed(Builder builder, Area area) {
         super(builder.name, true, true, "It's a bed.");
         this.gameEventProcessorID = new GameEventProcessorID();
         this.logger = Logger.getLogger(this.getClass().getName() + "." + this.gameEventProcessorID.getUuid());
         this.sleepSeconds = builder.sleepSeconds;
-        this.room = room;
+        this.area = area;
 
         this.executor = new ScheduledThreadPoolExecutor(Integer.max(builder.capacity, 1));
         this.executor.setRemoveOnCancelPolicy(true);
@@ -196,10 +193,6 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
             this.addCreature(alreadyThere);
         }
 
-        InteractAction sleepAction = (creature, triggerObject, args) -> {
-            return this.bedAction(creature, triggerObject, args);
-        };
-        this.setAction(sleepAction);
         this.commands = new EnumMap<>(AMessageType.class);
         commands.put(AMessageType.EXIT, new ExitHandler());
         commands.put(AMessageType.GO, new GoHandler());
@@ -208,27 +201,37 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         commands.put(AMessageType.SHOUT, new ShoutHandler());
     }
 
-    protected GameEvent bedAction(ICreature creature, InteractObject triggerObject, Map<String, Object> args) {
+    @Override
+    public void doAction(ICreature creature) {
         if (creature == null) {
-            return ItemInteractionEvent.getBuilder().setTaggable(triggerObject)
-                    .setSubType(InteractOutMessageType.CANNOT)
-                    .Build();
+            return;
         }
+        ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this);
+
         if (this.getOccupancy() >= this.getCapacity()) {
             this.logger.log(Level.WARNING,
                     () -> String.format("Over capacity! occupancy: %d capacity: %d", this.getOccupancy(),
                             this.getCapacity()));
-            return ItemInteractionEvent.getBuilder().setTaggable(triggerObject)
+            ICreature.eventAccepter.accept(creature, builder
                     .setSubType(InteractOutMessageType.CANNOT)
-                    .setDescription("The bed is full!").Build();
+                    .setDescription("The bed is full!").Build());
+            return;
         }
-
         if (this.addCreature(creature)) {
-            return ItemInteractionEvent.getBuilder().setTaggable(triggerObject)
-                    .setSubType(InteractOutMessageType.PERFORMED).setDescription("You are now in the bed!").Build();
+            builder.setPerformed();
+            if (this.area != null) {
+                builder.setBroacast()
+                        .setDescription(String.format("%s got in the bed!", creature.getColorTaggedName()));
+                Area.eventAccepter.accept(this.area, builder.Build());
+            } else {
+                builder.setNotBroadcast().setDescription("You got in the bed!");
+                ICreature.eventAccepter.accept(creature, builder.Build());
+            }
+        } else {
+            builder.setSubType(InteractOutMessageType.ERROR).setDescription("You are already in the bed!");
+            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().Build());
         }
-        return ItemInteractionEvent.getBuilder().setTaggable(triggerObject).setSubType(InteractOutMessageType.ERROR)
-                .setDescription("You are already in the bed!").Build();
+        this.interactCount++;
     }
 
     @Override
@@ -269,7 +272,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
     @Override
     public boolean onCreatureDeath(ICreature creature) {
         boolean removed = this.removeCreature(creature);
-        removed = this.room.onCreatureDeath(creature) || removed;
+        removed = this.area.onCreatureDeath(creature) || removed;
         return removed;
     }
 
@@ -340,10 +343,10 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
     }
 
     protected boolean isInRoom(ICreature creature) {
-        if (this.room == null) {
+        if (this.area == null) {
             return false;
         }
-        return this.room.hasCreature(creature);
+        return this.area.hasCreature(creature);
     }
 
     protected BedTime getBedTime(ICreature creature) {
@@ -368,7 +371,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
     public void setSuccessor(CommandChainHandler successor) {
         // We only care about the room
         if (successor instanceof Area && successor != null) {
-            this.room = (Area) successor;
+            this.area = (Area) successor;
         }
     }
 
@@ -452,8 +455,8 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == AMessageType.EXIT) {
                 Bed.this.removeCreature(ctx.getCreature());
-                if (Bed.this.room != null) {
-                    return Bed.this.room.handleChain(ctx, cmd);
+                if (Bed.this.area != null) {
+                    return Bed.this.area.handleChain(ctx, cmd);
                 }
                 return CommandChainHandler.passUpChain(Bed.this, ctx, cmd);
             }
@@ -516,8 +519,8 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == AMessageType.SAY) {
-                if (Bed.this.room != null) {
-                    return Bed.this.room.handleChain(ctx, cmd);
+                if (Bed.this.area != null) {
+                    return Bed.this.area.handleChain(ctx, cmd);
                 }
                 return CommandChainHandler.passUpChain(Bed.this, ctx, cmd);
             }
@@ -547,8 +550,8 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         @Override
         public Reply handleCommand(CommandContext ctx, Command cmd) {
             if (cmd != null && cmd.getType() == AMessageType.SHOUT) {
-                if (Bed.this.room != null) {
-                    return Bed.this.room.handleChain(ctx, cmd);
+                if (Bed.this.area != null) {
+                    return Bed.this.area.handleChain(ctx, cmd);
                 }
                 return CommandChainHandler.passUpChain(Bed.this, ctx, cmd);
             }

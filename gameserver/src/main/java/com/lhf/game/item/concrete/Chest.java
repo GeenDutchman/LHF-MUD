@@ -12,19 +12,23 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lhf.game.LockableItemContainer;
+import com.lhf.game.creature.ICreature;
+import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
+import com.lhf.game.map.Area;
+import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.Builder;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
 
-public class Chest extends Item implements LockableItemContainer {
+public class Chest extends InteractObject implements LockableItemContainer {
     protected final UUID chestUuid;
     protected final AtomicBoolean locked;
     protected final boolean removeOnEmpty;
     protected List<Item> chestItems;
 
-    private final static Note lockedNote = new Note("Chest Locked", false, "This chest is locked.");
+    private final static NotableFixture lockedNote = new NotableFixture("Chest Locked", false, "This chest is locked.");
 
     public enum ChestDescriptor {
         RUSTY, SHINY, BLUE, SLIPPERY, WOODEN, COLORFUL, METAL, FANCY;
@@ -35,7 +39,8 @@ public class Chest extends Item implements LockableItemContainer {
     }
 
     public Chest(ChestDescriptor descriptor, boolean isVisible) {
-        super(ChestDescriptor.generateDescription(descriptor), isVisible);
+        super(ChestDescriptor.generateDescription(descriptor), isVisible, true,
+                ChestDescriptor.generateDescription(descriptor));
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.descriptionString = "A " + this.descriptionString;
@@ -44,7 +49,8 @@ public class Chest extends Item implements LockableItemContainer {
     }
 
     public Chest(ChestDescriptor descriptor, boolean isVisible, boolean initialLock, boolean removeOnEmpty) {
-        super(ChestDescriptor.generateDescription(descriptor), isVisible);
+        super(ChestDescriptor.generateDescription(descriptor), isVisible, true,
+                ChestDescriptor.generateDescription(descriptor));
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.descriptionString = "A " + this.descriptionString;
@@ -53,7 +59,7 @@ public class Chest extends Item implements LockableItemContainer {
     }
 
     protected Chest(String name, boolean isVisible) {
-        super(name, isVisible);
+        super(name, isVisible, true, name);
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.locked = new AtomicBoolean(false);
@@ -61,7 +67,7 @@ public class Chest extends Item implements LockableItemContainer {
     }
 
     protected Chest(String name, boolean isVisible, boolean initialLock, boolean removeOnEmpty) {
-        super(name, isVisible);
+        super(name, isVisible, true, name);
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.locked = new AtomicBoolean(initialLock);
@@ -91,6 +97,32 @@ public class Chest extends Item implements LockableItemContainer {
     public SeeEvent produceMessage() {
         SeeEvent.Builder seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         return this.produceMessage(seeOutMessage);
+    }
+
+    @Override
+    public void doAction(ICreature creature) {
+        if (creature == null) {
+            return;
+        }
+        ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this);
+        if (this.isUnlocked() && this.isEmpty() && this.isRemoveOnEmpty() && this.area != null) {
+            area.removeItem(this);
+            builder.setDescription(
+                    String.format("%s discovers that the %s is contains nothing and it crumbles to dust.",
+                            creature.getColorTaggedName(), this.getColorTaggedName()));
+        } else if (this.isUnlocked()) {
+            builder.setDescription(String.format("%s tries the %s and finds it unlocked", creature.getColorTaggedName(),
+                    this.getColorTaggedName()));
+        } else {
+            builder.setDescription(String.format("%s tries the %s and finds it locked", creature.getColorTaggedName(),
+                    this.getColorTaggedName()));
+        }
+        if (this.area != null) {
+            Area.eventAccepter.accept(this.area, builder.setBroacast().Build());
+        } else {
+            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().Build());
+        }
+        this.interactCount++;
     }
 
     @Override

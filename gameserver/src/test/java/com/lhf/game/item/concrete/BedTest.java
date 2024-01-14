@@ -10,7 +10,6 @@ import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.Room;
 import com.lhf.messages.MessageMatcher;
-import com.lhf.messages.events.GameEvent;
 
 public class BedTest {
 
@@ -20,7 +19,7 @@ public class BedTest {
     void testGetCapacity() {
         Area room = builder.setName("Capacity Room").quickBuild(null, null, null);
         int capacity = 2;
-        Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(capacity).setSleepSeconds(0));
+        Bed bed = new Bed(Bed.Builder.getInstance().setCapacity(capacity).setSleepSeconds(0), room);
         Truth.assertThat(bed.getCapacity()).isEqualTo(capacity);
     }
 
@@ -31,19 +30,21 @@ public class BedTest {
         AIComBundle third = new AIComBundle();
         Room room = builder.setName("Occupancy Room").quickBuild(null, null, null);
         room.addCreatures(Set.of(first.getNPC(), second.getNPC(), third.getNPC()), true);
-        Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(2).setSleepSeconds(2));
+        Bed bed = new Bed(Bed.Builder.getInstance().setCapacity(2).setSleepSeconds(2), room);
         room.addItem(bed);
 
-        GameEvent out = bed.doUseAction(first.getNPC());
-        Truth.assertThat(out.toString()).contains("You are now in the bed");
+        MessageMatcher inBed = new MessageMatcher("You are now in the bed");
+
+        bed.doAction(first.getNPC());
+        Mockito.verify(first.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito.argThat(inBed));
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 
-        out = bed.doUseAction(second.getNPC());
-        Truth.assertThat(out.toString()).contains("You are now in the bed");
+        bed.doAction(second.getNPC());
+        Mockito.verify(second.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito.argThat(inBed));
         Truth.assertThat(bed.getOccupancy()).isEqualTo(2);
 
-        out = bed.doUseAction(third.getNPC());
-        Truth.assertThat(out.toString()).doesNotContain("You are now in the bed");
+        bed.doAction(third.getNPC());
+        Mockito.verify(third.sssb, Mockito.after(500).never()).send(Mockito.argThat(inBed));
         Truth.assertThat(bed.getOccupancy()).isEqualTo(2);
 
         // one gets out
@@ -51,8 +52,8 @@ public class BedTest {
         bed.removeCreature(first.getNPC());
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 
-        out = bed.doUseAction(third.getNPC());
-        Truth.assertThat(out.toString()).contains("You are now in the bed");
+        bed.doAction(third.getNPC());
+        Mockito.verify(third.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito.argThat(inBed));
         Truth.assertThat(bed.getOccupancy()).isEqualTo(2);
 
     }
@@ -62,10 +63,12 @@ public class BedTest {
         AIComBundle first = new AIComBundle();
         Room room = builder.setName("Sleeping Room").quickBuild(null, null, null);
         room.addCreature(first.getNPC());
-        Bed bed = new Bed(room, Bed.Builder.getInstance().setCapacity(1).setSleepSeconds(1));
+        Bed bed = new Bed(Bed.Builder.getInstance().setCapacity(1).setSleepSeconds(1), room);
 
-        GameEvent out = bed.doUseAction(first.getNPC());
-        Truth.assertThat(out.toString()).contains("You are now in the bed");
+        MessageMatcher inBed = new MessageMatcher("You are now in the bed");
+
+        bed.doAction(first.getNPC());
+        Mockito.verify(first.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito.argThat(inBed));
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 
         Mockito.verify(first.sssb, Mockito.after(bed.sleepSeconds * 1000).atMostOnce())
