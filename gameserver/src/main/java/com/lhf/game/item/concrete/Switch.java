@@ -43,7 +43,10 @@ public class Switch extends InteractObject {
             } else {
                 this.lockable.unlock();
             }
-            builder.setPerformed().setDescription("A **thunk** is heard, and you are pretty sure something changed.");
+            builder.setPerformed()
+                    .setDescription(String.format(
+                            "A **thunk** is heard, and you are pretty sure something changed because of %s.",
+                            creature.getColorTaggedName()));
             if (this.area != null) {
                 Area.eventAccepter.accept(this.area, builder.setNotBroadcast().Build());
             } else {

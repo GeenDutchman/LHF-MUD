@@ -57,7 +57,8 @@ public class Dispenser extends InteractObject implements ItemContainer {
             final Item retrieved = this.itemsToDispense.remove();
             this.area.addItem(retrieved);
             builder.setPerformed().setBroacast()
-                    .setDescription(String.format("%s was dispensed.", retrieved.getColorTaggedName()));
+                    .setDescription(String.format("%s was dispensed because of %s.", retrieved.getColorTaggedName(),
+                            creature.getColorTaggedName()));
             Area.eventAccepter.accept(this.area, builder.Build());
             this.interactCount++;
         } catch (NoSuchElementException e) {
