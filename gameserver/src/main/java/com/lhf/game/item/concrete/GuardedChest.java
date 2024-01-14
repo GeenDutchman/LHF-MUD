@@ -1,15 +1,18 @@
 package com.lhf.game.item.concrete;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.inventory.InventoryOwner;
+import com.lhf.game.map.Area;
+import com.lhf.messages.events.ItemInteractionEvent;
 
 public class GuardedChest extends Chest {
-    protected final Set<ICreature> guards = new TreeSet<>();
+    protected final Set<String> guards = new TreeSet<>();
 
     public GuardedChest(ChestDescriptor descriptor, boolean isVisible, boolean removeOnEmpty) {
         super(descriptor, isVisible, false, removeOnEmpty);
@@ -19,18 +22,47 @@ public class GuardedChest extends Chest {
         super(name, isVisible, false, removeOnEmpty);
     }
 
+    @Override
+    public void doAction(ICreature creature) {
+        if (creature == null) {
+            return;
+        }
+        ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this);
+        this.updateGuards();
+        if (this.canAccess(creature)) {
+            super.doAction(creature);
+            return;
+        }
+        StringJoiner sj = new StringJoiner(", ", " It is guarded by: ", ". ").setEmptyValue("");
+        this.listGuards().stream().filter(name -> name != null).forEachOrdered(name -> sj.add(name));
+        String message = String.format("%s finds that they cannot access %s.%s%s", creature.getColorTaggedName(),
+                this.getColorTaggedName(), this.isUnlocked() ? "" : " It is locked. ", sj.toString());
+        builder.setDescription(message);
+        if (this.area != null) {
+            Area.eventAccepter.accept(this.area, builder.setBroacast().Build());
+        } else {
+            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().Build());
+        }
+        this.interactCount++;
+    }
+
     private void updateGuards() {
-        for (Iterator<ICreature> guardIterator = this.guards.iterator(); guardIterator.hasNext();) {
-            ICreature guard = guardIterator.next();
-            if (guard == null || !guard.isAlive()) {
-                guardIterator.remove();
+        if (this.area != null) {
+            for (Iterator<String> guardIterator = this.guards.iterator(); guardIterator.hasNext();) {
+                final String guardName = guardIterator.next();
+                if (guardName == null || guardName.isEmpty()) {
+                    guardIterator.remove();
+                    continue;
+                }
+                if (!this.area.hasCreature(guardName)) {
+                    guardIterator.remove();
+                }
             }
         }
     }
 
     public Set<String> listGuards() {
-        return this.guards.stream().filter(guard -> guard != null && guard.isAlive()).map(guard -> guard.getName())
-                .collect(Collectors.toUnmodifiableSet());
+        return Collections.unmodifiableSet(this.guards);
     }
 
     /**
@@ -41,7 +73,14 @@ public class GuardedChest extends Chest {
      */
     public GuardedChest addGuard(ICreature guard) {
         if (guard != null && guard.isAlive()) {
-            this.guards.add(guard);
+            this.guards.add(guard.getName());
+        }
+        return this;
+    }
+
+    public GuardedChest addGuard(String name) {
+        if (name != null && !name.isBlank()) {
+            this.guards.add(name);
         }
         return this;
     }
@@ -55,14 +94,14 @@ public class GuardedChest extends Chest {
     @Override
     public boolean canAccess(InventoryOwner attempter) {
         this.updateGuards();
-        return this.guards.stream().anyMatch(guard -> guard != null && guard.getName().equals(attempter.getName()))
+        return this.guards.stream().anyMatch(guard -> guard != null && guard.equals(attempter.getName()))
                 || super.canAccess(attempter);
     }
 
     @Override
     public boolean isAuthorized(InventoryOwner attemtper) {
         this.updateGuards();
-        return this.guards.stream().anyMatch(guard -> guard != null && guard.getName().equals(attemtper.getName()))
+        return this.guards.stream().anyMatch(guard -> guard != null && guard.equals(attemtper.getName()))
                 || super.isAuthorized(attemtper);
     }
 
