@@ -66,6 +66,11 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
+    public ICreatureID getCreatureID() {
+        return this.wrapped.getCreatureID();
+    }
+
+    @Override
     public final Collection<ICreature> getCreatures() {
         if (this.wrapped != null) {
             return Set.of(this);
