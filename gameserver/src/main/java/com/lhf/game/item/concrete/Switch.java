@@ -3,6 +3,7 @@ package com.lhf.game.item.concrete;
 import com.lhf.game.Lockable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.InteractObject;
+import com.lhf.game.map.Area;
 import com.lhf.messages.events.ItemInteractionEvent;
 
 public class Switch extends InteractObject {
@@ -32,7 +33,7 @@ public class Switch extends InteractObject {
         if (this.lockable == null) {
             ICreature.eventAccepter
                     .accept(creature,
-                            builder.setDescription(String.format(
+                            builder.setNotBroadcast().setDescription(String.format(
                                     "The %s moves, but it seems too loose, like it is not connected to anything.",
                                     this.getColorTaggedName())).Build());
             return;
@@ -42,8 +43,12 @@ public class Switch extends InteractObject {
             } else {
                 this.lockable.unlock();
             }
-            ICreature.eventAccepter.accept(creature, builder.setPerformed()
-                    .setDescription("A **thunk** is heard, and you are pretty sure something changed.").Build());
+            builder.setPerformed().setDescription("A **thunk** is heard, and you are pretty sure something changed.");
+            if (this.area != null) {
+                Area.eventAccepter.accept(this.area, builder.setNotBroadcast().Build());
+            } else {
+                ICreature.eventAccepter.accept(creature, builder.setBroacast().Build());
+            }
         }
         this.interactCount++;
     }

@@ -49,18 +49,19 @@ public class Dispenser extends InteractObject implements ItemContainer {
         }
         ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this);
         if (this.area == null) {
-            builder.setSubType(InteractOutMessageType.CANNOT);
+            builder.setSubType(InteractOutMessageType.CANNOT).setNotBroadcast();
             ICreature.eventAccepter.accept(creature, builder.Build());
             return;
         }
         try {
             final Item retrieved = this.itemsToDispense.remove();
             this.area.addItem(retrieved);
-            builder.setPerformed().setDescription(String.format("%s was dispensed.", retrieved.getColorTaggedName()));
+            builder.setPerformed().setBroacast()
+                    .setDescription(String.format("%s was dispensed.", retrieved.getColorTaggedName()));
             Area.eventAccepter.accept(this.area, builder.Build());
             this.interactCount++;
         } catch (NoSuchElementException e) {
-            builder.setSubType(InteractOutMessageType.USED_UP);
+            builder.setSubType(InteractOutMessageType.USED_UP).setNotBroadcast();
             ICreature.eventAccepter.accept(creature, builder.Build());
         }
     }
