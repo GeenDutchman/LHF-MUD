@@ -54,6 +54,7 @@ import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
+import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -87,6 +88,46 @@ import com.lhf.server.client.CommandInvoker;
 public interface ICreature
         extends InventoryOwner, EquipmentOwner, Comparable<ICreature>,
         AffectableEntity<CreatureEffect>, CommandInvoker {
+
+    public static class ICreatureID implements Comparable<ICreatureID> {
+        private final UUID id = UUID.randomUUID();
+
+        public UUID getId() {
+            return id;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof ICreatureID))
+                return false;
+            ICreatureID other = (ICreatureID) obj;
+            return Objects.equals(id, other.id);
+        }
+
+        @Override
+        public int compareTo(ICreatureID arg0) {
+            return this.id.compareTo(arg0.id);
+        }
+
+        @Override
+        public String toString() {
+            return this.id.toString();
+        }
+    }
+
+    public static interface CreatureMomento {
+        public ICreatureID getCreatureID();
+
+    }
+
+    public ICreatureID getCreatureID();
 
     /**
      * A Fist is a weapon that most Creatures can be assumed to have.

@@ -48,6 +48,7 @@ import com.lhf.server.interfaces.NotNull;
 
 public abstract class Creature implements ICreature {
     private final String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
+    private final ICreatureID creatureID;
     private final GameEventProcessorID gameEventProcessorID;
     private CreatureFaction faction; // See shared enum
     private Vocation vocation;
@@ -66,6 +67,7 @@ public abstract class Creature implements ICreature {
             @NotNull CommandInvoker controller, CommandChainHandler successor,
             @NotNull Statblock statblock) {
         this.gameEventProcessorID = new GameEventProcessorID();
+        this.creatureID = new ICreatureID();
         this.name = builder.getName();
         if (statblock == null) {
             throw new IllegalArgumentException("Creature cannot have a null statblock!");
@@ -88,6 +90,11 @@ public abstract class Creature implements ICreature {
         this.subAreaSorts = EnumSet.noneOf(SubAreaSort.class);
         this.logger = Logger
                 .getLogger(String.format("%s.%s", this.getClass().getName(), this.name.replaceAll("\\W", "_")));
+    }
+
+    @Override
+    public ICreatureID getCreatureID() {
+        return this.creatureID;
     }
 
     protected Map<AMessageType, CommandHandler> buildCommands() {
