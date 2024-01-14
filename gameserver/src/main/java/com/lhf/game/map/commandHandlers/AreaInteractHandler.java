@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.lhf.game.item.InteractObject;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.ItemNameSearchVisitor;
 import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.map.Area.AreaCommandHandler;
 import com.lhf.messages.Command;
@@ -14,8 +14,6 @@ import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.BadTargetSelectedEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
-import com.lhf.messages.events.ItemInteractionEvent;
-import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.InteractMessage;
 
@@ -57,23 +55,19 @@ public class AreaInteractHandler implements AreaCommandHandler {
                 return ctx.handled();
             }
             String name = intMessage.getObject();
-            List<Item> matches = ctx.getArea().getItems().stream()
-                    .filter(ro -> ro != null && ro.CheckNameRegex(name, 3)).toList();
+            ItemPartitionListVisitor partitionVisitor = new ItemPartitionListVisitor();
+            ctx.getArea().getItems().stream().filter(item -> item != null)
+                    .forEach(item -> item.acceptVisitor(partitionVisitor));
+            ItemNameSearchVisitor nameSearchVisitor = new ItemNameSearchVisitor(name, 3);
+            nameSearchVisitor.copyFrom(partitionVisitor);
+            List<InteractObject> matches = nameSearchVisitor.getInteractObjects();
 
             if (matches.size() == 1) {
-                Item ro = matches.get(0);
-                if (ro instanceof InteractObject) {
-                    InteractObject ex = (InteractObject) ro;
-                    ctx.receive(ex.doUseAction(ctx.getCreature()));
-                } else {
-                    ctx.receive(ItemInteractionEvent.getBuilder().setTaggable(ro)
-                            .setSubType(InteractOutMessageType.CANNOT).Build());
-                }
+                InteractObject ro = matches.get(0);
+                ro.doAction(ctx.getCreature());
                 return ctx.handled();
             }
-            List<InteractObject> interactables = ctx.getArea().getItems().stream()
-                    .filter(ro -> ro != null && ro.checkVisibility() && ro instanceof InteractObject)
-                    .map(ro -> (InteractObject) ro).toList();
+            List<InteractObject> interactables = partitionVisitor.getInteractObjects();
             ctx.receive(BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR).setBadTarget(name)
                     .setPossibleTargets(interactables).Build());
             return ctx.handled();

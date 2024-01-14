@@ -4,8 +4,7 @@ import java.util.Optional;
 
 import com.lhf.game.item.concrete.Note;
 
-public class ItemNameSearchVisitor implements ItemVisitor {
-    protected final ItemPartitionListVisitor partitions = new ItemPartitionListVisitor();
+public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
     protected final String searchName;
     protected final Integer regexLength;
 
@@ -19,6 +18,13 @@ public class ItemNameSearchVisitor implements ItemVisitor {
         this.regexLength = regexLength;
     }
 
+    public void copyFrom(ItemPartitionListVisitor partitioner) {
+        if (partitioner == null) {
+            return;
+        }
+        partitioner.getItems().stream().filter(item -> item != null).forEachOrdered(item -> item.acceptVisitor(this));
+    }
+
     private boolean checkItemName(Item item) {
         if (item == null) {
             return false;
@@ -29,74 +35,81 @@ public class ItemNameSearchVisitor implements ItemVisitor {
         return this.regexLength != null ? item.CheckNameRegex(searchName, regexLength) : item.checkName(searchName);
     }
 
+    @Override
     public void visit(InteractObject interactObject) {
         if (this.checkItemName(interactObject)) {
-            partitions.visit(interactObject);
+            super.visit(interactObject);
         }
     }
 
+    @Override
     public void visit(Note note) {
         if (this.checkItemName(note)) {
-            partitions.visit(note);
+            super.visit(note);
         }
     }
 
+    @Override
     public void visit(Takeable takeable) {
         if (this.checkItemName(takeable)) {
-            partitions.visit(takeable);
+            super.visit(takeable);
         }
     }
 
+    @Override
     public void visit(Usable usable) {
         if (this.checkItemName(usable)) {
-            partitions.visit(usable);
+            super.visit(usable);
         }
     }
 
+    @Override
     public void visit(Equipable equipable) {
         if (this.checkItemName(equipable)) {
-            partitions.visit(equipable);
+            super.visit(equipable);
         }
     }
 
+    @Override
     public void visit(Weapon weapon) {
         if (this.checkItemName(weapon)) {
-            partitions.visit(weapon);
+            super.visit(weapon);
         }
     }
 
+    @Override
     public void visit(StackableItem stackableItem) {
         if (this.checkItemName(stackableItem)) {
-            partitions.visit(stackableItem);
+            super.visit(stackableItem);
         }
     }
 
     public Optional<InteractObject> getInteractObject() {
-        return Optional.ofNullable(partitions.getInteractObjects().get(0));
+        return Optional.ofNullable(super.getInteractObjects().get(0));
     }
 
     public Optional<Note> getNote() {
-        return Optional.ofNullable(partitions.getNotes().get(0));
+        return Optional.ofNullable(super.getNotes().get(0));
     }
 
     public Optional<Takeable> getTakeable() {
-        return Optional.ofNullable(partitions.getTakeables().get(0));
+        return Optional.ofNullable(super.getTakeables().get(0));
     }
 
     public Optional<Usable> getUsable() {
-        return Optional.ofNullable(partitions.getUsables().get(0));
+        return Optional.ofNullable(super.getUsables().get(0));
     }
 
     public Optional<Equipable> getEquipable() {
-        return Optional.ofNullable(partitions.getEquipables().get(0));
+        return Optional.ofNullable(super.getEquipables().get(0));
     }
 
     public Optional<Weapon> getWeapon() {
-        return Optional.ofNullable(partitions.getWeapons().get(0));
+        return Optional.ofNullable(super.getWeapons().get(0));
     }
 
     public Optional<StackableItem> getStackableItem() {
-        return Optional.ofNullable(partitions.getStackableItems().get(0));
+        return Optional.ofNullable(super.getStackableItems().get(0));
     }
 
 }

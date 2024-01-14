@@ -73,6 +73,13 @@ public class ItemPartitionListVisitor implements ItemVisitor {
         this.stackableItems.add(stackableItem);
     }
 
+    protected List<Item> getItems() {
+        return Stream
+                .concat(this.getTakeables().stream(),
+                        Stream.concat(this.getInteractObjects().stream(), this.getNotes().stream()))
+                .collect(Collectors.toUnmodifiableList());
+    }
+
     public List<InteractObject> getInteractObjects() {
         return Collections.unmodifiableList(interactObjects);
     }
