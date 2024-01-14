@@ -15,14 +15,15 @@ public class InteractObject extends Item {
     private Map<String, Object> interactItems;
     private InteractAction method = null;
     // Indicates if the action can be used multiple times
-    protected boolean isRepeatable;
+    protected boolean repeatable;
     // Indicates if an interaction has already happened
-    protected boolean hasBeenInteracted = false;
+    protected int interactCount;
 
     public InteractObject(String name, boolean isVisible, boolean isRepeatable, String description) {
         super(name, isVisible, description);
         interactItems = new HashMap<>();
-        this.isRepeatable = isRepeatable;
+        this.repeatable = isRepeatable;
+        this.interactCount = 0;
     }
 
     public void setArea(Area area) {
@@ -31,7 +32,7 @@ public class InteractObject extends Item {
 
     @Override
     public InteractObject makeCopy() {
-        return new InteractObject(this.getName(), this.checkVisibility(), isRepeatable, descriptionString);
+        return new InteractObject(this.getName(), this.checkVisibility(), repeatable, descriptionString);
     }
 
     @Override
@@ -52,21 +53,29 @@ public class InteractObject extends Item {
             return ItemInteractionEvent.getBuilder().setTaggable(this).setSubType(InteractOutMessageType.NO_METHOD)
                     .Build();
         }
-        if (!isRepeatable && hasBeenInteracted) {
+        if (!repeatable && interactCount > 0) {
             return ItemInteractionEvent.getBuilder().setTaggable(this).setSubType(InteractOutMessageType.USED_UP)
                     .Build();
         }
-        hasBeenInteracted = true;
+        interactCount++;
         return method.doAction(creature, this, interactItems);
     }
 
     @Override
     public String printDescription() {
         String otherDescription = super.printDescription();
-        if (hasBeenInteracted) {
+        if (interactCount > 0) {
             otherDescription += " It looks like it has been interacted with already, it might not work again.";
         }
         return otherDescription;
+    }
+
+    public int getInteractCount() {
+        return interactCount;
+    }
+
+    public boolean isRepeatable() {
+        return repeatable;
     }
 
     @Override

@@ -9,6 +9,6 @@ public class Switch extends InteractObject {
 
     @Override
     public Switch makeCopy() {
-        return new Switch(this.getName(), this.checkVisibility(), this.isRepeatable, descriptionString);
+        return new Switch(this.getName(), this.checkVisibility(), this.repeatable, descriptionString);
     }
 }

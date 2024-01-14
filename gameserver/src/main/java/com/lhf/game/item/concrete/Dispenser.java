@@ -13,7 +13,7 @@ public class Dispenser extends InteractObject {
 
     @Override
     public Dispenser makeCopy() {
-        return new Dispenser(this.getName(), hasBeenInteracted, isRepeatable, descriptionString);
+        return new Dispenser(this.getName(), this.checkVisibility(), this.isRepeatable(), descriptionString);
     }
 
     public int getCount() {
