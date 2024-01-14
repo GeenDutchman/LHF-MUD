@@ -1,14 +1,14 @@
 package com.lhf.game.item;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.Area;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class InteractObject extends Item {
     protected transient Area area;
@@ -40,14 +40,17 @@ public class InteractObject extends Item {
         visitor.visit(this);
     }
 
+    @Deprecated(forRemoval = true)
     public void setAction(InteractAction interactMethod) {
         method = interactMethod;
     }
 
+    @Deprecated(forRemoval = true)
     public void setItem(String key, Object obj) {
         interactItems.put(key, obj);
     }
 
+    @Deprecated(forRemoval = true)
     public GameEvent doUseAction(ICreature creature) {
         if (method == null) {
             return ItemInteractionEvent.getBuilder().setTaggable(this).setSubType(InteractOutMessageType.NO_METHOD)
@@ -59,6 +62,15 @@ public class InteractObject extends Item {
         }
         interactCount++;
         return method.doAction(creature, this, interactItems);
+    }
+
+    public void doAction(ICreature creature) {
+        if (creature == null) {
+            return;
+        }
+        ICreature.eventAccepter.accept(creature, ItemInteractionEvent.getBuilder().setTaggable(this)
+                .setSubType(InteractOutMessageType.NO_METHOD).Build());
+        this.interactCount++;
     }
 
     @Override
