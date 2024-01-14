@@ -16,7 +16,6 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.game.item.Item;
 import com.lhf.game.item.ItemNameSearchVisitor;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.map.SubArea;

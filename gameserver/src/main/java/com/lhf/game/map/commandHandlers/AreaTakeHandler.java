@@ -1,12 +1,10 @@
 package com.lhf.game.map.commandHandlers;
 
-import java.util.EnumSet;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.ItemContainer;
-import com.lhf.game.ItemContainer.ItemFilters;
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.ItemPartitionListVisitor;

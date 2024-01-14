@@ -1,10 +1,8 @@
 package com.lhf.game.map.commandHandlers;
 
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
-import com.lhf.game.ItemContainer.ItemFilters;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.ItemPartitionListVisitor;
