@@ -26,7 +26,7 @@ public class LewdBedTest {
         AIComBundle first = new AIComBundle();
         Room room = this.builder.setName("Solo").quickBuild(null, null, null);
         room.addCreature(first.getNPC());
-        LewdBed bed = new LewdBed(room, LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30));
+        LewdBed bed = new LewdBed(LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30), room);
         room.addItem(bed);
 
         bed.addCreature(first.getNPC());
@@ -51,7 +51,7 @@ public class LewdBedTest {
 
         Room room = this.builder.setName("Pair").quickBuild(null, null, null);
         room.addCreatures(Set.of(first.getNPC(), second.getNPC()), true);
-        LewdBed bed = new LewdBed(room, LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30));
+        LewdBed bed = new LewdBed(LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30), room);
         room.addItem(bed);
 
         bed.addCreature(first.getNPC());
@@ -75,7 +75,7 @@ public class LewdBedTest {
 
         Room room = this.builder.setName("Spurned").quickBuild(null, null, null);
         room.addCreatures(Set.of(first.getNPC(), second.getNPC()), true);
-        LewdBed bed = new LewdBed(room, LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30));
+        LewdBed bed = new LewdBed(LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30), room);
         room.addItem(bed);
 
         bed.addCreature(first.getNPC());
@@ -102,8 +102,9 @@ public class LewdBedTest {
 
         Room room = this.builder.setName("Spurned").quickBuild(null, null, null);
         room.addCreatures(Set.of(first.getNPC(), second.getNPC()), false);
-        LewdBed bed = new LewdBed(room,
-                LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30).setLewdProduct(new LewdBabyMaker()));
+        LewdBed bed = new LewdBed(
+                LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30).setLewdProduct(new LewdBabyMaker()),
+                room);
         room.addItem(bed);
 
         Truth.assertThat(bed.addCreature(first.getNPC())).isTrue();
