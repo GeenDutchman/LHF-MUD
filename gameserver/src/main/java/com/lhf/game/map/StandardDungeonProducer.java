@@ -1,7 +1,6 @@
 package com.lhf.game.map;
 
 import java.io.FileNotFoundException;
-import java.util.logging.Logger;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
@@ -21,8 +20,8 @@ import com.lhf.game.item.Trap;
 import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.concrete.HealPotion;
-import com.lhf.game.item.concrete.NotableFixture;
 import com.lhf.game.item.concrete.Lever;
+import com.lhf.game.item.concrete.NotableFixture;
 import com.lhf.game.item.concrete.equipment.CarnivorousArmor;
 import com.lhf.game.item.concrete.equipment.ChainMail;
 import com.lhf.game.item.concrete.equipment.MantleOfDeath;
@@ -30,10 +29,7 @@ import com.lhf.game.item.concrete.equipment.ReaperScythe;
 import com.lhf.game.item.concrete.equipment.RustyDagger;
 import com.lhf.game.item.concrete.equipment.Shortsword;
 import com.lhf.game.item.concrete.equipment.Whimsystick;
-import com.lhf.game.item.interfaces.InteractAction;
 import com.lhf.game.map.Dungeon.DungeonBuilder;
-import com.lhf.messages.events.ItemInteractionEvent;
-import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 
 public final class StandardDungeonProducer {
         public static DungeonBuilder buildStaticDungeonBuilder(StatblockManager statblockLoader)
@@ -113,40 +109,13 @@ public final class StandardDungeonProducer {
                                 "The tutorial boss is on vacation right now.");
                 statueRoomBuilder.addItem(bossNote);
 
-                Lever statue = new Lever("golden statue", true, true,
+                /**
+                 * TODO: redo statue as some kind of interactable door
+                 * between the statueRoom and the secretRoom
+                 */
+                NotableFixture statue = new NotableFixture("golden statue", true,
                                 "The statue has a start to a riddle, but it looks like it hasn't been finished yet.");
-                InteractAction statueAction = (player, triggerObject, args) -> {
-                        ItemInteractionEvent.Builder interactOutMessage = ItemInteractionEvent.getBuilder()
-                                        .setTaggable(triggerObject);
-                        Object o1 = args.get("room1");
-                        if (!(o1 instanceof Room)) {
-                                Logger.getLogger(triggerObject.getClassName()).warning("Origin Room not found");
-                                return interactOutMessage.setSubType(InteractOutMessageType.ERROR).Build();
-                        }
-                        Room r1 = (Room) o1;
-
-                        Object o2 = args.get("room2");
-                        if (!(o2 instanceof Room)) {
-                                Logger.getLogger(triggerObject.getClassName()).warning("Destination Room not found");
-                                return interactOutMessage.setSubType(InteractOutMessageType.ERROR).Build();
-                        }
-                        Room r2 = (Room) o2;
-
-                        r1.removeCreature(player);
-                        r2.addCreature(player);
-                        return interactOutMessage
-                                        .setSubType(InteractOutMessageType.PERFORMED)
-                                        .setDescription(
-                                                        "The statue glows and you black out for a second. You find yourself in another room.")
-                                        .Build();
-                };
-                statue.setAction(statueAction);
                 statueRoomBuilder.addItem(statue);
-
-                // Room statueRoom = statueRoomBuilder.build();
-                // statue.setItem("room1", statueRoom);
-                // statue.setItem("room2", secretRoom); // TODO: #151 find a better way for
-                // context aware items
 
                 // RM6 The armory
                 Room.RoomBuilder armoryBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)

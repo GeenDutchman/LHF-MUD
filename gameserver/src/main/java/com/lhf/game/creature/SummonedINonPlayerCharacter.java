@@ -482,7 +482,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public Attributes getHighestAttributeBonus(EnumSet<Attributes> attrs) {
+    public Attributes getHighestAttributeBonus(Set<Attributes> attrs) {
         if (this.checkSummonIsAlive()) {
             return super.getHighestAttributeBonus(attrs);
         }
