@@ -73,6 +73,8 @@ public abstract class Item implements TaggedExaminable {
 
     public abstract Item makeCopy();
 
+    public abstract void acceptVisitor(ItemVisitor visitor);
+
     public String getClassName() {
         return this.className;
     }

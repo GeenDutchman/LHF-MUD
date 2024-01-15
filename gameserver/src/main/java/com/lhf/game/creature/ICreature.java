@@ -669,7 +669,7 @@ public interface ICreature
      * @return the first encountered Attribute with the highest modifier or null if
      *         none found
      */
-    public default Attributes getHighestAttributeBonus(EnumSet<Attributes> attrs) {
+    public default Attributes getHighestAttributeBonus(Set<Attributes> attrs) {
         int highestMod = Integer.MIN_VALUE;
         Attributes found = null;
         AttributeBlock retrievedBlock = this.getAttributes();

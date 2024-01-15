@@ -418,7 +418,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public Attributes getHighestAttributeBonus(EnumSet<Attributes> attrs) {
+    public Attributes getHighestAttributeBonus(Set<Attributes> attrs) {
         return wrapped.getHighestAttributeBonus(attrs);
     }
 

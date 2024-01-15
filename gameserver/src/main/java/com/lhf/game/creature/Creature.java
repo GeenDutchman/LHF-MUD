@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NavigableSet;
 import java.util.Optional;
 import java.util.Set;
@@ -33,6 +34,7 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.ItemNameSearchVisitor;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -433,31 +435,28 @@ public abstract class Creature implements ICreature {
 
     @Override
     public boolean equipItem(String itemName, EquipmentSlots slot) {
-        Optional<Item> maybeItem = this.getInventory().getItem(itemName);
+        ItemNameSearchVisitor visitor = new ItemNameSearchVisitor(itemName);
+        this.getInventory().acceptVisitor(visitor);
+        Optional<Equipable> maybeItem = visitor.getEquipable();
         ItemEquippedEvent.Builder equipMessage = ItemEquippedEvent.getBuilder().setAttemptedItemName(itemName)
                 .setNotBroadcast().setAttemptedSlot(slot);
         if (maybeItem.isPresent()) {
-            Item fromInventory = maybeItem.get();
-            equipMessage.setItem(fromInventory);
-            if (fromInventory instanceof Equipable) {
-                Equipable equipThing = (Equipable) fromInventory;
-                if (slot == null) {
-                    slot = equipThing.getWhichSlots().get(0);
-                    equipMessage.setAttemptedSlot(slot);
-                }
-                if (equipThing.getWhichSlots().contains(slot)) {
-                    this.unequipItem(slot, "");
-                    this.getInventory().removeItem(equipThing);
-                    this.getEquipmentSlots().putIfAbsent(slot, equipThing);
-                    ICreature.eventAccepter.accept(this, equipMessage.setSubType(EquipResultType.SUCCESS).Build());
-                    equipThing.onEquippedBy(this);
+            Equipable equipThing = maybeItem.get();
+            equipMessage.setItem(equipThing);
+            if (slot == null) {
+                slot = equipThing.getWhichSlots().get(0);
+                equipMessage.setAttemptedSlot(slot);
+            }
+            if (equipThing.getWhichSlots().contains(slot)) {
+                this.unequipItem(slot, "");
+                this.getInventory().removeItem(equipThing);
+                this.getEquipmentSlots().putIfAbsent(slot, equipThing);
+                ICreature.eventAccepter.accept(this, equipMessage.setSubType(EquipResultType.SUCCESS).Build());
+                equipThing.onEquippedBy(this);
 
-                    return true;
-                }
-                ICreature.eventAccepter.accept(this, equipMessage.setSubType(EquipResultType.BADSLOT).Build());
                 return true;
             }
-            ICreature.eventAccepter.accept(this, equipMessage.setSubType(EquipResultType.NOTEQUIPBLE).Build());
+            ICreature.eventAccepter.accept(this, equipMessage.setSubType(EquipResultType.BADSLOT).Build());
             return true;
         }
         ICreature.eventAccepter.accept(this,
@@ -468,37 +467,22 @@ public abstract class Creature implements ICreature {
 
     @Override
     public boolean unequipItem(EquipmentSlots slot, String weapon) {
-        ItemUnequippedEvent.Builder unequipMessage = ItemUnequippedEvent.getBuilder().setNotBroadcast().setSlot(slot)
+        ItemUnequippedEvent.Builder unequipMessage = ItemUnequippedEvent.getBuilder().setNotBroadcast()
                 .setAttemptedName(weapon);
         if (slot == null) {
             // if they specified weapon and not slot
-            Optional<Item> optItem = getItem(weapon);
-            if (optItem.isPresent()) {
-                unequipMessage.setItem(optItem.get());
-                Map<EquipmentSlots, Equipable> equipped = this.getEquipmentSlots();
-                if (equipped.containsValue(optItem.get())) {
-                    Equipable equippedThing = (Equipable) optItem.get();
-                    for (EquipmentSlots thingSlot : equippedThing.getWhichSlots()) {
-                        if (equippedThing.equals(equipped.get(thingSlot))) {
-                            equipped.remove(thingSlot);
-                            this.getInventory().addItem(equippedThing);
-                            ICreature.eventAccepter.accept(this,
-                                    unequipMessage.setSubType(UnequipResultType.SUCCESS).Build());
-                            equippedThing.onUnequippedBy(this);
-                            return true;
-                        }
-                    }
+            for (final Entry<EquipmentSlots, Equipable> entry : this.getEquipmentSlots().entrySet()) {
+                final Equipable equipable = entry.getValue();
+                if (equipable == null) {
+                    continue;
                 }
-                ICreature.eventAccepter.accept(this,
-                        unequipMessage.setSubType(UnequipResultType.ITEM_NOT_EQUIPPED).Build());
-                return false;
+                if (equipable.checkName(weapon)) {
+                    slot = entry.getKey();
+                    break;
+                }
             }
-
-            ICreature.eventAccepter.accept(this,
-                    ItemNotPossessedEvent.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
-                            .setItemName(weapon).Build());
-            return false;
         }
+        unequipMessage.setSlot(slot);
         Equipable thing = getEquipmentSlots().remove(slot);
         if (thing != null) {
             unequipMessage.setItem(thing).setSubType(UnequipResultType.SUCCESS);
