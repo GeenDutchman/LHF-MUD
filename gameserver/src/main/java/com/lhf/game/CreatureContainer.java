@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.lhf.Examinable;
+import com.lhf.game.creature.CreatureVisitor;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.vocation.Vocation;
@@ -81,6 +82,15 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
         public VocationName vocation;
         public transient Class<? extends ICreature> clazz;
         public Boolean isBattling;
+    }
+
+    public default void acceptCreatureVisitor(CreatureVisitor visitor) {
+        for (final ICreature creature : this.getCreatures()) {
+            if (creature == null) {
+                continue;
+            }
+            creature.acceptCreatureVisitor(visitor);
+        }
     }
 
     public default Collection<ICreature> filterCreatures(CreatureFilterQuery query) {
