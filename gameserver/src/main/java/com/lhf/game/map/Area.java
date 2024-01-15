@@ -16,15 +16,20 @@ import java.util.function.Consumer;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.ItemContainer;
+import com.lhf.game.creature.CreaturePartitionSetVisitor;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
+import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.Takeable;
+import com.lhf.game.item.concrete.NotableFixture;
 import com.lhf.game.map.SubArea.SubAreaBuilder;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.game.map.commandHandlers.AreaAttackHandler;
@@ -175,29 +180,39 @@ public interface Area
                 }
             }
         }
-        for (ICreature c : this.getCreatures()) {
-            if (c instanceof Player) {
-                seen.addSeen(SeeCategory.PLAYER, c);
-            } else if (c instanceof IMonster) {
-                seen.addSeen(SeeCategory.MONSTER, c);
-            } else if (c instanceof INonPlayerCharacter) {
-                seen.addSeen(SeeCategory.NPC, c);
-            } else {
-                seen.addSeen(SeeCategory.CREATURE, c);
-            }
+        CreaturePartitionSetVisitor creatureVisitor = new CreaturePartitionSetVisitor();
+        this.acceptCreatureVisitor(creatureVisitor);
+        for (final Player player : creatureVisitor.getPlayers()) {
+            seen.addSeen(SeeCategory.PLAYER, player);
         }
-        for (Item item : this.getItems()) {
-            if (!item.checkVisibility() && !seeInvisible) {
-                continue;
-            }
-            if (item instanceof Takeable) {
-                seen.addSeen(item.checkVisibility() ? SeeCategory.TAKEABLE : SeeCategory.INVISIBLE_TAKEABLE,
-                        item);
-            } else {
-                seen.addSeen(item.checkVisibility() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
-                        item);
-            }
+        for (final IMonster monster : creatureVisitor.getMonsters()) {
+            seen.addSeen(SeeCategory.MONSTER, monster);
         }
+        for (final IMonster monster : creatureVisitor.getSummonedMonsters()) {
+            seen.addSeen(SeeCategory.MONSTER, monster);
+        }
+        for (final INonPlayerCharacter npc : creatureVisitor.getNpcs()) {
+            seen.addSeen(SeeCategory.NPC, npc);
+        }
+        for (final INonPlayerCharacter npc : creatureVisitor.getSummonedNPCs()) {
+            seen.addSeen(SeeCategory.NPC, npc);
+        }
+
+        ItemPartitionListVisitor itemVisitor = new ItemPartitionListVisitor();
+        this.acceptItemVisitor(itemVisitor);
+        for (final Takeable item : itemVisitor.getTakeables()) {
+            seen.addSeen(item.checkVisibility() ? SeeCategory.TAKEABLE : SeeCategory.INVISIBLE_TAKEABLE,
+                    item);
+        }
+        for (final NotableFixture item : itemVisitor.getNotes()) {
+            seen.addSeen(item.checkVisibility() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
+                    item);
+        }
+        for (final InteractObject item : itemVisitor.getInteractObjects()) {
+            seen.addSeen(item.checkVisibility() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
+                    item);
+        }
+
         return produceMessage(seen);
     }
 
