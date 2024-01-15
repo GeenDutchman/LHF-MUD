@@ -107,6 +107,11 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     }
 
     @Override
+    public void acceptCreatureVisitor(CreatureVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
     protected Map<AMessageType, CommandHandler> buildCommands() {
         Map<AMessageType, CommandHandler> generated = super.buildCommands();
         generated.put(AMessageType.FOLLOW, INonPlayerCharacter.followHandler);

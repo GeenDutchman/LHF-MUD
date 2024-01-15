@@ -51,6 +51,7 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Item;
+import com.lhf.game.item.ItemVisitor;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
@@ -127,6 +128,14 @@ public interface ICreature
     }
 
     public ICreatureID getCreatureID();
+
+    public abstract void acceptCreatureVisitor(CreatureVisitor visitor);
+
+    @Override
+    public default void acceptItemVisitor(ItemVisitor visitor) {
+        InventoryOwner.super.acceptItemVisitor(visitor);
+        EquipmentOwner.super.acceptItemVisitor(visitor);
+    }
 
     /**
      * A Fist is a weapon that most Creatures can be assumed to have.

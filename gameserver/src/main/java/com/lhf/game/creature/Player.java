@@ -107,6 +107,11 @@ public class Player extends Creature {
     }
 
     @Override
+    public void acceptCreatureVisitor(CreatureVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
     public void restoreFaction() {
         this.setFaction(CreatureFaction.PLAYER);
     }

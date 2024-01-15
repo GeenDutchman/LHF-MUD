@@ -118,6 +118,11 @@ public class Monster extends NonPlayerCharacter implements IMonster {
     }
 
     @Override
+    public void acceptCreatureVisitor(CreatureVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;

@@ -83,4 +83,9 @@ public class DungeonMaster extends NonPlayerCharacter {
         return new DungeonMasterBuilder();
     }
 
+    @Override
+    public void acceptCreatureVisitor(CreatureVisitor visitor) {
+        visitor.visit(this);
+    }
+
 }

@@ -25,4 +25,9 @@ public class SummonedNPC extends SummonedINonPlayerCharacter<NonPlayerCharacter>
         this.successor = successor;
     }
 
+    @Override
+    public void acceptCreatureVisitor(CreatureVisitor visitor) {
+        visitor.visit(this);
+    }
+
 }

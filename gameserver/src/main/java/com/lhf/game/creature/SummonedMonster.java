@@ -30,4 +30,9 @@ public class SummonedMonster extends SummonedINonPlayerCharacter<Monster> implem
         return this.wrapped.getMonsterNumber();
     }
 
+    @Override
+    public void acceptCreatureVisitor(CreatureVisitor visitor) {
+        visitor.visit(this);
+    }
+
 }
