@@ -932,6 +932,9 @@ public interface ICreature
 
     @Override
     public default int compareTo(ICreature other) {
+        if (this.equals(other)) {
+            return 0;
+        }
         return this.getName().compareTo(other.getName());
     }
 
