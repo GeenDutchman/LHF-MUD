@@ -19,7 +19,7 @@ public class Lever extends InteractObject {
 
     @Override
     public Lever makeCopy() {
-        Lever switcher = new Lever(this.getName(), this.checkVisibility(), this.repeatable, descriptionString);
+        Lever switcher = new Lever(this.getName(), this.isVisible(), this.repeatable, descriptionString);
         switcher.setLockable(this.lockable);
         return switcher;
     }

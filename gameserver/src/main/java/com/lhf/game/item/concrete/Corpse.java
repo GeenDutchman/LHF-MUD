@@ -18,7 +18,7 @@ public class Corpse extends Chest {
 
     @Override
     public Corpse makeCopy() {
-        return new Corpse(this.getName(), this.checkVisibility());
+        return new Corpse(this.getName(), this.isVisible());
     }
 
     @Override

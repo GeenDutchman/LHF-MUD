@@ -42,7 +42,7 @@ public class RingOfSeeing extends Equipable {
 
     @Override
     public RingOfSeeing makeCopy() {
-        return new RingOfSeeing(this.checkVisibility());
+        return new RingOfSeeing(this.isVisible());
     }
 
 }

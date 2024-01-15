@@ -16,7 +16,7 @@ public class Takeable extends Item {
 
     @Override
     public Takeable makeCopy() {
-        Takeable takeable = new Takeable(this.getName(), this.checkVisibility(), descriptionString);
+        Takeable takeable = new Takeable(this.getName(), this.isVisible(), descriptionString);
         this.copyOverwriteTo(takeable);
         return takeable;
     }

@@ -201,15 +201,15 @@ public interface Area
         ItemPartitionListVisitor itemVisitor = new ItemPartitionListVisitor();
         this.acceptItemVisitor(itemVisitor);
         for (final Takeable item : itemVisitor.getTakeables()) {
-            seen.addSeen(item.checkVisibility() ? SeeCategory.TAKEABLE : SeeCategory.INVISIBLE_TAKEABLE,
+            seen.addSeen(item.isVisible() ? SeeCategory.TAKEABLE : SeeCategory.INVISIBLE_TAKEABLE,
                     item);
         }
         for (final NotableFixture item : itemVisitor.getNotes()) {
-            seen.addSeen(item.checkVisibility() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
+            seen.addSeen(item.isVisible() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
                     item);
         }
         for (final InteractObject item : itemVisitor.getInteractObjects()) {
-            seen.addSeen(item.checkVisibility() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
+            seen.addSeen(item.isVisible() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
                     item);
         }
 

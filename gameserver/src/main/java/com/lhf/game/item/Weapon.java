@@ -34,7 +34,7 @@ public class Weapon extends Equipable {
         for (final CreatureEffectSource source : this.effectSources) {
             copiedEffectSources.add(source.makeCopy());
         }
-        Weapon copy = new Weapon(this.getName(), this.checkVisibility(), copiedEffectSources, this.mainFlavor,
+        Weapon copy = new Weapon(this.getName(), this.isVisible(), copiedEffectSources, this.mainFlavor,
                 this.subtype);
         copy.toHitBonus = this.toHitBonus;
         this.copyOverwriteTo(copy);

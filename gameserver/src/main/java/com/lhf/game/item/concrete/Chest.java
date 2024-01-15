@@ -76,7 +76,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
 
     @Override
     public Chest makeCopy() {
-        return new Chest(this.getName(), this.checkVisibility(), this.locked.get(), this.removeOnEmpty);
+        return new Chest(this.getName(), this.isVisible(), this.locked.get(), this.removeOnEmpty);
     }
 
     @Override

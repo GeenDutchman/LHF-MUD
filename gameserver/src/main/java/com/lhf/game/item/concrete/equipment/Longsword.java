@@ -34,7 +34,7 @@ public class Longsword extends Weapon {
 
     @Override
     public Longsword makeCopy() {
-        return new Longsword(this.checkVisibility());
+        return new Longsword(this.isVisible());
     }
 
 }

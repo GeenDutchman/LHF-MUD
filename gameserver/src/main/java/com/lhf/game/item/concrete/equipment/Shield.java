@@ -31,6 +31,6 @@ public class Shield extends Equipable {
 
     @Override
     public Shield makeCopy() {
-        return new Shield(this.checkVisibility());
+        return new Shield(this.isVisible());
     }
 }

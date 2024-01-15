@@ -91,7 +91,7 @@ public class HealPotion extends Usable {
 
     @Override
     public HealPotion makeCopy() {
-        return new HealPotion(this.healtype, this.checkVisibility());
+        return new HealPotion(this.healtype, this.isVisible());
     }
 
     private CreatureEffectSource setHealing(CreatureEffectSource effect) {

@@ -47,7 +47,7 @@ public abstract class Item implements TaggedExaminable {
     // Name it will be known by
     private String objectName;
     // Will not output with look if false
-    private boolean isVisible;
+    private boolean visible;
     // Every item should describe itself
     protected String descriptionString;
 
@@ -55,7 +55,7 @@ public abstract class Item implements TaggedExaminable {
         this.className = this.getClass().getName();
         this.objectName = name.trim();
         assert this.objectName.length() >= 3;
-        this.isVisible = isVisible;
+        this.visible = isVisible;
         this.descriptionString = this.getColorTaggedName();
     }
 
@@ -63,7 +63,7 @@ public abstract class Item implements TaggedExaminable {
         this.className = this.getClass().getName();
         this.objectName = name.trim();
         assert this.objectName.length() >= 3;
-        this.isVisible = isVisible;
+        this.visible = isVisible;
         this.descriptionString = description;
     }
 
@@ -79,8 +79,12 @@ public abstract class Item implements TaggedExaminable {
         return this.className;
     }
 
-    public boolean checkVisibility() {
-        return isVisible;
+    public boolean isVisible() {
+        return visible;
+    }
+
+    protected void setVisible(boolean visible) {
+        this.visible = visible;
     }
 
     public String getName() {

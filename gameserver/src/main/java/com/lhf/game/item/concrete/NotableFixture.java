@@ -19,7 +19,7 @@ public class NotableFixture extends Item {
 
     @Override
     public NotableFixture makeCopy() {
-        return new NotableFixture(this.getName(), this.checkVisibility(), this.noteContent);
+        return new NotableFixture(this.getName(), this.isVisible(), this.noteContent);
     }
 
     @Override

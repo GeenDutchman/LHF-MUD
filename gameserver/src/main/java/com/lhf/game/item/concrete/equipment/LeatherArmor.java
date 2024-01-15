@@ -32,6 +32,6 @@ public class LeatherArmor extends Equipable {
 
     @Override
     public LeatherArmor makeCopy() {
-        return new LeatherArmor(this.checkVisibility());
+        return new LeatherArmor(this.isVisible());
     }
 }

@@ -67,7 +67,7 @@ public interface ItemContainer extends Examinable {
         return Collections.unmodifiableCollection(retrieved.stream()
                 .filter(item -> item != null)
                 .filter(item -> !filters.contains(ItemFilters.VISIBILITY)
-                        || (isVisible != null && item.checkVisibility() == isVisible))
+                        || (isVisible != null && item.isVisible() == isVisible))
                 .filter(item -> !filters.contains(ItemFilters.CLASS_NAME)
                         || (className != null && className.equals(item.getClassName())))
                 .filter(item -> !filters.contains(ItemFilters.OBJECT_NAME) || (objectName != null

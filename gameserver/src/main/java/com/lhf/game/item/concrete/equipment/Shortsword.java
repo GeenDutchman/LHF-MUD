@@ -35,7 +35,7 @@ public class Shortsword extends Weapon {
 
     @Override
     public Shortsword makeCopy() {
-        return new Shortsword(this.checkVisibility());
+        return new Shortsword(this.isVisible());
     }
 
 }

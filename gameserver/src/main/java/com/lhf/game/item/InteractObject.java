@@ -24,7 +24,7 @@ public class InteractObject extends Item {
 
     @Override
     public InteractObject makeCopy() {
-        return new InteractObject(this.getName(), this.checkVisibility(), repeatable, descriptionString);
+        return new InteractObject(this.getName(), this.isVisible(), repeatable, descriptionString);
     }
 
     @Override

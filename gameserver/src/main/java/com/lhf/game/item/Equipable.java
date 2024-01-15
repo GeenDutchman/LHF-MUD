@@ -51,7 +51,7 @@ public class Equipable extends Usable {
 
     @Override
     public Equipable makeCopy() {
-        Equipable equipable = new Equipable(this.getName(), this.checkVisibility(), this.numCanUseTimes);
+        Equipable equipable = new Equipable(this.getName(), this.isVisible(), this.numCanUseTimes);
         this.copyOverwriteTo(equipable);
         return equipable;
     }

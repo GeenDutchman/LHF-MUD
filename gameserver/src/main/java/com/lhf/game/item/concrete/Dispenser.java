@@ -29,7 +29,7 @@ public class Dispenser extends InteractObject implements ItemContainer {
 
     @Override
     public Dispenser makeCopy() {
-        Dispenser next = new Dispenser(this.getName(), this.checkVisibility(), this.isRepeatable(), descriptionString);
+        Dispenser next = new Dispenser(this.getName(), this.isVisible(), this.isRepeatable(), descriptionString);
         ItemContainer.transfer(this, next, null, true);
         return next;
     }

@@ -34,6 +34,6 @@ public class MantleOfDeath extends Equipable {
 
     @Override
     public MantleOfDeath makeCopy() {
-        return new MantleOfDeath(this.checkVisibility());
+        return new MantleOfDeath(this.isVisible());
     }
 }

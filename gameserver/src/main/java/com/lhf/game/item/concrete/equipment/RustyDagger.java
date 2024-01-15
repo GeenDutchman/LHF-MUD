@@ -35,7 +35,7 @@ public class RustyDagger extends Weapon {
 
     @Override
     public RustyDagger makeCopy() {
-        return new RustyDagger(this.checkVisibility());
+        return new RustyDagger(this.isVisible());
     }
 
 }

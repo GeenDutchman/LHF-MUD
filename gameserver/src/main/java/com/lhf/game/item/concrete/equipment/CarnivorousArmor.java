@@ -44,7 +44,7 @@ public class CarnivorousArmor extends Equipable {
 
     @Override
     public CarnivorousArmor makeCopy() {
-        CarnivorousArmor copy = new CarnivorousArmor(this.checkVisibility());
+        CarnivorousArmor copy = new CarnivorousArmor(this.isVisible());
         copy.equipped = this.equipped;
         copy.equippedAndUsed = this.equippedAndUsed;
         this.copyOverwriteTo(copy);

@@ -40,7 +40,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
 
     @Override
     public Trap makeCopy() {
-        final Trap nextTrap = new Trap(this.getName(), this.checkVisibility(), this.isRepeatable(),
+        final Trap nextTrap = new Trap(this.getName(), this.isVisible(), this.isRepeatable(),
                 this.descriptionString);
         nextTrap.setActivated(this.isActivated());
         for (final CreatureEffectSource source : this.getEffectSources()) {

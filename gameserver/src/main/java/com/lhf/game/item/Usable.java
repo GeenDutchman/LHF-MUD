@@ -43,7 +43,7 @@ public class Usable extends Takeable {
 
     @Override
     public Usable makeCopy() {
-        Usable usable = new Usable(this.getName(), this.checkVisibility(), this.numCanUseTimes);
+        Usable usable = new Usable(this.getName(), this.isVisible(), this.numCanUseTimes);
         this.copyOverwriteTo(usable);
         return usable;
     }

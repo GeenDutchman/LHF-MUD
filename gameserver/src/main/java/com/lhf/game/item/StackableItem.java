@@ -23,7 +23,7 @@ public class StackableItem extends Usable {
 
     @Override
     public StackableItem makeCopy() {
-        return new StackableItem(this.getName(), this.checkVisibility(), this.count);
+        return new StackableItem(this.getName(), this.isVisible(), this.count);
     }
 
     @Override
