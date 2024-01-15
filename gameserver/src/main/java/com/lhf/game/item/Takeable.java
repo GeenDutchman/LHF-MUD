@@ -22,7 +22,7 @@ public class Takeable extends Item {
     }
 
     @Override
-    public void acceptVisitor(ItemVisitor visitor) {
+    public void acceptItemVisitor(ItemVisitor visitor) {
         visitor.visit(this);
     }
 

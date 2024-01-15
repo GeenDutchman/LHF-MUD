@@ -61,7 +61,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
     }
 
     @Override
-    public void acceptVisitor(ItemVisitor visitor) {
+    public void acceptItemVisitor(ItemVisitor visitor) {
         visitor.visit(this);
     }
 

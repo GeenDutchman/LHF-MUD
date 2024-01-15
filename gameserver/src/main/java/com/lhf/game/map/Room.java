@@ -281,7 +281,7 @@ public class Room implements Area {
         this.description = builder.getDescription() != null ? builder.getDescription() : builder.getName();
         this.items = new ArrayList<>(builder.getItems());
         for (final Item item : this.items) {
-            item.acceptVisitor(itemAdditionVisitor);
+            item.acceptItemVisitor(itemAdditionVisitor);
         }
         this.allCreatures = new TreeSet<>();
         this.land = landSupplier.get();
@@ -447,7 +447,7 @@ public class Room implements Area {
         }
 
         if (items.add(obj)) {
-            obj.acceptVisitor(itemAdditionVisitor);
+            obj.acceptItemVisitor(itemAdditionVisitor);
             return true;
         }
         return false;
@@ -476,7 +476,7 @@ public class Room implements Area {
     @Override
     public boolean removeItem(Item item) {
         if (this.items.remove(item)) {
-            item.acceptVisitor(itemRemovalVisitor);
+            item.acceptItemVisitor(itemRemovalVisitor);
         }
         return false;
     }

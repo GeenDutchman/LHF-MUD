@@ -41,7 +41,7 @@ public class AreaInteractHandler implements AreaCommandHandler {
             return false;
         }
         ItemPartitionListVisitor visitor = new ItemPartitionListVisitor();
-        ctx.getArea().acceptVisitor(visitor);
+        ctx.getArea().acceptItemVisitor(visitor);
         return !visitor.getInteractObjects().isEmpty();
     }
 
@@ -57,7 +57,7 @@ public class AreaInteractHandler implements AreaCommandHandler {
             String name = intMessage.getObject();
             ItemPartitionListVisitor partitionVisitor = new ItemPartitionListVisitor();
             ctx.getArea().getItems().stream().filter(item -> item != null)
-                    .forEach(item -> item.acceptVisitor(partitionVisitor));
+                    .forEach(item -> item.acceptItemVisitor(partitionVisitor));
             ItemNameSearchVisitor nameSearchVisitor = new ItemNameSearchVisitor(name, 3);
             nameSearchVisitor.copyFrom(partitionVisitor);
             List<InteractObject> matches = nameSearchVisitor.getInteractObjects();

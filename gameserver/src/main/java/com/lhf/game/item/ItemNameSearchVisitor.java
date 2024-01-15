@@ -22,7 +22,8 @@ public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
         if (partitioner == null) {
             return;
         }
-        partitioner.getItems().stream().filter(item -> item != null).forEachOrdered(item -> item.acceptVisitor(this));
+        partitioner.getItems().stream().filter(item -> item != null)
+                .forEachOrdered(item -> item.acceptItemVisitor(this));
     }
 
     private boolean checkItemName(Item item) {

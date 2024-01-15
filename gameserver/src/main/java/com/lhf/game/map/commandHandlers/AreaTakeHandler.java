@@ -48,7 +48,7 @@ public class AreaTakeHandler implements AreaCommandHandler {
             return false;
         }
         ItemPartitionListVisitor visitor = new ItemPartitionListVisitor();
-        ctx.getArea().acceptVisitor(visitor);
+        ctx.getArea().acceptItemVisitor(visitor);
         return !visitor.getTakeables().isEmpty();
     }
 

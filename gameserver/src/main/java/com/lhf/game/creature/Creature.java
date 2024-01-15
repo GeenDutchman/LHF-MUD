@@ -436,7 +436,7 @@ public abstract class Creature implements ICreature {
     @Override
     public boolean equipItem(String itemName, EquipmentSlots slot) {
         ItemNameSearchVisitor visitor = new ItemNameSearchVisitor(itemName);
-        this.getInventory().acceptVisitor(visitor);
+        this.getInventory().acceptItemVisitor(visitor);
         Optional<Equipable> maybeItem = visitor.getEquipable();
         ItemEquippedEvent.Builder equipMessage = ItemEquippedEvent.getBuilder().setAttemptedItemName(itemName)
                 .setNotBroadcast().setAttemptedSlot(slot);

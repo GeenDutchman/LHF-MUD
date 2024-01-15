@@ -64,7 +64,7 @@ public class AreaUseHandler implements AreaCommandHandler {
         }
         UseMessage useMessage = new UseMessage(cmd);
         ItemNameSearchVisitor visitor = new ItemNameSearchVisitor(useMessage.getUsefulItem());
-        ctx.getCreature().acceptVisitor(visitor);
+        ctx.getCreature().acceptItemVisitor(visitor);
         Optional<Usable> maybeItem = visitor.getUsable();
         if (maybeItem.isEmpty()) {
             ctx.receive(ItemUsedEvent.getBuilder().setSubType(UseOutMessageOption.NO_USES)

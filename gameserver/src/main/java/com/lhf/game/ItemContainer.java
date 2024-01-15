@@ -47,9 +47,9 @@ public interface ItemContainer extends Examinable {
         return changed;
     }
 
-    public default void acceptVisitor(ItemVisitor visitor) {
+    public default void acceptItemVisitor(ItemVisitor visitor) {
         for (Item item : this.getItems()) {
-            item.acceptVisitor(visitor);
+            item.acceptItemVisitor(visitor);
         }
     }
 
