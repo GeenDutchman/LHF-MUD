@@ -29,6 +29,6 @@ public class MantleOfDeath extends Equipable {
 
     @Override
     public MantleOfDeath makeCopy() {
-        return new MantleOfDeath();
+        return this;
     }
 }
