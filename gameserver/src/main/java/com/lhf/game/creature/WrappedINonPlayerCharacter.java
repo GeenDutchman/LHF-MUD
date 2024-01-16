@@ -66,6 +66,11 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
+    public void acceptCreatureVisitor(CreatureVisitor visitor) {
+        this.wrapped.acceptCreatureVisitor(visitor);
+    }
+
+    @Override
     public ICreatureID getCreatureID() {
         return this.wrapped.getCreatureID();
     }
