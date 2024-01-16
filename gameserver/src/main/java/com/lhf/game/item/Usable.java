@@ -10,7 +10,7 @@ import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.Builder;
 
 public class Usable extends Takeable {
-    protected final Integer numCanUseTimes;
+    protected final int numCanUseTimes;
     private int useLeftCount;
     protected final CreatureVisitor creatureVisitor;
     protected final ItemVisitor itemVisitor;

@@ -15,6 +15,14 @@ import com.lhf.game.item.concrete.equipment.Longsword;
 import com.lhf.game.item.concrete.equipment.Shield;
 
 public abstract class Vocation implements Taggable, Comparable<Vocation> {
+
+    /** Stateless copy of Longsword */
+    private final static Longsword longsword = new Longsword();
+    /** Stateless copy of leather armor */
+    private final static LeatherArmor leatherArmor = new LeatherArmor();
+    /** Stateless copy of shield */
+    private final static Shield shield = new Shield();
+
     public enum VocationName implements Taggable {
         FIGHTER {
             @Override
@@ -27,10 +35,10 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
                 builder.addProficiency(EquipmentTypes.SIMPLEMELEEWEAPONS);
                 builder.addProficiency(EquipmentTypes.MARTIALWEAPONS);
 
-                builder.addItemToInventory(new Longsword());
-                builder.addItemToInventory(new LeatherArmor());
+                builder.addItemToInventory(Vocation.longsword);
+                builder.addItemToInventory(Vocation.leatherArmor);
                 builder.addItemToInventory(new HealPotion());
-                builder.addItemToInventory(new Shield());
+                builder.addItemToInventory(Vocation.shield);
 
                 // Set default stats
                 builder.setStat(Stats.MAXHP, 12);
@@ -50,7 +58,7 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
                 builder.addProficiency(EquipmentTypes.SIMPLEMELEEWEAPONS);
                 builder.addProficiency(EquipmentTypes.LIGHTARMOR);
 
-                builder.addItemToInventory(new LeatherArmor());
+                builder.addItemToInventory(Vocation.leatherArmor);
                 builder.addItemToInventory(new HealPotion());
 
                 // Set default stats
@@ -92,7 +100,8 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
                 builder.addProficiency(EquipmentTypes.SIMPLEMELEEWEAPONS);
                 builder.addProficiency(EquipmentTypes.LIGHTARMOR);
 
-                builder.addItemToInventory(new LeatherArmor());
+                builder.addItemToInventory(Vocation.leatherArmor);
+                builder.addItemToInventory(new HealPotion());
                 builder.addItemToInventory(new HealPotion());
 
                 // Set default stats

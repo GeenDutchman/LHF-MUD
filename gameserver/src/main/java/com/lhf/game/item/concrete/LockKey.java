@@ -43,7 +43,7 @@ public class LockKey extends Usable {
 
     @Override
     public LockKey makeCopy() {
-        return new LockKey(lockedItemUuid, this.numCanUseTimes.intValue());
+        return new LockKey(lockedItemUuid, this.numCanUseTimes);
     }
 
     public static String generateKeyName(UUID lockedItemUuid) {
