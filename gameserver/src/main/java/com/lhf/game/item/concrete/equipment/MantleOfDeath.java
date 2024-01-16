@@ -14,8 +14,10 @@ public class MantleOfDeath extends Equipable {
     private final int AC = 10;
     private final int MAX_HEALTH = 100;
 
-    public MantleOfDeath(boolean isVisible) {
-        super("Mantle Of Death", isVisible);
+    public MantleOfDeath() {
+        super("Mantle Of Death",
+                "This fearsome hooded robe seems a little bit overpowered to be in your puny hands. \n");
+        this.setVisible(false);
 
         this.slots = List.of(EquipmentSlots.ARMOR);
         this.types = List.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
@@ -26,14 +28,7 @@ public class MantleOfDeath extends Equipable {
     }
 
     @Override
-    public String printDescription() {
-        StringBuilder sb = new StringBuilder(
-                "This fearsome hooded robe seems a little bit overpowered to be in your puny hands. \n");
-        return sb.toString();
-    }
-
-    @Override
     public MantleOfDeath makeCopy() {
-        return new MantleOfDeath(this.isVisible());
+        return new MantleOfDeath();
     }
 }
