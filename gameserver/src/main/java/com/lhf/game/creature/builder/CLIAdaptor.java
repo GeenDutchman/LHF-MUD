@@ -16,7 +16,7 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.Takeable;
 
 public class CLIAdaptor implements CreatorAdaptor {
@@ -246,7 +246,7 @@ public class CLIAdaptor implements CreatorAdaptor {
             try {
 
                 EquipmentSlots slot = EquipmentSlots.valueOf(pair[1].strip().toUpperCase());
-                Optional<Item> optItem = inventory.removeItem(pair[0].strip());
+                Optional<IItem> optItem = inventory.removeItem(pair[0].strip());
                 if (optItem.isPresent() && optItem.get() instanceof Equipable) {
                     equipmentSlots.put(slot, (Equipable) optItem.get());
                 } else {

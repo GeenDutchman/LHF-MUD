@@ -3,7 +3,7 @@ package com.lhf.messages.events;
 import java.util.StringJoiner;
 
 import com.lhf.Examinable;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.IItem;
 import com.lhf.messages.GameEventType;
 
 public class ItemTakenEvent extends GameEvent {
@@ -12,13 +12,13 @@ public class ItemTakenEvent extends GameEvent {
     }
 
     private final String attemptedName;
-    private final Item item;
+    private final IItem item;
     private final TakeOutType subType;
     private final String source;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private String attemptedName;
-        private Item item;
+        private IItem item;
         private TakeOutType subType;
         private String source;
 
@@ -35,11 +35,11 @@ public class ItemTakenEvent extends GameEvent {
             return this;
         }
 
-        public Item getItem() {
+        public IItem getItem() {
             return item;
         }
 
-        public Builder setItem(Item item) {
+        public Builder setItem(IItem item) {
             this.item = item;
             return this;
         }
@@ -221,7 +221,7 @@ public class ItemTakenEvent extends GameEvent {
         return this.attemptedName;
     }
 
-    public Item getItem() {
+    public IItem getItem() {
         return this.item;
     }
 

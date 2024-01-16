@@ -26,7 +26,7 @@ public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
                 .forEachOrdered(item -> item.acceptItemVisitor(this));
     }
 
-    private boolean checkItemName(Item item) {
+    private boolean checkItemName(IItem item) {
         if (item == null) {
             return false;
         }

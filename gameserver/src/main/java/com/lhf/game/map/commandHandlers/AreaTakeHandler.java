@@ -6,6 +6,7 @@ import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.ItemContainer;
 import com.lhf.game.LockableItemContainer;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.Takeable;
@@ -99,7 +100,7 @@ public class AreaTakeHandler implements AreaCommandHandler {
                     continue;
                 }
                 try {
-                    Optional<Item> maybeItem = container.getItems().stream()
+                    Optional<IItem> maybeItem = container.getItems().stream()
                             .filter(item -> item.CheckNameRegex(thing, 3))
                             .findAny();
                     if (maybeItem.isEmpty()) {
@@ -110,7 +111,7 @@ public class AreaTakeHandler implements AreaCommandHandler {
                         }
                         continue;
                     }
-                    Item item = maybeItem.get();
+                    IItem item = maybeItem.get();
                     takeOutMessage.setItem(item);
                     if (item instanceof Takeable takeableItem) {
                         ctx.getCreature().addItem(takeableItem);

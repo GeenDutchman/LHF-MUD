@@ -29,6 +29,7 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.map.SubArea.SubAreaSort;
@@ -181,7 +182,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public Collection<Item> getItems() {
+    public Collection<IItem> getItems() {
         return wrapped.getItems();
     }
 
@@ -196,7 +197,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public Optional<Item> getItem(String name) {
+    public Optional<IItem> getItem(String name) {
         return wrapped.getItem(name);
     }
 
@@ -206,7 +207,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public boolean addItem(Item item) {
+    public boolean addItem(IItem item) {
         return wrapped.addItem(item);
     }
 
@@ -221,17 +222,17 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public Optional<Item> removeItem(String name) {
+    public Optional<IItem> removeItem(String name) {
         return wrapped.removeItem(name);
     }
 
     @Override
-    public boolean removeItem(Item item) {
+    public boolean removeItem(IItem item) {
         return wrapped.removeItem(item);
     }
 
     @Override
-    public Iterator<? extends Item> itemIterator() {
+    public Iterator<? extends IItem> itemIterator() {
         return wrapped.itemIterator();
     }
 
@@ -241,7 +242,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public Collection<Item> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
+    public Collection<IItem> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
             Integer objNameRegexLen, Class<? extends Item> clazz, Boolean isVisible) {
         return wrapped.filterItems(filters, className, objectName, objNameRegexLen, clazz, isVisible);
     }
@@ -282,7 +283,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public boolean hasItem(Item item) {
+    public boolean hasItem(IItem item) {
         return wrapped.hasItem(item);
     }
 

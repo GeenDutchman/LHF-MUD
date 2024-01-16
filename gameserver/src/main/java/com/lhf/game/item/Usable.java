@@ -91,7 +91,7 @@ public class Usable extends Takeable {
         return true;
     }
 
-    public boolean useOn(CommandContext ctx, Item item) {
+    public boolean useOn(CommandContext ctx, IItem item) {
         ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature()).setUsable(this);
         if (this.itemVisitor == null || item == null) {
             ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());

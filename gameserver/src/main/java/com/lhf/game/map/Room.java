@@ -30,6 +30,7 @@ import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.ItemNoOpVisitor;
 import com.lhf.game.item.ItemVisitor;
@@ -50,7 +51,7 @@ public class Room implements Area {
     private final GameEventProcessorID gameEventProcessorID = new GameEventProcessorID();
     private final UUID uuid = gameEventProcessorID.getUuid();
     protected final Logger logger;
-    final List<Item> items;
+    final List<IItem> items;
     private final String description;
     private final String name;
     private final NavigableSet<SubArea> subAreas;
@@ -82,7 +83,7 @@ public class Room implements Area {
         private final transient AreaBuilderID id;
         private String name;
         private String description;
-        private List<Item> items;
+        private List<IItem> items;
         private Set<INonPlayerCharacter.AbstractNPCBuilder<?, ?>> npcsToBuild;
         private Set<SubAreaBuilder<?, ?>> subAreasToBuild;
 
@@ -161,7 +162,7 @@ public class Room implements Area {
         }
 
         @Override
-        public Collection<Item> getItems() {
+        public Collection<IItem> getItems() {
             return this.items;
         }
 
@@ -280,7 +281,7 @@ public class Room implements Area {
                         : this.uuid.toString()));
         this.description = builder.getDescription() != null ? builder.getDescription() : builder.getName();
         this.items = new ArrayList<>(builder.getItems());
-        for (final Item item : this.items) {
+        for (final IItem item : this.items) {
             item.acceptItemVisitor(itemAdditionVisitor);
         }
         this.allCreatures = new TreeSet<>();
@@ -436,12 +437,12 @@ public class Room implements Area {
     }
 
     @Override
-    public Collection<Item> getItems() {
+    public Collection<IItem> getItems() {
         return Collections.unmodifiableList(this.items);
     }
 
     @Override
-    public boolean addItem(Item obj) {
+    public boolean addItem(IItem obj) {
         if (obj == null) {
             return false;
         }
@@ -462,9 +463,9 @@ public class Room implements Area {
     }
 
     @Override
-    public Optional<Item> removeItem(String name) {
-        for (Iterator<Item> iterator = this.items.iterator(); iterator.hasNext();) {
-            Item item = iterator.next();
+    public Optional<IItem> removeItem(String name) {
+        for (Iterator<IItem> iterator = this.items.iterator(); iterator.hasNext();) {
+            IItem item = iterator.next();
             if (item != null && item.checkName(name)) {
                 iterator.remove();
                 return Optional.of(item);
@@ -474,7 +475,7 @@ public class Room implements Area {
     }
 
     @Override
-    public boolean removeItem(Item item) {
+    public boolean removeItem(IItem item) {
         if (this.items.remove(item)) {
             item.acceptItemVisitor(itemRemovalVisitor);
         }
@@ -482,7 +483,7 @@ public class Room implements Area {
     }
 
     @Override
-    public Iterator<? extends Item> itemIterator() {
+    public Iterator<? extends IItem> itemIterator() {
         return this.items.iterator();
     }
 

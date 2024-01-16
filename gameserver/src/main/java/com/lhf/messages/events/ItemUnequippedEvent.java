@@ -2,6 +2,7 @@ package com.lhf.messages.events;
 
 import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.Item;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.ITickEvent;
@@ -148,7 +149,7 @@ public class ItemUnequippedEvent extends GameEvent implements ITickEvent {
         return sb.toString();
     }
 
-    public Item getItem() {
+    public IItem getItem() {
         return item;
     }
 

@@ -32,6 +32,7 @@ import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.Item;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.lewd.LewdBabyMaker;
@@ -128,7 +129,7 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public Collection<Item> getItems() {
+        public Collection<IItem> getItems() {
             return this.delegate.getItems();
         }
 
@@ -406,7 +407,7 @@ public class DMRoom extends Room {
                         return null;
                     }
                 }
-                Optional<Item> maybeCorpse = this.getItem(name);
+                Optional<IItem> maybeCorpse = this.getItem(name);
                 if (maybeCorpse.isEmpty() || !(maybeCorpse.get() instanceof Corpse)) {
                     this.logger.log(Level.FINEST, () -> String.format("No corpse was found with the name '%s'", name));
                     if (effect.creatureResponsible() != null) {

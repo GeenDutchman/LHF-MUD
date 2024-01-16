@@ -4,9 +4,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.PatternSyntaxException;
 
-import com.lhf.TaggedExaminable;
-
-public abstract class Item implements TaggedExaminable {
+public abstract class Item implements IItem {
     public final static class ItemID implements Comparable<ItemID> {
         private final UUID id = UUID.randomUUID();
 
@@ -77,14 +75,18 @@ public abstract class Item implements TaggedExaminable {
         other.descriptionString = this.descriptionString;
     }
 
+    @Override
     public abstract Item makeCopy();
 
+    @Override
     public abstract void acceptItemVisitor(ItemVisitor visitor);
 
+    @Override
     public String getClassName() {
         return this.className;
     }
 
+    @Override
     public boolean isVisible() {
         return visible;
     }
@@ -93,14 +95,17 @@ public abstract class Item implements TaggedExaminable {
         this.visible = visible;
     }
 
+    @Override
     public String getName() {
         return objectName;
     }
 
+    @Override
     public boolean checkName(String name) {
         return this.getName().equalsIgnoreCase(name.trim());
     }
 
+    @Override
     public boolean CheckNameRegex(String possName, Integer minimumLength) {
         Integer min = minimumLength;
         if (min < 0) {

@@ -33,7 +33,7 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemNameSearchVisitor;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
@@ -460,7 +460,7 @@ public abstract class Creature implements ICreature {
             return true;
         }
         ICreature.eventAccepter.accept(this,
-                ItemNotPossessedEvent.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
+                ItemNotPossessedEvent.getBuilder().setNotBroadcast().setItemType(IItem.class.getSimpleName())
                         .setItemName(itemName).Build());
         return true;
     }
@@ -503,10 +503,10 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public Optional<Item> removeItem(String name) {
-        Optional<Item> toRemove = ICreature.super.removeItem(name);
+    public Optional<IItem> removeItem(String name) {
+        Optional<IItem> toRemove = ICreature.super.removeItem(name);
         if (toRemove.isEmpty()) {
-            for (Item item : this.getEquipmentSlots().values()) {
+            for (IItem item : this.getEquipmentSlots().values()) {
                 if (item.CheckNameRegex(name, 3)) {
                     toRemove = Optional.of(item);
                     break;

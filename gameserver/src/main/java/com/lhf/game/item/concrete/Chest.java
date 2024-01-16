@@ -13,8 +13,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
-import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.map.Area;
 import com.lhf.messages.events.ItemInteractionEvent;
@@ -26,7 +26,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     protected final UUID chestUuid;
     protected final AtomicBoolean locked;
     protected final boolean removeOnEmpty;
-    protected List<Item> chestItems;
+    protected List<IItem> chestItems;
 
     private final static NotableFixture lockedNote = new NotableFixture("Chest Locked", "This chest is locked.");
 
@@ -131,7 +131,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
             seeOutMessage = SeeEvent.getBuilder();
         }
         seeOutMessage.setExaminable(this);
-        for (Item thing : this.getItems()) {
+        for (IItem thing : this.getItems()) {
             if (thing instanceof Takeable) {
                 seeOutMessage.addSeen(SeeCategory.TAKEABLE, thing);
             } else {
@@ -167,7 +167,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     @Override
-    public boolean addItem(Item item) {
+    public boolean addItem(IItem item) {
         if (item == null || !this.isUnlocked()) {
             return false;
         }
@@ -175,7 +175,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     @Override
-    public Collection<Item> getItems() {
+    public Collection<IItem> getItems() {
         if (!this.isUnlocked()) {
             return List.of(Chest.lockedNote);
         }
@@ -183,11 +183,11 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     @Override
-    public Optional<Item> removeItem(String name) {
+    public Optional<IItem> removeItem(String name) {
         if (!this.isUnlocked()) {
             return Optional.empty();
         }
-        Optional<Item> found = this.getItem(name);
+        Optional<IItem> found = this.getItem(name);
         if (found.isPresent()) {
             this.chestItems.remove(found.get());
         }
@@ -195,7 +195,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     @Override
-    public boolean removeItem(Item item) {
+    public boolean removeItem(IItem item) {
         if (!this.isUnlocked()) {
             return false;
         }
@@ -203,7 +203,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     @Override
-    public Iterator<? extends Item> itemIterator() {
+    public Iterator<? extends IItem> itemIterator() {
         return this.chestItems.iterator();
     }
 
@@ -243,18 +243,18 @@ public class Chest extends InteractObject implements LockableItemContainer {
         }
 
         @Override
-        public Collection<Item> getItems() {
+        public Collection<IItem> getItems() {
             return Collections.unmodifiableList(Chest.this.chestItems);
         }
 
         @Override
-        public boolean addItem(Item item) {
+        public boolean addItem(IItem item) {
             return Chest.this.chestItems.add(item);
         }
 
         @Override
-        public Optional<Item> removeItem(String name) {
-            Optional<Item> found = this.getItem(name);
+        public Optional<IItem> removeItem(String name) {
+            Optional<IItem> found = this.getItem(name);
             if (found.isPresent()) {
                 Chest.this.chestItems.remove(found.get());
             }
@@ -262,12 +262,12 @@ public class Chest extends InteractObject implements LockableItemContainer {
         }
 
         @Override
-        public boolean removeItem(Item item) {
+        public boolean removeItem(IItem item) {
             return Chest.this.chestItems.remove(item);
         }
 
         @Override
-        public Iterator<? extends Item> itemIterator() {
+        public Iterator<? extends IItem> itemIterator() {
             return Chest.this.chestItems.iterator();
         }
 

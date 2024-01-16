@@ -31,7 +31,7 @@ public class InteractObject extends Item {
     }
 
     @Override
-    public Item makeCopy() {
+    public InteractObject makeCopy() {
         return new InteractObject(this);
     }
 

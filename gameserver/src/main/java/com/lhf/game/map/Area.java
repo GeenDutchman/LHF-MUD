@@ -24,8 +24,8 @@ import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
-import com.lhf.game.item.Item;
 import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.concrete.NotableFixture;
@@ -107,7 +107,7 @@ public interface Area
 
         public abstract String getDescription();
 
-        public abstract Collection<Item> getItems();
+        public abstract Collection<IItem> getItems();
 
         public abstract Collection<INonPlayerCharacter.AbstractNPCBuilder<?, ?>> getNPCsToBuild();
 

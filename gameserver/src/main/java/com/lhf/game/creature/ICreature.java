@@ -50,7 +50,7 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemVisitor;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
@@ -771,7 +771,7 @@ public interface ICreature
     public default Attack attack(String itemName, String target) {
         this.log(Level.FINER, () -> "Attempting to attack: " + target);
         Weapon toUse;
-        Optional<Item> item = this.getItem(itemName);
+        Optional<IItem> item = this.getItem(itemName);
         if (item.isPresent() && item.get() instanceof Weapon) {
             toUse = (Weapon) item.get();
         } else {

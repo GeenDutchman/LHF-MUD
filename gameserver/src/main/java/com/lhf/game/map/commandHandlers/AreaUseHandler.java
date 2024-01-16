@@ -8,7 +8,7 @@ import java.util.StringJoiner;
 import java.util.logging.Level;
 
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemNameSearchVisitor;
 import com.lhf.game.item.Usable;
 import com.lhf.game.map.Area.AreaCommandHandler;
@@ -99,12 +99,12 @@ public class AreaUseHandler implements AreaCommandHandler {
                     .setBadTarget(useMessage.getTarget()).setPossibleTargets(maybeCreature).Build());
             return ctx.handled();
         }
-        Optional<Item> maybeRoomItem = ctx.getArea().getItem(useMessage.getTarget());
+        Optional<IItem> maybeRoomItem = ctx.getArea().getItem(useMessage.getTarget());
         if (maybeRoomItem.isPresent()) {
             usable.useOn(ctx, maybeRoomItem.get());
             return ctx.handled();
         }
-        Optional<Item> maybeInventory = ctx.getCreature().getItem(useMessage.getTarget());
+        Optional<IItem> maybeInventory = ctx.getCreature().getItem(useMessage.getTarget());
         if (maybeInventory.isPresent()) {
             usable.useOn(ctx, maybeInventory.get());
             return ctx.handled();
