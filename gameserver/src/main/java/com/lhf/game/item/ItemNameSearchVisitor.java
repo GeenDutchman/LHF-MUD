@@ -86,31 +86,31 @@ public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
     }
 
     public Optional<InteractObject> getInteractObject() {
-        return Optional.ofNullable(super.getInteractObjects().get(0));
+        return super.getInteractObjects().stream().findFirst();
     }
 
     public Optional<NotableFixture> getNote() {
-        return Optional.ofNullable(super.getNotes().get(0));
+        return super.getNotes().stream().findFirst();
     }
 
     public Optional<Takeable> getTakeable() {
-        return Optional.ofNullable(super.getTakeables().get(0));
+        return super.getTakeables().stream().findFirst();
     }
 
     public Optional<Usable> getUsable() {
-        return Optional.ofNullable(super.getUsables().get(0));
+        return super.getUsables().stream().findFirst();
     }
 
     public Optional<Equipable> getEquipable() {
-        return Optional.ofNullable(super.getEquipables().get(0));
+        return super.getEquipables().stream().findFirst();
     }
 
     public Optional<Weapon> getWeapon() {
-        return Optional.ofNullable(super.getWeapons().get(0));
+        return super.getWeapons().stream().findFirst();
     }
 
     public Optional<EquipableHiddenEffect> getEquipableHiddenEffect() {
-        return Optional.ofNullable(super.getEquipablesWithHiddenEffects().get(0));
+        return super.getEquipablesWithHiddenEffects().stream().findFirst();
     }
 
 }
