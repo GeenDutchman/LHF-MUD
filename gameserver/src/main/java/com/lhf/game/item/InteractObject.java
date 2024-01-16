@@ -25,9 +25,14 @@ public class InteractObject extends Item {
     }
 
     public InteractObject(InteractObject other) {
-        super(other);
+        this(other.getName(), other.descriptionString, other.repeatable);
         this.repeatable = other.repeatable;
         this.interactCount = 0;
+    }
+
+    @Override
+    public Item makeCopy() {
+        return new InteractObject(this);
     }
 
     public void setArea(Area area) {

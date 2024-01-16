@@ -177,7 +177,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
     }
 
     public Bed(Builder builder, Area area) {
-        super(builder.name, true, true, "It's a bed.");
+        super(builder.name, "It's a bed.");
         this.gameEventProcessorID = new GameEventProcessorID();
         this.logger = Logger.getLogger(this.getClass().getName() + "." + this.gameEventProcessorID.getUuid());
         this.sleepSeconds = builder.sleepSeconds;

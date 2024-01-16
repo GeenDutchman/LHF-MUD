@@ -32,11 +32,11 @@ public class StatblockTest {
         stats.put(Stats.AC, 10);
         s.setStats(stats);
         Inventory inv = new Inventory();
-        Longsword longsword = new Longsword(true);
+        Longsword longsword = new Longsword();
         inv.addItem(longsword);
         s.setInventory(inv);
         EnumMap<EquipmentSlots, Equipable> equipped = new EnumMap<>(EquipmentSlots.class);
-        RustyDagger dagger = new RustyDagger(true);
+        RustyDagger dagger = new RustyDagger();
         equipped.put(EquipmentSlots.WEAPON, dagger);
         s.setEquipmentSlots(equipped);
 

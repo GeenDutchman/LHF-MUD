@@ -73,7 +73,7 @@ public class AreaUseHandler implements AreaCommandHandler {
         }
         Usable usable = maybeItem.get();
         if (useMessage.getTarget() == null || useMessage.getTarget().isBlank()) {
-            usable.doUseAction(ctx, ctx.getCreature());
+            usable.useOn(ctx, usable);
             return ctx.handled();
         }
         Collection<ICreature> maybeCreature = ctx.getArea().getCreaturesLike(useMessage.getTarget());
@@ -92,7 +92,7 @@ public class AreaUseHandler implements AreaCommandHandler {
                 subArea.addCreature(ctx.getCreature());
                 return subArea.handleChain(ctx, cmd);
             }
-            usable.doUseAction(ctx, creatureList.get(0));
+            usable.useOn(ctx, creatureList.get(0));
             return ctx.handled();
         } else if (maybeCreature.size() > 1) {
             ctx.receive(BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR)
@@ -101,12 +101,12 @@ public class AreaUseHandler implements AreaCommandHandler {
         }
         Optional<Item> maybeRoomItem = ctx.getArea().getItem(useMessage.getTarget());
         if (maybeRoomItem.isPresent()) {
-            usable.doUseAction(ctx, maybeRoomItem.get());
+            usable.useOn(ctx, maybeRoomItem.get());
             return ctx.handled();
         }
         Optional<Item> maybeInventory = ctx.getCreature().getItem(useMessage.getTarget());
         if (maybeInventory.isPresent()) {
-            usable.doUseAction(ctx, maybeInventory.get());
+            usable.useOn(ctx, maybeInventory.get());
             return ctx.handled();
         }
         ctx.receive(BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR)

@@ -79,9 +79,9 @@ public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
     }
 
     @Override
-    public void visit(StackableItem stackableItem) {
-        if (this.checkItemName(stackableItem)) {
-            super.visit(stackableItem);
+    public void visit(EquipableHiddenEffect equipableHiddenEffect) {
+        if (this.checkItemName(equipableHiddenEffect)) {
+            super.visit(equipableHiddenEffect);
         }
     }
 
@@ -109,8 +109,8 @@ public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
         return Optional.ofNullable(super.getWeapons().get(0));
     }
 
-    public Optional<StackableItem> getStackableItem() {
-        return Optional.ofNullable(super.getStackableItems().get(0));
+    public Optional<EquipableHiddenEffect> getEquipableHiddenEffect() {
+        return Optional.ofNullable(super.getEquipablesWithHiddenEffects().get(0));
     }
 
 }

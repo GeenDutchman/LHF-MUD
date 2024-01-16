@@ -15,7 +15,7 @@ public class LewdBabyMaker implements LewdProduct {
             if (name.length() <= 0) {
                 name = NameGenerator.Generate(null);
             }
-            Corpse body = new Corpse(name, true);
+            Corpse body = new Corpse(name);
             room.addItem(body);
         }
     }

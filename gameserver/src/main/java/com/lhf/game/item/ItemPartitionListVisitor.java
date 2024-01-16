@@ -13,9 +13,9 @@ public class ItemPartitionListVisitor implements ItemVisitor {
     private final List<NotableFixture> notes = new ArrayList<>();
     private final List<Takeable> takeables = new ArrayList<>();
     private final List<Usable> usables = new ArrayList<>();
+    private final List<EquipableHiddenEffect> equipablesWithHiddenEffects = new ArrayList<>();
     private final List<Equipable> equipables = new ArrayList<>();
     private final List<Weapon> weapons = new ArrayList<>();
-    private final List<StackableItem> stackableItems = new ArrayList<>();
 
     @Override
     public void visit(InteractObject interactObject) {
@@ -66,11 +66,11 @@ public class ItemPartitionListVisitor implements ItemVisitor {
     }
 
     @Override
-    public void visit(StackableItem stackableItem) {
-        if (stackableItem == null) {
+    public void visit(EquipableHiddenEffect equipableHiddenEffect) {
+        if (equipableHiddenEffect == null) {
             return;
         }
-        this.stackableItems.add(stackableItem);
+        this.equipablesWithHiddenEffects.add(equipableHiddenEffect);
     }
 
     protected List<Item> getItems() {
@@ -93,20 +93,20 @@ public class ItemPartitionListVisitor implements ItemVisitor {
     }
 
     public List<Usable> getUsables() {
-        return Stream.concat(Stream.concat(usables.stream(), this.getEquipables().stream()),
-                this.getStackableItems().stream()).collect(Collectors.toUnmodifiableList());
+        return Stream.concat(usables.stream(), this.getEquipables().stream()).collect(Collectors.toUnmodifiableList());
     }
 
     public List<Equipable> getEquipables() {
-        return Stream.concat(equipables.stream(), this.getWeapons().stream()).collect(Collectors.toUnmodifiableList());
+        return Stream.concat(Stream.concat(equipables.stream(), this.getWeapons().stream()),
+                this.getEquipablesWithHiddenEffects().stream()).collect(Collectors.toUnmodifiableList());
     }
 
     public List<Weapon> getWeapons() {
         return Collections.unmodifiableList(weapons);
     }
 
-    public List<StackableItem> getStackableItems() {
-        return Collections.unmodifiableList(stackableItems);
+    public List<EquipableHiddenEffect> getEquipablesWithHiddenEffects() {
+        return Collections.unmodifiableList(equipablesWithHiddenEffects);
     }
 
 }

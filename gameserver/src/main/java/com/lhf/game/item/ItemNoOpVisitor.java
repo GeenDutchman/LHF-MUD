@@ -35,7 +35,7 @@ public class ItemNoOpVisitor implements ItemVisitor {
     }
 
     @Override
-    public void visit(StackableItem stackableItem) {
+    public void visit(EquipableHiddenEffect equipableHiddenEffect) {
         // deliberate no-operation
     }
 
