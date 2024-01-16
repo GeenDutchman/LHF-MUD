@@ -108,11 +108,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
                                         this.isActivated() ? "activated" : "deactivated", this.getColorTaggedName()));
             }
         }
-        if (this.area != null) {
-            Area.eventAccepter.accept(this.area, builder.setBroacast().Build());
-        } else {
-            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().Build());
-        }
+        this.broadcast(creature, builder);
         this.interactCount++;
     }
 
@@ -159,11 +155,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
                     if (resistance == null || creatureResult == null
                             || (trapResult != null && (trapResult.getTotal() > creatureResult.getTotal()))) {
                         GameEvent cam = creature.applyEffect(effect);
-                        if (this.area != null) {
-                            Area.eventAccepter.accept(this.area, cam);
-                        } else {
-                            ICreature.eventAccepter.accept(creature, cam);
-                        }
+                        this.broadcast(creature, cam);
                     } else {
                         ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this)
                                 .setPerformed()
@@ -172,11 +164,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
                                         creatureResult != null ? creatureResult.getColorTaggedName() : "effortlessly",
                                         trapResult != null ? trapResult.getColorTaggedName() : "not enough effort",
                                         this.getColorTaggedName()));
-                        if (this.area != null) {
-                            Area.eventAccepter.accept(this.area, builder.setBroacast().Build());
-                        } else {
-                            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().Build());
-                        }
+                        this.broadcast(creature, builder);
                     }
                 }
                 this.interactCount++;

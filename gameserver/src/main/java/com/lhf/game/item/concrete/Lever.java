@@ -51,11 +51,7 @@ public class Lever extends InteractObject {
                     .setDescription(String.format(
                             "A **thunk** is heard, and you are pretty sure something changed because of %s.",
                             creature.getColorTaggedName()));
-            if (this.area != null) {
-                Area.eventAccepter.accept(this.area, builder.setNotBroadcast().Build());
-            } else {
-                ICreature.eventAccepter.accept(creature, builder.setBroacast().Build());
-            }
+            this.broadcast(creature, builder);
         }
         this.interactCount++;
     }

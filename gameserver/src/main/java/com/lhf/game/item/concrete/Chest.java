@@ -117,11 +117,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
             builder.setDescription(String.format("%s tries the %s and finds it locked", creature.getColorTaggedName(),
                     this.getColorTaggedName()));
         }
-        if (this.area != null) {
-            Area.eventAccepter.accept(this.area, builder.setBroacast().Build());
-        } else {
-            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().Build());
-        }
+        this.broadcast(creature, builder);
         this.interactCount++;
     }
 

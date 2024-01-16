@@ -2,6 +2,7 @@ package com.lhf.game.item;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.Area;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 
@@ -37,6 +38,28 @@ public class InteractObject extends Item {
 
     public void setArea(Area area) {
         this.area = area;
+    }
+
+    public void broadcast(ICreature creature, GameEvent event) {
+        if (event == null) {
+            return;
+        }
+        if (this.area != null) {
+            Area.eventAccepter.accept(this.area, event);
+        } else if (creature != null) {
+            ICreature.eventAccepter.accept(creature, event);
+        }
+    }
+
+    public void broadcast(ICreature creature, GameEvent.Builder<?> builder) {
+        if (builder == null) {
+            return;
+        }
+        if (this.area != null) {
+            this.broadcast(creature, builder.setBroacast().Build());
+        } else if (creature != null) {
+            this.broadcast(creature, builder.setNotBroadcast().Build());
+        }
     }
 
     @Override

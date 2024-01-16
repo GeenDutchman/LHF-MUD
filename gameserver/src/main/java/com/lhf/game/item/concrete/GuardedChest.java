@@ -38,11 +38,7 @@ public class GuardedChest extends Chest {
         String message = String.format("%s finds that they cannot access %s.%s%s", creature.getColorTaggedName(),
                 this.getColorTaggedName(), this.isUnlocked() ? "" : " It is locked. ", sj.toString());
         builder.setDescription(message);
-        if (this.area != null) {
-            Area.eventAccepter.accept(this.area, builder.setBroacast().Build());
-        } else {
-            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().Build());
-        }
+        this.broadcast(creature, builder);
         this.interactCount++;
     }
 
