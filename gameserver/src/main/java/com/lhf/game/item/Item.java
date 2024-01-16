@@ -5,7 +5,6 @@ import java.util.UUID;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.TaggedExaminable;
-import com.lhf.messages.events.SeeEvent;
 
 public abstract class Item implements TaggedExaminable {
     public final static class ItemID implements Comparable<ItemID> {
@@ -51,19 +50,26 @@ public abstract class Item implements TaggedExaminable {
     // Every item should describe itself
     protected String descriptionString;
 
-    public Item(String name, boolean isVisible) {
+    public Item() {
         this.className = this.getClass().getName();
-        this.objectName = name.trim();
-        assert this.objectName.length() >= 3;
-        this.visible = isVisible;
-        this.descriptionString = this.getColorTaggedName();
+        this.objectName = "Item";
+        this.visible = true;
+        this.descriptionString = "An Item";
     }
 
-    public Item(String name, boolean isVisible, String description) {
+    public Item(String name) {
+        assert name.trim().length() >= 3;
         this.className = this.getClass().getName();
         this.objectName = name.trim();
-        assert this.objectName.length() >= 3;
-        this.visible = isVisible;
+        this.visible = true;
+        this.descriptionString = this.objectName;
+    }
+
+    public Item(String name, String description) {
+        assert name.trim().length() >= 3;
+        this.className = this.getClass().getName();
+        this.objectName = name.trim();
+        this.visible = true;
         this.descriptionString = description;
     }
 
@@ -150,12 +156,6 @@ public abstract class Item implements TaggedExaminable {
     @Override
     public String printDescription() {
         return this.descriptionString;
-    }
-
-    @Override
-    public SeeEvent produceMessage() {
-        SeeEvent.Builder seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
-        return seeOutMessage.Build();
     }
 
 }
