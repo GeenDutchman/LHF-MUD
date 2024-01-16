@@ -28,7 +28,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     protected final boolean removeOnEmpty;
     protected List<Item> chestItems;
 
-    private final static NotableFixture lockedNote = new NotableFixture("Chest Locked", false, "This chest is locked.");
+    private final static NotableFixture lockedNote = new NotableFixture("Chest Locked", "This chest is locked.");
 
     public enum ChestDescriptor {
         RUSTY, SHINY, BLUE, SLIPPERY, WOODEN, COLORFUL, METAL, FANCY;
@@ -38,8 +38,8 @@ public class Chest extends InteractObject implements LockableItemContainer {
         }
     }
 
-    public Chest(ChestDescriptor descriptor, boolean isVisible) {
-        super(ChestDescriptor.generateDescription(descriptor), isVisible, true,
+    public Chest(ChestDescriptor descriptor) {
+        super(ChestDescriptor.generateDescription(descriptor),
                 ChestDescriptor.generateDescription(descriptor));
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
@@ -48,8 +48,8 @@ public class Chest extends InteractObject implements LockableItemContainer {
         this.removeOnEmpty = false;
     }
 
-    public Chest(ChestDescriptor descriptor, boolean isVisible, boolean initialLock, boolean removeOnEmpty) {
-        super(ChestDescriptor.generateDescription(descriptor), isVisible, true,
+    public Chest(ChestDescriptor descriptor, boolean initialLock, boolean removeOnEmpty) {
+        super(ChestDescriptor.generateDescription(descriptor),
                 ChestDescriptor.generateDescription(descriptor));
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
@@ -58,16 +58,16 @@ public class Chest extends InteractObject implements LockableItemContainer {
         this.removeOnEmpty = removeOnEmpty;
     }
 
-    protected Chest(String name, boolean isVisible) {
-        super(name, isVisible, true, name);
+    protected Chest(String name) {
+        super(name, name);
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.locked = new AtomicBoolean(false);
         this.removeOnEmpty = false;
     }
 
-    protected Chest(String name, boolean isVisible, boolean initialLock, boolean removeOnEmpty) {
-        super(name, isVisible, true, name);
+    protected Chest(String name, boolean initialLock, boolean removeOnEmpty) {
+        super(name, name);
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.locked = new AtomicBoolean(initialLock);
@@ -76,7 +76,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
 
     @Override
     public Chest makeCopy() {
-        return new Chest(this.getName(), this.isVisible(), this.locked.get(), this.removeOnEmpty);
+        return new Chest(this.getName(), this.locked.get(), this.removeOnEmpty);
     }
 
     @Override

@@ -9,8 +9,12 @@ import com.lhf.messages.events.ItemInteractionEvent;
 public class Lever extends InteractObject {
     protected Lockable lockable;
 
-    public Lever(String name, boolean isVisible, boolean isRepeatable, String description) {
-        super(name, isVisible, isRepeatable, description);
+    public Lever(String name, String description) {
+        super(name, description);
+    }
+
+    public Lever(String name, String description, boolean isRepeatable) {
+        super(name, description, isRepeatable);
     }
 
     public void setLockable(Lockable lockable) {
@@ -19,7 +23,7 @@ public class Lever extends InteractObject {
 
     @Override
     public Lever makeCopy() {
-        Lever switcher = new Lever(this.getName(), this.isVisible(), this.repeatable, descriptionString);
+        Lever switcher = new Lever(this.getName(), this.descriptionString, this.repeatable);
         switcher.setLockable(this.lockable);
         return switcher;
     }

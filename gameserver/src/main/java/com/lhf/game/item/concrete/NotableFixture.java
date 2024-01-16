@@ -5,11 +5,8 @@ import com.lhf.game.item.ItemVisitor;
 
 public class NotableFixture extends Item {
 
-    private String noteContent;
-
-    public NotableFixture(String name, boolean isVisible, String content) {
-        super(name, isVisible);
-        noteContent = content;
+    public NotableFixture(String name, String content) {
+        super(name, content);
     }
 
     @Override
@@ -19,12 +16,7 @@ public class NotableFixture extends Item {
 
     @Override
     public NotableFixture makeCopy() {
-        return new NotableFixture(this.getName(), this.isVisible(), this.noteContent);
-    }
-
-    @Override
-    public String printDescription() {
-        return noteContent;
+        return new NotableFixture(this.getName(), this.descriptionString);
     }
 
 }

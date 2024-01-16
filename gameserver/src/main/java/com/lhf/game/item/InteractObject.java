@@ -12,8 +12,14 @@ public class InteractObject extends Item {
     // Indicates if an interaction has already happened
     protected int interactCount;
 
-    public InteractObject(String name, boolean isVisible, boolean isRepeatable, String description) {
-        super(name, isVisible, description);
+    public InteractObject(String name, String description) {
+        super(name, description);
+        this.repeatable = true;
+        this.interactCount = 0;
+    }
+
+    public InteractObject(String name, String description, boolean isRepeatable) {
+        super(name, description);
         this.repeatable = isRepeatable;
         this.interactCount = 0;
     }
@@ -24,7 +30,7 @@ public class InteractObject extends Item {
 
     @Override
     public InteractObject makeCopy() {
-        return new InteractObject(this.getName(), this.isVisible(), repeatable, descriptionString);
+        return new InteractObject(this.getName(), descriptionString, repeatable);
     }
 
     @Override

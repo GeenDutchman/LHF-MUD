@@ -14,12 +14,12 @@ import com.lhf.messages.events.ItemInteractionEvent;
 public class GuardedChest extends Chest {
     protected final Set<String> guards = new TreeSet<>();
 
-    public GuardedChest(ChestDescriptor descriptor, boolean isVisible, boolean removeOnEmpty) {
-        super(descriptor, isVisible, false, removeOnEmpty);
+    public GuardedChest(ChestDescriptor descriptor) {
+        super(descriptor);
     }
 
-    protected GuardedChest(String name, boolean isVisible, boolean removeOnEmpty) {
-        super(name, isVisible, false, removeOnEmpty);
+    protected GuardedChest(String name) {
+        super(name);
     }
 
     @Override

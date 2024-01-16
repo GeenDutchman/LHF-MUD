@@ -18,28 +18,23 @@ import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 
 public class Dispenser extends InteractObject implements ItemContainer {
-    private int count;
     protected final Queue<Item> itemsToDispense;
 
-    public Dispenser(String name, boolean isVisible, boolean isRepeatable, String description) {
-        super(name, isVisible, isRepeatable, description);
+    public Dispenser(String name, String description) {
+        super(name, description);
         this.itemsToDispense = new ArrayDeque<>();
-        count = 0;
+    }
+
+    public Dispenser(String name, String description, boolean isRepeatable) {
+        super(name, description, isRepeatable);
+        this.itemsToDispense = new ArrayDeque<>();
     }
 
     @Override
     public Dispenser makeCopy() {
-        Dispenser next = new Dispenser(this.getName(), this.isVisible(), this.isRepeatable(), descriptionString);
+        Dispenser next = new Dispenser(this.getName(), this.descriptionString, this.isRepeatable());
         ItemContainer.transfer(this, next, null, true);
         return next;
-    }
-
-    public int getCount() {
-        return count;
-    }
-
-    public void incrementCount() {
-        count++;
     }
 
     @Override

@@ -31,8 +31,8 @@ public class Trap extends InteractObject implements GameEventProcessor {
     protected final EnumMap<Attributes, DiceDC> disarmDifficulties;
     protected boolean activated;
 
-    public Trap(String name, boolean isVisible, boolean isRepeatable, String description) {
-        super(name, isVisible, isRepeatable, description);
+    public Trap(String name, String description, boolean isRepeatable) {
+        super(name, description, isRepeatable);
         this.effectSources = new HashSet<>();
         this.disarmDifficulties = new EnumMap<>(Attributes.class);
         this.activated = true;
@@ -40,8 +40,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
 
     @Override
     public Trap makeCopy() {
-        final Trap nextTrap = new Trap(this.getName(), this.isVisible(), this.isRepeatable(),
-                this.descriptionString);
+        final Trap nextTrap = new Trap(this.getName(), this.descriptionString, this.isRepeatable());
         nextTrap.setActivated(this.isActivated());
         for (final CreatureEffectSource source : this.getEffectSources()) {
             nextTrap.addEffect(source);
