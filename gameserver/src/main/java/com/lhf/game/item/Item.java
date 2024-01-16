@@ -114,7 +114,10 @@ public abstract class Item implements IItem {
             return false;
         }
         Item ro = (Item) obj;
-        return objectName.equals(ro.objectName);
+        if (objectName.equals(ro.objectName)) {
+            return this.itemID.equals(ro.itemID);
+        }
+        return false;
     }
 
     @Override
