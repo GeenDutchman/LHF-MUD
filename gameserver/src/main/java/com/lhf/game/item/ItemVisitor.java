@@ -3,6 +3,8 @@ package com.lhf.game.item;
 import com.lhf.game.item.concrete.NotableFixture;
 
 public interface ItemVisitor {
+    public void visit(Item stackableItem);
+
     public void visit(InteractObject interactObject);
 
     public void visit(NotableFixture note);
@@ -14,6 +16,4 @@ public interface ItemVisitor {
     public void visit(Equipable equipable);
 
     public void visit(Weapon weapon);
-
-    public void visit(StackableItem stackableItem);
 }

@@ -2,6 +2,7 @@ package com.lhf.game.item;
 
 import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -31,21 +32,23 @@ public class Trap extends InteractObject implements GameEventProcessor {
     protected final EnumMap<Attributes, DiceDC> disarmDifficulties;
     protected boolean activated;
 
-    public Trap(String name, String description, boolean isRepeatable) {
+    public Trap(String name, String description, boolean isRepeatable, Map<Attributes, DiceDC> difficulties) {
         super(name, description, isRepeatable);
         this.effectSources = new HashSet<>();
         this.disarmDifficulties = new EnumMap<>(Attributes.class);
+        this.disarmDifficulties.putAll(difficulties);
         this.activated = true;
     }
 
-    @Override
-    public Trap makeCopy() {
-        final Trap nextTrap = new Trap(this.getName(), this.descriptionString, this.isRepeatable());
-        nextTrap.setActivated(this.isActivated());
-        for (final CreatureEffectSource source : this.getEffectSources()) {
-            nextTrap.addEffect(source);
+    public Trap(Trap other) {
+        super(other);
+        this.activated = other.activated;
+        this.effectSources = new HashSet<>();
+        for (final CreatureEffectSource source : other.getEffectSources()) {
+            this.addEffect(source);
         }
-        return nextTrap;
+        this.disarmDifficulties = new EnumMap<>(Attributes.class);
+        this.disarmDifficulties.putAll(other.disarmDifficulties);
     }
 
     public Trap addEffect(CreatureEffectSource effectSource) {

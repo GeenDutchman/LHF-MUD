@@ -2,12 +2,12 @@ package com.lhf.game.item;
 
 public class Takeable extends Item {
 
-    public Takeable(String name, boolean isVisible) {
-        super(name, isVisible);
+    public Takeable(String name) {
+        super(name);
     }
 
-    public Takeable(String name, boolean isVisible, String description) {
-        super(name, isVisible, description);
+    public Takeable(String name, String description) {
+        super(name, description);
     }
 
     protected void copyOverwriteTo(Takeable other) {
@@ -16,7 +16,7 @@ public class Takeable extends Item {
 
     @Override
     public Takeable makeCopy() {
-        Takeable takeable = new Takeable(this.getName(), this.isVisible(), descriptionString);
+        Takeable takeable = new Takeable(this.getName(), descriptionString);
         this.copyOverwriteTo(takeable);
         return takeable;
     }

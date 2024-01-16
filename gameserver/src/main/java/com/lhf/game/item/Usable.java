@@ -1,49 +1,50 @@
 package com.lhf.game.item;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.lhf.game.creature.CreatureVisitor;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.item.interfaces.UseAction;
-import com.lhf.game.map.Room;
+import com.lhf.game.map.Area;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.ItemUsedEvent;
-import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
+import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.SeeEvent.Builder;
 
 public class Usable extends Takeable {
     protected final Integer numCanUseTimes;
-    private Integer hasBeenUsedTimes = 0;
-    private Map<String, UseAction> methods;
+    private int useLeftCount;
+    protected final CreatureVisitor creatureVisitor;
+    protected final ItemVisitor itemVisitor;
+    // something for rooms?
 
-    public Usable(String name, boolean isVisible) {
-        super(name, isVisible);
-        methods = new HashMap<>();
-        numCanUseTimes = 1;
+    public Usable(String name, CreatureVisitor creatureVisitor) {
+        super(name);
+        this.numCanUseTimes = 1;
+        this.useLeftCount = this.numCanUseTimes;
+        this.creatureVisitor = creatureVisitor;
+        this.itemVisitor = null;
     }
 
     /**
      * Create a new Usable object.
      *
      * @param name           The name to give the object
-     * @param isVisible      Set if it is visible
+     * @param description    The description for the Usable
      * @param useSoManyTimes if > 0 then can use that many times, if < 0 then has
      *                       infinite uses
      */
-    public Usable(String name, boolean isVisible, int useSoManyTimes) {
-        super(name, isVisible);
-        methods = new HashMap<>();
-        numCanUseTimes = useSoManyTimes;
-    }
-
-    protected void copyOverwriteTo(Usable other) {
-        other.methods = new HashMap<>(this.methods);
-        super.copyOverwriteTo(other);
+    public Usable(String name, String description, int useSoManyTimes, CreatureVisitor creatureVisitor,
+            ItemVisitor itemVisitor) {
+        super(name, description);
+        this.numCanUseTimes = useSoManyTimes;
+        this.useLeftCount = this.numCanUseTimes;
+        this.creatureVisitor = creatureVisitor;
+        this.itemVisitor = itemVisitor;
     }
 
     @Override
     public Usable makeCopy() {
-        Usable usable = new Usable(this.getName(), this.isVisible(), this.numCanUseTimes);
+        Usable usable = new Usable(this.getName(), this.descriptionString, this.numCanUseTimes, this.creatureVisitor,
+                this.itemVisitor);
         this.copyOverwriteTo(usable);
         return usable;
     }
@@ -53,23 +54,30 @@ public class Usable extends Takeable {
         visitor.visit(this);
     }
 
-    protected Usable setUseAction(String whenItIsThis, UseAction doThis) {
-        methods.put(whenItIsThis, doThis);
-        return this;
+    protected int getUseLeftCount() {
+        return useLeftCount;
     }
 
-    protected Usable removeUseAction(String targetName) {
-        methods.remove(targetName);
-        return this;
+    public int addUses(int uses) {
+        if (uses < 0) {
+            throw new IllegalArgumentException(String.format("Cannot add negative uses to this %s", this));
+        }
+        this.useLeftCount += uses;
+        if (this.numCanUseTimes > 0 && this.useLeftCount > this.numCanUseTimes) {
+            int remainder = this.useLeftCount - this.numCanUseTimes;
+            this.useLeftCount = this.numCanUseTimes;
+            return remainder;
+        }
+        return 0;
     }
 
     public boolean hasUsesLeft() {
-        return (numCanUseTimes < 0) || (hasBeenUsedTimes < numCanUseTimes);
+        return (numCanUseTimes < 0) || (useLeftCount > 0);
     }
 
-    public boolean doUseAction(CommandContext ctx, Object usingOn) {
+    public boolean useOn(CommandContext ctx, ICreature creature) {
         ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature()).setUsable(this);
-        if (methods == null || usingOn == null) {
+        if (this.creatureVisitor == null || creature == null) {
             ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
             return false;
         }
@@ -77,42 +85,29 @@ public class Usable extends Takeable {
             ctx.receive(useOutMessage.setSubType(UseOutMessageOption.USED_UP).Build());
             return false;
         }
+        // TODO: how are we gonna get messages about specific changes from the visitor?
+        creature.acceptCreatureVisitor(creatureVisitor);
+        ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK));
+        return true;
+    }
 
-        UseAction method = null;
-        if (usingOn instanceof Item) {
-            // specific to that Item
-            method = methods.get(((Item) usingOn).getName());
-            if (method == null) {
-                // general to all Items
-                method = methods.get(Item.class.getName());
-            }
-        } else if (usingOn instanceof ICreature) {
-            // specific to that Creature
-            method = methods.get(((ICreature) usingOn).getName());
-            if (method == null) {
-                // specific to CreatureType
-                method = methods.get(((ICreature) usingOn).getFaction().toString());
-            }
-            if (method == null) {
-                // general to all Creatures
-                method = methods.get(ICreature.class.getName());
-            }
-        } else if (usingOn instanceof Room) {
-            // specific to that Room
-            method = methods.get(((Room) usingOn).getName());
-            if (method == null) {
-                method = methods.get(Room.class.getName());
-            }
-        }
-
-        if (method == null) {
+    public boolean useOn(CommandContext ctx, Item item) {
+        ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature()).setUsable(this);
+        if (this.itemVisitor == null || item == null) {
             ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
             return false;
         }
+        if (!hasUsesLeft()) {
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.USED_UP).Build());
+            return false;
+        }
+        item.acceptItemVisitor(itemVisitor);
+        ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK));
+        return true;
+    }
 
-        this.useOnce();
-
-        return method.useAction(ctx, usingOn);
+    public boolean useOn(CommandContext ctx, Area area) {
+        throw new UnsupportedOperationException("TODO: support using on area");
     }
 
     /**
@@ -122,16 +117,30 @@ public class Usable extends Takeable {
      */
     public boolean useOnce() {
         if (numCanUseTimes > 0) {
-            hasBeenUsedTimes++;
-            return hasBeenUsedTimes < numCanUseTimes;
+            useLeftCount--;
+            return useLeftCount > 0;
         }
         return true;
     }
 
     @Override
-    public SeeEvent produceMessage() {
-        SeeEvent.Builder seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
-        return seeOutMessage.Build();
+    public SeeEvent produceMessage(Builder seeOutMessage) {
+        if (seeOutMessage == null) {
+            seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
+        }
+        if (this.numCanUseTimes > 0) {
+            seeOutMessage.addExtraInfo(String.format("This has %d uses left.", this.getUseLeftCount()));
+        }
+        return super.produceMessage(seeOutMessage);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(this.getClass().getSimpleName()).append(" [numCanUseTimes=").append(numCanUseTimes)
+                .append(", useLeftCount=").append(useLeftCount)
+                .append("]");
+        return builder.toString();
     }
 
 }
