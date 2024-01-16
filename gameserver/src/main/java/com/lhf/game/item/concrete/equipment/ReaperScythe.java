@@ -22,9 +22,10 @@ import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 
 public class ReaperScythe extends Weapon {
+        private final static String description = "This is a nice, long, shiny scythe.  It's super powerful...\n";
 
-        public ReaperScythe(boolean isVisible) {
-                super("Reaper Scythe", isVisible, Set.of(
+        public ReaperScythe() {
+                super("Reaper Scythe", ReaperScythe.description, Set.of(
                                 new CreatureEffectSource("Scythe", new EffectPersistence(TickType.INSTANT),
                                                 new EffectResistance(EnumSet.of(Attributes.STR, Attributes.DEX),
                                                                 Stats.AC),
@@ -32,10 +33,10 @@ public class ReaperScythe extends Weapon {
                                                 false)
                                                 .addDamage(new DamageDice(1, DieType.EIGHT, DamageFlavor.NECROTIC))),
                                 DamageFlavor.NECROTIC, WeaponSubtype.FINESSE);
+                this.setVisible(false);
 
                 this.slots = List.of(EquipmentSlots.WEAPON);
                 this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
-                this.descriptionString = "This is a nice, long, shiny scythe.  It's super powerful...\n";
         }
 
         @Override
@@ -54,7 +55,7 @@ public class ReaperScythe extends Weapon {
 
         @Override
         public ReaperScythe makeCopy() {
-                return new ReaperScythe(this.isVisible());
+                return new ReaperScythe();
         }
 
 }

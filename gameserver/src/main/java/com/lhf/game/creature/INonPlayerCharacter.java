@@ -65,9 +65,10 @@ public interface INonPlayerCharacter extends ICreature {
                 new EffectPersistence(TickType.INSTANT),
                 new EffectResistance(EnumSet.allOf(Attributes.class), Stats.AC), "A blessed fist punches harder.",
                 false);
+        private final static String description = "This is a Fist attached to a Creature who is blessed\n";
 
         BlessedFist() {
-            super("Blessed Fist", false, Set.of(BlessedFist.source), DamageFlavor.MAGICAL_BLUDGEONING,
+            super("Blessed Fist", BlessedFist.description, Set.of(BlessedFist.source), DamageFlavor.MAGICAL_BLUDGEONING,
                     WeaponSubtype.CREATUREPART);
             if (BlessedFist.source.getDamages().size() == 0) {
                 for (DamageFlavor df : DamageFlavor.values()) {
@@ -77,7 +78,6 @@ public interface INonPlayerCharacter extends ICreature {
 
             this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
             this.slots = List.of(EquipmentSlots.WEAPON);
-            this.descriptionString = "This is a Fist attached to a Creature who is blessed\n";
 
         }
 

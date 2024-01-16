@@ -143,9 +143,10 @@ public interface ICreature
      * Bludgeoning} damage.
      */
     public static class Fist extends Weapon {
+        private static final String description = "This is a Fist attached to a Creature \n";
 
         Fist() {
-            super("Fist", false, Set.of(
+            super("Fist", Fist.description, Set.of(
                     new CreatureEffectSource("Punch", new EffectPersistence(TickType.INSTANT),
                             new EffectResistance(EnumSet.of(Attributes.STR, Attributes.DEX), Stats.AC),
                             "Fists punch things", false)
@@ -154,7 +155,6 @@ public interface ICreature
 
             this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
             this.slots = List.of(EquipmentSlots.WEAPON);
-            this.descriptionString = "This is a Fist attached to a Creature \n";
         }
 
         @Override

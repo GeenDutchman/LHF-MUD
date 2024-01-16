@@ -25,10 +25,14 @@ import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 
 public class Whimsystick extends Weapon {
+        private static final String description = "This isn't quite a quarterstaff, but also not a club...it is hard to tell. "
+                        +
+                        "But what you can tell is it seems to have a laughing aura around it, like it doesn't "
+                        + "care about what it does to other people...it's a whimsystick. \n";
         private final int acBonus = 1;
 
-        public Whimsystick(boolean isVisible) {
-                super("Whimsystick", isVisible,
+        public Whimsystick() {
+                super("Whimsystick", Whimsystick.description,
                                 Set.of(new CreatureEffectSource("Bonk", new EffectPersistence(TickType.INSTANT),
                                                 new EffectResistance(EnumSet.of(Attributes.STR), Stats.AC),
                                                 "It is bonked.", false)
@@ -44,15 +48,11 @@ public class Whimsystick extends Weapon {
                                                 new EffectPersistence(TickType.CONDITIONAL),
                                                 null, "This will magically increase your AC", false)
                                                 .addStatChange(Stats.AC, this.acBonus));
-                this.descriptionString = "This isn't quite a quarterstaff, but also not a club...it is hard to tell. " +
-                                "But what you can tell is it seems to have a laughing aura around it, like it doesn't "
-                                +
-                                "care about what it does to other people...it's a whimsystick. \n";
         }
 
         @Override
         public Whimsystick makeCopy() {
-                return new Whimsystick(this.isVisible());
+                return new Whimsystick();
         }
 
         @Override
