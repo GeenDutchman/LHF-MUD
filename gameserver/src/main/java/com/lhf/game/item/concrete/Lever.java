@@ -3,7 +3,6 @@ package com.lhf.game.item.concrete;
 import com.lhf.game.Lockable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.InteractObject;
-import com.lhf.game.map.Area;
 import com.lhf.messages.events.ItemInteractionEvent;
 
 public class Lever extends InteractObject {

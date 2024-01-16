@@ -17,13 +17,12 @@ import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.dice.DiceDC;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
-import com.lhf.game.map.Area;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
-import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
+import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.server.client.CommandInvoker;
 
 public class Trap extends InteractObject implements GameEventProcessor {
@@ -49,6 +48,11 @@ public class Trap extends InteractObject implements GameEventProcessor {
         }
         this.disarmDifficulties = new EnumMap<>(Attributes.class);
         this.disarmDifficulties.putAll(other.disarmDifficulties);
+    }
+
+    @Override
+    public InteractObject makeCopy() {
+        return new Trap(this);
     }
 
     public Trap addEffect(CreatureEffectSource effectSource) {

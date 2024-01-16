@@ -8,7 +8,6 @@ import java.util.TreeSet;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.inventory.InventoryOwner;
-import com.lhf.game.map.Area;
 import com.lhf.messages.events.ItemInteractionEvent;
 
 public class GuardedChest extends Chest {
