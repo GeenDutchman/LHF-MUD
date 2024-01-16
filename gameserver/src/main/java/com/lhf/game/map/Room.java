@@ -31,7 +31,7 @@ import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.ItemNoOpVisitor;
 import com.lhf.game.item.ItemVisitor;
 import com.lhf.game.item.concrete.Corpse;
@@ -116,7 +116,7 @@ public class Room implements Area {
             return this;
         }
 
-        public RoomBuilder addItem(Item item) {
+        public RoomBuilder addItem(AItem item) {
             if (this.items == null) {
                 this.items = new ArrayList<>();
             }

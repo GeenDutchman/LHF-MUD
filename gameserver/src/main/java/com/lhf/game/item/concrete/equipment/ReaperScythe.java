@@ -55,7 +55,7 @@ public class ReaperScythe extends Weapon {
 
         @Override
         public ReaperScythe makeCopy() {
-                return new ReaperScythe();
+                return this;
         }
 
 }

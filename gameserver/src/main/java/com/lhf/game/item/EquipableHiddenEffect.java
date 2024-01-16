@@ -24,19 +24,19 @@ public class EquipableHiddenEffect extends Equipable {
         this.hiddenEquipEffects = new ArrayList<>();
     }
 
-    protected void copyOverwriteTo(EquipableHiddenEffect other) {
-        for (final CreatureEffectSource source : this.hiddenEquipEffects) {
-            other.hiddenEquipEffects.add(source.makeCopy());
+    public EquipableHiddenEffect(EquipableHiddenEffect other) {
+        this(other.getName(), other.descriptionString, other.numCanUseTimes, other.creatureVisitor, other.itemVisitor);
+        for (final CreatureEffectSource source : other.hiddenEquipEffects) {
+            this.hiddenEquipEffects.add(source.makeCopy());
         }
-        super.copyOverwriteTo(other);
     }
 
     @Override
     public EquipableHiddenEffect makeCopy() {
-        EquipableHiddenEffect equipable = new EquipableHiddenEffect(this.getName(), descriptionString,
-                this.numCanUseTimes, creatureVisitor, itemVisitor);
-        this.copyOverwriteTo(equipable);
-        return equipable;
+        if (this.numCanUseTimes < 0) {
+            return this;
+        }
+        return new EquipableHiddenEffect(this);
     }
 
     @Override

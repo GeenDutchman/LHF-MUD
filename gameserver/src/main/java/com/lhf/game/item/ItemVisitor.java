@@ -1,11 +1,11 @@
 package com.lhf.game.item;
 
-import com.lhf.game.item.concrete.NotableFixture;
+import com.lhf.game.item.concrete.Item;
 
 public interface ItemVisitor {
     public void visit(InteractObject interactObject);
 
-    public void visit(NotableFixture note);
+    public void visit(Item note);
 
     public void visit(Takeable takeable);
 

@@ -26,6 +26,6 @@ public class Shield extends Equipable {
 
     @Override
     public Shield makeCopy() {
-        return new Shield();
+        return this;
     }
 }

@@ -159,7 +159,7 @@ public interface ICreature
 
         @Override
         public Fist makeCopy() {
-            return new Fist();
+            return this;
         }
 
     }

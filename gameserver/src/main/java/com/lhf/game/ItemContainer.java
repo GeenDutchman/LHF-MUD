@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 import com.lhf.Examinable;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.ItemVisitor;
 
 public interface ItemContainer extends Examinable {
@@ -62,7 +62,7 @@ public interface ItemContainer extends Examinable {
     }
 
     public default Collection<IItem> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
-            Integer objNameRegexLen, Class<? extends Item> clazz, Boolean isVisible) {
+            Integer objNameRegexLen, Class<? extends AItem> clazz, Boolean isVisible) {
         Collection<IItem> retrieved = this.getItems();
         Supplier<Collection<IItem>> sortSupplier = () -> new ArrayList<IItem>();
         return Collections.unmodifiableCollection(retrieved.stream()

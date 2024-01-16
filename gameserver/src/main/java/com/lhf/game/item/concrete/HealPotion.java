@@ -42,7 +42,7 @@ public class HealPotion extends Usable {
 
     @Override
     public HealPotion makeCopy() {
-        return new HealPotion(this.healtype, this.creatureVisitor);
+        return this;
     }
 
     private CreatureEffectSource setHealing(CreatureEffectSource effect) {

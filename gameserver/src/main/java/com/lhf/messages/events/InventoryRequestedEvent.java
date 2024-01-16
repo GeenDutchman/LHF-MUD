@@ -9,7 +9,7 @@ import java.util.StringJoiner;
 import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.ITickEvent;
@@ -83,7 +83,7 @@ public class InventoryRequestedEvent extends GameEvent implements ITickEvent {
         sj.setEmptyValue("You have nothing equipped.");
         if (this.equipment != null && this.equipment.size() > 0) {
             for (EquipmentSlots slot : EquipmentSlots.values()) {
-                Item item = this.equipment.get(slot);
+                AItem item = this.equipment.get(slot);
 
                 if (item == null) {
                     sj.add(slot.getColorTaggedName() + ": " + "empty. ");

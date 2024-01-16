@@ -28,7 +28,7 @@ import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.Takeable;
-import com.lhf.game.item.concrete.NotableFixture;
+import com.lhf.game.item.concrete.Item;
 import com.lhf.game.map.SubArea.SubAreaBuilder;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.game.map.commandHandlers.AreaAttackHandler;
@@ -203,7 +203,7 @@ public interface Area
             seen.addSeen(item.isVisible() ? SeeCategory.TAKEABLE : SeeCategory.INVISIBLE_TAKEABLE,
                     item);
         }
-        for (final NotableFixture item : itemVisitor.getNotes()) {
+        for (final Item item : itemVisitor.getNotes()) {
             seen.addSeen(item.isVisible() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
                     item);
         }

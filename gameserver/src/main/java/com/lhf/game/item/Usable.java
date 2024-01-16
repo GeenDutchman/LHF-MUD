@@ -41,12 +41,16 @@ public class Usable extends Takeable {
         this.itemVisitor = itemVisitor;
     }
 
+    protected Usable(Usable other) {
+        this(other.getName(), other.descriptionString, other.numCanUseTimes, other.creatureVisitor, other.itemVisitor);
+    }
+
     @Override
     public Usable makeCopy() {
-        Usable usable = new Usable(this.getName(), this.descriptionString, this.numCanUseTimes, this.creatureVisitor,
-                this.itemVisitor);
-        this.copyOverwriteTo(usable);
-        return usable;
+        if (this.numCanUseTimes < 0) {
+            return this;
+        }
+        return new Usable(this);
     }
 
     @Override

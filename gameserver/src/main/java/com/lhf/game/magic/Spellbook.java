@@ -28,7 +28,7 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.EquipableDeserializer;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.ItemDeserializer;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.TakeableDeserializer;
@@ -112,7 +112,7 @@ public class Spellbook {
                 .registerTypeAdapterFactory(effectSourceAdapter).setPrettyPrinting();
         gb.registerTypeAdapter(Equipable.class, new EquipableDeserializer<Equipable>());
         gb.registerTypeAdapter(Takeable.class, new TakeableDeserializer<>());
-        gb.registerTypeAdapter(Item.class, new ItemDeserializer<>());
+        gb.registerTypeAdapter(AItem.class, new ItemDeserializer<>());
         gb.registerTypeAdapter(ConversationPattern.class, new ConversationPatternSerializer());
 
         return gb.create();

@@ -30,7 +30,7 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.Command;
@@ -243,7 +243,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public Collection<IItem> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
-            Integer objNameRegexLen, Class<? extends Item> clazz, Boolean isVisible) {
+            Integer objNameRegexLen, Class<? extends AItem> clazz, Boolean isVisible) {
         return wrapped.filterItems(filters, className, objectName, objNameRegexLen, clazz, isVisible);
     }
 

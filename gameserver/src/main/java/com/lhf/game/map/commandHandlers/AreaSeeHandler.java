@@ -8,7 +8,7 @@ import java.util.StringJoiner;
 import com.lhf.Examinable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
 import com.lhf.game.map.Area.AreaCommandHandler;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -67,7 +67,7 @@ public class AreaSeeHandler implements AreaCommandHandler {
 
                 if (ctx.getCreature() != null) {
                     ICreature creature = ctx.getCreature();
-                    for (Item thing : creature.getEquipmentSlots().values()) {
+                    for (AItem thing : creature.getEquipmentSlots().values()) {
                         if (thing.CheckNameRegex(name, 3)) {
                             if (thing instanceof Examinable) {
                                 ctx.receive(((SeeEvent.Builder) thing.produceMessage().copyBuilder())

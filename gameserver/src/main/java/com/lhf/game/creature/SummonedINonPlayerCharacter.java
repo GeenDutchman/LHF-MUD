@@ -29,7 +29,7 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.messages.events.GameEvent;
 
@@ -223,7 +223,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
 
     @Override
     public Collection<IItem> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
-            Integer objNameRegexLen, Class<? extends Item> clazz, Boolean isVisible) {
+            Integer objNameRegexLen, Class<? extends AItem> clazz, Boolean isVisible) {
         if (this.checkSummonIsAlive()) {
             return super.filterItems(filters, className, objectName, objNameRegexLen, clazz, isVisible);
         }

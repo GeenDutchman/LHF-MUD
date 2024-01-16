@@ -44,11 +44,7 @@ public class CarnivorousArmor extends EquipableHiddenEffect {
 
     @Override
     public CarnivorousArmor makeCopy() {
-        CarnivorousArmor copy = new CarnivorousArmor();
-        copy.equipped = this.equipped;
-        copy.equippedAndUsed = this.equippedAndUsed;
-        this.copyOverwriteTo(copy);
-        return copy;
+        return new CarnivorousArmor();
     }
 
     @Override

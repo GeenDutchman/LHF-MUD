@@ -5,7 +5,7 @@ import java.util.Optional;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
 import com.lhf.game.map.Area.AreaCommandHandler;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -79,7 +79,7 @@ public class AreaDropHandler implements AreaCommandHandler {
             for (String itemName : dMessage.getTargets()) {
                 Optional<IItem> maybeTakeable = ctx.getCreature().removeItem(itemName);
                 if (maybeTakeable.isEmpty()) {
-                    ctx.receive(ItemNotPossessedEvent.getBuilder().setItemType(Item.class.getSimpleName())
+                    ctx.receive(ItemNotPossessedEvent.getBuilder().setItemType(AItem.class.getSimpleName())
                             .setItemName(itemName).Build());
                     continue;
                 }

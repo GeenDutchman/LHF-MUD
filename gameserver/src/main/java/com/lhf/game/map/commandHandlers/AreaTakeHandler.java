@@ -7,7 +7,7 @@ import java.util.regex.PatternSyntaxException;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.ItemPartitionListVisitor;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.map.Area.AreaCommandHandler;
@@ -128,7 +128,7 @@ public class AreaTakeHandler implements AreaCommandHandler {
             while (container instanceof LockableItemContainer.Bypass bypass) {
                 container = bypass.getOrigin();
             }
-            if (container instanceof LockableItemContainer liCon && liCon instanceof Item liConItem) {
+            if (container instanceof LockableItemContainer liCon && liCon instanceof AItem liConItem) {
                 if (liCon.isRemoveOnEmpty() && liCon.isEmpty()) {
                     ctx.getArea().removeItem(liConItem);
                 }

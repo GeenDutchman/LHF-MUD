@@ -17,7 +17,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.EquipableDeserializer;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.ItemDeserializer;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.TakeableDeserializer;
@@ -67,7 +67,7 @@ public class StatblockManager {
         GsonBuilder gBuilder = new GsonBuilder().setPrettyPrinting();
         gBuilder.registerTypeAdapter(Equipable.class, new EquipableDeserializer<Equipable>());
         gBuilder.registerTypeAdapter(Takeable.class, new TakeableDeserializer<>());
-        gBuilder.registerTypeAdapter(Item.class, new ItemDeserializer<>());
+        gBuilder.registerTypeAdapter(AItem.class, new ItemDeserializer<>());
         Gson gson = gBuilder.create();
         String statblockFile = this.path.toString() + name + ".json";
         this.logger.log(Level.INFO, "Opening file: " + statblockFile);

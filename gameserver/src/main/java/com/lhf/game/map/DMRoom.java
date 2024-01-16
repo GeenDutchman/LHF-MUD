@@ -33,7 +33,7 @@ import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.game.map.Area.AreaBuilder.PostBuildRoomOperations;
@@ -92,7 +92,7 @@ public class DMRoom extends Room {
             return this;
         }
 
-        public DMRoomBuilder addItem(Item item) {
+        public DMRoomBuilder addItem(AItem item) {
             this.delegate = delegate.addItem(item);
             return this;
         }

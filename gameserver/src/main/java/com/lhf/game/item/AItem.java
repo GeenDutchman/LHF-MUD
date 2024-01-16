@@ -2,7 +2,7 @@ package com.lhf.game.item;
 
 import java.util.regex.PatternSyntaxException;
 
-public abstract class Item implements IItem {
+public abstract class AItem implements IItem {
 
     private final ItemID itemID;
     // Class name for discrimination
@@ -14,15 +14,7 @@ public abstract class Item implements IItem {
     // Every item should describe itself
     protected String descriptionString;
 
-    public Item() {
-        this.itemID = new ItemID();
-        this.className = this.getClass().getName();
-        this.objectName = "Item";
-        this.visible = true;
-        this.descriptionString = "An Item";
-    }
-
-    public Item(String name) {
+    public AItem(String name) {
         assert name.trim().length() >= 3;
         this.itemID = new ItemID();
         this.className = this.getClass().getName();
@@ -31,7 +23,7 @@ public abstract class Item implements IItem {
         this.descriptionString = this.objectName;
     }
 
-    public Item(String name, String description) {
+    public AItem(String name, String description) {
         assert name.trim().length() >= 3;
         this.itemID = new ItemID();
         this.className = this.getClass().getName();
@@ -40,17 +32,13 @@ public abstract class Item implements IItem {
         this.descriptionString = description;
     }
 
-    protected void copyOverwriteTo(Item other) {
-        other.descriptionString = this.descriptionString;
-    }
-
     @Override
     public ItemID getItemID() {
         return this.itemID;
     }
 
     @Override
-    public abstract Item makeCopy();
+    public abstract AItem makeCopy();
 
     @Override
     public abstract void acceptItemVisitor(ItemVisitor visitor);
@@ -110,10 +98,10 @@ public abstract class Item implements IItem {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Item)) {
+        if (!(obj instanceof AItem)) {
             return false;
         }
-        Item ro = (Item) obj;
+        AItem ro = (AItem) obj;
         if (objectName.equals(ro.objectName)) {
             return this.itemID.equals(ro.itemID);
         }

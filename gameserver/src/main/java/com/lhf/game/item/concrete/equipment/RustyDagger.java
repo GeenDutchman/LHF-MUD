@@ -35,7 +35,7 @@ public class RustyDagger extends Weapon {
 
     @Override
     public RustyDagger makeCopy() {
-        return new RustyDagger();
+        return this;
     }
 
 }

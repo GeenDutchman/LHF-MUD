@@ -1,6 +1,6 @@
 package com.lhf.game.item;
 
-public class Takeable extends Item {
+public class Takeable extends AItem {
 
     public Takeable(String name) {
         super(name);
@@ -10,15 +10,9 @@ public class Takeable extends Item {
         super(name, description);
     }
 
-    protected void copyOverwriteTo(Takeable other) {
-        super.copyOverwriteTo(other);
-    }
-
     @Override
     public Takeable makeCopy() {
-        Takeable takeable = new Takeable(this.getName(), descriptionString);
-        this.copyOverwriteTo(takeable);
-        return takeable;
+        return this;
     }
 
     @Override

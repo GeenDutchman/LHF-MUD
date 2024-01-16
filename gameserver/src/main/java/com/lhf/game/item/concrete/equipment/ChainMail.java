@@ -24,4 +24,9 @@ public class ChainMail extends Equipable {
                         .addStatChange(Stats.AC, this.AC));
     }
 
+    @Override
+    public ChainMail makeCopy() {
+        return this;
+    }
+
 }

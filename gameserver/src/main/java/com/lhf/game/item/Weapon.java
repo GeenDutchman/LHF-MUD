@@ -23,22 +23,27 @@ public class Weapon extends Equipable {
     public Weapon(String name, String description, Set<CreatureEffectSource> effectSources, DamageFlavor mainFlavor,
             WeaponSubtype subtype) {
         super(name, description);
-        this.effectSources = effectSources != null ? effectSources : new HashSet<>();
+        this.effectSources = new HashSet<>();
+        if (effectSources != null) {
+            for (final CreatureEffectSource source : effectSources) {
+                this.effectSources.add(source.makeCopy());
+            }
+        }
         this.mainFlavor = mainFlavor;
         this.subtype = subtype;
     }
 
+    protected Weapon(Weapon other) {
+        this(other.getName(), other.descriptionString, other.effectSources, other.mainFlavor, other.subtype);
+        this.toHitBonus = other.toHitBonus;
+    }
+
     @Override
     public Weapon makeCopy() {
-        Set<CreatureEffectSource> copiedEffectSources = new HashSet<>();
-        for (final CreatureEffectSource source : this.effectSources) {
-            copiedEffectSources.add(source.makeCopy());
+        if (this.numCanUseTimes < 0) {
+            return this;
         }
-        Weapon copy = new Weapon(this.getName(), this.descriptionString, copiedEffectSources, this.mainFlavor,
-                this.subtype);
-        copy.toHitBonus = this.toHitBonus;
-        this.copyOverwriteTo(copy);
-        return copy;
+        return new Weapon(this);
     }
 
     @Override

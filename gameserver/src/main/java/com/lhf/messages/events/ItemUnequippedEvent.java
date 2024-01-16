@@ -3,7 +3,7 @@ package com.lhf.messages.events;
 import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.ITickEvent;
 
@@ -15,13 +15,13 @@ public class ItemUnequippedEvent extends GameEvent implements ITickEvent {
     private final static TickType tickType = TickType.ACTION;
 
     private final UnequipResultType subType;
-    private final Item item;
+    private final AItem item;
     private final EquipmentSlots slot;
     private final String attemptedName;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private UnequipResultType subType;
-        private Item item;
+        private AItem item;
         private EquipmentSlots slot;
         private String attemptedName;
 
@@ -29,11 +29,11 @@ public class ItemUnequippedEvent extends GameEvent implements ITickEvent {
             super(GameEventType.UNEQUIP);
         }
 
-        public Item getItem() {
+        public AItem getItem() {
             return item;
         }
 
-        public Builder setItem(Item item) {
+        public Builder setItem(AItem item) {
             this.item = item;
             return this;
         }

@@ -12,7 +12,7 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.EquipableDeserializer;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.ItemDeserializer;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.TakeableDeserializer;
@@ -48,13 +48,13 @@ public class StatblockTest {
         for (String itemName : inv.getItemList()) {
             Truth.assertThat(json).contains(itemName);
         }
-        for (Item item : equipped.values()) {
+        for (AItem item : equipped.values()) {
             Truth.assertThat(json).contains(item.getName());
         }
 
         gb.registerTypeAdapter(Equipable.class, new EquipableDeserializer<Equipable>());
         gb.registerTypeAdapter(Takeable.class, new TakeableDeserializer<Takeable>());
-        gb.registerTypeAdapter(Item.class, new ItemDeserializer<Item>());
+        gb.registerTypeAdapter(AItem.class, new ItemDeserializer<AItem>());
         gson = gb.create();
         Statblock num2 = gson.fromJson(json, Statblock.class);
         Truth.assertThat(num2.getCreatureRace()).isEqualTo(s.getCreatureRace());

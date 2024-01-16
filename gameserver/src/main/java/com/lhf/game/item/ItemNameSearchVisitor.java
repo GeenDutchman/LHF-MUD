@@ -2,7 +2,7 @@ package com.lhf.game.item;
 
 import java.util.Optional;
 
-import com.lhf.game.item.concrete.NotableFixture;
+import com.lhf.game.item.concrete.Item;
 
 public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
     protected final String searchName;
@@ -44,7 +44,7 @@ public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
     }
 
     @Override
-    public void visit(NotableFixture note) {
+    public void visit(Item note) {
         if (this.checkItemName(note)) {
             super.visit(note);
         }
@@ -89,7 +89,7 @@ public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
         return super.getInteractObjects().stream().findFirst();
     }
 
-    public Optional<NotableFixture> getNote() {
+    public Optional<Item> getNote() {
         return super.getNotes().stream().findFirst();
     }
 

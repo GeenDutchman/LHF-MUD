@@ -27,6 +27,6 @@ public class LeatherArmor extends Equipable {
 
     @Override
     public LeatherArmor makeCopy() {
-        return new LeatherArmor();
+        return this;
     }
 }

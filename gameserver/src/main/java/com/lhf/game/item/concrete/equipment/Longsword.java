@@ -34,7 +34,7 @@ public class Longsword extends Weapon {
 
     @Override
     public Longsword makeCopy() {
-        return new Longsword();
+        return this;
     }
 
 }

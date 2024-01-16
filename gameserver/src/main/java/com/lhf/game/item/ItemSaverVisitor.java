@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.lhf.game.item.IItem.ItemID;
-import com.lhf.game.item.concrete.NotableFixture;
+import com.lhf.game.item.concrete.Item;
 
 public final class ItemSaverVisitor implements ItemVisitor {
     private final Map<ItemID, IItem> itemMap = new TreeMap<>();
@@ -26,7 +26,7 @@ public final class ItemSaverVisitor implements ItemVisitor {
     }
 
     @Override
-    public void visit(NotableFixture note) {
+    public void visit(Item note) {
         if (note == null) {
             return;
         }

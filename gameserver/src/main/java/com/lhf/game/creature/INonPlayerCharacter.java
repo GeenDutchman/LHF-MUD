@@ -83,7 +83,7 @@ public interface INonPlayerCharacter extends ICreature {
 
         @Override
         public BlessedFist makeCopy() {
-            return new BlessedFist();
+            return this;
         }
     }
 

@@ -52,7 +52,7 @@ public class Whimsystick extends Weapon {
 
         @Override
         public Whimsystick makeCopy() {
-                return new Whimsystick();
+                return this;
         }
 
         @Override
