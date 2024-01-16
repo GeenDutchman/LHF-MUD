@@ -1,44 +1,10 @@
 package com.lhf.game.item;
 
-import java.util.Objects;
-import java.util.UUID;
 import java.util.regex.PatternSyntaxException;
 
 public abstract class Item implements IItem {
-    public final static class ItemID implements Comparable<ItemID> {
-        private final UUID id = UUID.randomUUID();
 
-        public UUID getId() {
-            return id;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(id);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (!(obj instanceof ItemID))
-                return false;
-            ItemID other = (ItemID) obj;
-            return Objects.equals(id, other.id);
-        }
-
-        @Override
-        public String toString() {
-            return this.id.toString();
-        }
-
-        @Override
-        public int compareTo(ItemID arg0) {
-            return this.id.compareTo(arg0.id);
-        }
-
-    }
-
+    private final ItemID itemID;
     // Class name for discrimination
     private final String className;
     // Name it will be known by
@@ -49,6 +15,7 @@ public abstract class Item implements IItem {
     protected String descriptionString;
 
     public Item() {
+        this.itemID = new ItemID();
         this.className = this.getClass().getName();
         this.objectName = "Item";
         this.visible = true;
@@ -57,6 +24,7 @@ public abstract class Item implements IItem {
 
     public Item(String name) {
         assert name.trim().length() >= 3;
+        this.itemID = new ItemID();
         this.className = this.getClass().getName();
         this.objectName = name.trim();
         this.visible = true;
@@ -65,6 +33,7 @@ public abstract class Item implements IItem {
 
     public Item(String name, String description) {
         assert name.trim().length() >= 3;
+        this.itemID = new ItemID();
         this.className = this.getClass().getName();
         this.objectName = name.trim();
         this.visible = true;
@@ -73,6 +42,11 @@ public abstract class Item implements IItem {
 
     protected void copyOverwriteTo(Item other) {
         other.descriptionString = this.descriptionString;
+    }
+
+    @Override
+    public ItemID getItemID() {
+        return this.itemID;
     }
 
     @Override

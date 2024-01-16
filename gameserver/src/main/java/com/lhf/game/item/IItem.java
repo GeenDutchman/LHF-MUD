@@ -1,10 +1,48 @@
 package com.lhf.game.item;
 
+import java.util.Objects;
+import java.util.UUID;
 import java.util.regex.PatternSyntaxException;
 
 import com.lhf.TaggedExaminable;
 
 public interface IItem extends TaggedExaminable {
+
+    public final static class ItemID implements Comparable<ItemID> {
+        private final UUID id = UUID.randomUUID();
+
+        public UUID getId() {
+            return id;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof ItemID))
+                return false;
+            ItemID other = (ItemID) obj;
+            return Objects.equals(id, other.id);
+        }
+
+        @Override
+        public String toString() {
+            return this.id.toString();
+        }
+
+        @Override
+        public int compareTo(ItemID arg0) {
+            return this.id.compareTo(arg0.id);
+        }
+
+    }
+
+    ItemID getItemID();
 
     IItem makeCopy();
 
