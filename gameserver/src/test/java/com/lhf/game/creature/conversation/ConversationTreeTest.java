@@ -12,10 +12,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
+import com.lhf.game.serialization.GsonBuilderFactory;
 import com.lhf.server.client.Client.ClientID;
 
 @ExtendWith(MockitoExtension.class)
@@ -371,9 +371,7 @@ public class ConversationTreeTest {
                                                 Pattern.CASE_INSENSITIVE),
                                 oneWaySecond);
 
-                GsonBuilder gb = new GsonBuilder().setPrettyPrinting();
-                gb.registerTypeAdapter(ConversationPattern.class, new ConversationPatternSerializer());
-                Gson gson = gb.create();
+                Gson gson = GsonBuilderFactory.start().conversation().build();
                 String json = gson.toJson(tree);
                 System.out.println(json);
                 Truth.assertThat(json).ignoringCase().contains("greet");

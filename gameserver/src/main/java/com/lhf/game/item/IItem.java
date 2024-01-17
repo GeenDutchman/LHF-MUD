@@ -9,7 +9,11 @@ import com.lhf.TaggedExaminable;
 public interface IItem extends TaggedExaminable {
 
     public final static class ItemID implements Comparable<ItemID> {
-        private final UUID id = UUID.randomUUID();
+        private final UUID id;
+
+        public ItemID() {
+            this.id = UUID.randomUUID();
+        }
 
         public UUID getId() {
             return id;

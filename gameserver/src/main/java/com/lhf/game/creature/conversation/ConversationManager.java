@@ -11,10 +11,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import com.lhf.game.serialization.GsonBuilderFactory;
 
 public class ConversationManager {
     private Logger logger;
@@ -36,9 +36,7 @@ public class ConversationManager {
     }
 
     public Boolean convoTreeToFile(ConversationTree tree) {
-        GsonBuilder gb = new GsonBuilder().setPrettyPrinting();
-        gb.registerTypeAdapter(ConversationPattern.class, new ConversationPatternSerializer());
-        Gson gson = gb.create();
+        Gson gson = GsonBuilderFactory.start().prettyPrinting().conversation().build();
         String rightWritePath = this.path.replaceAll("target(.)classes", "src$1main$1resources");
         this.logger.log(Level.INFO, "Writing to: " + rightWritePath);
         try (JsonWriter jWriter = gson.newJsonWriter(
@@ -52,9 +50,7 @@ public class ConversationManager {
     }
 
     public ConversationTree convoTreeFromFile(String name) throws FileNotFoundException {
-        GsonBuilder gb = new GsonBuilder().setPrettyPrinting();
-        gb.registerTypeAdapter(ConversationPattern.class, new ConversationPatternSerializer());
-        Gson gson = gb.create();
+        Gson gson = GsonBuilderFactory.start().prettyPrinting().conversation().build();
         String convoFile = this.path.toString() + name + ".json";
         this.logger.log(Level.INFO, "Opening file: " + convoFile);
         JsonReader jReader = new JsonReader(new FileReader(convoFile));

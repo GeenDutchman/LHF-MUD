@@ -8,7 +8,7 @@ public abstract class AItem implements IItem {
     // Class name for discrimination
     private final String className;
     // Name it will be known by
-    private String objectName;
+    private final String objectName;
     // Will not output with look if false
     private boolean visible;
     // Every item should describe itself
@@ -30,6 +30,22 @@ public abstract class AItem implements IItem {
         this.objectName = name.trim();
         this.visible = true;
         this.descriptionString = description;
+    }
+
+    protected AItem(ItemID itemID, String className, String name, boolean visible, String descriptionString) {
+        if (itemID == null) {
+            throw new IllegalArgumentException("item id cannot be null");
+        } else if (name == null || name.trim().length() < 3) {
+            throw new IllegalArgumentException(
+                    String.format("name argument cannot be null or have a length shorter than 3: %s", name));
+        } else if (className == null) {
+            throw new IllegalArgumentException("object name is critical and cannot be null!");
+        }
+        this.itemID = itemID;
+        this.objectName = name;
+        this.className = className;
+        this.visible = visible;
+        this.descriptionString = descriptionString;
     }
 
     @Override
