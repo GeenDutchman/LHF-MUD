@@ -122,11 +122,6 @@ public interface ICreature
         }
     }
 
-    public static interface CreatureMomento {
-        public ICreatureID getCreatureID();
-
-    }
-
     public ICreatureID getCreatureID();
 
     public abstract void acceptCreatureVisitor(CreatureVisitor visitor);

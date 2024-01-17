@@ -1,6 +1,8 @@
 /**
  * Sourced from https://github.com/albertattard/gson-typeadapterfactory-example/blob/da9c17cc0a91e5affb1ce2b2b5959a9286d73af7/src/main/java/com/javacreed/examples/gson/part4/AbstractTypeAdapter.java
- * With the following licence
+ * With the following licence.
+ * 
+ * I'm the one who added the `rawString` methods
  */
 
 /*
@@ -45,6 +47,16 @@ public abstract class AbstractTypeAdapter<T> extends TypeAdapter<T> {
     protected <E> void delegateWrite(final JsonWriter out, final E object, final Class<E> type) throws IOException {
         final TypeAdapter<E> typeAdapter = gson.getAdapter(type);
         typeAdapter.write(out, object);
+    }
+
+    protected <E> String rawString(final E object) {
+        @SuppressWarnings("unchecked")
+        final Class<E> type = (Class<E>) object.getClass();
+        return rawString(object, type);
+    }
+
+    protected <E> String rawString(final E object, final Class<E> type) {
+        return gson.toJson(object, type);
     }
 
     @Override

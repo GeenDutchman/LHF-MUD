@@ -54,15 +54,13 @@ public abstract class Creature implements ICreature {
     private final GameEventProcessorID gameEventProcessorID;
     private CreatureFaction faction; // See shared enum
     private Vocation vocation;
-    // private MonsterType monsterType; // I dont know if we'll need this
-
     private final TreeSet<CreatureEffect> effects;
     private final Statblock statblock;
 
     private EnumSet<SubAreaSort> subAreaSorts; // what sub area engagements is the creature in?
     private transient CommandInvoker controller;
     private transient CommandChainHandler successor;
-    private Map<AMessageType, CommandHandler> cmds;
+    private transient Map<AMessageType, CommandHandler> cmds;
     private transient final Logger logger;
 
     protected Creature(ICreature.CreatureBuilder<?, ? extends ICreature> builder,
