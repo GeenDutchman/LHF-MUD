@@ -26,7 +26,7 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
-import com.lhf.game.item.ItemPartitionListVisitor;
+import com.lhf.game.item.ItemPartitionCollectionVisitor;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.concrete.Item;
 import com.lhf.game.map.SubArea.SubAreaBuilder;
@@ -197,7 +197,7 @@ public interface Area
             seen.addSeen(SeeCategory.NPC, npc);
         }
 
-        ItemPartitionListVisitor itemVisitor = new ItemPartitionListVisitor();
+        ItemPartitionCollectionVisitor itemVisitor = new ItemPartitionCollectionVisitor();
         this.acceptItemVisitor(itemVisitor);
         for (final Takeable item : itemVisitor.getTakeables()) {
             seen.addSeen(item.isVisible() ? SeeCategory.TAKEABLE : SeeCategory.INVISIBLE_TAKEABLE,

@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import com.lhf.game.item.concrete.Item;
 
-public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
+public class ItemNameSearchVisitor extends ItemPartitionCollectionVisitor {
     protected final String searchName;
     protected final Integer regexLength;
 
@@ -18,7 +18,7 @@ public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
         this.regexLength = regexLength;
     }
 
-    public void copyFrom(ItemPartitionListVisitor partitioner) {
+    public void copyFrom(ItemPartitionCollectionVisitor partitioner) {
         if (partitioner == null) {
             return;
         }

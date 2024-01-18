@@ -1,11 +1,11 @@
 package com.lhf.game.map.commandHandlers;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.ItemNameSearchVisitor;
-import com.lhf.game.item.ItemPartitionListVisitor;
+import com.lhf.game.item.ItemPartitionCollectionVisitor;
 import com.lhf.game.map.Area.AreaCommandHandler;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -40,7 +40,7 @@ public class AreaInteractHandler implements AreaCommandHandler {
         if (!AreaCommandHandler.super.isEnabled(ctx) || ctx.getCreature().isInBattle()) {
             return false;
         }
-        ItemPartitionListVisitor visitor = new ItemPartitionListVisitor();
+        ItemPartitionCollectionVisitor visitor = new ItemPartitionCollectionVisitor();
         ctx.getArea().acceptItemVisitor(visitor);
         return !visitor.getInteractObjects().isEmpty();
     }
@@ -55,19 +55,19 @@ public class AreaInteractHandler implements AreaCommandHandler {
                 return ctx.handled();
             }
             String name = intMessage.getObject();
-            ItemPartitionListVisitor partitionVisitor = new ItemPartitionListVisitor();
+            ItemPartitionCollectionVisitor partitionVisitor = new ItemPartitionCollectionVisitor();
             ctx.getArea().getItems().stream().filter(item -> item != null)
                     .forEach(item -> item.acceptItemVisitor(partitionVisitor));
             ItemNameSearchVisitor nameSearchVisitor = new ItemNameSearchVisitor(name, 3);
             nameSearchVisitor.copyFrom(partitionVisitor);
-            List<InteractObject> matches = nameSearchVisitor.getInteractObjects();
+            Collection<InteractObject> matches = nameSearchVisitor.getInteractObjects();
 
             if (matches.size() == 1) {
-                InteractObject ro = matches.get(0);
+                InteractObject ro = matches.stream().findFirst().get();
                 ro.doAction(ctx.getCreature());
                 return ctx.handled();
             }
-            List<InteractObject> interactables = partitionVisitor.getInteractObjects();
+            Collection<InteractObject> interactables = partitionVisitor.getInteractObjects();
             ctx.receive(BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR).setBadTarget(name)
                     .setPossibleTargets(interactables).Build());
             return ctx.handled();

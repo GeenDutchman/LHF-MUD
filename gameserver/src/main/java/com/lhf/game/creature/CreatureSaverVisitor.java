@@ -5,8 +5,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.lhf.game.creature.ICreature.ICreatureID;
-import com.lhf.game.item.IItem;
-import com.lhf.game.item.IItem.ItemID;
 import com.lhf.game.item.ItemSaverVisitor;
 
 public final class CreatureSaverVisitor implements CreatureVisitor {
@@ -23,10 +21,6 @@ public final class CreatureSaverVisitor implements CreatureVisitor {
 
     public Map<ICreatureID, ICreature> getCreatureMap() {
         return Collections.unmodifiableMap(this.creatureMap);
-    }
-
-    public Map<ItemID, IItem> getItemMap() {
-        return this.itemSaverVisitor.getItemMap();
     }
 
     public ItemSaverVisitor getItemSaverVisitor() {

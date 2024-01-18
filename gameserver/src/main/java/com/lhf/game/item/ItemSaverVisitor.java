@@ -1,28 +1,29 @@
 package com.lhf.game.item;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.lhf.game.item.IItem.ItemID;
 import com.lhf.game.item.concrete.Item;
 
-public final class ItemSaverVisitor implements ItemVisitor {
-    private final Map<ItemID, IItem> itemMap = new TreeMap<>();
-
-    public ItemSaverVisitor() {
-    }
-
-    public Map<ItemID, IItem> getItemMap() {
-        return Collections.unmodifiableMap(this.itemMap);
-    }
+public class ItemSaverVisitor implements ItemVisitor {
+    private final Map<ItemID, InteractObject> interactObjects = new LinkedHashMap<>();
+    private final Map<ItemID, Item> notes = new LinkedHashMap<>();
+    private final Map<ItemID, Takeable> takeables = new LinkedHashMap<>();
+    private final Map<ItemID, Usable> usables = new LinkedHashMap<>();
+    private final Map<ItemID, EquipableHiddenEffect> equipablesWithHiddenEffects = new LinkedHashMap<>();
+    private final Map<ItemID, Equipable> equipables = new LinkedHashMap<>();
+    private final Map<ItemID, Weapon> weapons = new LinkedHashMap<>();
 
     @Override
     public void visit(InteractObject interactObject) {
         if (interactObject == null) {
             return;
         }
-        this.itemMap.put(interactObject.getItemID(), interactObject);
+        this.interactObjects.put(interactObject.getItemID(), interactObject);
     }
 
     @Override
@@ -30,7 +31,7 @@ public final class ItemSaverVisitor implements ItemVisitor {
         if (note == null) {
             return;
         }
-        this.itemMap.put(note.getItemID(), note);
+        this.notes.put(note.getItemID(), note);
     }
 
     @Override
@@ -38,7 +39,7 @@ public final class ItemSaverVisitor implements ItemVisitor {
         if (takeable == null) {
             return;
         }
-        this.itemMap.put(takeable.getItemID(), takeable);
+        this.takeables.put(takeable.getItemID(), takeable);
     }
 
     @Override
@@ -46,7 +47,7 @@ public final class ItemSaverVisitor implements ItemVisitor {
         if (usable == null) {
             return;
         }
-        this.itemMap.put(usable.getItemID(), usable);
+        this.usables.put(usable.getItemID(), usable);
     }
 
     @Override
@@ -54,7 +55,7 @@ public final class ItemSaverVisitor implements ItemVisitor {
         if (equipable == null) {
             return;
         }
-        this.itemMap.put(equipable.getItemID(), equipable);
+        this.equipables.put(equipable.getItemID(), equipable);
     }
 
     @Override
@@ -62,7 +63,7 @@ public final class ItemSaverVisitor implements ItemVisitor {
         if (weapon == null) {
             return;
         }
-        this.itemMap.put(weapon.getItemID(), weapon);
+        this.weapons.put(weapon.getItemID(), weapon);
     }
 
     @Override
@@ -70,7 +71,50 @@ public final class ItemSaverVisitor implements ItemVisitor {
         if (equipableHiddenEffect == null) {
             return;
         }
-        this.itemMap.put(equipableHiddenEffect.getItemID(), equipableHiddenEffect);
+        this.equipablesWithHiddenEffects.put(equipableHiddenEffect.getItemID(), equipableHiddenEffect);
+    }
+
+    protected Map<ItemID, AItem> getItemsMap() {
+        return Collections.unmodifiableMap(Stream
+                .concat(this.getTakeablesMap().entrySet().stream(),
+                        Stream.concat(this.getInteractObjectsMap().entrySet().stream(),
+                                this.getNotesMap().entrySet().stream()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b, LinkedHashMap::new)));
+    }
+
+    public Map<ItemID, InteractObject> getInteractObjectsMap() {
+        return Collections.unmodifiableMap(interactObjects);
+    }
+
+    public Map<ItemID, Item> getNotesMap() {
+        return Collections.unmodifiableMap(notes);
+    }
+
+    public Map<ItemID, Takeable> getTakeablesMap() {
+        return Collections.unmodifiableMap(
+                Stream.concat(takeables.entrySet().stream(), this.getUsablesMap().entrySet().stream()).collect(
+                        Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b, LinkedHashMap::new)));
+    }
+
+    public Map<ItemID, Usable> getUsablesMap() {
+        return Collections.unmodifiableMap(
+                Stream.concat(usables.entrySet().stream(), this.getEquipablesMap().entrySet().stream()).collect(
+                        Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b, LinkedHashMap::new)));
+    }
+
+    public Map<ItemID, Equipable> getEquipablesMap() {
+        return Collections.unmodifiableMap(Stream
+                .concat(Stream.concat(equipables.entrySet().stream(), this.getWeaponsMap().entrySet().stream()),
+                        this.getEquipablesWithHiddenEffectsMap().entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b, LinkedHashMap::new)));
+    }
+
+    public Map<ItemID, Weapon> getWeaponsMap() {
+        return Collections.unmodifiableMap(weapons);
+    }
+
+    public Map<ItemID, EquipableHiddenEffect> getEquipablesWithHiddenEffectsMap() {
+        return Collections.unmodifiableMap(equipablesWithHiddenEffects);
     }
 
 }
