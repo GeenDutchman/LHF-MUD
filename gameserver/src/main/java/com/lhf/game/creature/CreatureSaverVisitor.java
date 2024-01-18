@@ -10,12 +10,12 @@ import com.lhf.game.creature.ICreature.ICreatureID;
 import com.lhf.game.item.ItemSaverVisitor;
 
 public final class CreatureSaverVisitor implements CreatureVisitor {
-    private final LinkedHashMap<ICreatureID, Player> players = new LinkedHashMap<>();
+    private final transient LinkedHashMap<ICreatureID, Player> players = new LinkedHashMap<>();
     private final LinkedHashMap<ICreatureID, NonPlayerCharacter> npcs = new LinkedHashMap<>();
     private final LinkedHashMap<ICreatureID, DungeonMaster> dungeonMasters = new LinkedHashMap<>();
-    private final LinkedHashMap<ICreatureID, SummonedNPC> summonedNPCs = new LinkedHashMap<>();
+    private final transient LinkedHashMap<ICreatureID, SummonedNPC> summonedNPCs = new LinkedHashMap<>();
     private final LinkedHashMap<ICreatureID, Monster> monsters = new LinkedHashMap<>();
-    private final LinkedHashMap<ICreatureID, SummonedMonster> summonedMonsters = new LinkedHashMap<>();
+    private final transient LinkedHashMap<ICreatureID, SummonedMonster> summonedMonsters = new LinkedHashMap<>();
     private final ItemSaverVisitor itemSaverVisitor;
 
     public CreatureSaverVisitor() {
