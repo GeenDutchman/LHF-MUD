@@ -2,7 +2,7 @@
  * Sourced from https://github.com/albertattard/gson-typeadapterfactory-example/blob/da9c17cc0a91e5affb1ce2b2b5959a9286d73af7/src/main/java/com/javacreed/examples/gson/part4/AbstractTypeAdapter.java
  * With the following licence.
  * 
- * I'm the one who added the `rawString` methods
+ * I'm the one who added the `rawString`, `rawRead`, and `delegateRead` methods
  */
 
 /*
@@ -28,13 +28,23 @@
 package com.lhf.game.serialization;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import com.lhf.game.creature.CreatureSaverVisitor;
 
 public abstract class AbstractTypeAdapter<T> extends TypeAdapter<T> {
+
+    protected final ThreadLocal<CreatureSaverVisitor> cache = new ThreadLocal<CreatureSaverVisitor>() {
+        @Override
+        protected CreatureSaverVisitor initialValue() {
+            return new CreatureSaverVisitor();
+        };
+    };
+    protected final Logger logger = Logger.getLogger(this.getClass().getName());
 
     private Gson gson;
 
@@ -59,6 +69,15 @@ public abstract class AbstractTypeAdapter<T> extends TypeAdapter<T> {
         return gson.toJson(object, type);
     }
 
+    protected <E> E delegateRead(final JsonReader in, final Class<E> type) throws IOException {
+        final TypeAdapter<E> typeAdapter = gson.getAdapter(type);
+        return typeAdapter.read(in);
+    }
+
+    protected <E> E rawRead(final String inString, final Class<E> type) {
+        return gson.fromJson(inString, type);
+    }
+
     @Override
     public T read(final JsonReader in) throws IOException {
         throw new UnsupportedOperationException("Method not implemented");
@@ -72,4 +91,5 @@ public abstract class AbstractTypeAdapter<T> extends TypeAdapter<T> {
     public void write(final JsonWriter out, final T value) throws IOException {
         throw new UnsupportedOperationException("Method not implemented");
     }
+
 }
