@@ -31,7 +31,7 @@ public class Spellbook {
     private NavigableSet<SpellEntry> entries;
     private String path;
     private final String[] path_to_spellbook = { ".", "concrete" };
-    private Logger logger;
+    private transient Logger logger;
 
     public enum Filters {
         VOCATION_NAME, SPELL_NAME, INVOCATION, LEVELS, OFFENSE, NONOFFENSE, SCORE;

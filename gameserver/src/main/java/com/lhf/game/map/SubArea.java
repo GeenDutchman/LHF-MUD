@@ -68,7 +68,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     protected final SubAreaSort sort;
     protected final GameEventProcessorID gameEventProcessorID;
     protected final int roundDurationMilliseconds;
-    protected final Logger logger;
+    protected final transient Logger logger;
     protected final transient Area area;
     protected final transient AtomicReference<RoundThread> roundThread;
     protected final SubAreaCasting allowCasting;

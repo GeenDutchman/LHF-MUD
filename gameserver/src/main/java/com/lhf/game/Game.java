@@ -42,7 +42,7 @@ public class Game implements UserListener, CommandChainHandler {
 	private transient CommandChainHandler successor;
 	private ServerInterface server;
 	private UserManager userManager;
-	private final Logger logger;
+	private final transient Logger logger;
 	private final ThirdPower thirdPower;
 	private DMRoom controlRoom;
 	private final AIRunner aiRunner;

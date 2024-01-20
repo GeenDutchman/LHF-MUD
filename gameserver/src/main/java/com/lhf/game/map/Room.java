@@ -50,7 +50,7 @@ import com.lhf.server.client.user.UserID;
 public class Room implements Area {
     private final GameEventProcessorID gameEventProcessorID = new GameEventProcessorID();
     private final UUID uuid = gameEventProcessorID.getUuid();
-    protected final Logger logger;
+    protected final transient Logger logger;
     final List<IItem> items;
     private final String description;
     private final String name;
