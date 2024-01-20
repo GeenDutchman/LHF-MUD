@@ -169,7 +169,7 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public Area quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
+        public DMRoom quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
             this.logger.log(Level.INFO, () -> String.format("QUICK Building DM room '%s'", this.getName()));
             return DMRoom.quickBuilder(this, () -> land, () -> successor, () -> (room) -> {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.delegate.quickBuildCreatures(aiRunner, room);
