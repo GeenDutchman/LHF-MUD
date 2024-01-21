@@ -11,7 +11,9 @@ import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.concrete.equipment.CarnivorousArmor;
 import com.lhf.game.item.concrete.equipment.Longsword;
+import com.lhf.game.item.concrete.equipment.RustyDagger;
 import com.lhf.game.map.DMRoom;
+import com.lhf.game.map.Directions;
 import com.lhf.game.map.DMRoom.DMRoomBuilder;
 import com.lhf.game.map.Dungeon;
 import com.lhf.game.map.Dungeon.DungeonBuilder;
@@ -28,8 +30,10 @@ public class GsonBuilderFactoryTest {
         Monster.MonsterBuilder builder = Monster.getMonsterBuilder().setName("George").setStatblock(georgeblock);
 
         RoomBuilder roomBuilder = Room.RoomBuilder.getInstance().addItem(new CarnivorousArmor()).addNPCBuilder(builder);
+        RoomBuilder nextRoomBuilder = Room.RoomBuilder.getInstance().addItem(new RustyDagger()).setName("Second Room");
 
-        DungeonBuilder dungeon = Dungeon.DungeonBuilder.newInstance().addStartingRoom(roomBuilder);
+        DungeonBuilder dungeon = Dungeon.DungeonBuilder.newInstance().addStartingRoom(roomBuilder)
+                .connectRoom(roomBuilder, Directions.WEST, nextRoomBuilder);
 
         DMRoomBuilder dmRoom = DMRoom.DMRoomBuilder.buildDefault(null, null, null).addLandBuilder(dungeon);
 
