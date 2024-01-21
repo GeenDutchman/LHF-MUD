@@ -23,6 +23,7 @@ import com.lhf.game.item.Trap;
 import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.concrete.HealPotion;
+import com.lhf.game.item.concrete.InteractDoor;
 import com.lhf.game.item.concrete.Lever;
 import com.lhf.game.item.concrete.Item;
 import com.lhf.game.item.concrete.equipment.CarnivorousArmor;
@@ -113,13 +114,11 @@ public final class StandardDungeonProducer {
                                 "The tutorial boss is on vacation right now.");
                 statueRoomBuilder.addItem(bossNote);
 
-                /**
-                 * TODO: redo statue as some kind of interactable door
-                 * between the statueRoom and the secretRoom
-                 */
-                Item statue = new Item("golden statue",
+                InteractDoor statue = new InteractDoor("golden statue",
                                 "The statue has a start to a riddle, but it looks like it hasn't been finished yet.");
+
                 statueRoomBuilder.addItem(statue);
+                secretRoomBuilder.addItem(statue);
 
                 // RM6 The armory
                 Room.RoomBuilder armoryBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
