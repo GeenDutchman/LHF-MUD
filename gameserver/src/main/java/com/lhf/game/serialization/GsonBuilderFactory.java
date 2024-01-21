@@ -5,11 +5,13 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.conversation.ConversationPattern;
 import com.lhf.game.creature.conversation.ConversationPatternSerializer;
 import com.lhf.game.item.AItem;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.EquipableDeserializer;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemDeserializer;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.TakeableDeserializer;
@@ -66,6 +68,15 @@ public class GsonBuilderFactory {
         this.gsonBuilder.registerTypeAdapter(Equipable.class, new EquipableDeserializer<Equipable>());
         this.gsonBuilder.registerTypeAdapter(Takeable.class, new TakeableDeserializer<>());
         this.gsonBuilder.registerTypeAdapter(AItem.class, new ItemDeserializer<>());
+        return this;
+    }
+
+    public GsonBuilderFactory cachedReferences() {
+        DataTypeAdapterFactory dtaf = new DataTypeAdapterFactory.Builder()
+                .add(IItem.class, new CachedIItemTypeAdapter())
+                .add(ICreature.class, new CachedICreatureTypeAdapter())
+                .build();
+        this.gsonBuilder.registerTypeAdapterFactory(dtaf);
         return this;
     }
 

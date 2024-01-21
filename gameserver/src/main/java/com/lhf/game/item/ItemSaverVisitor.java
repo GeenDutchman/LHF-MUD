@@ -74,7 +74,7 @@ public class ItemSaverVisitor implements ItemVisitor {
         this.equipablesWithHiddenEffects.put(equipableHiddenEffect.getItemID(), equipableHiddenEffect);
     }
 
-    protected Map<ItemID, AItem> getItemsMap() {
+    public Map<ItemID, AItem> getItemsMap() {
         return Collections.unmodifiableMap(Stream
                 .concat(this.getTakeablesMap().entrySet().stream(),
                         Stream.concat(this.getInteractObjectsMap().entrySet().stream(),
