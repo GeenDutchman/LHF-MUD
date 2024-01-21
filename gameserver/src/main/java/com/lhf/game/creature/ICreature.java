@@ -190,39 +190,40 @@ public interface ICreature
         public abstract void assign();
     }
 
+    public final static class CreatureBuilderID implements Comparable<CreatureBuilderID> {
+        private final UUID id = UUID.randomUUID();
+
+        public UUID getId() {
+            return id;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof CreatureBuilderID))
+                return false;
+            CreatureBuilderID other = (CreatureBuilderID) obj;
+            return Objects.equals(id, other.id);
+        }
+
+        @Override
+        public int compareTo(CreatureBuilderID arg0) {
+            return this.id.compareTo(arg0.id);
+        }
+
+    }
+
     /**
      * Builder pattern root for Creature
      */
     public abstract static class CreatureBuilder<BuilderType extends CreatureBuilder<BuilderType, CreatureType>, CreatureType extends ICreature>
             implements Serializable {
-        public final static class CreatureBuilderID implements Comparable<CreatureBuilderID> {
-            private final UUID id = UUID.randomUUID();
-
-            public UUID getId() {
-                return id;
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(id);
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                if (this == obj)
-                    return true;
-                if (!(obj instanceof CreatureBuilderID))
-                    return false;
-                CreatureBuilderID other = (CreatureBuilderID) obj;
-                return Objects.equals(id, other.id);
-            }
-
-            @Override
-            public int compareTo(CreatureBuilderID arg0) {
-                return this.id.compareTo(arg0.id);
-            }
-
-        }
 
         protected final transient BuilderType thisObject;
         protected final transient CreatureBuilderID id;

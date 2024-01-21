@@ -55,6 +55,12 @@ public class GsonBuilderFactory {
         return this;
     }
 
+    // public GsonBuilderFactory creatureBuilders() {
+    // final RuntimeTypeAdapterFactory<ICreature.CreatureBuilder<?,?>>
+    // creatureBuilderAdapterFactory = RuntimeTypeAdapterFactory
+    // .of(ICreature.CreatureBuilder<?,?>.class, "className", true);
+    // }
+
     public GsonBuilderFactory doors() {
         final RuntimeTypeAdapterFactory<Doorway> doorwayAdapterFactory = RuntimeTypeAdapterFactory
                 .of(Doorway.class, "className", true)
