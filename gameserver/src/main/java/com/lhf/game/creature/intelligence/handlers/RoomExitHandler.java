@@ -23,7 +23,11 @@ public class RoomExitHandler extends AIHandler {
                     npc.getConvoTree().forgetBookmark(slr.getLeaveTaker());
                 }
                 if (npc.getLeaderName() != null && npc.getLeaderName().equals(Taggable.extract(slr.getLeaveTaker()))) {
-                    bai.ProcessString("GO " + slr.getWhichWay().toString()); // TODO: find out how to do interact doors
+                    if (slr.getWhichWay() != null) {
+                        bai.ProcessString("GO " + slr.getWhichWay().toString());
+                    } else if (slr.getBecauseOf() != null) {
+                        bai.ProcessString("INTERACT " + Taggable.extract(slr.getBecauseOf()));
+                    }
                 }
             }
         }
