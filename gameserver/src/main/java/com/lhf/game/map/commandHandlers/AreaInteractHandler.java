@@ -64,7 +64,7 @@ public class AreaInteractHandler implements AreaCommandHandler {
 
             if (matches.size() == 1) {
                 InteractObject ro = matches.stream().findFirst().get();
-                ro.doAction(ctx.getCreature());
+                ro.doAction(ctx);
                 return ctx.handled();
             }
             Collection<InteractObject> interactables = partitionVisitor.getInteractObjects();

@@ -8,6 +8,7 @@ import java.util.TreeSet;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.inventory.InventoryOwner;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.ItemInteractionEvent;
 
 public class GuardedChest extends Chest {
@@ -22,14 +23,18 @@ public class GuardedChest extends Chest {
     }
 
     @Override
-    public void doAction(ICreature creature) {
+    public void doAction(CommandContext ctx) {
+        if (ctx == null) {
+            return;
+        }
+        final ICreature creature = ctx.getCreature();
         if (creature == null) {
             return;
         }
         ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this);
         this.updateGuards();
         if (this.canAccess(creature)) {
-            super.doAction(creature);
+            super.doAction(ctx);
             return;
         }
         StringJoiner sj = new StringJoiner(", ", " It is guarded by: ", ". ").setEmptyValue("");

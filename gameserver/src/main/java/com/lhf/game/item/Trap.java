@@ -17,6 +17,7 @@ import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.dice.DiceDC;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
@@ -80,7 +81,11 @@ public class Trap extends InteractObject implements GameEventProcessor {
     }
 
     @Override
-    public void doAction(ICreature creature) {
+    public void doAction(CommandContext ctx) {
+        if (ctx == null) {
+            return;
+        }
+        final ICreature creature = ctx.getCreature();
         if (creature == null) {
             return;
         }

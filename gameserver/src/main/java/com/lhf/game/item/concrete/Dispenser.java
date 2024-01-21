@@ -13,6 +13,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.map.Area;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.events.SeeEvent;
@@ -38,7 +39,11 @@ public class Dispenser extends InteractObject implements ItemContainer {
     }
 
     @Override
-    public void doAction(ICreature creature) {
+    public void doAction(CommandContext ctx) {
+        if (ctx == null) {
+            return;
+        }
+        final ICreature creature = ctx.getCreature();
         if (creature == null) {
             return;
         }

@@ -3,6 +3,7 @@ package com.lhf.game.item.concrete;
 import com.lhf.game.Lockable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.InteractObject;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.ItemInteractionEvent;
 
 public class Lever extends InteractObject {
@@ -28,7 +29,11 @@ public class Lever extends InteractObject {
     }
 
     @Override
-    public void doAction(ICreature creature) {
+    public void doAction(CommandContext ctx) {
+        if (ctx == null) {
+            return;
+        }
+        final ICreature creature = ctx.getCreature();
         if (creature == null) {
             return;
         }

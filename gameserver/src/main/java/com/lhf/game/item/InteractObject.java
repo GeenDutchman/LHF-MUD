@@ -2,6 +2,7 @@ package com.lhf.game.item;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.Area;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
@@ -67,11 +68,11 @@ public class InteractObject extends AItem {
         visitor.visit(this);
     }
 
-    public void doAction(ICreature creature) {
-        if (creature == null) {
+    public void doAction(CommandContext ctx) {
+        if (ctx == null || ctx.getCreature() == null) {
             return;
         }
-        ICreature.eventAccepter.accept(creature, ItemInteractionEvent.getBuilder().setTaggable(this)
+        ctx.receive(ItemInteractionEvent.getBuilder().setTaggable(this)
                 .setSubType(InteractOutMessageType.NO_METHOD).Build());
         this.interactCount++;
     }

@@ -202,7 +202,11 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
     }
 
     @Override
-    public void doAction(ICreature creature) {
+    public void doAction(CommandContext ctx) {
+        if (ctx == null) {
+            return;
+        }
+        final ICreature creature = ctx.getCreature();
         if (creature == null) {
             return;
         }
