@@ -1,6 +1,5 @@
 package com.lhf.game.creature;
 
-import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,7 +22,6 @@ import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
-import com.lhf.game.ItemContainer;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.commandHandlers.EquipHandler;
@@ -34,7 +32,6 @@ import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DamageDice;
@@ -190,264 +187,53 @@ public interface ICreature
         public abstract void assign();
     }
 
-    public final static class CreatureBuilderID implements Comparable<CreatureBuilderID> {
-        private final UUID id = UUID.randomUUID();
+    public interface ICreatureBuilder extends Serializable {
+        public final static class CreatureBuilderID implements Comparable<CreatureBuilderID> {
+            private final UUID id = UUID.randomUUID();
 
-        public UUID getId() {
-            return id;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(id);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (!(obj instanceof CreatureBuilderID))
-                return false;
-            CreatureBuilderID other = (CreatureBuilderID) obj;
-            return Objects.equals(id, other.id);
-        }
-
-        @Override
-        public int compareTo(CreatureBuilderID arg0) {
-            return this.id.compareTo(arg0.id);
-        }
-
-    }
-
-    /**
-     * Builder pattern root for Creature
-     */
-    public abstract static class CreatureBuilder<BuilderType extends CreatureBuilder<BuilderType, CreatureType>, CreatureType extends ICreature>
-            implements Serializable {
-
-        protected final transient BuilderType thisObject;
-        protected final transient CreatureBuilderID id;
-        protected String name;
-        protected CreatureFaction faction;
-        protected VocationName vocation;
-        protected Integer vocationLevel;
-        protected String statblockName;
-        protected Statblock statblock;
-        protected Corpse corpse;
-
-        protected CreatureBuilder() {
-            this.thisObject = getThis();
-            this.id = new CreatureBuilderID();
-            this.name = null;
-            this.faction = null;
-            this.vocation = null;
-            this.vocationLevel = null;
-            this.statblockName = null;
-            this.statblock = null;
-            this.corpse = null;
-        }
-
-        protected void copyFrom(BuilderType other) {
-            this.name = new String(other.name);
-            this.faction = other.faction;
-            this.vocation = other.vocation;
-            this.vocationLevel = other.vocationLevel != null ? other.vocationLevel.intValue() : null;
-            this.statblockName = new String(other.statblockName);
-            this.statblock = this.statblock != null ? new Statblock(other.statblock) : null;
-            this.corpse = null;
-            if (other.corpse != null) {
-                this.corpse = other.corpse.makeCopy();
-                ItemContainer.transfer(other.corpse, this.corpse, null, true);
-            }
-        }
-
-        public abstract CreatureBuilder<BuilderType, CreatureType> makeCopy();
-
-        public CreatureBuilderID getCreatureBuilderID() {
-            return this.id;
-        }
-
-        // used for the generics and safe casts
-        // https://stackoverflow.com/questions/17164375/subclassing-a-java-builder-class
-        protected abstract BuilderType getThis();
-
-        public BuilderType setName(String name) {
-            this.name = name;
-            return this.getThis();
-        }
-
-        /**
-         * Will lazily generate a name if none is already set
-         * 
-         * @return
-         */
-        public synchronized String getName() {
-            if (this.name == null || name.isBlank()) {
-                this.name = NameGenerator.Generate(null);
-            }
-            return this.name;
-        }
-
-        public BuilderType setFaction(CreatureFaction faction) {
-            this.faction = faction;
-            return this.getThis();
-        }
-
-        /**
-         * Will lazily generate a faction (default to
-         * {@link com.lhf.game.enums.CreatureFaction#RENEGADE RENEGADE}) if none is
-         * already set
-         * 
-         * @return
-         */
-        public CreatureFaction getFaction() {
-            if (this.faction == null) {
-                this.faction = CreatureFaction.RENEGADE;
-            }
-            return this.faction;
-        }
-
-        public BuilderType setVocation(Vocation vocation) {
-            if (vocation == null) {
-                this.vocation = null;
-                this.vocationLevel = null;
-            } else {
-                this.vocation = vocation.getVocationName();
-                this.vocationLevel = vocation.getLevel();
-            }
-            return this.getThis();
-        }
-
-        public BuilderType setVocation(VocationName vocationName) {
-            this.vocation = vocationName;
-            return this.getThis();
-        }
-
-        public BuilderType setVocationLevel(int level) {
-            this.vocationLevel = level;
-            return this.getThis();
-        }
-
-        public VocationName getVocation() {
-            return this.vocation;
-        }
-
-        public Integer getVocationLevel() {
-            return this.vocationLevel;
-        }
-
-        public BuilderType setStatblock(Statblock statblock) {
-            this.statblock = statblock;
-            if (this.statblock != null) {
-                this.statblockName = this.statblock.getCreatureRace();
-            }
-            return this.getThis();
-        }
-
-        public BuilderType setStatblockName(String statblockName) {
-            this.statblockName = statblockName;
-            if (this.statblock != null && !this.statblock.getCreatureRace().equals(statblockName)) {
-                this.statblock = null;
-            }
-            return this.getThis();
-        }
-
-        public String getStatblockName() {
-            return statblockName;
-        }
-
-        /**
-         * Will lazily generate a {@link com.lhf.game.creature.statblock.Statblock
-         * Statblock} if none is provided.
-         * <p>
-         * If this has a vocationName set, it'll try to use the provided
-         * {@link com.lhf.game.creature.statblock.StatblockManager StatblockManager}.
-         * Elsewise if this has a {@link com.lhf.game.creature.vocation.Vocation
-         * Vocation} set,
-         * it will use the default for the Vocation.
-         * Otherwise it'll be a plain statblock.
-         * 
-         * @return
-         * @throws FileNotFoundException
-         */
-        public Statblock loadStatblock(StatblockManager statblockManager) throws FileNotFoundException {
-            if (this.statblock == null) {
-                String nextname = this.getStatblockName();
-                if (nextname != null) {
-                    this.setStatblock(statblockManager.statblockFromfile(nextname));
-                } else if (this.vocation != null) {
-                    this.setStatblock(this.vocation.createNewDefaultStatblock("creature").build());
-                } else {
-                    this.setStatblock(Statblock.getBuilder().build());
-                }
+            public UUID getId() {
+                return id;
             }
 
-            return this.statblock;
-        }
-
-        public BuilderType useBlankStatblock() {
-            this.setStatblock(Statblock.getBuilder().build());
-            return this.getThis();
-        }
-
-        protected Statblock getStatblock() {
-            return this.statblock;
-        }
-
-        public BuilderType setCorpse(Corpse corpse) {
-            this.corpse = corpse;
-            return this.getThis();
-        }
-
-        public Corpse getCorpse() {
-            return this.corpse;
-        }
-
-        public abstract CreatureType build(CommandInvoker controller,
-                CommandChainHandler successor, StatblockManager statblockManager,
-                UnaryOperator<BuilderType> composedLazyLoaders) throws FileNotFoundException;
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(id);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (!(obj instanceof CreatureBuilder))
-                return false;
-            CreatureBuilder<?, ?> other = (CreatureBuilder<?, ?>) obj;
-            return Objects.equals(id, other.id);
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append(this.getThis().getClass().getSimpleName()).append(" with the following characteristics: \r\n");
-            if (this.name == null) {
-                sb.append("Name will be generated.\r\n");
-            } else {
-                sb.append("Name is:").append(this.name).append(".\r\n");
+            @Override
+            public int hashCode() {
+                return Objects.hash(id);
             }
-            if (this.vocation != null) {
-                sb.append("Vocation of ").append(this.vocation);
-                if (this.vocationLevel != null) {
-                    sb.append("with level of").append(this.vocationLevel);
-                }
-                sb.append(".\r\n");
+
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (!(obj instanceof CreatureBuilderID))
+                    return false;
+                CreatureBuilderID other = (CreatureBuilderID) obj;
+                return Objects.equals(id, other.id);
             }
-            if (this.statblockName != null) {
-                sb.append("Statblock similar to: ").append(this.statblockName);
-                if (this.statblock != null) {
-                    sb.append(" (concrete statblock present)");
-                }
-                sb.append(".\r\n");
+
+            @Override
+            public int compareTo(CreatureBuilderID arg0) {
+                return this.id.compareTo(arg0.id);
             }
-            return sb.toString();
+
         }
 
+        public String getClassName();
+
+        public CreatureBuilderID getCreatureBuilderID();
+
+        public String getName();
+
+        public CreatureFaction getFaction();
+
+        public VocationName getVocation();
+
+        public Integer getVocationLevel();
+
+        public String getStatblockName();
+
+        public Statblock getStatblock();
+
+        public Corpse getCorpse();
     }
 
     /**
@@ -538,7 +324,7 @@ public interface ICreature
      * @deprecated
      *             Changing the attributes wholesale during run is not good.
      *             <p>
-     *             Use {@link com.lhf.game.creature.ICreature.CreatureBuilder
+     *             Use {@link com.lhf.game.creature.CreatureBuilder
      *             CreatureBuilder} to change the attributes of a Creature being
      *             built
      * @param attributes
