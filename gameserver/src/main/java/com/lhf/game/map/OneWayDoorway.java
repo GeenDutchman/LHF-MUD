@@ -2,7 +2,7 @@ package com.lhf.game.map;
 
 import com.lhf.game.creature.ICreature;
 
-class OneWayDoorway extends Doorway {
+public class OneWayDoorway extends Doorway {
     private final Directions allowed;
 
     public OneWayDoorway(Directions allowed) {

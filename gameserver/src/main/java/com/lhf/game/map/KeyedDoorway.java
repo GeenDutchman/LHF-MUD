@@ -5,7 +5,7 @@ import java.util.UUID;
 import com.lhf.game.Lockable;
 import com.lhf.game.creature.ICreature;
 
-class KeyedDoorway extends CloseableDoorway implements Lockable {
+public class KeyedDoorway extends CloseableDoorway implements Lockable {
     private final UUID doorwayUuid;
 
     public KeyedDoorway() {

@@ -26,9 +26,12 @@ import com.lhf.game.magic.concrete.Ensouling;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
 import com.lhf.game.magic.concrete.ThunderStrike;
+import com.lhf.game.map.CloseableDoorway;
 import com.lhf.game.map.DMRoomEffectSource;
 import com.lhf.game.map.Doorway;
 import com.lhf.game.map.DungeonEffectSource;
+import com.lhf.game.map.KeyedDoorway;
+import com.lhf.game.map.OneWayDoorway;
 import com.lhf.game.map.RoomEffectSource;
 
 public class GsonBuilderFactory {
@@ -53,7 +56,14 @@ public class GsonBuilderFactory {
     }
 
     public GsonBuilderFactory doors() {
-        this.gsonBuilder.registerTypeAdapterFactory(Doorway.runTimeAdapter());
+        final RuntimeTypeAdapterFactory<Doorway> doorwayAdapterFactory = RuntimeTypeAdapterFactory
+                .of(Doorway.class, "className", true)
+                .registerSubtype(Doorway.class, Doorway.class.getName())
+                .registerSubtype(OneWayDoorway.class, OneWayDoorway.class.getName())
+                .registerSubtype(CloseableDoorway.class, CloseableDoorway.class.getName())
+                .registerSubtype(KeyedDoorway.class, KeyedDoorway.class.getName())
+                .recognizeSubtypes();
+        this.gsonBuilder.registerTypeAdapterFactory(doorwayAdapterFactory);
         return this;
     }
 

@@ -37,11 +37,18 @@ public class GsonBuilderFactoryTest {
 
         DMRoomBuilder dmRoom = DMRoom.DMRoomBuilder.buildDefault(null, null, null).addLandBuilder(dungeon);
 
-        GsonBuilderFactory gbf = new GsonBuilderFactory().conversation().items().prettyPrinting();
+        GsonBuilderFactory gbf = new GsonBuilderFactory().conversation().items().prettyPrinting().doors();
 
         Gson gson = gbf.build();
 
-        System.out.println(gson.toJson(dmRoom));
+        String asJson = gson.toJson(dmRoom);
+
+        System.out.println(asJson);
+
+        DMRoomBuilder reconstituted = gson.fromJson(asJson, DMRoomBuilder.class);
+
+        DMRoom built = reconstituted.quickBuild(null, null, null);
+        assert built != null;
 
     }
 }

@@ -1,6 +1,5 @@
 package com.lhf.game.map;
 
-import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import com.lhf.game.creature.ICreature;
 
 public class Doorway {
@@ -16,12 +15,6 @@ public class Doorway {
 
     public String getClassName() {
         return className;
-    }
-
-    public static RuntimeTypeAdapterFactory<Doorway> runTimeAdapter() {
-        final RuntimeTypeAdapterFactory<Doorway> runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
-                .of(Doorway.class, "className", true).recognizeSubtypes();
-        return runtimeTypeAdapterFactory;
     }
 
 }

@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lhf.game.creature.ICreature;
 
-class CloseableDoorway extends Doorway {
+public class CloseableDoorway extends Doorway {
     private AtomicBoolean opened;
 
     public CloseableDoorway() {
