@@ -45,9 +45,6 @@ import com.lhf.messages.in.GoMessage;
 import com.lhf.server.client.user.UserID;
 
 public interface Land extends CreatureContainer, CommandChainHandler, AffectableEntity<DungeonEffect> {
-    public interface TraversalTester extends Serializable {
-        public boolean testTraversal(ICreature creature, Directions direction, Area source, Area dest);
-    }
 
     public final class AreaAtlas extends Atlas<Area, UUID> {
 
@@ -328,7 +325,7 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                                 .setAvailable(exits.keySet()).Build());
                         return ctx.handled();
                     }
-                    TraversalTester tester = doorway.getPredicate();
+                    Doorway tester = doorway.getPredicate();
                     if (tester != null && !tester.testTraversal(ctx.getCreature(), toGo, presentRoom, presentRoom)) {
                         ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo)
                                 .setAvailable(exits.keySet()).Build());

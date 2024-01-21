@@ -15,11 +15,6 @@ class CloseableDoorway extends Doorway {
         this.opened = new AtomicBoolean(opened);
     }
 
-    @Override
-    public DoorwayType getType() {
-        return DoorwayType.CLOSEABLE;
-    }
-
     public void open() {
         this.opened.set(true);
     }

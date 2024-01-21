@@ -1,30 +1,27 @@
 package com.lhf.game.map;
 
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.map.Land.TraversalTester;
 
-class Doorway implements TraversalTester {
+public class Doorway {
     protected final String className;
-
-    public enum DoorwayType {
-        STANDARD, ONE_WAY, CLOSEABLE, KEYED;
-    }
 
     public Doorway() {
         this.className = this.getClass().getName();
     }
 
-    public DoorwayType getType() {
-        return DoorwayType.STANDARD;
-    }
-
-    @Override
     public boolean testTraversal(ICreature creature, Directions direction, Area source, Area dest) {
         return true;
     }
 
     public String getClassName() {
         return className;
+    }
+
+    public static RuntimeTypeAdapterFactory<Doorway> runTimeAdapter() {
+        final RuntimeTypeAdapterFactory<Doorway> runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
+                .of(Doorway.class, "className", true).recognizeSubtypes();
+        return runtimeTypeAdapterFactory;
     }
 
 }

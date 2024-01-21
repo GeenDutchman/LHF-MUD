@@ -18,11 +18,6 @@ class KeyedDoorway extends CloseableDoorway implements Lockable {
     }
 
     @Override
-    public DoorwayType getType() {
-        return DoorwayType.KEYED;
-    }
-
-    @Override
     public void lock() {
         this.close();
     }

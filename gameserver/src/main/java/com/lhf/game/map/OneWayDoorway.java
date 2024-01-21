@@ -10,11 +10,6 @@ class OneWayDoorway extends Doorway {
     }
 
     @Override
-    public DoorwayType getType() {
-        return DoorwayType.ONE_WAY;
-    }
-
-    @Override
     public boolean testTraversal(ICreature creature, Directions direction, Area source, Area dest) {
         if (this.allowed != null && !this.allowed.equals(direction)) {
             return false;

@@ -10,24 +10,23 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Function;
-import com.lhf.game.map.Land.TraversalTester;
 
 public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<AtlasMemberID>> {
     protected static final class TargetedTester<TargetIDType> implements Serializable {
         private final Directions direction;
         private final TargetIDType targetId;
-        private final TraversalTester predicate;
+        private final Doorway predicate;
 
-        protected TargetedTester(Directions direction, TargetIDType targetId, TraversalTester predicate) {
+        protected TargetedTester(Directions direction, TargetIDType targetId, Doorway predicate) {
             this.direction = direction;
             this.targetId = targetId;
             this.predicate = predicate;
@@ -41,7 +40,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             return targetId;
         }
 
-        public TraversalTester getPredicate() {
+        public Doorway getPredicate() {
             return predicate;
         }
 
@@ -121,7 +120,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
     }
 
     public final synchronized void connectOneWay(final AtlasMemberType first, final Directions toSecond,
-            final AtlasMemberType second, TraversalTester predicate) {
+            final AtlasMemberType second, Doorway predicate) {
         synchronized (this.mapping) {
             if (first == null) {
                 throw new IllegalArgumentException("The 'first' argument must not be null!");
@@ -157,7 +156,7 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
     }
 
     public final synchronized void connect(AtlasMemberType first, Directions toSecond, AtlasMemberType second,
-            TraversalTester predicate) {
+            Doorway predicate) {
         synchronized (this.mapping) {
             this.connectOneWay(first, toSecond, second, predicate);
             this.connectOneWay(second, toSecond.opposite(), first, predicate);

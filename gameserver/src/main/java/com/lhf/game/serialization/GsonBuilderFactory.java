@@ -27,6 +27,7 @@ import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
 import com.lhf.game.magic.concrete.ThunderStrike;
 import com.lhf.game.map.DMRoomEffectSource;
+import com.lhf.game.map.Doorway;
 import com.lhf.game.map.DungeonEffectSource;
 import com.lhf.game.map.RoomEffectSource;
 
@@ -48,6 +49,11 @@ public class GsonBuilderFactory {
 
     public GsonBuilderFactory conversation() {
         this.gsonBuilder.registerTypeAdapter(ConversationPattern.class, new ConversationPatternSerializer());
+        return this;
+    }
+
+    public GsonBuilderFactory doors() {
+        this.gsonBuilder.registerTypeAdapterFactory(Doorway.runTimeAdapter());
         return this;
     }
 
