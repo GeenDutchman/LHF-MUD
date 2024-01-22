@@ -20,7 +20,8 @@ public class SummonedNPC extends SummonedINonPlayerCharacter<NonPlayerCharacter>
             AIRunner aiRunner,
             CommandChainHandler successor,
             StatblockManager statblockManager, ConversationManager conversationManager) throws FileNotFoundException {
-        CreatureFactory factory = new CreatureFactory(successor, statblockManager, conversationManager, aiRunner, false,
+        CreatureFactory factory = CreatureFactory.fromAIRunner(successor, statblockManager, conversationManager,
+                aiRunner, false,
                 false);
         factory.visit(builder);
         return new SummonedNPC(factory.getBuiltCreatures().getNpcs().first(), builder.getSummonState(),

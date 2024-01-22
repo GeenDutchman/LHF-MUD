@@ -1,6 +1,7 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,6 +13,7 @@ import com.lhf.game.creature.Player.PlayerBuildInfo;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIRunner;
+import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
@@ -24,7 +26,7 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
     private final transient CommandChainHandler successor;
     private final transient StatblockManager statblockManager;
     private final transient ConversationManager conversationManager;
-    private final transient AIRunner aiRunner;
+    private final transient Function<INonPlayerCharacterBuildInfo, BasicAI> brainProducer;
     private final boolean fallbackNoConversation;
     private final boolean fallbackDefaultStatblock;
 
@@ -33,19 +35,41 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
         this.successor = null;
         this.statblockManager = null;
         this.conversationManager = null;
-        this.aiRunner = NonPlayerCharacter.defaultAIRunner;
+        this.brainProducer = (buildInfo) -> NonPlayerCharacter.defaultAIRunner
+                .produceAI(buildInfo.getAiHandlersAsArray());
         this.fallbackDefaultStatblock = true;
         this.fallbackNoConversation = true;
     }
 
-    public CreatureFactory(CommandChainHandler successor, StatblockManager statblockManager,
+    public static CreatureFactory withAIRunner(CommandChainHandler successor, AIRunner aiRunner) {
+        final Function<INonPlayerCharacterBuildInfo, BasicAI> brainProducer = aiRunner != null
+                ? (buildInfo) -> aiRunner.produceAI(buildInfo.getAiHandlersAsArray())
+                : (buildInfo) -> NonPlayerCharacter.defaultAIRunner.produceAI(buildInfo.getAiHandlersAsArray());
+        return new CreatureFactory(successor, null, null, brainProducer, true, true);
+    }
+
+    public static CreatureFactory withBrainProducer(CommandChainHandler successor,
+            Function<INonPlayerCharacterBuildInfo, BasicAI> brainProducer) {
+        return new CreatureFactory(successor, null, null, brainProducer, true, true);
+    }
+
+    public static CreatureFactory fromAIRunner(CommandChainHandler successor, StatblockManager statblockManager,
             ConversationManager conversationManager, AIRunner aiRunner, boolean fallbackNoConversation,
             boolean fallbackDefaultStatblock) {
+        return new CreatureFactory(successor, statblockManager, conversationManager,
+                aiRunner != null ? (buildInfo) -> aiRunner.produceAI(buildInfo.getAiHandlersAsArray()) : null,
+                fallbackNoConversation, fallbackDefaultStatblock);
+    }
+
+    public CreatureFactory(CommandChainHandler successor, StatblockManager statblockManager,
+            ConversationManager conversationManager, Function<INonPlayerCharacterBuildInfo, BasicAI> brainProducer,
+            boolean fallbackNoConversation, boolean fallbackDefaultStatblock) {
         this.builtCreatures = new CreaturePartitionSetVisitor();
         this.successor = successor;
         this.statblockManager = statblockManager;
         this.conversationManager = conversationManager;
-        this.aiRunner = aiRunner;
+        this.brainProducer = brainProducer != null ? brainProducer
+                : (buildInfo) -> NonPlayerCharacter.defaultAIRunner.produceAI(buildInfo.getAiHandlersAsArray());
         this.fallbackNoConversation = fallbackNoConversation;
         this.fallbackDefaultStatblock = fallbackDefaultStatblock;
     }
@@ -129,7 +153,7 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
     public void visit(IMonsterBuildInfo buildInfo) {
         final Statblock block = this.loadStatblock(buildInfo);
         final ConversationTree tree = this.loadConversationTree(buildInfo);
-        Monster monster = new Monster(buildInfo, this.aiRunner.produceAI(buildInfo.getAiHandlersAsArray()), successor,
+        Monster monster = new Monster(buildInfo, this.brainProducer.apply(buildInfo), successor,
                 block, tree);
         this.builtCreatures.visit(monster);
     }
@@ -139,7 +163,7 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
         final Statblock block = this.loadStatblock(buildInfo);
         final ConversationTree tree = this.loadConversationTree(buildInfo);
         NonPlayerCharacter npc = new NonPlayerCharacter(buildInfo,
-                this.aiRunner.produceAI(buildInfo.getAiHandlersAsArray()), successor, block, tree);
+                this.brainProducer.apply(buildInfo), successor, block, tree);
         this.builtCreatures.visit(npc);
     }
 
@@ -147,7 +171,7 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
     public void visit(DungeonMasterBuildInfo buildInfo) {
         final Statblock block = this.loadStatblock(buildInfo);
         final ConversationTree tree = this.loadConversationTree(buildInfo);
-        DungeonMaster dm = new DungeonMaster(buildInfo, this.aiRunner.produceAI(buildInfo.getAiHandlersAsArray()),
+        DungeonMaster dm = new DungeonMaster(buildInfo, this.brainProducer.apply(buildInfo),
                 successor, block, tree);
         this.builtCreatures.visit(dm);
     }

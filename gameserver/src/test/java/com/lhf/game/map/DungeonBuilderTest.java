@@ -24,7 +24,7 @@ public class DungeonBuilderTest {
         Truth.assertThat(builderMermaid).isNotEmpty();
         Truth.assertThat(builderMermaid).ignoringCase().contains("Armory");
 
-        Dungeon built = builder.build(null, aiRunner, statblockManager, conversationManager);
+        Dungeon built = builder.build(null, aiRunner, statblockManager, conversationManager, false, false);
         String mermaid = built.toMermaid(false);
         System.out.println(mermaid);
         Truth.assertThat(mermaid).isNotEmpty();

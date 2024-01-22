@@ -1,6 +1,5 @@
 package com.lhf.game.map;
 
-import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -101,6 +100,11 @@ public class Dungeon implements Land {
             }
             this.atlas.connectOneWay(first, toSecond, second, new OneWayDoorway(toSecond));
             return this;
+        }
+
+        @Override
+        public Dungeon quickBuild(CommandChainHandler successor, AIRunner aiRunner) {
+            return build(successor, aiRunner, null, null, true, true);
         }
 
         @Override

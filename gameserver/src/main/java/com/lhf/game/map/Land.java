@@ -1,6 +1,5 @@
 package com.lhf.game.map;
 
-import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -141,6 +140,10 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                 return null;
             }
             return builderAtlas.translate(() -> builtLand.getAtlas(), transformer);
+        }
+
+        public default Land quickBuild(CommandChainHandler successor, AIRunner aiRunner) {
+            return build(successor, aiRunner, null, null, true, true);
         }
 
         public abstract Land build(CommandChainHandler successor, AIRunner aiRunner, StatblockManager statblockManager,

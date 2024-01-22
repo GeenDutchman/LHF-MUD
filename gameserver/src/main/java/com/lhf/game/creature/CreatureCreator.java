@@ -116,7 +116,7 @@ public class CreatureCreator {
 
         builder.setStatblock(monStatblock);
 
-        CreatureFactory factory = new CreatureFactory(null, loader_unloader, null, aiRunner, false, false);
+        CreatureFactory factory = CreatureFactory.fromAIRunner(null, loader_unloader, null, aiRunner, false, false);
         factory.visit(builder);
 
         return factory.getBuiltCreatures().getIMonsters().first();
@@ -124,7 +124,7 @@ public class CreatureCreator {
 
     public static INonPlayerCharacter makeNPC() throws FileNotFoundException {
         INPCBuildInfo builder = NonPlayerCharacter.getNPCBuilder();
-        CreatureFactory factory = new CreatureFactory(null, loader_unloader, null, aiRunner, false, false);
+        CreatureFactory factory = CreatureFactory.fromAIRunner(null, loader_unloader, null, aiRunner, false, false);
         factory.visit(builder);
 
         return factory.getBuiltCreatures().getINpcs().first();
@@ -135,7 +135,7 @@ public class CreatureCreator {
                 .getInstance();
 
         builder.setName(name);
-        CreatureFactory factory = new CreatureFactory(null, loader_unloader, null, aiRunner, false, false);
+        CreatureFactory factory = CreatureFactory.fromAIRunner(null, loader_unloader, null, aiRunner, false, false);
         factory.visit(builder);
 
         return factory.getBuiltCreatures().getDungeonMasters().first();
@@ -157,7 +157,7 @@ public class CreatureCreator {
         }
 
         builder.setVocation(adapter.buildVocation());
-        CreatureFactory factory = new CreatureFactory(null, loader_unloader, null, aiRunner, false, false);
+        CreatureFactory factory = CreatureFactory.fromAIRunner(null, loader_unloader, null, aiRunner, false, false);
         factory.visit(builder);
 
         return factory.getBuiltCreatures().getPlayers().first();

@@ -184,7 +184,7 @@ public class Game implements UserListener, CommandChainHandler {
 		}
 
 		this.controlRoom = dmRoomBuilder.build(this.thirdPower, null, aiRunner, statblockManager,
-				conversationManager);
+				conversationManager, false, false);
 		this.controlRoom.setSuccessor(this.thirdPower);
 		ArrayList<LandBuilder> moreLands = builder.getAdditionalLands();
 		if (moreLands != null) {
@@ -193,7 +193,8 @@ public class Game implements UserListener, CommandChainHandler {
 					continue;
 				}
 				this.controlRoom.addLand(
-						landBuilder.build(this.thirdPower, aiRunner, statblockManager, conversationManager));
+						landBuilder.build(this.thirdPower, aiRunner, statblockManager, conversationManager, false,
+								false));
 			}
 		}
 		this.successor = builder.getServer();

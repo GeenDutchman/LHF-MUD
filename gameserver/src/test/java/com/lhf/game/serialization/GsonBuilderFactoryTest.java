@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import com.google.gson.Gson;
 import com.lhf.game.creature.Monster;
+import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.item.Takeable;
@@ -27,7 +28,7 @@ public class GsonBuilderFactoryTest {
         georgeInventory.addItem(new Longsword());
         georgeInventory.addItem(new Takeable("Sharkbait"));
         Statblock georgeblock = new Statblock.StatblockBuilder().setInventory(georgeInventory).build();
-        Monster.MonsterBuilder builder = Monster.getMonsterBuilder().setName("George").setStatblock(georgeblock);
+        IMonsterBuildInfo builder = Monster.getMonsterBuilder().setName("George").setStatblock(georgeblock);
 
         RoomBuilder roomBuilder = Room.RoomBuilder.getInstance().addItem(new CarnivorousArmor()).addNPCBuilder(builder);
         RoomBuilder nextRoomBuilder = Room.RoomBuilder.getInstance().addItem(new RustyDagger()).setName("Second Room");

@@ -9,6 +9,7 @@ import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NameGenerator;
 import com.lhf.game.creature.statblock.Statblock;
@@ -24,8 +25,8 @@ import com.lhf.game.item.concrete.Chest;
 import com.lhf.game.item.concrete.Dispenser;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.InteractDoor;
-import com.lhf.game.item.concrete.Lever;
 import com.lhf.game.item.concrete.Item;
+import com.lhf.game.item.concrete.Lever;
 import com.lhf.game.item.concrete.equipment.CarnivorousArmor;
 import com.lhf.game.item.concrete.equipment.ChainMail;
 import com.lhf.game.item.concrete.equipment.MantleOfDeath;
@@ -157,14 +158,14 @@ public final class StandardDungeonProducer {
                 treasuryBuilder.addItem(vaultLever);
 
                 // Monsters
-                Monster.MonsterBuilder g1 = Monster.getMonsterBuilder().setName(NameGenerator.Generate("goblin"))
+                IMonsterBuildInfo g1 = Monster.getMonsterBuilder().setName(NameGenerator.Generate("goblin"))
                                 .setStatblock(goblin).useDefaultConversation();
                 historyHallBuilder.addNPCBuilder(g1);
 
-                Monster.MonsterBuilder boss = Monster.getMonsterBuilder().setName("Boss Bear").setStatblock(bugbear);
+                IMonsterBuildInfo boss = Monster.getMonsterBuilder().setName("Boss Bear").setStatblock(bugbear);
                 statueRoomBuilder.addNPCBuilder(boss);
 
-                Monster.MonsterBuilder rightHandMan = Monster.getMonsterBuilder()
+                IMonsterBuildInfo rightHandMan = Monster.getMonsterBuilder()
                                 .setName(NameGenerator.Generate("Right")).setStatblock(hobgoblin);
                 offeringRoomBuilder.addNPCBuilder(rightHandMan);
 

@@ -20,7 +20,8 @@ public class SummonedMonster extends SummonedINonPlayerCharacter<Monster> implem
             AIRunner aiRunner,
             CommandChainHandler successor,
             StatblockManager statblockManager, ConversationManager conversationManager) throws FileNotFoundException {
-        CreatureFactory factory = new CreatureFactory(successor, statblockManager, conversationManager, aiRunner, false,
+        CreatureFactory factory = CreatureFactory.fromAIRunner(successor, statblockManager, conversationManager,
+                aiRunner, false,
                 false);
         factory.visit(builder);
         return new SummonedMonster(factory.getBuiltCreatures().getMonsters().first(), builder.getSummonState(),

@@ -100,6 +100,10 @@ public interface Area
 
         public abstract Collection<SubAreaBuilder<?, ?>> getSubAreasToBuild();
 
+        public default Area quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
+            return this.build(successor, land, aiRunner, null, null, true, true);
+        }
+
         public abstract Area build(CommandChainHandler successor, Land land, AIRunner aiRunner,
                 StatblockManager statblockManager, ConversationManager conversationManager,
                 boolean fallbackNoConversation,

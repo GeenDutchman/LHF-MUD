@@ -178,7 +178,8 @@ public class Room implements Area {
             if (toBuild == null) {
                 return Set.of();
             }
-            CreatureFactory factory = new CreatureFactory(successor, statblockManager, conversationManager, aiRunner,
+            CreatureFactory factory = CreatureFactory.fromAIRunner(successor, statblockManager, conversationManager,
+                    aiRunner,
                     fallbackNoConversation, fallbackDefaultStatblock);
 
             for (final INonPlayerCharacterBuildInfo builder : toBuild) {
@@ -188,6 +189,11 @@ public class Room implements Area {
                 builder.acceptBuildInfoVisitor(factory);
             }
             return Collections.unmodifiableSet(factory.getBuiltCreatures().getINpcs());
+        }
+
+        @Override
+        public Room quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
+            return this.build(successor, land, aiRunner, null, null, true, true);
         }
 
         @Override
