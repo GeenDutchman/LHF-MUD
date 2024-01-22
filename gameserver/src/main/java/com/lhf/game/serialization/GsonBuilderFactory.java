@@ -4,10 +4,26 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import com.lhf.game.EntityEffectSource;
+import com.lhf.game.battle.BattleManager.IBattleManagerBuildInfo;
+import com.lhf.game.creature.CreatureBuildInfo;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.ICreatureBuildInfo;
+import com.lhf.game.creature.DungeonMaster.DungeonMasterBuildInfo;
+import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
+import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
+import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
+import com.lhf.game.creature.Player.PlayerBuildInfo;
 import com.lhf.game.creature.conversation.ConversationPattern;
 import com.lhf.game.creature.conversation.ConversationPatternSerializer;
+import com.lhf.game.creature.intelligence.AIHandler;
+import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler;
+import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
+import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
+import com.lhf.game.creature.intelligence.handlers.RoomExitHandler;
+import com.lhf.game.creature.intelligence.handlers.SilencedHandler;
+import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
+import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.item.AItem;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.EquipableDeserializer;
@@ -33,6 +49,9 @@ import com.lhf.game.map.DungeonEffectSource;
 import com.lhf.game.map.KeyedDoorway;
 import com.lhf.game.map.OneWayDoorway;
 import com.lhf.game.map.RoomEffectSource;
+import com.lhf.game.map.RestArea.IRestAreaBuildInfo;
+import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
+import com.lhf.game.map.SubArea.SubAreaBuilder;
 
 public class GsonBuilderFactory {
     private final GsonBuilder gsonBuilder;
@@ -55,11 +74,31 @@ public class GsonBuilderFactory {
         return this;
     }
 
-    // public GsonBuilderFactory creatureBuilders() {
-    // final RuntimeTypeAdapterFactory<ICreature.CreatureBuilder<?,?>>
-    // creatureBuilderAdapterFactory = RuntimeTypeAdapterFactory
-    // .of(ICreature.CreatureBuilder<?,?>.class, "className", true);
-    // }
+    public GsonBuilderFactory creatureInfoBuilders() {
+        this.conversation();
+        final RuntimeTypeAdapterFactory<AIHandler> aiHandlerAdapterFactory = RuntimeTypeAdapterFactory
+                .of(AIHandler.class, "className", true)
+                .registerSubtype(BattleTurnHandler.class, BattleTurnHandler.class.getName())
+                .registerSubtype(HandleCreatureAffected.class, HandleCreatureAffected.class.getName())
+                .registerSubtype(LewdAIHandler.class, LewdAIHandler.class.getName())
+                .registerSubtype(RoomExitHandler.class, RoomExitHandler.class.getName())
+                .registerSubtype(SpeakOnOtherEntry.class, SpeakOnOtherEntry.class.getName())
+                .registerSubtype(SpokenPromptChunk.class, SpokenPromptChunk.class.getName())
+                .registerSubtype(SilencedHandler.class, SilencedHandler.class.getName())
+                .recognizeSubtypes();
+        this.gsonBuilder.registerTypeAdapterFactory(aiHandlerAdapterFactory);
+        final RuntimeTypeAdapterFactory<ICreatureBuildInfo> creatureBuilderAdapterFactory = RuntimeTypeAdapterFactory
+                .of(ICreatureBuildInfo.class, "className", true)
+                .registerSubtype(CreatureBuildInfo.class, CreatureBuildInfo.class.getName())
+                .registerSubtype(PlayerBuildInfo.class, PlayerBuildInfo.class.getName())
+                .registerSubtype(INonPlayerCharacterBuildInfo.class, INonPlayerCharacterBuildInfo.class.getName())
+                .registerSubtype(DungeonMasterBuildInfo.class, DungeonMasterBuildInfo.class.getName())
+                .registerSubtype(IMonsterBuildInfo.class, IMonsterBuildInfo.class.getName())
+                .registerSubtype(INPCBuildInfo.class, INPCBuildInfo.class.getName())
+                .recognizeSubtypes();
+        this.gsonBuilder.registerTypeAdapterFactory(creatureBuilderAdapterFactory);
+        return this;
+    }
 
     public GsonBuilderFactory doors() {
         final RuntimeTypeAdapterFactory<Doorway> doorwayAdapterFactory = RuntimeTypeAdapterFactory
@@ -73,7 +112,23 @@ public class GsonBuilderFactory {
         return this;
     }
 
+    public GsonBuilderFactory subAreaInfo() {
+        final RuntimeTypeAdapterFactory<ISubAreaBuildInfo> subAreaAdapterFactory = RuntimeTypeAdapterFactory
+                .of(ISubAreaBuildInfo.class, "className", true)
+                .registerSubtype(SubAreaBuilder.class, SubAreaBuilder.class.getName())
+                .registerSubtype(IBattleManagerBuildInfo.class, IBattleManagerBuildInfo.class.getName())
+                .registerSubtype(com.lhf.game.battle.BattleManager.Builder.class,
+                        com.lhf.game.battle.BattleManager.Builder.class.getName())
+                .registerSubtype(IRestAreaBuildInfo.class, IRestAreaBuildInfo.class.getName())
+                .registerSubtype(com.lhf.game.map.RestArea.Builder.class,
+                        com.lhf.game.map.RestArea.Builder.class.getName())
+                .recognizeSubtypes();
+        this.gsonBuilder.registerTypeAdapterFactory(subAreaAdapterFactory);
+        return this;
+    }
+
     public GsonBuilderFactory effects() {
+        this.creatureInfoBuilders();
         RuntimeTypeAdapterFactory<EntityEffectSource> effectSourceAdapter = RuntimeTypeAdapterFactory
                 .of(EntityEffectSource.class, "className", true)
                 .registerSubtype(CreatureEffectSource.class, CreatureEffectSource.class.getName())
@@ -104,7 +159,6 @@ public class GsonBuilderFactory {
 
     public GsonBuilderFactory spells() {
         this.items();
-        this.conversation();
         RuntimeTypeAdapterFactory<SpellEntry> spellEntryAdapter = RuntimeTypeAdapterFactory
                 .of(SpellEntry.class, "className", true)
                 .registerSubtype(CreatureTargetingSpellEntry.class, CreatureTargetingSpellEntry.class.getName())
