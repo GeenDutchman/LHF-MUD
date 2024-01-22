@@ -2,14 +2,11 @@ package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
 import java.util.Map;
-import java.util.function.UnaryOperator;
 
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
-import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.magic.concrete.DMBlessing;
@@ -28,18 +25,6 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     private ConversationTree convoTree = null;
     private transient final HarmMemories harmMemories = HarmMemories.makeMemories(this);
     private String leaderName;
-
-    public static NonPlayerCharacter buildNPC(AbstractNPCBuilder<?, ? extends INonPlayerCharacter> builder,
-            CommandInvoker controller, CommandChainHandler successor,
-            Statblock statblock, ConversationTree converstionTree,
-            UnaryOperator<NonPlayerCharacter> transformer) {
-        NonPlayerCharacter made = new NonPlayerCharacter(builder, controller, successor,
-                statblock, converstionTree);
-        if (transformer != null) {
-            made = transformer.apply(made);
-        }
-        return made;
-    }
 
     protected NonPlayerCharacter(INonPlayerCharacterBuildInfo builder,
             @NotNull CommandInvoker controller, CommandChainHandler successor,

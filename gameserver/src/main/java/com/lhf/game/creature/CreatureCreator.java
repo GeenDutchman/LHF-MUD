@@ -5,7 +5,8 @@ import java.io.FileNotFoundException;
 import java.util.EnumMap;
 import java.util.EnumSet;
 
-import com.lhf.game.creature.Monster.MonsterBuilder;
+import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
+import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.builder.CLIAdaptor;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
@@ -109,28 +110,35 @@ public class CreatureCreator {
             return null;
         }
 
-        MonsterBuilder builder = MonsterBuilder.getInstance();
+        IMonsterBuildInfo builder = IMonsterBuildInfo.getInstance();
 
         builder.setName(adapter.buildCreatureName());
 
         builder.setStatblock(monStatblock);
 
-        return builder.build(aiRunner, null, loader_unloader, null);
+        CreatureFactory factory = new CreatureFactory(null, loader_unloader, null, aiRunner, false, false);
+        factory.visit(builder);
+
+        return factory.getBuiltCreatures().getIMonsters().first();
     }
 
     public static INonPlayerCharacter makeNPC() throws FileNotFoundException {
-        NonPlayerCharacter.NPCBuilder builder = NonPlayerCharacter.getNPCBuilder();
+        INPCBuildInfo builder = NonPlayerCharacter.getNPCBuilder();
+        CreatureFactory factory = new CreatureFactory(null, loader_unloader, null, aiRunner, false, false);
+        factory.visit(builder);
 
-        return builder.build(aiRunner, null, loader_unloader, null);
+        return factory.getBuiltCreatures().getINpcs().first();
     }
 
     public static DungeonMaster makeDM(String name) throws FileNotFoundException {
-        DungeonMaster.DungeonMasterBuilder builder = DungeonMaster.DungeonMasterBuilder
+        DungeonMaster.DungeonMasterBuildInfo builder = DungeonMaster.DungeonMasterBuildInfo
                 .getInstance();
 
         builder.setName(name);
+        CreatureFactory factory = new CreatureFactory(null, loader_unloader, null, aiRunner, false, false);
+        factory.visit(builder);
 
-        return builder.build(aiRunner, null, loader_unloader, null);
+        return factory.getBuiltCreatures().getDungeonMasters().first();
     }
 
     public static Player makePlayer(PlayerCreatorAdaptor adapter) {
@@ -149,10 +157,10 @@ public class CreatureCreator {
         }
 
         builder.setVocation(adapter.buildVocation());
+        CreatureFactory factory = new CreatureFactory(null, loader_unloader, null, aiRunner, false, false);
+        factory.visit(builder);
 
-        Player p = builder.build(null);
-
-        return p;
+        return factory.getBuiltCreatures().getPlayers().first();
 
     }
 

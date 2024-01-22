@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.creature.DungeonMaster.DungeonMasterBuildInfo;
 import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
@@ -140,6 +141,15 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
         NonPlayerCharacter npc = new NonPlayerCharacter(buildInfo,
                 this.aiRunner.produceAI(buildInfo.getAiHandlersAsArray()), successor, block, tree);
         this.builtCreatures.visit(npc);
+    }
+
+    @Override
+    public void visit(DungeonMasterBuildInfo buildInfo) {
+        final Statblock block = this.loadStatblock(buildInfo);
+        final ConversationTree tree = this.loadConversationTree(buildInfo);
+        DungeonMaster dm = new DungeonMaster(buildInfo, this.aiRunner.produceAI(buildInfo.getAiHandlersAsArray()),
+                successor, block, tree);
+        this.builtCreatures.visit(dm);
     }
 
     @Override

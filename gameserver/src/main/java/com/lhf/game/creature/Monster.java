@@ -1,32 +1,15 @@
 package com.lhf.game.creature;
 
-import java.io.FileNotFoundException;
 import java.util.Objects;
-import java.util.function.UnaryOperator;
 
 import com.lhf.game.creature.conversation.ConversationTree;
-import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.StatblockManager;
-import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
 
 public class Monster extends NonPlayerCharacter implements IMonster {
     private final long monsterNumber;
-
-    public static Monster buildMonster(MonsterBuilder builder,
-            CommandInvoker controller, CommandChainHandler successor,
-            Statblock statblock, ConversationTree converstionTree,
-            UnaryOperator<Monster> transformer) {
-        Monster made = new Monster(builder, controller, successor, statblock,
-                converstionTree);
-        if (transformer != null) {
-            made = transformer.apply(made);
-        }
-        return made;
-    }
 
     protected Monster(IMonsterBuildInfo builder,
             @NotNull CommandInvoker controller, CommandChainHandler successor,
@@ -35,8 +18,8 @@ public class Monster extends NonPlayerCharacter implements IMonster {
         this.monsterNumber = builder.getSerialNumber();
     }
 
-    public static MonsterBuilder getMonsterBuilder() {
-        return new MonsterBuilder();
+    public static IMonsterBuildInfo getMonsterBuilder() {
+        return new IMonsterBuildInfo();
     }
 
     @Override

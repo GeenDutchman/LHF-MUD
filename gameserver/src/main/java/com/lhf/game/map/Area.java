@@ -1,6 +1,5 @@
 package com.lhf.game.map;
 
-import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,6 +19,7 @@ import com.lhf.game.creature.CreaturePartitionSetVisitor;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
+import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
@@ -53,19 +53,6 @@ public interface Area
         extends ItemContainer, CreatureContainer, CommandChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
 
     public interface AreaBuilder extends Serializable {
-
-        @FunctionalInterface
-        public static interface PostBuildRoomOperations<A extends Area> {
-            public abstract void accept(A area) throws FileNotFoundException;
-
-            public default PostBuildRoomOperations<A> andThen(PostBuildRoomOperations<? super A> after) {
-                Objects.requireNonNull(after);
-                return (t) -> {
-                    this.accept(t);
-                    after.accept(t);
-                };
-            }
-        }
 
         public final static class AreaBuilderID implements Comparable<AreaBuilderID> {
             private final UUID id = UUID.randomUUID();
@@ -109,20 +96,18 @@ public interface Area
 
         public abstract Collection<IItem> getItems();
 
-        public abstract Collection<INonPlayerCharacter.AbstractNPCBuilder<?, ?>> getNPCsToBuild();
+        public abstract Collection<INonPlayerCharacterBuildInfo> getNPCsToBuild();
 
         public abstract Collection<SubAreaBuilder<?, ?>> getSubAreasToBuild();
 
-        public abstract Area quickBuild(CommandChainHandler successor, Land land,
-                AIRunner aiRunner);
-
         public abstract Area build(CommandChainHandler successor, Land land, AIRunner aiRunner,
-                StatblockManager statblockManager,
-                ConversationManager conversationManager) throws FileNotFoundException;
+                StatblockManager statblockManager, ConversationManager conversationManager,
+                boolean fallbackNoConversation,
+                boolean fallbackDefaultStatblock);
 
         public default Area build(Land land, AIRunner aiRunner, StatblockManager statblockManager,
-                ConversationManager conversationManager) throws FileNotFoundException {
-            return this.build(land, land, aiRunner, statblockManager, conversationManager);
+                ConversationManager conversationManager) {
+            return this.build(land, land, aiRunner, statblockManager, conversationManager, true, true);
         }
     }
 

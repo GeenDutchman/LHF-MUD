@@ -44,6 +44,10 @@ public interface IMonster extends INonPlayerCharacter {
             this.id = new CreatureBuilderID();
         }
 
+        public static IMonsterBuildInfo getInstance() {
+            return new IMonsterBuildInfo();
+        }
+
         @Override
         public String getClassName() {
             return this.className;

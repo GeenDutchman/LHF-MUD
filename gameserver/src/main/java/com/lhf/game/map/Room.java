@@ -1,6 +1,5 @@
 package com.lhf.game.map;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,20 +21,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.EntityEffect;
+import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
-import com.lhf.game.creature.INonPlayerCharacter.AbstractNPCBuilder;
+import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
-import com.lhf.game.item.IItem;
 import com.lhf.game.item.AItem;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemNoOpVisitor;
 import com.lhf.game.item.ItemVisitor;
 import com.lhf.game.item.concrete.Corpse;
-import com.lhf.game.map.Area.AreaBuilder.PostBuildRoomOperations;
 import com.lhf.game.map.SubArea.SubAreaBuilder;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -84,7 +83,7 @@ public class Room implements Area {
         private String name;
         private String description;
         private List<IItem> items;
-        private Set<INonPlayerCharacter.AbstractNPCBuilder<?, ?>> npcsToBuild;
+        private Set<INonPlayerCharacterBuildInfo> npcsToBuild;
         private Set<SubAreaBuilder<?, ?>> subAreasToBuild;
 
         private RoomBuilder() {
@@ -126,7 +125,7 @@ public class Room implements Area {
             return this;
         }
 
-        public RoomBuilder addNPCBuilder(INonPlayerCharacter.AbstractNPCBuilder<?, ?> builder) {
+        public RoomBuilder addNPCBuilder(INonPlayerCharacterBuildInfo builder) {
             if (this.npcsToBuild == null) {
                 this.npcsToBuild = new HashSet<>();
             }
@@ -137,7 +136,7 @@ public class Room implements Area {
         }
 
         @Override
-        public Collection<AbstractNPCBuilder<?, ?>> getNPCsToBuild() {
+        public Collection<INonPlayerCharacterBuildInfo> getNPCsToBuild() {
             return this.npcsToBuild;
         }
 
@@ -171,58 +170,35 @@ public class Room implements Area {
             return this.name != null ? this.name : "Room " + UUID.randomUUID().toString();
         }
 
-        protected Set<INonPlayerCharacter> quickBuildCreatures(AIRunner aiRunner, Room successor) {
-            Collection<AbstractNPCBuilder<?, ?>> toBuild = this.getNPCsToBuild();
-            if (toBuild == null) {
-                return Set.of();
-            }
-            TreeSet<INonPlayerCharacter> built = new TreeSet<>();
-            for (final AbstractNPCBuilder<?, ?> builder : toBuild) {
-                if (builder == null) {
-                    continue;
-                }
-                built.add(builder.quickBuild(aiRunner, successor));
-            }
-            return Collections.unmodifiableSet(built);
-        }
-
-        @Override
-        public Room quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
-            this.logger.log(Level.INFO, () -> String.format("QUICK Building room '%s'", this.name));
-            return Room.quickBuilder(this, () -> land, () -> successor, () -> (room) -> {
-                final Set<INonPlayerCharacter> creaturesBuilt = this.quickBuildCreatures(aiRunner, room);
-                room.addCreatures(creaturesBuilt, true);
-                for (final SubAreaBuilder<?, ?> subAreaBuilder : this.getSubAreasToBuild()) {
-                    room.addSubArea(subAreaBuilder);
-                }
-            });
-        }
-
         protected Set<INonPlayerCharacter> buildCreatures(
                 AIRunner aiRunner, Room successor, StatblockManager statblockManager,
-                ConversationManager conversationManager) throws FileNotFoundException {
-            Collection<AbstractNPCBuilder<?, ?>> toBuild = this.getNPCsToBuild();
+                ConversationManager conversationManager, boolean fallbackNoConversation,
+                boolean fallbackDefaultStatblock) {
+            Collection<INonPlayerCharacterBuildInfo> toBuild = this.getNPCsToBuild();
             if (toBuild == null) {
                 return Set.of();
             }
-            TreeSet<INonPlayerCharacter> built = new TreeSet<>();
-            for (final AbstractNPCBuilder<?, ?> builder : toBuild) {
+            CreatureFactory factory = new CreatureFactory(successor, statblockManager, conversationManager, aiRunner,
+                    fallbackNoConversation, fallbackDefaultStatblock);
+
+            for (final INonPlayerCharacterBuildInfo builder : toBuild) {
                 if (builder == null) {
                     continue;
                 }
-                built.add(builder.build(aiRunner, successor, statblockManager, conversationManager));
+                builder.acceptBuildInfoVisitor(factory);
             }
-            return Collections.unmodifiableSet(built);
+            return Collections.unmodifiableSet(factory.getBuiltCreatures().getINpcs());
         }
 
         @Override
         public Room build(CommandChainHandler successor, Land land, AIRunner aiRunner,
-                StatblockManager statblockManager, ConversationManager conversationManager)
-                throws FileNotFoundException {
+                StatblockManager statblockManager, ConversationManager conversationManager,
+                boolean fallbackNoConversation,
+                boolean fallbackDefaultStatblock) {
             this.logger.log(Level.INFO, () -> String.format("Building room '%s'", this.name));
             return Room.fromBuilder(this, () -> land, () -> successor, () -> (room) -> {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.buildCreatures(aiRunner, room, statblockManager,
-                        conversationManager);
+                        conversationManager, fallbackNoConversation, fallbackDefaultStatblock);
                 room.addCreatures(creaturesBuilt, false);
                 for (final SubAreaBuilder<?, ?> subAreaBuilder : this.getSubAreasToBuild()) {
                     room.addSubArea(subAreaBuilder);
@@ -249,20 +225,7 @@ public class Room implements Area {
 
     static Room fromBuilder(RoomBuilder builder, Supplier<Land> landSupplier,
             Supplier<CommandChainHandler> successorSupplier,
-            Supplier<PostBuildRoomOperations<? super Room>> postOperations)
-            throws FileNotFoundException {
-        Room created = new Room(builder, landSupplier, successorSupplier);
-        if (postOperations != null) {
-            PostBuildRoomOperations<? super Room> postOp = postOperations.get();
-            if (postOp != null) {
-                postOp.accept(created);
-            }
-        }
-        return created;
-    }
-
-    static Room quickBuilder(RoomBuilder builder, Supplier<Land> landSupplier,
-            Supplier<CommandChainHandler> successorSupplier, Supplier<Consumer<? super Room>> postOperations) {
+            Supplier<Consumer<? super Room>> postOperations) {
         Room created = new Room(builder, landSupplier, successorSupplier);
         if (postOperations != null) {
             Consumer<? super Room> postOp = postOperations.get();

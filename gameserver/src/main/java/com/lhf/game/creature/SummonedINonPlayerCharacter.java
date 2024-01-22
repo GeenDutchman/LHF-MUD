@@ -18,7 +18,7 @@ import java.util.logging.Level;
 
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.EntityEffect;
-import com.lhf.game.creature.INonPlayerCharacter.AbstractNPCBuilder.SummonData;
+import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo.SummonData;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.dice.MultiRollResult;
@@ -27,9 +27,9 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.AItem;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.messages.events.GameEvent;
 

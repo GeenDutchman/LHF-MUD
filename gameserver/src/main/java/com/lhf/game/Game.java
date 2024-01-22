@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
@@ -223,7 +224,9 @@ public class Game implements UserListener, CommandChainHandler {
 			if (selected != null) {
 				Player.PlayerBuildInfo builder = Player.PlayerBuildInfo.getInstance(user);
 				builder.setVocation(selected);
-				Player player = builder.build(this);
+				CreatureFactory factory = new CreatureFactory();
+				factory.visit(builder);
+				Player player = factory.getBuiltCreatures().getPlayers().first();
 				this.controlRoom.addNewPlayer(player);
 				return;
 			}

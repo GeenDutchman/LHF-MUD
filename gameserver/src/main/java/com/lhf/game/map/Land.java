@@ -66,19 +66,6 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
     public interface LandBuilder extends Serializable {
 
-        @FunctionalInterface
-        public static interface PostBuildLandOperations<L extends Land> {
-            public abstract void accept(L land) throws FileNotFoundException;
-
-            public default PostBuildLandOperations<L> andThen(PostBuildLandOperations<? super L> after) {
-                Objects.requireNonNull(after);
-                return (t) -> {
-                    this.accept(t);
-                    after.accept(t);
-                };
-            }
-        }
-
         public final static class LandBuilderID implements Comparable<LandBuilderID> {
             private final UUID id = UUID.randomUUID();
 
@@ -139,29 +126,14 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
 
         public abstract AreaBuilderAtlas getAtlas();
 
-        public default Map<AreaBuilderID, UUID> quickTranslateAtlas(Land builtLand, AIRunner aiRunner) {
-            final Function<AreaBuilder, Area> transformer = (builder) -> {
-                return builder.quickBuild(builtLand, builtLand, aiRunner);
-            };
-
-            final AreaBuilderAtlas builderAtlas = this.getAtlas();
-            if (builderAtlas == null) {
-                return null;
-            }
-            return builderAtlas.translate(() -> builtLand.getAtlas(), transformer);
-        }
-
         public default Map<AreaBuilderID, UUID> translateAtlas(Land builtLand, AIRunner aiRunner,
-                StatblockManager statblockManager, ConversationManager conversationManager) {
+                StatblockManager statblockManager, ConversationManager conversationManager,
+                boolean fallbackNoConversation,
+                boolean fallbackDefaultStatblock) {
 
             final Function<AreaBuilder, Area> transformer = (builder) -> {
-                try {
-                    return builder.build(builtLand, aiRunner,
-                            statblockManager, conversationManager);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                    throw new IllegalStateException("Cannot find necessary file!", e);
-                }
+                return builder.build(builtLand, builtLand, aiRunner,
+                        statblockManager, conversationManager, fallbackNoConversation, fallbackDefaultStatblock);
             };
 
             final AreaBuilderAtlas builderAtlas = this.getAtlas();
@@ -170,11 +142,11 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             }
             return builderAtlas.translate(() -> builtLand.getAtlas(), transformer);
         }
-
-        public abstract Land quickBuild(CommandChainHandler successor, AIRunner aiRunner);
 
         public abstract Land build(CommandChainHandler successor, AIRunner aiRunner, StatblockManager statblockManager,
-                ConversationManager conversationManager) throws FileNotFoundException;
+                ConversationManager conversationManager,
+                boolean fallbackNoConversation,
+                boolean fallbackDefaultStatblock);
 
     }
 
