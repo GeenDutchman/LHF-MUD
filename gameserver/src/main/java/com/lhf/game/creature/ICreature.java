@@ -1,6 +1,5 @@
 package com.lhf.game.creature;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -24,6 +23,7 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
+import com.lhf.game.creature.ICreature.ICreatureBuildInfo;
 import com.lhf.game.creature.commandHandlers.EquipHandler;
 import com.lhf.game.creature.commandHandlers.InventoryHandler;
 import com.lhf.game.creature.commandHandlers.StatusHandler;
@@ -31,9 +31,7 @@ import com.lhf.game.creature.commandHandlers.UnequipHandler;
 import com.lhf.game.creature.inventory.EquipmentOwner;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.game.creature.statblock.AttributeBlock;
-import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.Vocation;
-import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD20;
@@ -187,55 +185,6 @@ public interface ICreature
         public abstract void assign();
     }
 
-    public interface ICreatureBuilder extends Serializable {
-        public final static class CreatureBuilderID implements Comparable<CreatureBuilderID> {
-            private final UUID id = UUID.randomUUID();
-
-            public UUID getId() {
-                return id;
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(id);
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                if (this == obj)
-                    return true;
-                if (!(obj instanceof CreatureBuilderID))
-                    return false;
-                CreatureBuilderID other = (CreatureBuilderID) obj;
-                return Objects.equals(id, other.id);
-            }
-
-            @Override
-            public int compareTo(CreatureBuilderID arg0) {
-                return this.id.compareTo(arg0.id);
-            }
-
-        }
-
-        public String getClassName();
-
-        public CreatureBuilderID getCreatureBuilderID();
-
-        public String getName();
-
-        public CreatureFaction getFaction();
-
-        public VocationName getVocation();
-
-        public Integer getVocationLevel();
-
-        public String getStatblockName();
-
-        public Statblock getStatblock();
-
-        public Corpse getCorpse();
-    }
-
     /**
      * Gets the {@link com.lhf.server.client.CommandInvoker Controller}
      * for this Creature
@@ -324,7 +273,7 @@ public interface ICreature
      * @deprecated
      *             Changing the attributes wholesale during run is not good.
      *             <p>
-     *             Use {@link com.lhf.game.creature.CreatureBuilder
+     *             Use {@link com.lhf.game.creature.CreatureBuildInfo
      *             CreatureBuilder} to change the attributes of a Creature being
      *             built
      * @param attributes

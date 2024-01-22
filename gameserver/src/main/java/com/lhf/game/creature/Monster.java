@@ -16,84 +16,6 @@ import com.lhf.server.interfaces.NotNull;
 public class Monster extends NonPlayerCharacter implements IMonster {
     private final long monsterNumber;
 
-    public static class MonsterBuilder extends INonPlayerCharacter.AbstractNPCBuilder<MonsterBuilder, Monster> {
-        private static transient long serialNumber = 0;
-        private transient long monsterNumber = 0;
-
-        private MonsterBuilder() {
-            super();
-            this.setFaction(CreatureFaction.MONSTER);
-        }
-
-        public static MonsterBuilder getInstance() {
-            return new MonsterBuilder();
-        }
-
-        @Override
-        public MonsterBuilder makeCopy() {
-            MonsterBuilder monsterBuilder = new MonsterBuilder();
-            monsterBuilder.copyFrom(this);
-            return monsterBuilder;
-        }
-
-        @Override
-        protected MonsterBuilder getThis() {
-            return this;
-        }
-
-        @Override
-        public MonsterBuilder useDefaultConversation() {
-            this.setConversationFileName(IMonster.defaultConvoTreeName);
-            return this.getThis();
-        }
-
-        private synchronized void nextSerial() {
-            MonsterBuilder.serialNumber++;
-            this.monsterNumber = MonsterBuilder.serialNumber;
-        }
-
-        public long getMonsterNumber() {
-            if (this.monsterNumber == 0) {
-                this.nextSerial();
-            }
-            return this.monsterNumber;
-        }
-
-        @Override
-        public Monster quickBuild(BasicAI basicAI, CommandChainHandler successor) {
-            Statblock block = this.getStatblock();
-            if (block == null) {
-                this.useBlankStatblock();
-            }
-            if (basicAI == null) {
-                basicAI = IMonster.defaultAIRunner.produceAI(getAiHandlersAsArray());
-            }
-            Monster monster = Monster.buildMonster(this, basicAI, successor, this.getStatblock(),
-                    null, null);
-            basicAI.setNPC(monster);
-            return monster;
-        }
-
-        @Override
-        public Monster build(CommandInvoker controller,
-                CommandChainHandler successor, StatblockManager statblockManager,
-                UnaryOperator<MonsterBuilder> composedlazyLoaders) throws FileNotFoundException {
-            if (statblockManager != null) {
-                this.loadStatblock(statblockManager);
-            }
-            if (composedlazyLoaders != null) {
-                composedlazyLoaders.apply(this.getThis());
-            }
-            return Monster.buildMonster(this, controller, successor, this.getStatblock(),
-                    this.getConversationTree(), null);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return super.equals(obj) && obj instanceof MonsterBuilder;
-        }
-    }
-
     public static Monster buildMonster(MonsterBuilder builder,
             CommandInvoker controller, CommandChainHandler successor,
             Statblock statblock, ConversationTree converstionTree,
@@ -106,11 +28,11 @@ public class Monster extends NonPlayerCharacter implements IMonster {
         return made;
     }
 
-    protected Monster(MonsterBuilder builder,
+    protected Monster(IMonsterBuildInfo builder,
             @NotNull CommandInvoker controller, CommandChainHandler successor,
             @NotNull Statblock statblock, ConversationTree conversationTree) {
         super(builder, controller, successor, statblock, conversationTree);
-        this.monsterNumber = builder.getMonsterNumber();
+        this.monsterNumber = builder.getSerialNumber();
     }
 
     public static MonsterBuilder getMonsterBuilder() {

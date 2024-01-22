@@ -332,7 +332,7 @@ public class DMRoom extends Room {
         if (this.filterCreatures(EnumSet.of(CreatureContainer.CreatureFilters.TYPE), null, null, null, null,
                 DungeonMaster.class, null).size() < 2) {
             this.log(Level.INFO, () -> "Conditions met to create and add Player automatically");
-            return this.addNewPlayer(Player.PlayerBuilder.getInstance(user).build(null));
+            return this.addNewPlayer(Player.PlayerBuildInfo.getInstance(user).build(null));
         }
         boolean added = this.users.add(user);
         if (added) {
@@ -418,7 +418,7 @@ public class DMRoom extends Room {
                     }
                 }
                 Corpse corpse = (Corpse) maybeCorpse.get();
-                Player player = Player.PlayerBuilder.getInstance(user).setVocation(dmRoomEffect.getVocation())
+                Player player = Player.PlayerBuildInfo.getInstance(user).setVocation(dmRoomEffect.getVocation())
                         .setCorpse(corpse).build(null);
                 this.removeItem(corpse);
                 this.addNewPlayer(player);

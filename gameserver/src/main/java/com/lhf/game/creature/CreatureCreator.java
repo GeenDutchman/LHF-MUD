@@ -134,7 +134,7 @@ public class CreatureCreator {
     }
 
     public static Player makePlayer(PlayerCreatorAdaptor adapter) {
-        Player.PlayerBuilder builder = Player.PlayerBuilder.getInstance(adapter.buildUser());
+        Player.PlayerBuildInfo builder = Player.PlayerBuildInfo.getInstance(adapter.buildUser());
 
         builder.setStatblock(CreatureCreator.makeStatblock(adapter));
 

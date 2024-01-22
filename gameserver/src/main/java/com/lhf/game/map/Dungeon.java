@@ -335,7 +335,7 @@ public class Dungeon implements Land {
         boolean removed = this.removeCreature(creature);
 
         if (creature != null && creature instanceof Player oldLife) {
-            Player nextLife = Player.PlayerBuilder.getInstance(oldLife.getUser())
+            Player nextLife = Player.PlayerBuildInfo.getInstance(oldLife.getUser())
                     .setVocation(oldLife.getVocation().resetLevel())
                     .build(this.getStartingArea());
             oldLife.disconnectController(); // events will now not go anywhere

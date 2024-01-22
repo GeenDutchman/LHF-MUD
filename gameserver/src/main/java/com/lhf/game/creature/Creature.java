@@ -63,7 +63,7 @@ public abstract class Creature implements ICreature {
     private transient Map<AMessageType, CommandHandler> cmds;
     private transient final Logger logger;
 
-    protected Creature(ICreature.CreatureBuilder<?, ? extends ICreature> builder,
+    protected Creature(ICreatureBuildInfo builder,
             @NotNull CommandInvoker controller, CommandChainHandler successor,
             @NotNull Statblock statblock) {
         this.gameEventProcessorID = new GameEventProcessorID();

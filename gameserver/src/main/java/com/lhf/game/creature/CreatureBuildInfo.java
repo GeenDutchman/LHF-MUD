@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.util.Objects;
 
 import com.lhf.game.ItemContainer;
-import com.lhf.game.creature.ICreature.ICreatureBuilder;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation;
@@ -15,10 +14,10 @@ import com.lhf.game.item.concrete.Corpse;
 /**
  * Builder pattern root for Creature
  */
-public final class CreatureBuilder implements ICreatureBuilder {
+public final class CreatureBuildInfo implements ICreatureBuildInfo {
 
     private final String className;
-    protected final transient CreatureBuilderID id;
+    protected final CreatureBuilderID id;
     protected String name;
     protected CreatureFaction faction;
     protected VocationName vocation;
@@ -27,7 +26,7 @@ public final class CreatureBuilder implements ICreatureBuilder {
     protected Statblock statblock;
     protected Corpse corpse;
 
-    protected CreatureBuilder() {
+    protected CreatureBuildInfo() {
         this.className = this.getClass().getName();
         this.id = new CreatureBuilderID();
         this.name = null;
@@ -39,7 +38,7 @@ public final class CreatureBuilder implements ICreatureBuilder {
         this.corpse = null;
     }
 
-    public CreatureBuilder(CreatureBuilder other) {
+    public CreatureBuildInfo(CreatureBuildInfo other) {
         this.className = other.getClassName();
         this.id = new CreatureBuilderID();
         this.name = new String(other.name);
@@ -64,7 +63,7 @@ public final class CreatureBuilder implements ICreatureBuilder {
         return this.id;
     }
 
-    public CreatureBuilder setName(String name) {
+    public CreatureBuildInfo setName(String name) {
         this.name = name;
         return this;
     }
@@ -81,7 +80,7 @@ public final class CreatureBuilder implements ICreatureBuilder {
         return this.name;
     }
 
-    public CreatureBuilder setFaction(CreatureFaction faction) {
+    public CreatureBuildInfo setFaction(CreatureFaction faction) {
         this.faction = faction;
         return this;
     }
@@ -100,7 +99,7 @@ public final class CreatureBuilder implements ICreatureBuilder {
         return this.faction;
     }
 
-    public CreatureBuilder setVocation(Vocation vocation) {
+    public CreatureBuildInfo setVocation(Vocation vocation) {
         if (vocation == null) {
             this.vocation = null;
             this.vocationLevel = null;
@@ -111,12 +110,12 @@ public final class CreatureBuilder implements ICreatureBuilder {
         return this;
     }
 
-    public CreatureBuilder setVocation(VocationName vocationName) {
+    public CreatureBuildInfo setVocation(VocationName vocationName) {
         this.vocation = vocationName;
         return this;
     }
 
-    public CreatureBuilder setVocationLevel(int level) {
+    public CreatureBuildInfo setVocationLevel(int level) {
         this.vocationLevel = level;
         return this;
     }
@@ -129,7 +128,7 @@ public final class CreatureBuilder implements ICreatureBuilder {
         return this.vocationLevel;
     }
 
-    public CreatureBuilder setStatblock(Statblock statblock) {
+    public CreatureBuildInfo setStatblock(Statblock statblock) {
         this.statblock = statblock;
         if (this.statblock != null) {
             this.statblockName = this.statblock.getCreatureRace();
@@ -137,7 +136,7 @@ public final class CreatureBuilder implements ICreatureBuilder {
         return this;
     }
 
-    public CreatureBuilder setStatblockName(String statblockName) {
+    public CreatureBuildInfo setStatblockName(String statblockName) {
         this.statblockName = statblockName;
         if (this.statblock != null && !this.statblock.getCreatureRace().equals(statblockName)) {
             this.statblock = null;
@@ -178,7 +177,7 @@ public final class CreatureBuilder implements ICreatureBuilder {
         return this.statblock;
     }
 
-    public CreatureBuilder useBlankStatblock() {
+    public CreatureBuildInfo useBlankStatblock() {
         this.setStatblock(Statblock.getBuilder().build());
         return this;
     }
@@ -187,13 +186,18 @@ public final class CreatureBuilder implements ICreatureBuilder {
         return this.statblock;
     }
 
-    public CreatureBuilder setCorpse(Corpse corpse) {
+    public CreatureBuildInfo setCorpse(Corpse corpse) {
         this.corpse = corpse;
         return this;
     }
 
     public Corpse getCorpse() {
         return this.corpse;
+    }
+
+    @Override
+    public void acceptBuildInfoVisitor(ICreatureBuildInfoVisitor visitor) {
+        visitor.visit(this);
     }
 
     @Override
@@ -205,9 +209,9 @@ public final class CreatureBuilder implements ICreatureBuilder {
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-        if (!(obj instanceof CreatureBuilder))
+        if (!(obj instanceof CreatureBuildInfo))
             return false;
-        CreatureBuilder other = (CreatureBuilder) obj;
+        CreatureBuildInfo other = (CreatureBuildInfo) obj;
         return Objects.equals(id, other.id);
     }
 

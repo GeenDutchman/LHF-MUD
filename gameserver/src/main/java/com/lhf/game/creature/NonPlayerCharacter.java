@@ -21,65 +21,8 @@ import com.lhf.server.interfaces.NotNull;
 
 public class NonPlayerCharacter extends Creature implements INonPlayerCharacter {
 
-    public static class NPCBuilder extends INonPlayerCharacter.AbstractNPCBuilder<NPCBuilder, NonPlayerCharacter> {
-        private NPCBuilder() {
-            super();
-        }
-
-        @Override
-        protected NPCBuilder getThis() {
-            return this;
-        }
-
-        public static NPCBuilder getInstance() {
-            return new NPCBuilder();
-        }
-
-        @Override
-        public NPCBuilder makeCopy() {
-            NPCBuilder npcBuilder = new NPCBuilder();
-            npcBuilder.copyFrom(this);
-            return npcBuilder;
-        }
-
-        @Override
-        public NonPlayerCharacter quickBuild(BasicAI basicAI, CommandChainHandler successor) {
-            Statblock block = this.getStatblock();
-            if (block == null) {
-                this.useBlankStatblock();
-            }
-            if (basicAI == null) {
-                basicAI = INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
-            }
-            NonPlayerCharacter npc = NonPlayerCharacter.buildNPC(this, basicAI, successor, this.getStatblock(),
-                    null, null);
-            basicAI.setNPC(npc);
-            return npc;
-        }
-
-        @Override
-        public NonPlayerCharacter build(CommandInvoker controller,
-                CommandChainHandler successor, StatblockManager statblockManager,
-                UnaryOperator<NPCBuilder> composedlazyLoaders) throws FileNotFoundException {
-            if (statblockManager != null) {
-                this.loadStatblock(statblockManager);
-            }
-            if (composedlazyLoaders != null) {
-                composedlazyLoaders.apply(this.getThis());
-            }
-            return NonPlayerCharacter.buildNPC(this, controller, successor, this.getStatblock(),
-                    this.getConversationTree(), null);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return super.equals(obj) && obj instanceof NPCBuilder;
-        }
-
-    }
-
-    public static NPCBuilder getNPCBuilder() {
-        return new NPCBuilder();
+    public static INPCBuildInfo getNPCBuilder() {
+        return new INPCBuildInfo();
     }
 
     private ConversationTree convoTree = null;
@@ -98,7 +41,7 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
         return made;
     }
 
-    protected NonPlayerCharacter(AbstractNPCBuilder<?, ? extends INonPlayerCharacter> builder,
+    protected NonPlayerCharacter(INonPlayerCharacterBuildInfo builder,
             @NotNull CommandInvoker controller, CommandChainHandler successor,
             @NotNull Statblock statblock, ConversationTree conversationTree) {
         super(builder, controller, successor, statblock);

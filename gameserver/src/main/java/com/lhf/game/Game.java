@@ -221,7 +221,7 @@ public class Game implements UserListener, CommandChainHandler {
 		if (vocationRequest != null && vocationRequest.length() > 0) {
 			Vocation selected = VocationFactory.getVocation(vocationRequest);
 			if (selected != null) {
-				Player.PlayerBuilder builder = Player.PlayerBuilder.getInstance(user);
+				Player.PlayerBuildInfo builder = Player.PlayerBuildInfo.getInstance(user);
 				builder.setVocation(selected);
 				Player player = builder.build(this);
 				this.controlRoom.addNewPlayer(player);
