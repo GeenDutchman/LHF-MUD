@@ -118,6 +118,11 @@ public class Player extends Creature {
             return creatureBuilder.loadStatblock(statblockManager);
         }
 
+        @Override
+        public Statblock loadBlankStatblock() {
+            return creatureBuilder.loadBlankStatblock();
+        }
+
         public PlayerBuildInfo useBlankStatblock() {
             creatureBuilder.useBlankStatblock();
             return this;

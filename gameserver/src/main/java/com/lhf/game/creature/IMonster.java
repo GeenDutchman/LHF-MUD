@@ -73,7 +73,8 @@ public interface IMonster extends INonPlayerCharacter {
             return this;
         }
 
-        public ConversationTree loadConversationTree(ConversationManager conversationManager) {
+        public ConversationTree loadConversationTree(ConversationManager conversationManager)
+                throws FileNotFoundException {
             return iNPCBuilder.loadConversationTree(conversationManager);
         }
 
@@ -188,6 +189,11 @@ public interface IMonster extends INonPlayerCharacter {
 
         public Statblock loadStatblock(StatblockManager statblockManager) throws FileNotFoundException {
             return iNPCBuilder.loadStatblock(statblockManager);
+        }
+
+        @Override
+        public Statblock loadBlankStatblock() {
+            return iNPCBuilder.loadBlankStatblock();
         }
 
         public IMonsterBuildInfo useBlankStatblock() {

@@ -1,10 +1,12 @@
 package com.lhf.game.creature;
 
+import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
 import com.lhf.game.creature.statblock.Statblock;
+import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.item.concrete.Corpse;
@@ -54,6 +56,10 @@ public interface ICreatureBuildInfo extends Serializable {
     public String getStatblockName();
 
     public Statblock getStatblock();
+
+    public Statblock loadStatblock(StatblockManager statblockManager) throws FileNotFoundException;
+
+    public Statblock loadBlankStatblock();
 
     public Corpse getCorpse();
 

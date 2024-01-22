@@ -177,8 +177,14 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         return this.statblock;
     }
 
+    public Statblock loadBlankStatblock() {
+        final Statblock blank = Statblock.getBuilder().build();
+        this.setStatblock(blank);
+        return blank;
+    }
+
     public CreatureBuildInfo useBlankStatblock() {
-        this.setStatblock(Statblock.getBuilder().build());
+        this.loadBlankStatblock();
         return this;
     }
 

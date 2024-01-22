@@ -244,7 +244,8 @@ public interface INonPlayerCharacter extends ICreature {
 
         public String getConversationFileName();
 
-        public ConversationTree loadConversationTree(ConversationManager conversationManager);
+        public ConversationTree loadConversationTree(ConversationManager conversationManager)
+                throws FileNotFoundException;
 
         public ConversationTree getConversationTree();
 
@@ -335,19 +336,14 @@ public interface INonPlayerCharacter extends ICreature {
             return this;
         }
 
-        public ConversationTree loadConversationTree(ConversationManager conversationManager) {
+        public ConversationTree loadConversationTree(ConversationManager conversationManager)
+                throws FileNotFoundException {
             String filename = this.getConversationFileName();
             if (this.conversationTree == null && filename != null) {
                 if (conversationManager == null) {
                     throw new IllegalArgumentException("Cannot create conversation Tree without converation manager");
                 }
-                try {
-                    this.setConversationTree(conversationManager.convoTreeFromFile(filename));
-                } catch (FileNotFoundException e) {
-                    System.err.printf("Cannot load that convo file '%s'\n", filename);
-                    e.printStackTrace();
-                    this.conversationTree = null;
-                }
+                this.setConversationTree(conversationManager.convoTreeFromFile(filename));
             }
             return this.conversationTree;
         }
@@ -507,6 +503,11 @@ public interface INonPlayerCharacter extends ICreature {
 
         public Statblock loadStatblock(StatblockManager statblockManager) throws FileNotFoundException {
             return creatureBuilder.loadStatblock(statblockManager);
+        }
+
+        @Override
+        public Statblock loadBlankStatblock() {
+            return creatureBuilder.loadBlankStatblock();
         }
 
         public INPCBuildInfo useBlankStatblock() {
