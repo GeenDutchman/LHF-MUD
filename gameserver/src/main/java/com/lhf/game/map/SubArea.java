@@ -221,8 +221,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         }
     }
 
-    public static abstract class SubAreaBuilder<SubAreaType extends SubArea, BuilderType extends SubAreaBuilder<SubAreaType, BuilderType>>
-            implements Serializable {
+    public static interface ISubAreaBuildInfo extends Serializable {
         public final static class SubAreaBuilderID implements Comparable<SubAreaBuilderID> {
             private final UUID id = UUID.randomUUID();
 
@@ -252,54 +251,77 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             }
         }
 
-        protected final transient BuilderType thisObject;
+        public abstract SubAreaBuilderID getSubAreaBuilderID();
+
+        public abstract SubAreaSort getSubAreaSort();
+
+        public abstract SubAreaCasting isAllowCasting();
+
+        public abstract int getWaitMilliseconds();
+
+        public abstract Set<CreatureFilterQuery> getCreatureQueries();
+
+        public abstract boolean isQueryOnBuild();
+
+        public abstract void acceptBuildInfoVisitor(ISubAreaBuildInfoVisitor visitor);
+    }
+
+    public static final class SubAreaBuilder implements ISubAreaBuildInfo {
         protected final SubAreaBuilderID id;
+        protected final SubAreaSort sort;
+        protected final String className;
         protected SubAreaCasting allowCasting;
         private int waitMilliseconds;
         private Set<CreatureFilterQuery> creatureQueries;
         private boolean queryOnBuild;
 
-        protected SubAreaBuilder() {
-            this.thisObject = getThis();
+        public SubAreaBuilder(SubAreaSort sort) {
             this.id = new SubAreaBuilderID();
+            this.sort = sort;
+            this.className = this.getClass().getName();
             this.waitMilliseconds = DEFAULT_MILLISECONDS;
             this.creatureQueries = new HashSet<>();
             this.queryOnBuild = true;
             this.allowCasting = SubAreaCasting.NO_CASTING;
         }
 
-        protected abstract BuilderType getThis();
+        @Override
+        public SubAreaBuilderID getSubAreaBuilderID() {
+            return this.id;
+        }
 
-        public abstract SubAreaSort getSubAreaSort();
+        public SubAreaSort getSubAreaSort() {
+            return this.sort;
+        }
 
-        public BuilderType setAllowCasting(SubAreaCasting allowCasting) {
+        public SubAreaBuilder setAllowCasting(SubAreaCasting allowCasting) {
             this.allowCasting = allowCasting != null ? allowCasting : SubAreaCasting.NO_CASTING;
-            return this.getThis();
+            return this;
         }
 
         public SubAreaCasting isAllowCasting() {
             return allowCasting != null ? allowCasting : SubAreaCasting.NO_CASTING;
         }
 
-        public BuilderType setWaitMilliseconds(int count) {
+        public SubAreaBuilder setWaitMilliseconds(int count) {
             this.waitMilliseconds = Integer.min(SubArea.MAX_MILLISECONDS, Integer.max(1, count));
-            return this.getThis();
+            return this;
         }
 
         public int getWaitMilliseconds() {
             return this.waitMilliseconds;
         }
 
-        public BuilderType addCreatureQuery(CreatureFilterQuery query) {
+        public SubAreaBuilder addCreatureQuery(CreatureFilterQuery query) {
             if (query != null) {
                 this.creatureQueries.add(query);
             }
-            return this.getThis();
+            return this;
         }
 
-        public BuilderType resetCreatureQueries() {
+        public SubAreaBuilder resetCreatureQueries() {
             this.creatureQueries.clear();
-            return this.getThis();
+            return this;
         }
 
         public Set<CreatureFilterQuery> getCreatureQueries() {
@@ -310,8 +332,14 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             return queryOnBuild;
         }
 
-        public void setQueryOnBuild(boolean queryOnBuild) {
+        public SubAreaBuilder setQueryOnBuild(boolean queryOnBuild) {
             this.queryOnBuild = queryOnBuild;
+            return this;
+        }
+
+        @Override
+        public void acceptBuildInfoVisitor(ISubAreaBuildInfoVisitor visitor) {
+            visitor.visit(this);
         }
 
         @Override
@@ -325,15 +353,13 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
                 return true;
             if (!(obj instanceof SubAreaBuilder))
                 return false;
-            SubAreaBuilder<?, ?> other = (SubAreaBuilder<?, ?>) obj;
+            SubAreaBuilder other = (SubAreaBuilder) obj;
             return Objects.equals(id, other.id);
         }
 
-        public abstract SubAreaType build(@NotNull Area area);
-
     }
 
-    protected SubArea(SubAreaBuilder<? extends SubArea, ?> builder, @NotNull Area area) {
+    protected SubArea(ISubAreaBuildInfo builder, @NotNull Area area) {
         this.gameEventProcessorID = new GameEventProcessorID();
         this.sort = builder.getSubAreaSort();
         if (this.sort == null) {

@@ -29,7 +29,7 @@ import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.ItemPartitionCollectionVisitor;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.concrete.Item;
-import com.lhf.game.map.SubArea.SubAreaBuilder;
+import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.game.map.commandHandlers.AreaAttackHandler;
 import com.lhf.game.map.commandHandlers.AreaCastHandler;
@@ -98,7 +98,7 @@ public interface Area
 
         public abstract Collection<INonPlayerCharacterBuildInfo> getNPCsToBuild();
 
-        public abstract Collection<SubAreaBuilder<?, ?>> getSubAreasToBuild();
+        public abstract Collection<ISubAreaBuildInfo> getSubAreasToBuild();
 
         public default Area quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
             return this.build(successor, land, aiRunner, null, null, true, true);
@@ -123,7 +123,7 @@ public interface Area
 
     public abstract NavigableSet<SubArea> getSubAreas();
 
-    public boolean addSubArea(SubAreaBuilder<?, ?> builder);
+    public boolean addSubArea(ISubAreaBuildInfo builder);
 
     public default SubArea getSubAreaForSort(SubAreaSort sort) {
         if (sort == null) {

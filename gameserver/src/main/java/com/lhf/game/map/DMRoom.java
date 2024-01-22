@@ -38,7 +38,7 @@ import com.lhf.game.item.IItem;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.game.map.RestArea.LewdStyle;
-import com.lhf.game.map.SubArea.SubAreaBuilder;
+import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
 import com.lhf.game.map.SubArea.SubAreaCasting;
 import com.lhf.game.map.commandHandlers.AreaCastHandler;
 import com.lhf.game.map.commandHandlers.AreaSayHandler;
@@ -97,7 +97,7 @@ public class DMRoom extends Room {
             return this;
         }
 
-        public DMRoomBuilder addSubAreaBuilder(SubAreaBuilder<?, ?> builder) {
+        public DMRoomBuilder addSubAreaBuilder(ISubAreaBuildInfo builder) {
             this.delegate.addSubAreaBuilder(builder);
             return this;
         }
@@ -149,7 +149,7 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public Collection<SubAreaBuilder<?, ?>> getSubAreasToBuild() {
+        public Collection<ISubAreaBuildInfo> getSubAreasToBuild() {
             return delegate.getSubAreasToBuild();
         }
 
@@ -183,7 +183,7 @@ public class DMRoom extends Room {
                         statblockManager,
                         conversationManager, fallbackNoConversation, fallbackDefaultStatblock);
                 room.addCreatures(creaturesBuilt, false);
-                for (final SubAreaBuilder<?, ?> subAreaBuilder : this.getSubAreasToBuild()) {
+                for (final ISubAreaBuildInfo subAreaBuilder : this.getSubAreasToBuild()) {
                     room.addSubArea(subAreaBuilder);
                 }
             }, () -> (dmRoom) -> {

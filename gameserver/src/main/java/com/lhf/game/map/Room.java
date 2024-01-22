@@ -35,6 +35,8 @@ import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemNoOpVisitor;
 import com.lhf.game.item.ItemVisitor;
 import com.lhf.game.item.concrete.Corpse;
+import com.lhf.game.map.RestArea.Builder;
+import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
 import com.lhf.game.map.SubArea.SubAreaBuilder;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -84,7 +86,7 @@ public class Room implements Area {
         private String description;
         private List<IItem> items;
         private Set<INonPlayerCharacterBuildInfo> npcsToBuild;
-        private Set<SubAreaBuilder<?, ?>> subAreasToBuild;
+        private Set<ISubAreaBuildInfo> subAreasToBuild;
 
         private RoomBuilder() {
             this.logger = Logger.getLogger(this.getClass().getName());
@@ -140,7 +142,7 @@ public class Room implements Area {
             return this.npcsToBuild;
         }
 
-        public RoomBuilder addSubAreaBuilder(SubAreaBuilder<?, ?> builder) {
+        public RoomBuilder addSubAreaBuilder(ISubAreaBuildInfo builder) {
             if (this.subAreasToBuild == null) {
                 this.subAreasToBuild = new HashSet<>();
             }
@@ -151,7 +153,7 @@ public class Room implements Area {
         }
 
         @Override
-        public Collection<SubAreaBuilder<?, ?>> getSubAreasToBuild() {
+        public Collection<ISubAreaBuildInfo> getSubAreasToBuild() {
             return this.subAreasToBuild;
         }
 
@@ -206,7 +208,7 @@ public class Room implements Area {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.buildCreatures(aiRunner, room, statblockManager,
                         conversationManager, fallbackNoConversation, fallbackDefaultStatblock);
                 room.addCreatures(creaturesBuilt, false);
-                for (final SubAreaBuilder<?, ?> subAreaBuilder : this.getSubAreasToBuild()) {
+                for (final ISubAreaBuildInfo subAreaBuilder : this.getSubAreasToBuild()) {
                     room.addSubArea(subAreaBuilder);
                 }
             });
@@ -516,18 +518,40 @@ public class Room implements Area {
     }
 
     @Override
-    public boolean addSubArea(SubAreaBuilder<?, ?> builder) {
+    public boolean addSubArea(ISubAreaBuildInfo builder) {
         if (builder != null && !this.hasSubAreaSort(builder.getSubAreaSort())) {
-            SubArea built = builder.build(this);
-            boolean done = this.subAreas.add(built);
-            if (done && built != null && !builder.isQueryOnBuild()) {
-                for (final CreatureFilterQuery query : builder.getCreatureQueries()) {
-                    for (ICreature creature : this.filterCreatures(query)) {
-                        built.addCreature(creature);
+            final ISubAreaBuildInfoVisitor visitor = new ISubAreaBuildInfoVisitor() {
+
+                private void query(ISubAreaBuildInfo buildInfo, SubArea built) {
+                    if (built != null && Room.this.subAreas.add(built) && !buildInfo.isQueryOnBuild()) {
+                        for (final CreatureFilterQuery query : buildInfo.getCreatureQueries()) {
+                            for (final ICreature creature : Room.this.filterCreatures(query)) {
+                                built.addCreature(creature);
+                            }
+                        }
                     }
                 }
-            }
-            return done;
+
+                @Override
+                public void visit(Builder buildInfo) {
+                    SubArea built = buildInfo.build(Room.this);
+                    this.query(buildInfo, built);
+                }
+
+                @Override
+                public void visit(com.lhf.game.battle.BattleManager.Builder buildInfo) {
+                    SubArea built = buildInfo.build(Room.this);
+                    this.query(buildInfo, built);
+                }
+
+                @Override
+                public void visit(SubAreaBuilder buildInfo) {
+                    throw new UnsupportedOperationException(String.format("Cannot build plain SubArea %s", buildInfo));
+                }
+
+            };
+            builder.acceptBuildInfoVisitor(visitor);
+            return true;
         }
         return false;
     }
