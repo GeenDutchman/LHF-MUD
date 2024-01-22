@@ -7,11 +7,13 @@ import com.lhf.messages.GameEventType;
 import com.lhf.server.interfaces.NotNull;
 
 public abstract class AIHandler implements AIChunk, Comparable<AIHandler> {
+    protected final String className;
     protected final transient Logger logger;
     protected final GameEventType outMessageType;
 
     public AIHandler(@NotNull GameEventType outMessageType) {
         this.outMessageType = outMessageType;
+        this.className = this.getClass().getName();
         this.logger = Logger.getLogger(this.getClass().getName());
     }
 
