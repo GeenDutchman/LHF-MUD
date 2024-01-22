@@ -31,6 +31,10 @@ import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemDeserializer;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.TakeableDeserializer;
+import com.lhf.game.lewd.AfterGlow;
+import com.lhf.game.lewd.LewdBabyMaker;
+import com.lhf.game.lewd.LewdProduct;
+import com.lhf.game.lewd.LewdProductList;
 import com.lhf.game.magic.CreatureAOESpellEntry;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
 import com.lhf.game.magic.DMRoomTargetingSpellEntry;
@@ -113,6 +117,13 @@ public class GsonBuilderFactory {
     }
 
     public GsonBuilderFactory subAreaInfo() {
+        final RuntimeTypeAdapterFactory<LewdProduct> lewdProductAdapterFactory = RuntimeTypeAdapterFactory
+                .of(LewdProduct.class, "className", true)
+                .registerSubtype(AfterGlow.class, AfterGlow.class.getName())
+                .registerSubtype(LewdBabyMaker.class, LewdBabyMaker.class.getName())
+                .registerSubtype(LewdProductList.class, LewdProductList.class.getName())
+                .recognizeSubtypes();
+        this.gsonBuilder.registerTypeAdapterFactory(lewdProductAdapterFactory);
         final RuntimeTypeAdapterFactory<ISubAreaBuildInfo> subAreaAdapterFactory = RuntimeTypeAdapterFactory
                 .of(ISubAreaBuildInfo.class, "className", true)
                 .registerSubtype(SubAreaBuilder.class, SubAreaBuilder.class.getName())

@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.lhf.game.map.Area;
 
-public class LewdProductList implements LewdProduct {
+public class LewdProductList extends LewdProduct {
     protected List<LewdProduct> products;
 
     public LewdProductList() {

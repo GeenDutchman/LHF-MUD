@@ -2,6 +2,12 @@ package com.lhf.game.lewd;
 
 import com.lhf.game.map.Area;
 
-public interface LewdProduct {
-    public void onLewd(Area room, VrijPartij party);
+public abstract class LewdProduct {
+    protected final String className;
+
+    protected LewdProduct() {
+        this.className = this.getClass().getName();
+    }
+
+    public abstract void onLewd(Area room, VrijPartij party);
 }
