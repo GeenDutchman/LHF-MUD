@@ -1,5 +1,6 @@
 package com.lhf.game.map;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,6 +15,9 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import com.google.common.base.Function;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.TickType;
@@ -42,6 +46,7 @@ import com.lhf.messages.events.TickEvent;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.server.client.user.UserID;
+import com.lhf.server.interfaces.NotNull;
 
 public interface Land extends CreatureContainer, CommandChainHandler, AffectableEntity<DungeonEffect> {
 
@@ -66,7 +71,15 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
     public interface LandBuilder extends Serializable {
 
         public final static class LandBuilderID implements Comparable<LandBuilderID> {
-            private final UUID id = UUID.randomUUID();
+            private final UUID id;
+
+            public LandBuilderID() {
+                id = UUID.randomUUID();
+            }
+
+            protected LandBuilderID(@NotNull UUID id) {
+                this.id = id;
+            }
 
             public UUID getId() {
                 return id;
@@ -95,6 +108,21 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             @Override
             public String toString() {
                 return this.id.toString();
+            }
+
+            public static class IDTypeAdapter extends TypeAdapter<LandBuilderID> {
+
+                @Override
+                public void write(JsonWriter out, LandBuilderID value) throws IOException {
+                    out.value(value.getId().toString());
+                }
+
+                @Override
+                public LandBuilderID read(JsonReader in) throws IOException {
+                    final String asStr = in.nextString();
+                    return new LandBuilderID(UUID.fromString(asStr));
+                }
+
             }
 
         }

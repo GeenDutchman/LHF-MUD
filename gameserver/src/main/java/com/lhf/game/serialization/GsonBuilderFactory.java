@@ -44,6 +44,7 @@ import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
 import com.lhf.game.magic.concrete.ThunderStrike;
 import com.lhf.game.map.Area.AreaBuilder;
+import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.CloseableDoorway;
 import com.lhf.game.map.DMRoom.DMRoomBuilder;
 import com.lhf.game.map.DMRoomEffectSource;
@@ -52,12 +53,14 @@ import com.lhf.game.map.Dungeon.DungeonBuilder;
 import com.lhf.game.map.DungeonEffectSource;
 import com.lhf.game.map.KeyedDoorway;
 import com.lhf.game.map.Land.LandBuilder;
+import com.lhf.game.map.Land.LandBuilder.LandBuilderID;
 import com.lhf.game.map.OneWayDoorway;
 import com.lhf.game.map.RestArea.IRestAreaBuildInfo;
 import com.lhf.game.map.Room.RoomBuilder;
 import com.lhf.game.map.RoomEffectSource;
 import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
 import com.lhf.game.map.SubArea.SubAreaBuilder;
+import com.lhf.game.map.SubArea.ISubAreaBuildInfo.SubAreaBuilderID;
 
 public class GsonBuilderFactory {
     private enum Loaded {
@@ -163,6 +166,7 @@ public class GsonBuilderFactory {
     private synchronized GsonBuilderFactory subAreaInfo() {
         if (!this.loaded.contains(Loaded.SUBAREA)) {
             this.lewdProducts();
+            this.gsonBuilder.registerTypeAdapter(SubAreaBuilderID.class, new SubAreaBuilderID.IDTypeAdapter());
             final RuntimeTypeAdapterFactory<ISubAreaBuildInfo> subAreaAdapterFactory = RuntimeTypeAdapterFactory
                     .of(ISubAreaBuildInfo.class, "className", true)
                     .registerSubtype(SubAreaBuilder.class, SubAreaBuilder.class.getName())
@@ -182,6 +186,7 @@ public class GsonBuilderFactory {
         if (!this.loaded.contains(Loaded.AREAS)) {
             this.creatureInfoBuilders();
             this.subAreaInfo();
+            this.gsonBuilder.registerTypeAdapter(AreaBuilderID.class, new AreaBuilderID.IDTypeAdapter());
             final RuntimeTypeAdapterFactory<AreaBuilder> areaAdapterFactory = RuntimeTypeAdapterFactory
                     .of(AreaBuilder.class, "className", true)
                     .registerSubtype(RoomBuilder.class, RoomBuilder.class.getName())
@@ -211,6 +216,7 @@ public class GsonBuilderFactory {
             this.creatureInfoBuilders();
             this.areas();
             this.doors();
+            this.gsonBuilder.registerTypeAdapter(LandBuilderID.class, new LandBuilderID.IDTypeAdapter());
             final RuntimeTypeAdapterFactory<LandBuilder> landAdapterFactory = RuntimeTypeAdapterFactory
                     .of(LandBuilder.class, "className", true)
                     .registerSubtype(DungeonBuilder.class, DungeonBuilder.class.getName())

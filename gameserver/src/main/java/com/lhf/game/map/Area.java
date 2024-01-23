@@ -1,5 +1,6 @@
 package com.lhf.game.map;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -12,6 +13,9 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.ItemContainer;
@@ -48,6 +52,7 @@ import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.server.interfaces.NotNull;
 
 public interface Area
         extends ItemContainer, CreatureContainer, CommandChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
@@ -55,7 +60,15 @@ public interface Area
     public interface AreaBuilder extends Serializable {
 
         public final static class AreaBuilderID implements Comparable<AreaBuilderID> {
-            private final UUID id = UUID.randomUUID();
+            private final UUID id;
+
+            public AreaBuilderID() {
+                this.id = UUID.randomUUID();
+            }
+
+            protected AreaBuilderID(@NotNull UUID id) {
+                this.id = id;
+            }
 
             public UUID getId() {
                 return id;
@@ -84,6 +97,21 @@ public interface Area
             @Override
             public String toString() {
                 return this.id.toString();
+            }
+
+            public static class IDTypeAdapter extends TypeAdapter<AreaBuilderID> {
+
+                @Override
+                public void write(JsonWriter out, AreaBuilderID value) throws IOException {
+                    out.value(value.getId().toString());
+                }
+
+                @Override
+                public AreaBuilderID read(JsonReader in) throws IOException {
+                    final String asStr = in.nextString();
+                    return new AreaBuilderID(UUID.fromString(asStr));
+                }
+
             }
 
         }

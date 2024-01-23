@@ -1,5 +1,6 @@
 package com.lhf.game.map;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,9 +24,13 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
+import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.commandHandlers.SubAreaCastHandler;
 import com.lhf.game.map.commandHandlers.SubAreaExitHandler;
 import com.lhf.game.map.commandHandlers.SubAreaSayHandler;
@@ -223,11 +228,23 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
 
     public static interface ISubAreaBuildInfo extends Serializable {
         public final static class SubAreaBuilderID implements Comparable<SubAreaBuilderID> {
-            private final UUID id = UUID.randomUUID();
+            private final UUID id;
+
+            public SubAreaBuilderID() {
+                this.id = UUID.randomUUID();
+            }
+
+            protected SubAreaBuilderID(@NotNull UUID id) {
+                this.id = id;
+            }
 
             @Override
             public int compareTo(SubAreaBuilderID arg0) {
                 return this.id.compareTo(arg0.id);
+            }
+
+            public UUID getId() {
+                return id;
             }
 
             @Override
@@ -249,6 +266,22 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             public String toString() {
                 return this.id.toString();
             }
+
+            public static class IDTypeAdapter extends TypeAdapter<SubAreaBuilderID> {
+
+                @Override
+                public void write(JsonWriter out, SubAreaBuilderID value) throws IOException {
+                    out.value(value.getId().toString());
+                }
+
+                @Override
+                public SubAreaBuilderID read(JsonReader in) throws IOException {
+                    final String asStr = in.nextString();
+                    return new SubAreaBuilderID(UUID.fromString(asStr));
+                }
+
+            }
+
         }
 
         public abstract SubAreaBuilderID getSubAreaBuilderID();
