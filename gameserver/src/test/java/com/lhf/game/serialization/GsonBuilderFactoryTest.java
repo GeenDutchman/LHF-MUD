@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 
 import org.junit.jupiter.api.Test;
 
+import com.google.common.truth.Truth;
 import com.google.gson.Gson;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
@@ -30,7 +31,8 @@ public class GsonBuilderFactoryTest {
         Statblock georgeblock = new Statblock.StatblockBuilder().setInventory(georgeInventory).build();
         IMonsterBuildInfo builder = Monster.getMonsterBuilder().setName("George").setStatblock(georgeblock);
 
-        RoomBuilder roomBuilder = Room.RoomBuilder.getInstance().addItem(new CarnivorousArmor()).addNPCBuilder(builder);
+        RoomBuilder roomBuilder = Room.RoomBuilder.getInstance().addItem(new CarnivorousArmor()).addNPCBuilder(builder)
+                .setName("First Room");
         RoomBuilder nextRoomBuilder = Room.RoomBuilder.getInstance().addItem(new RustyDagger()).setName("Second Room");
 
         DungeonBuilder dungeon = Dungeon.DungeonBuilder.newInstance().addStartingRoom(roomBuilder)
@@ -48,6 +50,9 @@ public class GsonBuilderFactoryTest {
         System.out.println(asJson);
 
         DMRoomBuilder reconstituted = gson.fromJson(asJson, DMRoomBuilder.class);
+
+        Truth.assertWithMessage("reconstituted map does not equal original")
+                .that(reconstituted.getLandBuilders().get(0).getAtlas()).isEqualTo(dungeon.getAtlas());
 
         DMRoom built = reconstituted.quickBuild(null, null, null);
         assert built != null;

@@ -215,7 +215,10 @@ public class DungeonMaster extends NonPlayerCharacter {
 
         @Override
         public String toString() {
-            return this.iNPCBuilder.toString();
+            StringBuilder builder = new StringBuilder();
+            builder.append("IMonsterBuildInfo [iNPCBuilder=").append(iNPCBuilder).append(", id=").append(id)
+                    .append("]");
+            return builder.toString();
         }
 
         @Override

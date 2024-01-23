@@ -223,7 +223,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(this.id.toString());
         sb.append(this.getClass().getSimpleName()).append(" with the following characteristics: \r\n");
         if (this.name == null) {
             sb.append("Name will be generated.\r\n");

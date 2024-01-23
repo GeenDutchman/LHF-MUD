@@ -44,6 +44,30 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             return predicate;
         }
 
+        @Override
+        public int hashCode() {
+            return Objects.hash(direction, targetId, predicate);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof TargetedTester))
+                return false;
+            TargetedTester<?> other = (TargetedTester<?>) obj;
+            return direction == other.direction && Objects.equals(targetId, other.targetId)
+                    && Objects.equals(predicate, other.predicate);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("TargetedTester [direction=").append(direction).append(", targetId=").append(targetId)
+                    .append(", predicate=").append(predicate).append("]");
+            return builder.toString();
+        }
+
     }
 
     protected final static class AtlasMappingItem<MappingMember, MappingTargetID> implements Serializable {
@@ -86,6 +110,14 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
                 return false;
             AtlasMappingItem<?, ?> other = (AtlasMappingItem<?, ?>) obj;
             return Objects.equals(atlasMember, other.atlasMember);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("AtlasMappingItem [atlasMember=").append(atlasMember).append(", directions=")
+                    .append(directions).append("]");
+            return builder.toString();
         }
 
     }
@@ -233,6 +265,28 @@ public abstract class Atlas<AtlasMemberType, AtlasMemberID extends Comparable<At
             }
             return item.getAtlasMember();
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(mapping);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof Atlas))
+            return false;
+        Atlas<?, ?> other = (Atlas<?, ?>) obj;
+        return Objects.equals(mapping, other.mapping);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Atlas [mapping=").append(mapping).append("]");
+        return builder.toString();
     }
 
     public class DepthFirstIterator implements Iterator<AtlasMappingItem<AtlasMemberType, AtlasMemberID>> {

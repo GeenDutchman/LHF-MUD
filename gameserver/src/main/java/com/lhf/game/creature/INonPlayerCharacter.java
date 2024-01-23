@@ -409,44 +409,6 @@ public interface INonPlayerCharacter extends ICreature {
             return this;
         }
 
-        // public abstract NPCType quickBuild(BasicAI basicAI, CommandChainHandler
-        // successor);
-
-        // public final NPCType quickBuild(AIRunner aiRunner, CommandChainHandler
-        // successor) {
-        // BasicAI producedAI = aiRunner != null ?
-        // aiRunner.produceAI(getAiHandlersAsArray())
-        // : INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
-        // return this.quickBuild(producedAI, successor);
-        // }
-
-        // public final NPCType quickBuild(CommandChainHandler successor) {
-        // return this.quickBuild(INonPlayerCharacter.defaultAIRunner, successor);
-        // }
-
-        // @Override
-        // public abstract NPCType build(CommandInvoker controller,
-        // CommandChainHandler successor, StatblockManager statblockManager,
-        // UnaryOperator<NPCBuilderType> composedlazyLoaders) throws
-        // FileNotFoundException;
-
-        // public final NPCType build(AIRunner aiRunner, CommandChainHandler successor,
-        // StatblockManager statblockManager, ConversationManager conversationManager)
-        // throws FileNotFoundException {
-        // BasicAI producedAI = aiRunner != null ?
-        // aiRunner.produceAI(getAiHandlersAsArray())
-        // : INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
-
-        // UnaryOperator<NPCBuilderType> conversationLoader = (builder) -> {
-        // builder.loadConversationTree(conversationManager);
-        // return builder;
-        // };
-        // NPCType npc = this.build(producedAI, successor, statblockManager,
-        // conversationLoader);
-        // producedAI.setNPC(npc);
-        // return npc;
-        // }
-
         public INPCBuildInfo setName(String name) {
             creatureBuilder.setName(name);
             return this;
@@ -550,7 +512,8 @@ public interface INonPlayerCharacter extends ICreature {
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder(super.toString());
+            StringBuilder sb = new StringBuilder(this.id.toString()).append(this.getClass().getSimpleName())
+                    .append(" ");
             if (this.conversationFileName != null) {
                 sb.append("With conversation like: ").append(this.conversationFileName);
                 if (this.conversationTree != null) {

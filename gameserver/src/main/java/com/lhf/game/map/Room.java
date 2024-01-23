@@ -82,7 +82,7 @@ public class Room implements Area {
     public static class RoomBuilder implements Area.AreaBuilder {
         private final String className;
         private final transient Logger logger;
-        private final transient AreaBuilderID id;
+        private final AreaBuilderID id;
         private String name;
         private String description;
         private List<IItem> items;
@@ -229,6 +229,16 @@ public class Room implements Area {
                 return false;
             RoomBuilder other = (RoomBuilder) obj;
             return Objects.equals(id, other.id);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("RoomBuilder [className=").append(className).append(", id=").append(id).append(", name=")
+                    .append(name).append(", description=").append(description).append(", items=").append(items)
+                    .append(", npcsToBuild=").append(npcsToBuild).append(", subAreasToBuild=").append(subAreasToBuild)
+                    .append("]");
+            return builder.toString();
         }
 
     }
