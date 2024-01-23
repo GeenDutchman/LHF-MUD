@@ -61,6 +61,7 @@
       ],
       "equipEffects": [
         {
+          "className": "com.lhf.game.creature.CreatureEffectSource",
           "statChanges": {
             "AC": 5
           },
@@ -88,6 +89,7 @@
     "WEAPON": {
       "effectSources": [
         {
+          "className": "com.lhf.game.creature.CreatureEffectSource",
           "statChanges": {},
           "attributeScoreChanges": {},
           "attributeBonusChanges": {},
@@ -136,6 +138,7 @@
       ],
       "equipEffects": [
         {
+          "className": "com.lhf.game.creature.CreatureEffectSource",
           "statChanges": {
             "AC": 2
           },
