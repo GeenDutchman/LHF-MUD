@@ -48,7 +48,7 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
         this.mockedWrappedHandler = Mockito.mock(CommandChainHandler.class);
 
         this.brain = AIComBundle.getAIRunner().produceAI();
-        CreatureFactory factory = CreatureFactory.withBrainProducer(null, (buildInfo) -> this.brain);
+        CreatureFactory factory = CreatureFactory.withBrainProducer(this, (buildInfo) -> this.brain);
         factory.visit(NonPlayerCharacter.getNPCBuilder().useBlankStatblock());
         this.brain.setNPC(factory.getBuiltCreatures().getNpcs().first());
         this.brain.SetOut(this.sssb);

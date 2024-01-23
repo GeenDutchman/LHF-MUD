@@ -78,7 +78,7 @@ public class Spellbook {
     }
 
     @Deprecated(forRemoval = false)
-    private boolean saveToFile(boolean loadFirst) throws IOException {
+    protected boolean saveToFile(boolean loadFirst) throws IOException {
         this.logger.entering(this.getClass().getName(), "saveToFile()", path_to_spellbook);
         if (loadFirst && !this.loadFromFile()) {
             throw new IOException("Cannot preload spellbook!");

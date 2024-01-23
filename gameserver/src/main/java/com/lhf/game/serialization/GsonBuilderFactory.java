@@ -10,6 +10,7 @@ import com.lhf.game.battle.BattleManager.IBattleManagerBuildInfo;
 import com.lhf.game.creature.CreatureBuildInfo;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.DungeonMaster.DungeonMasterBuildInfo;
+import com.lhf.game.creature.ICreatureBuildInfo.CreatureBuilderID;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
@@ -136,6 +137,7 @@ public class GsonBuilderFactory {
         if (!this.loaded.contains(Loaded.CREATURE_INFO)) {
             this.conversation();
             this.aiHandlers();
+            this.gsonBuilder.registerTypeAdapter(CreatureBuilderID.class, new CreatureBuilderID.IDTypeAdapter());
             final RuntimeTypeAdapterFactory<ICreatureBuildInfo> creatureBuilderAdapterFactory = RuntimeTypeAdapterFactory
                     .of(ICreatureBuildInfo.class, "className", true)
                     .registerSubtype(CreatureBuildInfo.class, CreatureBuildInfo.class.getName())
