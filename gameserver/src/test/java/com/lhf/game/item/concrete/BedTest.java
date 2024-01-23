@@ -34,7 +34,7 @@ public class BedTest {
         Bed bed = new Bed(Bed.Builder.getInstance().setCapacity(2).setSleepSeconds(2), room);
         room.addItem(bed);
 
-        MessageMatcher inBed = new MessageMatcher("You are now in the bed");
+        MessageMatcher inBed = new MessageMatcher("You got in the bed");
 
         bed.doAction(new CommandContext().setCreature(first.getNPC()));
         Mockito.verify(first.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito.argThat(inBed));
@@ -66,7 +66,7 @@ public class BedTest {
         room.addCreature(first.getNPC());
         Bed bed = new Bed(Bed.Builder.getInstance().setCapacity(1).setSleepSeconds(1), room);
 
-        MessageMatcher inBed = new MessageMatcher("You are now in the bed");
+        MessageMatcher inBed = new MessageMatcher("You got in the bed");
 
         bed.doAction(new CommandContext().setCreature(first.getNPC()));
         Mockito.verify(first.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito.argThat(inBed));

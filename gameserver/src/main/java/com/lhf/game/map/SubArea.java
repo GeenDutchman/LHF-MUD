@@ -30,7 +30,6 @@ import com.google.gson.stream.JsonWriter;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
-import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.commandHandlers.SubAreaCastHandler;
 import com.lhf.game.map.commandHandlers.SubAreaExitHandler;
 import com.lhf.game.map.commandHandlers.SubAreaSayHandler;

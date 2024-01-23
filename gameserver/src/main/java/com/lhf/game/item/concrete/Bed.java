@@ -227,10 +227,9 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
                 builder.setBroacast()
                         .setDescription(String.format("%s got in the bed!", creature.getColorTaggedName()));
                 Area.eventAccepter.accept(this.area, builder.Build());
-            } else {
-                builder.setNotBroadcast().setDescription("You got in the bed!");
-                ICreature.eventAccepter.accept(creature, builder.Build());
             }
+            builder.setNotBroadcast().setDescription("You got in the bed!");
+            ICreature.eventAccepter.accept(creature, builder.Build());
         } else {
             builder.setSubType(InteractOutMessageType.ERROR).setDescription("You are already in the bed!");
             ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().Build());
