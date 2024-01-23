@@ -1,0 +1,285 @@
+[
+  {
+    "singleTarget": true,
+    "className": "com.lhf.game.magic.concrete.ShockBolt",
+    "level": "NO_COST",
+    "name": "Shock Bolt",
+    "invocation": "Astra Horeb",
+    "description": "A small spark of electricity shocks a creature you choose as a target",
+    "allowedVocations": [],
+    "effectSources": [
+      {
+        "statChanges": {},
+        "attributeScoreChanges": {},
+        "attributeBonusChanges": {},
+        "damages": [
+          {
+            "flavor": "LIGHTNING",
+            "count": 1,
+            "type": "FOUR"
+          }
+        ],
+        "restoreFaction": false,
+        "className": "com.lhf.game.creature.CreatureEffectSource",
+        "name": "Zap",
+        "persistence": {
+          "count": 1,
+          "tickSize": "INSTANT"
+        },
+        "resistance": {
+          "actorAttrs": [
+            "INT",
+            "WIS",
+            "CHA"
+          ],
+          "targetStat": "AC",
+          "resistAmount": "ALL"
+        },
+        "description": "This spell zaps things."
+      }
+    ]
+  },
+  {
+    "className": "com.lhf.game.magic.concrete.Thaumaturgy",
+    "level": "NO_COST",
+    "name": "Thaumaturgy",
+    "invocation": "zarmamoo",
+    "description": "A way to magically announce your presence",
+    "allowedVocations": [],
+    "effectSources": [
+      {
+        "className": "com.lhf.game.map.RoomEffectSource",
+        "name": "Announce yourself",
+        "persistence": {
+          "count": 1,
+          "tickSize": "INSTANT"
+        },
+        "resistance": {
+          "actorAttrs": [
+            "CHA"
+          ],
+          "targetDC": 5,
+          "resistAmount": "ALL"
+        },
+        "description": "Announce yourself to the room!"
+      }
+    ]
+  },
+  {
+    "autoSafe": {
+      "npc": -1,
+      "caster": 0,
+      "allies": 0,
+      "enemies": -2,
+      "renegades": -3
+    },
+    "className": "com.lhf.game.magic.CreatureAOESpellEntry",
+    "level": "FIRST_MAGNITUDE",
+    "name": "Party Heal",
+    "invocation": "bibbity boobity boo",
+    "description": "Gives some small AoE healing.",
+    "allowedVocations": [
+      "DUNGEON_MASTER",
+      "HEALER"
+    ],
+    "effectSources": [
+      {
+        "statChanges": {
+          "CURRENTHP": 1
+        },
+        "attributeScoreChanges": {},
+        "attributeBonusChanges": {},
+        "damages": [
+          {
+            "flavor": "HEALING",
+            "count": 2,
+            "type": "TWO"
+          }
+        ],
+        "restoreFaction": false,
+        "className": "com.lhf.game.creature.CreatureEffectSource",
+        "name": "Healing",
+        "persistence": {
+          "count": 1,
+          "tickSize": "INSTANT"
+        },
+        "description": "Healing"
+      }
+    ]
+  },
+  {
+    "className": "com.lhf.game.magic.concrete.ElectricWisp",
+    "level": "FIRST_MAGNITUDE",
+    "name": "Summon Electric Wisp",
+    "invocation": "nosk aklo Astra",
+    "description": "Summons an Electric Wisp to fight by your side",
+    "allowedVocations": [
+      "HEALER"
+    ],
+    "effectSources": [
+      {
+        "monsterToSummon": {
+          "className": "com.lhf.game.creature.IMonster$IMonsterBuildInfo",
+          "iNPCBuilder": {
+            "className": "com.lhf.game.creature.INonPlayerCharacter$INPCBuildInfo",
+            "creatureBuilder": {
+              "className": "com.lhf.game.creature.CreatureBuildInfo",
+              "id": "3253b0d4-f3f2-434e-89f1-c50e2d78fef8",
+              "faction": "MONSTER",
+              "vocation": "MAGE",
+              "vocationLevel": 1,
+              "statblockName": "Wisp",
+              "statblock": {
+                "creatureRace": "Wisp",
+                "attributes": {
+                  "strength": {
+                    "score": 1,
+                    "scoreBonus": 0,
+                    "modBonus": 0
+                  },
+                  "dexterity": {
+                    "score": 12,
+                    "scoreBonus": 0,
+                    "modBonus": 0
+                  },
+                  "constitution": {
+                    "score": 1,
+                    "scoreBonus": 0,
+                    "modBonus": 0
+                  },
+                  "intelligence": {
+                    "score": 16,
+                    "scoreBonus": 0,
+                    "modBonus": 0
+                  },
+                  "wisdom": {
+                    "score": 10,
+                    "scoreBonus": 0,
+                    "modBonus": 0
+                  },
+                  "charisma": {
+                    "score": 16,
+                    "scoreBonus": 0,
+                    "modBonus": 0
+                  }
+                },
+                "stats": {
+                  "MAXHP": 12,
+                  "CURRENTHP": 12,
+                  "XPWORTH": 500,
+                  "AC": 11
+                },
+                "proficiencies": [],
+                "inventory": {
+                  "items": []
+                },
+                "equipmentSlots": {},
+                "damageFlavorReactions": {
+                  "WEAKNESSES": [
+                    "PSYCHIC"
+                  ],
+                  "RESISTANCES": [],
+                  "IMMUNITIES": [
+                    "LIGHTNING",
+                    "AGGRO"
+                  ],
+                  "CURATIVES": [
+                    "HEALING"
+                  ]
+                }
+              }
+            },
+            "id": "d05a3cfc-9d33-4446-b920-b0246b32e38e",
+            "aiHandlers": [],
+            "summonState": [
+              "LIFELINE_SUMMON",
+              "SYMPATHETIC_SUMMON"
+            ]
+          },
+          "id": "ec6dfc14-d835-4747-b1ba-0e3f3080e920"
+        },
+        "className": "com.lhf.game.map.RoomEffectSource",
+        "name": "Summon Electric Wisp",
+        "persistence": {
+          "count": 2,
+          "tickSize": "ROUND"
+        },
+        "resistance": {
+          "actorAttrs": [
+            "WIS"
+          ],
+          "targetDC": 5,
+          "resistAmount": "ALL"
+        },
+        "description": "Summons an Electric Wisp to fight by your side!"
+      }
+    ]
+  },
+  {
+    "singleTarget": true,
+    "className": "com.lhf.game.magic.concrete.ThunderStrike",
+    "level": "FIRST_MAGNITUDE",
+    "name": "Thunder Strike",
+    "invocation": "Bonearge Laarzen",
+    "description": "A small but loud bolt of electricity shocks a creature you choose as a target",
+    "allowedVocations": [
+      "MAGE"
+    ],
+    "effectSources": [
+      {
+        "statChanges": {},
+        "attributeScoreChanges": {},
+        "attributeBonusChanges": {},
+        "damages": [
+          {
+            "flavor": "THUNDER",
+            "count": 1,
+            "type": "SIX"
+          },
+          {
+            "flavor": "LIGHTNING",
+            "count": 1,
+            "type": "FOUR"
+          }
+        ],
+        "restoreFaction": false,
+        "className": "com.lhf.game.creature.CreatureEffectSource",
+        "name": "Loud Zap",
+        "persistence": {
+          "count": 1,
+          "tickSize": "INSTANT"
+        },
+        "resistance": {
+          "actorAttrs": [
+            "INT"
+          ],
+          "targetStat": "AC",
+          "resistAmount": "ALL"
+        },
+        "description": "Zaps your target"
+      }
+    ]
+  },
+  {
+    "className": "com.lhf.game.magic.concrete.Ensouling",
+    "level": "TENTH_MAGNITUDE",
+    "name": "Ensouling",
+    "invocation": "heresabodyandgo",
+    "description": "A way to create a player by ensouling them with a user.",
+    "allowedVocations": [
+      "DUNGEON_MASTER"
+    ],
+    "effectSources": [
+      {
+        "ensoulUserAndSend": true,
+        "className": "com.lhf.game.map.DMRoomEffectSource",
+        "name": "Ensoul and send",
+        "persistence": {
+          "count": 1,
+          "tickSize": "INSTANT"
+        },
+        "description": "Ensouls a user and sends them off into the dungeons!"
+      }
+    ]
+  }
+]
