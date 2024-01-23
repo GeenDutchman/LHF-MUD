@@ -60,7 +60,7 @@ public abstract class AItem implements IItem {
     public abstract void acceptItemVisitor(ItemVisitor visitor);
 
     @Override
-    public String getClassName() {
+    public final String getClassName() {
         return this.className;
     }
 

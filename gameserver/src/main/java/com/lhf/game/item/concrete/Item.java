@@ -21,6 +21,10 @@ public class Item extends AItem {
         super(other.getName(), other.descriptionString);
     }
 
+    public Item(ItemID itemID, String className, String name, boolean visible, String descriptionString) {
+        super(itemID, className, name, visible, descriptionString);
+    }
+
     @Override
     public void acceptItemVisitor(ItemVisitor visitor) {
         visitor.visit(this);

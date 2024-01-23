@@ -80,6 +80,7 @@ public class Room implements Area {
     private transient CommandChainHandler successor;
 
     public static class RoomBuilder implements Area.AreaBuilder {
+        private final String className;
         private final transient Logger logger;
         private final transient AreaBuilderID id;
         private String name;
@@ -89,7 +90,8 @@ public class Room implements Area {
         private Set<ISubAreaBuildInfo> subAreasToBuild;
 
         private RoomBuilder() {
-            this.logger = Logger.getLogger(this.getClass().getName());
+            this.className = this.getClass().getName();
+            this.logger = Logger.getLogger(this.className);
             this.id = new AreaBuilderID();
             this.name = null;
             this.description = "An area that Creatures and Items can be in";

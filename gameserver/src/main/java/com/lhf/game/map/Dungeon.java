@@ -39,7 +39,7 @@ import com.lhf.server.client.user.UserID;
 public class Dungeon implements Land {
 
     public static class DungeonBuilder implements Land.LandBuilder {
-
+        protected final String className;
         private final transient Logger logger;
         private final transient LandBuilderID id;
         private String name;
@@ -51,6 +51,7 @@ public class Dungeon implements Land {
         }
 
         private DungeonBuilder() {
+            this.className = this.getClass().getName();
             this.logger = Logger.getLogger(this.getClass().getName());
             this.id = new LandBuilderID();
             this.name = null;

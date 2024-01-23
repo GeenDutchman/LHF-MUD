@@ -29,7 +29,7 @@ public class Whimsystick extends Weapon {
                         +
                         "But what you can tell is it seems to have a laughing aura around it, like it doesn't "
                         + "care about what it does to other people...it's a whimsystick. \n";
-        private final int acBonus = 1;
+        private static final int acBonus = 1;
 
         public Whimsystick() {
                 super("Whimsystick", Whimsystick.description,
@@ -47,7 +47,7 @@ public class Whimsystick extends Weapon {
                                 .singletonList(new CreatureEffectSource("AC bonus",
                                                 new EffectPersistence(TickType.CONDITIONAL),
                                                 null, "This will magically increase your AC", false)
-                                                .addStatChange(Stats.AC, this.acBonus));
+                                                .addStatChange(Stats.AC, Whimsystick.acBonus));
         }
 
         @Override

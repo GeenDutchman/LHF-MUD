@@ -68,12 +68,14 @@ public class DMRoom extends Room {
     private transient Map<AMessageType, CommandHandler> commands;
 
     public static class DMRoomBuilder implements Area.AreaBuilder {
+        private final String className;
         private final transient Logger logger;
         private Room.RoomBuilder delegate;
         private List<Land.LandBuilder> landBuilders;
 
         private DMRoomBuilder() {
-            this.logger = Logger.getLogger(this.getClass().getName());
+            this.className = this.getClass().getName();
+            this.logger = Logger.getLogger(this.className);
             this.delegate = Room.RoomBuilder.getInstance();
             this.landBuilders = new ArrayList<>();
         }

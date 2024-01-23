@@ -16,14 +16,14 @@ import com.lhf.messages.events.ItemUsedEvent;
 import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 
 public class CarnivorousArmor extends EquipableHiddenEffect {
-    private final CreatureEffectSource eatingResults = new CreatureEffectSource("Eaten Alive",
+    private static final CreatureEffectSource eatingResults = new CreatureEffectSource("Eaten Alive",
             new EffectPersistence(TickType.INSTANT), null, "You are eaten alive...just a bite.", false);
 
-    private final CreatureEffectSource eatingACResults = new CreatureEffectSource("Protect the Meal",
+    private static final CreatureEffectSource eatingACResults = new CreatureEffectSource("Protect the Meal",
             new EffectPersistence(TickType.CONDITIONAL), null, "Must protect the next meal...you!", false)
             .addStatChange(Stats.AC, 3);
 
-    private final CreatureEffectSource lastBite = new CreatureEffectSource("Last Bite",
+    private static final CreatureEffectSource lastBite = new CreatureEffectSource("Last Bite",
             new EffectPersistence(TickType.INSTANT), null, "As you tear it off, one last bite!", false)
             .addStatChange(Stats.AC, -2);
 
@@ -91,15 +91,17 @@ public class CarnivorousArmor extends EquipableHiddenEffect {
         Integer currHealth = creature.getStats().getOrDefault(Stats.CURRENTHP, 0);
         if (currHealth > eatsHealthTo) {
             int diff = currHealth - eatsHealthTo;
-            this.eatingResults.addStatChange(Stats.CURRENTHP, -1 * diff);
+            CarnivorousArmor.eatingResults.addStatChange(Stats.CURRENTHP, -1 * diff);
             String eatDescription = "A thousand teeth sink into your body, and you feel life force ripped out of you.  "
                     +
                     "Once it is sated, you feel the " + this.getColorTaggedName() +
                     " tighten up around its most recent, precious meal.  It leaves the rest for later.";
             equippedAndUsed = true;
             ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).setMessage(eatDescription).Build());
-            ctx.receive(creature.applyEffect(new CreatureEffect(this.eatingResults, ctx.getCreature(), this)));
-            ctx.receive(creature.applyEffect(new CreatureEffect(this.eatingACResults, ctx.getCreature(), this)));
+            ctx.receive(
+                    creature.applyEffect(new CreatureEffect(CarnivorousArmor.eatingResults, ctx.getCreature(), this)));
+            ctx.receive(creature
+                    .applyEffect(new CreatureEffect(CarnivorousArmor.eatingACResults, ctx.getCreature(), this)));
             return true;
         } else {
             String moreNeeded = "You need more health to use this item.";
@@ -113,7 +115,7 @@ public class CarnivorousArmor extends EquipableHiddenEffect {
         super.onUnequippedBy(disowner);
         if (equippedAndUsed) {
             ICreature.eventAccepter.accept(disowner,
-                    disowner.applyEffect(new CreatureEffect(this.lastBite, disowner, this)));
+                    disowner.applyEffect(new CreatureEffect(CarnivorousArmor.lastBite, disowner, this)));
         }
         equipped = false;
         equippedAndUsed = false;
