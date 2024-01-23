@@ -12,6 +12,7 @@ import com.lhf.game.item.concrete.Lever;
 import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.game.item.concrete.LockKey;
 import com.lhf.game.item.concrete.equipment.BossClub;
+import com.lhf.game.item.concrete.equipment.CarnivorousArmor;
 import com.lhf.game.item.concrete.equipment.ChainMail;
 import com.lhf.game.item.concrete.equipment.LeatherArmor;
 import com.lhf.game.item.concrete.equipment.Longsword;
@@ -45,6 +46,7 @@ public class IItemRunTypeAdapterFactoryProducer {
                 .registerSubtype(Equipable.class, Equipable.class.getName())
                 .registerSubtype(EquipableHiddenEffect.class,
                         EquipableHiddenEffect.class.getName())
+                .registerSubtype(CarnivorousArmor.class, CarnivorousArmor.class.getName())
                 .registerSubtype(ChainMail.class, ChainMail.class.getName())
                 .registerSubtype(LeatherArmor.class, LeatherArmor.class.getName())
                 .registerSubtype(MantleOfDeath.class, MantleOfDeath.class.getName())
