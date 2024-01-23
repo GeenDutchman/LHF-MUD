@@ -35,4 +35,11 @@ public class CloseableDoorway extends Doorway {
         return false;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("CloseableDoorway [opened=").append(opened).append("]");
+        return builder.toString();
+    }
+
 }

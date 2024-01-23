@@ -17,4 +17,11 @@ public class OneWayDoorway extends Doorway {
         return super.testTraversal(creature, direction, source, dest);
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("OneWayDoorway [allowed=").append(allowed).append("]");
+        return builder.toString();
+    }
+
 }

@@ -48,4 +48,12 @@ public class KeyedDoorway extends CloseableDoorway implements Lockable {
         return super.testTraversal(creature, direction, source, dest);
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("KeyedDoorway [doorwayUuid=").append(doorwayUuid).append(", opened=").append(this.isOpen())
+                .append("]");
+        return builder.toString();
+    }
+
 }

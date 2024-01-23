@@ -17,4 +17,9 @@ public class Doorway {
         return className;
     }
 
+    @Override
+    public String toString() {
+        return className;
+    }
+
 }
