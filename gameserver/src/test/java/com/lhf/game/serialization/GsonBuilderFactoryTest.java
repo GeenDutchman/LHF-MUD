@@ -54,6 +54,8 @@ public class GsonBuilderFactoryTest {
         Truth.assertWithMessage("reconstituted map does not equal original")
                 .that(reconstituted.getLandBuilders().get(0).getAtlas()).isEqualTo(dungeon.getAtlas());
 
+        Truth.assertWithMessage("builders do not match").that(dmRoom).isEqualTo(reconstituted);
+
         DMRoom built = reconstituted.quickBuild(null, null, null);
         assert built != null;
 

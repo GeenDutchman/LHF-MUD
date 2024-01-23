@@ -41,7 +41,7 @@ public class Dungeon implements Land {
     public static class DungeonBuilder implements Land.LandBuilder {
         protected final String className;
         private final transient Logger logger;
-        private final transient LandBuilderID id;
+        private final LandBuilderID id;
         private String name;
         private AreaBuilder startingRoom = null;
         private AreaBuilderAtlas atlas = null;
@@ -157,6 +157,15 @@ public class Dungeon implements Land {
                 return false;
             DungeonBuilder other = (DungeonBuilder) obj;
             return Objects.equals(id, other.id);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName()).append(" [id=").append(id).append(", name=")
+                    .append(name).append(", startingRoom=").append(startingRoom).append(", atlas=").append(atlas)
+                    .append("]");
+            return builder.toString();
         }
 
     }

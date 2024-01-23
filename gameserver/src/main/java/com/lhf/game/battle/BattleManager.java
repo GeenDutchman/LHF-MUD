@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -134,6 +135,30 @@ public class BattleManager extends SubArea {
 
         public BattleManager build(Area area) {
             return new BattleManager(this, area);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, className, delegate);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof Builder))
+                return false;
+            Builder other = (Builder) obj;
+            return Objects.equals(id, other.id) && Objects.equals(className, other.className)
+                    && Objects.equals(delegate, other.delegate);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Builder [id=").append(id).append(", className=").append(className).append(", delegate=")
+                    .append(delegate).append("]");
+            return builder.toString();
         }
 
     }

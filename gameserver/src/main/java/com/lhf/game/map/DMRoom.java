@@ -8,6 +8,7 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -251,6 +252,31 @@ public class DMRoom extends Room {
 
             return builder;
         }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(className, delegate, landBuilders);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof DMRoomBuilder))
+                return false;
+            DMRoomBuilder other = (DMRoomBuilder) obj;
+            return Objects.equals(className, other.className) && Objects.equals(delegate, other.delegate)
+                    && Objects.equals(landBuilders, other.landBuilders);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("DMRoomBuilder [className=").append(className).append(", delegate=").append(delegate)
+                    .append(", landBuilders=").append(landBuilders).append("]");
+            return builder.toString();
+        }
+
     }
 
     static DMRoom fromBuilder(DMRoomBuilder builder, Supplier<Land> landSupplier,

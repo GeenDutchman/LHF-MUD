@@ -6,6 +6,7 @@ import java.util.Deque;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -149,6 +150,32 @@ public class RestArea extends SubArea {
 
         public RestArea build(Area area) {
             return new RestArea(this, area);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, className, delegate, lewd, lewdProduct);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof Builder))
+                return false;
+            Builder other = (Builder) obj;
+            return Objects.equals(id, other.id) && Objects.equals(className, other.className)
+                    && Objects.equals(delegate, other.delegate) && lewd == other.lewd
+                    && Objects.equals(lewdProduct, other.lewdProduct);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Builder [id=").append(id).append(", className=").append(className).append(", delegate=")
+                    .append(delegate).append(", lewd=").append(lewd).append(", lewdProduct=").append(lewdProduct)
+                    .append("]");
+            return builder.toString();
         }
 
     }

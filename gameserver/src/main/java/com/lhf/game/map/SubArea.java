@@ -390,6 +390,16 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             return Objects.equals(id, other.id);
         }
 
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("SubAreaBuilder [id=").append(id).append(", sort=").append(sort).append(", className=")
+                    .append(className).append(", allowCasting=").append(allowCasting).append(", waitMilliseconds=")
+                    .append(waitMilliseconds).append(", creatureQueries=").append(creatureQueries)
+                    .append(", queryOnBuild=").append(queryOnBuild).append("]");
+            return builder.toString();
+        }
+
     }
 
     protected SubArea(ISubAreaBuildInfo builder, @NotNull Area area) {
