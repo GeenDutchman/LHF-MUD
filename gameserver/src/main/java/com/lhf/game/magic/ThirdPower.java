@@ -79,7 +79,8 @@ public class ThirdPower implements CommandChainHandler {
         this.cmds = this.generateCommands();
         if (spellbook == null) {
             this.spellbook = new Spellbook();
-            this.spellbook.loadFromFile();
+            this.spellbook.loadFromFile(null);
+            this.spellbook.addConcreteSpells();
         } else {
             this.spellbook = spellbook;
         }

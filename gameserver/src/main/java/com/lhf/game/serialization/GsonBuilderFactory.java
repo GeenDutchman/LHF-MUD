@@ -1,6 +1,7 @@
 package com.lhf.game.serialization;
 
 import java.util.EnumSet;
+import java.util.function.Consumer;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -88,6 +89,7 @@ public class GsonBuilderFactory {
 
     public synchronized GsonBuilderFactory conversation() {
         if (!this.loaded.contains(Loaded.CONVERSATION)) {
+            this.loaded.add(Loaded.CONVERSATION);
             this.gsonBuilder.registerTypeAdapter(ConversationPattern.class, new ConversationPatternSerializer());
         }
         return this;
@@ -95,6 +97,7 @@ public class GsonBuilderFactory {
 
     private synchronized GsonBuilderFactory effectSources() {
         if (!this.loaded.contains(Loaded.EFFECTSOURCE)) {
+            this.loaded.add(Loaded.EFFECTSOURCE);
             this.creatureInfoBuilders();
             RuntimeTypeAdapterFactory<EntityEffectSource> effectSourceAdapter = RuntimeTypeAdapterFactory
                     .of(EntityEffectSource.class, "className", true)
@@ -110,6 +113,7 @@ public class GsonBuilderFactory {
 
     public synchronized GsonBuilderFactory items() {
         if (!this.loaded.contains(Loaded.ITEMS)) {
+            this.loaded.add(Loaded.ITEMS);
             this.effectSources();
             this.gsonBuilder.registerTypeAdapterFactory(IItemRunTypeAdapterFactoryProducer.produce());
         }
@@ -118,6 +122,7 @@ public class GsonBuilderFactory {
 
     private synchronized GsonBuilderFactory aiHandlers() {
         if (!this.loaded.contains(Loaded.HANDLERS)) {
+            this.loaded.add(Loaded.HANDLERS);
             final RuntimeTypeAdapterFactory<AIHandler> aiHandlerAdapterFactory = RuntimeTypeAdapterFactory
                     .of(AIHandler.class, "className", true)
                     .registerSubtype(BattleTurnHandler.class, BattleTurnHandler.class.getName())
@@ -135,6 +140,7 @@ public class GsonBuilderFactory {
 
     public synchronized GsonBuilderFactory creatureInfoBuilders() {
         if (!this.loaded.contains(Loaded.CREATURE_INFO)) {
+            this.loaded.add(Loaded.CREATURE_INFO);
             this.conversation();
             this.aiHandlers();
             this.gsonBuilder.registerTypeAdapter(CreatureBuilderID.class, new CreatureBuilderID.IDTypeAdapter());
@@ -154,6 +160,7 @@ public class GsonBuilderFactory {
 
     private synchronized GsonBuilderFactory lewdProducts() {
         if (!this.loaded.contains(Loaded.LEWDPRODUCT)) {
+            this.loaded.add(Loaded.LEWDPRODUCT);
             final RuntimeTypeAdapterFactory<LewdProduct> lewdProductAdapterFactory = RuntimeTypeAdapterFactory
                     .of(LewdProduct.class, "className", true)
                     .registerSubtype(AfterGlow.class, AfterGlow.class.getName())
@@ -167,6 +174,7 @@ public class GsonBuilderFactory {
 
     private synchronized GsonBuilderFactory subAreaInfo() {
         if (!this.loaded.contains(Loaded.SUBAREA)) {
+            this.loaded.add(Loaded.SUBAREA);
             this.lewdProducts();
             this.gsonBuilder.registerTypeAdapter(SubAreaBuilderID.class, new SubAreaBuilderID.IDTypeAdapter());
             final RuntimeTypeAdapterFactory<ISubAreaBuildInfo> subAreaAdapterFactory = RuntimeTypeAdapterFactory
@@ -186,6 +194,7 @@ public class GsonBuilderFactory {
 
     public synchronized GsonBuilderFactory areas() {
         if (!this.loaded.contains(Loaded.AREAS)) {
+            this.loaded.add(Loaded.AREAS);
             this.creatureInfoBuilders();
             this.subAreaInfo();
             this.gsonBuilder.registerTypeAdapter(AreaBuilderID.class, new AreaBuilderID.IDTypeAdapter());
@@ -201,6 +210,7 @@ public class GsonBuilderFactory {
 
     private synchronized GsonBuilderFactory doors() {
         if (!this.loaded.contains(Loaded.DOORWAYS)) {
+            this.loaded.add(Loaded.DOORWAYS);
             final RuntimeTypeAdapterFactory<Doorway> doorwayAdapterFactory = RuntimeTypeAdapterFactory
                     .of(Doorway.class, "className", true)
                     .registerSubtype(Doorway.class, Doorway.class.getName())
@@ -215,6 +225,7 @@ public class GsonBuilderFactory {
 
     public synchronized GsonBuilderFactory lands() {
         if (!this.loaded.contains(Loaded.LANDS)) {
+            this.loaded.add(Loaded.LANDS);
             this.creatureInfoBuilders();
             this.areas();
             this.doors();
@@ -230,6 +241,7 @@ public class GsonBuilderFactory {
 
     public synchronized GsonBuilderFactory cachedReferences() {
         if (!this.loaded.contains(Loaded.CACHED)) {
+            this.loaded.add(Loaded.CACHED);
             DataTypeAdapterFactory dtaf = new DataTypeAdapterFactory.Builder()
                     .add(IItem.class, new CachedIItemTypeAdapter())
                     .add(ICreature.class, new CachedICreatureTypeAdapter())
@@ -241,6 +253,7 @@ public class GsonBuilderFactory {
 
     public synchronized GsonBuilderFactory spells() {
         if (!this.loaded.contains(Loaded.SPELLS)) {
+            this.loaded.add(Loaded.SPELLS);
             this.items();
             this.creatureInfoBuilders();
             this.effectSources();
@@ -258,6 +271,13 @@ public class GsonBuilderFactory {
                     .registerSubtype(ElectricWisp.class, ElectricWisp.class.getName())
                     .recognizeSubtypes();
             this.gsonBuilder.registerTypeAdapterFactory(spellEntryAdapter);
+        }
+        return this;
+    }
+
+    public GsonBuilderFactory inlineRawBuilderAdjustment(Consumer<GsonBuilder> adjustment) {
+        if (adjustment != null) {
+            adjustment.accept(this.gsonBuilder);
         }
         return this;
     }

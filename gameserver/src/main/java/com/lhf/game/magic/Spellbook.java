@@ -51,6 +51,10 @@ public class Spellbook {
         this.logger = Logger.getLogger(this.getClass().getName());
         this.logger.log(Level.CONFIG, "Loading initial small spellset");
         this.entries = new TreeSet<>();
+        this.setupPath();
+    }
+
+    public Spellbook addConcreteSpells() {
         SpellEntry shockBolt = new ShockBolt();
         this.entries.add(shockBolt);
         SpellEntry thaumaturgy = new Thaumaturgy();
@@ -61,7 +65,7 @@ public class Spellbook {
         this.entries.add(ensouling);
         SpellEntry electricWisp = new ElectricWisp();
         this.entries.add(electricWisp);
-        this.setupPath();
+        return this;
     }
 
     private void setupPath() {
@@ -73,17 +77,21 @@ public class Spellbook {
                 "src$1main$1resources");
     }
 
-    public boolean saveToFile() throws IOException {
-        return this.saveToFile(true);
+    public boolean saveToFile(GsonBuilderFactory gsonBuilderFactory) throws IOException {
+        return this.saveToFile(true, gsonBuilderFactory);
     }
 
     @Deprecated(forRemoval = false)
-    protected boolean saveToFile(boolean loadFirst) throws IOException {
+    protected boolean saveToFile(boolean loadFirst, GsonBuilderFactory gsonBuilderFactory) throws IOException {
         this.logger.entering(this.getClass().getName(), "saveToFile()", path_to_spellbook);
-        if (loadFirst && !this.loadFromFile()) {
+        if (gsonBuilderFactory == null) {
+            gsonBuilderFactory = GsonBuilderFactory.start();
+        }
+        gsonBuilderFactory.prettyPrinting().spells();
+        if (loadFirst && !this.loadFromFile(gsonBuilderFactory)) {
             throw new IOException("Cannot preload spellbook!");
         }
-        Gson gson = GsonBuilderFactory.start().prettyPrinting().spells().build();
+        Gson gson = gsonBuilderFactory.prettyPrinting().spells().build();
         this.logger.log(Level.INFO, "Writing to " + this.path);
         try (FileWriter fileWriter = new FileWriter(this.path + "spellbook.json")) {
             String asJson = gson.toJson(this.entries);
@@ -96,8 +104,11 @@ public class Spellbook {
         return true;
     }
 
-    public boolean loadFromFile() {
-        Gson gson = GsonBuilderFactory.start().prettyPrinting().spells().build();
+    public boolean loadFromFile(GsonBuilderFactory gsonBuilderFactory) {
+        if (gsonBuilderFactory == null) {
+            gsonBuilderFactory = GsonBuilderFactory.start();
+        }
+        Gson gson = gsonBuilderFactory.prettyPrinting().spells().build();
         this.logger.log(Level.CONFIG, "Reading from " + this.path + "spellbook.json");
         Integer preSize = this.entries.size();
         try (JsonReader jReader = new JsonReader(new FileReader(this.path + "spellbook.json"))) {
