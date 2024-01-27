@@ -217,7 +217,7 @@ public class BattleTurnHandler extends AIHandler {
                     if (scoredSpellEntries.isEmpty()) {
                         return command;
                     }
-                    final SpellEntry spellEntry = scoredSpellEntries.firstEntry().getValue();
+                    final SpellEntry spellEntry = scoredSpellEntries.lastEntry().getValue();
                     if (spellEntry instanceof CreatureTargetingSpellEntry) {
                         final CreatureTargetingSpellEntry targetedSpell = (CreatureTargetingSpellEntry) spellEntry;
                         final List<Map.Entry<String, Double>> listToPeruse = targetedSpell.isOffensive()
