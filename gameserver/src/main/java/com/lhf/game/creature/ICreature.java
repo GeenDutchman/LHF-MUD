@@ -634,7 +634,7 @@ public interface ICreature
     @Override
     public default SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
         if (seeOutMessage == null) {
-            seeOutMessage = SeeEvent.getBuilder();
+            seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         }
         seeOutMessage.setExaminable(this);
         for (CreatureEffect effect : this.getEffects()) {
