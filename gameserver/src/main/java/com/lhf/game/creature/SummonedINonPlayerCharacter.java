@@ -438,7 +438,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
             return super.check(attribute);
         }
         this.log(Level.WARNING, "This summon is dead, and cannot perform 'check(attribute)'");
-        return null;
+        return new MultiRollResult.Builder().addBonuses(-20).Build();
     }
 
     @Override

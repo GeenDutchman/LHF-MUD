@@ -133,7 +133,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public SeeEvent produceMessage() {
-        return this.produceMessage(SeeEvent.getBuilder());
+        return this.produceMessage(SeeEvent.getBuilder().setExaminable(this));
     }
 
     @Override
@@ -575,7 +575,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public Consumer<GameEvent> getAcceptHook() {
-        return wrapped.getAcceptHook();
+        return INonPlayerCharacter.super.getAcceptHook();
     }
 
     @Override
