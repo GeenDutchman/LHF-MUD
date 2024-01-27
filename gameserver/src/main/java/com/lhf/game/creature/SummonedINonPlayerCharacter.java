@@ -31,6 +31,7 @@ import com.lhf.game.item.AItem;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.concrete.Corpse;
+import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.GameEvent;
 
 public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlayerCharacter>
@@ -365,6 +366,16 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     public final Corpse generateCorpse(boolean transfer) {
         // returns no corpse for a summon
         return null;
+    }
+
+    @Override
+    public void tick(ITickEvent tickEvent) {
+        super.tick(tickEvent);
+        if (tickEvent != null && this.timeLeft != null) {
+            if (this.timeLeft.tick(tickEvent.getTickType()) == 0) {
+                this.isAlive();
+            }
+        }
     }
 
     @Override

@@ -269,7 +269,10 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public Reply handle(CommandContext ctx, Command cmd) {
-        return wrapped.handle(ctx, cmd);
+        this.addSelfToContext(ctx); // just in case
+        Reply reply = wrapped.handle(ctx, cmd);
+        this.addSelfToContext(ctx);
+        return reply;
     }
 
     @Override
