@@ -48,6 +48,7 @@ public class RestArea extends SubArea {
         public abstract LewdStyle getLewd();
 
         public abstract LewdProduct getLewdProduct();
+
     }
 
     public static final class Builder implements IRestAreaBuildInfo {
@@ -148,6 +149,16 @@ public class RestArea extends SubArea {
             visitor.visit(this);
         }
 
+        @Override
+        public Level getLoggingLevel() {
+            return delegate.getLoggingLevel();
+        }
+
+        public Builder setLoggingLevel(Level loggingLevel) {
+            delegate.setLoggingLevel(loggingLevel);
+            return this;
+        }
+
         public RestArea build(Area area) {
             return new RestArea(this, area);
         }
@@ -186,7 +197,7 @@ public class RestArea extends SubArea {
 
     protected class RestThread extends RoundThread {
         protected RestThread() {
-            super(RestArea.this.getName());
+            super();
         }
 
         @Override

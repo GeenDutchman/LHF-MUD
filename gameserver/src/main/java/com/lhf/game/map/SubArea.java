@@ -84,12 +84,9 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         private final Phaser parentPhaser;
         private final Phaser roundPhaser;
 
-        protected RoundThread(String loggerName) {
-            if (loggerName == null) {
-                loggerName = "SubAreaThread";
-            }
-
-            this.logger = Logger.getLogger(this.getClass().getName() + "." + loggerName.replaceAll("\\W", "_"));
+        protected RoundThread() {
+            this.logger = Logger.getLogger(SubArea.this.logger.getName() + "." + this.getClass().getSimpleName());
+            this.logger.setLevel(SubArea.this.logger.getLevel());
             this.parentPhaser = new Phaser();
             this.roundPhaser = new Phaser(parentPhaser, SubArea.this.actionPools.size());
         }
@@ -296,6 +293,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         public abstract boolean isQueryOnBuild();
 
         public abstract void acceptBuildInfoVisitor(ISubAreaBuildInfoVisitor visitor);
+
+        public abstract Level getLoggingLevel();
     }
 
     public static final class SubAreaBuilder implements ISubAreaBuildInfo {
@@ -306,6 +305,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         private int waitMilliseconds;
         private Set<CreatureFilterQuery> creatureQueries;
         private boolean queryOnBuild;
+        private Level loggingLevel;
 
         public SubAreaBuilder(SubAreaSort sort) {
             this.id = new SubAreaBuilderID();
@@ -315,6 +315,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             this.creatureQueries = new HashSet<>();
             this.queryOnBuild = true;
             this.allowCasting = SubAreaCasting.NO_CASTING;
+            this.loggingLevel = null;
         }
 
         @Override
@@ -374,6 +375,15 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             visitor.visit(this);
         }
 
+        public Level getLoggingLevel() {
+            return loggingLevel;
+        }
+
+        public SubAreaBuilder setLoggingLevel(Level loggingLevel) {
+            this.loggingLevel = loggingLevel;
+            return this;
+        }
+
         @Override
         public int hashCode() {
             return Objects.hash(id);
@@ -409,6 +419,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         }
         this.area = area;
         this.logger = Logger.getLogger(this.getClass().getName() + "." + this.getName().replaceAll("\\W", "_"));
+        this.logger.setLevel(builder.getLoggingLevel());
         this.roundDurationMilliseconds = builder.getWaitMilliseconds();
         this.allowCasting = builder.isAllowCasting();
         this.cmds = this.buildCommands();

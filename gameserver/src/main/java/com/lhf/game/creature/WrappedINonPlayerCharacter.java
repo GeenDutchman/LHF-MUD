@@ -133,7 +133,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public SeeEvent produceMessage() {
-        return this.produceMessage(SeeEvent.getBuilder());
+        return this.produceMessage(SeeEvent.getBuilder().setExaminable(this));
     }
 
     @Override
@@ -269,7 +269,10 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public Reply handle(CommandContext ctx, Command cmd) {
-        return wrapped.handle(ctx, cmd);
+        this.addSelfToContext(ctx); // just in case
+        Reply reply = wrapped.handle(ctx, cmd);
+        this.addSelfToContext(ctx);
+        return reply;
     }
 
     @Override
@@ -365,12 +368,12 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public MultiRollResult check(Attributes attribute) {
-        return wrapped.check(attribute);
+        return INonPlayerCharacter.super.check(attribute);
     }
 
     @Override
     public void updateModifier(Attributes modifier, int value) {
-        wrapped.updateModifier(modifier, value);
+        INonPlayerCharacter.super.updateModifier(modifier, value);
     }
 
     @Override
@@ -395,12 +398,12 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public boolean checkName(String otherName) {
-        return wrapped.checkName(otherName);
+        return INonPlayerCharacter.super.checkName(otherName);
     }
 
     @Override
     public boolean CheckNameRegex(String possName, Integer minimumLength) {
-        return wrapped.CheckNameRegex(possName, minimumLength);
+        return INonPlayerCharacter.super.CheckNameRegex(possName, minimumLength);
     }
 
     @Override
@@ -425,7 +428,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public Attributes getHighestAttributeBonus(Set<Attributes> attrs) {
-        return wrapped.getHighestAttributeBonus(attrs);
+        return INonPlayerCharacter.super.getHighestAttributeBonus(attrs);
     }
 
     @Override
@@ -475,17 +478,17 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public final boolean isInBattle() {
-        return wrapped.isInBattle();
+        return INonPlayerCharacter.super.isInBattle();
     }
 
     @Override
     public Attack attack(Weapon weapon) {
-        return wrapped.attack(weapon);
+        return INonPlayerCharacter.super.attack(weapon);
     }
 
     @Override
     public Attack attack(String itemName, String target) {
-        return wrapped.attack(itemName, target);
+        return INonPlayerCharacter.super.attack(itemName, target);
     }
 
     @Override
@@ -531,7 +534,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     @Override
     public SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
         if (seeOutMessage == null) {
-            seeOutMessage = SeeEvent.getBuilder();
+            seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         }
         seeOutMessage.setExaminable(this);
         for (CreatureEffect effect : this.getEffects()) {
@@ -572,7 +575,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public Consumer<GameEvent> getAcceptHook() {
-        return wrapped.getAcceptHook();
+        return INonPlayerCharacter.super.getAcceptHook();
     }
 
     @Override

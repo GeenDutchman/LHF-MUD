@@ -31,6 +31,7 @@ import com.lhf.game.item.AItem;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.concrete.Corpse;
+import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.GameEvent;
 
 public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlayerCharacter>
@@ -368,6 +369,16 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
+    public void tick(ITickEvent tickEvent) {
+        super.tick(tickEvent);
+        if (tickEvent != null && this.timeLeft != null) {
+            if (this.timeLeft.tick(tickEvent.getTickType()) == 0) {
+                this.isAlive();
+            }
+        }
+    }
+
+    @Override
     public synchronized boolean isAlive() {
         Consumer<SummonedType> killit = toDie -> {
             EnumMap<Stats, Integer> foundStats = new EnumMap<>(toDie.getStats());
@@ -380,7 +391,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
             killit.accept(this.wrapped);
             return false;
         }
-        if (this.checkSummonerIsAlive() && this.summonData != null
+        if (this.summoner != null && !this.checkSummonerIsAlive() && this.summonData != null
                 && this.summonData.contains(SummonData.LIFELINE_SUMMON)) {
             this.log(Level.INFO, () -> "Summoner died");
             killit.accept(this.wrapped);
@@ -427,7 +438,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
             return super.check(attribute);
         }
         this.log(Level.WARNING, "This summon is dead, and cannot perform 'check(attribute)'");
-        return null;
+        return new MultiRollResult.Builder().addBonuses(-20).Build();
     }
 
     @Override

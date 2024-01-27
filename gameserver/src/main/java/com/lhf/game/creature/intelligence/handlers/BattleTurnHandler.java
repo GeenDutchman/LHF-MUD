@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -202,18 +203,29 @@ public class BattleTurnHandler extends AIHandler {
                     .map(gameEvent -> ((SpellEntryRequestedEvent) gameEvent)).findFirst();
             if (spellbookEntries.isPresent()) {
                 try {
-                    SpellEntry spellEntry = spellbookEntries.get().getEntries().stream()
+                    final Function<SpellEntry, Double> spellScoring = (spellentry) -> {
+                        final Double scorePerLevel = spellentry.aiScore() / (spellentry.getLevel().toInt() + 0.1);
+                        final Double offenseAdjusted = scorePerLevel
+                                * (spellentry.isOffensive() ? offensiveFocus : 1 - offensiveFocus);
+                        final Double noised = offenseAdjusted + (this.pick() * 0.01);
+                        return noised;
+                    };
+                    final TreeMap<Double, SpellEntry> scoredSpellEntries = new TreeMap<>();
+                    spellbookEntries.get().getEntries().stream()
                             .filter(entry -> entry != null)
-                            .collect(Collectors.toMap(spellentry -> spellentry,
-                                    spellentry -> (spellentry.aiScore() / (spellentry.getLevel().toInt() + 0.1))
-                                            * (spellentry.isOffensive() ? offensiveFocus : 1 - offensiveFocus),
-                                    (scorea, scoreb) -> (scorea + scoreb) / 2, TreeMap::new))
-                            .firstKey();
+                            .forEach(entry -> scoredSpellEntries.put(spellScoring.apply(entry), entry));
+                    if (scoredSpellEntries.isEmpty()) {
+                        return command;
+                    }
+                    final SpellEntry spellEntry = scoredSpellEntries.lastEntry().getValue();
                     if (spellEntry instanceof CreatureTargetingSpellEntry) {
                         final CreatureTargetingSpellEntry targetedSpell = (CreatureTargetingSpellEntry) spellEntry;
                         final List<Map.Entry<String, Double>> listToPeruse = targetedSpell.isOffensive()
                                 ? targetList.enemies()
                                 : targetList.allies();
+                        if (listToPeruse.isEmpty()) {
+                            return Optional.empty();
+                        }
                         if (targetedSpell.isSingleTarget()) {
                             command = Optional.of("Cast " + targetedSpell.getInvocation() + " at "
                                     + listToPeruse.get(0).getKey());

@@ -205,6 +205,7 @@ public class ThirdPower implements CommandChainHandler {
                             .setBadTarget(targetName).setPossibleTargets(found).Build());
                     return ctx.handled();
                 }
+                possTargets.add(found.get(0));
                 this.log(Level.FINER, () -> String.format("Target '%s' found and added",
                         targetName));
             }
