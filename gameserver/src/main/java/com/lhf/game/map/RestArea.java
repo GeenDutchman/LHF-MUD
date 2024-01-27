@@ -48,6 +48,8 @@ public class RestArea extends SubArea {
         public abstract LewdStyle getLewd();
 
         public abstract LewdProduct getLewdProduct();
+
+        public abstract boolean isLoggingSquelched();
     }
 
     public static final class Builder implements IRestAreaBuildInfo {
@@ -56,6 +58,7 @@ public class RestArea extends SubArea {
         protected final SubAreaBuilder delegate;
         private LewdStyle lewd;
         private LewdProduct lewdProduct;
+        private boolean loggingSquelched;
 
         public static Builder getInstance() {
             return new Builder();
@@ -148,6 +151,16 @@ public class RestArea extends SubArea {
             visitor.visit(this);
         }
 
+        @Override
+        public boolean isLoggingSquelched() {
+            return loggingSquelched;
+        }
+
+        public Builder setLoggingSquelched(boolean loggingSquelched) {
+            this.loggingSquelched = loggingSquelched;
+            return this;
+        }
+
         public RestArea build(Area area) {
             return new RestArea(this, area);
         }
@@ -186,7 +199,7 @@ public class RestArea extends SubArea {
 
     protected class RestThread extends RoundThread {
         protected RestThread() {
-            super(RestArea.this.getName());
+            super();
         }
 
         @Override
@@ -274,6 +287,9 @@ public class RestArea extends SubArea {
         if (!LewdStyle.PRUDE.equals(this.lewd)) {
             this.cmds.put(AMessageType.LEWD, new RestingLewdHandler());
             this.cmds.put(AMessageType.PASS, new RestingPassHandler());
+        }
+        if (builder.isLoggingSquelched()) {
+            this.logger.setLevel(Level.INFO);
         }
     }
 

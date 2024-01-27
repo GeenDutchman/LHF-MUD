@@ -35,7 +35,7 @@ public class BattleGoHandler implements PooledBattleManagerCommandHandler {
             return false;
         }
         final SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
-        CommandChainHandler chainHandler = bm.getSuccessor();
+        CommandChainHandler chainHandler = bm.getArea();
         CommandContext copyContext = ctx.copy();
 
         // this whole block means: if someone further up in the chain has GO, then I

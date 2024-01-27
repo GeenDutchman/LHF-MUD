@@ -84,12 +84,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         private final Phaser parentPhaser;
         private final Phaser roundPhaser;
 
-        protected RoundThread(String loggerName) {
-            if (loggerName == null) {
-                loggerName = "SubAreaThread";
-            }
-
-            this.logger = Logger.getLogger(this.getClass().getName() + "." + loggerName.replaceAll("\\W", "_"));
+        protected RoundThread() {
+            this.logger = Logger.getLogger(SubArea.this.logger.getName() + "." + this.getClass().getSimpleName());
             this.parentPhaser = new Phaser();
             this.roundPhaser = new Phaser(parentPhaser, SubArea.this.actionPools.size());
         }

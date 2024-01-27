@@ -223,6 +223,9 @@ public class BattleTurnHandler extends AIHandler {
                         final List<Map.Entry<String, Double>> listToPeruse = targetedSpell.isOffensive()
                                 ? targetList.enemies()
                                 : targetList.allies();
+                        if (listToPeruse.isEmpty()) {
+                            return Optional.empty();
+                        }
                         if (targetedSpell.isSingleTarget()) {
                             command = Optional.of("Cast " + targetedSpell.getInvocation() + " at "
                                     + listToPeruse.get(0).getKey());

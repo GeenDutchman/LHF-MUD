@@ -166,7 +166,7 @@ public class BattleManager extends SubArea {
     protected class BattleRoundThread extends RoundThread {
 
         protected BattleRoundThread() {
-            super(BattleManager.this.getName());
+            super();
         }
 
         @Override

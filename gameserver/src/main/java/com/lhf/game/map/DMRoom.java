@@ -245,7 +245,8 @@ public class DMRoom extends Room {
             query.filters.add(CreatureFilters.NAME);
             query.name = "Lovejax";
             query.nameRegexLen = 7;
-            restBuilder.addCreatureQuery(query).setAllowCasting(SubAreaCasting.FLUSH_CASTING).setQueryOnBuild(false);
+            restBuilder.addCreatureQuery(query).setAllowCasting(SubAreaCasting.FLUSH_CASTING).setQueryOnBuild(false)
+                    .setLoggingSquelched(true);
             builder.addSubAreaBuilder(restBuilder);
 
             builder.addDungeonMasterBuilder(dmAda).addDungeonMasterBuilder(dmGary);
