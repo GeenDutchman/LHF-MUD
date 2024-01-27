@@ -153,8 +153,10 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
     public void visit(IMonsterBuildInfo buildInfo) {
         final Statblock block = this.loadStatblock(buildInfo);
         final ConversationTree tree = this.loadConversationTree(buildInfo);
-        Monster monster = new Monster(buildInfo, this.brainProducer.apply(buildInfo), successor,
+        final BasicAI brain = this.brainProducer.apply(buildInfo);
+        Monster monster = new Monster(buildInfo, brain, successor,
                 block, tree);
+        brain.setNPC(monster);
         this.builtCreatures.visit(monster);
     }
 
@@ -162,8 +164,10 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
     public void visit(INPCBuildInfo buildInfo) {
         final Statblock block = this.loadStatblock(buildInfo);
         final ConversationTree tree = this.loadConversationTree(buildInfo);
+        final BasicAI brain = this.brainProducer.apply(buildInfo);
         NonPlayerCharacter npc = new NonPlayerCharacter(buildInfo,
-                this.brainProducer.apply(buildInfo), successor, block, tree);
+                brain, successor, block, tree);
+        brain.setNPC(npc);
         this.builtCreatures.visit(npc);
     }
 
@@ -171,8 +175,10 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
     public void visit(DungeonMasterBuildInfo buildInfo) {
         final Statblock block = this.loadStatblock(buildInfo);
         final ConversationTree tree = this.loadConversationTree(buildInfo);
-        DungeonMaster dm = new DungeonMaster(buildInfo, this.brainProducer.apply(buildInfo),
+        final BasicAI brain = this.brainProducer.apply(buildInfo);
+        DungeonMaster dm = new DungeonMaster(buildInfo, brain,
                 successor, block, tree);
+        brain.setNPC(dm);
         this.builtCreatures.visit(dm);
     }
 
