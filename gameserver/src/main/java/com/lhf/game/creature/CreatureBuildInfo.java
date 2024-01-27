@@ -41,11 +41,11 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
     public CreatureBuildInfo(CreatureBuildInfo other) {
         this.className = other.getClassName();
         this.id = new CreatureBuilderID();
-        this.name = new String(other.name);
+        this.name = other.name != null ? new String(other.name) : null;
         this.faction = other.faction;
         this.vocation = other.vocation;
         this.vocationLevel = other.vocationLevel != null ? other.vocationLevel.intValue() : null;
-        this.statblockName = new String(other.statblockName);
+        this.statblockName = other.statblockName != null ? new String(other.statblockName) : null;
         this.statblock = this.statblock != null ? new Statblock(other.statblock) : null;
         this.corpse = null;
         if (other.corpse != null) {
