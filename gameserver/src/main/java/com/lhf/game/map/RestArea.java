@@ -200,6 +200,7 @@ public class RestArea extends SubArea {
     protected class RestThread extends RoundThread {
         protected RestThread() {
             super();
+            this.logger.setLevel(RestArea.this.logger.getLevel());
         }
 
         @Override
