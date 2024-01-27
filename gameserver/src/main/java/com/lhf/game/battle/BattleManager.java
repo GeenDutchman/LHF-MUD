@@ -133,6 +133,16 @@ public class BattleManager extends SubArea {
             visitor.visit(this);
         }
 
+        @Override
+        public Level getLoggingLevel() {
+            return delegate.getLoggingLevel();
+        }
+
+        public Builder setLoggingLevel(Level loggingLevel) {
+            delegate.setLoggingLevel(loggingLevel);
+            return this;
+        }
+
         public BattleManager build(Area area) {
             return new BattleManager(this, area);
         }
