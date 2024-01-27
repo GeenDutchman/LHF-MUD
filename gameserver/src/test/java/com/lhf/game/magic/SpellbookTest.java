@@ -9,9 +9,6 @@ import java.util.SortedSet;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.truth.Truth;
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import com.lhf.game.creature.ICreatureBuildInfo.CreatureBuilderID;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.magic.concrete.Thaumaturgy;
