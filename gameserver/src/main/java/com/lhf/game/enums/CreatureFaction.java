@@ -9,7 +9,7 @@ import com.lhf.messages.GameEventProcessorHub;
 import com.lhf.messages.events.FactionRenegadeJoined;
 
 public enum CreatureFaction {
-    PLAYER, MONSTER, NPC, RENEGADE;
+    PLAYER, MONSTER, NPC, RENEGADE, PET, SWARM;
 
     public static CreatureFaction getFaction(String value) {
         for (CreatureFaction faction : values()) {
@@ -30,13 +30,17 @@ public enum CreatureFaction {
         }
         switch (aFaction) {
             case MONSTER:
-                return Collections.unmodifiableSet(EnumSet.of(PLAYER, RENEGADE));
+                return Collections.unmodifiableSet(EnumSet.of(PLAYER, RENEGADE, SWARM));
             case NPC:
-                return Collections.unmodifiableSet(EnumSet.of(MONSTER, RENEGADE));
+                return Collections.unmodifiableSet(EnumSet.of(MONSTER, RENEGADE, SWARM));
             case PLAYER:
-                return Collections.unmodifiableSet(EnumSet.of(MONSTER, RENEGADE));
+                return Collections.unmodifiableSet(EnumSet.of(MONSTER, RENEGADE, SWARM));
             case RENEGADE:
                 return Collections.unmodifiableSet(EnumSet.allOf(CreatureFaction.class));
+            case PET:
+                return Collections.unmodifiableSet(EnumSet.noneOf(CreatureFaction.class));
+            case SWARM:
+                return Collections.unmodifiableSet(EnumSet.of(PLAYER, MONSTER, NPC, RENEGADE, PET));
             default:
                 return Collections.unmodifiableSet(EnumSet.allOf(CreatureFaction.class));
         }
@@ -53,13 +57,17 @@ public enum CreatureFaction {
 
         switch (aFaction) {
             case MONSTER:
-                return Collections.unmodifiableSet(EnumSet.of(MONSTER));
+                return Collections.unmodifiableSet(EnumSet.of(MONSTER, PET));
             case NPC:
-                return Collections.unmodifiableSet(EnumSet.of(PLAYER, NPC));
+                return Collections.unmodifiableSet(EnumSet.of(PLAYER, NPC, PET));
             case PLAYER:
-                return Collections.unmodifiableSet(EnumSet.of(PLAYER, NPC));
+                return Collections.unmodifiableSet(EnumSet.of(PLAYER, NPC, PET));
             case RENEGADE:
                 return Collections.unmodifiableSet(EnumSet.noneOf(CreatureFaction.class));
+            case PET:
+                return Collections.unmodifiableSet(EnumSet.of(PLAYER, MONSTER, NPC, PET));
+            case SWARM:
+                return Collections.unmodifiableSet(EnumSet.of(SWARM));
             default:
                 return Collections.unmodifiableSet(EnumSet.noneOf(CreatureFaction.class));
 
@@ -105,6 +113,22 @@ public enum CreatureFaction {
                 && attacker.getFaction() != null
                 && attacker.getFaction().allied(target.getFaction())) {
             CreatureFaction.handleTurnRenegade(attacker, hub);
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean hasCompetitors(final Set<CreatureFaction> factions) {
+        if (factions == null || factions.isEmpty() || factions.size() <= 1) {
+            return false;
+        }
+        if (factions.contains(RENEGADE)) {
+            return true;
+        }
+        if (factions.contains(SWARM)) {
+            return true;
+        }
+        if (factions.contains(MONSTER) && (factions.contains(PLAYER) || factions.contains(NPC))) {
             return true;
         }
         return false;
