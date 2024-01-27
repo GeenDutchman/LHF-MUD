@@ -5,10 +5,10 @@ import java.util.Set;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
-import com.lhf.game.TickType;
 import com.lhf.game.EffectResistance.TargetResistAmount;
-import com.lhf.game.creature.INonPlayerCharacter.AbstractNPCBuilder.SummonData;
-import com.lhf.game.creature.Monster.MonsterBuilder;
+import com.lhf.game.TickType;
+import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
+import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo.SummonData;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.Statblock.DamgeFlavorReaction;
 import com.lhf.game.creature.vocation.Mage;
@@ -24,7 +24,7 @@ public class ElectricWisp extends RoomTargetingSpellEntry {
                         new EffectPersistence(2, TickType.ROUND),
                         new EffectResistance(Attributes.WIS, 5, TargetResistAmount.ALL),
                         "Summons an Electric Wisp to fight by your side!")
-                        .setCreatureToSummon(MonsterBuilder.getInstance().setVocation(new Mage())
+                        .setCreatureToSummon(IMonsterBuildInfo.getInstance().setVocation(new Mage())
                                         .setStatblock(Statblock.getBuilder().setCreatureRace("Wisp")
                                                         .setAttributeBlock(1, 12, 1, 16, 10, 16)
                                                         .addFlavorReaction(DamgeFlavorReaction.IMMUNITIES,

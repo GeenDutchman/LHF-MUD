@@ -3,12 +3,14 @@ package com.lhf.game;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.lhf.Examinable;
+import com.lhf.game.creature.CreatureVisitor;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.vocation.Vocation;
@@ -81,6 +83,44 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
         public VocationName vocation;
         public transient Class<? extends ICreature> clazz;
         public Boolean isBattling;
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(filters, name, nameRegexLen, faction, vocation, clazz, isBattling);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof CreatureFilterQuery))
+                return false;
+            CreatureFilterQuery other = (CreatureFilterQuery) obj;
+            return Objects.equals(filters, other.filters) && Objects.equals(name, other.name)
+                    && Objects.equals(nameRegexLen, other.nameRegexLen) && faction == other.faction
+                    && vocation == other.vocation && Objects.equals(clazz, other.clazz)
+                    && Objects.equals(isBattling, other.isBattling);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("CreatureFilterQuery [filters=").append(filters).append(", name=").append(name)
+                    .append(", nameRegexLen=").append(nameRegexLen).append(", faction=").append(faction)
+                    .append(", vocation=").append(vocation).append(", clazz=").append(clazz).append(", isBattling=")
+                    .append(isBattling).append("]");
+            return builder.toString();
+        }
+
+    }
+
+    public default void acceptCreatureVisitor(CreatureVisitor visitor) {
+        for (final ICreature creature : this.getCreatures()) {
+            if (creature == null) {
+                continue;
+            }
+            creature.acceptCreatureVisitor(visitor);
+        }
     }
 
     public default Collection<ICreature> filterCreatures(CreatureFilterQuery query) {

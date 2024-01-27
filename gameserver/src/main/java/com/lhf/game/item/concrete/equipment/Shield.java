@@ -14,8 +14,8 @@ public class Shield extends Equipable {
 
     private final int AC = 2;
 
-    public Shield(boolean isVisible) {
-        super("Shield", isVisible);
+    public Shield() {
+        super("Shield", "This is a simple shield, it should protect you a little bit. \n");
         this.types = Collections.singletonList(EquipmentTypes.SHIELD);
         this.slots = Collections.singletonList(EquipmentSlots.SHIELD);
         this.equipEffects = Collections.singletonList(
@@ -25,12 +25,7 @@ public class Shield extends Equipable {
     }
 
     @Override
-    public String printDescription() {
-        return "This is a simple shield, it should protect you a little bit. \n";
-    }
-
-    @Override
     public Shield makeCopy() {
-        return new Shield(this.checkVisibility());
+        return this;
     }
 }

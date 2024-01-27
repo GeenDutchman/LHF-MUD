@@ -13,8 +13,8 @@ import com.lhf.game.item.Equipable;
 public class ChainMail extends Equipable {
     private final int AC = 5;
 
-    public ChainMail(boolean isVisible) {
-        super("Chain Mail", isVisible);
+    public ChainMail() {
+        super("Chain Mail", "This is some heavy chainmail. It looks protective... now if only it wasn't so heavy\n");
 
         this.slots = Collections.singletonList(EquipmentSlots.ARMOR);
         this.types = Collections.singletonList(EquipmentTypes.HEAVYARMOR);
@@ -25,7 +25,8 @@ public class ChainMail extends Equipable {
     }
 
     @Override
-    public String printDescription() {
-        return "This is some heavy chainmail. " + "It looks protective... now if only it wasn't so heavy\n";
+    public ChainMail makeCopy() {
+        return this;
     }
+
 }

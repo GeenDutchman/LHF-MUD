@@ -138,7 +138,7 @@ public class BattleAttackHandler implements PooledBattleManagerCommandHandler {
     private Weapon getDesignatedWeapon(ICreature attacker, String weaponName) {
         if (weaponName != null && weaponName.length() > 0) {
             ItemNameSearchVisitor visitor = new ItemNameSearchVisitor(weaponName);
-            attacker.acceptVisitor(visitor);
+            attacker.acceptItemVisitor(visitor);
             Optional<Weapon> inventoryItem = visitor.getWeapon();
             ItemNotPossessedEvent.Builder builder = ItemNotPossessedEvent.getBuilder().setNotBroadcast()
                     .setItemName(weaponName).setItemType(Weapon.class.getSimpleName());

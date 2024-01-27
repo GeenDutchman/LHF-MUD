@@ -1,25 +1,25 @@
 package com.lhf.game.map;
 
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.map.Land.TraversalTester;
 
-class Doorway implements TraversalTester {
-
-    public enum DoorwayType {
-        STANDARD, ONE_WAY, CLOSEABLE, KEYED;
-    }
+public class Doorway {
+    protected final String className;
 
     public Doorway() {
-
+        this.className = this.getClass().getName();
     }
 
-    public DoorwayType getType() {
-        return DoorwayType.STANDARD;
+    public boolean testTraversal(ICreature creature, Directions direction, Area source, Area dest) {
+        return true;
+    }
+
+    public String getClassName() {
+        return className;
     }
 
     @Override
-    public boolean testTraversal(ICreature creature, Directions direction, Area source, Area dest) {
-        return true;
+    public String toString() {
+        return className;
     }
 
 }

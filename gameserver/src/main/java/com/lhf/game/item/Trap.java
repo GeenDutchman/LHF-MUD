@@ -2,6 +2,7 @@ package com.lhf.game.item;
 
 import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -16,13 +17,13 @@ import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.dice.DiceDC;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
-import com.lhf.game.map.Area;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemInteractionEvent;
-import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
+import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.server.client.CommandInvoker;
 
 public class Trap extends InteractObject implements GameEventProcessor {
@@ -31,22 +32,28 @@ public class Trap extends InteractObject implements GameEventProcessor {
     protected final EnumMap<Attributes, DiceDC> disarmDifficulties;
     protected boolean activated;
 
-    public Trap(String name, boolean isVisible, boolean isRepeatable, String description) {
-        super(name, isVisible, isRepeatable, description);
+    public Trap(String name, String description, boolean isRepeatable, Map<Attributes, DiceDC> difficulties) {
+        super(name, description, isRepeatable);
         this.effectSources = new HashSet<>();
         this.disarmDifficulties = new EnumMap<>(Attributes.class);
+        this.disarmDifficulties.putAll(difficulties);
         this.activated = true;
     }
 
-    @Override
-    public Trap makeCopy() {
-        final Trap nextTrap = new Trap(this.getName(), this.checkVisibility(), this.isRepeatable(),
-                this.descriptionString);
-        nextTrap.setActivated(this.isActivated());
-        for (final CreatureEffectSource source : this.getEffectSources()) {
-            nextTrap.addEffect(source);
+    public Trap(Trap other) {
+        super(other);
+        this.activated = other.activated;
+        this.effectSources = new HashSet<>();
+        for (final CreatureEffectSource source : other.getEffectSources()) {
+            this.addEffect(source);
         }
-        return nextTrap;
+        this.disarmDifficulties = new EnumMap<>(Attributes.class);
+        this.disarmDifficulties.putAll(other.disarmDifficulties);
+    }
+
+    @Override
+    public InteractObject makeCopy() {
+        return new Trap(this);
     }
 
     public Trap addEffect(CreatureEffectSource effectSource) {
@@ -61,7 +68,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
     }
 
     @Override
-    public void acceptVisitor(ItemVisitor visitor) {
+    public void acceptItemVisitor(ItemVisitor visitor) {
         visitor.visit(this);
     }
 
@@ -74,7 +81,11 @@ public class Trap extends InteractObject implements GameEventProcessor {
     }
 
     @Override
-    public void doAction(ICreature creature) {
+    public void doAction(CommandContext ctx) {
+        if (ctx == null) {
+            return;
+        }
+        final ICreature creature = ctx.getCreature();
         if (creature == null) {
             return;
         }
@@ -106,11 +117,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
                                         this.isActivated() ? "activated" : "deactivated", this.getColorTaggedName()));
             }
         }
-        if (this.area != null) {
-            Area.eventAccepter.accept(this.area, builder.setBroacast().Build());
-        } else {
-            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().Build());
-        }
+        this.broadcast(creature, builder);
         this.interactCount++;
     }
 
@@ -157,11 +164,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
                     if (resistance == null || creatureResult == null
                             || (trapResult != null && (trapResult.getTotal() > creatureResult.getTotal()))) {
                         GameEvent cam = creature.applyEffect(effect);
-                        if (this.area != null) {
-                            Area.eventAccepter.accept(this.area, cam);
-                        } else {
-                            ICreature.eventAccepter.accept(creature, cam);
-                        }
+                        this.broadcast(creature, cam);
                     } else {
                         ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this)
                                 .setPerformed()
@@ -170,11 +173,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
                                         creatureResult != null ? creatureResult.getColorTaggedName() : "effortlessly",
                                         trapResult != null ? trapResult.getColorTaggedName() : "not enough effort",
                                         this.getColorTaggedName()));
-                        if (this.area != null) {
-                            Area.eventAccepter.accept(this.area, builder.setBroacast().Build());
-                        } else {
-                            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().Build());
-                        }
+                        this.broadcast(creature, builder);
                     }
                 }
                 this.interactCount++;

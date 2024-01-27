@@ -11,16 +11,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import com.lhf.game.item.Equipable;
-import com.lhf.game.item.EquipableDeserializer;
-import com.lhf.game.item.Item;
-import com.lhf.game.item.ItemDeserializer;
-import com.lhf.game.item.Takeable;
-import com.lhf.game.item.TakeableDeserializer;
+import com.lhf.game.serialization.GsonBuilderFactory;
 
 public class StatblockManager {
     private Logger logger;
@@ -42,8 +36,7 @@ public class StatblockManager {
     }
 
     public Boolean statblockToFile(Statblock statblock) {
-        GsonBuilder gBuilder = new GsonBuilder().setPrettyPrinting();
-        Gson gson = gBuilder.create();
+        Gson gson = GsonBuilderFactory.start().prettyPrinting().items().build();
         try (JsonWriter jWriter = gson.newJsonWriter(
                 new FileWriter(this.path.toString() + statblock.getCreatureRace() + ".json"))) {
             gson.toJson(statblock, Statblock.class, jWriter);
@@ -64,11 +57,7 @@ public class StatblockManager {
     }
 
     public Statblock statblockFromfile(String name) throws FileNotFoundException {
-        GsonBuilder gBuilder = new GsonBuilder().setPrettyPrinting();
-        gBuilder.registerTypeAdapter(Equipable.class, new EquipableDeserializer<Equipable>());
-        gBuilder.registerTypeAdapter(Takeable.class, new TakeableDeserializer<>());
-        gBuilder.registerTypeAdapter(Item.class, new ItemDeserializer<>());
-        Gson gson = gBuilder.create();
+        Gson gson = GsonBuilderFactory.start().prettyPrinting().items().build();
         String statblockFile = this.path.toString() + name + ".json";
         this.logger.log(Level.INFO, "Opening file: " + statblockFile);
         JsonReader jReader = new JsonReader(new FileReader(statblockFile));

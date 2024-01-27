@@ -10,40 +10,40 @@ import java.util.Queue;
 
 import com.lhf.game.ItemContainer;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
-import com.lhf.game.item.Item;
 import com.lhf.game.map.Area;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.ItemInteractionEvent;
-import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
+import com.lhf.messages.events.SeeEvent;
 
 public class Dispenser extends InteractObject implements ItemContainer {
-    private int count;
-    protected final Queue<Item> itemsToDispense;
+    protected final Queue<IItem> itemsToDispense;
 
-    public Dispenser(String name, boolean isVisible, boolean isRepeatable, String description) {
-        super(name, isVisible, isRepeatable, description);
+    public Dispenser(String name, String description) {
+        super(name, description);
         this.itemsToDispense = new ArrayDeque<>();
-        count = 0;
+    }
+
+    public Dispenser(String name, String description, boolean isRepeatable) {
+        super(name, description, isRepeatable);
+        this.itemsToDispense = new ArrayDeque<>();
     }
 
     @Override
     public Dispenser makeCopy() {
-        Dispenser next = new Dispenser(this.getName(), this.checkVisibility(), this.isRepeatable(), descriptionString);
+        Dispenser next = new Dispenser(this.getName(), this.descriptionString, this.isRepeatable());
         ItemContainer.transfer(this, next, null, true);
         return next;
     }
 
-    public int getCount() {
-        return count;
-    }
-
-    public void incrementCount() {
-        count++;
-    }
-
     @Override
-    public void doAction(ICreature creature) {
+    public void doAction(CommandContext ctx) {
+        if (ctx == null) {
+            return;
+        }
+        final ICreature creature = ctx.getCreature();
         if (creature == null) {
             return;
         }
@@ -54,7 +54,7 @@ public class Dispenser extends InteractObject implements ItemContainer {
             return;
         }
         try {
-            final Item retrieved = this.itemsToDispense.remove();
+            final IItem retrieved = this.itemsToDispense.remove();
             this.area.addItem(retrieved);
             builder.setPerformed().setBroacast()
                     .setDescription(String.format("%s was dispensed because of %s.", retrieved.getColorTaggedName(),
@@ -68,12 +68,12 @@ public class Dispenser extends InteractObject implements ItemContainer {
     }
 
     @Override
-    public Collection<Item> getItems() {
+    public Collection<IItem> getItems() {
         return Collections.unmodifiableCollection(this.itemsToDispense);
     }
 
     @Override
-    public boolean addItem(Item item) {
+    public boolean addItem(IItem item) {
         if (item != null) {
             return this.itemsToDispense.add(item);
         }
@@ -81,9 +81,9 @@ public class Dispenser extends InteractObject implements ItemContainer {
     }
 
     @Override
-    public Optional<Item> removeItem(String name) {
-        for (Iterator<? extends Item> iterator = this.itemIterator(); iterator.hasNext();) {
-            Item thing = iterator.next();
+    public Optional<IItem> removeItem(String name) {
+        for (Iterator<? extends IItem> iterator = this.itemIterator(); iterator.hasNext();) {
+            IItem thing = iterator.next();
             if (thing == null) {
                 iterator.remove();
                 continue;
@@ -97,12 +97,12 @@ public class Dispenser extends InteractObject implements ItemContainer {
     }
 
     @Override
-    public boolean removeItem(Item item) {
+    public boolean removeItem(IItem item) {
         return this.itemsToDispense.remove(item);
     }
 
     @Override
-    public Iterator<? extends Item> itemIterator() {
+    public Iterator<? extends IItem> itemIterator() {
         return this.itemsToDispense.iterator();
     }
 

@@ -1,5 +1,6 @@
 package com.lhf.game.map;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,6 +24,9 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
@@ -68,7 +72,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     protected final SubAreaSort sort;
     protected final GameEventProcessorID gameEventProcessorID;
     protected final int roundDurationMilliseconds;
-    protected final Logger logger;
+    protected final transient Logger logger;
     protected final transient Area area;
     protected final transient AtomicReference<RoundThread> roundThread;
     protected final SubAreaCasting allowCasting;
@@ -221,14 +225,25 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         }
     }
 
-    public static abstract class SubAreaBuilder<SubAreaType extends SubArea, BuilderType extends SubAreaBuilder<SubAreaType, BuilderType>>
-            implements Serializable {
-        public static class SubAreaBuilderID implements Comparable<SubAreaBuilderID> {
-            private final UUID id = UUID.randomUUID();
+    public static interface ISubAreaBuildInfo extends Serializable {
+        public final static class SubAreaBuilderID implements Comparable<SubAreaBuilderID> {
+            private final UUID id;
+
+            public SubAreaBuilderID() {
+                this.id = UUID.randomUUID();
+            }
+
+            protected SubAreaBuilderID(@NotNull UUID id) {
+                this.id = id;
+            }
 
             @Override
             public int compareTo(SubAreaBuilderID arg0) {
                 return this.id.compareTo(arg0.id);
+            }
+
+            public UUID getId() {
+                return id;
             }
 
             @Override
@@ -250,56 +265,95 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             public String toString() {
                 return this.id.toString();
             }
+
+            public static class IDTypeAdapter extends TypeAdapter<SubAreaBuilderID> {
+
+                @Override
+                public void write(JsonWriter out, SubAreaBuilderID value) throws IOException {
+                    out.value(value.getId().toString());
+                }
+
+                @Override
+                public SubAreaBuilderID read(JsonReader in) throws IOException {
+                    final String asStr = in.nextString();
+                    return new SubAreaBuilderID(UUID.fromString(asStr));
+                }
+
+            }
+
         }
 
-        protected final transient BuilderType thisObject;
+        public abstract SubAreaBuilderID getSubAreaBuilderID();
+
+        public abstract SubAreaSort getSubAreaSort();
+
+        public abstract SubAreaCasting isAllowCasting();
+
+        public abstract int getWaitMilliseconds();
+
+        public abstract Set<CreatureFilterQuery> getCreatureQueries();
+
+        public abstract boolean isQueryOnBuild();
+
+        public abstract void acceptBuildInfoVisitor(ISubAreaBuildInfoVisitor visitor);
+    }
+
+    public static final class SubAreaBuilder implements ISubAreaBuildInfo {
         protected final SubAreaBuilderID id;
+        protected final SubAreaSort sort;
+        protected final String className;
         protected SubAreaCasting allowCasting;
         private int waitMilliseconds;
         private Set<CreatureFilterQuery> creatureQueries;
         private boolean queryOnBuild;
 
-        protected SubAreaBuilder() {
-            this.thisObject = getThis();
+        public SubAreaBuilder(SubAreaSort sort) {
             this.id = new SubAreaBuilderID();
+            this.sort = sort;
+            this.className = this.getClass().getName();
             this.waitMilliseconds = DEFAULT_MILLISECONDS;
             this.creatureQueries = new HashSet<>();
             this.queryOnBuild = true;
             this.allowCasting = SubAreaCasting.NO_CASTING;
         }
 
-        protected abstract BuilderType getThis();
+        @Override
+        public SubAreaBuilderID getSubAreaBuilderID() {
+            return this.id;
+        }
 
-        public abstract SubAreaSort getSubAreaSort();
+        public SubAreaSort getSubAreaSort() {
+            return this.sort;
+        }
 
-        public BuilderType setAllowCasting(SubAreaCasting allowCasting) {
+        public SubAreaBuilder setAllowCasting(SubAreaCasting allowCasting) {
             this.allowCasting = allowCasting != null ? allowCasting : SubAreaCasting.NO_CASTING;
-            return this.getThis();
+            return this;
         }
 
         public SubAreaCasting isAllowCasting() {
             return allowCasting != null ? allowCasting : SubAreaCasting.NO_CASTING;
         }
 
-        public BuilderType setWaitMilliseconds(int count) {
+        public SubAreaBuilder setWaitMilliseconds(int count) {
             this.waitMilliseconds = Integer.min(SubArea.MAX_MILLISECONDS, Integer.max(1, count));
-            return this.getThis();
+            return this;
         }
 
         public int getWaitMilliseconds() {
             return this.waitMilliseconds;
         }
 
-        public BuilderType addCreatureQuery(CreatureFilterQuery query) {
+        public SubAreaBuilder addCreatureQuery(CreatureFilterQuery query) {
             if (query != null) {
                 this.creatureQueries.add(query);
             }
-            return this.getThis();
+            return this;
         }
 
-        public BuilderType resetCreatureQueries() {
+        public SubAreaBuilder resetCreatureQueries() {
             this.creatureQueries.clear();
-            return this.getThis();
+            return this;
         }
 
         public Set<CreatureFilterQuery> getCreatureQueries() {
@@ -310,8 +364,14 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
             return queryOnBuild;
         }
 
-        public void setQueryOnBuild(boolean queryOnBuild) {
+        public SubAreaBuilder setQueryOnBuild(boolean queryOnBuild) {
             this.queryOnBuild = queryOnBuild;
+            return this;
+        }
+
+        @Override
+        public void acceptBuildInfoVisitor(ISubAreaBuildInfoVisitor visitor) {
+            visitor.visit(this);
         }
 
         @Override
@@ -325,15 +385,23 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
                 return true;
             if (!(obj instanceof SubAreaBuilder))
                 return false;
-            SubAreaBuilder<?, ?> other = (SubAreaBuilder<?, ?>) obj;
+            SubAreaBuilder other = (SubAreaBuilder) obj;
             return Objects.equals(id, other.id);
         }
 
-        public abstract SubAreaType build(@NotNull Area area);
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("SubAreaBuilder [id=").append(id).append(", sort=").append(sort).append(", className=")
+                    .append(className).append(", allowCasting=").append(allowCasting).append(", waitMilliseconds=")
+                    .append(waitMilliseconds).append(", creatureQueries=").append(creatureQueries)
+                    .append(", queryOnBuild=").append(queryOnBuild).append("]");
+            return builder.toString();
+        }
 
     }
 
-    protected SubArea(SubAreaBuilder<? extends SubArea, ?> builder, @NotNull Area area) {
+    protected SubArea(ISubAreaBuildInfo builder, @NotNull Area area) {
         this.gameEventProcessorID = new GameEventProcessorID();
         this.sort = builder.getSubAreaSort();
         if (this.sort == null) {

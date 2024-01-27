@@ -1,6 +1,5 @@
 package com.lhf.game.map;
 
-import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -17,8 +16,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.EntityEffect;
+import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.Player.PlayerBuildInfo;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
@@ -38,9 +39,9 @@ import com.lhf.server.client.user.UserID;
 public class Dungeon implements Land {
 
     public static class DungeonBuilder implements Land.LandBuilder {
-
+        protected final String className;
         private final transient Logger logger;
-        private final transient LandBuilderID id;
+        private final LandBuilderID id;
         private String name;
         private AreaBuilder startingRoom = null;
         private AreaBuilderAtlas atlas = null;
@@ -50,6 +51,7 @@ public class Dungeon implements Land {
         }
 
         private DungeonBuilder() {
+            this.className = this.getClass().getName();
             this.logger = Logger.getLogger(this.getClass().getName());
             this.id = new LandBuilderID();
             this.name = null;
@@ -103,23 +105,18 @@ public class Dungeon implements Land {
 
         @Override
         public Dungeon quickBuild(CommandChainHandler successor, AIRunner aiRunner) {
-            this.logger.entering(this.getClass().getName(), "QUICK build()");
-            return Dungeon.fromBuilder(this, () -> successor, () -> (dungeon) -> {
-                Map<AreaBuilderID, UUID> translation = this.quickTranslateAtlas(dungeon, aiRunner);
-                if (translation != null && this.startingRoom != null) {
-                    AreaBuilderID builderID = this.startingRoom.getAreaBuilderID();
-                    dungeon.setStartingAreaUUID(translation.get(builderID));
-                }
-            });
+            return build(successor, aiRunner, null, null, true, true);
         }
 
         @Override
         public Dungeon build(CommandChainHandler successor, AIRunner aiRunner, StatblockManager statblockManager,
-                ConversationManager conversationManager) throws FileNotFoundException {
+                ConversationManager conversationManager,
+                boolean fallbackNoConversation,
+                boolean fallbackDefaultStatblock) {
             this.logger.entering(this.getClass().getName(), "build()");
             return Dungeon.fromBuilder(this, () -> successor, () -> (dungeon) -> {
                 Map<AreaBuilderID, UUID> translation = this.translateAtlas(dungeon, aiRunner, statblockManager,
-                        conversationManager);
+                        conversationManager, fallbackNoConversation, fallbackDefaultStatblock);
                 if (translation != null && this.startingRoom != null) {
                     AreaBuilderID builderID = this.startingRoom.getAreaBuilderID();
                     dungeon.setStartingAreaUUID(translation.get(builderID));
@@ -160,6 +157,15 @@ public class Dungeon implements Land {
                 return false;
             DungeonBuilder other = (DungeonBuilder) obj;
             return Objects.equals(id, other.id);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName()).append(" [id=").append(id).append(", name=")
+                    .append(name).append(", startingRoom=").append(startingRoom).append(", atlas=").append(atlas)
+                    .append("]");
+            return builder.toString();
         }
 
     }
@@ -335,9 +341,12 @@ public class Dungeon implements Land {
         boolean removed = this.removeCreature(creature);
 
         if (creature != null && creature instanceof Player oldLife) {
-            Player nextLife = Player.PlayerBuilder.getInstance(oldLife.getUser())
-                    .setVocation(oldLife.getVocation().resetLevel())
-                    .build(this.getStartingArea());
+            CreatureFactory factory = new CreatureFactory();
+            PlayerBuildInfo nextLifeInfo = Player.PlayerBuildInfo.getInstance(oldLife.getUser())
+                    .setVocation(oldLife.getVocation().resetLevel());
+            factory.visit(nextLifeInfo);
+            Player nextLife = factory.getBuiltCreatures().getPlayers().first();
+            nextLife.setSuccessor(this.getStartingArea());
             oldLife.disconnectController(); // events will now not go anywhere
             ICreature.eventAccepter.accept(nextLife,
                     PlayerReincarnatedEvent.getBuilder().setTaggedName(creature).setNotBroadcast().Build());

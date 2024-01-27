@@ -261,7 +261,7 @@ public class BattleStats implements GameEventProcessor {
     private Map<String, BattleStatRecord> battleStats;
     private final GameEventProcessorID gameEventProcessorID = new GameEventProcessorID();
     private int deadXP;
-    private final Logger logger;
+    private final transient Logger logger;
 
     public BattleStats() {
         this.logger = Logger.getLogger(this.getClass().getName() + "." + this.gameEventProcessorID.getUuid());

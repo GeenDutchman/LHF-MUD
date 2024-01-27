@@ -71,7 +71,7 @@ public class Client implements CommandInvoker {
     protected final ClientID id;
     protected SendStrategy out;
     protected final GameEventProcessorID gameEventProcessorID;
-    protected Logger logger;
+    protected transient Logger logger;
     protected transient CommandChainHandler _successor;
 
     protected Client() {

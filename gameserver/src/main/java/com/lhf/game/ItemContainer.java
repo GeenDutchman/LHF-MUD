@@ -11,7 +11,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.lhf.Examinable;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.IItem;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.ItemVisitor;
 
 public interface ItemContainer extends Examinable {
@@ -21,23 +22,23 @@ public interface ItemContainer extends Examinable {
      * 
      * @return Immutable collection
      */
-    public abstract Collection<Item> getItems();
+    public abstract Collection<IItem> getItems();
 
-    public abstract boolean addItem(Item item);
+    public abstract boolean addItem(IItem item);
 
-    public abstract Optional<Item> removeItem(String name);
+    public abstract Optional<IItem> removeItem(String name);
 
-    public abstract boolean removeItem(Item item);
+    public abstract boolean removeItem(IItem item);
 
-    public abstract Iterator<? extends Item> itemIterator();
+    public abstract Iterator<? extends IItem> itemIterator();
 
-    public static boolean transfer(ItemContainer from, ItemContainer to, Predicate<Item> predicate, boolean copyItem) {
+    public static boolean transfer(ItemContainer from, ItemContainer to, Predicate<IItem> predicate, boolean copyItem) {
         if (from == null || to == null) {
             return false;
         }
         boolean changed = false;
-        for (Iterator<? extends Item> it = from.itemIterator(); it.hasNext();) {
-            Item item = it.next();
+        for (Iterator<? extends IItem> it = from.itemIterator(); it.hasNext();) {
+            IItem item = it.next();
             if (item != null && (predicate != null ? predicate.test(item) : true)
                     && (copyItem ? to.addItem(item.makeCopy()) : to.addItem(item))) {
                 it.remove();
@@ -47,9 +48,12 @@ public interface ItemContainer extends Examinable {
         return changed;
     }
 
-    public default void acceptVisitor(ItemVisitor visitor) {
-        for (Item item : this.getItems()) {
-            item.acceptVisitor(visitor);
+    public default void acceptItemVisitor(ItemVisitor visitor) {
+        for (IItem item : this.getItems()) {
+            if (item == null) {
+                continue;
+            }
+            item.acceptItemVisitor(visitor);
         }
     }
 
@@ -57,14 +61,14 @@ public interface ItemContainer extends Examinable {
         CLASS_NAME, OBJECT_NAME, TYPE, VISIBILITY;
     }
 
-    public default Collection<Item> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
-            Integer objNameRegexLen, Class<? extends Item> clazz, Boolean isVisible) {
-        Collection<Item> retrieved = this.getItems();
-        Supplier<Collection<Item>> sortSupplier = () -> new ArrayList<Item>();
+    public default Collection<IItem> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
+            Integer objNameRegexLen, Class<? extends AItem> clazz, Boolean isVisible) {
+        Collection<IItem> retrieved = this.getItems();
+        Supplier<Collection<IItem>> sortSupplier = () -> new ArrayList<IItem>();
         return Collections.unmodifiableCollection(retrieved.stream()
                 .filter(item -> item != null)
                 .filter(item -> !filters.contains(ItemFilters.VISIBILITY)
-                        || (isVisible != null && item.checkVisibility() == isVisible))
+                        || (isVisible != null && item.isVisible() == isVisible))
                 .filter(item -> !filters.contains(ItemFilters.CLASS_NAME)
                         || (className != null && className.equals(item.getClassName())))
                 .filter(item -> !filters.contains(ItemFilters.OBJECT_NAME) || (objectName != null
@@ -74,7 +78,7 @@ public interface ItemContainer extends Examinable {
                 .collect(Collectors.toCollection(sortSupplier)));
     }
 
-    public default Optional<Item> getItem(String name) {
+    public default Optional<IItem> getItem(String name) {
         return this.filterItems(EnumSet.of(ItemFilters.OBJECT_NAME), null, name, 3, null, null).stream().findAny();
     }
 
@@ -86,8 +90,8 @@ public interface ItemContainer extends Examinable {
         return this.hasItem(name, 3);
     }
 
-    public default boolean hasItem(Item item) {
-        Collection<Item> retrieved = this.getItems();
+    public default boolean hasItem(IItem item) {
+        Collection<IItem> retrieved = this.getItems();
         return retrieved.contains(item);
     }
 

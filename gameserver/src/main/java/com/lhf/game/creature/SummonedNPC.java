@@ -4,8 +4,7 @@ import java.io.FileNotFoundException;
 import java.util.EnumSet;
 
 import com.lhf.game.EffectPersistence.Ticker;
-import com.lhf.game.creature.INonPlayerCharacter.AbstractNPCBuilder.SummonData;
-import com.lhf.game.creature.NonPlayerCharacter.NPCBuilder;
+import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo.SummonData;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
@@ -17,12 +16,21 @@ public class SummonedNPC extends SummonedINonPlayerCharacter<NonPlayerCharacter>
         super(NPC, summonData, summoner, timeLeft);
     }
 
-    public SummonedNPC(NPCBuilder builder, ICreature summoner, Ticker timeLeft, AIRunner aiRunner,
+    public static SummonedNPC fromBuildInfo(INPCBuildInfo builder, ICreature summoner, Ticker timeLeft,
+            AIRunner aiRunner,
             CommandChainHandler successor,
             StatblockManager statblockManager, ConversationManager conversationManager) throws FileNotFoundException {
-        super(builder.build(aiRunner, null, statblockManager, conversationManager), builder.getSummonState(), summoner,
-                timeLeft);
-        this.successor = successor;
+        CreatureFactory factory = CreatureFactory.fromAIRunner(successor, statblockManager, conversationManager,
+                aiRunner, false,
+                false);
+        factory.visit(builder);
+        return new SummonedNPC(factory.getBuiltCreatures().getNpcs().first(), builder.getSummonState(),
+                summoner, timeLeft);
+    }
+
+    @Override
+    public void acceptCreatureVisitor(CreatureVisitor visitor) {
+        visitor.visit(this);
     }
 
 }

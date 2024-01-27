@@ -13,10 +13,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
-import com.lhf.game.item.Item;
 import com.lhf.game.item.Takeable;
-import com.lhf.game.map.Area;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.Builder;
@@ -26,9 +26,9 @@ public class Chest extends InteractObject implements LockableItemContainer {
     protected final UUID chestUuid;
     protected final AtomicBoolean locked;
     protected final boolean removeOnEmpty;
-    protected List<Item> chestItems;
+    protected List<IItem> chestItems;
 
-    private final static NotableFixture lockedNote = new NotableFixture("Chest Locked", false, "This chest is locked.");
+    private final static Item lockedNote = new Item("Chest Locked", "This chest is locked.");
 
     public enum ChestDescriptor {
         RUSTY, SHINY, BLUE, SLIPPERY, WOODEN, COLORFUL, METAL, FANCY;
@@ -38,8 +38,8 @@ public class Chest extends InteractObject implements LockableItemContainer {
         }
     }
 
-    public Chest(ChestDescriptor descriptor, boolean isVisible) {
-        super(ChestDescriptor.generateDescription(descriptor), isVisible, true,
+    public Chest(ChestDescriptor descriptor) {
+        super(ChestDescriptor.generateDescription(descriptor),
                 ChestDescriptor.generateDescription(descriptor));
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
@@ -48,8 +48,8 @@ public class Chest extends InteractObject implements LockableItemContainer {
         this.removeOnEmpty = false;
     }
 
-    public Chest(ChestDescriptor descriptor, boolean isVisible, boolean initialLock, boolean removeOnEmpty) {
-        super(ChestDescriptor.generateDescription(descriptor), isVisible, true,
+    public Chest(ChestDescriptor descriptor, boolean initialLock, boolean removeOnEmpty) {
+        super(ChestDescriptor.generateDescription(descriptor),
                 ChestDescriptor.generateDescription(descriptor));
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
@@ -58,16 +58,16 @@ public class Chest extends InteractObject implements LockableItemContainer {
         this.removeOnEmpty = removeOnEmpty;
     }
 
-    protected Chest(String name, boolean isVisible) {
-        super(name, isVisible, true, name);
+    protected Chest(String name) {
+        super(name, name);
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.locked = new AtomicBoolean(false);
         this.removeOnEmpty = false;
     }
 
-    protected Chest(String name, boolean isVisible, boolean initialLock, boolean removeOnEmpty) {
-        super(name, isVisible, true, name);
+    protected Chest(String name, boolean initialLock, boolean removeOnEmpty) {
+        super(name, name);
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.locked = new AtomicBoolean(initialLock);
@@ -76,7 +76,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
 
     @Override
     public Chest makeCopy() {
-        return new Chest(this.getName(), this.checkVisibility(), this.locked.get(), this.removeOnEmpty);
+        return new Chest(this.getName(), this.locked.get(), this.removeOnEmpty);
     }
 
     @Override
@@ -100,7 +100,11 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     @Override
-    public void doAction(ICreature creature) {
+    public void doAction(CommandContext ctx) {
+        if (ctx == null) {
+            return;
+        }
+        final ICreature creature = ctx.getCreature();
         if (creature == null) {
             return;
         }
@@ -117,11 +121,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
             builder.setDescription(String.format("%s tries the %s and finds it locked", creature.getColorTaggedName(),
                     this.getColorTaggedName()));
         }
-        if (this.area != null) {
-            Area.eventAccepter.accept(this.area, builder.setBroacast().Build());
-        } else {
-            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().Build());
-        }
+        this.broadcast(creature, builder);
         this.interactCount++;
     }
 
@@ -131,7 +131,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
             seeOutMessage = SeeEvent.getBuilder();
         }
         seeOutMessage.setExaminable(this);
-        for (Item thing : this.getItems()) {
+        for (IItem thing : this.getItems()) {
             if (thing instanceof Takeable) {
                 seeOutMessage.addSeen(SeeCategory.TAKEABLE, thing);
             } else {
@@ -167,7 +167,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     @Override
-    public boolean addItem(Item item) {
+    public boolean addItem(IItem item) {
         if (item == null || !this.isUnlocked()) {
             return false;
         }
@@ -175,7 +175,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     @Override
-    public Collection<Item> getItems() {
+    public Collection<IItem> getItems() {
         if (!this.isUnlocked()) {
             return List.of(Chest.lockedNote);
         }
@@ -183,11 +183,11 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     @Override
-    public Optional<Item> removeItem(String name) {
+    public Optional<IItem> removeItem(String name) {
         if (!this.isUnlocked()) {
             return Optional.empty();
         }
-        Optional<Item> found = this.getItem(name);
+        Optional<IItem> found = this.getItem(name);
         if (found.isPresent()) {
             this.chestItems.remove(found.get());
         }
@@ -195,7 +195,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     @Override
-    public boolean removeItem(Item item) {
+    public boolean removeItem(IItem item) {
         if (!this.isUnlocked()) {
             return false;
         }
@@ -203,7 +203,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     @Override
-    public Iterator<? extends Item> itemIterator() {
+    public Iterator<? extends IItem> itemIterator() {
         return this.chestItems.iterator();
     }
 
@@ -243,18 +243,18 @@ public class Chest extends InteractObject implements LockableItemContainer {
         }
 
         @Override
-        public Collection<Item> getItems() {
+        public Collection<IItem> getItems() {
             return Collections.unmodifiableList(Chest.this.chestItems);
         }
 
         @Override
-        public boolean addItem(Item item) {
+        public boolean addItem(IItem item) {
             return Chest.this.chestItems.add(item);
         }
 
         @Override
-        public Optional<Item> removeItem(String name) {
-            Optional<Item> found = this.getItem(name);
+        public Optional<IItem> removeItem(String name) {
+            Optional<IItem> found = this.getItem(name);
             if (found.isPresent()) {
                 Chest.this.chestItems.remove(found.get());
             }
@@ -262,12 +262,12 @@ public class Chest extends InteractObject implements LockableItemContainer {
         }
 
         @Override
-        public boolean removeItem(Item item) {
+        public boolean removeItem(IItem item) {
             return Chest.this.chestItems.remove(item);
         }
 
         @Override
-        public Iterator<? extends Item> itemIterator() {
+        public Iterator<? extends IItem> itemIterator() {
             return Chest.this.chestItems.iterator();
         }
 

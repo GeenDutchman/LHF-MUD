@@ -6,8 +6,9 @@ import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.ItemContainer;
 import com.lhf.game.LockableItemContainer;
-import com.lhf.game.item.Item;
-import com.lhf.game.item.ItemPartitionListVisitor;
+import com.lhf.game.item.IItem;
+import com.lhf.game.item.AItem;
+import com.lhf.game.item.ItemPartitionCollectionVisitor;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.map.Area.AreaCommandHandler;
 import com.lhf.messages.Command;
@@ -47,8 +48,8 @@ public class AreaTakeHandler implements AreaCommandHandler {
         if (!AreaCommandHandler.super.isEnabled(ctx)) {
             return false;
         }
-        ItemPartitionListVisitor visitor = new ItemPartitionListVisitor();
-        ctx.getArea().acceptVisitor(visitor);
+        ItemPartitionCollectionVisitor visitor = new ItemPartitionCollectionVisitor();
+        ctx.getArea().acceptItemVisitor(visitor);
         return !visitor.getTakeables().isEmpty();
     }
 
@@ -99,7 +100,7 @@ public class AreaTakeHandler implements AreaCommandHandler {
                     continue;
                 }
                 try {
-                    Optional<Item> maybeItem = container.getItems().stream()
+                    Optional<IItem> maybeItem = container.getItems().stream()
                             .filter(item -> item.CheckNameRegex(thing, 3))
                             .findAny();
                     if (maybeItem.isEmpty()) {
@@ -110,7 +111,7 @@ public class AreaTakeHandler implements AreaCommandHandler {
                         }
                         continue;
                     }
-                    Item item = maybeItem.get();
+                    IItem item = maybeItem.get();
                     takeOutMessage.setItem(item);
                     if (item instanceof Takeable takeableItem) {
                         ctx.getCreature().addItem(takeableItem);
@@ -127,7 +128,7 @@ public class AreaTakeHandler implements AreaCommandHandler {
             while (container instanceof LockableItemContainer.Bypass bypass) {
                 container = bypass.getOrigin();
             }
-            if (container instanceof LockableItemContainer liCon && liCon instanceof Item liConItem) {
+            if (container instanceof LockableItemContainer liCon && liCon instanceof AItem liConItem) {
                 if (liCon.isRemoveOnEmpty() && liCon.isEmpty()) {
                     ctx.getArea().removeItem(liConItem);
                 }

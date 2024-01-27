@@ -79,7 +79,7 @@ public class SpellEntryBuilder {
     private static void menu(CLIAdapter adapter) {
         int menuChoice = -1;
         Spellbook spellbook = new Spellbook();
-        if (spellbook.loadFromFile()) {
+        if (spellbook.loadFromFile(null)) {
             System.out.println("loaded from file");
         } else {
             System.out.println("Failed to load spellbook");
@@ -129,7 +129,7 @@ public class SpellEntryBuilder {
                 case 5:
                     System.out.println("Saving....");
                     try {
-                        if (!spellbook.saveToFile()) {
+                        if (!spellbook.saveToFile(null)) {
                             System.err.println("It was not saved, but no exception");
                         }
                     } catch (Exception e) {

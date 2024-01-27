@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.Optional;
 
 import com.lhf.game.ItemContainer;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.IItem;
 
 public interface InventoryOwner extends ItemContainer {
     Inventory getInventory();
@@ -17,19 +17,19 @@ public interface InventoryOwner extends ItemContainer {
     String getName();
 
     @Override
-    public default Collection<Item> getItems() {
+    public default Collection<IItem> getItems() {
         Inventory inventory = this.getInventory();
         return inventory.getItems();
     }
 
     @Override
-    public default Optional<Item> getItem(String name) {
+    public default Optional<IItem> getItem(String name) {
         Inventory inventory = this.getInventory();
         return inventory.getItem(name);
     }
 
     @Override
-    default boolean addItem(Item item) {
+    default boolean addItem(IItem item) {
         return this.getInventory().addItem(item);
     }
 
@@ -39,17 +39,17 @@ public interface InventoryOwner extends ItemContainer {
     }
 
     @Override
-    default Optional<Item> removeItem(String name) {
+    default Optional<IItem> removeItem(String name) {
         return this.getInventory().removeItem(name);
     }
 
     @Override
-    default boolean removeItem(Item item) {
+    default boolean removeItem(IItem item) {
         return this.getInventory().removeItem(item);
     }
 
     @Override
-    default Iterator<? extends Item> itemIterator() {
+    default Iterator<? extends IItem> itemIterator() {
         return this.getInventory().itemIterator();
     }
 

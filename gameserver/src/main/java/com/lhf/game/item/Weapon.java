@@ -20,29 +20,34 @@ public class Weapon extends Equipable {
     protected WeaponSubtype subtype;
     protected int toHitBonus = 0;
 
-    public Weapon(String name, boolean isVisible, Set<CreatureEffectSource> effectSources, DamageFlavor mainFlavor,
+    public Weapon(String name, String description, Set<CreatureEffectSource> effectSources, DamageFlavor mainFlavor,
             WeaponSubtype subtype) {
-        super(name, isVisible, -1);
-        this.effectSources = effectSources != null ? effectSources : new HashSet<>();
+        super(name, description);
+        this.effectSources = new HashSet<>();
+        if (effectSources != null) {
+            for (final CreatureEffectSource source : effectSources) {
+                this.effectSources.add(source.makeCopy());
+            }
+        }
         this.mainFlavor = mainFlavor;
         this.subtype = subtype;
     }
 
-    @Override
-    public Weapon makeCopy() {
-        Set<CreatureEffectSource> copiedEffectSources = new HashSet<>();
-        for (final CreatureEffectSource source : this.effectSources) {
-            copiedEffectSources.add(source.makeCopy());
-        }
-        Weapon copy = new Weapon(this.getName(), this.checkVisibility(), copiedEffectSources, this.mainFlavor,
-                this.subtype);
-        copy.toHitBonus = this.toHitBonus;
-        this.copyOverwriteTo(copy);
-        return copy;
+    protected Weapon(Weapon other) {
+        this(other.getName(), other.descriptionString, other.effectSources, other.mainFlavor, other.subtype);
+        this.toHitBonus = other.toHitBonus;
     }
 
     @Override
-    public void acceptVisitor(ItemVisitor visitor) {
+    public Weapon makeCopy() {
+        if (this.numCanUseTimes < 0) {
+            return this;
+        }
+        return new Weapon(this);
+    }
+
+    @Override
+    public void acceptItemVisitor(ItemVisitor visitor) {
         visitor.visit(this);
     }
 

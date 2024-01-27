@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.lhf.game.creature.inventory.InventoryOwner;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.concrete.LockKey;
 
 public interface Lockable {
@@ -23,7 +23,7 @@ public interface Lockable {
 
     public default boolean isAuthorized(InventoryOwner attemtper) {
         String keyName = LockKey.generateKeyName(this.getLockUUID());
-        Optional<Item> retrieved = attemtper.getItem(keyName);
+        Optional<IItem> retrieved = attemtper.getItem(keyName);
         if (attemtper == null || retrieved.isEmpty()) {
             return false;
         }

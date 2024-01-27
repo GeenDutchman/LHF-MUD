@@ -9,7 +9,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 
-public class ItemDeserializer<T extends Item> implements JsonDeserializer<T> {
+public class ItemDeserializer<T extends AItem> implements JsonDeserializer<T> {
 
     private static final String CLASSNAME = "className";
 

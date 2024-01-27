@@ -13,12 +13,32 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.magic.concrete.Thaumaturgy;
 import com.lhf.game.magic.concrete.ThunderStrike;
+import com.lhf.game.serialization.GsonBuilderFactory;
 
 public class SpellbookTest {
+
+    // private final static ExclusionStrategy noIDs = new ExclusionStrategy() {
+    // @Override
+    // public boolean shouldSkipClass(Class<?> clazz) {
+    // return CreatureBuilderID.class.equals(clazz);
+    // }
+
+    // @Override
+    // public boolean shouldSkipField(FieldAttributes f) {
+    // return CreatureBuilderID.class.equals(f.getDeclaredClass());
+    // }
+    // };
+
+    private static GsonBuilderFactory getGsonBuilderFactory() {
+        return GsonBuilderFactory.start().spells().prettyPrinting();
+        // .inlineRawBuilderAdjustment((builder) ->
+        // builder.addSerializationExclusionStrategy(noIDs));
+    }
+
     @Test
     void testSaving() throws IOException {
         Spellbook spellbook = new Spellbook();
-        Truth.assertThat(spellbook.saveToFile()).isTrue();
+        Truth.assertThat(spellbook.saveToFile(SpellbookTest.getGsonBuilderFactory())).isTrue();
     }
 
     @Test
@@ -33,7 +53,7 @@ public class SpellbookTest {
                 presize += found.size();
             }
         }
-        Truth.assertThat(spellbook.loadFromFile()).isTrue();
+        Truth.assertThat(spellbook.loadFromFile(SpellbookTest.getGsonBuilderFactory())).isTrue();
         int postSize = 0;
         for (ResourceCost i : ResourceCost.values()) {
             SortedSet<SpellEntry> found = spellbook.filterByExactLevel(i);
@@ -58,7 +78,7 @@ public class SpellbookTest {
 
     @Test
     void testFilterByExactInvocation() {
-        Spellbook spellbook = new Spellbook();
+        Spellbook spellbook = new Spellbook().addConcreteSpells();
         NavigableSet<SpellEntry> optEntry = spellbook.filterByExactInvocation("bogux invocation");
         Truth.assertThat(optEntry.isEmpty()).isTrue();
         optEntry = spellbook.filterByExactInvocation("zarmamoo");
@@ -69,7 +89,7 @@ public class SpellbookTest {
 
     @Test
     void testFilterByExactLevel() {
-        Spellbook spellbook = new Spellbook();
+        Spellbook spellbook = new Spellbook().addConcreteSpells();
         ThunderStrike thunderStrike = new ThunderStrike();
         SortedSet<SpellEntry> found = spellbook.filterByExactLevel(ResourceCost.NO_COST);
         Truth.assertThat(found.size()).isAtLeast(2);
@@ -81,7 +101,7 @@ public class SpellbookTest {
 
     @Test
     void testFilterByExactName() {
-        Spellbook spellbook = new Spellbook();
+        Spellbook spellbook = new Spellbook().addConcreteSpells();
         NavigableSet<SpellEntry> found = spellbook.filterByExactName("fakexname");
         Truth.assertThat(found.isEmpty()).isTrue();
         found = spellbook.filterByExactName("Thaumaturgy");
@@ -92,7 +112,7 @@ public class SpellbookTest {
 
     @Test
     void testFilterByVocationName() {
-        Spellbook spellbook = new Spellbook();
+        Spellbook spellbook = new Spellbook().addConcreteSpells();
         SortedSet<SpellEntry> found = spellbook.filterByVocationName(null);
         Truth.assertThat(found).hasSize(0);
         found = spellbook.filterByVocationName(VocationName.FIGHTER);
@@ -110,7 +130,7 @@ public class SpellbookTest {
 
     @Test
     void testFilterByVocationAndLevels() {
-        Spellbook spellbook = new Spellbook();
+        Spellbook spellbook = new Spellbook().addConcreteSpells();
         SortedSet<SpellEntry> found = spellbook.filterByVocationAndLevels(null, null);
         Truth.assertThat(found).hasSize(0);
         found = spellbook.filterByVocationAndLevels(VocationName.MAGE, EnumSet.of(ResourceCost.FIRST_MAGNITUDE));

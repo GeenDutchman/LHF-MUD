@@ -25,48 +25,48 @@ import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 
 public class Whimsystick extends Weapon {
-    private final int acBonus = 1;
+        private static final String description = "This isn't quite a quarterstaff, but also not a club...it is hard to tell. "
+                        +
+                        "But what you can tell is it seems to have a laughing aura around it, like it doesn't "
+                        + "care about what it does to other people...it's a whimsystick. \n";
+        private static final int acBonus = 1;
 
-    public Whimsystick(boolean isVisible) {
-        super("Whimsystick", isVisible,
-                Set.of(new CreatureEffectSource("Bonk", new EffectPersistence(TickType.INSTANT),
-                        new EffectResistance(EnumSet.of(Attributes.STR), Stats.AC),
-                        "It is bonked.", false)
-                        .addDamage(new DamageDice(1, DieType.SIX,
-                                DamageFlavor.MAGICAL_BLUDGEONING))),
-                DamageFlavor.MAGICAL_BLUDGEONING, WeaponSubtype.MARTIAL);
+        public Whimsystick() {
+                super("Whimsystick", Whimsystick.description,
+                                Set.of(new CreatureEffectSource("Bonk", new EffectPersistence(TickType.INSTANT),
+                                                new EffectResistance(EnumSet.of(Attributes.STR), Stats.AC),
+                                                "It is bonked.", false)
+                                                .addDamage(new DamageDice(1, DieType.SIX,
+                                                                DamageFlavor.MAGICAL_BLUDGEONING))),
+                                DamageFlavor.MAGICAL_BLUDGEONING, WeaponSubtype.MARTIAL);
 
-        this.slots = Collections.singletonList(EquipmentSlots.WEAPON);
-        this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.QUARTERSTAFF,
-                EquipmentTypes.CLUB);
-        this.equipEffects = Collections
-                .singletonList(new CreatureEffectSource("AC bonus",
-                        new EffectPersistence(TickType.CONDITIONAL),
-                        null, "This will magically increase your AC", false)
-                        .addStatChange(Stats.AC, this.acBonus));
-        this.descriptionString = "This isn't quite a quarterstaff, but also not a club...it is hard to tell. " +
-                "But what you can tell is it seems to have a laughing aura around it, like it doesn't "
-                +
-                "care about what it does to other people...it's a whimsystick. \n";
-    }
-
-    @Override
-    public Whimsystick makeCopy() {
-        return new Whimsystick(this.checkVisibility());
-    }
-
-    @Override
-    public Attack generateAttack(ICreature attacker) {
-        Set<CreatureEffectSource> extraSources = new HashSet<>();
-        Dice chooser = new DiceD6(1);
-        if (chooser.rollDice().getRoll() <= 2) {
-            DamageDice healDice = new DamageDice(1, DieType.SIX, DamageFlavor.HEALING);
-
-            extraSources.add(new CreatureEffectSource("Whimsy healing",
-                    new EffectPersistence(TickType.INSTANT),
-                    null, "The whimsystick chose to heal", false).addDamage(healDice));
+                this.slots = Collections.singletonList(EquipmentSlots.WEAPON);
+                this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.QUARTERSTAFF,
+                                EquipmentTypes.CLUB);
+                this.equipEffects = Collections
+                                .singletonList(new CreatureEffectSource("AC bonus",
+                                                new EffectPersistence(TickType.CONDITIONAL),
+                                                null, "This will magically increase your AC", false)
+                                                .addStatChange(Stats.AC, Whimsystick.acBonus));
         }
-        return super.generateAttack(attacker, extraSources);
-    }
+
+        @Override
+        public Whimsystick makeCopy() {
+                return this;
+        }
+
+        @Override
+        public Attack generateAttack(ICreature attacker) {
+                Set<CreatureEffectSource> extraSources = new HashSet<>();
+                Dice chooser = new DiceD6(1);
+                if (chooser.rollDice().getRoll() <= 2) {
+                        DamageDice healDice = new DamageDice(1, DieType.SIX, DamageFlavor.HEALING);
+
+                        extraSources.add(new CreatureEffectSource("Whimsy healing",
+                                        new EffectPersistence(TickType.INSTANT),
+                                        null, "The whimsystick chose to heal", false).addDamage(healDice));
+                }
+                return super.generateAttack(attacker, extraSources);
+        }
 
 }

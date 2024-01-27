@@ -3,14 +3,18 @@ package com.lhf.game.item.concrete;
 import com.lhf.game.Lockable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.InteractObject;
-import com.lhf.game.map.Area;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.ItemInteractionEvent;
 
 public class Lever extends InteractObject {
     protected Lockable lockable;
 
-    public Lever(String name, boolean isVisible, boolean isRepeatable, String description) {
-        super(name, isVisible, isRepeatable, description);
+    public Lever(String name, String description) {
+        super(name, description);
+    }
+
+    public Lever(String name, String description, boolean isRepeatable) {
+        super(name, description, isRepeatable);
     }
 
     public void setLockable(Lockable lockable) {
@@ -19,13 +23,17 @@ public class Lever extends InteractObject {
 
     @Override
     public Lever makeCopy() {
-        Lever switcher = new Lever(this.getName(), this.checkVisibility(), this.repeatable, descriptionString);
+        Lever switcher = new Lever(this.getName(), this.descriptionString, this.repeatable);
         switcher.setLockable(this.lockable);
         return switcher;
     }
 
     @Override
-    public void doAction(ICreature creature) {
+    public void doAction(CommandContext ctx) {
+        if (ctx == null) {
+            return;
+        }
+        final ICreature creature = ctx.getCreature();
         if (creature == null) {
             return;
         }
@@ -47,11 +55,7 @@ public class Lever extends InteractObject {
                     .setDescription(String.format(
                             "A **thunk** is heard, and you are pretty sure something changed because of %s.",
                             creature.getColorTaggedName()));
-            if (this.area != null) {
-                Area.eventAccepter.accept(this.area, builder.setNotBroadcast().Build());
-            } else {
-                ICreature.eventAccepter.accept(creature, builder.setBroacast().Build());
-            }
+            this.broadcast(creature, builder);
         }
         this.interactCount++;
     }

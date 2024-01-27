@@ -9,6 +9,7 @@ import com.google.common.truth.Truth;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.Room;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.MessageMatcher;
 
 public class BedTest {
@@ -33,17 +34,17 @@ public class BedTest {
         Bed bed = new Bed(Bed.Builder.getInstance().setCapacity(2).setSleepSeconds(2), room);
         room.addItem(bed);
 
-        MessageMatcher inBed = new MessageMatcher("You are now in the bed");
+        MessageMatcher inBed = new MessageMatcher("You got in the bed");
 
-        bed.doAction(first.getNPC());
+        bed.doAction(new CommandContext().setCreature(first.getNPC()));
         Mockito.verify(first.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito.argThat(inBed));
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 
-        bed.doAction(second.getNPC());
+        bed.doAction(new CommandContext().setCreature(second.getNPC()));
         Mockito.verify(second.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito.argThat(inBed));
         Truth.assertThat(bed.getOccupancy()).isEqualTo(2);
 
-        bed.doAction(third.getNPC());
+        bed.doAction(new CommandContext().setCreature(third.getNPC()));
         Mockito.verify(third.sssb, Mockito.after(500).never()).send(Mockito.argThat(inBed));
         Truth.assertThat(bed.getOccupancy()).isEqualTo(2);
 
@@ -52,7 +53,7 @@ public class BedTest {
         bed.removeCreature(first.getNPC());
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 
-        bed.doAction(third.getNPC());
+        bed.doAction(new CommandContext().setCreature(third.getNPC()));
         Mockito.verify(third.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito.argThat(inBed));
         Truth.assertThat(bed.getOccupancy()).isEqualTo(2);
 
@@ -65,9 +66,9 @@ public class BedTest {
         room.addCreature(first.getNPC());
         Bed bed = new Bed(Bed.Builder.getInstance().setCapacity(1).setSleepSeconds(1), room);
 
-        MessageMatcher inBed = new MessageMatcher("You are now in the bed");
+        MessageMatcher inBed = new MessageMatcher("You got in the bed");
 
-        bed.doAction(first.getNPC());
+        bed.doAction(new CommandContext().setCreature(first.getNPC()));
         Mockito.verify(first.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito.argThat(inBed));
         Truth.assertThat(bed.getOccupancy()).isEqualTo(1);
 

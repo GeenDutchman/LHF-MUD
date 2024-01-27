@@ -8,23 +8,17 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.map.Area;
 
-public class AfterGlow extends CreatureEffectSource implements LewdProduct {
+public class AfterGlow extends LewdProduct {
+    private final CreatureEffectSource afterglow = new CreatureEffectSource("Afterglow",
+            new EffectPersistence(3, TickType.ROOM), null, "Bathing in the afterglow of what you have done.", false)
+            .addAttributeBonusChange(Attributes.CHA, 1).addAttributeScoreChange(Attributes.CHA, 1);
 
     public AfterGlow() {
-        super("Afterglow", new EffectPersistence(3, TickType.ROOM), null,
-                "Bathing in the afterglow of what you have done.", false);
-        this.addAttributeBonusChange(Attributes.CHA, 1);
-        this.addAttributeScoreChange(Attributes.CHA, 1);
-    }
-
-    @Override
-    public AfterGlow makeCopy() {
-        return new AfterGlow();
     }
 
     public void onLewd(Area room, VrijPartij party) {
         for (ICreature participant : party.getParticipants()) {
-            participant.applyEffect(new CreatureEffect(this, participant, this));
+            participant.applyEffect(new CreatureEffect(this.afterglow, participant, room));
         }
     }
 }

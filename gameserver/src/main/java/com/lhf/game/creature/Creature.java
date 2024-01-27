@@ -33,7 +33,7 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemNameSearchVisitor;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
@@ -50,24 +50,24 @@ import com.lhf.server.interfaces.NotNull;
 
 public abstract class Creature implements ICreature {
     private final String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
+    private final ICreatureID creatureID;
     private final GameEventProcessorID gameEventProcessorID;
     private CreatureFaction faction; // See shared enum
     private Vocation vocation;
-    // private MonsterType monsterType; // I dont know if we'll need this
-
     private final TreeSet<CreatureEffect> effects;
     private final Statblock statblock;
 
     private EnumSet<SubAreaSort> subAreaSorts; // what sub area engagements is the creature in?
     private transient CommandInvoker controller;
     private transient CommandChainHandler successor;
-    private Map<AMessageType, CommandHandler> cmds;
+    private transient Map<AMessageType, CommandHandler> cmds;
     private transient final Logger logger;
 
-    protected Creature(ICreature.CreatureBuilder<?, ? extends ICreature> builder,
+    protected Creature(ICreatureBuildInfo builder,
             @NotNull CommandInvoker controller, CommandChainHandler successor,
             @NotNull Statblock statblock) {
         this.gameEventProcessorID = new GameEventProcessorID();
+        this.creatureID = new ICreatureID();
         this.name = builder.getName();
         if (statblock == null) {
             throw new IllegalArgumentException("Creature cannot have a null statblock!");
@@ -90,6 +90,11 @@ public abstract class Creature implements ICreature {
         this.subAreaSorts = EnumSet.noneOf(SubAreaSort.class);
         this.logger = Logger
                 .getLogger(String.format("%s.%s", this.getClass().getName(), this.name.replaceAll("\\W", "_")));
+    }
+
+    @Override
+    public ICreatureID getCreatureID() {
+        return this.creatureID;
     }
 
     protected Map<AMessageType, CommandHandler> buildCommands() {
@@ -429,7 +434,7 @@ public abstract class Creature implements ICreature {
     @Override
     public boolean equipItem(String itemName, EquipmentSlots slot) {
         ItemNameSearchVisitor visitor = new ItemNameSearchVisitor(itemName);
-        this.getInventory().acceptVisitor(visitor);
+        this.getInventory().acceptItemVisitor(visitor);
         Optional<Equipable> maybeItem = visitor.getEquipable();
         ItemEquippedEvent.Builder equipMessage = ItemEquippedEvent.getBuilder().setAttemptedItemName(itemName)
                 .setNotBroadcast().setAttemptedSlot(slot);
@@ -453,7 +458,7 @@ public abstract class Creature implements ICreature {
             return true;
         }
         ICreature.eventAccepter.accept(this,
-                ItemNotPossessedEvent.getBuilder().setNotBroadcast().setItemType(Item.class.getSimpleName())
+                ItemNotPossessedEvent.getBuilder().setNotBroadcast().setItemType(IItem.class.getSimpleName())
                         .setItemName(itemName).Build());
         return true;
     }
@@ -496,10 +501,10 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public Optional<Item> removeItem(String name) {
-        Optional<Item> toRemove = ICreature.super.removeItem(name);
+    public Optional<IItem> removeItem(String name) {
+        Optional<IItem> toRemove = ICreature.super.removeItem(name);
         if (toRemove.isEmpty()) {
-            for (Item item : this.getEquipmentSlots().values()) {
+            for (IItem item : this.getEquipmentSlots().values()) {
                 if (item.CheckNameRegex(name, 3)) {
                     toRemove = Optional.of(item);
                     break;

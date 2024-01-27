@@ -18,7 +18,7 @@ import java.util.logging.Level;
 
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.EntityEffect;
-import com.lhf.game.creature.INonPlayerCharacter.AbstractNPCBuilder.SummonData;
+import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo.SummonData;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.dice.MultiRollResult;
@@ -27,8 +27,9 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.Equipable;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.messages.events.GameEvent;
 
@@ -122,7 +123,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public Collection<Item> getItems() {
+    public Collection<IItem> getItems() {
         if (this.checkSummonIsAlive()) {
             return super.getItems();
         }
@@ -149,7 +150,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public Optional<Item> getItem(String name) {
+    public Optional<IItem> getItem(String name) {
         if (this.checkSummonIsAlive()) {
             return super.getItem(name);
         }
@@ -158,7 +159,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public boolean addItem(Item item) {
+    public boolean addItem(IItem item) {
         if (this.checkSummonIsAlive()) {
             return super.addItem(item);
         }
@@ -185,7 +186,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public Optional<Item> removeItem(String name) {
+    public Optional<IItem> removeItem(String name) {
         if (this.checkSummonIsAlive()) {
             return super.removeItem(name);
         }
@@ -194,7 +195,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public boolean removeItem(Item item) {
+    public boolean removeItem(IItem item) {
         if (this.checkSummonIsAlive()) {
             return super.removeItem(item);
         }
@@ -203,12 +204,12 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public Iterator<? extends Item> itemIterator() {
+    public Iterator<? extends IItem> itemIterator() {
         if (this.checkSummonIsAlive()) {
             return super.itemIterator();
         }
         this.log(Level.WARNING, "This summon is dead, and cannot perform 'itemIterator()'");
-        return new ArrayList<Item>().iterator();
+        return new ArrayList<IItem>().iterator();
     }
 
     @Override
@@ -221,8 +222,8 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public Collection<Item> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
-            Integer objNameRegexLen, Class<? extends Item> clazz, Boolean isVisible) {
+    public Collection<IItem> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
+            Integer objNameRegexLen, Class<? extends AItem> clazz, Boolean isVisible) {
         if (this.checkSummonIsAlive()) {
             return super.filterItems(filters, className, objectName, objNameRegexLen, clazz, isVisible);
         }
@@ -271,7 +272,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public boolean hasItem(Item item) {
+    public boolean hasItem(IItem item) {
         if (this.checkSummonIsAlive()) {
             return super.hasItem(item);
         }

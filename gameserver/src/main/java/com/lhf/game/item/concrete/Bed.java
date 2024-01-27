@@ -41,9 +41,9 @@ import com.lhf.messages.in.InteractMessage;
 import com.lhf.server.client.user.UserID;
 
 public class Bed extends InteractObject implements CreatureContainer, CommandChainHandler {
-    protected final Logger logger;
+    protected final transient Logger logger;
     protected final GameEventProcessorID gameEventProcessorID;
-    protected final ScheduledThreadPoolExecutor executor;
+    protected final transient ScheduledThreadPoolExecutor executor;
     protected final int sleepSeconds;
     protected Set<BedTime> occupants;
     protected transient EnumMap<AMessageType, CommandHandler> commands;
@@ -177,7 +177,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
     }
 
     public Bed(Builder builder, Area area) {
-        super(builder.name, true, true, "It's a bed.");
+        super(builder.name, "It's a bed.");
         this.gameEventProcessorID = new GameEventProcessorID();
         this.logger = Logger.getLogger(this.getClass().getName() + "." + this.gameEventProcessorID.getUuid());
         this.sleepSeconds = builder.sleepSeconds;
@@ -202,7 +202,11 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
     }
 
     @Override
-    public void doAction(ICreature creature) {
+    public void doAction(CommandContext ctx) {
+        if (ctx == null) {
+            return;
+        }
+        final ICreature creature = ctx.getCreature();
         if (creature == null) {
             return;
         }
@@ -223,10 +227,9 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
                 builder.setBroacast()
                         .setDescription(String.format("%s got in the bed!", creature.getColorTaggedName()));
                 Area.eventAccepter.accept(this.area, builder.Build());
-            } else {
-                builder.setNotBroadcast().setDescription("You got in the bed!");
-                ICreature.eventAccepter.accept(creature, builder.Build());
             }
+            builder.setNotBroadcast().setDescription("You got in the bed!");
+            ICreature.eventAccepter.accept(creature, builder.Build());
         } else {
             builder.setSubType(InteractOutMessageType.ERROR).setDescription("You are already in the bed!");
             ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().Build());

@@ -8,6 +8,7 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -19,10 +20,11 @@ import java.util.logging.Logger;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.Game;
+import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
-import com.lhf.game.creature.INonPlayerCharacter.AbstractNPCBuilder;
+import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
@@ -32,12 +34,12 @@ import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.lewd.LewdBabyMaker;
-import com.lhf.game.map.Area.AreaBuilder.PostBuildRoomOperations;
 import com.lhf.game.map.RestArea.LewdStyle;
-import com.lhf.game.map.SubArea.SubAreaBuilder;
+import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
 import com.lhf.game.map.SubArea.SubAreaCasting;
 import com.lhf.game.map.commandHandlers.AreaCastHandler;
 import com.lhf.game.map.commandHandlers.AreaSayHandler;
@@ -67,12 +69,14 @@ public class DMRoom extends Room {
     private transient Map<AMessageType, CommandHandler> commands;
 
     public static class DMRoomBuilder implements Area.AreaBuilder {
+        private final String className;
         private final transient Logger logger;
         private Room.RoomBuilder delegate;
         private List<Land.LandBuilder> landBuilders;
 
         private DMRoomBuilder() {
-            this.logger = Logger.getLogger(this.getClass().getName());
+            this.className = this.getClass().getName();
+            this.logger = Logger.getLogger(this.className);
             this.delegate = Room.RoomBuilder.getInstance();
             this.landBuilders = new ArrayList<>();
         }
@@ -91,22 +95,22 @@ public class DMRoom extends Room {
             return this;
         }
 
-        public DMRoomBuilder addItem(Item item) {
+        public DMRoomBuilder addItem(AItem item) {
             this.delegate = delegate.addItem(item);
             return this;
         }
 
-        public DMRoomBuilder addSubAreaBuilder(SubAreaBuilder<?, ?> builder) {
+        public DMRoomBuilder addSubAreaBuilder(ISubAreaBuildInfo builder) {
             this.delegate.addSubAreaBuilder(builder);
             return this;
         }
 
-        public DMRoomBuilder addNPCBuilder(INonPlayerCharacter.AbstractNPCBuilder<?, ?> builder) {
+        public DMRoomBuilder addNPCBuilder(INonPlayerCharacterBuildInfo builder) {
             this.delegate = delegate.addNPCBuilder(builder);
             return this;
         }
 
-        public DMRoomBuilder addDungeonMasterBuilder(DungeonMaster.DungeonMasterBuilder builder) {
+        public DMRoomBuilder addDungeonMasterBuilder(DungeonMaster.DungeonMasterBuildInfo builder) {
             this.delegate = delegate.addNPCBuilder(builder);
             return this;
         }
@@ -128,7 +132,7 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public Collection<Item> getItems() {
+        public Collection<IItem> getItems() {
             return this.delegate.getItems();
         }
 
@@ -143,50 +147,19 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public Collection<AbstractNPCBuilder<?, ?>> getNPCsToBuild() {
+        public Collection<INonPlayerCharacterBuildInfo> getNPCsToBuild() {
             return delegate.getNPCsToBuild();
         }
 
         @Override
-        public Collection<SubAreaBuilder<?, ?>> getSubAreasToBuild() {
+        public Collection<ISubAreaBuildInfo> getSubAreasToBuild() {
             return delegate.getSubAreasToBuild();
         }
 
-        private List<Land> quickBuildLands(AIRunner aiRunner, DMRoom dmRoom) {
-            List<Land.LandBuilder> toBuild = this.getLandBuilders();
-            if (toBuild == null) {
-                return List.of();
-            }
-            List<Land> built = new ArrayList<>();
-            for (final Land.LandBuilder builder : toBuild) {
-                if (builder == null) {
-                    continue;
-                }
-                built.add(builder.quickBuild(dmRoom, aiRunner));
-            }
-            return Collections.unmodifiableList(built);
-        }
-
-        @Override
-        public Area quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
-            this.logger.log(Level.INFO, () -> String.format("QUICK Building DM room '%s'", this.getName()));
-            return DMRoom.quickBuilder(this, () -> land, () -> successor, () -> (room) -> {
-                final Set<INonPlayerCharacter> creaturesBuilt = this.delegate.quickBuildCreatures(aiRunner, room);
-                room.addCreatures(creaturesBuilt, true);
-                for (final SubAreaBuilder<?, ?> subAreaBuilder : this.getSubAreasToBuild()) {
-                    room.addSubArea(subAreaBuilder);
-                }
-            }, () -> (dmRoom) -> {
-                final List<Land> landsBuilt = this.quickBuildLands(aiRunner, dmRoom);
-                for (Land toAdd : landsBuilt) {
-                    dmRoom.addLand(toAdd);
-                }
-            });
-        }
-
         private List<Land> buildLands(AIRunner aiRunner, DMRoom dmRoom, Game game,
-                StatblockManager statblockManager, ConversationManager conversationManager)
-                throws FileNotFoundException {
+                StatblockManager statblockManager, ConversationManager conversationManager,
+                boolean fallbackNoConversation,
+                boolean fallbackDefaultStatblock) {
             List<Land.LandBuilder> toBuild = this.getLandBuilders();
             if (toBuild == null) {
                 return List.of();
@@ -196,27 +169,29 @@ public class DMRoom extends Room {
                 if (builder == null) {
                     continue;
                 }
-                built.add(builder.build(game, aiRunner, statblockManager, conversationManager));
+                built.add(builder.build(game, aiRunner, statblockManager, conversationManager, fallbackNoConversation,
+                        fallbackDefaultStatblock));
             }
             return Collections.unmodifiableList(built);
         }
 
         @Override
         public DMRoom build(CommandChainHandler successor, Land land, AIRunner aiRunner,
-                StatblockManager statblockManager, ConversationManager conversationManager)
-                throws FileNotFoundException {
+                StatblockManager statblockManager, ConversationManager conversationManager,
+                boolean fallbackNoConversation,
+                boolean fallbackDefaultStatblock) {
             this.logger.log(Level.INFO, () -> String.format("Building DM room '%s'", this.getName()));
             return DMRoom.fromBuilder(this, () -> land, () -> successor, () -> (room) -> {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.delegate.buildCreatures(aiRunner, room,
                         statblockManager,
-                        conversationManager);
-                room.addCreatures(creaturesBuilt, true);
-                for (final SubAreaBuilder<?, ?> subAreaBuilder : this.getSubAreasToBuild()) {
+                        conversationManager, fallbackNoConversation, fallbackDefaultStatblock);
+                room.addCreatures(creaturesBuilt, false);
+                for (final ISubAreaBuildInfo subAreaBuilder : this.getSubAreasToBuild()) {
                     room.addSubArea(subAreaBuilder);
                 }
             }, () -> (dmRoom) -> {
                 final List<Land> landsBuilt = this.buildLands(aiRunner, dmRoom, null, statblockManager,
-                        conversationManager);
+                        conversationManager, fallbackNoConversation, fallbackDefaultStatblock);
                 for (Land toAdd : landsBuilt) {
                     dmRoom.addLand(toAdd);
                 }
@@ -224,9 +199,14 @@ public class DMRoom extends Room {
         }
 
         @Override
+        public DMRoom quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
+            return this.build(successor, land, aiRunner, null, null, true, true);
+        }
+
+        @Override
         public DMRoom build(Land land, AIRunner aiRunner, StatblockManager statblockManager,
-                ConversationManager conversationManager) throws FileNotFoundException {
-            return this.build(land, land, aiRunner, statblockManager, conversationManager);
+                ConversationManager conversationManager) {
+            return this.build(land, land, aiRunner, statblockManager, conversationManager, true, true);
         }
 
         public static DMRoomBuilder buildDefault(AIRunner aiRunner, StatblockManager statblockManager,
@@ -236,7 +216,7 @@ public class DMRoom extends Room {
             builder.setName("Control Room")
                     .setDescription("There are a lot of buttons and screens in here.  It looks like a home office.");
 
-            DungeonMaster.DungeonMasterBuilder dmAda = DungeonMaster.DungeonMasterBuilder.getInstance();
+            DungeonMaster.DungeonMasterBuildInfo dmAda = DungeonMaster.DungeonMasterBuildInfo.getInstance();
             if (conversationManager != null) {
                 dmAda.setConversationTree(conversationManager.convoTreeFromFile("verbal_default"));
             }
@@ -248,7 +228,7 @@ public class DMRoom extends Room {
             dmAda.addAIHandler(new SpeakOnOtherEntry());
             dmAda.setName("Ada Lovejax");
 
-            DungeonMaster.DungeonMasterBuilder dmGary = DungeonMaster.DungeonMasterBuilder.getInstance();
+            DungeonMaster.DungeonMasterBuildInfo dmGary = DungeonMaster.DungeonMasterBuildInfo.getInstance();
             if (conversationManager != null) {
                 dmGary.setConversationTree(conversationManager.convoTreeFromFile("gary"));
             }
@@ -272,29 +252,34 @@ public class DMRoom extends Room {
 
             return builder;
         }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(className, delegate, landBuilders);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof DMRoomBuilder))
+                return false;
+            DMRoomBuilder other = (DMRoomBuilder) obj;
+            return Objects.equals(className, other.className) && Objects.equals(delegate, other.delegate)
+                    && Objects.equals(landBuilders, other.landBuilders);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("DMRoomBuilder [className=").append(className).append(", delegate=").append(delegate)
+                    .append(", landBuilders=").append(landBuilders).append("]");
+            return builder.toString();
+        }
+
     }
 
     static DMRoom fromBuilder(DMRoomBuilder builder, Supplier<Land> landSupplier,
-            Supplier<CommandChainHandler> successorSupplier,
-            Supplier<PostBuildRoomOperations<? super Room>> postRoomOperations,
-            Supplier<PostBuildRoomOperations<? super DMRoom>> postDMRoomOperations) throws FileNotFoundException {
-        DMRoom dmRoom = new DMRoom(builder, landSupplier, successorSupplier);
-        if (postRoomOperations != null) {
-            PostBuildRoomOperations<? super Room> postRoomOp = postRoomOperations.get();
-            if (postRoomOp != null) {
-                postRoomOp.accept(dmRoom);
-            }
-        }
-        if (postDMRoomOperations != null) {
-            PostBuildRoomOperations<? super DMRoom> postDMRoomOp = postDMRoomOperations.get();
-            if (postDMRoomOp != null) {
-                postDMRoomOp.accept(dmRoom);
-            }
-        }
-        return dmRoom;
-    }
-
-    static DMRoom quickBuilder(DMRoomBuilder builder, Supplier<Land> landSupplier,
             Supplier<CommandChainHandler> successorSupplier,
             Supplier<Consumer<? super Room>> postRoomOperations,
             Supplier<Consumer<? super DMRoom>> postDMRoomOperations) {
@@ -331,7 +316,9 @@ public class DMRoom extends Room {
         if (this.filterCreatures(EnumSet.of(CreatureContainer.CreatureFilters.TYPE), null, null, null, null,
                 DungeonMaster.class, null).size() < 2) {
             this.log(Level.INFO, () -> "Conditions met to create and add Player automatically");
-            return this.addNewPlayer(Player.PlayerBuilder.getInstance(user).build(null));
+            CreatureFactory factory = new CreatureFactory(this, null, null, null, true, true);
+            factory.visit(Player.getPlayerBuilder(user));
+            return this.addNewPlayer(factory.getBuiltCreatures().getPlayers().first());
         }
         boolean added = this.users.add(user);
         if (added) {
@@ -406,7 +393,7 @@ public class DMRoom extends Room {
                         return null;
                     }
                 }
-                Optional<Item> maybeCorpse = this.getItem(name);
+                Optional<IItem> maybeCorpse = this.getItem(name);
                 if (maybeCorpse.isEmpty() || !(maybeCorpse.get() instanceof Corpse)) {
                     this.logger.log(Level.FINEST, () -> String.format("No corpse was found with the name '%s'", name));
                     if (effect.creatureResponsible() != null) {
@@ -417,10 +404,10 @@ public class DMRoom extends Room {
                     }
                 }
                 Corpse corpse = (Corpse) maybeCorpse.get();
-                Player player = Player.PlayerBuilder.getInstance(user).setVocation(dmRoomEffect.getVocation())
-                        .setCorpse(corpse).build(null);
                 this.removeItem(corpse);
-                this.addNewPlayer(player);
+                CreatureFactory factory = new CreatureFactory(this, null, null, null, true, true);
+                factory.visit(Player.getPlayerBuilder(user).setVocation(dmRoomEffect.getVocation()).setCorpse(corpse));
+                this.addNewPlayer(factory.getBuiltCreatures().getPlayers().first());
             }
         }
         return super.processEffect(effect, reverse);

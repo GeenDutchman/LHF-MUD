@@ -1,6 +1,6 @@
 package com.lhf.game.item;
 
-import com.lhf.game.item.concrete.NotableFixture;
+import com.lhf.game.item.concrete.Item;
 
 public class ItemNoOpVisitor implements ItemVisitor {
 
@@ -10,7 +10,7 @@ public class ItemNoOpVisitor implements ItemVisitor {
     }
 
     @Override
-    public void visit(NotableFixture note) {
+    public void visit(Item note) {
         // deliberate no-operation
     }
 
@@ -35,7 +35,7 @@ public class ItemNoOpVisitor implements ItemVisitor {
     }
 
     @Override
-    public void visit(StackableItem stackableItem) {
+    public void visit(EquipableHiddenEffect equipableHiddenEffect) {
         // deliberate no-operation
     }
 

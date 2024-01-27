@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.events.InventoryRequestedEvent;
 import com.lhf.messages.events.SeeEvent;
@@ -31,7 +31,7 @@ public class Inventory implements ItemContainer {
     }
 
     @Override
-    public Collection<Item> getItems() {
+    public Collection<IItem> getItems() {
         return Collections.unmodifiableList(this.items);
     }
 
@@ -41,7 +41,7 @@ public class Inventory implements ItemContainer {
     }
 
     @Override
-    public boolean addItem(Item i) {
+    public boolean addItem(IItem i) {
         if (i instanceof Takeable) {
             this.items.add((Takeable) i);
             return true;
@@ -50,7 +50,7 @@ public class Inventory implements ItemContainer {
     }
 
     @Override
-    public Iterator<? extends Item> itemIterator() {
+    public Iterator<? extends IItem> itemIterator() {
         return this.items.iterator();
     }
 
@@ -80,13 +80,13 @@ public class Inventory implements ItemContainer {
     }
 
     @Override
-    public boolean removeItem(Item item) {
+    public boolean removeItem(IItem item) {
         return this.items.remove(item);
     }
 
     @Override
-    public Optional<Item> removeItem(String name) {
-        for (Item exact : this.items) {
+    public Optional<IItem> removeItem(String name) {
+        for (IItem exact : this.items) {
             if (exact.CheckNameRegex(name, 3)) {
                 this.items.remove(exact);
                 return Optional.of(exact);

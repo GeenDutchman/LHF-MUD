@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -34,6 +35,7 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.map.Area;
+import com.lhf.game.map.ISubAreaBuildInfoVisitor;
 import com.lhf.game.map.SubArea;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
@@ -56,25 +58,107 @@ import com.lhf.server.client.user.UserID;
 public class BattleManager extends SubArea {
     BattleStats battleStats;
 
-    public static class Builder extends SubAreaBuilder<BattleManager, Builder> {
+    public static interface IBattleManagerBuildInfo extends ISubAreaBuildInfo {
+
+    }
+
+    public static final class Builder implements IBattleManagerBuildInfo {
+        protected final SubAreaBuilderID id;
+        protected final String className;
+        protected final SubAreaBuilder delegate;
+
+        public Builder() {
+            this.id = new SubAreaBuilderID();
+            this.className = this.getClass().getName();
+            this.delegate = new SubAreaBuilder(SubAreaSort.BATTLE).setAllowCasting(SubAreaCasting.POOLED_CASTING);
+        }
 
         public static Builder getInstance() {
-            return new Builder().setAllowCasting(SubAreaCasting.POOLED_CASTING);
+            return new Builder();
         }
 
         @Override
-        protected Builder getThis() {
-            return this;
+        public SubAreaBuilderID getSubAreaBuilderID() {
+            return this.id;
         }
 
         @Override
         public SubAreaSort getSubAreaSort() {
-            return SubAreaSort.BATTLE;
+            return delegate.getSubAreaSort();
+        }
+
+        public Builder setAllowCasting(SubAreaCasting allowCasting) {
+            delegate.setAllowCasting(allowCasting);
+            return this;
+        }
+
+        public SubAreaCasting isAllowCasting() {
+            return delegate.isAllowCasting();
+        }
+
+        public Builder setWaitMilliseconds(int count) {
+            delegate.setWaitMilliseconds(count);
+            return this;
+        }
+
+        public int getWaitMilliseconds() {
+            return delegate.getWaitMilliseconds();
+        }
+
+        public Builder addCreatureQuery(CreatureFilterQuery query) {
+            delegate.addCreatureQuery(query);
+            return this;
+        }
+
+        public Builder resetCreatureQueries() {
+            delegate.resetCreatureQueries();
+            return this;
+        }
+
+        public Set<CreatureFilterQuery> getCreatureQueries() {
+            return delegate.getCreatureQueries();
+        }
+
+        public boolean isQueryOnBuild() {
+            return delegate.isQueryOnBuild();
+        }
+
+        public Builder setQueryOnBuild(boolean queryOnBuild) {
+            delegate.setQueryOnBuild(queryOnBuild);
+            return this;
         }
 
         @Override
+        public void acceptBuildInfoVisitor(ISubAreaBuildInfoVisitor visitor) {
+            visitor.visit(this);
+        }
+
         public BattleManager build(Area area) {
             return new BattleManager(this, area);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, className, delegate);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof Builder))
+                return false;
+            Builder other = (Builder) obj;
+            return Objects.equals(id, other.id) && Objects.equals(className, other.className)
+                    && Objects.equals(delegate, other.delegate);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Builder [id=").append(id).append(", className=").append(className).append(", delegate=")
+                    .append(delegate).append("]");
+            return builder.toString();
         }
 
     }
@@ -138,7 +222,7 @@ public class BattleManager extends SubArea {
 
     }
 
-    public BattleManager(Builder builder, Area room) {
+    public BattleManager(IBattleManagerBuildInfo builder, Area room) {
         super(builder, room);
         this.battleStats = new BattleStats().initialize(this.getCreatures());
     }

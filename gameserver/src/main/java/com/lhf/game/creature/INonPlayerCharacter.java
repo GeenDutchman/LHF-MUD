@@ -4,10 +4,10 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.function.UnaryOperator;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
@@ -17,9 +17,11 @@ import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.AIRunner;
-import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
+import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.creature.vocation.Vocation;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.dice.MultiRollResult;
@@ -31,9 +33,9 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Weapon;
+import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.DMBlessing;
-import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
@@ -65,9 +67,10 @@ public interface INonPlayerCharacter extends ICreature {
                 new EffectPersistence(TickType.INSTANT),
                 new EffectResistance(EnumSet.allOf(Attributes.class), Stats.AC), "A blessed fist punches harder.",
                 false);
+        private final static String description = "This is a Fist attached to a Creature who is blessed\n";
 
         BlessedFist() {
-            super("Blessed Fist", false, Set.of(BlessedFist.source), DamageFlavor.MAGICAL_BLUDGEONING,
+            super("Blessed Fist", BlessedFist.description, Set.of(BlessedFist.source), DamageFlavor.MAGICAL_BLUDGEONING,
                     WeaponSubtype.CREATUREPART);
             if (BlessedFist.source.getDamages().size() == 0) {
                 for (DamageFlavor df : DamageFlavor.values()) {
@@ -77,13 +80,12 @@ public interface INonPlayerCharacter extends ICreature {
 
             this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
             this.slots = List.of(EquipmentSlots.WEAPON);
-            this.descriptionString = "This is a Fist attached to a Creature who is blessed\n";
 
         }
 
         @Override
         public BlessedFist makeCopy() {
-            return new BlessedFist();
+            return this;
         }
     }
 
@@ -222,11 +224,7 @@ public interface INonPlayerCharacter extends ICreature {
 
     }
 
-    /**
-     * Builder pattern root for all NPCs.
-     */
-    public static abstract class AbstractNPCBuilder<NPCBuilderType extends AbstractNPCBuilder<NPCBuilderType, NPCType>, NPCType extends INonPlayerCharacter>
-            extends ICreature.CreatureBuilder<NPCBuilderType, INonPlayerCharacter> {
+    public interface INonPlayerCharacterBuildInfo extends ICreatureBuildInfo {
         public enum SummonData {
             /**
              * When the summoner dies, the summon dies
@@ -244,21 +242,55 @@ public interface INonPlayerCharacter extends ICreature {
             LOYAL_SUMMON
         };
 
+        public String getConversationFileName();
+
+        public ConversationTree loadConversationTree(ConversationManager conversationManager)
+                throws FileNotFoundException;
+
+        public ConversationTree getConversationTree();
+
+        public List<AIHandler> getAIHandlers();
+
+        public default AIHandler[] getAiHandlersAsArray() {
+            List<AIHandler> handlers = this.getAIHandlers();
+            if (handlers == null) {
+                return new AIHandler[0];
+            }
+            return handlers.toArray(new AIHandler[handlers.size()]);
+        }
+
+        public EnumSet<SummonData> getSummonState();
+
+        public String getLeaderName();
+    }
+
+    /**
+     * Builder pattern root for all NPCs.
+     */
+    public static final class INPCBuildInfo implements INonPlayerCharacterBuildInfo {
+
+        private final String className;
+        private final CreatureBuildInfo creatureBuilder;
+        protected final CreatureBuilderID id;
         private String conversationFileName = null;
         private ConversationTree conversationTree = null;
         private List<AIHandler> aiHandlers;
         private EnumSet<SummonData> summonState;
         private String leaderName;
 
-        protected AbstractNPCBuilder() {
-            super();
-            this.setFaction(CreatureFaction.NPC);
+        protected INPCBuildInfo() {
+            this.className = this.getClass().getName();
+            this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.NPC);
+            this.id = new CreatureBuilderID();
             this.aiHandlers = new ArrayList<>();
             this.summonState = EnumSet.noneOf(SummonData.class);
             this.leaderName = null;
         }
 
-        protected void copyFrom(NPCBuilderType other) {
+        public INPCBuildInfo(INPCBuildInfo other) {
+            this.className = other.getClassName();
+            this.creatureBuilder = new CreatureBuildInfo(other.creatureBuilder);
+            this.id = new CreatureBuilderID();
             this.conversationFileName = other.getConversationFileName() != null
                     ? new String(other.getConversationFileName())
                     : null;
@@ -271,6 +303,16 @@ public interface INonPlayerCharacter extends ICreature {
             this.summonState = EnumSet.copyOf(other.getSummonState());
         }
 
+        @Override
+        public String getClassName() {
+            return this.className;
+        }
+
+        @Override
+        public CreatureBuilderID getCreatureBuilderID() {
+            return this.id;
+        }
+
         public String getConversationFileName() {
             if (this.conversationTree != null) {
                 this.conversationFileName = this.conversationTree.getTreeName();
@@ -278,35 +320,30 @@ public interface INonPlayerCharacter extends ICreature {
             return conversationFileName;
         }
 
-        public NPCBuilderType setConversationFileName(String conversationFileName) {
+        public INPCBuildInfo setConversationFileName(String conversationFileName) {
             this.conversationFileName = conversationFileName;
             if (this.conversationTree != null && !this.conversationTree.getTreeName().equals(conversationFileName)) {
                 this.conversationTree = null;
             }
-            return this.getThis();
+            return this;
         }
 
-        public NPCBuilderType setConversationTree(ConversationTree tree) {
+        public INPCBuildInfo setConversationTree(ConversationTree tree) {
             this.conversationTree = tree;
             if (tree != null) {
                 this.conversationFileName = tree.getTreeName();
             }
-            return this.getThis();
+            return this;
         }
 
-        public ConversationTree loadConversationTree(ConversationManager conversationManager) {
+        public ConversationTree loadConversationTree(ConversationManager conversationManager)
+                throws FileNotFoundException {
             String filename = this.getConversationFileName();
             if (this.conversationTree == null && filename != null) {
                 if (conversationManager == null) {
                     throw new IllegalArgumentException("Cannot create conversation Tree without converation manager");
                 }
-                try {
-                    this.setConversationTree(conversationManager.convoTreeFromFile(filename));
-                } catch (FileNotFoundException e) {
-                    System.err.printf("Cannot load that convo file '%s'\n", filename);
-                    e.printStackTrace();
-                    this.conversationTree = null;
-                }
+                this.setConversationTree(conversationManager.convoTreeFromFile(filename));
             }
             return this.conversationTree;
         }
@@ -315,98 +352,168 @@ public interface INonPlayerCharacter extends ICreature {
             return conversationTree;
         }
 
-        public NPCBuilderType useDefaultConversation() {
+        public INPCBuildInfo useDefaultConversation() {
             this.setConversationFileName(INonPlayerCharacter.defaultConvoTreeName);
-            return this.getThis();
+            return this;
         }
 
-        public NPCBuilderType addAIHandler(AIHandler handler) {
+        public INPCBuildInfo addAIHandler(AIHandler handler) {
             if (handler != null) {
                 this.aiHandlers.add(handler);
             }
-            return this.getThis();
+            return this;
         }
 
         public List<AIHandler> getAIHandlers() {
             return this.aiHandlers;
         }
 
-        public AIHandler[] getAiHandlersAsArray() {
+        public final AIHandler[] getAiHandlersAsArray() {
             return this.aiHandlers.toArray(new AIHandler[this.aiHandlers.size()]);
         }
 
-        public NPCBuilderType clearAIHandlers() {
+        public INPCBuildInfo clearAIHandlers() {
             this.aiHandlers.clear();
-            return this.getThis();
+            return this;
         }
 
         public EnumSet<SummonData> getSummonState() {
             return summonState;
         }
 
-        public NPCBuilderType resetSummonState() {
+        public INPCBuildInfo resetSummonState() {
             this.summonState.clear();
-            return this.getThis();
+            return this;
         }
 
-        public NPCBuilderType addSummonState(SummonData data) {
+        public INPCBuildInfo addSummonState(SummonData data) {
             if (data != null) {
                 this.summonState.add(data);
             }
-            return this.getThis();
+            return this;
         }
 
-        public NPCBuilderType setSummonStates(Set<SummonData> summonData) {
+        public INPCBuildInfo setSummonStates(Set<SummonData> summonData) {
             if (summonData != null) {
                 this.summonState = EnumSet.copyOf(summonData);
             }
-            return this.getThis();
+            return this;
         }
 
         public String getLeaderName() {
             return leaderName;
         }
 
-        public NPCBuilderType setLeaderName(String leaderName) {
+        public INPCBuildInfo setLeaderName(String leaderName) {
             this.leaderName = leaderName;
-            return this.getThis();
+            return this;
         }
 
-        public abstract NPCType quickBuild(BasicAI basicAI, CommandChainHandler successor);
-
-        public final NPCType quickBuild(AIRunner aiRunner, CommandChainHandler successor) {
-            BasicAI producedAI = aiRunner != null ? aiRunner.produceAI(getAiHandlersAsArray())
-                    : INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
-            return this.quickBuild(producedAI, successor);
+        public INPCBuildInfo setName(String name) {
+            creatureBuilder.setName(name);
+            return this;
         }
 
-        public final NPCType quickBuild(CommandChainHandler successor) {
-            return this.quickBuild(INonPlayerCharacter.defaultAIRunner, successor);
+        public String getName() {
+            return creatureBuilder.getName();
+        }
+
+        public INPCBuildInfo setFaction(CreatureFaction faction) {
+            creatureBuilder.setFaction(faction);
+            return this;
+        }
+
+        public CreatureFaction getFaction() {
+            return creatureBuilder.getFaction();
+        }
+
+        public INPCBuildInfo setVocation(Vocation vocation) {
+            creatureBuilder.setVocation(vocation);
+            return this;
+        }
+
+        public CreatureBuildInfo setVocation(VocationName vocationName) {
+            return creatureBuilder.setVocation(vocationName);
+        }
+
+        public INPCBuildInfo setVocationLevel(int level) {
+            creatureBuilder.setVocationLevel(level);
+            return this;
+        }
+
+        public VocationName getVocation() {
+            return creatureBuilder.getVocation();
+        }
+
+        public Integer getVocationLevel() {
+            return creatureBuilder.getVocationLevel();
+        }
+
+        public INPCBuildInfo setStatblock(Statblock statblock) {
+            creatureBuilder.setStatblock(statblock);
+            return this;
+        }
+
+        public INPCBuildInfo setStatblockName(String statblockName) {
+            creatureBuilder.setStatblockName(statblockName);
+            return this;
+        }
+
+        public String getStatblockName() {
+            return creatureBuilder.getStatblockName();
+        }
+
+        public Statblock loadStatblock(StatblockManager statblockManager) throws FileNotFoundException {
+            return creatureBuilder.loadStatblock(statblockManager);
         }
 
         @Override
-        public abstract NPCType build(CommandInvoker controller,
-                CommandChainHandler successor, StatblockManager statblockManager,
-                UnaryOperator<NPCBuilderType> composedlazyLoaders) throws FileNotFoundException;
+        public Statblock loadBlankStatblock() {
+            return creatureBuilder.loadBlankStatblock();
+        }
 
-        public final NPCType build(AIRunner aiRunner, CommandChainHandler successor,
-                StatblockManager statblockManager, ConversationManager conversationManager)
-                throws FileNotFoundException {
-            BasicAI producedAI = aiRunner != null ? aiRunner.produceAI(getAiHandlersAsArray())
-                    : INonPlayerCharacter.defaultAIRunner.produceAI(getAiHandlersAsArray());
+        public INPCBuildInfo useBlankStatblock() {
+            creatureBuilder.useBlankStatblock();
+            return this;
+        }
 
-            UnaryOperator<NPCBuilderType> conversationLoader = (builder) -> {
-                builder.loadConversationTree(conversationManager);
-                return builder;
-            };
-            NPCType npc = this.build(producedAI, successor, statblockManager, conversationLoader);
-            producedAI.setNPC(npc);
-            return npc;
+        public Statblock getStatblock() {
+            return creatureBuilder.getStatblock();
+        }
+
+        public INPCBuildInfo setCorpse(Corpse corpse) {
+            creatureBuilder.setCorpse(corpse);
+            return this;
+        }
+
+        public Corpse getCorpse() {
+            return creatureBuilder.getCorpse();
+        }
+
+        @Override
+        public void acceptBuildInfoVisitor(ICreatureBuildInfoVisitor visitor) {
+            visitor.visit(this);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof INPCBuildInfo))
+                return false;
+            INPCBuildInfo other = (INPCBuildInfo) obj;
+            return Objects.equals(id, other.id);
         }
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder(super.toString());
+            StringBuilder sb = new StringBuilder(this.id.toString()).append(this.getClass().getSimpleName())
+                    .append(" ");
             if (this.conversationFileName != null) {
                 sb.append("With conversation like: ").append(this.conversationFileName);
                 if (this.conversationTree != null) {
@@ -425,6 +532,7 @@ public interface INonPlayerCharacter extends ICreature {
                 sb.append("With the following summon characteristics: ").append(this.summonState.toString())
                         .append("\r\n");
             }
+            sb.append("And the following internal characteristics: ").append(this.creatureBuilder);
             return sb.toString();
         }
 

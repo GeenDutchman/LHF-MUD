@@ -3,6 +3,7 @@ package com.lhf.game.item.concrete;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.lhf.game.item.ItemVisitor;
 import com.lhf.game.item.Usable;
 
 public class LockKey extends Usable {
@@ -16,10 +17,9 @@ public class LockKey extends Usable {
      * @param lockedItemUuid
      */
     public LockKey(UUID lockedItemUuid) {
-        super(LockKey.generateKeyName(lockedItemUuid), true, 1);
+        super(LockKey.generateKeyName(lockedItemUuid), "A key for ... something.", 1, null, null);
         this.lockedItemUuid = lockedItemUuid;
         this.keyUuid = UUID.randomUUID();
-        this.descriptionString = "A key for ... something.";
     }
 
     /**
@@ -30,15 +30,20 @@ public class LockKey extends Usable {
      *                       infinite uses
      */
     public LockKey(UUID lockedItemUuid, int useSoManyTimes) {
-        super(LockKey.generateKeyName(lockedItemUuid), true, useSoManyTimes);
+        super(LockKey.generateKeyName(lockedItemUuid), "A key for ... something.", useSoManyTimes, null, null);
         this.lockedItemUuid = lockedItemUuid;
         this.keyUuid = UUID.randomUUID();
-        this.descriptionString = "A key for ... something.";
+    }
+
+    public LockKey(UUID lockedItemUuid, int useSoManyTimes, ItemVisitor itemVisitor) {
+        super(LockKey.generateKeyName(lockedItemUuid), "A key for ... something.", useSoManyTimes, null, itemVisitor);
+        this.lockedItemUuid = lockedItemUuid;
+        this.keyUuid = UUID.randomUUID();
     }
 
     @Override
     public LockKey makeCopy() {
-        return new LockKey(lockedItemUuid, this.numCanUseTimes.intValue());
+        return new LockKey(lockedItemUuid, this.numCanUseTimes);
     }
 
     public static String generateKeyName(UUID lockedItemUuid) {

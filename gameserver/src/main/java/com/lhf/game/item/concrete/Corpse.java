@@ -5,12 +5,12 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.inventory.InventoryOwner;
 
 public class Corpse extends Chest {
-    public Corpse(String name, boolean isVisible) {
-        super(name, isVisible, false, true);
+    public Corpse(String name) {
+        super(name);
     }
 
     public Corpse(ICreature creature, boolean transfer) {
-        super(creature != null ? creature.getName() + "'s corpse" : "a corpse", true, false, true);
+        super(creature != null ? creature.getName() + "'s corpse" : "a corpse");
         if (transfer) {
             ItemContainer.transfer(creature, this, null, false);
         }
@@ -18,7 +18,7 @@ public class Corpse extends Chest {
 
     @Override
     public Corpse makeCopy() {
-        return new Corpse(this.getName(), this.checkVisibility());
+        return new Corpse(this.getName());
     }
 
     @Override

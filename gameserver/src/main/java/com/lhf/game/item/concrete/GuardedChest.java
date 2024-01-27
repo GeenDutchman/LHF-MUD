@@ -8,29 +8,33 @@ import java.util.TreeSet;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.inventory.InventoryOwner;
-import com.lhf.game.map.Area;
+import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.ItemInteractionEvent;
 
 public class GuardedChest extends Chest {
     protected final Set<String> guards = new TreeSet<>();
 
-    public GuardedChest(ChestDescriptor descriptor, boolean isVisible, boolean removeOnEmpty) {
-        super(descriptor, isVisible, false, removeOnEmpty);
+    public GuardedChest(ChestDescriptor descriptor) {
+        super(descriptor);
     }
 
-    protected GuardedChest(String name, boolean isVisible, boolean removeOnEmpty) {
-        super(name, isVisible, false, removeOnEmpty);
+    protected GuardedChest(String name) {
+        super(name);
     }
 
     @Override
-    public void doAction(ICreature creature) {
+    public void doAction(CommandContext ctx) {
+        if (ctx == null) {
+            return;
+        }
+        final ICreature creature = ctx.getCreature();
         if (creature == null) {
             return;
         }
         ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this);
         this.updateGuards();
         if (this.canAccess(creature)) {
-            super.doAction(creature);
+            super.doAction(ctx);
             return;
         }
         StringJoiner sj = new StringJoiner(", ", " It is guarded by: ", ". ").setEmptyValue("");
@@ -38,11 +42,7 @@ public class GuardedChest extends Chest {
         String message = String.format("%s finds that they cannot access %s.%s%s", creature.getColorTaggedName(),
                 this.getColorTaggedName(), this.isUnlocked() ? "" : " It is locked. ", sj.toString());
         builder.setDescription(message);
-        if (this.area != null) {
-            Area.eventAccepter.accept(this.area, builder.setBroacast().Build());
-        } else {
-            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().Build());
-        }
+        this.broadcast(creature, builder);
         this.interactCount++;
     }
 

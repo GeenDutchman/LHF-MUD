@@ -19,9 +19,10 @@ import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 
 public class RustyDagger extends Weapon {
+    private static final String description = "Rusty Dagger to stab monsters with. \n";
 
-    public RustyDagger(boolean isVisible) {
-        super("Rusty Dagger", isVisible, Set.of(
+    public RustyDagger() {
+        super("Rusty Dagger", RustyDagger.description, Set.of(
                 new CreatureEffectSource("Stab", new EffectPersistence(TickType.INSTANT),
                         new EffectResistance(EnumSet.of(Attributes.DEX), Stats.AC),
                         "Daggers stab things", false)
@@ -30,12 +31,11 @@ public class RustyDagger extends Weapon {
 
         this.slots = List.of(EquipmentSlots.WEAPON);
         this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.DAGGER);
-        this.descriptionString = "Rusty Dagger to stab monsters with. \n";
     }
 
     @Override
     public RustyDagger makeCopy() {
-        return new RustyDagger(this.checkVisibility());
+        return this;
     }
 
 }

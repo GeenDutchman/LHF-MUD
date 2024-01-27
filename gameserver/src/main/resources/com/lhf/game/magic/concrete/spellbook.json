@@ -119,74 +119,84 @@
     "effectSources": [
       {
         "monsterToSummon": {
-          "aiHandlers": [],
-          "summonState": [
-            "LIFELINE_SUMMON",
-            "SYMPATHETIC_SUMMON"
-          ],
-          "faction": "MONSTER",
-          "vocation": "MAGE",
-          "vocationLevel": 1,
-          "statblockName": "Wisp",
-          "statblock": {
-            "creatureRace": "Wisp",
-            "attributes": {
-              "strength": {
-                "score": 1,
-                "scoreBonus": 0,
-                "modBonus": 0
-              },
-              "dexterity": {
-                "score": 12,
-                "scoreBonus": 0,
-                "modBonus": 0
-              },
-              "constitution": {
-                "score": 1,
-                "scoreBonus": 0,
-                "modBonus": 0
-              },
-              "intelligence": {
-                "score": 16,
-                "scoreBonus": 0,
-                "modBonus": 0
-              },
-              "wisdom": {
-                "score": 10,
-                "scoreBonus": 0,
-                "modBonus": 0
-              },
-              "charisma": {
-                "score": 16,
-                "scoreBonus": 0,
-                "modBonus": 0
+          "className": "com.lhf.game.creature.IMonster$IMonsterBuildInfo",
+          "iNPCBuilder": {
+            "className": "com.lhf.game.creature.INonPlayerCharacter$INPCBuildInfo",
+            "creatureBuilder": {
+              "className": "com.lhf.game.creature.CreatureBuildInfo",
+              "id": "3253b0d4-f3f2-434e-89f1-c50e2d78fef8",
+              "faction": "MONSTER",
+              "vocation": "MAGE",
+              "vocationLevel": 1,
+              "statblockName": "Wisp",
+              "statblock": {
+                "creatureRace": "Wisp",
+                "attributes": {
+                  "strength": {
+                    "score": 1,
+                    "scoreBonus": 0,
+                    "modBonus": 0
+                  },
+                  "dexterity": {
+                    "score": 12,
+                    "scoreBonus": 0,
+                    "modBonus": 0
+                  },
+                  "constitution": {
+                    "score": 1,
+                    "scoreBonus": 0,
+                    "modBonus": 0
+                  },
+                  "intelligence": {
+                    "score": 16,
+                    "scoreBonus": 0,
+                    "modBonus": 0
+                  },
+                  "wisdom": {
+                    "score": 10,
+                    "scoreBonus": 0,
+                    "modBonus": 0
+                  },
+                  "charisma": {
+                    "score": 16,
+                    "scoreBonus": 0,
+                    "modBonus": 0
+                  }
+                },
+                "stats": {
+                  "MAXHP": 12,
+                  "CURRENTHP": 12,
+                  "XPWORTH": 500,
+                  "AC": 11
+                },
+                "proficiencies": [],
+                "inventory": {
+                  "items": []
+                },
+                "equipmentSlots": {},
+                "damageFlavorReactions": {
+                  "WEAKNESSES": [
+                    "PSYCHIC"
+                  ],
+                  "RESISTANCES": [],
+                  "IMMUNITIES": [
+                    "LIGHTNING",
+                    "AGGRO"
+                  ],
+                  "CURATIVES": [
+                    "HEALING"
+                  ]
+                }
               }
             },
-            "stats": {
-              "MAXHP": 12,
-              "CURRENTHP": 12,
-              "XPWORTH": 500,
-              "AC": 11
-            },
-            "proficiencies": [],
-            "inventory": {
-              "items": []
-            },
-            "equipmentSlots": {},
-            "damageFlavorReactions": {
-              "WEAKNESSES": [
-                "PSYCHIC"
-              ],
-              "RESISTANCES": [],
-              "IMMUNITIES": [
-                "LIGHTNING",
-                "AGGRO"
-              ],
-              "CURATIVES": [
-                "HEALING"
-              ]
-            }
-          }
+            "id": "d05a3cfc-9d33-4446-b920-b0246b32e38e",
+            "aiHandlers": [],
+            "summonState": [
+              "LIFELINE_SUMMON",
+              "SYMPATHETIC_SUMMON"
+            ]
+          },
+          "id": "ec6dfc14-d835-4747-b1ba-0e3f3080e920"
         },
         "className": "com.lhf.game.map.RoomEffectSource",
         "name": "Summon Electric Wisp",
@@ -251,6 +261,7 @@
     ]
   },
   {
+    "ensoulsUsers": true,
     "className": "com.lhf.game.magic.concrete.Ensouling",
     "level": "TENTH_MAGNITUDE",
     "name": "Ensouling",

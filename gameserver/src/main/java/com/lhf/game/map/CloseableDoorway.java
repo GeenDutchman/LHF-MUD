@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lhf.game.creature.ICreature;
 
-class CloseableDoorway extends Doorway {
+public class CloseableDoorway extends Doorway {
     private AtomicBoolean opened;
 
     public CloseableDoorway() {
@@ -13,11 +13,6 @@ class CloseableDoorway extends Doorway {
 
     public CloseableDoorway(boolean opened) {
         this.opened = new AtomicBoolean(opened);
-    }
-
-    @Override
-    public DoorwayType getType() {
-        return DoorwayType.CLOSEABLE;
     }
 
     public void open() {
@@ -38,6 +33,13 @@ class CloseableDoorway extends Doorway {
             return super.testTraversal(creature, direction, source, dest);
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("CloseableDoorway [opened=").append(opened).append("]");
+        return builder.toString();
     }
 
 }

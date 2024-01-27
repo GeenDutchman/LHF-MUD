@@ -105,13 +105,14 @@ public class CommandContext {
         return this.new Reply(true);
     }
 
-    public void addMessage(GameEvent message) {
+    public CommandContext addMessage(GameEvent message) {
         if (this.messages == null) {
             this.messages = new ArrayList<>();
         }
         if (message != null) {
             this.messages.add(message);
         }
+        return this;
     }
 
     /**
@@ -154,11 +155,12 @@ public class CommandContext {
         return creature;
     }
 
-    public void setCreature(ICreature creature) {
+    public CommandContext setCreature(ICreature creature) {
         this.creature = creature;
+        return this;
     }
 
-    public synchronized void receive(GameEvent event) {
+    public synchronized CommandContext receive(GameEvent event) {
         if (event != null) {
             this.addMessage(event);
             if (this.creature != null) {
@@ -169,14 +171,17 @@ public class CommandContext {
                 Client.eventAccepter.accept(this.client, event);
             }
         }
+        return this;
     }
 
-    public void receive(GameEvent.Builder<?> builder) {
+    public CommandContext receive(GameEvent.Builder<?> builder) {
         this.receive(builder.Build());
+        return this;
     }
 
-    public void setClient(Client client) {
+    public CommandContext setClient(Client client) {
         this.client = client;
+        return this;
     }
 
     public User getUser() {
@@ -190,8 +195,9 @@ public class CommandContext {
         return null;
     }
 
-    public void setUser(User user) {
+    public CommandContext setUser(User user) {
         this.user = user;
+        return this;
     }
 
     public final NavigableSet<SubArea> getSubAreas() {
@@ -228,13 +234,14 @@ public class CommandContext {
         return this.getSubAreaForSort(sort) != null;
     }
 
-    public void setArea(Area room) {
+    public CommandContext setArea(Area room) {
         this.area = room;
         if (room != null) {
             for (final SubArea subArea : room.getSubAreas()) {
                 this.addSubArea(subArea);
             }
         }
+        return this;
     }
 
     public Area getArea() {
@@ -245,8 +252,9 @@ public class CommandContext {
         return land;
     }
 
-    public void setLand(Land dungeon) {
+    public CommandContext setLand(Land dungeon) {
         this.land = dungeon;
+        return this;
     }
 
     @Override

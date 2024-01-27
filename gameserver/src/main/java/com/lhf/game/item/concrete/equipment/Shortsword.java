@@ -19,9 +19,10 @@ import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 
 public class Shortsword extends Weapon {
+    private final static String description = "This is a nice, short, shiny sword with a leather grip.  It's a bit simple though...\n";
 
-    public Shortsword(boolean isVisible) {
-        super("Shortsword", isVisible, Set.of(
+    public Shortsword() {
+        super("Shortsword", Shortsword.description, Set.of(
                 new CreatureEffectSource("Slash", new EffectPersistence(TickType.INSTANT),
                         new EffectResistance(EnumSet.of(Attributes.STR), Stats.AC),
                         "Swords cut things", false)
@@ -30,12 +31,11 @@ public class Shortsword extends Weapon {
 
         this.slots = List.of(EquipmentSlots.WEAPON);
         this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
-        this.descriptionString = "This is a nice, short, shiny sword with a leather grip.  It's a bit simple though...\n";
     }
 
     @Override
     public Shortsword makeCopy() {
-        return new Shortsword(this.checkVisibility());
+        return this;
     }
 
 }

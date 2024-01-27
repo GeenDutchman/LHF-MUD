@@ -4,7 +4,7 @@ import com.lhf.game.creature.NameGenerator;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.map.Area;
 
-public class LewdBabyMaker implements LewdProduct {
+public class LewdBabyMaker extends LewdProduct {
 
     @Override
     public void onLewd(Area room, VrijPartij party) {
@@ -15,7 +15,7 @@ public class LewdBabyMaker implements LewdProduct {
             if (name.length() <= 0) {
                 name = NameGenerator.Generate(null);
             }
-            Corpse body = new Corpse(name, true);
+            Corpse body = new Corpse(name);
             room.addItem(body);
         }
     }

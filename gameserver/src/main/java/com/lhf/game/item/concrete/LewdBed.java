@@ -304,8 +304,12 @@ public class LewdBed extends Bed {
     }
 
     @Override
-    public void doAction(ICreature creature) {
-        super.doAction(creature);
+    public void doAction(CommandContext ctx) {
+        super.doAction(ctx);
+        if (ctx == null) {
+            return;
+        }
+        final ICreature creature = ctx.getCreature();
         if (creature == null) {
             return;
         }

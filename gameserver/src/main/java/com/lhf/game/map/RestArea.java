@@ -6,6 +6,7 @@ import java.util.Deque;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -43,7 +44,16 @@ public class RestArea extends SubArea {
     private final LewdProduct lewdProduct;
     private final ArrayDeque<VrijPartij> parties;
 
-    public static class Builder extends SubAreaBuilder<RestArea, Builder> {
+    public static interface IRestAreaBuildInfo extends ISubAreaBuildInfo {
+        public abstract LewdStyle getLewd();
+
+        public abstract LewdProduct getLewdProduct();
+    }
+
+    public static final class Builder implements IRestAreaBuildInfo {
+        protected final SubAreaBuilderID id;
+        protected final String className;
+        protected final SubAreaBuilder delegate;
         private LewdStyle lewd;
         private LewdProduct lewdProduct;
 
@@ -52,7 +62,15 @@ public class RestArea extends SubArea {
         }
 
         public Builder() {
+            this.id = new SubAreaBuilderID();
+            this.className = this.getClass().getName();
+            this.delegate = new SubAreaBuilder(SubAreaSort.RECUPERATION);
             this.lewd = LewdStyle.PRUDE;
+        }
+
+        @Override
+        public SubAreaBuilderID getSubAreaBuilderID() {
+            return this.id;
         }
 
         public LewdStyle getLewd() {
@@ -64,7 +82,7 @@ public class RestArea extends SubArea {
 
         public Builder setLewd(LewdStyle lewd) {
             this.lewd = lewd != null ? lewd : LewdStyle.PRUDE;
-            return this.getThis();
+            return this;
         }
 
         public LewdProduct getLewdProduct() {
@@ -76,22 +94,88 @@ public class RestArea extends SubArea {
             if (lewdProduct != null && LewdStyle.PRUDE.equals(this.getLewd())) {
                 this.lewd = LewdStyle.LEISURELY;
             }
-            return this.getThis();
-        }
-
-        @Override
-        protected Builder getThis() {
             return this;
         }
 
         @Override
         public SubAreaSort getSubAreaSort() {
-            return SubAreaSort.RECUPERATION;
+            return delegate.getSubAreaSort();
+        }
+
+        public Builder setAllowCasting(SubAreaCasting allowCasting) {
+            delegate.setAllowCasting(allowCasting);
+            return this;
+        }
+
+        public SubAreaCasting isAllowCasting() {
+            return delegate.isAllowCasting();
+        }
+
+        public Builder setWaitMilliseconds(int count) {
+            delegate.setWaitMilliseconds(count);
+            return this;
+        }
+
+        public int getWaitMilliseconds() {
+            return delegate.getWaitMilliseconds();
+        }
+
+        public Builder addCreatureQuery(CreatureFilterQuery query) {
+            delegate.addCreatureQuery(query);
+            return this;
+        }
+
+        public Builder resetCreatureQueries() {
+            delegate.resetCreatureQueries();
+            return this;
+        }
+
+        public Set<CreatureFilterQuery> getCreatureQueries() {
+            return delegate.getCreatureQueries();
+        }
+
+        public boolean isQueryOnBuild() {
+            return delegate.isQueryOnBuild();
+        }
+
+        public Builder setQueryOnBuild(boolean queryOnBuild) {
+            delegate.setQueryOnBuild(queryOnBuild);
+            return this;
         }
 
         @Override
+        public void acceptBuildInfoVisitor(ISubAreaBuildInfoVisitor visitor) {
+            visitor.visit(this);
+        }
+
         public RestArea build(Area area) {
             return new RestArea(this, area);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, className, delegate, lewd, lewdProduct);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof Builder))
+                return false;
+            Builder other = (Builder) obj;
+            return Objects.equals(id, other.id) && Objects.equals(className, other.className)
+                    && Objects.equals(delegate, other.delegate) && lewd == other.lewd
+                    && Objects.equals(lewdProduct, other.lewdProduct);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Builder [id=").append(id).append(", className=").append(className).append(", delegate=")
+                    .append(delegate).append(", lewd=").append(lewd).append(", lewdProduct=").append(lewdProduct)
+                    .append("]");
+            return builder.toString();
         }
 
     }
@@ -182,7 +266,7 @@ public class RestArea extends SubArea {
         }
     }
 
-    protected RestArea(Builder builder, Area area) {
+    protected RestArea(IRestAreaBuildInfo builder, Area area) {
         super(builder, area);
         this.lewd = builder.getLewd();
         this.lewdProduct = builder.getLewdProduct();

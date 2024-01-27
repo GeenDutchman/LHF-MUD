@@ -2,59 +2,88 @@ package com.lhf.game.item;
 
 import java.util.regex.PatternSyntaxException;
 
-import com.lhf.TaggedExaminable;
-import com.lhf.messages.events.SeeEvent;
+public abstract class AItem implements IItem {
 
-public abstract class Item implements TaggedExaminable {
+    private final ItemID itemID;
     // Class name for discrimination
     private final String className;
     // Name it will be known by
-    private String objectName;
+    private final String objectName;
     // Will not output with look if false
-    private boolean isVisible;
+    private boolean visible;
     // Every item should describe itself
     protected String descriptionString;
 
-    public Item(String name, boolean isVisible) {
+    public AItem(String name) {
+        assert name.trim().length() >= 3;
+        this.itemID = new ItemID();
         this.className = this.getClass().getName();
         this.objectName = name.trim();
-        assert this.objectName.length() >= 3;
-        this.isVisible = isVisible;
-        this.descriptionString = this.getColorTaggedName();
+        this.visible = true;
+        this.descriptionString = this.objectName;
     }
 
-    public Item(String name, boolean isVisible, String description) {
+    public AItem(String name, String description) {
+        assert name.trim().length() >= 3;
+        this.itemID = new ItemID();
         this.className = this.getClass().getName();
         this.objectName = name.trim();
-        assert this.objectName.length() >= 3;
-        this.isVisible = isVisible;
+        this.visible = true;
         this.descriptionString = description;
     }
 
-    protected void copyOverwriteTo(Item other) {
-        other.descriptionString = this.descriptionString;
+    protected AItem(ItemID itemID, String className, String name, boolean visible, String descriptionString) {
+        if (itemID == null) {
+            throw new IllegalArgumentException("item id cannot be null");
+        } else if (name == null || name.trim().length() < 3) {
+            throw new IllegalArgumentException(
+                    String.format("name argument cannot be null or have a length shorter than 3: %s", name));
+        } else if (className == null) {
+            throw new IllegalArgumentException("object name is critical and cannot be null!");
+        }
+        this.itemID = itemID;
+        this.objectName = name;
+        this.className = className;
+        this.visible = visible;
+        this.descriptionString = descriptionString;
     }
 
-    public abstract Item makeCopy();
+    @Override
+    public ItemID getItemID() {
+        return this.itemID;
+    }
 
-    public abstract void acceptVisitor(ItemVisitor visitor);
+    @Override
+    public abstract AItem makeCopy();
 
-    public String getClassName() {
+    @Override
+    public abstract void acceptItemVisitor(ItemVisitor visitor);
+
+    @Override
+    public final String getClassName() {
         return this.className;
     }
 
-    public boolean checkVisibility() {
-        return isVisible;
+    @Override
+    public boolean isVisible() {
+        return visible;
     }
 
+    protected void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
+    @Override
     public String getName() {
         return objectName;
     }
 
+    @Override
     public boolean checkName(String name) {
         return this.getName().equalsIgnoreCase(name.trim());
     }
 
+    @Override
     public boolean CheckNameRegex(String possName, Integer minimumLength) {
         Integer min = minimumLength;
         if (min < 0) {
@@ -85,11 +114,14 @@ public abstract class Item implements TaggedExaminable {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Item)) {
+        if (!(obj instanceof AItem)) {
             return false;
         }
-        Item ro = (Item) obj;
-        return objectName.equals(ro.objectName);
+        AItem ro = (AItem) obj;
+        if (objectName.equals(ro.objectName)) {
+            return this.itemID.equals(ro.itemID);
+        }
+        return false;
     }
 
     @Override
@@ -110,12 +142,6 @@ public abstract class Item implements TaggedExaminable {
     @Override
     public String printDescription() {
         return this.descriptionString;
-    }
-
-    @Override
-    public SeeEvent produceMessage() {
-        SeeEvent.Builder seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
-        return seeOutMessage.Build();
     }
 
 }

@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
@@ -42,7 +43,7 @@ public class Game implements UserListener, CommandChainHandler {
 	private transient CommandChainHandler successor;
 	private ServerInterface server;
 	private UserManager userManager;
-	private final Logger logger;
+	private final transient Logger logger;
 	private final ThirdPower thirdPower;
 	private DMRoom controlRoom;
 	private final AIRunner aiRunner;
@@ -183,7 +184,7 @@ public class Game implements UserListener, CommandChainHandler {
 		}
 
 		this.controlRoom = dmRoomBuilder.build(this.thirdPower, null, aiRunner, statblockManager,
-				conversationManager);
+				conversationManager, false, false);
 		this.controlRoom.setSuccessor(this.thirdPower);
 		ArrayList<LandBuilder> moreLands = builder.getAdditionalLands();
 		if (moreLands != null) {
@@ -192,7 +193,8 @@ public class Game implements UserListener, CommandChainHandler {
 					continue;
 				}
 				this.controlRoom.addLand(
-						landBuilder.build(this.thirdPower, aiRunner, statblockManager, conversationManager));
+						landBuilder.build(this.thirdPower, aiRunner, statblockManager, conversationManager, false,
+								false));
 			}
 		}
 		this.successor = builder.getServer();
@@ -221,9 +223,11 @@ public class Game implements UserListener, CommandChainHandler {
 		if (vocationRequest != null && vocationRequest.length() > 0) {
 			Vocation selected = VocationFactory.getVocation(vocationRequest);
 			if (selected != null) {
-				Player.PlayerBuilder builder = Player.PlayerBuilder.getInstance(user);
+				Player.PlayerBuildInfo builder = Player.PlayerBuildInfo.getInstance(user);
 				builder.setVocation(selected);
-				Player player = builder.build(this);
+				CreatureFactory factory = new CreatureFactory();
+				factory.visit(builder);
+				Player player = factory.getBuiltCreatures().getPlayers().first();
 				this.controlRoom.addNewPlayer(player);
 				return;
 			}

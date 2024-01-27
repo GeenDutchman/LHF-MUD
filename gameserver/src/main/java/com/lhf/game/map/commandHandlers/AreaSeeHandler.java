@@ -7,7 +7,8 @@ import java.util.StringJoiner;
 
 import com.lhf.Examinable;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.AItem;
+import com.lhf.game.item.IItem;
 import com.lhf.game.map.Area.AreaCommandHandler;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -56,7 +57,7 @@ public class AreaSeeHandler implements AreaCommandHandler {
                     return ctx.handled();
                 }
 
-                for (Item ro : ctx.getArea().getItems()) {
+                for (IItem ro : ctx.getArea().getItems()) {
                     if (ro.CheckNameRegex(name, 3)) {
                         ctx.receive(ro.produceMessage(SeeEvent.getBuilder().setExaminable(ro)
                                 .addExtraInfo("You see it in the room with you. ")));
@@ -66,7 +67,7 @@ public class AreaSeeHandler implements AreaCommandHandler {
 
                 if (ctx.getCreature() != null) {
                     ICreature creature = ctx.getCreature();
-                    for (Item thing : creature.getEquipmentSlots().values()) {
+                    for (AItem thing : creature.getEquipmentSlots().values()) {
                         if (thing.CheckNameRegex(name, 3)) {
                             if (thing instanceof Examinable) {
                                 ctx.receive(((SeeEvent.Builder) thing.produceMessage().copyBuilder())
@@ -79,9 +80,9 @@ public class AreaSeeHandler implements AreaCommandHandler {
                         }
                     }
 
-                    Optional<Item> maybeThing = creature.getInventory().getItem(name);
+                    Optional<IItem> maybeThing = creature.getInventory().getItem(name);
                     if (maybeThing.isPresent()) {
-                        Item thing = maybeThing.get();
+                        IItem thing = maybeThing.get();
                         if (thing instanceof Examinable) {
                             ctx.receive(((SeeEvent.Builder) thing.produceMessage().copyBuilder())
                                     .addExtraInfo("You see it in your inventory. ").Build());

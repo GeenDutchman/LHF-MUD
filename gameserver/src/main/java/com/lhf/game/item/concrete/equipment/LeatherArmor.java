@@ -14,8 +14,8 @@ import com.lhf.game.item.Equipable;
 public class LeatherArmor extends Equipable {
     private final int AC = 2;
 
-    public LeatherArmor(boolean isVisible) {
-        super("Leather Armor", isVisible);
+    public LeatherArmor() {
+        super("Leather Armor", "This is some simple leather armor. There is only a little blood on it...\n");
 
         this.slots = Collections.singletonList(EquipmentSlots.ARMOR);
         this.types = List.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
@@ -26,12 +26,7 @@ public class LeatherArmor extends Equipable {
     }
 
     @Override
-    public String printDescription() {
-        return "This is some simple leather armor. " + "There is only a little blood on it...\n";
-    }
-
-    @Override
     public LeatherArmor makeCopy() {
-        return new LeatherArmor(this.checkVisibility());
+        return this;
     }
 }

@@ -1,28 +1,22 @@
 package com.lhf.game.item;
 
-public class Takeable extends Item {
+public class Takeable extends AItem {
 
-    public Takeable(String name, boolean isVisible) {
-        super(name, isVisible);
+    public Takeable(String name) {
+        super(name);
     }
 
-    public Takeable(String name, boolean isVisible, String description) {
-        super(name, isVisible, description);
-    }
-
-    protected void copyOverwriteTo(Takeable other) {
-        super.copyOverwriteTo(other);
+    public Takeable(String name, String description) {
+        super(name, description);
     }
 
     @Override
     public Takeable makeCopy() {
-        Takeable takeable = new Takeable(this.getName(), this.checkVisibility(), descriptionString);
-        this.copyOverwriteTo(takeable);
-        return takeable;
+        return this;
     }
 
     @Override
-    public void acceptVisitor(ItemVisitor visitor) {
+    public void acceptItemVisitor(ItemVisitor visitor) {
         visitor.visit(this);
     }
 

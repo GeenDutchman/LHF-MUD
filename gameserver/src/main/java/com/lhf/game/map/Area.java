@@ -1,6 +1,6 @@
 package com.lhf.game.map;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,25 +13,33 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.ItemContainer;
+import com.lhf.game.creature.CreaturePartitionSetVisitor;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
+import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.statblock.StatblockManager;
-import com.lhf.game.item.Item;
+import com.lhf.game.item.IItem;
+import com.lhf.game.item.InteractObject;
+import com.lhf.game.item.ItemPartitionCollectionVisitor;
 import com.lhf.game.item.Takeable;
-import com.lhf.game.map.SubArea.SubAreaBuilder;
+import com.lhf.game.item.concrete.Item;
+import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.game.map.commandHandlers.AreaAttackHandler;
-import com.lhf.game.map.commandHandlers.AreaRestHandler;
 import com.lhf.game.map.commandHandlers.AreaCastHandler;
 import com.lhf.game.map.commandHandlers.AreaDropHandler;
 import com.lhf.game.map.commandHandlers.AreaInteractHandler;
+import com.lhf.game.map.commandHandlers.AreaRestHandler;
 import com.lhf.game.map.commandHandlers.AreaSayHandler;
 import com.lhf.game.map.commandHandlers.AreaSeeHandler;
 import com.lhf.game.map.commandHandlers.AreaTakeHandler;
@@ -44,27 +52,23 @@ import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.server.interfaces.NotNull;
 
 public interface Area
         extends ItemContainer, CreatureContainer, CommandChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
 
     public interface AreaBuilder extends Serializable {
 
-        @FunctionalInterface
-        public static interface PostBuildRoomOperations<A extends Area> {
-            public abstract void accept(A area) throws FileNotFoundException;
+        public final static class AreaBuilderID implements Comparable<AreaBuilderID> {
+            private final UUID id;
 
-            public default PostBuildRoomOperations<A> andThen(PostBuildRoomOperations<? super A> after) {
-                Objects.requireNonNull(after);
-                return (t) -> {
-                    this.accept(t);
-                    after.accept(t);
-                };
+            public AreaBuilderID() {
+                this.id = UUID.randomUUID();
             }
-        }
 
-        public class AreaBuilderID implements Comparable<AreaBuilderID> {
-            private final UUID id = UUID.randomUUID();
+            protected AreaBuilderID(@NotNull UUID id) {
+                this.id = id;
+            }
 
             public UUID getId() {
                 return id;
@@ -95,6 +99,21 @@ public interface Area
                 return this.id.toString();
             }
 
+            public static class IDTypeAdapter extends TypeAdapter<AreaBuilderID> {
+
+                @Override
+                public void write(JsonWriter out, AreaBuilderID value) throws IOException {
+                    out.value(value.getId().toString());
+                }
+
+                @Override
+                public AreaBuilderID read(JsonReader in) throws IOException {
+                    final String asStr = in.nextString();
+                    return new AreaBuilderID(UUID.fromString(asStr));
+                }
+
+            }
+
         }
 
         public abstract AreaBuilderID getAreaBuilderID();
@@ -103,22 +122,24 @@ public interface Area
 
         public abstract String getDescription();
 
-        public abstract Collection<Item> getItems();
+        public abstract Collection<IItem> getItems();
 
-        public abstract Collection<INonPlayerCharacter.AbstractNPCBuilder<?, ?>> getNPCsToBuild();
+        public abstract Collection<INonPlayerCharacterBuildInfo> getNPCsToBuild();
 
-        public abstract Collection<SubAreaBuilder<?, ?>> getSubAreasToBuild();
+        public abstract Collection<ISubAreaBuildInfo> getSubAreasToBuild();
 
-        public abstract Area quickBuild(CommandChainHandler successor, Land land,
-                AIRunner aiRunner);
+        public default Area quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
+            return this.build(successor, land, aiRunner, null, null, true, true);
+        }
 
         public abstract Area build(CommandChainHandler successor, Land land, AIRunner aiRunner,
-                StatblockManager statblockManager,
-                ConversationManager conversationManager) throws FileNotFoundException;
+                StatblockManager statblockManager, ConversationManager conversationManager,
+                boolean fallbackNoConversation,
+                boolean fallbackDefaultStatblock);
 
         public default Area build(Land land, AIRunner aiRunner, StatblockManager statblockManager,
-                ConversationManager conversationManager) throws FileNotFoundException {
-            return this.build(land, land, aiRunner, statblockManager, conversationManager);
+                ConversationManager conversationManager) {
+            return this.build(land, land, aiRunner, statblockManager, conversationManager, true, true);
         }
     }
 
@@ -130,7 +151,7 @@ public interface Area
 
     public abstract NavigableSet<SubArea> getSubAreas();
 
-    public boolean addSubArea(SubAreaBuilder<?, ?> builder);
+    public boolean addSubArea(ISubAreaBuildInfo builder);
 
     public default SubArea getSubAreaForSort(SubAreaSort sort) {
         if (sort == null) {
@@ -175,29 +196,39 @@ public interface Area
                 }
             }
         }
-        for (ICreature c : this.getCreatures()) {
-            if (c instanceof Player) {
-                seen.addSeen(SeeCategory.PLAYER, c);
-            } else if (c instanceof IMonster) {
-                seen.addSeen(SeeCategory.MONSTER, c);
-            } else if (c instanceof INonPlayerCharacter) {
-                seen.addSeen(SeeCategory.NPC, c);
-            } else {
-                seen.addSeen(SeeCategory.CREATURE, c);
-            }
+        CreaturePartitionSetVisitor creatureVisitor = new CreaturePartitionSetVisitor();
+        this.acceptCreatureVisitor(creatureVisitor);
+        for (final Player player : creatureVisitor.getPlayers()) {
+            seen.addSeen(SeeCategory.PLAYER, player);
         }
-        for (Item item : this.getItems()) {
-            if (!item.checkVisibility() && !seeInvisible) {
-                continue;
-            }
-            if (item instanceof Takeable) {
-                seen.addSeen(item.checkVisibility() ? SeeCategory.TAKEABLE : SeeCategory.INVISIBLE_TAKEABLE,
-                        item);
-            } else {
-                seen.addSeen(item.checkVisibility() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
-                        item);
-            }
+        for (final IMonster monster : creatureVisitor.getMonsters()) {
+            seen.addSeen(SeeCategory.MONSTER, monster);
         }
+        for (final IMonster monster : creatureVisitor.getSummonedMonsters()) {
+            seen.addSeen(SeeCategory.MONSTER, monster);
+        }
+        for (final INonPlayerCharacter npc : creatureVisitor.getNpcs()) {
+            seen.addSeen(SeeCategory.NPC, npc);
+        }
+        for (final INonPlayerCharacter npc : creatureVisitor.getSummonedNPCs()) {
+            seen.addSeen(SeeCategory.NPC, npc);
+        }
+
+        ItemPartitionCollectionVisitor itemVisitor = new ItemPartitionCollectionVisitor();
+        this.acceptItemVisitor(itemVisitor);
+        for (final Takeable item : itemVisitor.getTakeables()) {
+            seen.addSeen(item.isVisible() ? SeeCategory.TAKEABLE : SeeCategory.INVISIBLE_TAKEABLE,
+                    item);
+        }
+        for (final Item item : itemVisitor.getNotes()) {
+            seen.addSeen(item.isVisible() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
+                    item);
+        }
+        for (final InteractObject item : itemVisitor.getInteractObjects()) {
+            seen.addSeen(item.isVisible() ? SeeCategory.ROOM_ITEM : SeeCategory.INVISIBLE_ROOM_ITEM,
+                    item);
+        }
+
         return produceMessage(seen);
     }
 

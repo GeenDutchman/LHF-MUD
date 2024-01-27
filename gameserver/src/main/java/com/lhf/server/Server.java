@@ -41,7 +41,7 @@ public class Server implements ServerInterface, ConnectionListener {
     protected Game game;
     protected UserManager userManager;
     protected ClientManager clientManager;
-    protected Logger logger;
+    protected transient Logger logger;
     protected Set<UserListener> userListeners;
     protected Map<AMessageType, CommandHandler> acceptedCommands;
 

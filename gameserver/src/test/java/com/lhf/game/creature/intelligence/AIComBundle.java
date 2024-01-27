@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
+import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.messages.Command;
@@ -47,7 +48,9 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
         this.mockedWrappedHandler = Mockito.mock(CommandChainHandler.class);
 
         this.brain = AIComBundle.getAIRunner().produceAI();
-        this.brain.setNPC(NonPlayerCharacter.getNPCBuilder().useBlankStatblock().quickBuild(this.brain, this));
+        CreatureFactory factory = CreatureFactory.withBrainProducer(this, (buildInfo) -> this.brain);
+        factory.visit(NonPlayerCharacter.getNPCBuilder().useBlankStatblock());
+        this.brain.setNPC(factory.getBuiltCreatures().getNpcs().first());
         this.brain.SetOut(this.sssb);
     }
 

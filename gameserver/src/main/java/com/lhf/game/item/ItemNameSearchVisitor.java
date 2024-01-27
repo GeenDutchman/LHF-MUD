@@ -2,9 +2,9 @@ package com.lhf.game.item;
 
 import java.util.Optional;
 
-import com.lhf.game.item.concrete.NotableFixture;
+import com.lhf.game.item.concrete.Item;
 
-public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
+public class ItemNameSearchVisitor extends ItemPartitionCollectionVisitor {
     protected final String searchName;
     protected final Integer regexLength;
 
@@ -18,14 +18,15 @@ public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
         this.regexLength = regexLength;
     }
 
-    public void copyFrom(ItemPartitionListVisitor partitioner) {
+    public void copyFrom(ItemPartitionCollectionVisitor partitioner) {
         if (partitioner == null) {
             return;
         }
-        partitioner.getItems().stream().filter(item -> item != null).forEachOrdered(item -> item.acceptVisitor(this));
+        partitioner.getItems().stream().filter(item -> item != null)
+                .forEachOrdered(item -> item.acceptItemVisitor(this));
     }
 
-    private boolean checkItemName(Item item) {
+    private boolean checkItemName(IItem item) {
         if (item == null) {
             return false;
         }
@@ -43,7 +44,7 @@ public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
     }
 
     @Override
-    public void visit(NotableFixture note) {
+    public void visit(Item note) {
         if (this.checkItemName(note)) {
             super.visit(note);
         }
@@ -78,38 +79,38 @@ public class ItemNameSearchVisitor extends ItemPartitionListVisitor {
     }
 
     @Override
-    public void visit(StackableItem stackableItem) {
-        if (this.checkItemName(stackableItem)) {
-            super.visit(stackableItem);
+    public void visit(EquipableHiddenEffect equipableHiddenEffect) {
+        if (this.checkItemName(equipableHiddenEffect)) {
+            super.visit(equipableHiddenEffect);
         }
     }
 
     public Optional<InteractObject> getInteractObject() {
-        return Optional.ofNullable(super.getInteractObjects().get(0));
+        return super.getInteractObjects().stream().findFirst();
     }
 
-    public Optional<NotableFixture> getNote() {
-        return Optional.ofNullable(super.getNotes().get(0));
+    public Optional<Item> getNote() {
+        return super.getNotes().stream().findFirst();
     }
 
     public Optional<Takeable> getTakeable() {
-        return Optional.ofNullable(super.getTakeables().get(0));
+        return super.getTakeables().stream().findFirst();
     }
 
     public Optional<Usable> getUsable() {
-        return Optional.ofNullable(super.getUsables().get(0));
+        return super.getUsables().stream().findFirst();
     }
 
     public Optional<Equipable> getEquipable() {
-        return Optional.ofNullable(super.getEquipables().get(0));
+        return super.getEquipables().stream().findFirst();
     }
 
     public Optional<Weapon> getWeapon() {
-        return Optional.ofNullable(super.getWeapons().get(0));
+        return super.getWeapons().stream().findFirst();
     }
 
-    public Optional<StackableItem> getStackableItem() {
-        return Optional.ofNullable(super.getStackableItems().get(0));
+    public Optional<EquipableHiddenEffect> getEquipableHiddenEffect() {
+        return super.getEquipablesWithHiddenEffects().stream().findFirst();
     }
 
 }

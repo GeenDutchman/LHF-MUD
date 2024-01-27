@@ -17,7 +17,7 @@ public class GroupAIRunner implements AIRunner {
     private BlockingQueue<ClientID> attentionQueue;
     private final int chew;
     private volatile boolean stopit;
-    private Logger logger;
+    private transient Logger logger;
     private long timeCount;
     private TimeUnit timeUnit;
 

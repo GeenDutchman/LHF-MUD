@@ -19,9 +19,10 @@ import com.lhf.game.item.Weapon;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 
 public class Longsword extends Weapon {
+    private final static String description = "This is a nice, long, shiny sword.  It's a bit simple though...\n";
 
-    public Longsword(boolean isVisible) {
-        super("Longsword", isVisible, Set.of(
+    public Longsword() {
+        super("Longsword", Longsword.description, Set.of(
                 new CreatureEffectSource("Slash", new EffectPersistence(TickType.INSTANT),
                         new EffectResistance(EnumSet.of(Attributes.STR), Stats.AC), "Swords cut things", false)
                         .addDamage(new DamageDice(1, DieType.EIGHT, DamageFlavor.SLASHING))),
@@ -29,12 +30,11 @@ public class Longsword extends Weapon {
 
         this.slots = List.of(EquipmentSlots.WEAPON);
         this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.LONGSWORD);
-        this.descriptionString = "This is a nice, long, shiny sword.  It's a bit simple though...\n";
     }
 
     @Override
     public Longsword makeCopy() {
-        return new Longsword(this.checkVisibility());
+        return this;
     }
 
 }

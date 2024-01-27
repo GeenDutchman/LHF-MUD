@@ -8,6 +8,7 @@ import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureVisitor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.messages.events.SeeEvent;
@@ -17,47 +18,48 @@ public class Equipable extends Usable {
     protected List<EquipmentTypes> types;
     protected List<EquipmentSlots> slots;
     protected List<CreatureEffectSource> equipEffects;
-    protected List<CreatureEffectSource> hiddenEquipEffects;
 
     private void initLists() {
         this.types = new ArrayList<>();
         this.slots = new ArrayList<>();
         this.equipEffects = new ArrayList<>();
-        this.hiddenEquipEffects = new ArrayList<>();
     }
 
-    public Equipable(String name, boolean isVisible) {
-        super(name, isVisible, -1);
+    public Equipable(String name, String description) {
+        super(name, description, -1, null, null);
         this.initLists();
     }
 
-    public Equipable(String name, boolean isVisible, int useSoManyTimes) {
-        super(name, isVisible, useSoManyTimes);
+    public Equipable(String name, String description, int useSoManyTimes) {
+        super(name, description, useSoManyTimes, null, null);
         this.initLists();
     }
 
-    protected void copyOverwriteTo(Equipable other) {
-        other.types = new ArrayList<>(this.types);
-        other.slots = new ArrayList<>(this.slots);
-        other.equipEffects = new ArrayList<>();
-        for (final CreatureEffectSource source : this.equipEffects) {
-            other.equipEffects.add(source.makeCopy());
+    public Equipable(String name, String description, int useSoManyTimes, CreatureVisitor creatureVisitor,
+            ItemVisitor itemVisitor) {
+        super(name, description, useSoManyTimes, creatureVisitor, itemVisitor);
+        this.initLists();
+    }
+
+    protected Equipable(Equipable other) {
+        this(other.getName(), other.descriptionString, other.numCanUseTimes, other.creatureVisitor, other.itemVisitor);
+        this.types.addAll(other.types);
+        this.slots.addAll(other.slots);
+        for (final CreatureEffectSource source : other.equipEffects) {
+            this.equipEffects.add(source.makeCopy());
         }
-        for (final CreatureEffectSource source : this.hiddenEquipEffects) {
-            other.hiddenEquipEffects.add(source.makeCopy());
-        }
-        super.copyOverwriteTo(other);
     }
 
     @Override
     public Equipable makeCopy() {
-        Equipable equipable = new Equipable(this.getName(), this.checkVisibility(), this.numCanUseTimes);
-        this.copyOverwriteTo(equipable);
-        return equipable;
+        if (this.numCanUseTimes < 0) {
+            return this;
+        }
+        return new Equipable(this);
     }
 
     @Override
-    public void acceptVisitor(ItemVisitor visitor) {
+    public void acceptItemVisitor(ItemVisitor visitor) {
         visitor.visit(this);
     }
 
@@ -72,18 +74,14 @@ public class Equipable extends Usable {
     }
 
     // returns unmodifiable
-    public List<CreatureEffectSource> getEquippingEffects(boolean alsoHidden) {
-        List<CreatureEffectSource> comboList = new ArrayList<>(this.equipEffects);
-        if (alsoHidden) {
-            comboList.addAll(this.hiddenEquipEffects);
-        }
-        return Collections.unmodifiableList(comboList);
+    public List<CreatureEffectSource> getEquippingEffects() {
+        return Collections.unmodifiableList(this.equipEffects);
     }
 
     @Override
     public SeeEvent produceMessage() {
         SeeEvent.Builder seeOutMessage = (SeeEvent.Builder) super.produceMessage().copyBuilder();
-        for (CreatureEffectSource effector : this.getEquippingEffects(false)) {
+        for (CreatureEffectSource effector : this.getEquippingEffects()) {
             seeOutMessage.addEffector(effector);
         }
         if (this.getWhichSlots() != null && this.getWhichSlots().size() > 0) {
@@ -100,14 +98,14 @@ public class Equipable extends Usable {
     }
 
     public void onEquippedBy(ICreature equipper) {
-        for (CreatureEffectSource effector : this.getEquippingEffects(true)) {
+        for (CreatureEffectSource effector : this.getEquippingEffects()) {
             ICreature.eventAccepter.accept(equipper,
                     equipper.applyEffect(new CreatureEffect(effector, equipper, this)));
         }
     }
 
     public void onUnequippedBy(ICreature unequipper) {
-        for (CreatureEffectSource effector : this.getEquippingEffects(true)) {
+        for (CreatureEffectSource effector : this.getEquippingEffects()) {
             if (effector.getPersistence() != null
                     && TickType.CONDITIONAL.equals(effector.getPersistence().getTickSize())) {
                 ICreature.eventAccepter.accept(unequipper,

@@ -15,37 +15,23 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
-import com.lhf.game.EntityEffectSource;
-import com.lhf.game.creature.CreatureEffectSource;
-import com.lhf.game.creature.conversation.ConversationPattern;
-import com.lhf.game.creature.conversation.ConversationPatternSerializer;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.ResourceCost;
-import com.lhf.game.item.Equipable;
-import com.lhf.game.item.EquipableDeserializer;
-import com.lhf.game.item.Item;
-import com.lhf.game.item.ItemDeserializer;
-import com.lhf.game.item.Takeable;
-import com.lhf.game.item.TakeableDeserializer;
 import com.lhf.game.magic.concrete.ElectricWisp;
 import com.lhf.game.magic.concrete.Ensouling;
 import com.lhf.game.magic.concrete.ShockBolt;
 import com.lhf.game.magic.concrete.Thaumaturgy;
 import com.lhf.game.magic.concrete.ThunderStrike;
-import com.lhf.game.map.DMRoomEffectSource;
-import com.lhf.game.map.DungeonEffectSource;
-import com.lhf.game.map.RoomEffectSource;
+import com.lhf.game.serialization.GsonBuilderFactory;
 
 public class Spellbook {
     private NavigableSet<SpellEntry> entries;
     private String path;
     private final String[] path_to_spellbook = { ".", "concrete" };
-    private Logger logger;
+    private transient Logger logger;
 
     public enum Filters {
         VOCATION_NAME, SPELL_NAME, INVOCATION, LEVELS, OFFENSE, NONOFFENSE, SCORE;
@@ -65,6 +51,10 @@ public class Spellbook {
         this.logger = Logger.getLogger(this.getClass().getName());
         this.logger.log(Level.CONFIG, "Loading initial small spellset");
         this.entries = new TreeSet<>();
+        this.setupPath();
+    }
+
+    public Spellbook addConcreteSpells() {
         SpellEntry shockBolt = new ShockBolt();
         this.entries.add(shockBolt);
         SpellEntry thaumaturgy = new Thaumaturgy();
@@ -75,7 +65,7 @@ public class Spellbook {
         this.entries.add(ensouling);
         SpellEntry electricWisp = new ElectricWisp();
         this.entries.add(electricWisp);
-        this.setupPath();
+        return this;
     }
 
     private void setupPath() {
@@ -87,48 +77,21 @@ public class Spellbook {
                 "src$1main$1resources");
     }
 
-    private Gson getAdaptedGson() {
-        RuntimeTypeAdapterFactory<SpellEntry> spellEntryAdapter = RuntimeTypeAdapterFactory
-                .of(SpellEntry.class, "className", true)
-                .registerSubtype(CreatureTargetingSpellEntry.class, CreatureTargetingSpellEntry.class.getName())
-                .registerSubtype(CreatureAOESpellEntry.class, CreatureAOESpellEntry.class.getName())
-                .registerSubtype(RoomTargetingSpellEntry.class, RoomTargetingSpellEntry.class.getName())
-                .registerSubtype(DMRoomTargetingSpellEntry.class, DMRoomTargetingSpellEntry.class.getName())
-                .registerSubtype(DungeonTargetingSpellEntry.class, DungeonTargetingSpellEntry.class.getName())
-                .registerSubtype(ShockBolt.class, ShockBolt.class.getName())
-                .registerSubtype(ThunderStrike.class, ThunderStrike.class.getName())
-                .registerSubtype(Thaumaturgy.class, Thaumaturgy.class.getName())
-                .registerSubtype(Ensouling.class, Ensouling.class.getName())
-                .registerSubtype(ElectricWisp.class, ElectricWisp.class.getName())
-                .recognizeSubtypes();
-        RuntimeTypeAdapterFactory<EntityEffectSource> effectSourceAdapter = RuntimeTypeAdapterFactory
-                .of(EntityEffectSource.class, "className", true)
-                .registerSubtype(CreatureEffectSource.class, CreatureEffectSource.class.getName())
-                .registerSubtype(RoomEffectSource.class, RoomEffectSource.class.getName())
-                .registerSubtype(DMRoomEffectSource.class, DMRoomEffectSource.class.getName())
-                .registerSubtype(DungeonEffectSource.class, DungeonEffectSource.class.getName())
-                .recognizeSubtypes();
-        GsonBuilder gb = new GsonBuilder().registerTypeAdapterFactory(spellEntryAdapter)
-                .registerTypeAdapterFactory(effectSourceAdapter).setPrettyPrinting();
-        gb.registerTypeAdapter(Equipable.class, new EquipableDeserializer<Equipable>());
-        gb.registerTypeAdapter(Takeable.class, new TakeableDeserializer<>());
-        gb.registerTypeAdapter(Item.class, new ItemDeserializer<>());
-        gb.registerTypeAdapter(ConversationPattern.class, new ConversationPatternSerializer());
-
-        return gb.create();
-    }
-
-    public boolean saveToFile() throws IOException {
-        return this.saveToFile(true);
+    public boolean saveToFile(GsonBuilderFactory gsonBuilderFactory) throws IOException {
+        return this.saveToFile(true, gsonBuilderFactory);
     }
 
     @Deprecated(forRemoval = false)
-    private boolean saveToFile(boolean loadFirst) throws IOException {
+    protected boolean saveToFile(boolean loadFirst, GsonBuilderFactory gsonBuilderFactory) throws IOException {
         this.logger.entering(this.getClass().getName(), "saveToFile()", path_to_spellbook);
-        if (loadFirst && !this.loadFromFile()) {
+        if (gsonBuilderFactory == null) {
+            gsonBuilderFactory = GsonBuilderFactory.start();
+        }
+        gsonBuilderFactory.prettyPrinting().spells();
+        if (loadFirst && !this.loadFromFile(gsonBuilderFactory)) {
             throw new IOException("Cannot preload spellbook!");
         }
-        Gson gson = this.getAdaptedGson();
+        Gson gson = gsonBuilderFactory.prettyPrinting().spells().build();
         this.logger.log(Level.INFO, "Writing to " + this.path);
         try (FileWriter fileWriter = new FileWriter(this.path + "spellbook.json")) {
             String asJson = gson.toJson(this.entries);
@@ -141,8 +104,11 @@ public class Spellbook {
         return true;
     }
 
-    public boolean loadFromFile() {
-        Gson gson = this.getAdaptedGson();
+    public boolean loadFromFile(GsonBuilderFactory gsonBuilderFactory) {
+        if (gsonBuilderFactory == null) {
+            gsonBuilderFactory = GsonBuilderFactory.start();
+        }
+        Gson gson = gsonBuilderFactory.prettyPrinting().spells().build();
         this.logger.log(Level.CONFIG, "Reading from " + this.path + "spellbook.json");
         Integer preSize = this.entries.size();
         try (JsonReader jReader = new JsonReader(new FileReader(this.path + "spellbook.json"))) {
