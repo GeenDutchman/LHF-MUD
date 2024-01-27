@@ -380,7 +380,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
             killit.accept(this.wrapped);
             return false;
         }
-        if (this.checkSummonerIsAlive() && this.summonData != null
+        if (this.summoner != null && this.checkSummonerIsAlive() && this.summonData != null
                 && this.summonData.contains(SummonData.LIFELINE_SUMMON)) {
             this.log(Level.INFO, () -> "Summoner died");
             killit.accept(this.wrapped);
