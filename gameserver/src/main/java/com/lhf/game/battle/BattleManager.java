@@ -29,6 +29,7 @@ import com.lhf.game.battle.commandHandlers.BattleGoHandler;
 import com.lhf.game.battle.commandHandlers.BattlePassHandler;
 import com.lhf.game.battle.commandHandlers.BattleUseHandler;
 import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.creature.CreatureVisitor;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.enums.Attributes;
@@ -470,11 +471,15 @@ public class BattleManager extends SubArea {
                     () -> String.format("%s Checking for competing factions ... No or too few battlers", whochecks));
             return false;
         }
+
         HashMap<CreatureFaction, Integer> factionCounts = new HashMap<>();
         for (ICreature creature : battlers) {
+            if (creature == null) {
+                continue;
+            }
             CreatureFaction thatone = creature.getFaction();
             if (factionCounts.containsKey(thatone)) {
-                factionCounts.put(thatone, factionCounts.get(thatone) + 1);
+                factionCounts.merge(thatone, 1, (a, b) -> a + b);
             } else {
                 factionCounts.put(thatone, 1);
             }
@@ -491,16 +496,7 @@ public class BattleManager extends SubArea {
             }
             return sj.toString();
         });
-        if (factionCounts.containsKey(CreatureFaction.RENEGADE)) {
-            return true;
-        }
-        if (factionCounts.keySet().size() == 1) {
-            return false;
-        }
-        if (factionCounts.containsKey(CreatureFaction.PLAYER)) {
-            return true;
-        }
-        return false;
+        return CreatureFaction.hasCompetitors(factionCounts.keySet());
     }
 
     @Override
