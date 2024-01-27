@@ -197,6 +197,7 @@ public class BattleManager extends SubArea {
                 this.killIt();
                 return;
             }
+            BattleManager.this.announce(BattleRoundEvent.getBuilder().setNeedSubmission(RoundAcceptance.COMPLETED));
             BattleManager.this.callReinforcements();
         }
 
@@ -343,6 +344,8 @@ public class BattleManager extends SubArea {
                     IPoolEntry poolEntry = poolEntries.pollFirst();
                     if (poolEntry != null) {
                         this.handleFlushChain(poolEntry.getContext(), poolEntry.getCommand());
+                        poolEntry.getContext()
+                                .receive(BattleRoundEvent.getBuilder().setNeedSubmission(RoundAcceptance.PERFORMED));
                     }
                 }
             } else {
@@ -354,6 +357,8 @@ public class BattleManager extends SubArea {
                             && ordering.creature.isAlive();) {
                         this.announce(ordering.creature.applyEffect(effectIterator.next()));
                     }
+                    ordering.creature
+                            .announce(BattleRoundEvent.getBuilder().setNeedSubmission(RoundAcceptance.PERFORMED));
                 }
             }
         };
