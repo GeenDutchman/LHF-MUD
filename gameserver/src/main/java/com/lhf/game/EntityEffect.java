@@ -7,19 +7,25 @@ import com.lhf.TaggedExaminable;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.events.SeeEvent;
+import com.lhf.server.interfaces.NotNull;
 
 public abstract class EntityEffect implements TaggedExaminable, Comparable<EntityEffect> {
 
     protected final EntityEffectSource source;
-    protected ICreature creatureResponsible;
-    protected Taggable generatedBy;
-    protected Ticker ticker;
+    protected final ICreature creatureResponsible;
+    protected final Taggable generatedBy;
+    protected final Ticker ticker;
 
-    public EntityEffect(EntityEffectSource source, ICreature creatureResponsible, Taggable generatedBy) {
+    public EntityEffect(@NotNull EntityEffectSource source, ICreature creatureResponsible, Taggable generatedBy) {
         this.source = source;
         this.creatureResponsible = creatureResponsible;
         this.generatedBy = generatedBy;
-        this.ticker = null;
+        final EffectPersistence persistence = this.source.getPersistence();
+        if (persistence != null) {
+            this.ticker = persistence.getTicker();
+        } else {
+            this.ticker = null;
+        }
     }
 
     public ICreature creatureResponsible() {
@@ -42,15 +48,16 @@ public abstract class EntityEffect implements TaggedExaminable, Comparable<Entit
         return this.source.getResistance();
     }
 
+    public boolean isReadyForRemoval() {
+        return this.ticker != null ? this.ticker.getCountdown() == 0 : true;
+    }
+
     public Ticker getTicker() {
-        if (this.ticker == null) {
-            this.ticker = this.source.getPersistence().getTicker();
-        }
         return this.ticker;
     }
 
     public int tick(TickType type) {
-        return this.getTicker().tick(type);
+        return this.ticker != null ? this.ticker.tick(type) : 0;
     }
 
     @Override
