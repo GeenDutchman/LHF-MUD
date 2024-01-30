@@ -20,6 +20,7 @@ import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealthBuckets;
@@ -292,16 +293,13 @@ public class BattleStats implements GameEventProcessor {
     }
 
     public BattleStats update(CreatureAffectedEvent ca) {
-        if (ca.getEffect() == null) {
+        if (ca == null) {
             return this;
         }
-        ICreature responsible = ca.getEffect().creatureResponsible();
+        ICreature responsible = ca.getCreatureResponsible();
         if (responsible == null) {
             return this;
         }
-
-        // int origRoll = ca.getEffect().getDamageResult().getOrigRoll();
-        int roll = ca.getEffect().getDamageResult().getRoll();
 
         if (!this.battleStats.containsKey(responsible.getName())) {
             this.battleStats.put(responsible.getName(),
@@ -317,23 +315,30 @@ public class BattleStats implements GameEventProcessor {
         found.bucket = responsible.getHealthBucket();
 
         EnumMap<BattleStat, Integer> deltas = new EnumMap<>(BattleStat.class);
-        deltas.put(BattleStat.TOTAL_DAMAGE, roll);
-        if (roll > 0) {
-            deltas.put(BattleStat.NUM_DAMAGES, 1);
-            // the difference to the next running average
-            deltas.put(BattleStat.AVG_DAMAGE, (roll - found.getAverageDamage()) / (found.getNumDamgages() + 1));
-        }
-        if (found.getMaxDamage() < roll) {
-            deltas.put(BattleStat.MAX_DAMAGE, roll - found.getMaxDamage());
-        }
-        int healingPerformed = ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.HEALING),
-                false);
-        if (healingPerformed != 0) {
-            deltas.put(BattleStat.HEALING_PERFORMED, healingPerformed);
-        }
-        int aggroPerformed = ca.getEffect().getDamageResult().getByFlavors(EnumSet.of(DamageFlavor.AGGRO), true);
-        if (aggroPerformed != 0) {
-            deltas.put(BattleStat.AGGRO_DAMAGE, aggroPerformed);
+        final MultiRollResult damages = ca.getDamages();
+        if (damages != null && !damages.isEmpty()) {
+            final int roll = damages.getRoll();
+            deltas.put(BattleStat.TOTAL_DAMAGE, damages.getRoll());
+            if (roll > 0) {
+                deltas.put(BattleStat.NUM_DAMAGES, 1);
+                // the difference to the next running average
+                deltas.put(BattleStat.AVG_DAMAGE, (roll - found.getAverageDamage()) / (found.getNumDamgages() + 1));
+            }
+            if (found.getMaxDamage() < roll) {
+                deltas.put(BattleStat.MAX_DAMAGE, roll - found.getMaxDamage());
+            }
+            int healingPerformed = damages.getByFlavors(
+                    EnumSet.of(DamageFlavor.HEALING),
+                    false);
+            if (healingPerformed != 0) {
+                deltas.put(BattleStat.HEALING_PERFORMED, healingPerformed);
+            }
+            int aggroPerformed = damages.getByFlavors(
+                    EnumSet.of(DamageFlavor.AGGRO),
+                    true);
+            if (aggroPerformed != 0) {
+                deltas.put(BattleStat.AGGRO_DAMAGE, aggroPerformed);
+            }
         }
 
         Function<EnumMap<BattleStat, Integer>, EnumMap<BattleStat, Integer>> lens = BattleStats

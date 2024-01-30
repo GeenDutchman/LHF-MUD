@@ -14,7 +14,7 @@ public class HandleCreatureAffected extends AIHandler {
 
     private void handleOuch(BasicAI bai, CreatureAffectedEvent caMessage) {
         if (bai.getNpc().isInBattle()) {
-            if (caMessage.getAffected() == bai.getNpc() && caMessage.getEffect().isOffensive()) {
+            if (caMessage.getAffected() == bai.getNpc() && caMessage.isOffensive()) {
                 bai.getNpc().getHarmMemories().update(caMessage);
             }
         }

@@ -18,6 +18,7 @@ import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
 import com.lhf.game.battle.BattleStats.BattleStatsQuery;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
@@ -68,8 +69,9 @@ public class BattleStatsChooserTest {
 
                 CreatureEffectSource source = new CreatureEffectSource("test", new EffectPersistence(TickType.INSTANT),
                                 null,
-                                "For a test", false)
-                                .addDamage(new DamageDice(1, DieType.HUNDRED, DamageFlavor.BLUDGEONING));
+                                "For a test", new Deltas()
+                                                .addDamage(new DamageDice(1, DieType.HUNDRED,
+                                                                DamageFlavor.BLUDGEONING)));
 
                 CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
                                 .setEffect(new CreatureEffect(source, attacker.getNPC(), attacker.getNPC())).Build();
@@ -96,8 +98,8 @@ public class BattleStatsChooserTest {
                 CreatureEffectSource source2 = new CreatureEffectSource("test2",
                                 new EffectPersistence(TickType.INSTANT),
                                 null,
-                                "For a test", false)
-                                .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO));
+                                "For a test", new Deltas()
+                                                .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO)));
 
                 CreatureAffectedEvent cam2 = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
                                 .setEffect(new CreatureEffect(source2, subAttacker.getNPC(), subAttacker.getNPC()))
@@ -133,14 +135,15 @@ public class BattleStatsChooserTest {
 
                 CreatureEffectSource source = new CreatureEffectSource("test", new EffectPersistence(TickType.INSTANT),
                                 null,
-                                "For a test", false)
-                                .addDamage(new DamageDice(1, DieType.HUNDRED, DamageFlavor.BLUDGEONING))
-                                .addDamage(new DamageDice(2, DieType.SIX, DamageFlavor.AGGRO));
+                                "For a test", new Deltas()
+                                                .addDamage(new DamageDice(1, DieType.HUNDRED,
+                                                                DamageFlavor.BLUDGEONING))
+                                                .addDamage(new DamageDice(2, DieType.SIX, DamageFlavor.AGGRO)));
 
                 MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
                 CreatureEffect effect = new CreatureEffect(source, attacker.getNPC(), attacker.getNPC());
 
-                for (RollResult rr : effect.getDamageResult()) {
+                for (RollResult rr : effect.getApplicationDamageResult()) {
                         if (rr instanceof FlavoredRollResult) {
                                 FlavoredRollResult frr = (FlavoredRollResult) rr;
                                 if (DamageFlavor.AGGRO.equals(frr.getDamageFlavor())) {
@@ -151,7 +154,7 @@ public class BattleStatsChooserTest {
                         }
                 }
 
-                effect.updateDamageResult(mrrBuilder.Build());
+                effect.updateApplicationDamage(mrrBuilder.Build());
 
                 CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
                                 .setEffect(effect).Build();

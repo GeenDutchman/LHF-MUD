@@ -12,6 +12,7 @@ import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
 import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NameGenerator;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.dice.DamageDice;
@@ -91,8 +92,9 @@ public final class StandardDungeonProducer {
                                 new EnumMap<>(Map.of(Attributes.DEX, new DiceDC(12))))
                                 .addEffect(new CreatureEffectSource("Spike", new EffectPersistence(TickType.INSTANT),
                                                 new EffectResistance(Attributes.DEX, 10, null),
-                                                "A spike that pierces you.", false)
-                                                .addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.PIERCING))));
+                                                "A spike that pierces you.", new Deltas()
+                                                                .addDamage(new DamageDice(1, DieType.FOUR,
+                                                                                DamageFlavor.PIERCING)))));
 
                 Room.RoomBuilder secretRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
                                 .setName("Secret Room")

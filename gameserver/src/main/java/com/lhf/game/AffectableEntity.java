@@ -20,7 +20,7 @@ public interface AffectableEntity<Effect extends EntityEffect> {
      * @param reverse if it should be reversed
      * @return a resultant message or null
      */
-    GameEvent processEffect(Effect effect, boolean reverse);
+    GameEvent processEffect(Effect effect);
 
     /**
      * This applies the effect to the AffectableEntity.
@@ -29,23 +29,13 @@ public interface AffectableEntity<Effect extends EntityEffect> {
      * @param reverse true if the effect is to be undone
      * @return a message or null
      */
-    default GameEvent applyEffect(Effect effect, boolean reverse) {
-        GameEvent processed = this.processEffect(effect, reverse);
+    default GameEvent applyEffect(Effect effect) {
+        GameEvent processed = this.processEffect(effect);
         final EffectPersistence persistence = effect.getPersistence();
         if (persistence != null && !TickType.INSTANT.equals(persistence.getTickSize())) {
             this.getMutableEffects().add(effect);
         }
         return processed;
-    }
-
-    /**
-     * This applies the effect to the AffectableEntity.
-     * 
-     * @param effect the effect to apply
-     * @return a message or null
-     */
-    default GameEvent applyEffect(Effect effect) {
-        return applyEffect(effect, false);
     }
 
     /**
@@ -67,7 +57,7 @@ public interface AffectableEntity<Effect extends EntityEffect> {
         if (effects != null) {
             effects.removeIf(effect -> {
                 if (effect.tick(tickEvent.getTickType()) == 0) {
-                    this.applyEffect(effect, true);
+                    this.applyEffect(effect);
                     return true;
                 }
                 return effect.isReadyForRemoval();

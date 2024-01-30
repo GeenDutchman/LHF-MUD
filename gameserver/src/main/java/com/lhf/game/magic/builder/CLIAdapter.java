@@ -13,6 +13,7 @@ import com.lhf.game.EffectResistance.TargetResistAmount;
 import com.lhf.game.TickType;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
@@ -344,8 +345,9 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
             EffectResistance resistance = this.buildEffectResistance();
             System.out.println("Should it restore the faction?");
             boolean restore = this.yesOrNo();
+            Deltas deltas = new Deltas().setRestoreFaction(restore);
             CreatureEffectSource source = new CreatureEffectSource(effectName, persistence, resistance,
-                    effectDescription, restore);
+                    effectDescription, deltas);
             System.out.printf("Added %s \n", source.toString());
             sources.add(source);
 
@@ -368,7 +370,7 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
                         System.out.println("Change by how much?");
                         delta = this.input.nextInt();
                         this.input.nextLine();
-                        source.addStatChange(stat, delta);
+                        deltas.setStatChange(stat, delta);
                         break;
                     case 2:
                         System.out.println("Which attribute score?");
@@ -380,7 +382,7 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
                         System.out.println("Change by how much?");
                         delta = this.input.nextInt();
                         this.input.nextLine();
-                        source.addAttributeScoreChange(attr, delta);
+                        deltas.setAttributeScoreChange(attr, delta);
                         break;
                     case 3:
                         System.out.println("Which attribute bonus?");
@@ -392,7 +394,7 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
                         System.out.println("Change by how much?");
                         delta = this.input.nextInt();
                         this.input.nextLine();
-                        source.addAttributeBonusChange(attr, delta);
+                        deltas.setAttributeBonusChange(attr, delta);
                         break;
                     case 4:
                         System.out.println("Which flavor of damage?");
@@ -410,7 +412,7 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
                         System.out.println("How many?");
                         delta = this.input.nextInt();
                         this.input.nextLine();
-                        source.addDamage(new DamageDice(delta, dieType, flavor));
+                        deltas.addDamage(new DamageDice(delta, dieType, flavor));
                         break;
                     default:
                         System.err.println("Unrecognized option...repeating menu.");
