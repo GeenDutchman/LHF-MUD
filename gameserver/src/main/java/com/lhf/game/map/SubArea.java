@@ -305,7 +305,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         private int waitMilliseconds;
         private Set<CreatureFilterQuery> creatureQueries;
         private boolean queryOnBuild;
-        private Level loggingLevel;
+        private String loggingLevel;
 
         public SubAreaBuilder(SubAreaSort sort) {
             this.id = new SubAreaBuilderID();
@@ -376,11 +376,11 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         }
 
         public Level getLoggingLevel() {
-            return loggingLevel;
+            return Level.parse(this.loggingLevel);
         }
 
         public SubAreaBuilder setLoggingLevel(Level loggingLevel) {
-            this.loggingLevel = loggingLevel;
+            this.loggingLevel = loggingLevel.getName();
             return this;
         }
 

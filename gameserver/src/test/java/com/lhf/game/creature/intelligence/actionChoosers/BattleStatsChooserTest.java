@@ -143,6 +143,8 @@ public class BattleStatsChooserTest {
                 MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
                 CreatureEffect effect = new CreatureEffect(source, attacker.getNPC(), attacker.getNPC());
 
+                effect.updateApplicationDamage(source.getOnApplication().rollDamages());
+
                 for (RollResult rr : effect.getApplicationDamageResult()) {
                         if (rr instanceof FlavoredRollResult) {
                                 FlavoredRollResult frr = (FlavoredRollResult) rr;
@@ -153,8 +155,6 @@ public class BattleStatsChooserTest {
                                 }
                         }
                 }
-
-                effect.updateApplicationDamage(mrrBuilder.Build());
 
                 CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
                                 .setEffect(effect).Build();
