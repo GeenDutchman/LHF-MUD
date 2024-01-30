@@ -70,7 +70,7 @@ public interface AffectableEntity<Effect extends EntityEffect> {
                     this.applyEffect(effect, true);
                     return true;
                 }
-                return false;
+                return effect.isReadyForRemoval();
             });
         }
     }
