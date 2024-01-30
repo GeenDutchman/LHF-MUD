@@ -1,70 +1,63 @@
 package com.lhf.game.creature;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.EnumMap;
 import java.util.Map;
 
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
-import com.lhf.game.dice.DamageDice;
+import com.lhf.game.TickType;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.dice.MultiRollResult;
-import com.lhf.game.enums.Attributes;
-import com.lhf.game.enums.Stats;
 
 public class CreatureEffect extends EntityEffect {
-    protected MultiRollResult damageResult;
+    protected MultiRollResult applicationDamageResult, removalDamageResult;
+    protected Map<TickType, MultiRollResult> tickDamageResult;
 
     public CreatureEffect(CreatureEffectSource source, ICreature creatureResponsible, Taggable generatedBy) {
         super(source, creatureResponsible, generatedBy);
-        this.damageResult = null;
+        this.applicationDamageResult = null;
+        this.removalDamageResult = null;
+        this.tickDamageResult = new EnumMap<>(TickType.class);
     }
 
     public CreatureEffectSource getSource() {
         return (CreatureEffectSource) this.source;
     }
 
-    public MultiRollResult getDamageResult() {
-        if (this.damageResult == null) {
-            MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
-            for (DamageDice dd : this.getSource().getDamages()) {
-                mrrBuilder.addRollResults(dd.rollDice());
-            }
-            this.damageResult = mrrBuilder.Build();
-        }
-        return this.damageResult;
+    public void updateApplicationDamage(MultiRollResult mrr) {
+        this.applicationDamageResult = mrr;
     }
 
-    public CreatureEffect addDamageBonus(int bonus) {
-        if (this.getDamageResult() != null) {
-            this.damageResult = new MultiRollResult.Builder()
-                    .addMultiRollResult(this.getDamageResult())
-                    .addBonuses(bonus).Build();
-        }
-        return this;
+    public void updateRemovalDamage(MultiRollResult mrr) {
+        this.removalDamageResult = mrr;
     }
 
-    public void updateDamageResult(MultiRollResult mrr) {
-        this.damageResult = mrr;
+    public void updateTickDamge(TickType tt, MultiRollResult mrr) {
+        this.tickDamageResult.put(tt, mrr);
     }
 
-    public Map<Stats, Integer> getStatChanges() {
-        return Collections.unmodifiableMap(this.getSource().getStatChanges());
+    public MultiRollResult getApplicationDamageResult() {
+        return applicationDamageResult;
     }
 
-    public Map<Attributes, Integer> getAttributeScoreChanges() {
-        return Collections.unmodifiableMap(this.getSource().getAttributeScoreChanges());
+    public MultiRollResult getRemovalDamageResult() {
+        return removalDamageResult;
     }
 
-    public Map<Attributes, Integer> getAttributeBonusChanges() {
-        return Collections.unmodifiableMap(this.getSource().getAttributeBonusChanges());
+    public Map<TickType, MultiRollResult> getTickDamageResult() {
+        return tickDamageResult;
     }
 
-    public List<DamageDice> getDamages() {
-        return Collections.unmodifiableList(this.getSource().getDamages());
+    public Deltas getApplicationDeltas() {
+        return this.getSource().getOnApplication();
     }
 
-    public boolean isRestoreFaction() {
-        return this.getSource().isRestoreFaction();
+    public Deltas getOnRemovalDeltas() {
+        return this.getSource().getOnRemoval();
+    }
+
+    public Deltas getDeltasForTick(TickType tickType) {
+        return this.getSource().deltasForTick(tickType);
     }
 
     public boolean isOffensive() {

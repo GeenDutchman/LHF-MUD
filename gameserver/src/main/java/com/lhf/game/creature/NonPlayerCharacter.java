@@ -3,7 +3,6 @@ package com.lhf.game.creature;
 import java.io.FileNotFoundException;
 import java.util.Map;
 
-import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.statblock.Statblock;
@@ -93,8 +92,8 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     }
 
     @Override
-    public CreatureAffectedEvent processEffect(EntityEffect effect, boolean reverse) {
-        CreatureAffectedEvent cam = super.processEffect(effect, reverse);
+    public CreatureAffectedEvent processEffect(CreatureEffect effect) {
+        CreatureAffectedEvent cam = super.processEffect(effect);
         this.getHarmMemories().update(cam);
         return cam;
     }

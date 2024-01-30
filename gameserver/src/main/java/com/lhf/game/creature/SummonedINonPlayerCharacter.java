@@ -17,7 +17,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import com.lhf.game.EffectPersistence.Ticker;
-import com.lhf.game.EntityEffect;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo.SummonData;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
@@ -33,6 +33,7 @@ import com.lhf.game.item.IItem;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.CreatureAffectedEvent.Builder;
 
 public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlayerCharacter>
         extends WrappedINonPlayerCharacter<SummonedType> {
@@ -115,9 +116,18 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public GameEvent processEffect(EntityEffect effect, boolean reverse) {
+    public Builder processEffectDelta(CreatureEffect creatureEffect, Deltas deltas) {
         if (this.checkSummonIsAlive()) {
-            return super.processEffect(effect, reverse);
+            return super.processEffectDelta(creatureEffect, deltas);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'processEffectDelta(effect, deltas)'");
+        return null;
+    }
+
+    @Override
+    public GameEvent processEffect(CreatureEffect effect) {
+        if (this.checkSummonIsAlive()) {
+            return super.processEffect(effect);
         }
         this.log(Level.WARNING, "This summon is dead, and cannot perform 'processEffect(effect, reverse)'");
         return null;
@@ -178,15 +188,6 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public boolean shouldAdd(EntityEffect effect, boolean reverse) {
-        if (this.checkSummonIsAlive()) {
-            return super.shouldAdd(effect, reverse);
-        }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'shouldAdd(effect, reverse)'");
-        return false;
-    }
-
-    @Override
     public Optional<IItem> removeItem(String name) {
         if (this.checkSummonIsAlive()) {
             return super.removeItem(name);
@@ -214,15 +215,6 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public boolean shouldRemove(EntityEffect effect, boolean reverse) {
-        if (this.checkSummonIsAlive()) {
-            return super.shouldRemove(effect, reverse);
-        }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'shouldRemove(effect, reverse)'");
-        return false;
-    }
-
-    @Override
     public Collection<IItem> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
             Integer objNameRegexLen, Class<? extends AItem> clazz, Boolean isVisible) {
         if (this.checkSummonIsAlive()) {
@@ -231,15 +223,6 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
         this.log(Level.WARNING,
                 "This summon is dead, and cannot perform 'filterItems(filters, className, objectName, objNameRegexLen, clazz, isVisible)'");
         return List.of();
-    }
-
-    @Override
-    public GameEvent applyEffect(CreatureEffect effect, boolean reverse) {
-        if (this.checkSummonIsAlive()) {
-            return super.applyEffect(effect, reverse);
-        }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'applyEffect(effect, reverse)'");
-        return null;
     }
 
     @Override

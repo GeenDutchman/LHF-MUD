@@ -14,8 +14,8 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.EntityEffect;
 import com.lhf.game.ItemContainer;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
@@ -251,7 +251,7 @@ public abstract class Creature implements ICreature {
         return this.getSubAreaSorts().contains(SubAreaSort.BATTLE);
     }
 
-    protected MultiRollResult adjustDamageByFlavor(MultiRollResult mrr, boolean reverse) {
+    protected MultiRollResult adjustDamageByFlavor(MultiRollResult mrr) {
         if (mrr == null) {
             return null;
         }
@@ -261,37 +261,19 @@ public abstract class Creature implements ICreature {
             if (rr instanceof FlavoredRollResult) {
                 FlavoredRollResult frr = (FlavoredRollResult) rr;
                 if (dfr.get(DamgeFlavorReaction.CURATIVES).contains(frr.getDamageFlavor())) {
-                    if (reverse) {
-                        mrrBuilder.addRollResults(frr.negative());
-                    } else {
-                        mrrBuilder.addRollResults(frr);
-                    }
+                    mrrBuilder.addRollResults(frr);
                 } else if (dfr.get(DamgeFlavorReaction.IMMUNITIES).contains(frr.getDamageFlavor())) {
                     mrrBuilder.addRollResults(frr.none());
                 } else if (dfr.get(DamgeFlavorReaction.RESISTANCES).contains(frr.getDamageFlavor())) {
-                    if (reverse) {
-                        mrrBuilder.addRollResults(frr.half());
-                    } else {
-                        mrrBuilder.addRollResults(frr.negative().half());
-                    }
+                    mrrBuilder.addRollResults(frr.negative().half());
                 } else if (dfr.get(DamgeFlavorReaction.WEAKNESSES).contains(frr.getDamageFlavor())) {
-                    if (reverse) {
-                        mrrBuilder.addRollResults(frr.twice());
-                    } else {
-                        mrrBuilder.addRollResults(frr.negative().twice());
-                    }
+                    mrrBuilder.addRollResults(frr.negative().twice());
                 } else {
-                    if (reverse) {
-                        mrrBuilder.addRollResults(frr);
-                    } else {
-                        mrrBuilder.addRollResults(frr.negative());
-                    }
+                    mrrBuilder.addRollResults(frr.negative());
                 }
             } else {
                 if (dfr.get(DamgeFlavorReaction.IMMUNITIES).size() > 0) {
                     mrrBuilder.addRollResults(rr.none()); // if they have any immunities, unflavored damge does nothing
-                } else if (reverse) {
-                    mrrBuilder.addRollResults(rr.negative());
                 } else {
                     mrrBuilder.addRollResults(rr);
                 }
@@ -307,59 +289,48 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public boolean isCorrectEffectType(EntityEffect effect) {
-        return effect != null && effect instanceof CreatureEffect;
-    }
-
-    @Override
-    public boolean shouldAdd(EntityEffect effect, boolean reverse) {
-        return this.isAlive() && ICreature.super.shouldAdd(effect, reverse);
-    }
-
-    @Override
-    public CreatureAffectedEvent processEffect(EntityEffect effect, boolean reverse) {
-        if (!this.isCorrectEffectType(effect)) {
-            return null;
+    public CreatureAffectedEvent.Builder processEffectDelta(CreatureEffect creatureEffect, Deltas deltas) {
+        CreatureAffectedEvent.Builder builder = CreatureAffectedEvent.getBuilder().setAffected(this)
+                .setHighlightedDelta(deltas).setEffect(creatureEffect);
+        if (deltas == null) {
+            return builder;
         }
-        CreatureEffect creatureEffect = (CreatureEffect) effect;
-        MultiRollResult mrr = this.adjustDamageByFlavor(creatureEffect.getDamageResult(), reverse);
-        if (mrr != null) {
-            creatureEffect.updateDamageResult(mrr);
+        MultiRollResult mrr = this.adjustDamageByFlavor(deltas.rollDamages());
+        if (mrr != null && !mrr.isEmpty()) {
+            builder.setDamages(mrr);
             this.updateHitpoints(mrr.getRoll());
         }
-        for (Stats delta : creatureEffect.getStatChanges().keySet()) {
-            int amount = creatureEffect.getStatChanges().get(delta);
-            if (reverse) {
-                amount = amount * -1;
-            }
+        for (Stats delta : deltas.getStatChanges().keySet()) {
+            int amount = deltas.getStatChanges().get(delta);
             this.updateStat(delta, amount);
         }
         if (this.isAlive()) {
-            for (Attributes delta : creatureEffect.getAttributeScoreChanges().keySet()) {
-                int amount = creatureEffect.getAttributeScoreChanges().get(delta);
-                if (reverse) {
-                    amount = amount * -1;
-                }
+            for (Attributes delta : deltas.getAttributeScoreChanges().keySet()) {
+                int amount = deltas.getAttributeScoreChanges().get(delta);
                 this.updateAttribute(delta, amount);
             }
-            for (Attributes delta : creatureEffect.getAttributeBonusChanges().keySet()) {
-                int amount = creatureEffect.getAttributeBonusChanges().get(delta);
-                if (reverse) {
-                    amount = amount * -1;
-                }
+            for (Attributes delta : deltas.getAttributeBonusChanges().keySet()) {
+                int amount = deltas.getAttributeBonusChanges().get(delta);
                 this.updateModifier(delta, amount);
             }
             // for now...cannot curse someone with being a renegade
-            if (creatureEffect.isRestoreFaction()) {
+            if (deltas.isRestoreFaction()) {
                 this.restoreFaction();
             }
         } else {
             ICreature.announceDeath(this);
         }
+        return builder;
+    }
 
-        CreatureAffectedEvent camOut = CreatureAffectedEvent.getBuilder().setAffected(this)
-                .setEffect(creatureEffect).setReversed(reverse).setBroacast().Build();
-        return camOut;
+    @Override
+    public CreatureAffectedEvent processEffect(CreatureEffect creatureEffect) {
+        if (creatureEffect == null) {
+            return null;
+        }
+        CreatureAffectedEvent.Builder camOut = this.processEffectDelta(creatureEffect,
+                creatureEffect.getApplicationDeltas());
+        return camOut.Build();
     }
 
     @Override

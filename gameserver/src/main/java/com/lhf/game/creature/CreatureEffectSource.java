@@ -13,6 +13,7 @@ import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.TickType;
 import com.lhf.game.dice.DamageDice;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
@@ -112,35 +113,35 @@ public class CreatureEffectSource extends EntityEffectSource {
             return Collections.unmodifiableList(damages);
         }
 
-        protected Deltas setStatChange(Stats stat, int value) {
+        public Deltas setStatChange(Stats stat, int value) {
             if (stat != null) {
                 this.statChanges.put(stat, value);
             }
             return this;
         }
 
-        protected Deltas setAttributeScoreChange(Attributes attribute, int value) {
+        public Deltas setAttributeScoreChange(Attributes attribute, int value) {
             if (attribute != null) {
                 this.attributeScoreChanges.put(attribute, value);
             }
             return this;
         }
 
-        protected Deltas setAttributeBonusChange(Attributes attribute, int value) {
+        public Deltas setAttributeBonusChange(Attributes attribute, int value) {
             if (attribute != null) {
                 this.attributeBonusChanges.put(attribute, value);
             }
             return this;
         }
 
-        protected Deltas addDamage(DamageDice dice) {
+        public Deltas addDamage(DamageDice dice) {
             if (dice != null) {
                 this.damages.add(dice);
             }
             return this;
         }
 
-        protected Deltas setRestoreFaction(boolean restoreFaction) {
+        public Deltas setRestoreFaction(boolean restoreFaction) {
             this.restoreFaction = restoreFaction;
             return this;
         }
@@ -179,6 +180,14 @@ public class CreatureEffectSource extends EntityEffectSource {
                 sj.add("And will attempt to restore").add("the target's").add("faction");
             }
             return sj.toString();
+        }
+
+        public MultiRollResult rollDamages() {
+            MultiRollResult.Builder rollBuilder = new MultiRollResult.Builder();
+            for (final DamageDice dd : this.damages) {
+                rollBuilder.addRollResults(dd.rollDice());
+            }
+            return rollBuilder.Build();
         }
 
         @Override
@@ -247,7 +256,10 @@ public class CreatureEffectSource extends EntityEffectSource {
             String description, Deltas applicationDeltas) {
         super(name, persistence, resistance, description);
         this.onApplication = applicationDeltas;
-        this.onRemoval = applicationDeltas != null ? applicationDeltas.reversal() : null;
+        this.onRemoval = applicationDeltas != null
+                && (persistence != null && !TickType.INSTANT.equals(persistence.getTickSize()))
+                        ? applicationDeltas.reversal()
+                        : null;
         this.onTickEvent = new EnumMap<>(TickType.class);
     }
 

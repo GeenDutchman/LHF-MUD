@@ -22,6 +22,7 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.commandHandlers.EquipHandler;
 import com.lhf.game.creature.commandHandlers.InventoryHandler;
 import com.lhf.game.creature.commandHandlers.StatusHandler;
@@ -53,6 +54,7 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.ITickEvent;
+import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
@@ -137,8 +139,8 @@ public interface ICreature
             super("Fist", Fist.description, Set.of(
                     new CreatureEffectSource("Punch", new EffectPersistence(TickType.INSTANT),
                             new EffectResistance(EnumSet.of(Attributes.STR, Attributes.DEX), Stats.AC),
-                            "Fists punch things", false)
-                            .addDamage(new DamageDice(1, DieType.TWO, DamageFlavor.BLUDGEONING))),
+                            "Fists punch things",
+                            new Deltas().addDamage(new DamageDice(1, DieType.TWO, DamageFlavor.BLUDGEONING)))),
                     DamageFlavor.BLUDGEONING, WeaponSubtype.CREATUREPART);
 
             this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
@@ -625,6 +627,8 @@ public interface ICreature
         }
         return ctx;
     }
+
+    public CreatureAffectedEvent.Builder processEffectDelta(CreatureEffect creatureEffect, Deltas deltas);
 
     /**
      * Produces a {@link com.lhf.messages.events.SeeEvent SeeOutMessage}

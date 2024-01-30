@@ -12,6 +12,7 @@ import java.util.StringJoiner;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.commandHandlers.FollowHandler;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
@@ -66,15 +67,15 @@ public interface INonPlayerCharacter extends ICreature {
         private final static CreatureEffectSource source = new CreatureEffectSource("Blessed Punch",
                 new EffectPersistence(TickType.INSTANT),
                 new EffectResistance(EnumSet.allOf(Attributes.class), Stats.AC), "A blessed fist punches harder.",
-                false);
+                new Deltas());
         private final static String description = "This is a Fist attached to a Creature who is blessed\n";
 
         BlessedFist() {
             super("Blessed Fist", BlessedFist.description, Set.of(BlessedFist.source), DamageFlavor.MAGICAL_BLUDGEONING,
                     WeaponSubtype.CREATUREPART);
-            if (BlessedFist.source.getDamages().size() == 0) {
+            if (BlessedFist.source.onApplication.getDamages().size() == 0) {
                 for (DamageFlavor df : DamageFlavor.values()) {
-                    BlessedFist.source.addDamage(new DamageDice(1, DieType.FOUR, df));
+                    BlessedFist.source.onApplication.addDamage(new DamageDice(1, DieType.FOUR, df));
                 }
             }
 
@@ -206,18 +207,21 @@ public interface INonPlayerCharacter extends ICreature {
             if (cam == null || !this.owner.equals(cam.getAffected())) {
                 return this;
             }
-            CreatureEffect ce = cam.getEffect();
+            Deltas ce = cam.getHighlightedDelta();
             if (ce == null) {
                 return this;
             }
-            MultiRollResult damage = ce.getDamageResult();
+            MultiRollResult damage = cam.getDamages();
+            if (damage == null) {
+                return this;
+            }
             if (ce.isOffensive()) {
-                this.lastAttackerName = Optional.of(ce.creatureResponsible().getName());
+                this.lastAttackerName = Optional.of(cam.getCreatureResponsible().getName());
                 this.lastDamageAmount = damage.getTotal();
             }
             if (damage.getTotal() >= this.lastMassDamageAmount) {
                 this.lastMassDamageAmount = damage.getTotal();
-                this.lastMassAttackerName = Optional.of(ce.creatureResponsible().getName());
+                this.lastMassAttackerName = Optional.of(cam.getCreatureResponsible().getName());
             }
             return this;
         }
