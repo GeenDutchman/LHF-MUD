@@ -20,7 +20,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.IMonster;
@@ -495,17 +494,8 @@ public class Room implements Area {
     }
 
     @Override
-    public boolean isCorrectEffectType(EntityEffect effect) {
-        return effect != null && effect instanceof RoomEffect;
-    }
-
-    @Override
-    public RoomAffectedEvent processEffect(EntityEffect effect, boolean reverse) {
-        if (!this.isCorrectEffectType(effect)) {
-            return null;
-        }
-        this.logger.log(Level.FINER, () -> String.format("Room processing effect '%s'", effect.getName()));
-        RoomEffect roomEffect = (RoomEffect) effect;
+    public RoomAffectedEvent processEffect(RoomEffect roomEffect) {
+        this.logger.log(Level.FINER, () -> String.format("Room processing effect '%s'", roomEffect.getName()));
         INonPlayerCharacter summonedNPC = roomEffect.getQuickSummonedNPC(this);
         if (summonedNPC != null) {
             this.logger.log(Level.INFO, () -> String.format("Summoned npc %s", summonedNPC.getName()));

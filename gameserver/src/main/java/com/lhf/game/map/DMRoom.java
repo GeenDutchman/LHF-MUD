@@ -18,7 +18,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.CreatureContainer;
-import com.lhf.game.EntityEffect;
 import com.lhf.game.Game;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.DungeonMaster;
@@ -372,14 +371,8 @@ public class DMRoom extends Room {
     }
 
     @Override
-    public boolean isCorrectEffectType(EntityEffect effect) {
-        return effect != null && effect instanceof DMRoomEffect;
-    }
-
-    @Override
-    public RoomAffectedEvent processEffect(EntityEffect effect, boolean reverse) {
-        if (this.isCorrectEffectType(effect)) {
-            DMRoomEffect dmRoomEffect = (DMRoomEffect) effect;
+    public RoomAffectedEvent processEffect(RoomEffect effect) {
+        if (effect instanceof DMRoomEffect dmRoomEffect) {
             this.logger.log(Level.FINER, () -> String.format("DMRoom processing effect '%s'", dmRoomEffect.getName()));
             if (dmRoomEffect.getEnsoulUsername() != null) {
                 String name = dmRoomEffect.getEnsoulUsername();
@@ -411,7 +404,7 @@ public class DMRoom extends Room {
                 this.addNewPlayer(factory.getBuiltCreatures().getPlayers().first());
             }
         }
-        return super.processEffect(effect, reverse);
+        return super.processEffect(effect);
     }
 
     protected class SayHandler extends AreaSayHandler {

@@ -15,7 +15,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
@@ -426,14 +425,8 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public boolean isCorrectEffectType(EntityEffect effect) {
-        return effect instanceof DungeonEffect;
-    }
-
-    @Override
-    public GameEvent processEffect(EntityEffect effect, boolean reverse) {
-        // TODO make effects applicable here
-        return null;
+    public GameEvent processEffect(DungeonEffect effect) {
+        throw new UnsupportedOperationException(String.format("Cannot perform effect '%s'", effect));
     }
 
     @Override
