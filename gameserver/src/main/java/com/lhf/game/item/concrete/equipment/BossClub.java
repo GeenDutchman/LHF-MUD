@@ -8,6 +8,7 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.Attributes;
@@ -25,8 +26,8 @@ public class BossClub extends Weapon {
         super("Boss Club", BossClub.description, Set.of(
                 new CreatureEffectSource("Bash", new EffectPersistence(TickType.INSTANT),
                         new EffectResistance(EnumSet.of(Attributes.STR), Stats.AC),
-                        "Club it like a boss.", false)
-                        .addDamage(new DamageDice(2, DieType.EIGHT, DamageFlavor.BLUDGEONING))),
+                        "Club it like a boss.",
+                        new Deltas().addDamage(new DamageDice(2, DieType.EIGHT, DamageFlavor.BLUDGEONING)))),
                 DamageFlavor.BLUDGEONING, WeaponSubtype.MARTIAL);
 
         this.slots = List.of(EquipmentSlots.WEAPON);

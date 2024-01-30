@@ -10,6 +10,7 @@ import com.lhf.game.TickType;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
@@ -30,8 +31,8 @@ public class ReaperScythe extends Weapon {
                                                 new EffectResistance(EnumSet.of(Attributes.STR, Attributes.DEX),
                                                                 Stats.AC),
                                                 "Scythes reap things.",
-                                                false)
-                                                .addDamage(new DamageDice(1, DieType.EIGHT, DamageFlavor.NECROTIC))),
+                                                new Deltas().addDamage(new DamageDice(1, DieType.EIGHT,
+                                                                DamageFlavor.NECROTIC)))),
                                 DamageFlavor.NECROTIC, WeaponSubtype.FINESSE);
                 this.setVisible(false);
 
@@ -47,8 +48,8 @@ public class ReaperScythe extends Weapon {
                                 .of(new CreatureEffectSource("Necrotic Damage", new EffectPersistence(TickType.INSTANT),
                                                 new EffectResistance(null, null, actorDC, null, Stats.AC, null,
                                                                 TargetResistAmount.HALF),
-                                                "This weapon does extra necrotic damage.", false)
-                                                .addStatChange(Stats.CURRENTHP, -100));
+                                                "This weapon does extra necrotic damage.",
+                                                new Deltas().setStatChange(Stats.CURRENTHP, -100)));
 
                 return super.generateAttack(attacker, extraSources);
         }

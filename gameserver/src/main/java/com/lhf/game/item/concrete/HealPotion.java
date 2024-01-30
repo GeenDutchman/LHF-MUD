@@ -6,6 +6,7 @@ import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.CreatureVisitor;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
@@ -48,25 +49,26 @@ public class HealPotion extends Usable {
         return new HealPotion(this.healtype, this.creatureVisitor);
     }
 
-    private CreatureEffectSource setHealing(CreatureEffectSource effect) {
+    private Deltas setHealing() {
+        final Deltas deltas = new Deltas();
         if (this.healtype == null) {
-            effect.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
+            deltas.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
         } else {
             switch (this.healtype) {
                 case Critical:
-                    effect.addDamage(new DamageDice(1, DieType.EIGHT, DamageFlavor.HEALING));
+                    deltas.addDamage(new DamageDice(1, DieType.EIGHT, DamageFlavor.HEALING));
                 case Greater:
-                    effect.addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.HEALING));
+                    deltas.addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.HEALING));
                 case Regular:
-                    effect.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
+                    deltas.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
                 default:
-                    effect.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
+                    deltas.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
 
             }
         }
 
-        effect.addStatChange(Stats.CURRENTHP, 1);
-        return effect;
+        deltas.setStatChange(Stats.CURRENTHP, 1);
+        return deltas;
     }
 
     @Override
@@ -82,8 +84,7 @@ public class HealPotion extends Usable {
         }
         useOutMessage.setTarget(target);
         CreatureEffectSource bce = new CreatureEffectSource(this.healtype.toString() + " healing",
-                new EffectPersistence(TickType.INSTANT), null, "Heals you a little bit", false);
-        bce = this.setHealing(bce);
+                new EffectPersistence(TickType.INSTANT), null, "Heals you a little bit", this.setHealing());
         if (ctx.getSubAreaForSort(SubAreaSort.BATTLE) != null) {
             SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
             if (bm.hasCreature(target) && !bm.hasCreature(ctx.getCreature())) {

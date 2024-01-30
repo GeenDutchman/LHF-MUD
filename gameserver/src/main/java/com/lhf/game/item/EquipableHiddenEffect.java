@@ -64,7 +64,8 @@ public class EquipableHiddenEffect extends Equipable {
             if (effector.getPersistence() != null
                     && TickType.CONDITIONAL.equals(effector.getPersistence().getTickSize())) {
                 ICreature.eventAccepter.accept(unequipper,
-                        unequipper.applyEffect(new CreatureEffect(effector, unequipper, this), true));
+                        unequipper.processEffectDelta(new CreatureEffect(effector, unequipper, this),
+                                effector.getOnRemoval()).Build());
             }
         }
     }

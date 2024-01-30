@@ -5,6 +5,7 @@ import java.util.Collections;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -20,8 +21,7 @@ public class ChainMail extends Equipable {
         this.types = Collections.singletonList(EquipmentTypes.HEAVYARMOR);
         this.equipEffects = Collections.singletonList(
                 new CreatureEffectSource("AC Boost", new EffectPersistence(TickType.CONDITIONAL),
-                        null, "Wearing armor makes you harder to hit", false)
-                        .addStatChange(Stats.AC, this.AC));
+                        null, "Wearing armor makes you harder to hit", new Deltas().setStatChange(Stats.AC, this.AC)));
     }
 
     @Override

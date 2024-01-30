@@ -8,6 +8,7 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.Attributes;
@@ -25,8 +26,8 @@ public class RustyDagger extends Weapon {
         super("Rusty Dagger", RustyDagger.description, Set.of(
                 new CreatureEffectSource("Stab", new EffectPersistence(TickType.INSTANT),
                         new EffectResistance(EnumSet.of(Attributes.DEX), Stats.AC),
-                        "Daggers stab things", false)
-                        .addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.PIERCING))),
+                        "Daggers stab things",
+                        new Deltas().addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.PIERCING)))),
                 DamageFlavor.PIERCING, WeaponSubtype.PRECISE);
 
         this.slots = List.of(EquipmentSlots.WEAPON);

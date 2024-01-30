@@ -9,6 +9,7 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DamageDice;
@@ -25,9 +26,9 @@ public class ThunderStrike extends CreatureTargetingSpellEntry {
     private static final Set<CreatureEffectSource> spellEffects = Set.of(
             new CreatureEffectSource("Loud Zap", new EffectPersistence(TickType.INSTANT),
                     new EffectResistance(EnumSet.of(Attributes.INT), Stats.AC),
-                    "Zaps your target", false)
-                    .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.THUNDER))
-                    .addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.LIGHTNING)));
+                    "Zaps your target", new Deltas()
+                            .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.THUNDER))
+                            .addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.LIGHTNING))));
 
     public ThunderStrike() {
         super(ResourceCost.FIRST_MAGNITUDE, "Thunder Strike", "Bonearge Laarzen", spellEffects,

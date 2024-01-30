@@ -5,6 +5,7 @@ import java.util.Set;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.ResourceCost;
@@ -17,15 +18,15 @@ public class DMBlessing extends CreatureTargetingSpellEntry {
 
     private static final Set<CreatureEffectSource> spellEffects = Set.of(
             new CreatureEffectSource("DMBlessing", new EffectPersistence(TickType.CONDITIONAL),
-                    null, "Effects of the blessing", false)
-                    .addStatChange(Stats.MAXHP, 200)
-                    .addStatChange(Stats.MAXHP, 200)
-                    .addStatChange(Stats.CURRENTHP, 200)
-                    .addStatChange(Stats.PROFICIENCYBONUS, 5)
-                    .addAttributeScoreChange(Attributes.STR, 20)
-                    .addAttributeScoreChange(Attributes.DEX, 20)
-                    .addAttributeScoreChange(Attributes.CHA, 20)
-                    .addAttributeScoreChange(Attributes.CON, 20));
+                    null, "Effects of the blessing", new Deltas()
+                            .setStatChange(Stats.MAXHP, 200)
+                            .setStatChange(Stats.MAXHP, 200)
+                            .setStatChange(Stats.CURRENTHP, 200)
+                            .setStatChange(Stats.PROFICIENCYBONUS, 5)
+                            .setAttributeScoreChange(Attributes.STR, 20)
+                            .setAttributeScoreChange(Attributes.DEX, 20)
+                            .setAttributeScoreChange(Attributes.CHA, 20)
+                            .setAttributeScoreChange(Attributes.CON, 20)));
 
     public DMBlessing() {
         super(ResourceCost.TENTH_MAGNITUDE, DMBlessing.name, "I bless you", DMBlessing.spellEffects,

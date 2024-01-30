@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
+import com.lhf.Taggable;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
@@ -12,13 +14,15 @@ import com.lhf.messages.GameEventType;
 
 public class CreatureAffectedEvent extends GameEvent {
     private final ICreature affected;
-    private final CreatureEffect effect;
-    private final boolean reversed;
+    private final CreatureEffect creatureEffect;
+    private final Deltas highlightedDelta;
+    private final MultiRollResult damages;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private ICreature affected;
-        private CreatureEffect effect;
-        private boolean reversed;
+        private CreatureEffect creatureEffect;
+        private Deltas highlightedDelta;
+        private MultiRollResult damages;
 
         protected Builder() {
             super(GameEventType.CREATURE_AFFECTED);
@@ -33,21 +37,30 @@ public class CreatureAffectedEvent extends GameEvent {
             return this;
         }
 
-        public CreatureEffect getEffect() {
-            return effect;
+        public CreatureEffect getCreatureEffect() {
+            return this.creatureEffect;
         }
 
         public Builder setEffect(CreatureEffect effect) {
-            this.effect = effect;
+            this.creatureEffect = effect;
             return this;
         }
 
-        public boolean isReversed() {
-            return reversed;
+        public Deltas getHighlightedDelta() {
+            return highlightedDelta;
         }
 
-        public Builder setReversed(boolean reversed) {
-            this.reversed = reversed;
+        public Builder setHighlightedDelta(Deltas highlightedDelta) {
+            this.highlightedDelta = highlightedDelta;
+            return this;
+        }
+
+        public MultiRollResult getDamages() {
+            return damages;
+        }
+
+        public Builder setDamages(MultiRollResult damages) {
+            this.damages = damages;
             return this;
         }
 
@@ -70,8 +83,9 @@ public class CreatureAffectedEvent extends GameEvent {
     public CreatureAffectedEvent(Builder builder) {
         super(builder);
         this.affected = builder.getAffected();
-        this.effect = builder.getEffect();
-        this.reversed = builder.isReversed();
+        this.creatureEffect = builder.getCreatureEffect();
+        this.highlightedDelta = builder.getHighlightedDelta();
+        this.damages = builder.getDamages();
     }
 
     public boolean isResultedInDeath() {
@@ -82,29 +96,42 @@ public class CreatureAffectedEvent extends GameEvent {
         return affected;
     }
 
-    public CreatureEffect getEffect() {
-        return effect;
+    protected CreatureEffect getCreatureEffect() {
+        return this.creatureEffect;
     }
 
-    public boolean isReversed() {
-        return reversed;
+    public boolean isOffensive() {
+        return this.creatureEffect != null ? this.creatureEffect.isOffensive() : false;
+    }
+
+    public ICreature getCreatureResponsible() {
+        return this.creatureEffect != null ? this.creatureEffect.creatureResponsible() : null;
+    }
+
+    public Taggable getGeneratedBy() {
+        return this.creatureEffect != null ? this.creatureEffect.getGeneratedBy() : null;
+    }
+
+    public Deltas getHighlightedDelta() {
+        return highlightedDelta;
+    }
+
+    public MultiRollResult getDamages() {
+        return damages;
     }
 
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
-        if (this.effect.creatureResponsible() != null) {
-            sj.add(this.effect.creatureResponsible().getColorTaggedName()).add("used");
-            sj.add(this.effect.getGeneratedBy().getColorTaggedName()).add("on");
+        if (this.getCreatureResponsible() != null) {
+            sj.add(this.getCreatureResponsible().getColorTaggedName()).add("used");
+            sj.add(this.getGeneratedBy().getColorTaggedName()).add("on");
         } else {
-            sj.add(this.effect.getGeneratedBy().getColorTaggedName()).add("affected");
+            sj.add(this.getGeneratedBy().getColorTaggedName()).add("affected");
         }
         sj.add(this.addressCreature(this.affected, false) + "!");
         sj.add("\r\n");
-        if (this.reversed) {
-            sj.add("But the effects have EXPIRED, and will now REVERSE!").add("\r\n");
-        }
-        MultiRollResult damageResults = this.effect.getDamageResult();
+        MultiRollResult damageResults = this.getDamages();
         if (damageResults != null && !damageResults.isEmpty()) {
             if (!this.isBroadcast()) {
                 sj.add("Your");
@@ -117,13 +144,13 @@ public class CreatureAffectedEvent extends GameEvent {
             sj.add(damageResults.getColorTaggedName()); // already reversed, if applicable
             sj.add("\r\n");
         }
-        if (this.effect.getStatChanges().size() > 0) {
+        if (this.highlightedDelta == null) {
+            return sj.toString();
+        }
+        if (this.highlightedDelta.getStatChanges().size() > 0) {
             sj.add(this.affected.getColorTaggedName() + "'s");
-            for (Map.Entry<Stats, Integer> deltas : this.effect.getStatChanges().entrySet()) {
+            for (Map.Entry<Stats, Integer> deltas : this.highlightedDelta.getStatChanges().entrySet()) {
                 int amount = deltas.getValue();
-                if (reversed) {
-                    amount *= -1;
-                }
                 sj.add(deltas.getKey().toString()).add("stat will change by").add(String.valueOf(amount));
             }
             sj.add("\r\n");
@@ -132,29 +159,23 @@ public class CreatureAffectedEvent extends GameEvent {
             sj.add("And as a result of these things,").add(this.affected.getColorTaggedName()).add("has died.");
             return sj.toString();
         }
-        if (this.effect.getAttributeScoreChanges().size() > 0) {
+        if (this.highlightedDelta.getAttributeScoreChanges().size() > 0) {
             sj.add(this.affected.getColorTaggedName() + "'s");
-            for (Map.Entry<Attributes, Integer> deltas : this.effect.getAttributeScoreChanges().entrySet()) {
+            for (Map.Entry<Attributes, Integer> deltas : this.highlightedDelta.getAttributeScoreChanges().entrySet()) {
                 int amount = deltas.getValue();
-                if (reversed) {
-                    amount *= -1;
-                }
                 sj.add(deltas.getKey().toString()).add("score will change by").add(String.valueOf(amount));
             }
             sj.add("\r\n");
         }
-        if (this.effect.getAttributeBonusChanges().size() > 0) {
+        if (this.highlightedDelta.getAttributeBonusChanges().size() > 0) {
             sj.add(this.affected.getColorTaggedName() + "'s");
-            for (Map.Entry<Attributes, Integer> deltas : this.effect.getAttributeBonusChanges().entrySet()) {
+            for (Map.Entry<Attributes, Integer> deltas : this.highlightedDelta.getAttributeBonusChanges().entrySet()) {
                 int amount = deltas.getValue();
-                if (reversed) {
-                    amount *= -1;
-                }
                 sj.add(deltas.getKey().toString()).add("bonus will change by").add(String.valueOf(amount));
             }
             sj.add("\r\n");
         }
-        if (this.effect.isRestoreFaction()) {
+        if (this.highlightedDelta.isRestoreFaction()) {
             sj.add(this.affected.getColorTaggedName() + "'s").add("faction will be restored!");
         }
         return sj.toString();
