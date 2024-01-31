@@ -28,5 +28,4 @@ public interface EquipmentOwner {
         }
     }
 
-    void setEquipmentSlots(EnumMap<EquipmentSlots, Equipable> equipmentSlots);
 }

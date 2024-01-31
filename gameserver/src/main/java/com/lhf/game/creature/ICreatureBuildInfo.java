@@ -15,6 +15,7 @@ import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.DamgeFlavorReaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -52,14 +53,6 @@ public interface ICreatureBuildInfo extends Serializable {
         needDefaults.put(Stats.AC, ICreatureBuildInfo.DEFAULT_AC);
         needDefaults.put(Stats.XPWORTH, ICreatureBuildInfo.DEFAULT_XP_WORTH);
     }
-
-    // Reactions to DamageFlavors
-    public enum DamgeFlavorReaction {
-        WEAKNESSES,
-        RESISTANCES,
-        IMMUNITIES,
-        CURATIVES
-    };
 
     public final static class CreatureBuilderID implements Comparable<ICreatureBuildInfo.CreatureBuilderID> {
         private final UUID id;

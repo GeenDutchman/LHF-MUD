@@ -268,20 +268,6 @@ public interface ICreature
     public abstract AttributeBlock getAttributes();
 
     /**
-     * Sets the Attribute block for the creature
-     * 
-     * @deprecated
-     *             Changing the attributes wholesale during run is not good.
-     *             <p>
-     *             Use {@link com.lhf.game.creature.CreatureBuildInfo
-     *             CreatureBuilder} to change the attributes of a Creature being
-     *             built
-     * @param attributes
-     */
-    @Deprecated
-    public abstract void setAttributes(AttributeBlock attributes);
-
-    /**
      * Makes a check for the Creature, using the slected
      * {@link com.lhf.game.enums.Attributes Attribute} modifier.
      * Will just do a straight roll if attribute is null
@@ -316,13 +302,6 @@ public interface ICreature
      * @return stat map
      */
     public abstract Map<Stats, Integer> getStats();
-
-    /**
-     * Sets the stats
-     * 
-     * @param stats
-     */
-    public abstract void setStats(EnumMap<Stats, Integer> stats);
 
     /**
      * Returns the name of this Creature. Should *NOT* be null!
@@ -437,13 +416,6 @@ public interface ICreature
     public abstract Set<EquipmentTypes> getProficiencies();
 
     /**
-     * Sets the proficiencies of the creature
-     * 
-     * @param proficiences
-     */
-    public abstract void setProficiencies(EnumSet<EquipmentTypes> proficiences);
-
-    /**
      * Returns the set of which sorts of Sub Area engagement the Creature is in
      * 
      * @see {@link com.lhf.game.map.SubArea SubArea}
@@ -517,13 +489,6 @@ public interface ICreature
      * @return
      */
     public abstract String getCreatureRace();
-
-    /**
-     * Will set the Creature's race
-     * 
-     * @param creatureRace
-     */
-    public abstract void setCreatureRace(String creatureRace);
 
     /**
      * Gets the Creature's {@link com.lhf.game.creature.vocation.Vocation Vocation}.
