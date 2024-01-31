@@ -114,6 +114,15 @@
             "damages": [],
             "restoreFaction": false
           },
+          "onRemoval": {
+            "statChanges": {
+              "AC": -2
+            },
+            "attributeScoreChanges": {},
+            "attributeBonusChanges": {},
+            "damages": [],
+            "restoreFaction": false
+          },
           "name": "AC Boost",
           "persistence": {
             "count": -1,
@@ -144,6 +153,15 @@
         {
           "className": "com.lhf.game.creature.CreatureEffectSource",
           "onApplication": {
+            "statChanges": {
+              "AC": 2
+            },
+            "attributeScoreChanges": {},
+            "attributeBonusChanges": {},
+            "damages": [],
+            "restoreFaction": false
+          },
+          "onRemoval": {
             "statChanges": {
               "AC": 2
             },

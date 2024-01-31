@@ -71,6 +71,15 @@
             "damages": [],
             "restoreFaction": false
           },
+          "onRemoval": {
+            "statChanges": {
+              "AC": -5
+            },
+            "attributeScoreChanges": {},
+            "attributeBonusChanges": {},
+            "damages": [],
+            "restoreFaction": false
+          },
           "name": "AC Boost",
           "persistence": {
             "count": -1,
@@ -146,6 +155,15 @@
           "onApplication": {
             "statChanges": {
               "AC": 2
+            },
+            "attributeScoreChanges": {},
+            "attributeBonusChanges": {},
+            "damages": [],
+            "restoreFaction": false
+          },
+          "onRemoval": {
+            "statChanges": {
+              "AC": -2
             },
             "attributeScoreChanges": {},
             "attributeBonusChanges": {},
