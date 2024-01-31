@@ -11,12 +11,14 @@ import com.lhf.server.interfaces.NotNull;
 
 public abstract class EntityEffect implements TaggedExaminable, Comparable<EntityEffect> {
 
+    protected final String className;
     protected final EntityEffectSource source;
     protected final ICreature creatureResponsible;
     protected final Taggable generatedBy;
     protected final Ticker ticker;
 
     public EntityEffect(@NotNull EntityEffectSource source, ICreature creatureResponsible, Taggable generatedBy) {
+        this.className = this.getClass().getName();
         this.source = source;
         this.creatureResponsible = creatureResponsible;
         this.generatedBy = generatedBy;

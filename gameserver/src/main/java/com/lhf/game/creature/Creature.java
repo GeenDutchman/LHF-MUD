@@ -90,6 +90,17 @@ public abstract class Creature implements ICreature {
         this.subAreaSorts = EnumSet.noneOf(SubAreaSort.class);
         this.logger = Logger
                 .getLogger(String.format("%s.%s", this.getClass().getName(), this.name.replaceAll("\\W", "_")));
+
+        // re-equip them
+        final Map<EquipmentSlots, Equipable> equipment = this.statblock.getEquipmentSlots();
+        if (equipment != null && !equipment.isEmpty()) {
+            for (final Equipable thing : equipment.values()) {
+                if (thing == null) {
+                    continue;
+                }
+                thing.onEquippedBy(this);
+            }
+        }
     }
 
     @Override
