@@ -292,6 +292,9 @@ public class CreatureEffectSource extends EntityEffectSource {
     }
 
     public Deltas deltasForTick(TickType tickType) {
+        if (this.onTickEvent == null) {
+            return null;
+        }
         return this.onTickEvent.getOrDefault(tickType, null);
     }
 
@@ -303,9 +306,11 @@ public class CreatureEffectSource extends EntityEffectSource {
         // onRemovals that are just reversals of nonoffensive onApplications are not
         // offensive
         // but we cannot distinguish that
-        for (final Deltas tickDelta : this.onTickEvent.values()) {
-            if (tickDelta != null && tickDelta.isOffensive()) {
-                return true;
+        if (this.onTickEvent != null) {
+            for (final Deltas tickDelta : this.onTickEvent.values()) {
+                if (tickDelta != null && tickDelta.isOffensive()) {
+                    return true;
+                }
             }
         }
         return false;
@@ -318,9 +323,11 @@ public class CreatureEffectSource extends EntityEffectSource {
             score += this.onApplication.aiScore();
         }
         // again, disregarding potential reversal of onApplication
-        for (final Deltas tickDelta : this.onTickEvent.values()) {
-            if (tickDelta != null) {
-                score += tickDelta.aiScore();
+        if (this.onTickEvent != null) {
+            for (final Deltas tickDelta : this.onTickEvent.values()) {
+                if (tickDelta != null) {
+                    score += tickDelta.aiScore();
+                }
             }
         }
         return score;
@@ -349,7 +356,7 @@ public class CreatureEffectSource extends EntityEffectSource {
                 sj.add("On application:").add(applicationDescription);
             }
         }
-        if (this.onTickEvent.size() > 0) {
+        if (this.onTickEvent != null && this.onTickEvent.size() > 0) {
             for (final Entry<TickType, Deltas> tickDeltas : this.onTickEvent.entrySet()) {
                 final String tickDescription = tickDeltas.getValue().printDescription();
                 if (tickDescription.length() > 0) {
