@@ -1,13 +1,24 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Map;
 import java.util.logging.Level;
 
+import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.Stats;
+import com.lhf.game.item.Equipable;
+import com.lhf.game.item.Takeable;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.server.client.CommandInvoker;
@@ -48,6 +59,94 @@ public class Player extends Creature {
         @Override
         public CreatureBuilderID getCreatureBuilderID() {
             return this.id;
+        }
+
+        public PlayerBuildInfo setCreatureRace(String race) {
+            creatureBuilder.setCreatureRace(race);
+            return this;
+        }
+
+        public String getCreatureRace() {
+            return creatureBuilder.getCreatureRace();
+        }
+
+        public PlayerBuildInfo defaultStats() {
+            creatureBuilder.defaultStats();
+            return this;
+        }
+
+        public PlayerBuildInfo setAttributeBlock(AttributeBlock block) {
+            creatureBuilder.setAttributeBlock(block);
+            return this;
+        }
+
+        public AttributeBlock getAttributeBlock() {
+            return creatureBuilder.getAttributeBlock();
+        }
+
+        public PlayerBuildInfo setStats(Map<Stats, Integer> newStats) {
+            creatureBuilder.setStats(newStats);
+            return this;
+        }
+
+        public PlayerBuildInfo setStat(Stats stat, int value) {
+            creatureBuilder.setStat(stat, value);
+            return this;
+        }
+
+        public EnumMap<Stats, Integer> getStats() {
+            return creatureBuilder.getStats();
+        }
+
+        public PlayerBuildInfo setProficiencies(EnumSet<EquipmentTypes> types) {
+            creatureBuilder.setProficiencies(types);
+            return this;
+        }
+
+        public PlayerBuildInfo addProficiency(EquipmentTypes type) {
+            creatureBuilder.addProficiency(type);
+            return this;
+        }
+
+        public EnumSet<EquipmentTypes> getProficiencies() {
+            return creatureBuilder.getProficiencies();
+        }
+
+        public PlayerBuildInfo setInventory(Inventory other) {
+            creatureBuilder.setInventory(other);
+            return this;
+        }
+
+        public PlayerBuildInfo addItem(Takeable item) {
+            creatureBuilder.addItem(item);
+            return this;
+        }
+
+        public Inventory getInventory() {
+            return creatureBuilder.getInventory();
+        }
+
+        public PlayerBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
+            creatureBuilder.setEquipmentSlots(slots);
+            return this;
+        }
+
+        public EnumMap<EquipmentSlots, Equipable> getEquipmentSlots() {
+            return creatureBuilder.getEquipmentSlots();
+        }
+
+        public PlayerBuildInfo defaultFlavorReactions() {
+            creatureBuilder.defaultFlavorReactions();
+            return this;
+        }
+
+        public PlayerBuildInfo setDamageFlavorReactions(EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> other) {
+            creatureBuilder.setDamageFlavorReactions(other);
+            return this;
+        }
+
+        public EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> getDamageFlavorReactions() {
+            return creatureBuilder.getDamageFlavorReactions();
         }
 
         public PlayerBuildInfo setUser(User user) {
@@ -100,45 +199,9 @@ public class Player extends Creature {
             return creatureBuilder.getVocationLevel();
         }
 
-        public PlayerBuildInfo setStatblock(Statblock statblock) {
-            creatureBuilder.setStatblock(statblock);
-            return this;
-        }
-
-        public PlayerBuildInfo setStatblockName(String statblockName) {
-            creatureBuilder.setStatblockName(statblockName);
-            return this;
-        }
-
-        public String getStatblockName() {
-            return creatureBuilder.getStatblockName();
-        }
-
-        public Statblock loadStatblock(StatblockManager statblockManager) throws FileNotFoundException {
-            return creatureBuilder.loadStatblock(statblockManager);
-        }
-
-        @Override
-        public Statblock loadBlankStatblock() {
-            return creatureBuilder.loadBlankStatblock();
-        }
-
-        public PlayerBuildInfo useBlankStatblock() {
-            creatureBuilder.useBlankStatblock();
-            return this;
-        }
-
-        public Statblock getStatblock() {
-            return creatureBuilder.getStatblock();
-        }
-
         public PlayerBuildInfo setCorpse(Corpse corpse) {
             creatureBuilder.setCorpse(corpse);
             return this;
-        }
-
-        public Corpse getCorpse() {
-            return creatureBuilder.getCorpse();
         }
 
         @Override
@@ -146,47 +209,6 @@ public class Player extends Creature {
             visitor.visit(this);
         }
 
-        // @Override
-        // public Player build(CommandInvoker controller,
-        // CommandChainHandler successor, StatblockManager statblockManager,
-        // UnaryOperator<PlayerBuilder> composedLazyLoaders)
-        // throws FileNotFoundException {
-
-        // if (statblockManager != null) {
-        // this.loadStatblock(statblockManager);
-        // }
-        // if (composedLazyLoaders != null) {
-        // composedLazyLoaders.apply(this.getThis());
-        // }
-        // return new Player(this.getThis(), controller, successor,
-        // this.getStatblock());
-        // }
-
-        // public Player build(User user, CommandChainHandler successor,
-        // StatblockManager statblockManager,
-        // UnaryOperator<PlayerBuilder> composedLazyLoaders) throws
-        // FileNotFoundException {
-        // this.setUser(user);
-        // return this.build(user, successor, statblockManager, composedLazyLoaders);
-        // }
-
-        // public Player build(CommandChainHandler successor) {
-        // User foundUser = this.getUser();
-        // if (foundUser == null) {
-        // throw new IllegalStateException("Player cannot be created with null user!");
-        // }
-        // Statblock currStatBlock = this.getStatblock();
-        // if (currStatBlock == null) {
-        // VocationName currVocation = this.getVocation();
-        // if (currVocation == null) {
-        // throw new IllegalStateException(
-        // "Must have a statblock or a Vocation from which to define the statblock!");
-        // }
-        // currStatBlock = currVocation.createNewDefaultStatblock("Player").build();
-        // this.setStatblock(currStatBlock);
-        // }
-        // return new Player(this.getThis(), foundUser, successor, this.getStatblock());
-        // }
     }
 
     public Player(PlayerBuildInfo builder,

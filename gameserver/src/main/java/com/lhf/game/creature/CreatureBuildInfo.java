@@ -1,14 +1,23 @@
 package com.lhf.game.creature;
 
-import java.io.FileNotFoundException;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 
 import com.lhf.game.ItemContainer;
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.Stats;
+import com.lhf.game.item.Equipable;
+import com.lhf.game.item.Takeable;
 import com.lhf.game.item.concrete.Corpse;
 
 /**
@@ -18,40 +27,51 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
 
     private final String className;
     protected final CreatureBuilderID id;
+    private String creatureRace;
+    private AttributeBlock attributeBlock;
+    private EnumMap<Stats, Integer> stats;
+    private EnumSet<EquipmentTypes> proficiencies;
+    private Inventory inventory;
+    private EnumMap<EquipmentSlots, Equipable> equipmentSlots;
+    private EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> damageFlavorReactions;
     protected String name;
     protected CreatureFaction faction;
     protected VocationName vocation;
     protected Integer vocationLevel;
-    protected String statblockName;
-    protected Statblock statblock;
-    protected Corpse corpse;
+    // protected String statblockName; // TODO: turn this into buildinfoname
 
     protected CreatureBuildInfo() {
         this.className = this.getClass().getName();
         this.id = new CreatureBuilderID();
+        this.creatureRace = "Creature";
+        this.attributeBlock = new AttributeBlock();
+        this.stats = new EnumMap<>(Stats.class);
+        this.defaultStats();
+        this.proficiencies = EnumSet.noneOf(EquipmentTypes.class);
+        this.inventory = new Inventory();
+        this.equipmentSlots = new EnumMap<>(EquipmentSlots.class);
+        this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReaction.class);
+        this.defaultFlavorReactions();
         this.name = null;
         this.faction = null;
         this.vocation = null;
         this.vocationLevel = null;
-        this.statblockName = null;
-        this.statblock = null;
-        this.corpse = null;
     }
 
     public CreatureBuildInfo(CreatureBuildInfo other) {
         this.className = other.getClassName();
         this.id = new CreatureBuilderID();
+        this.setCreatureRace(other.creatureRace);
+        this.setAttributeBlock(other.attributeBlock);
+        this.setStats(other.stats);
+        this.setProficiencies(other.proficiencies);
+        this.setInventory(other.inventory);
+        this.setEquipmentSlots(other.equipmentSlots);
+        this.setDamageFlavorReactions(other.damageFlavorReactions);
         this.name = other.name != null ? new String(other.name) : null;
         this.faction = other.faction;
         this.vocation = other.vocation;
         this.vocationLevel = other.vocationLevel != null ? other.vocationLevel.intValue() : null;
-        this.statblockName = other.statblockName != null ? new String(other.statblockName) : null;
-        this.statblock = this.statblock != null ? new Statblock(other.statblock) : null;
-        this.corpse = null;
-        if (other.corpse != null) {
-            this.corpse = other.corpse.makeCopy();
-            ItemContainer.transfer(other.corpse, this.corpse, null, true);
-        }
     }
 
     @Override
@@ -61,6 +81,127 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
 
     public final CreatureBuilderID getCreatureBuilderID() {
         return this.id;
+    }
+
+    public CreatureBuildInfo setCreatureRace(String race) {
+        this.creatureRace = race != null ? new String(race) : "Creature";
+        return this;
+    }
+
+    @Override
+    public String getCreatureRace() {
+        return this.creatureRace;
+    }
+
+    public CreatureBuildInfo defaultStats() {
+        ICreatureBuildInfo.setDefaultStats(this.stats);
+        return this;
+    }
+
+    public CreatureBuildInfo setAttributeBlock(AttributeBlock block) {
+        this.attributeBlock = block != null ? new AttributeBlock(block) : new AttributeBlock();
+        return this;
+    }
+
+    @Override
+    public AttributeBlock getAttributeBlock() {
+        return this.attributeBlock;
+    }
+
+    public CreatureBuildInfo setStats(Map<Stats, Integer> newStats) {
+        if (newStats == null) {
+            this.stats = new EnumMap<>(Stats.class);
+            this.defaultStats();
+        } else {
+            this.stats = new EnumMap<>(newStats);
+        }
+        return this;
+    }
+
+    public CreatureBuildInfo setStat(Stats stat, int value) {
+        if (stat != null) {
+            this.stats.put(stat, value);
+        }
+        return this;
+    }
+
+    @Override
+    public EnumMap<Stats, Integer> getStats() {
+        return this.stats;
+    }
+
+    public CreatureBuildInfo setProficiencies(EnumSet<EquipmentTypes> types) {
+        this.proficiencies = types != null ? EnumSet.copyOf(types)
+                : EnumSet.noneOf(EquipmentTypes.class);
+        return this;
+    }
+
+    public CreatureBuildInfo addProficiency(EquipmentTypes type) {
+        if (type != null) {
+            this.proficiencies.add(type);
+        }
+        return this;
+    }
+
+    @Override
+    public EnumSet<EquipmentTypes> getProficiencies() {
+        return this.proficiencies;
+    }
+
+    public CreatureBuildInfo setInventory(Inventory other) {
+        this.inventory = new Inventory(other); // this is null-safe
+        return this;
+    }
+
+    public CreatureBuildInfo addItem(Takeable item) {
+        if (item != null) {
+            this.inventory.addItem(item);
+        }
+        return this;
+    }
+
+    @Override
+    public Inventory getInventory() {
+        return this.inventory;
+    }
+
+    public CreatureBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
+        this.equipmentSlots = new EnumMap<>(EquipmentSlots.class);
+        if (slots != null) {
+            for (final Entry<EquipmentSlots, Equipable> entry : slots.entrySet()) {
+                final Equipable equipable = entry.getValue();
+                if (equipable == null) {
+                    continue;
+                }
+                this.equipmentSlots.put(entry.getKey(), equipable.makeCopy());
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public EnumMap<EquipmentSlots, Equipable> getEquipmentSlots() {
+        return this.equipmentSlots;
+    }
+
+    public CreatureBuildInfo defaultFlavorReactions() {
+        ICreatureBuildInfo.setDefaultFlavorReactions(this.damageFlavorReactions);
+        return this;
+    }
+
+    public CreatureBuildInfo setDamageFlavorReactions(EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> other) {
+        if (other == null) {
+            this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReaction.class);
+            this.defaultFlavorReactions();
+        } else {
+            this.damageFlavorReactions = new EnumMap<>(other);
+        }
+        return this;
+    }
+
+    @Override
+    public EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> getDamageFlavorReactions() {
+        return this.damageFlavorReactions;
     }
 
     public CreatureBuildInfo setName(String name) {
@@ -75,7 +216,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
      */
     public synchronized String getName() {
         if (this.name == null || name.isBlank()) {
-            this.name = NameGenerator.Generate(null);
+            return NameGenerator.Generate(null);
         }
         return this.name;
     }
@@ -94,7 +235,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
      */
     public CreatureFaction getFaction() {
         if (this.faction == null) {
-            this.faction = CreatureFaction.RENEGADE;
+            return CreatureFaction.RENEGADE;
         }
         return this.faction;
     }
@@ -128,77 +269,41 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         return this.vocationLevel;
     }
 
-    public CreatureBuildInfo setStatblock(Statblock statblock) {
-        this.statblock = statblock;
-        if (this.statblock != null) {
-            this.statblockName = this.statblock.getCreatureRace();
-        }
-        return this;
-    }
+    // /**
+    // * Will lazily generate a {@link com.lhf.game.creature.statblock.Statblock
+    // * Statblock} if none is provided.
+    // * <p>
+    // * If this has a vocationName set, it'll try to use the provided
+    // * {@link com.lhf.game.creature.statblock.StatblockManager StatblockManager}.
+    // * Elsewise if this has a {@link com.lhf.game.creature.vocation.Vocation
+    // * Vocation} set,
+    // * it will use the default for the Vocation.
+    // * Otherwise it'll be a plain statblock.
+    // *
+    // * @return
+    // * @throws FileNotFoundException
+    // */
+    // public Statblock loadStatblock(StatblockManager statblockManager) throws
+    // FileNotFoundException {
+    // if (this.statblock == null) {
+    // String nextname = this.getStatblockName();
+    // if (nextname != null) {
+    // this.setStatblock(statblockManager.statblockFromfile(nextname));
+    // } else if (this.vocation != null) {
+    // this.setStatblock(this.vocation.createNewDefaultStatblock("creature").build());
+    // } else {
+    // this.setStatblock(Statblock.getBuilder().build());
+    // }
+    // }
 
-    public CreatureBuildInfo setStatblockName(String statblockName) {
-        this.statblockName = statblockName;
-        if (this.statblock != null && !this.statblock.getCreatureRace().equals(statblockName)) {
-            this.statblock = null;
-        }
-        return this;
-    }
-
-    public String getStatblockName() {
-        return statblockName;
-    }
-
-    /**
-     * Will lazily generate a {@link com.lhf.game.creature.statblock.Statblock
-     * Statblock} if none is provided.
-     * <p>
-     * If this has a vocationName set, it'll try to use the provided
-     * {@link com.lhf.game.creature.statblock.StatblockManager StatblockManager}.
-     * Elsewise if this has a {@link com.lhf.game.creature.vocation.Vocation
-     * Vocation} set,
-     * it will use the default for the Vocation.
-     * Otherwise it'll be a plain statblock.
-     * 
-     * @return
-     * @throws FileNotFoundException
-     */
-    public Statblock loadStatblock(StatblockManager statblockManager) throws FileNotFoundException {
-        if (this.statblock == null) {
-            String nextname = this.getStatblockName();
-            if (nextname != null) {
-                this.setStatblock(statblockManager.statblockFromfile(nextname));
-            } else if (this.vocation != null) {
-                this.setStatblock(this.vocation.createNewDefaultStatblock("creature").build());
-            } else {
-                this.setStatblock(Statblock.getBuilder().build());
-            }
-        }
-
-        return this.statblock;
-    }
-
-    public Statblock loadBlankStatblock() {
-        final Statblock blank = Statblock.getBuilder().build();
-        this.setStatblock(blank);
-        return blank;
-    }
-
-    public CreatureBuildInfo useBlankStatblock() {
-        this.loadBlankStatblock();
-        return this;
-    }
-
-    public Statblock getStatblock() {
-        return this.statblock;
-    }
+    // return this.statblock;
+    // }
 
     public CreatureBuildInfo setCorpse(Corpse corpse) {
-        this.corpse = corpse;
+        if (corpse != null) {
+            ItemContainer.transfer(corpse, this.inventory, null, true);
+        }
         return this;
-    }
-
-    public Corpse getCorpse() {
-        return this.corpse;
     }
 
     @Override
@@ -237,13 +342,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
             }
             sb.append(".\r\n");
         }
-        if (this.statblockName != null) {
-            sb.append("Statblock similar to: ").append(this.statblockName);
-            if (this.statblock != null) {
-                sb.append(" (concrete statblock present)");
-            }
-            sb.append(".\r\n");
-        }
+        // TODO: list off additional attributes
         return sb.toString();
     }
 

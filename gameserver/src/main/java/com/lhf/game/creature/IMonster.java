@@ -1,19 +1,27 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.Stats;
+import com.lhf.game.item.Equipable;
+import com.lhf.game.item.Takeable;
 import com.lhf.game.item.concrete.Corpse;
 
 public interface IMonster extends INonPlayerCharacter {
@@ -137,6 +145,94 @@ public interface IMonster extends INonPlayerCharacter {
             return this;
         }
 
+        public IMonsterBuildInfo setCreatureRace(String race) {
+            iNPCBuilder.setCreatureRace(race);
+            return this;
+        }
+
+        public String getCreatureRace() {
+            return iNPCBuilder.getCreatureRace();
+        }
+
+        public IMonsterBuildInfo defaultStats() {
+            iNPCBuilder.defaultStats();
+            return this;
+        }
+
+        public IMonsterBuildInfo setAttributeBlock(AttributeBlock block) {
+            iNPCBuilder.setAttributeBlock(block);
+            return this;
+        }
+
+        public AttributeBlock getAttributeBlock() {
+            return iNPCBuilder.getAttributeBlock();
+        }
+
+        public IMonsterBuildInfo setStats(Map<Stats, Integer> newStats) {
+            iNPCBuilder.setStats(newStats);
+            return this;
+        }
+
+        public IMonsterBuildInfo setStat(Stats stat, int value) {
+            iNPCBuilder.setStat(stat, value);
+            return this;
+        }
+
+        public EnumMap<Stats, Integer> getStats() {
+            return iNPCBuilder.getStats();
+        }
+
+        public IMonsterBuildInfo setProficiencies(EnumSet<EquipmentTypes> types) {
+            iNPCBuilder.setProficiencies(types);
+            return this;
+        }
+
+        public IMonsterBuildInfo addProficiency(EquipmentTypes type) {
+            iNPCBuilder.addProficiency(type);
+            return this;
+        }
+
+        public EnumSet<EquipmentTypes> getProficiencies() {
+            return iNPCBuilder.getProficiencies();
+        }
+
+        public IMonsterBuildInfo setInventory(Inventory other) {
+            iNPCBuilder.setInventory(other);
+            return this;
+        }
+
+        public IMonsterBuildInfo addItem(Takeable item) {
+            iNPCBuilder.addItem(item);
+            return this;
+        }
+
+        public Inventory getInventory() {
+            return iNPCBuilder.getInventory();
+        }
+
+        public IMonsterBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
+            iNPCBuilder.setEquipmentSlots(slots);
+            return this;
+        }
+
+        public EnumMap<EquipmentSlots, Equipable> getEquipmentSlots() {
+            return iNPCBuilder.getEquipmentSlots();
+        }
+
+        public IMonsterBuildInfo defaultFlavorReactions() {
+            iNPCBuilder.defaultFlavorReactions();
+            return this;
+        }
+
+        public IMonsterBuildInfo setDamageFlavorReactions(EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> other) {
+            iNPCBuilder.setDamageFlavorReactions(other);
+            return this;
+        }
+
+        public EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> getDamageFlavorReactions() {
+            return iNPCBuilder.getDamageFlavorReactions();
+        }
+
         public IMonsterBuildInfo setName(String name) {
             iNPCBuilder.setName(name);
             return this;
@@ -160,8 +256,9 @@ public interface IMonster extends INonPlayerCharacter {
             return this;
         }
 
-        public CreatureBuildInfo setVocation(VocationName vocationName) {
-            return iNPCBuilder.setVocation(vocationName);
+        public IMonsterBuildInfo setVocation(VocationName vocationName) {
+            iNPCBuilder.setVocation(vocationName);
+            return this;
         }
 
         public IMonsterBuildInfo setVocationLevel(int level) {
@@ -177,45 +274,9 @@ public interface IMonster extends INonPlayerCharacter {
             return iNPCBuilder.getVocationLevel();
         }
 
-        public IMonsterBuildInfo setStatblock(Statblock statblock) {
-            iNPCBuilder.setStatblock(statblock);
-            return this;
-        }
-
-        public IMonsterBuildInfo setStatblockName(String statblockName) {
-            iNPCBuilder.setStatblockName(statblockName);
-            return this;
-        }
-
-        public String getStatblockName() {
-            return iNPCBuilder.getStatblockName();
-        }
-
-        public Statblock loadStatblock(StatblockManager statblockManager) throws FileNotFoundException {
-            return iNPCBuilder.loadStatblock(statblockManager);
-        }
-
-        @Override
-        public Statblock loadBlankStatblock() {
-            return iNPCBuilder.loadBlankStatblock();
-        }
-
-        public IMonsterBuildInfo useBlankStatblock() {
-            iNPCBuilder.useBlankStatblock();
-            return this;
-        }
-
-        public Statblock getStatblock() {
-            return iNPCBuilder.getStatblock();
-        }
-
         public IMonsterBuildInfo setCorpse(Corpse corpse) {
             iNPCBuilder.setCorpse(corpse);
             return this;
-        }
-
-        public Corpse getCorpse() {
-            return iNPCBuilder.getCorpse();
         }
 
         @Override
