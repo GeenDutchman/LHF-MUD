@@ -5,6 +5,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.NavigableSet;
@@ -74,8 +76,14 @@ public class Spellbook {
         for (String part : path_to_spellbook) {
             makePath.append(part).append(File.separator);
         }
-        this.path = getClass().getResource(makePath.toString()).getPath().replaceAll("target(.)classes",
+        this.logger.log(Level.CONFIG,
+                "Current Working Directory: " + Paths.get(".").toAbsolutePath().normalize().toString());
+        this.logger.log(Level.CONFIG, "Made path: " + makePath.toString());
+        URL spellbookDir = getClass().getResource(makePath.toString());
+        this.logger.log(Level.CONFIG, String.format("URL: %s", spellbookDir));
+        this.path = spellbookDir.getPath().replaceAll("target(.)classes",
                 "src$1main$1resources");
+        this.logger.log(Level.CONFIG, "directory " + this.path);
     }
 
     public boolean saveToFile(GsonBuilderFactory gsonBuilderFactory) throws IOException {

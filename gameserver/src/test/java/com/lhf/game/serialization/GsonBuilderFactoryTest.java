@@ -38,7 +38,7 @@ public class GsonBuilderFactoryTest {
                 DungeonBuilder dungeon = Dungeon.DungeonBuilder.newInstance().addStartingRoom(roomBuilder)
                                 .connectRoom(roomBuilder, Directions.WEST, nextRoomBuilder);
 
-                DMRoomBuilder dmRoom = DMRoom.DMRoomBuilder.buildDefault(null, null, null).addLandBuilder(dungeon);
+                DMRoomBuilder dmRoom = DMRoom.DMRoomBuilder.buildDefault(null, null).addLandBuilder(dungeon);
 
                 GsonBuilderFactory gbf = new GsonBuilderFactory().conversation().items().creatureInfoBuilders()
                                 .prettyPrinting()

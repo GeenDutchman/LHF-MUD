@@ -29,8 +29,10 @@ public class BuildInfoManager {
         }
         this.logger.log(Level.CONFIG,
                 "Current Working Directory: " + Paths.get(".").toAbsolutePath().normalize().toString());
+        this.logger.log(Level.CONFIG, "Made path: " + makePath.toString());
         // See https://stackoverflow.com/a/3844316
         URL statblockDir = getClass().getResource(makePath.toString());
+        this.logger.log(Level.CONFIG, String.format("URL: %s", statblockDir));
         this.path = statblockDir.getPath();
         this.logger.log(Level.CONFIG, "directory " + this.path);
     }
