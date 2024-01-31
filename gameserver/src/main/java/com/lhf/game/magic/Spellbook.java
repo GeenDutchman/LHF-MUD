@@ -49,12 +49,13 @@ public class Spellbook {
 
     public Spellbook() {
         this.logger = Logger.getLogger(this.getClass().getName());
-        this.logger.log(Level.CONFIG, "Loading initial small spellset");
+        this.logger.log(Level.CONFIG, "Creating empty spellbook");
         this.entries = new TreeSet<>();
         this.setupPath();
     }
 
     public Spellbook addConcreteSpells() {
+        this.logger.log(Level.CONFIG, "Loading initial small spellset");
         SpellEntry shockBolt = new ShockBolt();
         this.entries.add(shockBolt);
         SpellEntry thaumaturgy = new Thaumaturgy();
