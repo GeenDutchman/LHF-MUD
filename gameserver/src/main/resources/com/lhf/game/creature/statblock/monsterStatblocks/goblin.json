@@ -54,17 +54,19 @@
       "effectSources": [
         {
           "className": "com.lhf.game.creature.CreatureEffectSource",
-          "statChanges": {},
-          "attributeScoreChanges": {},
-          "attributeBonusChanges": {},
-          "damages": [
-            {
-              "flavor": "SLASHING",
-              "count": 1,
-              "type": "SIX"
-            }
-          ],
-          "restoreFaction": false,
+          "onApplication": {
+            "statChanges": {},
+            "attributeScoreChanges": {},
+            "attributeBonusChanges": {},
+            "damages": [
+              {
+                "flavor": "SLASHING",
+                "count": 1,
+                "type": "SIX"
+              }
+            ],
+            "restoreFaction": false
+          },
           "name": "Slash",
           "persistence": {
             "count": 1,
@@ -103,13 +105,15 @@
       "equipEffects": [
         {
           "className": "com.lhf.game.creature.CreatureEffectSource",
-          "statChanges": {
-            "AC": 2
+          "onApplication": {
+            "statChanges": {
+              "AC": 2
+            },
+            "attributeScoreChanges": {},
+            "attributeBonusChanges": {},
+            "damages": [],
+            "restoreFaction": false
           },
-          "attributeScoreChanges": {},
-          "attributeBonusChanges": {},
-          "damages": [],
-          "restoreFaction": false,
           "name": "AC Boost",
           "persistence": {
             "count": -1,
@@ -139,13 +143,15 @@
       "equipEffects": [
         {
           "className": "com.lhf.game.creature.CreatureEffectSource",
-          "statChanges": {
-            "AC": 2
+          "onApplication": {
+            "statChanges": {
+              "AC": 2
+            },
+            "attributeScoreChanges": {},
+            "attributeBonusChanges": {},
+            "damages": [],
+            "restoreFaction": false
           },
-          "attributeScoreChanges": {},
-          "attributeBonusChanges": {},
-          "damages": [],
-          "restoreFaction": false,
           "name": "AC Boost",
           "persistence": {
             "count": -1,

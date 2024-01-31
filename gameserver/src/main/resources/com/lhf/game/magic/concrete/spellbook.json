@@ -269,6 +269,7 @@
     ]
   },
   {
+    "ensoulsUsers": true,
     "className": "com.lhf.game.magic.concrete.Ensouling",
     "level": "TENTH_MAGNITUDE",
     "name": "Ensouling",
