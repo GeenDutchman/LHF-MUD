@@ -2,7 +2,6 @@ package com.lhf.game.creature;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
@@ -90,14 +89,6 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public void setInventory(Inventory inventory) {
-        if (this.checkSummonIsAlive()) {
-            super.setInventory(inventory);
-        }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'setInventory(inventory)'");
-    }
-
-    @Override
     public String printInventory() {
         if (this.checkSummonIsAlive()) {
             return super.printInventory();
@@ -149,15 +140,6 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
         }
         this.log(Level.WARNING, "This summon is dead, and cannot perform 'getEquipmentSlots()'");
         return Map.of();
-    }
-
-    @Override
-    public void setEquipmentSlots(EnumMap<EquipmentSlots, Equipable> equipmentSlots) {
-        if (this.checkSummonIsAlive()) {
-            super.setEquipmentSlots(equipmentSlots);
-            return;
-        }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'setEquipmentSlots(equipmentSlots)'");
     }
 
     @Override
@@ -364,9 +346,9 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     @Override
     public synchronized boolean isAlive() {
         Consumer<SummonedType> killit = toDie -> {
-            EnumMap<Stats, Integer> foundStats = new EnumMap<>(toDie.getStats());
-            foundStats.put(Stats.CURRENTHP, 0);
-            toDie.setStats(foundStats);
+            Integer current = toDie.getStats().getOrDefault(Stats.MAXHP,
+                    toDie.getStats().getOrDefault(Stats.CURRENTHP, 0));
+            wrapped.updateHitpoints(-2 * current);
         };
 
         if (this.timeLeft != null && this.timeLeft.getCountdown() <= 0) {
@@ -406,16 +388,6 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    @Deprecated
-    public void setAttributes(AttributeBlock attributes) {
-        if (this.checkSummonIsAlive()) {
-            super.setAttributes(attributes);
-            return;
-        }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'setAttributes(attributes)'");
-    }
-
-    @Override
     public MultiRollResult check(Attributes attribute) {
         if (this.checkSummonIsAlive()) {
             return super.check(attribute);
@@ -440,15 +412,6 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
         }
         this.log(Level.WARNING, "This summon is dead, and cannot perform 'getStats()'");
         return Map.of();
-    }
-
-    @Override
-    public void setStats(EnumMap<Stats, Integer> stats) {
-        if (this.checkSummonIsAlive()) {
-            super.setStats(stats);
-            return;
-        }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'setStats(stats)'");
     }
 
     @Override

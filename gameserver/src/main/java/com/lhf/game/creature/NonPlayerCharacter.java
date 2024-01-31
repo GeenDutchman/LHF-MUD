@@ -5,7 +5,6 @@ import java.util.Map;
 
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
-import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.magic.concrete.DMBlessing;
@@ -27,8 +26,8 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
 
     protected NonPlayerCharacter(INonPlayerCharacterBuildInfo builder,
             @NotNull CommandInvoker controller, CommandChainHandler successor,
-            @NotNull Statblock statblock, ConversationTree conversationTree) {
-        super(builder, controller, successor, statblock);
+            ConversationTree conversationTree) {
+        super(builder, controller, successor);
         this.convoTree = conversationTree;
         this.leaderName = builder.getLeaderName();
     }

@@ -1,6 +1,5 @@
 package com.lhf.game.creature;
 
-import java.io.FileNotFoundException;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
@@ -8,12 +7,11 @@ import java.util.logging.Level;
 
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.DamgeFlavorReaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -77,6 +75,23 @@ public class Player extends Creature {
 
         public PlayerBuildInfo setAttributeBlock(AttributeBlock block) {
             creatureBuilder.setAttributeBlock(block);
+            return this;
+        }
+
+        public PlayerBuildInfo setAttributeBlock(Integer strength, Integer dexterity, Integer constitution,
+                Integer intelligence,
+                Integer wisdom, Integer charisma) {
+            creatureBuilder.setAttributeBlock(strength, dexterity, constitution, intelligence, wisdom, charisma);
+            return this;
+        }
+
+        public PlayerBuildInfo resetFlavorReactions() {
+            creatureBuilder.resetFlavorReactions();
+            return this;
+        }
+
+        public PlayerBuildInfo addFlavorReaction(DamgeFlavorReaction sort, DamageFlavor flavor) {
+            creatureBuilder.addFlavorReaction(sort, flavor);
             return this;
         }
 
@@ -212,9 +227,8 @@ public class Player extends Creature {
     }
 
     public Player(PlayerBuildInfo builder,
-            @NotNull CommandInvoker controller, CommandChainHandler successor,
-            @NotNull Statblock statblock) {
-        super(builder, controller, successor, statblock);
+            @NotNull CommandInvoker controller, CommandChainHandler successor) {
+        super(builder, controller, successor);
         this.user = builder.getUser();
         this.user.setSuccessor(this);
     }

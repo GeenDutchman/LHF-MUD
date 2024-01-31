@@ -104,6 +104,28 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         return this;
     }
 
+    public CreatureBuildInfo setAttributeBlock(Integer strength, Integer dexterity, Integer constitution,
+            Integer intelligence,
+            Integer wisdom, Integer charisma) {
+        this.attributeBlock = new AttributeBlock(strength, dexterity, constitution, intelligence, wisdom, charisma);
+        return this;
+    }
+
+    public CreatureBuildInfo resetFlavorReactions() {
+        this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReaction.class);
+        for (DamgeFlavorReaction reaction : DamgeFlavorReaction.values()) {
+            this.damageFlavorReactions.computeIfAbsent(reaction, key -> EnumSet.noneOf(DamageFlavor.class));
+        }
+        return this;
+    }
+
+    public CreatureBuildInfo addFlavorReaction(DamgeFlavorReaction sort, DamageFlavor flavor) {
+        if (sort != null && flavor != null) {
+            this.damageFlavorReactions.computeIfAbsent(sort, key -> EnumSet.of(flavor)).add(flavor);
+        }
+        return this;
+    }
+
     @Override
     public AttributeBlock getAttributeBlock() {
         return this.attributeBlock;
@@ -248,6 +270,12 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         } else {
             this.vocation = vocation.getVocationName();
             this.vocationLevel = vocation.getLevel();
+            this.proficiencies.addAll(this.vocation.defaultProficiencies());
+            for (final Takeable item : this.vocation.defaultInventory()) {
+                this.inventory.addItem(item);
+            }
+            this.stats = new EnumMap<>(this.vocation.defaultStats());
+            this.attributeBlock = this.vocation.defaultAttributes();
         }
         return this;
     }
@@ -325,6 +353,20 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
             return false;
         CreatureBuildInfo other = (CreatureBuildInfo) obj;
         return Objects.equals(id, other.id);
+    }
+
+    protected String equipmentSlotsToString() {
+        // EquipmentSlots[] slotValues = EquipmentSlots.values();
+        StringBuilder stringBuilder = new StringBuilder("{");
+        for (EquipmentSlots key : equipmentSlots.keySet()) {
+            String item_name = equipmentSlots.get(key).getName();
+            if (item_name == null) {
+                item_name = "empty";
+            }
+            stringBuilder.append(key).append("=").append(item_name).append(",");
+        }
+        stringBuilder.append("}");
+        return stringBuilder.toString();
     }
 
     @Override

@@ -165,6 +165,23 @@ public interface IMonster extends INonPlayerCharacter {
             return this;
         }
 
+        public IMonsterBuildInfo setAttributeBlock(Integer strength, Integer dexterity, Integer constitution,
+                Integer intelligence,
+                Integer wisdom, Integer charisma) {
+            iNPCBuilder.setAttributeBlock(strength, dexterity, constitution, intelligence, wisdom, charisma);
+            return this;
+        }
+
+        public IMonsterBuildInfo resetFlavorReactions() {
+            iNPCBuilder.resetFlavorReactions();
+            return this;
+        }
+
+        public IMonsterBuildInfo addFlavorReaction(DamgeFlavorReaction sort, DamageFlavor flavor) {
+            iNPCBuilder.addFlavorReaction(sort, flavor);
+            return this;
+        }
+
         public AttributeBlock getAttributeBlock() {
             return iNPCBuilder.getAttributeBlock();
         }

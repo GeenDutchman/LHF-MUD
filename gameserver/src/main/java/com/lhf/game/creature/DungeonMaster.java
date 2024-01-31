@@ -13,7 +13,6 @@ import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
-import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.creature.vocation.DMVocation;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
@@ -153,6 +152,23 @@ public class DungeonMaster extends NonPlayerCharacter {
 
         public DungeonMasterBuildInfo setAttributeBlock(AttributeBlock block) {
             iNPCBuilder.setAttributeBlock(block);
+            return this;
+        }
+
+        public DungeonMasterBuildInfo setAttributeBlock(Integer strength, Integer dexterity, Integer constitution,
+                Integer intelligence,
+                Integer wisdom, Integer charisma) {
+            iNPCBuilder.setAttributeBlock(strength, dexterity, constitution, intelligence, wisdom, charisma);
+            return this;
+        }
+
+        public DungeonMasterBuildInfo resetFlavorReactions() {
+            iNPCBuilder.resetFlavorReactions();
+            return this;
+        }
+
+        public DungeonMasterBuildInfo addFlavorReaction(DamgeFlavorReaction sort, DamageFlavor flavor) {
+            iNPCBuilder.addFlavorReaction(sort, flavor);
             return this;
         }
 
@@ -303,8 +319,8 @@ public class DungeonMaster extends NonPlayerCharacter {
 
     public DungeonMaster(DungeonMasterBuildInfo builder,
             @NotNull CommandInvoker controller, CommandChainHandler successor,
-            @NotNull Statblock statblock, ConversationTree conversationTree) {
-        super(builder, controller, successor, statblock, conversationTree);
+            ConversationTree conversationTree) {
+        super(builder, controller, successor, conversationTree);
     }
 
     public static DungeonMasterBuildInfo getDMBuilder() {

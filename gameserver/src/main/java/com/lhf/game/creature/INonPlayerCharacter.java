@@ -31,6 +31,7 @@ import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.DamgeFlavorReaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -432,6 +433,23 @@ public interface INonPlayerCharacter extends ICreature {
 
         public INPCBuildInfo setAttributeBlock(AttributeBlock block) {
             creatureBuilder.setAttributeBlock(block);
+            return this;
+        }
+
+        public INPCBuildInfo setAttributeBlock(Integer strength, Integer dexterity, Integer constitution,
+                Integer intelligence,
+                Integer wisdom, Integer charisma) {
+            creatureBuilder.setAttributeBlock(strength, dexterity, constitution, intelligence, wisdom, charisma);
+            return this;
+        }
+
+        public INPCBuildInfo resetFlavorReactions() {
+            creatureBuilder.resetFlavorReactions();
+            return this;
+        }
+
+        public INPCBuildInfo addFlavorReaction(DamgeFlavorReaction sort, DamageFlavor flavor) {
+            creatureBuilder.addFlavorReaction(sort, flavor);
             return this;
         }
 
