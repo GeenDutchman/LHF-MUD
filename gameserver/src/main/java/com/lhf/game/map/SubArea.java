@@ -376,11 +376,11 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
         }
 
         public Level getLoggingLevel() {
-            return Level.parse(this.loggingLevel);
+            return this.loggingLevel != null ? Level.parse(this.loggingLevel) : null;
         }
 
         public SubAreaBuilder setLoggingLevel(Level loggingLevel) {
-            this.loggingLevel = loggingLevel.getName();
+            this.loggingLevel = loggingLevel != null ? loggingLevel.getName() : null;
             return this;
         }
 
