@@ -1,191 +1,227 @@
 {
-  "creatureRace": "hobgoblin",
-  "faction": "MONSTER",
-  "attributes": {
-    "strength": {
-      "score": 13,
-      "scoreBonus": 0,
-      "modBonus": 0
-    },
-    "dexterity": {
-      "score": 12,
-      "scoreBonus": 0,
-      "modBonus": 0
-    },
-    "constitution": {
-      "score": 12,
-      "scoreBonus": 0,
-      "modBonus": 0
-    },
-    "intelligence": {
-      "score": 10,
-      "scoreBonus": 0,
-      "modBonus": 0
-    },
-    "wisdom": {
-      "score": 10,
-      "scoreBonus": 0,
-      "modBonus": 0
-    },
-    "charisma": {
-      "score": 9,
-      "scoreBonus": 0,
-      "modBonus": 0
-    }
-  },
-  "stats": {
-    "MAXHP": 12,
-    "AC": 11,
-    "PROFICIENCYBONUS": 0,
-    "CURRENTHP": 12,
-    "XPWORTH": 100,
-    "XPEARNED": 0
-  },
-  "proficiencies": [
-    "MARTIALWEAPONS",
-    "HEAVYARMOR",
-    "SIMPLEMELEEWEAPONS",
-    "SHIELD"
-  ],
-  "inventory": {
-    "items": []
-  },
-  "equipmentSlots": {
-    "ARMOR": {
-      "AC": 5,
-      "types": [
-        "HEAVYARMOR"
-      ],
-      "slots": [
-        "ARMOR"
-      ],
-      "equipEffects": [
-        {
-          "className": "com.lhf.game.creature.CreatureEffectSource",
-          "onApplication": {
-            "statChanges": {
-              "AC": 5
-            },
-            "attributeScoreChanges": {},
-            "attributeBonusChanges": {},
-            "damages": [],
-            "restoreFaction": false
-          },
-          "onRemoval": {
-            "statChanges": {
-              "AC": -5
-            },
-            "attributeScoreChanges": {},
-            "attributeBonusChanges": {},
-            "damages": [],
-            "restoreFaction": false
-          },
-          "name": "AC Boost",
-          "persistence": {
-            "count": -1,
-            "tickSize": "CONDITIONAL"
-          },
-          "description": "Wearing armor makes you harder to hit"
+  "className": "com.lhf.game.creature.MonsterBuildInfo",
+  "iNPCBuilder": {
+    "className": "com.lhf.game.creature.INonPlayerCharacter$INPCBuildInfo",
+    "creatureBuilder": {
+      "className": "com.lhf.game.creature.CreatureBuildInfo",
+      "id": "e9bf5cd7-2612-42bb-a5fd-02be57f7bdc0",
+      "creatureRace": "hobgoblin",
+      "attributeBlock": {
+        "strength": {
+          "score": 13,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "dexterity": {
+          "score": 12,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "constitution": {
+          "score": 12,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "intelligence": {
+          "score": 10,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "wisdom": {
+          "score": 10,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "charisma": {
+          "score": 9,
+          "scoreBonus": 0,
+          "modBonus": 0
         }
-      ],
-      "hiddenEquipEffects": [],
-      "numCanUseTimes": -1,
-      "hasBeenUsedTimes": 0,
-      "methods": {},
-      "className": "com.lhf.game.item.concrete.equipment.ChainMail",
-      "objectName": "Chain Mail",
-      "isVisible": true,
-      "descriptionString": "\u003ctakeable\u003eChain Mail\u003c/takeable\u003e"
-    },
-    "WEAPON": {
-      "effectSources": [
-        {
-          "className": "com.lhf.game.creature.CreatureEffectSource",
-          "onApplication": {
-            "statChanges": {},
-            "attributeScoreChanges": {},
-            "attributeBonusChanges": {},
-            "damages": [
-              {
-                "flavor": "SLASHING",
-                "count": 1,
-                "type": "EIGHT"
-              }
-            ],
-            "restoreFaction": false
-          },
-          "name": "Slash",
-          "persistence": {
-            "count": 1,
-            "tickSize": "INSTANT"
-          },
-          "description": "Swords cut things"
-        }
-      ],
-      "mainFlavor": "SLASHING",
-      "subtype": "MARTIAL",
-      "types": [
+      },
+      "stats": {
+        "MAXHP": 12,
+        "CURRENTHP": 12,
+        "XPEARNED": 0,
+        "XPWORTH": 100,
+        "PROFICIENCYBONUS": 0,
+        "AC": 11
+      },
+      "proficiencies": [
+        "HEAVYARMOR",
         "SIMPLEMELEEWEAPONS",
-        "LONGSWORD"
-      ],
-      "slots": [
-        "WEAPON"
-      ],
-      "equipEffects": [],
-      "hiddenEquipEffects": [],
-      "numCanUseTimes": -1,
-      "hasBeenUsedTimes": 0,
-      "methods": {},
-      "className": "com.lhf.game.item.concrete.equipment.Longsword",
-      "objectName": "Longsword",
-      "isVisible": true,
-      "descriptionString": "This is a nice, long, shiny sword.  It\u0027s a bit simple though...\n"
-    },
-    "SHIELD": {
-      "AC": 2,
-      "types": [
+        "MARTIALWEAPONS",
         "SHIELD"
       ],
-      "slots": [
-        "SHIELD"
-      ],
-      "equipEffects": [
-        {
-          "className": "com.lhf.game.creature.CreatureEffectSource",
-          "onApplication": {
-            "statChanges": {
-              "AC": 2
-            },
-            "attributeScoreChanges": {},
-            "attributeBonusChanges": {},
-            "damages": [],
-            "restoreFaction": false
+      "inventory": {
+        "items": []
+      },
+      "equipmentSlots": {
+        "ARMOR": {
+          "AC": 5,
+          "types": [
+            "HEAVYARMOR"
+          ],
+          "slots": [
+            "ARMOR"
+          ],
+          "equipEffects": [
+            {
+              "onApplication": {
+                "statChanges": {
+                  "AC": 5
+                },
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [],
+                "restoreFaction": false
+              },
+              "onRemoval": {
+                "statChanges": {
+                  "AC": -5
+                },
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [],
+                "restoreFaction": false
+              },
+              "onTickEvent": {},
+              "className": "com.lhf.game.creature.CreatureEffectSource",
+              "name": "AC Boost",
+              "persistence": {
+                "count": -1,
+                "tickSize": "CONDITIONAL"
+              },
+              "description": "Wearing armor makes you harder to hit"
+            }
+          ],
+          "numCanUseTimes": -1,
+          "useLeftCount": -1,
+          "itemID": {
+            "id": "9733511a-0ea1-4139-b0b4-40a987238e37"
           },
-          "onRemoval": {
-            "statChanges": {
-              "AC": -2
-            },
-            "attributeScoreChanges": {},
-            "attributeBonusChanges": {},
-            "damages": [],
-            "restoreFaction": false
+          "className": "com.lhf.game.item.concrete.equipment.ChainMail",
+          "objectName": "Chain Mail",
+          "visible": true,
+          "descriptionString": "This is some heavy chainmail. It looks protective... now if only it wasn\u0027t so heavy\n"
+        },
+        "SHIELD": {
+          "AC": 2,
+          "types": [
+            "SHIELD"
+          ],
+          "slots": [
+            "SHIELD"
+          ],
+          "equipEffects": [
+            {
+              "onApplication": {
+                "statChanges": {
+                  "AC": 2
+                },
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [],
+                "restoreFaction": false
+              },
+              "onRemoval": {
+                "statChanges": {
+                  "AC": -2
+                },
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [],
+                "restoreFaction": false
+              },
+              "onTickEvent": {},
+              "className": "com.lhf.game.creature.CreatureEffectSource",
+              "name": "AC Boost",
+              "persistence": {
+                "count": -1,
+                "tickSize": "CONDITIONAL"
+              },
+              "description": "Using a shield makes you harder to hit"
+            }
+          ],
+          "numCanUseTimes": -1,
+          "useLeftCount": -1,
+          "itemID": {
+            "id": "c75eb96b-13f9-4b42-b3d4-3d5c2dec27b2"
           },
-          "name": "AC Boost",
-          "persistence": {
-            "count": -1,
-            "tickSize": "CONDITIONAL"
+          "className": "com.lhf.game.item.concrete.equipment.Shield",
+          "objectName": "Shield",
+          "visible": true,
+          "descriptionString": "This is a simple shield, it should protect you a little bit. \n"
+        },
+        "WEAPON": {
+          "effectSources": [
+            {
+              "onApplication": {
+                "statChanges": {},
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [
+                  {
+                    "flavor": "SLASHING",
+                    "count": 1,
+                    "type": "EIGHT"
+                  }
+                ],
+                "restoreFaction": false
+              },
+              "onTickEvent": {},
+              "className": "com.lhf.game.creature.CreatureEffectSource",
+              "name": "Slash",
+              "persistence": {
+                "count": 1,
+                "tickSize": "INSTANT"
+              },
+              "resistance": {
+                "actorAttrs": [
+                  "STR"
+                ],
+                "targetStat": "AC",
+                "resistAmount": "ALL"
+              },
+              "description": "Swords cut things"
+            }
+          ],
+          "mainFlavor": "SLASHING",
+          "subtype": "MARTIAL",
+          "toHitBonus": 0,
+          "types": [
+            "SIMPLEMELEEWEAPONS",
+            "LONGSWORD"
+          ],
+          "slots": [
+            "WEAPON"
+          ],
+          "equipEffects": [],
+          "numCanUseTimes": -1,
+          "useLeftCount": -1,
+          "itemID": {
+            "id": "2d3188c0-0b28-4919-8758-fd05be2a10fc"
           },
-          "description": "Using a shield makes you harder to hit"
+          "className": "com.lhf.game.item.concrete.equipment.Longsword",
+          "objectName": "Longsword",
+          "visible": true,
+          "descriptionString": "This is a nice, long, shiny sword.  It\u0027s a bit simple though...\n"
         }
-      ],
-      "hiddenEquipEffects": [],
-      "numCanUseTimes": -1,
-      "hasBeenUsedTimes": 0,
-      "methods": {},
-      "className": "com.lhf.game.item.concrete.equipment.Shield",
-      "objectName": "Shield",
-      "isVisible": true,
-      "descriptionString": "\u003ctakeable\u003eShield\u003c/takeable\u003e"
-    }
-  }
+      },
+      "damageFlavorReactions": {
+        "WEAKNESSES": [],
+        "RESISTANCES": [],
+        "IMMUNITIES": [
+          "AGGRO"
+        ],
+        "CURATIVES": [
+          "HEALING"
+        ]
+      },
+      "faction": "MONSTER"
+    },
+    "id": "1aae90a4-8f9d-41cf-9bc2-84a27d2a81ef",
+    "aiHandlers": [],
+    "summonState": []
+  },
+  "id": "0f0be163-397a-4183-afb9-0db841fc67c9"
 }

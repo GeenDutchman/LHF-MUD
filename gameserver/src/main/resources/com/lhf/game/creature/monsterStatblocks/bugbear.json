@@ -1,192 +1,227 @@
 {
-  "creatureRace": "bugbear",
-  "faction": "MONSTER",
-  "attributes": {
-    "strength": {
-      "score": 15,
-      "scoreBonus": 0,
-      "modBonus": 0
-    },
-    "dexterity": {
-      "score": 14,
-      "scoreBonus": 0,
-      "modBonus": 0
-    },
-    "constitution": {
-      "score": 13,
-      "scoreBonus": 0,
-      "modBonus": 0
-    },
-    "intelligence": {
-      "score": 8,
-      "scoreBonus": 0,
-      "modBonus": 0
-    },
-    "wisdom": {
-      "score": 11,
-      "scoreBonus": 0,
-      "modBonus": 0
-    },
-    "charisma": {
-      "score": 9,
-      "scoreBonus": 0,
-      "modBonus": 0
-    }
-  },
-  "stats": {
-    "MAXHP": 28,
-    "AC": 12,
-    "PROFICIENCYBONUS": 0,
-    "CURRENTHP": 28,
-    "XPWORTH": 201,
-    "XPEARNED": 0
-  },
-  "proficiencies": [
-    "MARTIALWEAPONS",
-    "HEAVYARMOR",
-    "SIMPLEMELEEWEAPONS",
-    "SHIELD"
-  ],
-  "inventory": {
-    "items": []
-  },
-  "equipmentSlots": {
-    "ARMOR": {
-      "AC": 2,
-      "types": [
+  "className": "com.lhf.game.creature.MonsterBuildInfo",
+  "iNPCBuilder": {
+    "className": "com.lhf.game.creature.INonPlayerCharacter$INPCBuildInfo",
+    "creatureBuilder": {
+      "className": "com.lhf.game.creature.CreatureBuildInfo",
+      "id": "c3beec14-efa5-40b8-a7a6-0bef8d70e70b",
+      "creatureRace": "bugbear",
+      "attributeBlock": {
+        "strength": {
+          "score": 15,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "dexterity": {
+          "score": 14,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "constitution": {
+          "score": 13,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "intelligence": {
+          "score": 8,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "wisdom": {
+          "score": 11,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "charisma": {
+          "score": 9,
+          "scoreBonus": 0,
+          "modBonus": 0
+        }
+      },
+      "stats": {
+        "MAXHP": 28,
+        "CURRENTHP": 28,
+        "XPEARNED": 0,
+        "XPWORTH": 201,
+        "PROFICIENCYBONUS": 0,
+        "AC": 12
+      },
+      "proficiencies": [
         "LIGHTARMOR",
-        "LEATHER"
-      ],
-      "slots": [
-        "ARMOR"
-      ],
-      "equipEffects": [
-        {
-          "className": "com.lhf.game.creature.CreatureEffectSource",
-          "onApplication": {
-            "statChanges": {
-              "AC": 2
-            },
-            "attributeScoreChanges": {},
-            "attributeBonusChanges": {},
-            "damages": [],
-            "restoreFaction": false
-          },
-          "onRemoval": {
-            "statChanges": {
-              "AC": -2
-            },
-            "attributeScoreChanges": {},
-            "attributeBonusChanges": {},
-            "damages": [],
-            "restoreFaction": false
-          },
-          "name": "AC Boost",
-          "persistence": {
-            "count": -1,
-            "tickSize": "CONDITIONAL"
-          },
-          "description": "Wearing armor makes you harder to hit"
-        }
-      ],
-      "hiddenEquipEffects": [],
-      "numCanUseTimes": -1,
-      "hasBeenUsedTimes": 0,
-      "methods": {},
-      "className": "com.lhf.game.item.concrete.equipment.LeatherArmor",
-      "objectName": "Leather Armor",
-      "isVisible": true,
-      "descriptionString": "\u003ctakeable\u003eLeather Armor\u003c/takeable\u003e"
-    },
-    "WEAPON": {
-      "effectSources": [
-        {
-          "className": "com.lhf.game.creature.CreatureEffectSource",
-          "onApplication": {
-            "statChanges": {},
-            "attributeScoreChanges": {},
-            "attributeBonusChanges": {},
-            "damages": [
-              {
-                "flavor": "BLUDGEONING",
-                "count": 2,
-                "type": "EIGHT"
-              }
-            ],
-            "restoreFaction": false
-          },
-          "name": "Bash",
-          "persistence": {
-            "count": 1,
-            "tickSize": "INSTANT"
-          },
-          "description": "Club it like a boss."
-        }
-      ],
-      "mainFlavor": "BLUDGEONING",
-      "subtype": "MARTIAL",
-      "types": [
         "SIMPLEMELEEWEAPONS",
-        "LONGSWORD"
-      ],
-      "slots": [
-        "WEAPON"
-      ],
-      "equipEffects": [],
-      "hiddenEquipEffects": [],
-      "numCanUseTimes": -1,
-      "hasBeenUsedTimes": 0,
-      "methods": {},
-      "className": "com.lhf.game.item.concrete.equipment.BossClub",
-      "objectName": "Boss Club",
-      "isVisible": true,
-      "descriptionString": "This is a large club, it seems a bit rusty... wait that is not rust...\n"
-    },
-    "SHIELD": {
-      "AC": 2,
-      "types": [
         "SHIELD"
       ],
-      "slots": [
-        "SHIELD"
-      ],
-      "equipEffects": [
-        {
-          "className": "com.lhf.game.creature.CreatureEffectSource",
-          "onApplication": {
-            "statChanges": {
-              "AC": 2
-            },
-            "attributeScoreChanges": {},
-            "attributeBonusChanges": {},
-            "damages": [],
-            "restoreFaction": false
+      "inventory": {
+        "items": []
+      },
+      "equipmentSlots": {
+        "ARMOR": {
+          "AC": 2,
+          "types": [
+            "LIGHTARMOR",
+            "LEATHER"
+          ],
+          "slots": [
+            "ARMOR"
+          ],
+          "equipEffects": [
+            {
+              "onApplication": {
+                "statChanges": {
+                  "AC": 2
+                },
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [],
+                "restoreFaction": false
+              },
+              "onRemoval": {
+                "statChanges": {
+                  "AC": -2
+                },
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [],
+                "restoreFaction": false
+              },
+              "onTickEvent": {},
+              "className": "com.lhf.game.creature.CreatureEffectSource",
+              "name": "AC Boost",
+              "persistence": {
+                "count": -1,
+                "tickSize": "CONDITIONAL"
+              },
+              "description": "Wearing armor makes you harder to hit"
+            }
+          ],
+          "numCanUseTimes": -1,
+          "useLeftCount": -1,
+          "itemID": {
+            "id": "d49629fc-0aaa-4893-9a14-3fb11ffe89e6"
           },
-          "onRemoval": {
-            "statChanges": {
-              "AC": -2
-            },
-            "attributeScoreChanges": {},
-            "attributeBonusChanges": {},
-            "damages": [],
-            "restoreFaction": false
+          "className": "com.lhf.game.item.concrete.equipment.LeatherArmor",
+          "objectName": "Leather Armor",
+          "visible": true,
+          "descriptionString": "This is some simple leather armor. There is only a little blood on it...\n"
+        },
+        "SHIELD": {
+          "AC": 2,
+          "types": [
+            "SHIELD"
+          ],
+          "slots": [
+            "SHIELD"
+          ],
+          "equipEffects": [
+            {
+              "onApplication": {
+                "statChanges": {
+                  "AC": 2
+                },
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [],
+                "restoreFaction": false
+              },
+              "onRemoval": {
+                "statChanges": {
+                  "AC": -2
+                },
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [],
+                "restoreFaction": false
+              },
+              "onTickEvent": {},
+              "className": "com.lhf.game.creature.CreatureEffectSource",
+              "name": "AC Boost",
+              "persistence": {
+                "count": -1,
+                "tickSize": "CONDITIONAL"
+              },
+              "description": "Using a shield makes you harder to hit"
+            }
+          ],
+          "numCanUseTimes": -1,
+          "useLeftCount": -1,
+          "itemID": {
+            "id": "c9a68f61-5010-49e4-b9b8-b39c9ebb34f3"
           },
-          "name": "AC Boost",
-          "persistence": {
-            "count": -1,
-            "tickSize": "CONDITIONAL"
+          "className": "com.lhf.game.item.concrete.equipment.Shield",
+          "objectName": "Shield",
+          "visible": true,
+          "descriptionString": "This is a simple shield, it should protect you a little bit. \n"
+        },
+        "WEAPON": {
+          "effectSources": [
+            {
+              "onApplication": {
+                "statChanges": {},
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [
+                  {
+                    "flavor": "BLUDGEONING",
+                    "count": 2,
+                    "type": "EIGHT"
+                  }
+                ],
+                "restoreFaction": false
+              },
+              "onTickEvent": {},
+              "className": "com.lhf.game.creature.CreatureEffectSource",
+              "name": "Bash",
+              "persistence": {
+                "count": 1,
+                "tickSize": "INSTANT"
+              },
+              "resistance": {
+                "actorAttrs": [
+                  "STR"
+                ],
+                "targetStat": "AC",
+                "resistAmount": "ALL"
+              },
+              "description": "Club it like a boss."
+            }
+          ],
+          "mainFlavor": "BLUDGEONING",
+          "subtype": "MARTIAL",
+          "toHitBonus": 0,
+          "types": [
+            "SIMPLEMELEEWEAPONS",
+            "LONGSWORD"
+          ],
+          "slots": [
+            "WEAPON"
+          ],
+          "equipEffects": [],
+          "numCanUseTimes": -1,
+          "useLeftCount": -1,
+          "itemID": {
+            "id": "0fe825f4-33b0-4c00-a4cf-0e197e98c76e"
           },
-          "description": "Using a shield makes you harder to hit"
+          "className": "com.lhf.game.item.concrete.equipment.BossClub",
+          "objectName": "Boss Club",
+          "visible": true,
+          "descriptionString": "This is a large club, it seems a bit rusty... wait that is not rust...\n"
         }
-      ],
-      "hiddenEquipEffects": [],
-      "numCanUseTimes": -1,
-      "hasBeenUsedTimes": 0,
-      "methods": {},
-      "className": "com.lhf.game.item.concrete.equipment.Shield",
-      "objectName": "Shield",
-      "isVisible": true,
-      "descriptionString": "\u003ctakeable\u003eShield\u003c/takeable\u003e"
-    }
-  }
+      },
+      "damageFlavorReactions": {
+        "WEAKNESSES": [],
+        "RESISTANCES": [],
+        "IMMUNITIES": [
+          "AGGRO"
+        ],
+        "CURATIVES": [
+          "HEALING"
+        ]
+      },
+      "faction": "MONSTER"
+    },
+    "id": "9ed38c8d-f022-4c5c-bcf8-6cf2add8ef91",
+    "aiHandlers": [],
+    "summonState": []
+  },
+  "id": "c8fc6808-da0d-4307-b696-c0e333e53ac3"
 }
