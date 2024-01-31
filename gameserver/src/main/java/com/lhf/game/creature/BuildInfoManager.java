@@ -12,8 +12,13 @@ import java.util.logging.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import com.lhf.game.creature.DungeonMaster.DungeonMasterBuildInfo;
+import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
+import com.lhf.game.creature.Player.PlayerBuildInfo;
 import com.lhf.game.serialization.GsonBuilderFactory;
 
 public class BuildInfoManager {
@@ -61,17 +66,95 @@ public class BuildInfoManager {
         return true;
     }
 
-    public ICreatureBuildInfo statblockFromfile(GsonBuilderFactory gsonBuilderFactory, String name)
-            throws FileNotFoundException {
+    public MonsterBuildInfo monsterBuildInfoFromFile(GsonBuilderFactory gsonBuilderFactory, String name)
+            throws JsonIOException, JsonSyntaxException, IOException {
         if (gsonBuilderFactory == null) {
             gsonBuilderFactory = GsonBuilderFactory.start();
         }
         Gson gson = gsonBuilderFactory.prettyPrinting().items().creatureInfoBuilders().build();
         String statblockFile = this.path.toString() + name + ".json";
         this.logger.log(Level.INFO, "Opening file: " + statblockFile);
-        JsonReader jReader = new JsonReader(new FileReader(statblockFile));
-        ICreatureBuildInfo statblock = gson.fromJson(jReader, ICreatureBuildInfo.class);
-        return statblock;
+        try (JsonReader jReader = new JsonReader(new FileReader(statblockFile))) {
+            return gson.fromJson(jReader, MonsterBuildInfo.class);
+        } catch (JsonIOException | JsonSyntaxException | FileNotFoundException e) {
+            throw e;
+        }
+    }
+
+    public INPCBuildInfo iNPCBuildInfoFromFile(GsonBuilderFactory gsonBuilderFactory, String name)
+            throws JsonIOException, JsonSyntaxException, IOException {
+        if (gsonBuilderFactory == null) {
+            gsonBuilderFactory = GsonBuilderFactory.start();
+        }
+        Gson gson = gsonBuilderFactory.prettyPrinting().items().creatureInfoBuilders().build();
+        String statblockFile = this.path.toString() + name + ".json";
+        this.logger.log(Level.INFO, "Opening file: " + statblockFile);
+        try (JsonReader jReader = new JsonReader(new FileReader(statblockFile))) {
+            return gson.fromJson(jReader, INPCBuildInfo.class);
+        } catch (JsonIOException | JsonSyntaxException | IOException e) {
+            throw e;
+        }
+    }
+
+    public DungeonMasterBuildInfo DMBuildInfoFromFile(GsonBuilderFactory gsonBuilderFactory, String name)
+            throws JsonIOException, JsonSyntaxException, IOException {
+        if (gsonBuilderFactory == null) {
+            gsonBuilderFactory = GsonBuilderFactory.start();
+        }
+        Gson gson = gsonBuilderFactory.prettyPrinting().items().creatureInfoBuilders().build();
+        String statblockFile = this.path.toString() + name + ".json";
+        this.logger.log(Level.INFO, "Opening file: " + statblockFile);
+        try (JsonReader jReader = new JsonReader(new FileReader(statblockFile))) {
+            return gson.fromJson(jReader, DungeonMasterBuildInfo.class);
+        } catch (JsonIOException | JsonSyntaxException | IOException e) {
+            throw e;
+        }
+    }
+
+    public PlayerBuildInfo playerBuildInfoFromFile(GsonBuilderFactory gsonBuilderFactory, String name)
+            throws JsonIOException, JsonSyntaxException, IOException {
+        if (gsonBuilderFactory == null) {
+            gsonBuilderFactory = GsonBuilderFactory.start();
+        }
+        Gson gson = gsonBuilderFactory.prettyPrinting().items().creatureInfoBuilders().build();
+        String statblockFile = this.path.toString() + name + ".json";
+        this.logger.log(Level.INFO, "Opening file: " + statblockFile);
+        try (JsonReader jReader = new JsonReader(new FileReader(statblockFile))) {
+            return gson.fromJson(jReader, PlayerBuildInfo.class);
+        } catch (JsonIOException | JsonSyntaxException | IOException e) {
+            throw e;
+        }
+    }
+
+    public ICreatureBuildInfo creatureBuildInfoFromFile(GsonBuilderFactory gsonBuilderFactory,
+            String name) throws IOException, JsonParseException {
+        if (gsonBuilderFactory == null) {
+            gsonBuilderFactory = GsonBuilderFactory.start();
+        }
+        ICreatureBuildInfo buildInfo = null;
+        try {
+            buildInfo = this.monsterBuildInfoFromFile(gsonBuilderFactory, name);
+        } catch (IOException e) {
+            throw e;
+        } catch (JsonIOException | JsonSyntaxException e) {
+            try {
+                buildInfo = this.iNPCBuildInfoFromFile(gsonBuilderFactory, name);
+            } catch (JsonIOException | JsonSyntaxException | IOException e1) {
+                try {
+                    buildInfo = this.DMBuildInfoFromFile(gsonBuilderFactory, name);
+                } catch (JsonIOException | JsonSyntaxException | IOException e2) {
+                    try {
+                        buildInfo = this.playerBuildInfoFromFile(gsonBuilderFactory, name);
+                    } catch (JsonIOException | JsonSyntaxException | IOException e3) {
+                        throw new JsonParseException(
+                                String.format("Cannot deserialize file '%s' as a monster, npc, dm, or player", name),
+                                e3);
+                    }
+                }
+            }
+        }
+
+        return buildInfo;
     }
 
 }

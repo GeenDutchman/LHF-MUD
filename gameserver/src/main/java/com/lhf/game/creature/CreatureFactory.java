@@ -6,7 +6,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.creature.DungeonMaster.DungeonMasterBuildInfo;
-import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player.PlayerBuildInfo;
@@ -105,7 +104,7 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
     }
 
     @Override
-    public void visit(IMonsterBuildInfo buildInfo) {
+    public void visit(MonsterBuildInfo buildInfo) {
         final ConversationTree tree = this.loadConversationTree(buildInfo);
         final BasicAI brain = this.brainProducer.apply(buildInfo);
         Monster monster = new Monster(buildInfo, brain, successor,

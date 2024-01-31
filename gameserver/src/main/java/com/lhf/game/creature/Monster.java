@@ -10,15 +10,15 @@ import com.lhf.server.interfaces.NotNull;
 public class Monster extends NonPlayerCharacter implements IMonster {
     private final long monsterNumber;
 
-    protected Monster(IMonsterBuildInfo builder,
+    protected Monster(MonsterBuildInfo builder,
             @NotNull CommandInvoker controller, CommandChainHandler successor,
             ConversationTree conversationTree) {
         super(builder, controller, successor, conversationTree);
         this.monsterNumber = builder.getSerialNumber();
     }
 
-    public static IMonsterBuildInfo getMonsterBuilder() {
-        return new IMonsterBuildInfo();
+    public static MonsterBuildInfo getMonsterBuilder() {
+        return new MonsterBuildInfo();
     }
 
     @Override

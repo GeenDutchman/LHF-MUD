@@ -15,7 +15,7 @@ public class SummonedMonster extends SummonedINonPlayerCharacter<Monster> implem
         super(monster, summonData, summoner, timeLeft);
     }
 
-    public static SummonedMonster fromBuildInfo(IMonsterBuildInfo builder, ICreature summoner, Ticker timeLeft,
+    public static SummonedMonster fromBuildInfo(MonsterBuildInfo builder, ICreature summoner, Ticker timeLeft,
             AIRunner aiRunner,
             CommandChainHandler successor,
             ConversationManager conversationManager) throws FileNotFoundException {

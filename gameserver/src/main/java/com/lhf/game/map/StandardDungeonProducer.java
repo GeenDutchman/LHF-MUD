@@ -1,9 +1,11 @@
 package com.lhf.game.map;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
 
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
@@ -11,7 +13,7 @@ import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.BuildInfoManager;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
-import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
+import com.lhf.game.creature.MonsterBuildInfo;
 import com.lhf.game.creature.NameGenerator;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DiceDC;
@@ -38,16 +40,14 @@ import com.lhf.game.serialization.GsonBuilderFactory;
 
 public final class StandardDungeonProducer {
         public static DungeonBuilder buildStaticDungeonBuilder(BuildInfoManager statblockLoader)
-                        throws FileNotFoundException {
+                        throws JsonIOException, JsonSyntaxException, IOException {
                 DungeonBuilder builder = DungeonBuilder.newInstance();
 
                 GsonBuilderFactory gsonFactory = GsonBuilderFactory.start().creatureInfoBuilders();
 
-                IMonsterBuildInfo goblin = (IMonsterBuildInfo) statblockLoader.statblockFromfile(gsonFactory, "goblin");
-                IMonsterBuildInfo bugbear = (IMonsterBuildInfo) statblockLoader.statblockFromfile(gsonFactory,
-                                "bugbear");
-                IMonsterBuildInfo hobgoblin = (IMonsterBuildInfo) statblockLoader.statblockFromfile(gsonFactory,
-                                "hobgoblin");
+                MonsterBuildInfo goblin = statblockLoader.monsterBuildInfoFromFile(gsonFactory, "goblin");
+                MonsterBuildInfo bugbear = statblockLoader.monsterBuildInfoFromFile(gsonFactory, "bugbear");
+                MonsterBuildInfo hobgoblin = statblockLoader.monsterBuildInfoFromFile(gsonFactory, "hobgoblin");
 
                 BattleManager.Builder battleBuilder = BattleManager.Builder.getInstance();
                 RestArea.Builder restBuilder = RestArea.Builder.getInstance();

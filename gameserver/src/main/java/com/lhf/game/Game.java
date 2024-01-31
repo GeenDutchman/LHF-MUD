@@ -1,6 +1,7 @@
 package com.lhf.game;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,6 +15,8 @@ import java.util.logging.Logger;
 
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.Player;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import com.lhf.game.creature.BuildInfoManager;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
@@ -111,7 +114,7 @@ public class Game implements UserListener, CommandChainHandler {
 			return additionalLands;
 		}
 
-		public GameBuilder setDefaults() throws FileNotFoundException {
+		public GameBuilder setDefaults() throws JsonIOException, JsonSyntaxException, IOException {
 			this.thirdPower = new ThirdPower(null, null);
 			this.aiRunner = new GroupAIRunner(true);
 			this.conversationManager = new ConversationManager();

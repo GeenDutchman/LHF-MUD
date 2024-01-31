@@ -1,10 +1,12 @@
 package com.lhf.game.map;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
 import com.google.common.truth.Truth;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import com.lhf.game.creature.BuildInfoManager;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
@@ -13,7 +15,7 @@ import com.lhf.game.map.Dungeon.DungeonBuilder;
 
 public class DungeonBuilderTest {
     @Test
-    void testBuildStaticDungeon() throws FileNotFoundException {
+    void testBuildStaticDungeon() throws JsonIOException, JsonSyntaxException, IOException {
         AIRunner aiRunner = new GroupAIRunner(true);
         BuildInfoManager statblockManager = new BuildInfoManager();
         ConversationManager conversationManager = new ConversationManager();
