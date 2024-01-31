@@ -19,10 +19,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.Game.GameBuilder;
+import com.lhf.game.creature.BuildInfoManager;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.map.StandardDungeonProducer;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventType;
@@ -112,7 +112,7 @@ public class ServerTest {
             this.clientManager = new ClientManager();
             AIRunner aiRunner = new GroupAIRunner(true, 2, 250, TimeUnit.MILLISECONDS);
             ConversationManager conversationManager = new ConversationManager();
-            StatblockManager statblockManager = new StatblockManager();
+            BuildInfoManager statblockManager = new BuildInfoManager();
             GameBuilder gameBuilder = new GameBuilder()
                     .setAiRunner(aiRunner)
                     .setConversationManager(conversationManager)

@@ -162,6 +162,8 @@ public class GsonBuilderFactory {
     public synchronized GsonBuilderFactory creatureInfoBuilders() {
         if (!this.loaded.contains(Loaded.CREATURE_INFO)) {
             this.loaded.add(Loaded.CREATURE_INFO);
+            this.items();
+            this.effects();
             this.conversation();
             this.aiHandlers();
             this.gsonBuilder.registerTypeAdapter(CreatureBuilderID.class, new CreatureBuilderID.IDTypeAdapter());

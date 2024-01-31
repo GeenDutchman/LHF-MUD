@@ -12,8 +12,6 @@ import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
@@ -54,31 +52,31 @@ public class CreatureCreator {
         public Vocation buildVocation();
     }
 
-    public static Statblock writeStatblock(Statblock towrite) {
-        loader_unloader.statblockToFile(towrite);
+    public static ICreatureBuildInfo writeStatblock(ICreatureBuildInfo towrite) {
+        loader_unloader.statblockToFile(null, towrite);
         try {
-            return loader_unloader.statblockFromfile(towrite.getCreatureRace());
+            return loader_unloader.statblockFromfile(null, towrite.getCreatureRace());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public static Statblock readStatblock(String statblockname) throws FileNotFoundException {
-        return loader_unloader.statblockFromfile(statblockname);
+    public static ICreatureBuildInfo readStatblock(String statblockname) throws FileNotFoundException {
+        return loader_unloader.statblockFromfile(null, statblockname);
     }
 
-    private static Statblock makeStatblock(CreatorAdaptor adapter) {
-        Statblock built = Statblock.getBuilder().build();
+    private static ICreatureBuildInfo makeStatblock(CreatorAdaptor adapter) {
+        CreatureBuildInfo built = new CreatureBuildInfo();
 
         // name
         built.setCreatureRace(adapter.buildStatblockName());
 
         // attributes
-        built.setAttributes(adapter.buildAttributeBlock());
+        built.setAttributeBlock(adapter.buildAttributeBlock());
 
         // stats
-        built.setStats(adapter.buildStats(built.getAttributes()));
+        built.setStats(adapter.buildStats(built.getAttributeBlock()));
 
         // Adds proficiencies
         built.setProficiencies(adapter.buildProficiencies());
@@ -90,7 +88,7 @@ public class CreatureCreator {
 
         System.out.println(built.toString());
 
-        built = CreatureCreator.writeStatblock(built);
+        built = (CreatureBuildInfo) CreatureCreator.writeStatblock(built);
         // System.err.println(test);
         adapter.close();
         // System.out.println("\nCreature Creation Complete!");
@@ -98,13 +96,13 @@ public class CreatureCreator {
     }
 
     private static final AIRunner aiRunner = new GroupAIRunner(false);
-    private static final StatblockManager loader_unloader = new StatblockManager();
+    private static final BuildInfoManager loader_unloader = new BuildInfoManager();
 
     public static IMonster makeMonsterFromStatblock(CreatorAdaptor adapter) throws FileNotFoundException {
 
         String statblockname = adapter.buildStatblockName();
 
-        Statblock monStatblock = CreatureCreator.readStatblock(statblockname);
+        IMonsterBuildInfo monStatblock = (IMonsterBuildInfo) CreatureCreator.readStatblock(statblockname);
 
         if (monStatblock == null) {
             return null;
@@ -114,9 +112,7 @@ public class CreatureCreator {
 
         builder.setName(adapter.buildCreatureName());
 
-        builder.setStatblock(monStatblock);
-
-        CreatureFactory factory = CreatureFactory.fromAIRunner(null, loader_unloader, null, aiRunner, false, false);
+        CreatureFactory factory = CreatureFactory.fromAIRunner(null, null, aiRunner, false);
         factory.visit(builder);
 
         return factory.getBuiltCreatures().getIMonsters().first();
@@ -124,7 +120,7 @@ public class CreatureCreator {
 
     public static INonPlayerCharacter makeNPC() throws FileNotFoundException {
         INPCBuildInfo builder = NonPlayerCharacter.getNPCBuilder();
-        CreatureFactory factory = CreatureFactory.fromAIRunner(null, loader_unloader, null, aiRunner, false, false);
+        CreatureFactory factory = CreatureFactory.fromAIRunner(null, null, aiRunner, false);
         factory.visit(builder);
 
         return factory.getBuiltCreatures().getINpcs().first();
@@ -135,33 +131,10 @@ public class CreatureCreator {
                 .getInstance();
 
         builder.setName(name);
-        CreatureFactory factory = CreatureFactory.fromAIRunner(null, loader_unloader, null, aiRunner, false, false);
+        CreatureFactory factory = CreatureFactory.fromAIRunner(null, null, aiRunner, false);
         factory.visit(builder);
 
         return factory.getBuiltCreatures().getDungeonMasters().first();
-    }
-
-    public static Player makePlayer(PlayerCreatorAdaptor adapter) {
-        Player.PlayerBuildInfo builder = Player.PlayerBuildInfo.getInstance(adapter.buildUser());
-
-        builder.setStatblock(CreatureCreator.makeStatblock(adapter));
-
-        while (builder.getStatblock() == null) {
-            String statblockname = adapter.buildStatblockName();
-            try {
-                builder.setStatblock(CreatureCreator.readStatblock(statblockname));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                adapter.stepSucceeded(false);
-            }
-        }
-
-        builder.setVocation(adapter.buildVocation());
-        CreatureFactory factory = CreatureFactory.fromAIRunner(null, loader_unloader, null, aiRunner, false, false);
-        factory.visit(builder);
-
-        return factory.getBuiltCreatures().getPlayers().first();
-
     }
 
     public static void main(String[] args) {

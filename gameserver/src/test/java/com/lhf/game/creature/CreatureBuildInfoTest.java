@@ -1,4 +1,4 @@
-package com.lhf.game.creature.statblock;
+package com.lhf.game.creature;
 
 import java.util.EnumMap;
 
@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import com.google.common.truth.Truth;
 import com.google.gson.Gson;
 import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.AItem;
@@ -15,14 +16,13 @@ import com.lhf.game.item.concrete.equipment.Longsword;
 import com.lhf.game.item.concrete.equipment.RustyDagger;
 import com.lhf.game.serialization.GsonBuilderFactory;
 
-public class StatblockTest {
+public class CreatureBuildInfoTest {
 
     @Test
     void testSerialization() {
-
-        Statblock s = Statblock.getBuilder().build();
+        CreatureBuildInfo s = new CreatureBuildInfo();
         s.setCreatureRace("goober");
-        s.setAttributes(new AttributeBlock());
+        s.setAttributeBlock(new AttributeBlock());
         EnumMap<Stats, Integer> stats = new EnumMap<>(Stats.class);
         stats.put(Stats.MAXHP, 10);
         stats.put(Stats.AC, 10);
@@ -36,7 +36,7 @@ public class StatblockTest {
         equipped.put(EquipmentSlots.WEAPON, dagger);
         s.setEquipmentSlots(equipped);
 
-        Gson gson = GsonBuilderFactory.start().items().prettyPrinting().build();
+        Gson gson = GsonBuilderFactory.start().items().creatureInfoBuilders().prettyPrinting().build();
         String json = gson.toJson(s);
         System.out.println(json);
         Truth.assertThat(json).contains(s.getCreatureRace());
@@ -47,7 +47,7 @@ public class StatblockTest {
             Truth.assertThat(json).contains(item.getName());
         }
 
-        Statblock num2 = gson.fromJson(json, Statblock.class);
+        CreatureBuildInfo num2 = gson.fromJson(json, CreatureBuildInfo.class);
         Truth.assertThat(num2.getCreatureRace()).isEqualTo(s.getCreatureRace());
         Truth.assertThat(num2.getStats().get(Stats.MAXHP)).isEqualTo(s.getStats().get(Stats.MAXHP));
         for (String itemName : inv.getItemList()) {
@@ -58,6 +58,5 @@ public class StatblockTest {
         Truth.assertThat(num2.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).produceMessage()
                 .toString())
                 .isEqualTo(s.getEquipmentSlots().getOrDefault(EquipmentSlots.WEAPON, null).produceMessage().toString());
-
     }
 }

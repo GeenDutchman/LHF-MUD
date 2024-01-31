@@ -24,7 +24,6 @@ import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.map.Area.AreaBuilder;
 import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.Atlas.AtlasMappingItem;
@@ -154,13 +153,12 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         public abstract AreaBuilderAtlas getAtlas();
 
         public default Map<AreaBuilderID, UUID> translateAtlas(Land builtLand, AIRunner aiRunner,
-                StatblockManager statblockManager, ConversationManager conversationManager,
-                boolean fallbackNoConversation,
-                boolean fallbackDefaultStatblock) {
+                ConversationManager conversationManager,
+                boolean fallbackNoConversation) {
 
             final Function<AreaBuilder, Area> transformer = (builder) -> {
                 return builder.build(builtLand, builtLand, aiRunner,
-                        statblockManager, conversationManager, fallbackNoConversation, fallbackDefaultStatblock);
+                        conversationManager, fallbackNoConversation);
             };
 
             final AreaBuilderAtlas builderAtlas = this.getAtlas();
@@ -171,13 +169,12 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         }
 
         public default Land quickBuild(CommandChainHandler successor, AIRunner aiRunner) {
-            return build(successor, aiRunner, null, null, true, true);
+            return build(successor, aiRunner, null, true);
         }
 
-        public abstract Land build(CommandChainHandler successor, AIRunner aiRunner, StatblockManager statblockManager,
+        public abstract Land build(CommandChainHandler successor, AIRunner aiRunner,
                 ConversationManager conversationManager,
-                boolean fallbackNoConversation,
-                boolean fallbackDefaultStatblock);
+                boolean fallbackNoConversation);
 
     }
 

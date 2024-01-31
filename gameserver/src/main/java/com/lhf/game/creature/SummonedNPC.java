@@ -7,7 +7,6 @@ import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo.SummonData;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.messages.CommandChainHandler;
 
 public class SummonedNPC extends SummonedINonPlayerCharacter<NonPlayerCharacter> {
@@ -19,10 +18,9 @@ public class SummonedNPC extends SummonedINonPlayerCharacter<NonPlayerCharacter>
     public static SummonedNPC fromBuildInfo(INPCBuildInfo builder, ICreature summoner, Ticker timeLeft,
             AIRunner aiRunner,
             CommandChainHandler successor,
-            StatblockManager statblockManager, ConversationManager conversationManager) throws FileNotFoundException {
-        CreatureFactory factory = CreatureFactory.fromAIRunner(successor, statblockManager, conversationManager,
-                aiRunner, false,
-                false);
+            ConversationManager conversationManager) throws FileNotFoundException {
+        CreatureFactory factory = CreatureFactory.fromAIRunner(successor, conversationManager,
+                aiRunner, false);
         factory.visit(builder);
         return new SummonedNPC(factory.getBuiltCreatures().getNpcs().first(), builder.getSummonState(),
                 summoner, timeLeft);

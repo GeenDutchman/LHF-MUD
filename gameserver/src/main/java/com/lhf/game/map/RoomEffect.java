@@ -10,7 +10,6 @@ import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.SummonedMonster;
 import com.lhf.game.creature.SummonedNPC;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.server.interfaces.NotNull;
 
@@ -76,11 +75,11 @@ public class RoomEffect extends EntityEffect {
         return this.summonedMonster;
     }
 
-    public INonPlayerCharacter getSummonedNPC(CommandChainHandler successor, StatblockManager statblockManager) {
+    public INonPlayerCharacter getSummonedNPC(CommandChainHandler successor) {
         if (this.summonedNPC == null) {
             INPCBuildInfo builder = getNPCToSummon();
             if (builder != null) {
-                CreatureFactory factory = new CreatureFactory(successor, statblockManager, null, null, false, false);
+                CreatureFactory factory = new CreatureFactory(successor, null, null, false);
                 factory.visit(builder);
                 this.summonedMonster = new SummonedMonster(factory.getBuiltCreatures().getMonsters().first(),
                         builder.getSummonState(), this.creatureResponsible(), this.getPersistence().getTicker());
@@ -89,11 +88,11 @@ public class RoomEffect extends EntityEffect {
         return this.summonedNPC;
     }
 
-    public IMonster getSummonedMonster(CommandChainHandler successor, StatblockManager statblockManager) {
+    public IMonster getSummonedMonster(CommandChainHandler successor) {
         if (this.summonedMonster == null) {
             IMonsterBuildInfo builder = getMonsterToSummon();
             if (builder != null) {
-                CreatureFactory factory = new CreatureFactory(successor, statblockManager, null, null, false, false);
+                CreatureFactory factory = new CreatureFactory(successor, null, null, false);
                 factory.visit(builder);
                 this.summonedMonster = new SummonedMonster(factory.getBuiltCreatures().getMonsters().first(),
                         builder.getSummonState(), this.creatureResponsible(), this.getPersistence().getTicker());
