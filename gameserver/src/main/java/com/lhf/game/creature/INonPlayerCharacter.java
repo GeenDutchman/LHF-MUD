@@ -508,6 +508,15 @@ public interface INonPlayerCharacter extends ICreature {
             return creatureBuilder.getEquipmentSlots();
         }
 
+        public INPCBuildInfo setCreatureEffects(Set<CreatureEffect> others) {
+            creatureBuilder.setCreatureEffects(others);
+            return this;
+        }
+
+        public Set<CreatureEffect> getCreatureEffects() {
+            return creatureBuilder.getCreatureEffects();
+        }
+
         public INPCBuildInfo defaultFlavorReactions() {
             creatureBuilder.defaultFlavorReactions();
             return this;

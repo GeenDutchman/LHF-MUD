@@ -7,11 +7,16 @@ import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Scanner;
 
+import com.lhf.game.creature.ICreatureBuildInfo;
+import com.lhf.game.creature.ICreatureBuildInfoVisitor;
 import com.lhf.game.creature.CreatureCreator.CreatorAdaptor;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.DamgeFlavorReaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -36,7 +41,7 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public String buildCreatureName() {
+    public String getName() {
         Boolean valid;
         String name;
         do {
@@ -52,23 +57,7 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public String buildStatblockName() {
-        Boolean valid;
-        String name;
-        do {
-            System.out.print("Please type the statblock name: ");
-            name = this.input.nextLine();
-
-            System.out.print("The name is: " + name + " is this correct?");
-
-            valid = this.yesOrNo();
-
-        } while (!valid);
-        return name;
-    }
-
-    @Override
-    public CreatureFaction buildFaction() {
+    public CreatureFaction getFaction() {
         Boolean valid;
         String factionName;
         CreatureFaction faction;
@@ -91,7 +80,7 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public AttributeBlock buildAttributeBlock() {
+    public AttributeBlock getAttributeBlock() {
         // attributes
         AttributeBlock attributes = new AttributeBlock();
         Boolean valid;
@@ -173,7 +162,14 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public EnumSet<EquipmentTypes> buildProficiencies() {
+    public EnumMap<Stats, Integer> getStats() {
+        EnumMap<Stats, Integer> stats = new EnumMap<>(Stats.class);
+        ICreatureBuildInfo.setDefaultStats(stats);
+        return stats;
+    }
+
+    @Override
+    public EnumSet<EquipmentTypes> getProficiencies() {
         String proficiency_string;
         EquipmentTypes proficiency;
         EnumSet<EquipmentTypes> proficiencies = EnumSet.noneOf(EquipmentTypes.class);
@@ -196,7 +192,7 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public Inventory buildInventory() {
+    public Inventory getInventory() {
         Inventory inventory = new Inventory();
         String item;
         // May need to replace this to be more adaptive?
@@ -250,7 +246,7 @@ public class CLIAdaptor implements CreatorAdaptor {
                 if (optItem.isPresent() && optItem.get() instanceof Equipable) {
                     equipmentSlots.put(slot, (Equipable) optItem.get());
                 } else {
-                    System.out.println(pair[0] + " is not a valid choice.  Match the name exactly, ignoring case.");
+                    System.out.println(pair[0] + " is not a valid choice. Match the name exactly, ignoring case.");
                 }
 
             } catch (java.lang.IllegalArgumentException e) {
@@ -285,6 +281,111 @@ public class CLIAdaptor implements CreatorAdaptor {
     @Override
     public void close() {
         this.input.close();
+    }
+
+    @Override
+    public String getClassName() {
+        throw new UnsupportedOperationException("CLI adapter does not give a class name");
+    }
+
+    @Override
+    public CreatureBuilderID getCreatureBuilderID() {
+        throw new UnsupportedOperationException("CLI adapter does not give a builder id");
+    }
+
+    @Override
+    public String getCreatureRace() {
+        Boolean valid;
+        String name;
+        do {
+            System.out.print("Please type the creature's race: ");
+            name = this.input.nextLine();
+
+            System.out.print("The race is: " + name + " is this correct?");
+
+            valid = this.yesOrNo();
+
+        } while (!valid);
+        return name;
+    }
+
+    @Override
+    public EnumMap<EquipmentSlots, Equipable> getEquipmentSlots() {
+        throw new UnsupportedOperationException("Unimplemented method 'getEquipmentSlots'");
+    }
+
+    private EnumSet<DamageFlavor> buildFlavors(DamgeFlavorReaction dfr) {
+        String name;
+        EnumSet<DamageFlavor> flavors = EnumSet.noneOf(DamageFlavor.class);
+        System.out.println(DamageFlavor.values());
+        while (true) {
+            name = this.input.nextLine().strip();
+            if ("done".equalsIgnoreCase(name)) {
+                return flavors;
+            }
+            DamageFlavor flavor = DamageFlavor.getDamageFlavor(name);
+            if (flavor == null) {
+                System.out.println(
+                        String.format("'%s' is not a valid damage flavor, try again (or 'done' to be done)", name));
+            } else {
+                flavors.add(flavor);
+                System.out.println(String.format("Current: %s", flavors));
+            }
+        }
+    }
+
+    @Override
+    public EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> getDamageFlavorReactions() {
+        EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> reactions = new EnumMap<>(DamgeFlavorReaction.class);
+        ICreatureBuildInfo.setDefaultFlavorReactions(reactions);
+        System.out.println(String.format("Use default damage flavor reactions? %s", reactions));
+        if (this.yesOrNo()) {
+            return reactions;
+        }
+        reactions.clear();
+        for (final DamgeFlavorReaction dfr : DamgeFlavorReaction.values()) {
+            System.out.println("The creature is " + dfr.name()
+                    + " to which of the following damage types (enter 'done' when done)?");
+            reactions.put(dfr, this.buildFlavors(dfr));
+        }
+        return reactions;
+    }
+
+    @Override
+    public VocationName getVocation() {
+        System.out.println("Should the creature have a Vocation?");
+        if (this.yesOrNo()) {
+            VocationName vName = null;
+            do {
+                String name = input.nextLine().trim();
+                vName = VocationName.getVocationName(name);
+                if (vName == null) {
+                    System.out.println(String.format("'%s' is not a valid vocation name, try one of %s", name,
+                            VocationName.values()));
+                }
+            } while (vName == null);
+            return vName;
+        }
+        return null;
+    }
+
+    @Override
+    public Integer getVocationLevel() {
+        System.out.println("Should the creature have a vocation higher than default?");
+        if (this.yesOrNo()) {
+            int level = -1;
+            while (level <= 0) {
+                System.out.println("Level should be greater than 0!");
+                level = input.nextInt();
+            }
+            return level;
+        }
+        return null;
+    }
+
+    @Override
+    public void acceptBuildInfoVisitor(ICreatureBuildInfoVisitor visitor) {
+        throw new UnsupportedOperationException("Unimplemented method 'acceptBuildInfoVisitor'");
     }
 
 }

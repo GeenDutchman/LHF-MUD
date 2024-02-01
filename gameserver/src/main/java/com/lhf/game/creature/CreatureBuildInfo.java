@@ -2,15 +2,20 @@ package com.lhf.game.creature;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 
 import com.lhf.game.ItemContainer;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.DamgeFlavorReaction;
@@ -34,6 +39,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
     private EnumSet<EquipmentTypes> proficiencies;
     private Inventory inventory;
     private EnumMap<EquipmentSlots, Equipable> equipmentSlots;
+    protected TreeSet<CreatureEffect> effects;
     private EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> damageFlavorReactions;
     protected String name;
     protected CreatureFaction faction;
@@ -57,6 +63,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         this.faction = null;
         this.vocation = null;
         this.vocationLevel = null;
+        this.effects = new TreeSet<>();
     }
 
     public CreatureBuildInfo(CreatureBuildInfo other) {
@@ -68,6 +75,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         this.setProficiencies(other.proficiencies);
         this.setInventory(other.inventory);
         this.setEquipmentSlots(other.equipmentSlots);
+        this.setCreatureEffects(other.effects);
         this.setDamageFlavorReactions(other.damageFlavorReactions);
         this.name = other.name != null ? new String(other.name) : null;
         this.faction = other.faction;
@@ -188,6 +196,32 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         return this.inventory;
     }
 
+    private void onEquip(Equipable equipable) {
+        List<CreatureEffectSource> sources = equipable.getEquippingEffects();
+        if (sources != null) {
+            for (final CreatureEffectSource source : sources) {
+                Deltas deltas = source.getOnApplication();
+                if (deltas == null) {
+                    continue;
+                }
+                if (this.effects.add(new CreatureEffect(source, null, equipable))) {
+                    for (Stats stat : deltas.getStatChanges().keySet()) {
+                        int amount = deltas.getStatChanges().getOrDefault(stat, 0);
+                        this.stats.put(stat, this.stats.getOrDefault(stat, 0) + amount);
+                    }
+                    for (Attributes delta : deltas.getAttributeScoreChanges().keySet()) {
+                        int amount = deltas.getAttributeScoreChanges().getOrDefault(delta, 0);
+                        this.attributeBlock.setScoreBonus(delta, this.attributeBlock.getScoreBonus(delta) + amount);
+                    }
+                    for (Attributes delta : deltas.getAttributeBonusChanges().keySet()) {
+                        int amount = deltas.getAttributeBonusChanges().getOrDefault(delta, 0);
+                        this.attributeBlock.setModBonus(delta, this.attributeBlock.getModBonus(delta) + amount);
+                    }
+                }
+            }
+        }
+    }
+
     public CreatureBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
         this.equipmentSlots = new EnumMap<>(EquipmentSlots.class);
         if (slots != null) {
@@ -196,7 +230,9 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
                 if (equipable == null) {
                     continue;
                 }
-                this.equipmentSlots.put(entry.getKey(), equipable.makeCopy());
+                Equipable copied = equipable.makeCopy();
+                this.equipmentSlots.put(entry.getKey(), copied);
+                this.onEquip(copied);
             }
         }
         return this;
@@ -205,6 +241,21 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
     @Override
     public EnumMap<EquipmentSlots, Equipable> getEquipmentSlots() {
         return this.equipmentSlots;
+    }
+
+    public CreatureBuildInfo setCreatureEffects(Set<CreatureEffect> others) {
+        this.effects = new TreeSet<>();
+        if (others != null) {
+            for (final CreatureEffect effect : others) {
+                this.effects.add(
+                        new CreatureEffect(effect.getSource(), effect.creatureResponsible(), effect.getGeneratedBy()));
+            }
+        }
+        return this;
+    }
+
+    public Set<CreatureEffect> getCreatureEffects() {
+        return this.effects;
     }
 
     public CreatureBuildInfo defaultFlavorReactions() {

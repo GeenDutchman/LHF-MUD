@@ -227,6 +227,15 @@ public class DungeonMaster extends NonPlayerCharacter {
             return iNPCBuilder.getEquipmentSlots();
         }
 
+        public DungeonMasterBuildInfo setCreatureEffects(Set<CreatureEffect> others) {
+            iNPCBuilder.setCreatureEffects(others);
+            return this;
+        }
+
+        public Set<CreatureEffect> getCreatureEffects() {
+            return iNPCBuilder.getCreatureEffects();
+        }
+
         public DungeonMasterBuildInfo defaultFlavorReactions() {
             iNPCBuilder.defaultFlavorReactions();
             return this;

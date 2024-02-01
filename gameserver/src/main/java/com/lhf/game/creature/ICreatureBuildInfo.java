@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import com.google.gson.TypeAdapter;
@@ -126,6 +127,8 @@ public interface ICreatureBuildInfo extends Serializable {
     public Inventory getInventory();
 
     public EnumMap<EquipmentSlots, Equipable> getEquipmentSlots();
+
+    public Set<CreatureEffect> getCreatureEffects();
 
     public EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> getDamageFlavorReactions();
 

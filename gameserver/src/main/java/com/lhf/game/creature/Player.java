@@ -3,6 +3,7 @@ package com.lhf.game.creature;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 
 import com.lhf.game.creature.inventory.Inventory;
@@ -148,6 +149,15 @@ public class Player extends Creature {
 
         public EnumMap<EquipmentSlots, Equipable> getEquipmentSlots() {
             return creatureBuilder.getEquipmentSlots();
+        }
+
+        public PlayerBuildInfo setCreatureEffects(Set<CreatureEffect> others) {
+            creatureBuilder.setCreatureEffects(others);
+            return this;
+        }
+
+        public Set<CreatureEffect> getCreatureEffects() {
+            return creatureBuilder.getCreatureEffects();
         }
 
         public PlayerBuildInfo defaultFlavorReactions() {

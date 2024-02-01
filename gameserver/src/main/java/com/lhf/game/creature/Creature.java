@@ -315,16 +315,16 @@ public abstract class Creature implements ICreature {
             this.updateHitpoints(mrr.getRoll());
         }
         for (Stats delta : deltas.getStatChanges().keySet()) {
-            int amount = deltas.getStatChanges().get(delta);
+            int amount = deltas.getStatChanges().getOrDefault(delta, 0);
             this.updateStat(delta, amount);
         }
         if (this.isAlive()) {
             for (Attributes delta : deltas.getAttributeScoreChanges().keySet()) {
-                int amount = deltas.getAttributeScoreChanges().get(delta);
+                int amount = deltas.getAttributeScoreChanges().getOrDefault(delta, 0);
                 this.updateAttribute(delta, amount);
             }
             for (Attributes delta : deltas.getAttributeBonusChanges().keySet()) {
-                int amount = deltas.getAttributeBonusChanges().get(delta);
+                int amount = deltas.getAttributeBonusChanges().getOrDefault(delta, 0);
                 this.updateModifier(delta, amount);
             }
             // for now...cannot curse someone with being a renegade

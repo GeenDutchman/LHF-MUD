@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.util.EnumMap;
 import java.util.EnumSet;
 
-import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.builder.CLIAdaptor;
 import com.lhf.game.creature.intelligence.AIRunner;
@@ -21,23 +20,11 @@ import com.lhf.game.item.Equipable;
 import com.lhf.server.client.user.User;
 
 public class CreatureCreator {
-    public interface CreatorAdaptor extends Closeable {
+    public interface CreatorAdaptor extends Closeable, ICreatureBuildInfo {
 
         public void stepSucceeded(boolean succeeded);
 
-        public String buildCreatureName();
-
-        public String buildStatblockName();
-
-        public CreatureFaction buildFaction();
-
-        public AttributeBlock buildAttributeBlock();
-
         public EnumMap<Stats, Integer> buildStats(AttributeBlock attrs);
-
-        public EnumSet<EquipmentTypes> buildProficiencies();
-
-        public Inventory buildInventory();
 
         public EnumMap<EquipmentSlots, Equipable> equipFromInventory(Inventory inventory);
 
@@ -50,20 +37,6 @@ public class CreatureCreator {
         public User buildUser();
 
         public Vocation buildVocation();
-    }
-
-    public static ICreatureBuildInfo writeStatblock(ICreatureBuildInfo towrite) {
-        loader_unloader.statblockToFile(null, towrite);
-        try {
-            return loader_unloader.statblockFromfile(null, towrite.getCreatureRace());
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public static ICreatureBuildInfo readStatblock(String statblockname) throws FileNotFoundException {
-        return loader_unloader.statblockFromfile(null, statblockname);
     }
 
     private static ICreatureBuildInfo makeStatblock(CreatorAdaptor adapter) {
@@ -88,7 +61,7 @@ public class CreatureCreator {
 
         System.out.println(built.toString());
 
-        built = (CreatureBuildInfo) CreatureCreator.writeStatblock(built);
+        // built = (CreatureBuildInfo) CreatureCreator.writeStatblock(built);
         // System.err.println(test);
         adapter.close();
         // System.out.println("\nCreature Creation Complete!");
@@ -100,15 +73,16 @@ public class CreatureCreator {
 
     public static IMonster makeMonsterFromStatblock(CreatorAdaptor adapter) throws FileNotFoundException {
 
-        String statblockname = adapter.buildStatblockName();
+        // String statblockname = adapter.buildStatblockName();
 
-        IMonsterBuildInfo monStatblock = (IMonsterBuildInfo) CreatureCreator.readStatblock(statblockname);
+        // MonsterBuildInfo monStatblock = (MonsterBuildInfo)
+        // CreatureCreator.readStatblock(statblockname);
 
-        if (monStatblock == null) {
-            return null;
-        }
+        // if (monStatblock == null) {
+        // return null;
+        // }
 
-        IMonsterBuildInfo builder = IMonsterBuildInfo.getInstance();
+        MonsterBuildInfo builder = MonsterBuildInfo.getInstance();
 
         builder.setName(adapter.buildCreatureName());
 

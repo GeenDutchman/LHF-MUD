@@ -229,6 +229,15 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
         return iNPCBuilder.getEquipmentSlots();
     }
 
+    public MonsterBuildInfo setCreatureEffects(Set<CreatureEffect> others) {
+        iNPCBuilder.setCreatureEffects(others);
+        return this;
+    }
+
+    public Set<CreatureEffect> getCreatureEffects() {
+        return iNPCBuilder.getCreatureEffects();
+    }
+
     public MonsterBuildInfo defaultFlavorReactions() {
         iNPCBuilder.defaultFlavorReactions();
         return this;
