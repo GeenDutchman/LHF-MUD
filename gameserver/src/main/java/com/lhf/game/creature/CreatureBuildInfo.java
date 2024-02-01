@@ -196,15 +196,20 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         return this.inventory;
     }
 
-    private void onEquip(Equipable equipable) {
+    private void onEquipmentChange(Equipable equipable, boolean putOn) {
         List<CreatureEffectSource> sources = equipable.getEquippingEffects();
         if (sources != null) {
             for (final CreatureEffectSource source : sources) {
-                Deltas deltas = source.getOnApplication();
+                if (source == null) {
+                    continue;
+                }
+                Deltas deltas = putOn ? source.getOnApplication() : source.getOnRemoval();
                 if (deltas == null) {
                     continue;
                 }
-                if (this.effects.add(new CreatureEffect(source, null, equipable))) {
+                // effects match based on their source
+                final CreatureEffect composed = new CreatureEffect(source, null, equipable);
+                if ((putOn && this.effects.add(composed)) || (!putOn && this.effects.remove(composed))) {
                     for (Stats stat : deltas.getStatChanges().keySet()) {
                         int amount = deltas.getStatChanges().getOrDefault(stat, 0);
                         this.stats.put(stat, this.stats.getOrDefault(stat, 0) + amount);
@@ -222,6 +227,20 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         }
     }
 
+    public CreatureBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
+        if (slot == null || equipable == null) {
+            return this;
+        }
+        final Equipable retrieved = this.equipmentSlots.getOrDefault(slot, null);
+        if (retrieved != null) {
+            this.onEquipmentChange(retrieved, false);
+            this.inventory.addItem(retrieved);
+        }
+        this.equipmentSlots.put(slot, equipable);
+        this.onEquipmentChange(equipable, true);
+        return this;
+    }
+
     public CreatureBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
         this.equipmentSlots = new EnumMap<>(EquipmentSlots.class);
         if (slots != null) {
@@ -232,7 +251,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
                 }
                 Equipable copied = equipable.makeCopy();
                 this.equipmentSlots.put(entry.getKey(), copied);
-                this.onEquip(copied);
+                this.onEquipmentChange(copied, true);
             }
         }
         return this;

@@ -142,6 +142,11 @@ public class Player extends Creature {
             return creatureBuilder.getInventory();
         }
 
+        public PlayerBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
+            creatureBuilder.addEquipment(slot, equipable);
+            return this;
+        }
+
         public PlayerBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
             creatureBuilder.setEquipmentSlots(slots);
             return this;

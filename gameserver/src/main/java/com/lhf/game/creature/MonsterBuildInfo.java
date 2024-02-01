@@ -220,6 +220,11 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
         return iNPCBuilder.getInventory();
     }
 
+    public MonsterBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
+        iNPCBuilder.addEquipment(slot, equipable);
+        return this;
+    }
+
     public MonsterBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
         iNPCBuilder.setEquipmentSlots(slots);
         return this;

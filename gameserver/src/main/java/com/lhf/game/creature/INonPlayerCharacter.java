@@ -499,6 +499,11 @@ public interface INonPlayerCharacter extends ICreature {
             return creatureBuilder.getInventory();
         }
 
+        public INPCBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
+            creatureBuilder.addEquipment(slot, equipable);
+            return this;
+        }
+
         public INPCBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
             creatureBuilder.setEquipmentSlots(slots);
             return this;
