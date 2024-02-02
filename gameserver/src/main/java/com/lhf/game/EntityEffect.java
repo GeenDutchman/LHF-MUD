@@ -13,15 +13,15 @@ public abstract class EntityEffect implements TaggedExaminable, Comparable<Entit
 
     protected final String className;
     protected final EntityEffectSource source;
-    protected final ICreature creatureResponsible;
-    protected final Taggable generatedBy;
+    protected transient final ICreature creatureResponsible;
+    protected final BasicTaggable generatedBy;
     protected final Ticker ticker;
 
     public EntityEffect(@NotNull EntityEffectSource source, ICreature creatureResponsible, Taggable generatedBy) {
         this.className = this.getClass().getName();
         this.source = source;
         this.creatureResponsible = creatureResponsible;
-        this.generatedBy = generatedBy;
+        this.generatedBy = Taggable.basicTaggable(generatedBy);
         final EffectPersistence persistence = this.source.getPersistence();
         if (persistence != null) {
             this.ticker = persistence.getTicker();
@@ -63,15 +63,11 @@ public abstract class EntityEffect implements TaggedExaminable, Comparable<Entit
     }
 
     @Override
-    public int compareTo(EntityEffect o) {
+    public final int compareTo(EntityEffect o) {
         if (this.equals(o)) {
             return 0;
         }
-        int namecompare = this.getGeneratedBy().getColorTaggedName().compareTo(o.getGeneratedBy().getColorTaggedName());
-        if (namecompare != 0) {
-            return namecompare;
-        }
-        return this.getPersistence().compareTo(o.getPersistence());
+        return this.source.compareTo(o.source);
     }
 
     @Override
@@ -116,7 +112,7 @@ public abstract class EntityEffect implements TaggedExaminable, Comparable<Entit
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         if (this == obj)
             return true;
         if (!(obj instanceof EntityEffect))

@@ -4,7 +4,7 @@
     "className": "com.lhf.game.creature.INonPlayerCharacter$INPCBuildInfo",
     "creatureBuilder": {
       "className": "com.lhf.game.creature.CreatureBuildInfo",
-      "id": "c3beec14-efa5-40b8-a7a6-0bef8d70e70b",
+      "id": "0689cf47-5243-43ad-b0be-c4f5e9fa03e1",
       "creatureRace": "bugbear",
       "attributeBlock": {
         "strength": {
@@ -44,7 +44,7 @@
         "XPEARNED": 0,
         "XPWORTH": 201,
         "PROFICIENCYBONUS": 0,
-        "AC": 12
+        "AC": 14
       },
       "proficiencies": [
         "LIGHTARMOR",
@@ -97,7 +97,7 @@
           "numCanUseTimes": -1,
           "useLeftCount": -1,
           "itemID": {
-            "id": "d49629fc-0aaa-4893-9a14-3fb11ffe89e6"
+            "id": "207cf676-c2a1-43d7-b655-a0b1d30ba6da"
           },
           "className": "com.lhf.game.item.concrete.equipment.LeatherArmor",
           "objectName": "Leather Armor",
@@ -145,7 +145,7 @@
           "numCanUseTimes": -1,
           "useLeftCount": -1,
           "itemID": {
-            "id": "c9a68f61-5010-49e4-b9b8-b39c9ebb34f3"
+            "id": "f43c9131-3245-433a-877c-45c83618e397"
           },
           "className": "com.lhf.game.item.concrete.equipment.Shield",
           "objectName": "Shield",
@@ -199,7 +199,7 @@
           "numCanUseTimes": -1,
           "useLeftCount": -1,
           "itemID": {
-            "id": "0fe825f4-33b0-4c00-a4cf-0e197e98c76e"
+            "id": "c601e11c-ce6f-4c08-8794-b460051f1264"
           },
           "className": "com.lhf.game.item.concrete.equipment.BossClub",
           "objectName": "Boss Club",
@@ -207,6 +207,48 @@
           "descriptionString": "This is a large club, it seems a bit rusty... wait that is not rust...\n"
         }
       },
+      "effects": [
+        {
+          "tickDamageResult": {},
+          "className": "com.lhf.game.creature.CreatureEffect",
+          "source": {
+            "onApplication": {
+              "statChanges": {
+                "AC": 2
+              },
+              "attributeScoreChanges": {},
+              "attributeBonusChanges": {},
+              "damages": [],
+              "restoreFaction": false
+            },
+            "onRemoval": {
+              "statChanges": {
+                "AC": -2
+              },
+              "attributeScoreChanges": {},
+              "attributeBonusChanges": {},
+              "damages": [],
+              "restoreFaction": false
+            },
+            "onTickEvent": {},
+            "className": "com.lhf.game.creature.CreatureEffectSource",
+            "name": "AC Boost",
+            "persistence": {
+              "count": -1,
+              "tickSize": "CONDITIONAL"
+            },
+            "description": "Using a shield makes you harder to hit"
+          },
+          "generatedBy": {
+            "startTag": "\u003ctakeable\u003e",
+            "endTag": "\u003c/takeable\u003e",
+            "contents": "Shield"
+          },
+          "ticker": {
+            "countdown": -1
+          }
+        }
+      ],
       "damageFlavorReactions": {
         "WEAKNESSES": [],
         "RESISTANCES": [],
@@ -219,9 +261,9 @@
       },
       "faction": "MONSTER"
     },
-    "id": "9ed38c8d-f022-4c5c-bcf8-6cf2add8ef91",
+    "id": "c615bcc7-311a-4a8e-9764-935fc56ad7e1",
     "aiHandlers": [],
     "summonState": []
   },
-  "id": "c8fc6808-da0d-4307-b696-c0e333e53ac3"
+  "id": "73fbed3f-d18e-457c-87aa-83a2524a5343"
 }

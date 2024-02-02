@@ -442,6 +442,9 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
             sb.append("Inventory contains:").append(this.inventory);
         }
         sb.append("And equipment:").append(this.equipmentSlotsToString()).append("\r\n");
+        if (this.effects != null && !this.effects.isEmpty()) {
+            sb.append("And is under the following effects:").append(this.effects).append("\r\n");
+        }
         return sb.toString();
     }
 

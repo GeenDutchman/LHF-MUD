@@ -62,6 +62,11 @@ public class BuildInfoManagerTest {
 
                 GsonBuilderFactory gsonFactory = GsonBuilderFactory.start().creatureInfoBuilders();
 
+                // // Uncomment these for updating the files
+                // manager.statblockToFile(gsonFactory, goblinHardCoded);
+                // manager.statblockToFile(gsonFactory, bugbearHardCoded);
+                // manager.statblockToFile(gsonFactory, hobGoblinHardCoded);
+
                 MonsterBuildInfo goblin = manager.monsterBuildInfoFromFile(gsonFactory,
                                 "goblin");
                 MonsterBuildInfo bugbear = manager.monsterBuildInfoFromFile(gsonFactory,
