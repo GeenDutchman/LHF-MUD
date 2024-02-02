@@ -4,9 +4,14 @@ import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.TreeSet;
 
+import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.creature.ICreatureBuildInfoVisitor;
 import com.lhf.game.creature.CreatureCreator.CreatorAdaptor;
@@ -33,6 +38,26 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
+    public int menuChoice(List<String> choices) {
+        String chosen = null;
+        do {
+            System.out.print("Choose one of:\n");
+            StringJoiner sj = new StringJoiner(", ").setEmptyValue("No choices!!");
+            for (String choice : choices) {
+                sj.add(choice);
+            }
+            System.out.println(sj.toString());
+            chosen = this.input.nextLine().toLowerCase().trim();
+        } while (chosen == null || chosen.isBlank());
+        for (int i = 0; i < choices.size(); i++) {
+            if (chosen.equalsIgnoreCase(choices.get(i))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    @Override
     public void stepSucceeded(boolean succeeded) {
         if (succeeded) {
             System.out.println("Ok, that worked.");
@@ -44,6 +69,10 @@ public class CLIAdaptor implements CreatorAdaptor {
     public String getName() {
         Boolean valid;
         String name;
+        System.out.println("Does this creature have a name?");
+        if (!this.yesOrNo()) {
+            return null;
+        }
         do {
             System.out.print("Please type the creature's name: ");
             name = this.input.nextLine();
@@ -62,15 +91,17 @@ public class CLIAdaptor implements CreatorAdaptor {
         String factionName;
         CreatureFaction faction;
         do {
-            System.out.print("Please indicate the creature's faction (NPC/MONSTER): ");
+            System.out.print(
+                    String.format("Please indicate the creature's faction %s: ", CreatureFaction.values().toString()));
             factionName = this.input.nextLine();
             faction = CreatureFaction.getFaction(factionName);
 
             if (faction != null) {
-                System.out.print("The creature faction is: " + faction.toString() + " is this correct?");
+                System.out.print(String.format("The creature faction is: %s is this correct?", faction));
                 valid = this.yesOrNo();
             } else {
-                System.err.println("Invalid Creature faction, restarting from last prompt.");
+                System.err.println(String.format("Invalid Creature faction, restarting from last prompt. From %s",
+                        CreatureFaction.values().toString()));
                 valid = Boolean.FALSE;
             }
 
@@ -119,9 +150,11 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public EnumMap<Stats, Integer> buildStats(AttributeBlock attrs) {
+    public void buildStats(AttributeBlock attrs, EnumMap<Stats, Integer> stats) {
         Boolean valid;
-        EnumMap<Stats, Integer> stats = new EnumMap<>(Stats.class);
+        if (stats == null) {
+            stats = new EnumMap<>(Stats.class);
+        }
         do {
             int max_hp;
             int xp_worth;
@@ -158,10 +191,14 @@ public class CLIAdaptor implements CreatorAdaptor {
             valid = this.yesOrNo();
 
         } while (!valid);
-        return stats;
+        return;
     }
 
     @Override
+    /**
+     * Returns the default stats. Use {@link #buildStats(AttributeBlock, EnumMap)}
+     * if you want to build them
+     */
     public EnumMap<Stats, Integer> getStats() {
         EnumMap<Stats, Integer> stats = new EnumMap<>(Stats.class);
         ICreatureBuildInfo.setDefaultStats(stats);
@@ -228,9 +265,15 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public EnumMap<EquipmentSlots, Equipable> equipFromInventory(Inventory inventory) {
+    public void equipFromInventory(Inventory inventory, EnumMap<EquipmentSlots, Equipable> equipmentSlots) {
         String item_slot_string;
-        EnumMap<EquipmentSlots, Equipable> equipmentSlots = new EnumMap<>(EquipmentSlots.class);
+        if (equipmentSlots == null) {
+            equipmentSlots = new EnumMap<>(EquipmentSlots.class);
+        }
+        if (inventory == null) {
+            inventory = new Inventory();
+        }
+
         while (true) {
             System.out.print("Given: " + inventory.toStoreString()
                     + " \nIs there anything you would like to equip?(Item Name,slot or done) ");
@@ -257,7 +300,7 @@ public class CLIAdaptor implements CreatorAdaptor {
             }
 
         }
-        return equipmentSlots;
+        return;
     }
 
     @Override
@@ -309,9 +352,13 @@ public class CLIAdaptor implements CreatorAdaptor {
         return name;
     }
 
+    /**
+     * @deprecated prefer {@link #equipFromInventory(Inventory, EnumMap)}
+     */
+    @Deprecated(forRemoval = false)
     @Override
     public EnumMap<EquipmentSlots, Equipable> getEquipmentSlots() {
-        throw new UnsupportedOperationException("Unimplemented method 'getEquipmentSlots'");
+        return new EnumMap<>(EquipmentSlots.class);
     }
 
     private EnumSet<DamageFlavor> buildFlavors(DamgeFlavorReaction dfr) {
@@ -332,6 +379,18 @@ public class CLIAdaptor implements CreatorAdaptor {
                 System.out.println(String.format("Current: %s", flavors));
             }
         }
+    }
+
+    /**
+     * @deprecated prefer to use
+     *             {@link #equipFromInventory(Inventory, EnumMap)} because it
+     *             is
+     *             difficult to specify an effect out of nowhere.
+     */
+    @Deprecated(forRemoval = false)
+    @Override
+    public Set<CreatureEffect> getCreatureEffects() {
+        return new TreeSet<>();
     }
 
     @Override

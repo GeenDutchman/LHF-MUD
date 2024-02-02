@@ -197,6 +197,11 @@ public class Player extends Creature {
             return creatureBuilder.getName();
         }
 
+        @Override
+        public String getRawName() {
+            return creatureBuilder.getRawName();
+        }
+
         public PlayerBuildInfo setFaction(CreatureFaction faction) {
             creatureBuilder.setFaction(faction);
             return this;

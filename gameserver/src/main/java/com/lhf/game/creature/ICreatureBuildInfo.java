@@ -112,6 +112,8 @@ public interface ICreatureBuildInfo extends Serializable {
 
     }
 
+    public final static String defaultRaceName = "Creature";
+
     public String getClassName();
 
     public ICreatureBuildInfo.CreatureBuilderID getCreatureBuilderID();
@@ -133,6 +135,8 @@ public interface ICreatureBuildInfo extends Serializable {
     public EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> getDamageFlavorReactions();
 
     public String getName();
+
+    public String getRawName();
 
     public CreatureFaction getFaction();
 

@@ -266,6 +266,11 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
         return iNPCBuilder.getName();
     }
 
+    @Override
+    public String getRawName() {
+        return iNPCBuilder.getRawName();
+    }
+
     public MonsterBuildInfo setFaction(CreatureFaction faction) {
         iNPCBuilder.setFaction(faction);
         return this;

@@ -265,6 +265,11 @@ public class DungeonMaster extends NonPlayerCharacter {
             return iNPCBuilder.getName();
         }
 
+        @Override
+        public String getRawName() {
+            return iNPCBuilder.getRawName();
+        }
+
         public DungeonMasterBuildInfo setFaction(CreatureFaction faction) {
             iNPCBuilder.setFaction(faction);
             return this;

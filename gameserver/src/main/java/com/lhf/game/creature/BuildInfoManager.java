@@ -42,13 +42,31 @@ public class BuildInfoManager {
         this.logger.log(Level.CONFIG, "directory " + this.path);
     }
 
+    private String makeFileName(ICreatureBuildInfo statblock) {
+        final String race = statblock.getCreatureRace();
+        final String rawname = statblock.getRawName();
+        if (rawname == null && (race == null || ICreatureBuildInfo.defaultRaceName.equals(race))) {
+            return ICreatureBuildInfo.defaultRaceName + "." + statblock.getCreatureBuilderID().toString() + ".json";
+        } else if (rawname == null && !ICreatureBuildInfo.defaultRaceName.equals(race)) {
+            return race + ".json";
+        } else if (rawname != null && race != null) {
+            return race + "." + rawname + ".json";
+        } else if (rawname != null && race == null) {
+            return ICreatureBuildInfo.defaultRaceName + "." + rawname + ".json";
+        } else {
+            throw new IllegalStateException(
+                    String.format("IDK how you got here, but race was '%s' and rawname was '%s'", race, rawname));
+        }
+    }
+
     public Boolean statblockToFile(GsonBuilderFactory gsonBuilderFactory, ICreatureBuildInfo statblock) {
         if (gsonBuilderFactory == null) {
             gsonBuilderFactory = GsonBuilderFactory.start();
         }
         Gson gson = gsonBuilderFactory.prettyPrinting().items().creatureInfoBuilders().build();
+        final String filename = this.makeFileName(statblock);
         try (JsonWriter jWriter = gson.newJsonWriter(
-                new FileWriter(this.path.toString() + statblock.getCreatureRace() + ".json"))) {
+                new FileWriter(this.path.toString() + filename))) {
             gson.toJson(statblock, ICreatureBuildInfo.class, jWriter);
         } catch (JsonIOException | IOException e) {
             e.printStackTrace();
@@ -57,7 +75,7 @@ public class BuildInfoManager {
         String rightWritePath = this.path.replaceAll("target(.)classes", "src$1main$1resources");
         this.logger.log(Level.INFO, "Also writing to: " + rightWritePath);
         try (JsonWriter jWriter = gson.newJsonWriter(
-                new FileWriter(rightWritePath.toString() + statblock.getCreatureRace() + ".json"))) {
+                new FileWriter(rightWritePath.toString() + filename))) {
             gson.toJson(statblock, ICreatureBuildInfo.class, jWriter);
         } catch (JsonIOException | IOException e) {
             e.printStackTrace();

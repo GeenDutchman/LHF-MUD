@@ -50,7 +50,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
     protected CreatureBuildInfo() {
         this.className = this.getClass().getName();
         this.id = new CreatureBuilderID();
-        this.creatureRace = "Creature";
+        this.creatureRace = defaultRaceName;
         this.attributeBlock = new AttributeBlock();
         this.stats = new EnumMap<>(Stats.class);
         this.defaultStats();
@@ -93,7 +93,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
     }
 
     public CreatureBuildInfo setCreatureRace(String race) {
-        this.creatureRace = race != null ? new String(race) : "Creature";
+        this.creatureRace = race != null ? new String(race) : defaultRaceName;
         return this;
     }
 
@@ -282,7 +282,8 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         return this;
     }
 
-    public CreatureBuildInfo setDamageFlavorReactions(EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> other) {
+    public CreatureBuildInfo setDamageFlavorReactions(
+            EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> other) {
         if (other == null) {
             this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReaction.class);
             this.defaultFlavorReactions();
@@ -311,6 +312,11 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         if (this.name == null || name.isBlank()) {
             return NameGenerator.Generate(null);
         }
+        return this.name;
+    }
+
+    @Override
+    public String getRawName() {
         return this.name;
     }
 
@@ -368,36 +374,6 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         return this.vocationLevel;
     }
 
-    // /**
-    // * Will lazily generate a {@link com.lhf.game.creature.statblock.Statblock
-    // * Statblock} if none is provided.
-    // * <p>
-    // * If this has a vocationName set, it'll try to use the provided
-    // * {@link com.lhf.game.creature.statblock.StatblockManager StatblockManager}.
-    // * Elsewise if this has a {@link com.lhf.game.creature.vocation.Vocation
-    // * Vocation} set,
-    // * it will use the default for the Vocation.
-    // * Otherwise it'll be a plain statblock.
-    // *
-    // * @return
-    // * @throws FileNotFoundException
-    // */
-    // public Statblock loadStatblock(StatblockManager statblockManager) throws
-    // FileNotFoundException {
-    // if (this.statblock == null) {
-    // String nextname = this.getStatblockName();
-    // if (nextname != null) {
-    // this.setStatblock(statblockManager.statblockFromfile(nextname));
-    // } else if (this.vocation != null) {
-    // this.setStatblock(this.vocation.createNewDefaultStatblock("creature").build());
-    // } else {
-    // this.setStatblock(Statblock.getBuilder().build());
-    // }
-    // }
-
-    // return this.statblock;
-    // }
-
     public CreatureBuildInfo setCorpse(Corpse corpse) {
         if (corpse != null) {
             ItemContainer.transfer(corpse, this.inventory, null, true);
@@ -443,6 +419,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
     public String toString() {
         StringBuilder sb = new StringBuilder(this.id.toString());
         sb.append(this.getClass().getSimpleName()).append(" with the following characteristics: \r\n");
+        sb.append("With race: ").append(this.creatureRace).append("\r\n");
         if (this.name == null) {
             sb.append("Name will be generated.\r\n");
         } else {
@@ -455,7 +432,16 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
             }
             sb.append(".\r\n");
         }
-        // TODO: list off additional attributes
+        if (this.attributeBlock != null) {
+            sb.append("With attributes like:").append(this.attributeBlock.toString()).append("\r\n");
+        }
+        if (this.stats != null && !this.stats.isEmpty()) {
+            sb.append("And stats like:").append(this.stats).append("\r\n");
+        }
+        if (this.inventory != null && !this.inventory.isEmpty()) {
+            sb.append("Inventory contains:").append(this.inventory);
+        }
+        sb.append("And equipment:").append(this.equipmentSlotsToString()).append("\r\n");
         return sb.toString();
     }
 

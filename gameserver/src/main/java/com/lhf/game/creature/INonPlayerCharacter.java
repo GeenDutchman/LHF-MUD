@@ -545,6 +545,11 @@ public interface INonPlayerCharacter extends ICreature {
             return creatureBuilder.getName();
         }
 
+        @Override
+        public String getRawName() {
+            return creatureBuilder.getRawName();
+        }
+
         public INPCBuildInfo setFaction(CreatureFaction faction) {
             creatureBuilder.setFaction(faction);
             return this;
