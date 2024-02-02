@@ -4,7 +4,7 @@
     "className": "com.lhf.game.creature.INonPlayerCharacter$INPCBuildInfo",
     "creatureBuilder": {
       "className": "com.lhf.game.creature.CreatureBuildInfo",
-      "id": "b5b89061-cc33-4e31-a7ea-fc367d3a0f28",
+      "id": "5ff6834e-c88e-4851-98fe-f7558c548a93",
       "creatureRace": "hobgoblin",
       "attributeBlock": {
         "strength": {
@@ -44,7 +44,7 @@
         "XPEARNED": 0,
         "XPWORTH": 100,
         "PROFICIENCYBONUS": 0,
-        "AC": 13
+        "AC": 18
       },
       "proficiencies": [
         "HEAVYARMOR",
@@ -86,7 +86,7 @@
               },
               "onTickEvent": {},
               "className": "com.lhf.game.creature.CreatureEffectSource",
-              "name": "AC Boost",
+              "name": "Chain AC Boost",
               "persistence": {
                 "count": -1,
                 "tickSize": "CONDITIONAL"
@@ -97,7 +97,7 @@
           "numCanUseTimes": -1,
           "useLeftCount": -1,
           "itemID": {
-            "id": "74dd56d7-ee08-4178-a89a-b2c50652af6e"
+            "id": "addd97d4-3444-492a-8551-df58bf55298c"
           },
           "className": "com.lhf.game.item.concrete.equipment.ChainMail",
           "objectName": "Chain Mail",
@@ -134,7 +134,7 @@
               },
               "onTickEvent": {},
               "className": "com.lhf.game.creature.CreatureEffectSource",
-              "name": "AC Boost",
+              "name": "Shield AC Boost",
               "persistence": {
                 "count": -1,
                 "tickSize": "CONDITIONAL"
@@ -145,7 +145,7 @@
           "numCanUseTimes": -1,
           "useLeftCount": -1,
           "itemID": {
-            "id": "f3c44947-4f56-4721-92e0-0d1d0ff69b01"
+            "id": "0d7a0d24-f132-431f-b60a-70185afa1737"
           },
           "className": "com.lhf.game.item.concrete.equipment.Shield",
           "objectName": "Shield",
@@ -199,7 +199,7 @@
           "numCanUseTimes": -1,
           "useLeftCount": -1,
           "itemID": {
-            "id": "7793a747-4fce-47f3-925f-f18369b2b02d"
+            "id": "e4346db8-a5e6-446f-9817-499ad32eecb5"
           },
           "className": "com.lhf.game.item.concrete.equipment.Longsword",
           "objectName": "Longsword",
@@ -208,6 +208,48 @@
         }
       },
       "effects": [
+        {
+          "tickDamageResult": {},
+          "className": "com.lhf.game.creature.CreatureEffect",
+          "source": {
+            "onApplication": {
+              "statChanges": {
+                "AC": 5
+              },
+              "attributeScoreChanges": {},
+              "attributeBonusChanges": {},
+              "damages": [],
+              "restoreFaction": false
+            },
+            "onRemoval": {
+              "statChanges": {
+                "AC": -5
+              },
+              "attributeScoreChanges": {},
+              "attributeBonusChanges": {},
+              "damages": [],
+              "restoreFaction": false
+            },
+            "onTickEvent": {},
+            "className": "com.lhf.game.creature.CreatureEffectSource",
+            "name": "Chain AC Boost",
+            "persistence": {
+              "count": -1,
+              "tickSize": "CONDITIONAL"
+            },
+            "description": "Wearing armor makes you harder to hit"
+          },
+          "generatedBy": {
+            "startTag": "\u003ctakeable\u003e",
+            "endTag": "\u003c/takeable\u003e",
+            "contents": "Chain Mail"
+          },
+          "ticker": {
+            "count": -1,
+            "tickSize": "CONDITIONAL",
+            "countdown": -1
+          }
+        },
         {
           "tickDamageResult": {},
           "className": "com.lhf.game.creature.CreatureEffect",
@@ -232,7 +274,7 @@
             },
             "onTickEvent": {},
             "className": "com.lhf.game.creature.CreatureEffectSource",
-            "name": "AC Boost",
+            "name": "Shield AC Boost",
             "persistence": {
               "count": -1,
               "tickSize": "CONDITIONAL"
@@ -245,6 +287,8 @@
             "contents": "Shield"
           },
           "ticker": {
+            "count": -1,
+            "tickSize": "CONDITIONAL",
             "countdown": -1
           }
         }
@@ -261,9 +305,9 @@
       },
       "faction": "MONSTER"
     },
-    "id": "992559f9-5eb8-4605-b0da-de594ef2c8d4",
+    "id": "290a5a12-8393-4db2-82d6-f304fd559cf7",
     "aiHandlers": [],
     "summonState": []
   },
-  "id": "6ac35ad8-1b55-4851-bf82-e59a099ec669"
+  "id": "e0014cf6-e65f-4f01-8273-5a2e7dac7865"
 }

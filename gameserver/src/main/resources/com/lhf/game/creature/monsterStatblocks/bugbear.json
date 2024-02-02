@@ -4,7 +4,7 @@
     "className": "com.lhf.game.creature.INonPlayerCharacter$INPCBuildInfo",
     "creatureBuilder": {
       "className": "com.lhf.game.creature.CreatureBuildInfo",
-      "id": "0689cf47-5243-43ad-b0be-c4f5e9fa03e1",
+      "id": "beb97d3b-8f75-429f-a6bf-ae9b036ba6c1",
       "creatureRace": "bugbear",
       "attributeBlock": {
         "strength": {
@@ -44,7 +44,7 @@
         "XPEARNED": 0,
         "XPWORTH": 201,
         "PROFICIENCYBONUS": 0,
-        "AC": 14
+        "AC": 16
       },
       "proficiencies": [
         "LIGHTARMOR",
@@ -86,7 +86,7 @@
               },
               "onTickEvent": {},
               "className": "com.lhf.game.creature.CreatureEffectSource",
-              "name": "AC Boost",
+              "name": "Armor AC Boost",
               "persistence": {
                 "count": -1,
                 "tickSize": "CONDITIONAL"
@@ -97,7 +97,7 @@
           "numCanUseTimes": -1,
           "useLeftCount": -1,
           "itemID": {
-            "id": "207cf676-c2a1-43d7-b655-a0b1d30ba6da"
+            "id": "134b80f9-3680-4b8b-b73f-797e0cfa7206"
           },
           "className": "com.lhf.game.item.concrete.equipment.LeatherArmor",
           "objectName": "Leather Armor",
@@ -134,7 +134,7 @@
               },
               "onTickEvent": {},
               "className": "com.lhf.game.creature.CreatureEffectSource",
-              "name": "AC Boost",
+              "name": "Shield AC Boost",
               "persistence": {
                 "count": -1,
                 "tickSize": "CONDITIONAL"
@@ -145,7 +145,7 @@
           "numCanUseTimes": -1,
           "useLeftCount": -1,
           "itemID": {
-            "id": "f43c9131-3245-433a-877c-45c83618e397"
+            "id": "c5483ceb-c334-46a3-a3ca-9b5e857899a1"
           },
           "className": "com.lhf.game.item.concrete.equipment.Shield",
           "objectName": "Shield",
@@ -199,7 +199,7 @@
           "numCanUseTimes": -1,
           "useLeftCount": -1,
           "itemID": {
-            "id": "c601e11c-ce6f-4c08-8794-b460051f1264"
+            "id": "9493ef62-7190-4776-95b6-ed68b8e1de88"
           },
           "className": "com.lhf.game.item.concrete.equipment.BossClub",
           "objectName": "Boss Club",
@@ -232,7 +232,49 @@
             },
             "onTickEvent": {},
             "className": "com.lhf.game.creature.CreatureEffectSource",
-            "name": "AC Boost",
+            "name": "Armor AC Boost",
+            "persistence": {
+              "count": -1,
+              "tickSize": "CONDITIONAL"
+            },
+            "description": "Wearing armor makes you harder to hit"
+          },
+          "generatedBy": {
+            "startTag": "\u003ctakeable\u003e",
+            "endTag": "\u003c/takeable\u003e",
+            "contents": "Leather Armor"
+          },
+          "ticker": {
+            "count": -1,
+            "tickSize": "CONDITIONAL",
+            "countdown": -1
+          }
+        },
+        {
+          "tickDamageResult": {},
+          "className": "com.lhf.game.creature.CreatureEffect",
+          "source": {
+            "onApplication": {
+              "statChanges": {
+                "AC": 2
+              },
+              "attributeScoreChanges": {},
+              "attributeBonusChanges": {},
+              "damages": [],
+              "restoreFaction": false
+            },
+            "onRemoval": {
+              "statChanges": {
+                "AC": -2
+              },
+              "attributeScoreChanges": {},
+              "attributeBonusChanges": {},
+              "damages": [],
+              "restoreFaction": false
+            },
+            "onTickEvent": {},
+            "className": "com.lhf.game.creature.CreatureEffectSource",
+            "name": "Shield AC Boost",
             "persistence": {
               "count": -1,
               "tickSize": "CONDITIONAL"
@@ -245,6 +287,8 @@
             "contents": "Shield"
           },
           "ticker": {
+            "count": -1,
+            "tickSize": "CONDITIONAL",
             "countdown": -1
           }
         }
@@ -261,9 +305,9 @@
       },
       "faction": "MONSTER"
     },
-    "id": "c615bcc7-311a-4a8e-9764-935fc56ad7e1",
+    "id": "44dbe644-06dd-4371-adc1-05521629eff2",
     "aiHandlers": [],
     "summonState": []
   },
-  "id": "73fbed3f-d18e-457c-87aa-83a2524a5343"
+  "id": "08fd2505-ac1a-4318-a596-7dbf55e47997"
 }

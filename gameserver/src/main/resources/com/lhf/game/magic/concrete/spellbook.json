@@ -124,84 +124,147 @@
     "effectSources": [
       {
         "monsterToSummon": {
-          "className": "com.lhf.game.creature.IMonster$IMonsterBuildInfo",
+          "className": "com.lhf.game.creature.MonsterBuildInfo",
           "iNPCBuilder": {
             "className": "com.lhf.game.creature.INonPlayerCharacter$INPCBuildInfo",
             "creatureBuilder": {
               "className": "com.lhf.game.creature.CreatureBuildInfo",
-              "id": "3253b0d4-f3f2-434e-89f1-c50e2d78fef8",
+              "id": "6b6668e2-ff0d-4e13-b4ed-556c0d2f35de",
+              "creatureRace": "Wisp",
+              "attributeBlock": {
+                "strength": {
+                  "score": 1,
+                  "scoreBonus": 0,
+                  "modBonus": 0
+                },
+                "dexterity": {
+                  "score": 12,
+                  "scoreBonus": 0,
+                  "modBonus": 0
+                },
+                "constitution": {
+                  "score": 1,
+                  "scoreBonus": 0,
+                  "modBonus": 0
+                },
+                "intelligence": {
+                  "score": 16,
+                  "scoreBonus": 0,
+                  "modBonus": 0
+                },
+                "wisdom": {
+                  "score": 10,
+                  "scoreBonus": 0,
+                  "modBonus": 0
+                },
+                "charisma": {
+                  "score": 16,
+                  "scoreBonus": 0,
+                  "modBonus": 0
+                }
+              },
+              "stats": {
+                "MAXHP": 9,
+                "CURRENTHP": 9,
+                "XPWORTH": 500,
+                "AC": 11
+              },
+              "proficiencies": [
+                "LIGHTARMOR",
+                "SIMPLEMELEEWEAPONS"
+              ],
+              "inventory": {
+                "items": [
+                  {
+                    "AC": 2,
+                    "types": [
+                      "LIGHTARMOR",
+                      "LEATHER"
+                    ],
+                    "slots": [
+                      "ARMOR"
+                    ],
+                    "equipEffects": [
+                      {
+                        "onApplication": {
+                          "statChanges": {
+                            "AC": 2
+                          },
+                          "attributeScoreChanges": {},
+                          "attributeBonusChanges": {},
+                          "damages": [],
+                          "restoreFaction": false
+                        },
+                        "onRemoval": {
+                          "statChanges": {
+                            "AC": -2
+                          },
+                          "attributeScoreChanges": {},
+                          "attributeBonusChanges": {},
+                          "damages": [],
+                          "restoreFaction": false
+                        },
+                        "onTickEvent": {},
+                        "className": "com.lhf.game.creature.CreatureEffectSource",
+                        "name": "Armor AC Boost",
+                        "persistence": {
+                          "count": -1,
+                          "tickSize": "CONDITIONAL"
+                        },
+                        "description": "Wearing armor makes you harder to hit"
+                      }
+                    ],
+                    "numCanUseTimes": -1,
+                    "useLeftCount": -1,
+                    "itemID": {
+                      "id": "348ca034-edd9-45b3-acf0-82f610ca02e9"
+                    },
+                    "className": "com.lhf.game.item.concrete.equipment.LeatherArmor",
+                    "objectName": "Leather Armor",
+                    "visible": true,
+                    "descriptionString": "This is some simple leather armor. There is only a little blood on it...\n"
+                  },
+                  {
+                    "healtype": "Regular",
+                    "numCanUseTimes": 1,
+                    "useLeftCount": 1,
+                    "itemID": {
+                      "id": "be087637-4fbb-49c8-9995-d94381b09fd3"
+                    },
+                    "className": "com.lhf.game.item.concrete.HealPotion",
+                    "objectName": "Regular Potion of Healing",
+                    "visible": true,
+                    "descriptionString": "Regular Potion of Healing"
+                  }
+                ]
+              },
+              "equipmentSlots": {},
+              "effects": [],
+              "damageFlavorReactions": {
+                "WEAKNESSES": [
+                  "PSYCHIC"
+                ],
+                "RESISTANCES": [],
+                "IMMUNITIES": [
+                  "LIGHTNING",
+                  "AGGRO"
+                ],
+                "CURATIVES": [
+                  "HEALING"
+                ]
+              },
               "faction": "MONSTER",
               "vocation": "MAGE",
-              "vocationLevel": 1,
-              "statblockName": "Wisp",
-              "statblock": {
-                "creatureRace": "Wisp",
-                "attributes": {
-                  "strength": {
-                    "score": 1,
-                    "scoreBonus": 0,
-                    "modBonus": 0
-                  },
-                  "dexterity": {
-                    "score": 12,
-                    "scoreBonus": 0,
-                    "modBonus": 0
-                  },
-                  "constitution": {
-                    "score": 1,
-                    "scoreBonus": 0,
-                    "modBonus": 0
-                  },
-                  "intelligence": {
-                    "score": 16,
-                    "scoreBonus": 0,
-                    "modBonus": 0
-                  },
-                  "wisdom": {
-                    "score": 10,
-                    "scoreBonus": 0,
-                    "modBonus": 0
-                  },
-                  "charisma": {
-                    "score": 16,
-                    "scoreBonus": 0,
-                    "modBonus": 0
-                  }
-                },
-                "stats": {
-                  "MAXHP": 12,
-                  "CURRENTHP": 12,
-                  "XPWORTH": 500,
-                  "AC": 11
-                },
-                "proficiencies": [],
-                "inventory": {
-                  "items": []
-                },
-                "equipmentSlots": {},
-                "damageFlavorReactions": {
-                  "WEAKNESSES": [
-                    "PSYCHIC"
-                  ],
-                  "RESISTANCES": [],
-                  "IMMUNITIES": [
-                    "LIGHTNING",
-                    "AGGRO"
-                  ],
-                  "CURATIVES": [
-                    "HEALING"
-                  ]
-                }
-              }
+              "vocationLevel": 1
             },
-            "id": "d05a3cfc-9d33-4446-b920-b0246b32e38e",
+            "id": "bdf4884f-897c-42a3-809b-a8e599485598",
             "aiHandlers": [],
             "summonState": [
               "LIFELINE_SUMMON",
               "SYMPATHETIC_SUMMON"
             ]
           },
-          "id": "ec6dfc14-d835-4747-b1ba-0e3f3080e920"
+          "id": "ba887dde-ed52-404b-afbb-2926d03d825b"
         },
         "className": "com.lhf.game.map.RoomEffectSource",
         "name": "Summon Electric Wisp",
