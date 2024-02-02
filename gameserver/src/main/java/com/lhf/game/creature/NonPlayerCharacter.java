@@ -21,7 +21,7 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     }
 
     private ConversationTree convoTree = null;
-    private transient final HarmMemories harmMemories = HarmMemories.makeMemories(this);
+    private transient final HarmMemories harmMemories;
     private String leaderName;
 
     protected NonPlayerCharacter(INonPlayerCharacterBuildInfo builder,
@@ -30,6 +30,7 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
         super(builder, controller, successor);
         this.convoTree = conversationTree;
         this.leaderName = builder.getLeaderName();
+        this.harmMemories = HarmMemories.makeMemories(this);
     }
 
     @Override
@@ -93,7 +94,10 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     @Override
     public CreatureAffectedEvent processEffect(CreatureEffect effect) {
         CreatureAffectedEvent cam = super.processEffect(effect);
-        this.getHarmMemories().update(cam);
+        final HarmMemories memories = this.getHarmMemories();
+        if (memories != null) {
+            memories.update(cam);
+        }
         return cam;
     }
 
