@@ -87,7 +87,7 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
     }
 
     public Ticker getTicker() {
-        return new Ticker(this.count);
+        return new Ticker(this.count, this.tickSize);
     }
 
     @Override
