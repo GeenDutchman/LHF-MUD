@@ -17,8 +17,7 @@ import com.lhf.game.item.Equipable;
 
 public class CreatureCreator {
 
-    // private static final BuildInfoManager loader_unloader = new
-    // BuildInfoManager();
+    private static final BuildInfoManager loader_unloader = new BuildInfoManager();
 
     public interface CreatorAdaptor extends Closeable, ICreatureBuildInfo {
         public int menuChoice(List<String> choices);
@@ -97,6 +96,7 @@ public class CreatureCreator {
     public static void main(String[] args) {
         CLIAdaptor cliAdaptor = new CLIAdaptor();
         int menuChoice = -1;
+        ICreatureBuildInfo buildinfo = null;
         do {
             menuChoice = cliAdaptor.menuChoice(List.of("Quit", "Make Monster", "Make NPC", "Make DM"));
             switch (menuChoice) {
@@ -104,18 +104,27 @@ public class CreatureCreator {
                     System.out.println("Goodbye!");
                     return;
                 case 1:
-                    CreatureCreator.makeMonsterFromStatblock(cliAdaptor);
+                    buildinfo = CreatureCreator.makeMonsterFromStatblock(cliAdaptor);
                     break;
                 case 2:
-                    CreatureCreator.makeNPC(cliAdaptor);
+                    buildinfo = CreatureCreator.makeNPC(cliAdaptor);
                     break;
                 case 3:
-                    CreatureCreator.makeDM(cliAdaptor);
+                    buildinfo = CreatureCreator.makeDM(cliAdaptor);
                     break;
                 default:
                     System.out.println("That choice is not recognized, try again!");
-                    break;
+                    continue;
             }
+            if (menuChoice > 0 && menuChoice <= 3) {
+                Boolean written = loader_unloader.statblockToFile(null, buildinfo);
+                if (written) {
+                    System.out.println("Successfully wrote file");
+                } else {
+                    System.err.println("Error writing file");
+                }
+            }
+            System.out.println("Continuing to menu....");
         } while (menuChoice < 0);
     }
 }

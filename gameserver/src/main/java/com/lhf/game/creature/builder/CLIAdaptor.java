@@ -85,6 +85,26 @@ public class CLIAdaptor implements CreatorAdaptor {
         return name;
     }
 
+    /**
+     * @deprecated Prefer {@link #getName()}
+     */
+    @Deprecated(forRemoval = false)
+    @Override
+    public String getRawName() {
+        Boolean valid;
+        String name;
+        do {
+            System.out.print("Please type the creature's name: ");
+            name = this.input.nextLine();
+
+            System.out.print("The name is: " + name + " is this correct?");
+
+            valid = this.yesOrNo();
+
+        } while (!valid);
+        return name;
+    }
+
     @Override
     public CreatureFaction getFaction() {
         Boolean valid;
