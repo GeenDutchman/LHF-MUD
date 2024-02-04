@@ -6,6 +6,7 @@ import java.util.StringJoiner;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.Taggable;
+import com.lhf.Taggable.BasicTaggable;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
@@ -14,13 +15,15 @@ import com.lhf.messages.GameEventType;
 
 public class CreatureAffectedEvent extends GameEvent {
     private final ICreature affected;
-    private final CreatureEffect creatureEffect;
+    private final transient ICreature creatureResponsible;
+    private final BasicTaggable generatedBy;
     private final Deltas highlightedDelta;
     private final MultiRollResult damages;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private ICreature affected;
-        private CreatureEffect creatureEffect;
+        private ICreature creatureResponsible;
+        private Taggable generatedBy;
         private Deltas highlightedDelta;
         private MultiRollResult damages;
 
@@ -37,12 +40,42 @@ public class CreatureAffectedEvent extends GameEvent {
             return this;
         }
 
-        public CreatureEffect getCreatureEffect() {
-            return this.creatureEffect;
+        /**
+         * Pulls data from the effect, defaults to application deltas
+         * 
+         * Prefer the piecemeal {@link #setCreatureResponsible(ICreature)},
+         * {@link #setGeneratedBy(Taggable)},
+         * {@link #setDamages(MultiRollResult)} and
+         * {@link #setHighlightedDelta(Deltas)}
+         * 
+         * @param effect
+         * @return
+         */
+        public Builder fromCreatureEffect(CreatureEffect effect) {
+            if (effect != null) {
+                this.setCreatureResponsible(effect.creatureResponsible())
+                        .setGeneratedBy(effect.getGeneratedBy())
+                        .setHighlightedDelta(effect.getApplicationDeltas())
+                        .setDamages(effect.getApplicationDamageResult());
+            }
+            return this;
         }
 
-        public Builder setEffect(CreatureEffect effect) {
-            this.creatureEffect = effect;
+        public ICreature getCreatureResponsible() {
+            return creatureResponsible;
+        }
+
+        public Builder setCreatureResponsible(ICreature creatureResponsible) {
+            this.creatureResponsible = creatureResponsible;
+            return this;
+        }
+
+        public BasicTaggable getGeneratedBy() {
+            return Taggable.basicTaggable(this.generatedBy);
+        }
+
+        public Builder setGeneratedBy(Taggable generatedBy) {
+            this.generatedBy = generatedBy;
             return this;
         }
 
@@ -56,7 +89,8 @@ public class CreatureAffectedEvent extends GameEvent {
         }
 
         public MultiRollResult getDamages() {
-            return damages;
+            return damages != null ? damages
+                    : (this.highlightedDelta != null ? this.highlightedDelta.rollDamages() : this.damages);
         }
 
         public Builder setDamages(MultiRollResult damages) {
@@ -83,7 +117,8 @@ public class CreatureAffectedEvent extends GameEvent {
     public CreatureAffectedEvent(Builder builder) {
         super(builder);
         this.affected = builder.getAffected();
-        this.creatureEffect = builder.getCreatureEffect();
+        this.creatureResponsible = builder.getCreatureResponsible();
+        this.generatedBy = builder.getGeneratedBy();
         this.highlightedDelta = builder.getHighlightedDelta();
         this.damages = builder.getDamages();
     }
@@ -96,20 +131,19 @@ public class CreatureAffectedEvent extends GameEvent {
         return affected;
     }
 
-    protected CreatureEffect getCreatureEffect() {
-        return this.creatureEffect;
-    }
-
     public boolean isOffensive() {
-        return this.creatureEffect != null ? this.creatureEffect.isOffensive() : false;
+        if (this.highlightedDelta != null) {
+            return this.highlightedDelta.isOffensive();
+        }
+        return false;
     }
 
     public ICreature getCreatureResponsible() {
-        return this.creatureEffect != null ? this.creatureEffect.creatureResponsible() : null;
+        return this.creatureResponsible;
     }
 
     public Taggable getGeneratedBy() {
-        return this.creatureEffect != null ? this.creatureEffect.getGeneratedBy() : null;
+        return this.generatedBy;
     }
 
     public Deltas getHighlightedDelta() {

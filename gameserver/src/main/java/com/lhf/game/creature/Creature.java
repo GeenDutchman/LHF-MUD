@@ -305,7 +305,7 @@ public abstract class Creature implements ICreature {
     @Override
     public CreatureAffectedEvent.Builder processEffectDelta(CreatureEffect creatureEffect, Deltas deltas) {
         CreatureAffectedEvent.Builder builder = CreatureAffectedEvent.getBuilder().setAffected(this)
-                .setHighlightedDelta(deltas).setEffect(creatureEffect);
+                .setHighlightedDelta(deltas).fromCreatureEffect(creatureEffect);
         if (deltas == null) {
             return builder;
         }
