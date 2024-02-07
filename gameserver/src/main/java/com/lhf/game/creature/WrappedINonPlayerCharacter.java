@@ -1,7 +1,6 @@
 package com.lhf.game.creature;
 
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -158,11 +157,6 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public void setInventory(Inventory inventory) {
-        wrapped.setInventory(inventory);
-    }
-
-    @Override
     public final CommandChainHandler getSuccessor() {
         return this.successor;
     }
@@ -190,11 +184,6 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     @Override
     public Map<EquipmentSlots, Equipable> getEquipmentSlots() {
         return wrapped.getEquipmentSlots();
-    }
-
-    @Override
-    public void setEquipmentSlots(EnumMap<EquipmentSlots, Equipable> equipmentSlots) {
-        wrapped.setEquipmentSlots(equipmentSlots);
     }
 
     @Override
@@ -348,12 +337,6 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    @Deprecated
-    public void setAttributes(AttributeBlock attributes) {
-        wrapped.setAttributes(attributes);
-    }
-
-    @Override
     public MultiRollResult check(Attributes attribute) {
         return INonPlayerCharacter.super.check(attribute);
     }
@@ -366,11 +349,6 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     @Override
     public Map<Stats, Integer> getStats() {
         return wrapped.getStats();
-    }
-
-    @Override
-    public void setStats(EnumMap<Stats, Integer> stats) {
-        wrapped.setStats(stats);
     }
 
     @Override
@@ -444,11 +422,6 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public void setProficiencies(EnumSet<EquipmentTypes> proficiences) {
-        wrapped.setProficiencies(proficiences);
-    }
-
-    @Override
     public final EnumSet<SubAreaSort> getSubAreaSorts() {
         return wrapped.getSubAreaSorts();
     }
@@ -481,11 +454,6 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     @Override
     public String getCreatureRace() {
         return wrapped.getCreatureRace();
-    }
-
-    @Override
-    public void setCreatureRace(String creatureRace) {
-        wrapped.setCreatureRace(creatureRace);
     }
 
     @Override

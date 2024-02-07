@@ -27,7 +27,6 @@ import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.ItemPartitionCollectionVisitor;
@@ -129,17 +128,16 @@ public interface Area
         public abstract Collection<ISubAreaBuildInfo> getSubAreasToBuild();
 
         public default Area quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
-            return this.build(successor, land, aiRunner, null, null, true, true);
+            return this.build(successor, land, aiRunner, null, true);
         }
 
         public abstract Area build(CommandChainHandler successor, Land land, AIRunner aiRunner,
-                StatblockManager statblockManager, ConversationManager conversationManager,
-                boolean fallbackNoConversation,
-                boolean fallbackDefaultStatblock);
+                ConversationManager conversationManager,
+                boolean fallbackNoConversation);
 
-        public default Area build(Land land, AIRunner aiRunner, StatblockManager statblockManager,
+        public default Area build(Land land, AIRunner aiRunner,
                 ConversationManager conversationManager) {
-            return this.build(land, land, aiRunner, statblockManager, conversationManager, true, true);
+            return this.build(land, land, aiRunner, conversationManager, true);
         }
     }
 

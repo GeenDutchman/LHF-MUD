@@ -31,7 +31,6 @@ import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.SilencedHandler;
 import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.item.AItem;
 import com.lhf.game.item.IItem;
@@ -156,9 +155,8 @@ public class DMRoom extends Room {
         }
 
         private List<Land> buildLands(AIRunner aiRunner, DMRoom dmRoom, Game game,
-                StatblockManager statblockManager, ConversationManager conversationManager,
-                boolean fallbackNoConversation,
-                boolean fallbackDefaultStatblock) {
+                ConversationManager conversationManager,
+                boolean fallbackNoConversation) {
             List<Land.LandBuilder> toBuild = this.getLandBuilders();
             if (toBuild == null) {
                 return List.of();
@@ -168,29 +166,26 @@ public class DMRoom extends Room {
                 if (builder == null) {
                     continue;
                 }
-                built.add(builder.build(game, aiRunner, statblockManager, conversationManager, fallbackNoConversation,
-                        fallbackDefaultStatblock));
+                built.add(builder.build(game, aiRunner, conversationManager, fallbackNoConversation));
             }
             return Collections.unmodifiableList(built);
         }
 
         @Override
         public DMRoom build(CommandChainHandler successor, Land land, AIRunner aiRunner,
-                StatblockManager statblockManager, ConversationManager conversationManager,
-                boolean fallbackNoConversation,
-                boolean fallbackDefaultStatblock) {
+                ConversationManager conversationManager,
+                boolean fallbackNoConversation) {
             this.logger.log(Level.INFO, () -> String.format("Building DM room '%s'", this.getName()));
             return DMRoom.fromBuilder(this, () -> land, () -> successor, () -> (room) -> {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.delegate.buildCreatures(aiRunner, room,
-                        statblockManager,
-                        conversationManager, fallbackNoConversation, fallbackDefaultStatblock);
+                        conversationManager, fallbackNoConversation);
                 room.addCreatures(creaturesBuilt, false);
                 for (final ISubAreaBuildInfo subAreaBuilder : this.getSubAreasToBuild()) {
                     room.addSubArea(subAreaBuilder);
                 }
             }, () -> (dmRoom) -> {
-                final List<Land> landsBuilt = this.buildLands(aiRunner, dmRoom, null, statblockManager,
-                        conversationManager, fallbackNoConversation, fallbackDefaultStatblock);
+                final List<Land> landsBuilt = this.buildLands(aiRunner, dmRoom, null,
+                        conversationManager, fallbackNoConversation);
                 for (Land toAdd : landsBuilt) {
                     dmRoom.addLand(toAdd);
                 }
@@ -199,16 +194,16 @@ public class DMRoom extends Room {
 
         @Override
         public DMRoom quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
-            return this.build(successor, land, aiRunner, null, null, true, true);
+            return this.build(successor, land, aiRunner, null, true);
         }
 
         @Override
-        public DMRoom build(Land land, AIRunner aiRunner, StatblockManager statblockManager,
+        public DMRoom build(Land land, AIRunner aiRunner,
                 ConversationManager conversationManager) {
-            return this.build(land, land, aiRunner, statblockManager, conversationManager, true, true);
+            return this.build(land, land, aiRunner, conversationManager, true);
         }
 
-        public static DMRoomBuilder buildDefault(AIRunner aiRunner, StatblockManager statblockManager,
+        public static DMRoomBuilder buildDefault(AIRunner aiRunner,
                 ConversationManager conversationManager)
                 throws FileNotFoundException {
             DMRoomBuilder builder = DMRoomBuilder.getInstance();
@@ -316,7 +311,7 @@ public class DMRoom extends Room {
         if (this.filterCreatures(EnumSet.of(CreatureContainer.CreatureFilters.TYPE), null, null, null, null,
                 DungeonMaster.class, null).size() < 2) {
             this.log(Level.INFO, () -> "Conditions met to create and add Player automatically");
-            CreatureFactory factory = new CreatureFactory(this, null, null, null, true, true);
+            CreatureFactory factory = new CreatureFactory(this, null, null, true);
             factory.visit(Player.getPlayerBuilder(user));
             return this.addNewPlayer(factory.getBuiltCreatures().getPlayers().first());
         }
@@ -399,7 +394,7 @@ public class DMRoom extends Room {
                 }
                 Corpse corpse = (Corpse) maybeCorpse.get();
                 this.removeItem(corpse);
-                CreatureFactory factory = new CreatureFactory(this, null, null, null, true, true);
+                CreatureFactory factory = new CreatureFactory(this, null, null, true);
                 factory.visit(Player.getPlayerBuilder(user).setVocation(dmRoomEffect.getVocation()).setCorpse(corpse));
                 this.addNewPlayer(factory.getBuiltCreatures().getPlayers().first());
             }

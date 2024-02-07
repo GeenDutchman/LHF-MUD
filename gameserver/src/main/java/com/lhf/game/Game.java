@@ -1,6 +1,7 @@
 package com.lhf.game;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,10 +15,12 @@ import java.util.logging.Logger;
 
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.Player;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import com.lhf.game.creature.BuildInfoManager;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.magic.ThirdPower;
@@ -48,7 +51,7 @@ public class Game implements UserListener, CommandChainHandler {
 	private DMRoom controlRoom;
 	private final AIRunner aiRunner;
 	private final ConversationManager conversationManager;
-	private final StatblockManager statblockManager;
+	private final BuildInfoManager statblockManager;
 	private Map<AMessageType, CommandHandler> commands;
 	private final GameEventProcessorID gameEventProcessorID;
 
@@ -57,7 +60,7 @@ public class Game implements UserListener, CommandChainHandler {
 		private ThirdPower thirdPower;
 		private AIRunner aiRunner;
 		private ConversationManager conversationManager;
-		private StatblockManager statblockManager;
+		private BuildInfoManager statblockManager;
 		private DMRoomBuilder dmRoomBuilder;
 		private ArrayList<Land.LandBuilder> additionalLands;
 
@@ -96,9 +99,9 @@ public class Game implements UserListener, CommandChainHandler {
 			return conversationManager;
 		}
 
-		public StatblockManager getStatblockManager() {
+		public BuildInfoManager getStatblockManager() {
 			if (this.statblockManager == null) {
-				this.statblockManager = new StatblockManager();
+				this.statblockManager = new BuildInfoManager();
 			}
 			return statblockManager;
 		}
@@ -111,11 +114,11 @@ public class Game implements UserListener, CommandChainHandler {
 			return additionalLands;
 		}
 
-		public GameBuilder setDefaults() throws FileNotFoundException {
+		public GameBuilder setDefaults() throws JsonIOException, JsonSyntaxException, IOException {
 			this.thirdPower = new ThirdPower(null, null);
 			this.aiRunner = new GroupAIRunner(true);
 			this.conversationManager = new ConversationManager();
-			this.statblockManager = new StatblockManager();
+			this.statblockManager = new BuildInfoManager();
 			this.additionalLands.add(0, StandardDungeonProducer.buildStaticDungeonBuilder(statblockManager));
 			return this;
 		}
@@ -140,7 +143,7 @@ public class Game implements UserListener, CommandChainHandler {
 			return this;
 		}
 
-		public GameBuilder setStatblockManager(StatblockManager statblockManager) {
+		public GameBuilder setStatblockManager(BuildInfoManager statblockManager) {
 			this.statblockManager = statblockManager;
 			return this;
 		}
@@ -180,11 +183,10 @@ public class Game implements UserListener, CommandChainHandler {
 		this.statblockManager = builder.getStatblockManager();
 		DMRoom.DMRoomBuilder dmRoomBuilder = builder.getDmRoomBuilder();
 		if (dmRoomBuilder == null) {
-			dmRoomBuilder = DMRoom.DMRoomBuilder.buildDefault(aiRunner, statblockManager, conversationManager);
+			dmRoomBuilder = DMRoom.DMRoomBuilder.buildDefault(aiRunner, conversationManager);
 		}
 
-		this.controlRoom = dmRoomBuilder.build(this.thirdPower, null, aiRunner, statblockManager,
-				conversationManager, false, false);
+		this.controlRoom = dmRoomBuilder.build(this.thirdPower, null, aiRunner, conversationManager, false);
 		this.controlRoom.setSuccessor(this.thirdPower);
 		ArrayList<LandBuilder> moreLands = builder.getAdditionalLands();
 		if (moreLands != null) {
@@ -193,8 +195,7 @@ public class Game implements UserListener, CommandChainHandler {
 					continue;
 				}
 				this.controlRoom.addLand(
-						landBuilder.build(this.thirdPower, aiRunner, statblockManager, conversationManager, false,
-								false));
+						landBuilder.build(this.thirdPower, aiRunner, conversationManager, false));
 			}
 		}
 		this.successor = builder.getServer();
@@ -318,7 +319,7 @@ public class Game implements UserListener, CommandChainHandler {
 		return conversationManager;
 	}
 
-	public StatblockManager getStatblockManager() {
+	public BuildInfoManager getStatblockManager() {
 		return statblockManager;
 	}
 

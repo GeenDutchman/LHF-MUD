@@ -1,0 +1,313 @@
+{
+  "className": "com.lhf.game.creature.MonsterBuildInfo",
+  "iNPCBuilder": {
+    "className": "com.lhf.game.creature.INonPlayerCharacter$INPCBuildInfo",
+    "creatureBuilder": {
+      "className": "com.lhf.game.creature.CreatureBuildInfo",
+      "id": "825f61bf-d350-4245-a351-2968a999a6ec",
+      "creatureRace": "goblin",
+      "attributeBlock": {
+        "strength": {
+          "score": 8,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "dexterity": {
+          "score": 14,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "constitution": {
+          "score": 10,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "intelligence": {
+          "score": 10,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "wisdom": {
+          "score": 8,
+          "scoreBonus": 0,
+          "modBonus": 0
+        },
+        "charisma": {
+          "score": 8,
+          "scoreBonus": 0,
+          "modBonus": 0
+        }
+      },
+      "stats": {
+        "MAXHP": 7,
+        "CURRENTHP": 7,
+        "XPEARNED": 0,
+        "XPWORTH": 50,
+        "PROFICIENCYBONUS": 0,
+        "AC": 16
+      },
+      "proficiencies": [
+        "LIGHTARMOR",
+        "SIMPLEMELEEWEAPONS",
+        "SHIELD"
+      ],
+      "inventory": {
+        "items": []
+      },
+      "equipmentSlots": {
+        "ARMOR": {
+          "AC": 2,
+          "types": [
+            "LIGHTARMOR",
+            "LEATHER"
+          ],
+          "slots": [
+            "ARMOR"
+          ],
+          "equipEffects": [
+            {
+              "onApplication": {
+                "statChanges": {
+                  "AC": 2
+                },
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [],
+                "restoreFaction": false
+              },
+              "onRemoval": {
+                "statChanges": {
+                  "AC": -2
+                },
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [],
+                "restoreFaction": false
+              },
+              "onTickEvent": {},
+              "className": "com.lhf.game.creature.CreatureEffectSource",
+              "name": "Armor AC Boost",
+              "persistence": {
+                "count": -1,
+                "tickSize": "CONDITIONAL"
+              },
+              "description": "Wearing armor makes you harder to hit"
+            }
+          ],
+          "numCanUseTimes": -1,
+          "useLeftCount": -1,
+          "itemID": {
+            "id": "b2fe75d1-6810-440d-8848-c808533a6e38"
+          },
+          "className": "com.lhf.game.item.concrete.equipment.LeatherArmor",
+          "objectName": "Leather Armor",
+          "visible": true,
+          "descriptionString": "This is some simple leather armor. There is only a little blood on it...\n"
+        },
+        "SHIELD": {
+          "AC": 2,
+          "types": [
+            "SHIELD"
+          ],
+          "slots": [
+            "SHIELD"
+          ],
+          "equipEffects": [
+            {
+              "onApplication": {
+                "statChanges": {
+                  "AC": 2
+                },
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [],
+                "restoreFaction": false
+              },
+              "onRemoval": {
+                "statChanges": {
+                  "AC": -2
+                },
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [],
+                "restoreFaction": false
+              },
+              "onTickEvent": {},
+              "className": "com.lhf.game.creature.CreatureEffectSource",
+              "name": "Shield AC Boost",
+              "persistence": {
+                "count": -1,
+                "tickSize": "CONDITIONAL"
+              },
+              "description": "Using a shield makes you harder to hit"
+            }
+          ],
+          "numCanUseTimes": -1,
+          "useLeftCount": -1,
+          "itemID": {
+            "id": "347baba1-c8ce-4653-ae02-95a6dd6047e9"
+          },
+          "className": "com.lhf.game.item.concrete.equipment.Shield",
+          "objectName": "Shield",
+          "visible": true,
+          "descriptionString": "This is a simple shield, it should protect you a little bit. \n"
+        },
+        "WEAPON": {
+          "effectSources": [
+            {
+              "onApplication": {
+                "statChanges": {},
+                "attributeScoreChanges": {},
+                "attributeBonusChanges": {},
+                "damages": [
+                  {
+                    "flavor": "SLASHING",
+                    "count": 1,
+                    "type": "SIX"
+                  }
+                ],
+                "restoreFaction": false
+              },
+              "onTickEvent": {},
+              "className": "com.lhf.game.creature.CreatureEffectSource",
+              "name": "Slash",
+              "persistence": {
+                "count": 1,
+                "tickSize": "INSTANT"
+              },
+              "resistance": {
+                "actorAttrs": [
+                  "STR"
+                ],
+                "targetStat": "AC",
+                "resistAmount": "ALL"
+              },
+              "description": "Swords cut things"
+            }
+          ],
+          "mainFlavor": "SLASHING",
+          "subtype": "MARTIAL",
+          "toHitBonus": 0,
+          "types": [
+            "SIMPLEMELEEWEAPONS",
+            "LONGSWORD"
+          ],
+          "slots": [
+            "WEAPON"
+          ],
+          "equipEffects": [],
+          "numCanUseTimes": -1,
+          "useLeftCount": -1,
+          "itemID": {
+            "id": "7da0ac63-b35b-40c7-81b7-37140b811bb1"
+          },
+          "className": "com.lhf.game.item.concrete.equipment.Shortsword",
+          "objectName": "Shortsword",
+          "visible": true,
+          "descriptionString": "This is a nice, short, shiny sword with a leather grip.  It\u0027s a bit simple though...\n"
+        }
+      },
+      "effects": [
+        {
+          "tickDamageResult": {},
+          "className": "com.lhf.game.creature.CreatureEffect",
+          "source": {
+            "onApplication": {
+              "statChanges": {
+                "AC": 2
+              },
+              "attributeScoreChanges": {},
+              "attributeBonusChanges": {},
+              "damages": [],
+              "restoreFaction": false
+            },
+            "onRemoval": {
+              "statChanges": {
+                "AC": -2
+              },
+              "attributeScoreChanges": {},
+              "attributeBonusChanges": {},
+              "damages": [],
+              "restoreFaction": false
+            },
+            "onTickEvent": {},
+            "className": "com.lhf.game.creature.CreatureEffectSource",
+            "name": "Armor AC Boost",
+            "persistence": {
+              "count": -1,
+              "tickSize": "CONDITIONAL"
+            },
+            "description": "Wearing armor makes you harder to hit"
+          },
+          "generatedBy": {
+            "startTag": "\u003ctakeable\u003e",
+            "endTag": "\u003c/takeable\u003e",
+            "contents": "Leather Armor"
+          },
+          "ticker": {
+            "count": -1,
+            "tickSize": "CONDITIONAL",
+            "countdown": -1
+          }
+        },
+        {
+          "tickDamageResult": {},
+          "className": "com.lhf.game.creature.CreatureEffect",
+          "source": {
+            "onApplication": {
+              "statChanges": {
+                "AC": 2
+              },
+              "attributeScoreChanges": {},
+              "attributeBonusChanges": {},
+              "damages": [],
+              "restoreFaction": false
+            },
+            "onRemoval": {
+              "statChanges": {
+                "AC": -2
+              },
+              "attributeScoreChanges": {},
+              "attributeBonusChanges": {},
+              "damages": [],
+              "restoreFaction": false
+            },
+            "onTickEvent": {},
+            "className": "com.lhf.game.creature.CreatureEffectSource",
+            "name": "Shield AC Boost",
+            "persistence": {
+              "count": -1,
+              "tickSize": "CONDITIONAL"
+            },
+            "description": "Using a shield makes you harder to hit"
+          },
+          "generatedBy": {
+            "startTag": "\u003ctakeable\u003e",
+            "endTag": "\u003c/takeable\u003e",
+            "contents": "Shield"
+          },
+          "ticker": {
+            "count": -1,
+            "tickSize": "CONDITIONAL",
+            "countdown": -1
+          }
+        }
+      ],
+      "damageFlavorReactions": {
+        "WEAKNESSES": [],
+        "RESISTANCES": [],
+        "IMMUNITIES": [
+          "AGGRO"
+        ],
+        "CURATIVES": [
+          "HEALING"
+        ]
+      },
+      "faction": "MONSTER"
+    },
+    "id": "85d4942a-e6b2-4873-8b41-5fa8d75e475b",
+    "aiHandlers": [],
+    "summonState": []
+  },
+  "id": "14652e2f-4193-41bd-9963-24a60aa323c4"
+}

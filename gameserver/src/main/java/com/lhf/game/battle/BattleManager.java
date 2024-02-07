@@ -186,15 +186,20 @@ public class BattleManager extends SubArea {
 
         @Override
         public void onRoundStart() {
-            Map<Boolean, Set<ICreature>> partitions = BattleManager.this.getCreatures().stream()
-                    .filter(c -> c != null).collect(Collectors.partitioningBy(
-                            creature -> BattleManager.this.isReadyToFlush(creature),
-                            Collectors.toSet()));
-            BattleManager.this.announce(
+            Set<ICreature> actionsNeeded = new TreeSet<>();
+            for (final ICreature creature : BattleManager.this.getCreatures()) {
+                if (creature == null) {
+                    continue;
+                }
+                if (!BattleManager.this.isReadyToFlush(creature)) {
+                    actionsNeeded.add(creature);
+                }
+            }
+            BattleManager.this.announceDirect(
                     BattleRoundEvent.getBuilder().setNeedSubmission(BattleRoundEvent.RoundAcceptance.NEEDED)
                             .setNotBroadcast().setRoundCount(this.getPhase())
                             .Build(),
-                    partitions.getOrDefault(true, null));
+                    actionsNeeded);
         }
 
         @Override

@@ -67,8 +67,8 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
     }
 
     protected final static int MAX_POOLED_ACTIONS = 1;
-    protected final static int MAX_MILLISECONDS = 120000;
-    protected final static int DEFAULT_MILLISECONDS = 90000;
+    public final static int MAX_MILLISECONDS = 120000;
+    public final static int DEFAULT_MILLISECONDS = 90000;
     protected final SubAreaSort sort;
     protected final GameEventProcessorID gameEventProcessorID;
     protected final int roundDurationMilliseconds;
@@ -112,7 +112,7 @@ public abstract class SubArea implements CreatureContainer, PooledMessageChainHa
                     this.onRoundStart();
                     this.logger.log(Level.FINE,
                             () -> String.format("Waiting for actions from: %s", SubArea.this.getCreatures().stream()
-                                    .filter(c -> c != null && SubArea.this.isReadyToFlush(c)).toList()));
+                                    .filter(c -> c != null && !SubArea.this.isReadyToFlush(c)).toList()));
                     try {
                         this.parentPhaser.awaitAdvanceInterruptibly(this.parentPhaser.arrive(),
                                 SubArea.this.getTurnWaitCount(), TimeUnit.MILLISECONDS);

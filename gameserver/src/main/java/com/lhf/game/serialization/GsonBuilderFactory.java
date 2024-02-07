@@ -16,7 +16,7 @@ import com.lhf.game.creature.DungeonMaster.DungeonMasterBuildInfo;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.creature.ICreatureBuildInfo.CreatureBuilderID;
-import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
+import com.lhf.game.creature.MonsterBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player.PlayerBuildInfo;
@@ -162,6 +162,8 @@ public class GsonBuilderFactory {
     public synchronized GsonBuilderFactory creatureInfoBuilders() {
         if (!this.loaded.contains(Loaded.CREATURE_INFO)) {
             this.loaded.add(Loaded.CREATURE_INFO);
+            this.items();
+            this.effects();
             this.conversation();
             this.aiHandlers();
             this.gsonBuilder.registerTypeAdapter(CreatureBuilderID.class, new CreatureBuilderID.IDTypeAdapter());
@@ -171,7 +173,7 @@ public class GsonBuilderFactory {
                     .registerSubtype(PlayerBuildInfo.class, PlayerBuildInfo.class.getName())
                     .registerSubtype(INonPlayerCharacterBuildInfo.class, INonPlayerCharacterBuildInfo.class.getName())
                     .registerSubtype(DungeonMasterBuildInfo.class, DungeonMasterBuildInfo.class.getName())
-                    .registerSubtype(IMonsterBuildInfo.class, IMonsterBuildInfo.class.getName())
+                    .registerSubtype(MonsterBuildInfo.class, MonsterBuildInfo.class.getName())
                     .registerSubtype(INPCBuildInfo.class, INPCBuildInfo.class.getName())
                     .recognizeSubtypes();
             this.gsonBuilder.registerTypeAdapterFactory(creatureBuilderAdapterFactory);

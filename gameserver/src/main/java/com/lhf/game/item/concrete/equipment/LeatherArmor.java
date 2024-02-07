@@ -21,7 +21,7 @@ public class LeatherArmor extends Equipable {
         this.slots = Collections.singletonList(EquipmentSlots.ARMOR);
         this.types = List.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
         this.equipEffects = Collections.singletonList(
-                new CreatureEffectSource("AC Boost", new EffectPersistence(TickType.CONDITIONAL),
+                new CreatureEffectSource("Armor AC Boost", new EffectPersistence(TickType.CONDITIONAL),
                         null, "Wearing armor makes you harder to hit", new Deltas().setStatChange(Stats.AC, this.AC)));
     }
 

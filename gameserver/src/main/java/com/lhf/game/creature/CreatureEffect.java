@@ -1,5 +1,6 @@
 package com.lhf.game.creature;
 
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -37,15 +38,41 @@ public class CreatureEffect extends EntityEffect {
     }
 
     public MultiRollResult getApplicationDamageResult() {
+        if (applicationDamageResult == null) {
+            final Deltas deltas = this.getSource().getOnApplication();
+            if (deltas != null) {
+                applicationDamageResult = deltas.rollDamages();
+            }
+        }
         return applicationDamageResult;
     }
 
     public MultiRollResult getRemovalDamageResult() {
+        if (removalDamageResult == null) {
+            final Deltas deltas = this.getSource().getOnRemoval();
+            if (deltas != null) {
+                removalDamageResult = deltas.rollDamages();
+            }
+        }
         return removalDamageResult;
     }
 
+    public MultiRollResult getTickDamageResult(TickType tickType) {
+        return tickDamageResult.computeIfAbsent(tickType, (tt) -> {
+            final Map<TickType, Deltas> deltasMap = this.getSource().getOnTickEvent();
+            if (deltasMap == null) {
+                return null;
+            }
+            final Deltas deltas = deltasMap.getOrDefault(tt, null);
+            if (deltas == null) {
+                return null;
+            }
+            return deltas.rollDamages();
+        });
+    }
+
     public Map<TickType, MultiRollResult> getTickDamageResult() {
-        return tickDamageResult;
+        return Collections.unmodifiableMap(tickDamageResult);
     }
 
     public Deltas getApplicationDeltas() {

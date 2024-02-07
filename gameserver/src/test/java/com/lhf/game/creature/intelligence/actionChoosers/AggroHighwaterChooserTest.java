@@ -69,7 +69,8 @@ public class AggroHighwaterChooserTest {
                                                 .addDamage(new DamageDice(6, DieType.SIX, DamageFlavor.BLUDGEONING)));
 
                 CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                                .setEffect(new CreatureEffect(source, attacker.getNPC(), attacker.getNPC())).Build();
+                                .fromCreatureEffect(new CreatureEffect(source, attacker.getNPC(), attacker.getNPC()))
+                                .Build();
 
                 finder.getNPC().getHarmMemories().update(cam);
                 battleStats.update(cam);
@@ -97,7 +98,8 @@ public class AggroHighwaterChooserTest {
                                                 .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO)));
 
                 CreatureAffectedEvent cam2 = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                                .setEffect(new CreatureEffect(source2, subAttacker.getNPC(), subAttacker.getNPC()))
+                                .fromCreatureEffect(
+                                                new CreatureEffect(source2, subAttacker.getNPC(), subAttacker.getNPC()))
                                 .Build();
 
                 finder.getNPC().getHarmMemories().update(cam2);

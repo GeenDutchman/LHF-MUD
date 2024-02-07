@@ -1,6 +1,8 @@
 package com.lhf.game.creature.intelligence;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -10,11 +12,16 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.INonPlayerCharacter;
+import com.lhf.game.creature.Monster;
+import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.SummonedMonster;
+import com.lhf.game.creature.SummonedNPC;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler;
-import com.lhf.game.creature.intelligence.handlers.RoomExitHandler;
 import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
+import com.lhf.game.creature.intelligence.handlers.RoomExitHandler;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.GameEventType;
@@ -31,15 +38,22 @@ public class BasicAI extends Client {
     protected Map<GameEventType, AIChunk> handlers;
     protected BlockingQueue<GameEvent> queue;
     protected transient AIRunner runner;
+    protected final transient Set<Class<? extends INonPlayerCharacter>> allowedSuccessorTypes;
 
     protected BasicAI(AIRunner runner) {
         super();
         this.basicLoggerName = String.format("%s.%d", this.getClass().getName(), this.getClientID().hashCode());
+        this.allowedSuccessorTypes = new HashSet<>(Set.of(NonPlayerCharacter.class, DungeonMaster.class,
+                SummonedNPC.class, Monster.class, SummonedMonster.class, INonPlayerCharacter.class));
         this.queue = new ArrayBlockingQueue<>(32, true);
         this.SetOut(new DoNothingSendStrategy());
         this.handlers = new TreeMap<>();
         this.initBasicHandlers();
         this.runner = runner;
+    }
+
+    public Set<Class<? extends INonPlayerCharacter>> getAllowedSuccessorTypes() {
+        return allowedSuccessorTypes;
     }
 
     public GameEvent peek() {
@@ -153,14 +167,24 @@ public class BasicAI extends Client {
         super.setSuccessor(nextNPC);
     }
 
-    public void setSuccessor(INonPlayerCharacter successor) {
-        this.setNPC(successor);
-        super.setSuccessor(successor);
-    }
-
     @Override
     public void setSuccessor(CommandChainHandler successor) {
-        super.setSuccessor(null);
+        if (successor == null) {
+            this.setNPC(null); // just null of a different shape
+        } else if (this.allowedSuccessorTypes.contains(successor.getClass())) {
+            try {
+                this.setNPC((INonPlayerCharacter) successor);
+            } catch (ClassCastException e) {
+                this.log(Level.SEVERE, String.format(
+                        "Somehow the successor '%s' cannot be cast as an INonPlayerCharacter: %s", successor, e));
+                throw e;
+            }
+        } else {
+            final String errMessage = String.format("The successor '%s %s' is not one of the supprted types %s",
+                    successor, successor.getClass(), this.allowedSuccessorTypes);
+            this.log(Level.WARNING, errMessage);
+            throw new IllegalArgumentException(errMessage);
+        }
     }
 
     @Override

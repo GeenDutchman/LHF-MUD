@@ -4,14 +4,24 @@ import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.TreeSet;
 
+import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.creature.ICreatureBuildInfo;
+import com.lhf.game.creature.ICreatureBuildInfoVisitor;
 import com.lhf.game.creature.CreatureCreator.CreatorAdaptor;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.DamgeFlavorReaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -28,6 +38,26 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
+    public int menuChoice(List<String> choices) {
+        String chosen = null;
+        do {
+            System.out.print("Choose one of:\n");
+            StringJoiner sj = new StringJoiner(", ").setEmptyValue("No choices!!");
+            for (String choice : choices) {
+                sj.add(choice);
+            }
+            System.out.println(sj.toString());
+            chosen = this.input.nextLine().toLowerCase().trim();
+        } while (chosen == null || chosen.isBlank());
+        for (int i = 0; i < choices.size(); i++) {
+            if (chosen.equalsIgnoreCase(choices.get(i))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    @Override
     public void stepSucceeded(boolean succeeded) {
         if (succeeded) {
             System.out.println("Ok, that worked.");
@@ -36,7 +66,31 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public String buildCreatureName() {
+    public String getName() {
+        Boolean valid;
+        String name;
+        System.out.println("Does this creature have a name?");
+        if (!this.yesOrNo()) {
+            return null;
+        }
+        do {
+            System.out.print("Please type the creature's name: ");
+            name = this.input.nextLine();
+
+            System.out.print("The name is: " + name + " is this correct?");
+
+            valid = this.yesOrNo();
+
+        } while (!valid);
+        return name;
+    }
+
+    /**
+     * @deprecated Prefer {@link #getName()}
+     */
+    @Deprecated(forRemoval = false)
+    @Override
+    public String getRawName() {
         Boolean valid;
         String name;
         do {
@@ -52,36 +106,22 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public String buildStatblockName() {
-        Boolean valid;
-        String name;
-        do {
-            System.out.print("Please type the statblock name: ");
-            name = this.input.nextLine();
-
-            System.out.print("The name is: " + name + " is this correct?");
-
-            valid = this.yesOrNo();
-
-        } while (!valid);
-        return name;
-    }
-
-    @Override
-    public CreatureFaction buildFaction() {
+    public CreatureFaction getFaction() {
         Boolean valid;
         String factionName;
         CreatureFaction faction;
         do {
-            System.out.print("Please indicate the creature's faction (NPC/MONSTER): ");
+            System.out.print(
+                    String.format("Please indicate the creature's faction %s: ", CreatureFaction.values().toString()));
             factionName = this.input.nextLine();
             faction = CreatureFaction.getFaction(factionName);
 
             if (faction != null) {
-                System.out.print("The creature faction is: " + faction.toString() + " is this correct?");
+                System.out.print(String.format("The creature faction is: %s is this correct?", faction));
                 valid = this.yesOrNo();
             } else {
-                System.err.println("Invalid Creature faction, restarting from last prompt.");
+                System.err.println(String.format("Invalid Creature faction, restarting from last prompt. From %s",
+                        CreatureFaction.values().toString()));
                 valid = Boolean.FALSE;
             }
 
@@ -91,7 +131,7 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public AttributeBlock buildAttributeBlock() {
+    public AttributeBlock getAttributeBlock() {
         // attributes
         AttributeBlock attributes = new AttributeBlock();
         Boolean valid;
@@ -130,9 +170,11 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public EnumMap<Stats, Integer> buildStats(AttributeBlock attrs) {
+    public void buildStats(AttributeBlock attrs, EnumMap<Stats, Integer> stats) {
         Boolean valid;
-        EnumMap<Stats, Integer> stats = new EnumMap<>(Stats.class);
+        if (stats == null) {
+            stats = new EnumMap<>(Stats.class);
+        }
         do {
             int max_hp;
             int xp_worth;
@@ -169,11 +211,22 @@ public class CLIAdaptor implements CreatorAdaptor {
             valid = this.yesOrNo();
 
         } while (!valid);
+        return;
+    }
+
+    @Override
+    /**
+     * Returns the default stats. Use {@link #buildStats(AttributeBlock, EnumMap)}
+     * if you want to build them
+     */
+    public EnumMap<Stats, Integer> getStats() {
+        EnumMap<Stats, Integer> stats = new EnumMap<>(Stats.class);
+        ICreatureBuildInfo.setDefaultStats(stats);
         return stats;
     }
 
     @Override
-    public EnumSet<EquipmentTypes> buildProficiencies() {
+    public EnumSet<EquipmentTypes> getProficiencies() {
         String proficiency_string;
         EquipmentTypes proficiency;
         EnumSet<EquipmentTypes> proficiencies = EnumSet.noneOf(EquipmentTypes.class);
@@ -196,7 +249,7 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public Inventory buildInventory() {
+    public Inventory getInventory() {
         Inventory inventory = new Inventory();
         String item;
         // May need to replace this to be more adaptive?
@@ -232,9 +285,15 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public EnumMap<EquipmentSlots, Equipable> equipFromInventory(Inventory inventory) {
+    public void equipFromInventory(Inventory inventory, EnumMap<EquipmentSlots, Equipable> equipmentSlots) {
         String item_slot_string;
-        EnumMap<EquipmentSlots, Equipable> equipmentSlots = new EnumMap<>(EquipmentSlots.class);
+        if (equipmentSlots == null) {
+            equipmentSlots = new EnumMap<>(EquipmentSlots.class);
+        }
+        if (inventory == null) {
+            inventory = new Inventory();
+        }
+
         while (true) {
             System.out.print("Given: " + inventory.toStoreString()
                     + " \nIs there anything you would like to equip?(Item Name,slot or done) ");
@@ -250,7 +309,7 @@ public class CLIAdaptor implements CreatorAdaptor {
                 if (optItem.isPresent() && optItem.get() instanceof Equipable) {
                     equipmentSlots.put(slot, (Equipable) optItem.get());
                 } else {
-                    System.out.println(pair[0] + " is not a valid choice.  Match the name exactly, ignoring case.");
+                    System.out.println(pair[0] + " is not a valid choice. Match the name exactly, ignoring case.");
                 }
 
             } catch (java.lang.IllegalArgumentException e) {
@@ -261,7 +320,7 @@ public class CLIAdaptor implements CreatorAdaptor {
             }
 
         }
-        return equipmentSlots;
+        return;
     }
 
     @Override
@@ -285,6 +344,127 @@ public class CLIAdaptor implements CreatorAdaptor {
     @Override
     public void close() {
         this.input.close();
+    }
+
+    @Override
+    public String getClassName() {
+        throw new UnsupportedOperationException("CLI adapter does not give a class name");
+    }
+
+    @Override
+    public CreatureBuilderID getCreatureBuilderID() {
+        throw new UnsupportedOperationException("CLI adapter does not give a builder id");
+    }
+
+    @Override
+    public String getCreatureRace() {
+        Boolean valid;
+        String name;
+        do {
+            System.out.print("Please type the creature's race: ");
+            name = this.input.nextLine();
+
+            System.out.print("The race is: " + name + " is this correct?");
+
+            valid = this.yesOrNo();
+
+        } while (!valid);
+        return name;
+    }
+
+    /**
+     * @deprecated prefer {@link #equipFromInventory(Inventory, EnumMap)}
+     */
+    @Deprecated(forRemoval = false)
+    @Override
+    public EnumMap<EquipmentSlots, Equipable> getEquipmentSlots() {
+        return new EnumMap<>(EquipmentSlots.class);
+    }
+
+    private EnumSet<DamageFlavor> buildFlavors(DamgeFlavorReaction dfr) {
+        String name;
+        EnumSet<DamageFlavor> flavors = EnumSet.noneOf(DamageFlavor.class);
+        System.out.println(DamageFlavor.values());
+        while (true) {
+            name = this.input.nextLine().strip();
+            if ("done".equalsIgnoreCase(name)) {
+                return flavors;
+            }
+            DamageFlavor flavor = DamageFlavor.getDamageFlavor(name);
+            if (flavor == null) {
+                System.out.println(
+                        String.format("'%s' is not a valid damage flavor, try again (or 'done' to be done)", name));
+            } else {
+                flavors.add(flavor);
+                System.out.println(String.format("Current: %s", flavors));
+            }
+        }
+    }
+
+    /**
+     * @deprecated prefer to use
+     *             {@link #equipFromInventory(Inventory, EnumMap)} because it
+     *             is
+     *             difficult to specify an effect out of nowhere.
+     */
+    @Deprecated(forRemoval = false)
+    @Override
+    public Set<CreatureEffect> getCreatureEffects() {
+        return new TreeSet<>();
+    }
+
+    @Override
+    public EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> getDamageFlavorReactions() {
+        EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> reactions = new EnumMap<>(DamgeFlavorReaction.class);
+        ICreatureBuildInfo.setDefaultFlavorReactions(reactions);
+        System.out.println(String.format("Use default damage flavor reactions? %s", reactions));
+        if (this.yesOrNo()) {
+            return reactions;
+        }
+        reactions.clear();
+        for (final DamgeFlavorReaction dfr : DamgeFlavorReaction.values()) {
+            System.out.println("The creature is " + dfr.name()
+                    + " to which of the following damage types (enter 'done' when done)?");
+            reactions.put(dfr, this.buildFlavors(dfr));
+        }
+        return reactions;
+    }
+
+    @Override
+    public VocationName getVocation() {
+        System.out.println("Should the creature have a Vocation?");
+        if (this.yesOrNo()) {
+            VocationName vName = null;
+            do {
+                String name = input.nextLine().trim();
+                vName = VocationName.getVocationName(name);
+                if (vName == null) {
+                    System.out.println(String.format("'%s' is not a valid vocation name, try one of %s", name,
+                            VocationName.values()));
+                }
+            } while (vName == null);
+            return vName;
+        }
+        return null;
+    }
+
+    @Override
+    public Integer getVocationLevel() {
+        System.out.println("Should the creature have a vocation higher than default?");
+        if (this.yesOrNo()) {
+            int level = -1;
+            while (level <= 0) {
+                System.out.println("Level should be greater than 0!");
+                level = input.nextInt();
+            }
+            return level;
+        }
+        return null;
+    }
+
+    @Override
+    public void acceptBuildInfoVisitor(ICreatureBuildInfoVisitor visitor) {
+        throw new UnsupportedOperationException("Unimplemented method 'acceptBuildInfoVisitor'");
     }
 
 }

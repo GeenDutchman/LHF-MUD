@@ -1,171 +1,130 @@
 package com.lhf.game.creature;
 
 import java.io.Closeable;
-import java.io.FileNotFoundException;
 import java.util.EnumMap;
-import java.util.EnumSet;
+import java.util.List;
+import java.util.Map.Entry;
 
-import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
+import com.lhf.game.creature.DungeonMaster.DungeonMasterBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
+import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.builder.CLIAdaptor;
-import com.lhf.game.creature.intelligence.AIRunner;
-import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.StatblockManager;
-import com.lhf.game.creature.vocation.Vocation;
-import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
-import com.lhf.server.client.user.User;
 
 public class CreatureCreator {
-    public interface CreatorAdaptor extends Closeable {
+
+    private static final BuildInfoManager loader_unloader = new BuildInfoManager();
+
+    public interface CreatorAdaptor extends Closeable, ICreatureBuildInfo {
+        public int menuChoice(List<String> choices);
 
         public void stepSucceeded(boolean succeeded);
 
-        public String buildCreatureName();
+        public void buildStats(AttributeBlock attrs, EnumMap<Stats, Integer> statsMap);
 
-        public String buildStatblockName();
-
-        public CreatureFaction buildFaction();
-
-        public AttributeBlock buildAttributeBlock();
-
-        public EnumMap<Stats, Integer> buildStats(AttributeBlock attrs);
-
-        public EnumSet<EquipmentTypes> buildProficiencies();
-
-        public Inventory buildInventory();
-
-        public EnumMap<EquipmentSlots, Equipable> equipFromInventory(Inventory inventory);
+        public void equipFromInventory(Inventory inventory, EnumMap<EquipmentSlots, Equipable> equipmentSlots);
 
         public Boolean yesOrNo();
 
         public void close();
     };
 
-    public interface PlayerCreatorAdaptor extends CreatorAdaptor {
-        public User buildUser();
+    public static MonsterBuildInfo makeMonsterFromStatblock(CreatorAdaptor adapter) {
 
-        public Vocation buildVocation();
-    }
-
-    public static Statblock writeStatblock(Statblock towrite) {
-        loader_unloader.statblockToFile(towrite);
-        try {
-            return loader_unloader.statblockFromfile(towrite.getCreatureRace());
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+        MonsterBuildInfo builder = MonsterBuildInfo.getInstance();
+        builder.setCreatureRace(adapter.getCreatureRace());
+        builder.setName(adapter.getName());
+        builder.setFaction(adapter.getFaction());
+        builder.setAttributeBlock(adapter.getAttributeBlock());
+        adapter.buildStats(builder.getAttributeBlock(), builder.getStats());
+        builder.setProficiencies(adapter.getProficiencies());
+        builder.setInventory(adapter.getInventory());
+        adapter.equipFromInventory(builder.getInventory(), builder.getEquipmentSlots());
+        for (final Entry<EquipmentSlots, Equipable> entry : builder.getEquipmentSlots().entrySet()) {
+            builder.addEquipment(entry.getKey(), entry.getValue());
         }
-        return null;
+        builder.setDamageFlavorReactions(adapter.getDamageFlavorReactions());
+        builder.setVocation(adapter.getVocation());
+        builder.setVocationLevel(adapter.getVocationLevel());
+
+        return builder;
     }
 
-    public static Statblock readStatblock(String statblockname) throws FileNotFoundException {
-        return loader_unloader.statblockFromfile(statblockname);
-    }
-
-    private static Statblock makeStatblock(CreatorAdaptor adapter) {
-        Statblock built = Statblock.getBuilder().build();
-
-        // name
-        built.setCreatureRace(adapter.buildStatblockName());
-
-        // attributes
-        built.setAttributes(adapter.buildAttributeBlock());
-
-        // stats
-        built.setStats(adapter.buildStats(built.getAttributes()));
-
-        // Adds proficiencies
-        built.setProficiencies(adapter.buildProficiencies());
-
-        // Adds items
-        built.setInventory(adapter.buildInventory());
-
-        built.setEquipmentSlots(adapter.equipFromInventory(built.getInventory()));
-
-        System.out.println(built.toString());
-
-        built = CreatureCreator.writeStatblock(built);
-        // System.err.println(test);
-        adapter.close();
-        // System.out.println("\nCreature Creation Complete!");
-        return built;
-    }
-
-    private static final AIRunner aiRunner = new GroupAIRunner(false);
-    private static final StatblockManager loader_unloader = new StatblockManager();
-
-    public static IMonster makeMonsterFromStatblock(CreatorAdaptor adapter) throws FileNotFoundException {
-
-        String statblockname = adapter.buildStatblockName();
-
-        Statblock monStatblock = CreatureCreator.readStatblock(statblockname);
-
-        if (monStatblock == null) {
-            return null;
-        }
-
-        IMonsterBuildInfo builder = IMonsterBuildInfo.getInstance();
-
-        builder.setName(adapter.buildCreatureName());
-
-        builder.setStatblock(monStatblock);
-
-        CreatureFactory factory = CreatureFactory.fromAIRunner(null, loader_unloader, null, aiRunner, false, false);
-        factory.visit(builder);
-
-        return factory.getBuiltCreatures().getIMonsters().first();
-    }
-
-    public static INonPlayerCharacter makeNPC() throws FileNotFoundException {
+    public static INonPlayerCharacterBuildInfo makeNPC(CreatorAdaptor adapter) {
         INPCBuildInfo builder = NonPlayerCharacter.getNPCBuilder();
-        CreatureFactory factory = CreatureFactory.fromAIRunner(null, loader_unloader, null, aiRunner, false, false);
-        factory.visit(builder);
-
-        return factory.getBuiltCreatures().getINpcs().first();
+        builder.setCreatureRace(adapter.getCreatureRace());
+        builder.setName(adapter.getName());
+        builder.setFaction(adapter.getFaction());
+        builder.setAttributeBlock(adapter.getAttributeBlock());
+        adapter.buildStats(builder.getAttributeBlock(), builder.getStats());
+        builder.setProficiencies(adapter.getProficiencies());
+        builder.setInventory(adapter.getInventory());
+        adapter.equipFromInventory(builder.getInventory(), builder.getEquipmentSlots());
+        for (final Entry<EquipmentSlots, Equipable> entry : builder.getEquipmentSlots().entrySet()) {
+            builder.addEquipment(entry.getKey(), entry.getValue());
+        }
+        builder.setDamageFlavorReactions(adapter.getDamageFlavorReactions());
+        builder.setVocation(adapter.getVocation());
+        builder.setVocationLevel(adapter.getVocationLevel());
+        return builder;
     }
 
-    public static DungeonMaster makeDM(String name) throws FileNotFoundException {
+    public static DungeonMasterBuildInfo makeDM(CreatorAdaptor adapter) {
         DungeonMaster.DungeonMasterBuildInfo builder = DungeonMaster.DungeonMasterBuildInfo
                 .getInstance();
-
-        builder.setName(name);
-        CreatureFactory factory = CreatureFactory.fromAIRunner(null, loader_unloader, null, aiRunner, false, false);
-        factory.visit(builder);
-
-        return factory.getBuiltCreatures().getDungeonMasters().first();
-    }
-
-    public static Player makePlayer(PlayerCreatorAdaptor adapter) {
-        Player.PlayerBuildInfo builder = Player.PlayerBuildInfo.getInstance(adapter.buildUser());
-
-        builder.setStatblock(CreatureCreator.makeStatblock(adapter));
-
-        while (builder.getStatblock() == null) {
-            String statblockname = adapter.buildStatblockName();
-            try {
-                builder.setStatblock(CreatureCreator.readStatblock(statblockname));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                adapter.stepSucceeded(false);
-            }
+        builder.setCreatureRace(adapter.getCreatureRace());
+        builder.setName(adapter.getName());
+        builder.setFaction(adapter.getFaction());
+        builder.setAttributeBlock(adapter.getAttributeBlock());
+        adapter.buildStats(builder.getAttributeBlock(), builder.getStats());
+        builder.setProficiencies(adapter.getProficiencies());
+        builder.setInventory(adapter.getInventory());
+        adapter.equipFromInventory(builder.getInventory(), builder.getEquipmentSlots());
+        for (final Entry<EquipmentSlots, Equipable> entry : builder.getEquipmentSlots().entrySet()) {
+            builder.addEquipment(entry.getKey(), entry.getValue());
         }
-
-        builder.setVocation(adapter.buildVocation());
-        CreatureFactory factory = CreatureFactory.fromAIRunner(null, loader_unloader, null, aiRunner, false, false);
-        factory.visit(builder);
-
-        return factory.getBuiltCreatures().getPlayers().first();
-
+        builder.setDamageFlavorReactions(adapter.getDamageFlavorReactions());
+        builder.setVocation(adapter.getVocation());
+        builder.setVocationLevel(adapter.getVocationLevel());
+        return builder;
     }
 
     public static void main(String[] args) {
         CLIAdaptor cliAdaptor = new CLIAdaptor();
-        CreatureCreator.makeStatblock(cliAdaptor);
+        int menuChoice = -1;
+        ICreatureBuildInfo buildinfo = null;
+        do {
+            menuChoice = cliAdaptor.menuChoice(List.of("Quit", "Make Monster", "Make NPC", "Make DM"));
+            switch (menuChoice) {
+                case 0:
+                    System.out.println("Goodbye!");
+                    return;
+                case 1:
+                    buildinfo = CreatureCreator.makeMonsterFromStatblock(cliAdaptor);
+                    break;
+                case 2:
+                    buildinfo = CreatureCreator.makeNPC(cliAdaptor);
+                    break;
+                case 3:
+                    buildinfo = CreatureCreator.makeDM(cliAdaptor);
+                    break;
+                default:
+                    System.out.println("That choice is not recognized, try again!");
+                    continue;
+            }
+            if (menuChoice > 0 && menuChoice <= 3) {
+                Boolean written = loader_unloader.statblockToFile(null, buildinfo);
+                if (written) {
+                    System.out.println("Successfully wrote file");
+                } else {
+                    System.err.println("Error writing file");
+                }
+            }
+            System.out.println("Continuing to menu....");
+        } while (menuChoice < 0);
     }
 }

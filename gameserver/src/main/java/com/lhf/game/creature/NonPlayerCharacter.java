@@ -5,7 +5,6 @@ import java.util.Map;
 
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
-import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.magic.concrete.DMBlessing;
@@ -22,15 +21,16 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     }
 
     private ConversationTree convoTree = null;
-    private transient final HarmMemories harmMemories = HarmMemories.makeMemories(this);
+    private transient final HarmMemories harmMemories;
     private String leaderName;
 
     protected NonPlayerCharacter(INonPlayerCharacterBuildInfo builder,
             @NotNull CommandInvoker controller, CommandChainHandler successor,
-            @NotNull Statblock statblock, ConversationTree conversationTree) {
-        super(builder, controller, successor, statblock);
+            ConversationTree conversationTree) {
+        super(builder, controller, successor);
         this.convoTree = conversationTree;
         this.leaderName = builder.getLeaderName();
+        this.harmMemories = HarmMemories.makeMemories(this);
     }
 
     @Override
@@ -94,7 +94,10 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     @Override
     public CreatureAffectedEvent processEffect(CreatureEffect effect) {
         CreatureAffectedEvent cam = super.processEffect(effect);
-        this.getHarmMemories().update(cam);
+        final HarmMemories memories = this.getHarmMemories();
+        if (memories != null) {
+            memories.update(cam);
+        }
         return cam;
     }
 
