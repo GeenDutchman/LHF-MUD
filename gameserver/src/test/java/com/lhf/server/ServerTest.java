@@ -24,6 +24,7 @@ import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.map.StandardDungeonProducer;
+import com.lhf.game.map.SubArea;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.MessageMatcher;
@@ -370,7 +371,7 @@ public class ServerTest {
             Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
                     .send(Mockito.argThat(battleTurnAccepted));
 
-            Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
+            Mockito.verify(this.comm.sssb, Mockito.timeout(SubArea.DEFAULT_MILLISECONDS + 500).atLeast(i))
                     .send(Mockito.argThat((gameEvent) -> {
                         return battleTurn.matches(gameEvent) || fightOver.matches(gameEvent)
                                 || reincarnated.matches(gameEvent);
