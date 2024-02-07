@@ -20,41 +20,7 @@ public interface AffectableEntity<Effect extends EntityEffect> {
      * @param reverse if it should be reversed
      * @return a resultant message or null
      */
-    GameEvent processEffect(EntityEffect effect, boolean reverse);
-
-    /**
-     * Checks if the effect is of the correct type to be applicable to the entity.
-     * 
-     * @param effect to check
-     * @return true if it'll work, false otherwise
-     */
-    boolean isCorrectEffectType(EntityEffect effect);
-
-    /**
-     * Determines whether the effect should be stored.
-     * Defaults to the value of not <code>reverse</code> or whether the effect's
-     * tick size is not instant.
-     * 
-     * @param effect  to be examined
-     * @param reverse if the effect is to be reversed
-     * @return true if it should be stored, false otherwise
-     */
-    default boolean shouldAdd(EntityEffect effect, boolean reverse) {
-        return !reverse && effect.getPersistence().getTickSize() != TickType.INSTANT;
-    }
-
-    /**
-     * Determines whether the effect should be removed from storage.
-     * Defaults to the value of <code>reverse</code> or whether the effects ticker
-     * has gone down.
-     * 
-     * @param effect  to be examined if it matters
-     * @param reverse if the effect is to be reversed
-     * @return true if it should be removed, false otherwise
-     */
-    default boolean shouldRemove(EntityEffect effect, boolean reverse) {
-        return reverse || effect.getPersistence().getTicker().getCountdown() <= 0;
-    }
+    GameEvent processEffect(Effect effect);
 
     /**
      * This applies the effect to the AffectableEntity.
@@ -63,27 +29,13 @@ public interface AffectableEntity<Effect extends EntityEffect> {
      * @param reverse true if the effect is to be undone
      * @return a message or null
      */
-    default GameEvent applyEffect(Effect effect, boolean reverse) {
-        if (!this.isCorrectEffectType(effect)) {
-            return null;
-        }
-        GameEvent processed = this.processEffect(effect, reverse);
-        if (this.shouldAdd(effect, reverse)) {
+    default GameEvent applyEffect(Effect effect) {
+        GameEvent processed = this.processEffect(effect);
+        final EffectPersistence persistence = effect.getPersistence();
+        if (persistence != null && !TickType.INSTANT.equals(persistence.getTickSize())) {
             this.getMutableEffects().add(effect);
-        } else if (this.shouldRemove(effect, reverse)) {
-            this.getMutableEffects().remove(effect);
         }
         return processed;
-    }
-
-    /**
-     * This applies the effect to the AffectableEntity.
-     * 
-     * @param effect the effect to apply
-     * @return a message or null
-     */
-    default GameEvent applyEffect(Effect effect) {
-        return applyEffect(effect, false);
     }
 
     /**
@@ -105,10 +57,10 @@ public interface AffectableEntity<Effect extends EntityEffect> {
         if (effects != null) {
             effects.removeIf(effect -> {
                 if (effect.tick(tickEvent.getTickType()) == 0) {
-                    this.applyEffect(effect, true);
+                    this.applyEffect(effect);
                     return true;
                 }
-                return false;
+                return effect.isReadyForRemoval();
             });
         }
     }

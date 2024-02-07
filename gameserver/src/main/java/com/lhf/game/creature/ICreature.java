@@ -22,6 +22,7 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.commandHandlers.EquipHandler;
 import com.lhf.game.creature.commandHandlers.InventoryHandler;
 import com.lhf.game.creature.commandHandlers.StatusHandler;
@@ -53,6 +54,7 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.ITickEvent;
+import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
@@ -137,8 +139,8 @@ public interface ICreature
             super("Fist", Fist.description, Set.of(
                     new CreatureEffectSource("Punch", new EffectPersistence(TickType.INSTANT),
                             new EffectResistance(EnumSet.of(Attributes.STR, Attributes.DEX), Stats.AC),
-                            "Fists punch things", false)
-                            .addDamage(new DamageDice(1, DieType.TWO, DamageFlavor.BLUDGEONING))),
+                            "Fists punch things",
+                            new Deltas().addDamage(new DamageDice(1, DieType.TWO, DamageFlavor.BLUDGEONING)))),
                     DamageFlavor.BLUDGEONING, WeaponSubtype.CREATUREPART);
 
             this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
@@ -266,20 +268,6 @@ public interface ICreature
     public abstract AttributeBlock getAttributes();
 
     /**
-     * Sets the Attribute block for the creature
-     * 
-     * @deprecated
-     *             Changing the attributes wholesale during run is not good.
-     *             <p>
-     *             Use {@link com.lhf.game.creature.CreatureBuildInfo
-     *             CreatureBuilder} to change the attributes of a Creature being
-     *             built
-     * @param attributes
-     */
-    @Deprecated
-    public abstract void setAttributes(AttributeBlock attributes);
-
-    /**
      * Makes a check for the Creature, using the slected
      * {@link com.lhf.game.enums.Attributes Attribute} modifier.
      * Will just do a straight roll if attribute is null
@@ -314,13 +302,6 @@ public interface ICreature
      * @return stat map
      */
     public abstract Map<Stats, Integer> getStats();
-
-    /**
-     * Sets the stats
-     * 
-     * @param stats
-     */
-    public abstract void setStats(EnumMap<Stats, Integer> stats);
 
     /**
      * Returns the name of this Creature. Should *NOT* be null!
@@ -435,13 +416,6 @@ public interface ICreature
     public abstract Set<EquipmentTypes> getProficiencies();
 
     /**
-     * Sets the proficiencies of the creature
-     * 
-     * @param proficiences
-     */
-    public abstract void setProficiencies(EnumSet<EquipmentTypes> proficiences);
-
-    /**
      * Returns the set of which sorts of Sub Area engagement the Creature is in
      * 
      * @see {@link com.lhf.game.map.SubArea SubArea}
@@ -515,13 +489,6 @@ public interface ICreature
      * @return
      */
     public abstract String getCreatureRace();
-
-    /**
-     * Will set the Creature's race
-     * 
-     * @param creatureRace
-     */
-    public abstract void setCreatureRace(String creatureRace);
 
     /**
      * Gets the Creature's {@link com.lhf.game.creature.vocation.Vocation Vocation}.
@@ -625,6 +592,8 @@ public interface ICreature
         }
         return ctx;
     }
+
+    public CreatureAffectedEvent.Builder processEffectDelta(CreatureEffect creatureEffect, Deltas deltas);
 
     /**
      * Produces a {@link com.lhf.messages.events.SeeEvent SeeOutMessage}

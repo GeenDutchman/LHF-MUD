@@ -119,10 +119,10 @@ public interface MultiAttacker extends Taggable {
             DamageDice dd = new DamageDice(chaMod, DieType.SIX, DamageFlavor.AGGRO);
             for (CreatureEffect crEffect : attack) {
                 if (crEffect.isOffensive()) {
-                    MultiRollResult mrr = crEffect.getDamageResult();
+                    MultiRollResult mrr = crEffect.getApplicationDamageResult();
                     MultiRollResult.Builder rebuilder = new MultiRollResult.Builder().addMultiRollResult(mrr);
                     rebuilder.addRollResults(dd.rollDice());
-                    crEffect.updateDamageResult(rebuilder.Build());
+                    crEffect.updateApplicationDamage(rebuilder.Build());
                 }
             }
         }

@@ -7,19 +7,27 @@ import com.lhf.TaggedExaminable;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.events.SeeEvent;
+import com.lhf.server.interfaces.NotNull;
 
 public abstract class EntityEffect implements TaggedExaminable, Comparable<EntityEffect> {
 
+    protected final String className;
     protected final EntityEffectSource source;
-    protected ICreature creatureResponsible;
-    protected Taggable generatedBy;
-    protected Ticker ticker;
+    protected transient final ICreature creatureResponsible;
+    protected final BasicTaggable generatedBy;
+    protected final Ticker ticker;
 
-    public EntityEffect(EntityEffectSource source, ICreature creatureResponsible, Taggable generatedBy) {
+    public EntityEffect(@NotNull EntityEffectSource source, ICreature creatureResponsible, Taggable generatedBy) {
+        this.className = this.getClass().getName();
         this.source = source;
         this.creatureResponsible = creatureResponsible;
-        this.generatedBy = generatedBy;
-        this.ticker = null;
+        this.generatedBy = Taggable.basicTaggable(generatedBy);
+        final EffectPersistence persistence = this.source.getPersistence();
+        if (persistence != null) {
+            this.ticker = persistence.getTicker();
+        } else {
+            this.ticker = null;
+        }
     }
 
     public ICreature creatureResponsible() {
@@ -42,27 +50,24 @@ public abstract class EntityEffect implements TaggedExaminable, Comparable<Entit
         return this.source.getResistance();
     }
 
+    public boolean isReadyForRemoval() {
+        return this.ticker != null ? this.ticker.getCountdown() == 0 : true;
+    }
+
     public Ticker getTicker() {
-        if (this.ticker == null) {
-            this.ticker = this.source.getPersistence().getTicker();
-        }
         return this.ticker;
     }
 
     public int tick(TickType type) {
-        return this.getTicker().tick(type);
+        return this.ticker != null ? this.ticker.tick(type) : 0;
     }
 
     @Override
-    public int compareTo(EntityEffect o) {
+    public final int compareTo(EntityEffect o) {
         if (this.equals(o)) {
             return 0;
         }
-        int namecompare = this.getGeneratedBy().getColorTaggedName().compareTo(o.getGeneratedBy().getColorTaggedName());
-        if (namecompare != 0) {
-            return namecompare;
-        }
-        return this.getPersistence().compareTo(o.getPersistence());
+        return this.source.compareTo(o.source);
     }
 
     @Override
@@ -107,7 +112,7 @@ public abstract class EntityEffect implements TaggedExaminable, Comparable<Entit
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         if (this == obj)
             return true;
         if (!(obj instanceof EntityEffect))

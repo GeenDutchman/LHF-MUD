@@ -6,6 +6,7 @@ import java.util.List;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
@@ -20,9 +21,8 @@ public class LeatherArmor extends Equipable {
         this.slots = Collections.singletonList(EquipmentSlots.ARMOR);
         this.types = List.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
         this.equipEffects = Collections.singletonList(
-                new CreatureEffectSource("AC Boost", new EffectPersistence(TickType.CONDITIONAL),
-                        null, "Wearing armor makes you harder to hit", false)
-                        .addStatChange(Stats.AC, this.AC));
+                new CreatureEffectSource("Armor AC Boost", new EffectPersistence(TickType.CONDITIONAL),
+                        null, "Wearing armor makes you harder to hit", new Deltas().setStatChange(Stats.AC, this.AC)));
     }
 
     @Override

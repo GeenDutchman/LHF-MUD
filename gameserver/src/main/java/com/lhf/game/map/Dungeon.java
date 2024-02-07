@@ -15,14 +15,12 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.Player.PlayerBuildInfo;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.map.Area.AreaBuilder;
 import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.Atlas.AtlasMappingItem;
@@ -105,18 +103,17 @@ public class Dungeon implements Land {
 
         @Override
         public Dungeon quickBuild(CommandChainHandler successor, AIRunner aiRunner) {
-            return build(successor, aiRunner, null, null, true, true);
+            return build(successor, aiRunner, null, true);
         }
 
         @Override
-        public Dungeon build(CommandChainHandler successor, AIRunner aiRunner, StatblockManager statblockManager,
+        public Dungeon build(CommandChainHandler successor, AIRunner aiRunner,
                 ConversationManager conversationManager,
-                boolean fallbackNoConversation,
-                boolean fallbackDefaultStatblock) {
+                boolean fallbackNoConversation) {
             this.logger.entering(this.getClass().getName(), "build()");
             return Dungeon.fromBuilder(this, () -> successor, () -> (dungeon) -> {
-                Map<AreaBuilderID, UUID> translation = this.translateAtlas(dungeon, aiRunner, statblockManager,
-                        conversationManager, fallbackNoConversation, fallbackDefaultStatblock);
+                Map<AreaBuilderID, UUID> translation = this.translateAtlas(dungeon, aiRunner,
+                        conversationManager, fallbackNoConversation);
                 if (translation != null && this.startingRoom != null) {
                     AreaBuilderID builderID = this.startingRoom.getAreaBuilderID();
                     dungeon.setStartingAreaUUID(translation.get(builderID));
@@ -125,7 +122,7 @@ public class Dungeon implements Land {
         }
 
         public static Dungeon buildDynamicDungeon(int seed, AIRunner aiRunner,
-                ConversationManager convoLoader, StatblockManager statblockLoader) {
+                ConversationManager convoLoader) {
 
             return null;
         }
@@ -426,14 +423,8 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public boolean isCorrectEffectType(EntityEffect effect) {
-        return effect instanceof DungeonEffect;
-    }
-
-    @Override
-    public GameEvent processEffect(EntityEffect effect, boolean reverse) {
-        // TODO make effects applicable here
-        return null;
+    public GameEvent processEffect(DungeonEffect effect) {
+        throw new UnsupportedOperationException(String.format("Cannot perform effect '%s'", effect));
     }
 
     @Override

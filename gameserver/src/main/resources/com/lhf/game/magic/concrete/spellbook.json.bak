@@ -9,17 +9,20 @@
     "allowedVocations": [],
     "effectSources": [
       {
-        "statChanges": {},
-        "attributeScoreChanges": {},
-        "attributeBonusChanges": {},
-        "damages": [
-          {
-            "flavor": "LIGHTNING",
-            "count": 1,
-            "type": "FOUR"
-          }
-        ],
-        "restoreFaction": false,
+        "onApplication": {
+          "statChanges": {},
+          "attributeScoreChanges": {},
+          "attributeBonusChanges": {},
+          "damages": [
+            {
+              "flavor": "LIGHTNING",
+              "count": 1,
+              "type": "FOUR"
+            }
+          ],
+          "restoreFaction": false
+        },
+        "onTickEvent": {},
         "className": "com.lhf.game.creature.CreatureEffectSource",
         "name": "Zap",
         "persistence": {
@@ -84,19 +87,21 @@
     ],
     "effectSources": [
       {
-        "statChanges": {
-          "CURRENTHP": 1
+        "onApplication": {
+          "statChanges": {
+            "CURRENTHP": 1
+          },
+          "attributeScoreChanges": {},
+          "attributeBonusChanges": {},
+          "damages": [
+            {
+              "flavor": "HEALING",
+              "count": 2,
+              "type": "TWO"
+            }
+          ],
+          "restoreFaction": false
         },
-        "attributeScoreChanges": {},
-        "attributeBonusChanges": {},
-        "damages": [
-          {
-            "flavor": "HEALING",
-            "count": 2,
-            "type": "TWO"
-          }
-        ],
-        "restoreFaction": false,
         "className": "com.lhf.game.creature.CreatureEffectSource",
         "name": "Healing",
         "persistence": {
@@ -227,22 +232,25 @@
     ],
     "effectSources": [
       {
-        "statChanges": {},
-        "attributeScoreChanges": {},
-        "attributeBonusChanges": {},
-        "damages": [
-          {
-            "flavor": "THUNDER",
-            "count": 1,
-            "type": "SIX"
-          },
-          {
-            "flavor": "LIGHTNING",
-            "count": 1,
-            "type": "FOUR"
-          }
-        ],
-        "restoreFaction": false,
+        "onApplication": {
+          "statChanges": {},
+          "attributeScoreChanges": {},
+          "attributeBonusChanges": {},
+          "damages": [
+            {
+              "flavor": "THUNDER",
+              "count": 1,
+              "type": "SIX"
+            },
+            {
+              "flavor": "LIGHTNING",
+              "count": 1,
+              "type": "FOUR"
+            }
+          ],
+          "restoreFaction": false
+        },
+        "onTickEvent": {},
         "className": "com.lhf.game.creature.CreatureEffectSource",
         "name": "Loud Zap",
         "persistence": {
@@ -261,6 +269,7 @@
     ]
   },
   {
+    "ensoulsUsers": true,
     "className": "com.lhf.game.magic.concrete.Ensouling",
     "level": "TENTH_MAGNITUDE",
     "name": "Ensouling",

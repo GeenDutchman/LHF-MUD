@@ -1,6 +1,7 @@
 package com.lhf.game.creature.intelligence.actionChoosers;
 
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -18,14 +19,12 @@ import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
 import com.lhf.game.battle.BattleStats.BattleStatsQuery;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
-import com.lhf.game.dice.MultiRollResult;
-import com.lhf.game.dice.DamageDice.FlavoredRollResult;
-import com.lhf.game.dice.Dice.RollResult;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.messages.events.CreatureAffectedEvent;
@@ -68,11 +67,13 @@ public class BattleStatsChooserTest {
 
                 CreatureEffectSource source = new CreatureEffectSource("test", new EffectPersistence(TickType.INSTANT),
                                 null,
-                                "For a test", false)
-                                .addDamage(new DamageDice(1, DieType.HUNDRED, DamageFlavor.BLUDGEONING));
+                                "For a test", new Deltas()
+                                                .addDamage(new DamageDice(1, DieType.HUNDRED,
+                                                                DamageFlavor.BLUDGEONING)));
 
                 CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                                .setEffect(new CreatureEffect(source, attacker.getNPC(), attacker.getNPC())).Build();
+                                .fromCreatureEffect(new CreatureEffect(source, attacker.getNPC(), attacker.getNPC()))
+                                .setHighlightedDelta(source.getOnApplication()).Build();
 
                 finder.getNPC().getHarmMemories().update(cam);
                 battleStats.update(cam);
@@ -96,11 +97,13 @@ public class BattleStatsChooserTest {
                 CreatureEffectSource source2 = new CreatureEffectSource("test2",
                                 new EffectPersistence(TickType.INSTANT),
                                 null,
-                                "For a test", false)
-                                .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO));
+                                "For a test", new Deltas()
+                                                .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO)));
 
                 CreatureAffectedEvent cam2 = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                                .setEffect(new CreatureEffect(source2, subAttacker.getNPC(), subAttacker.getNPC()))
+                                .fromCreatureEffect(
+                                                new CreatureEffect(source2, subAttacker.getNPC(), subAttacker.getNPC()))
+                                .setHighlightedDelta(source2.getOnApplication())
                                 .Build();
 
                 finder.getNPC().getHarmMemories().update(cam2);
@@ -133,28 +136,15 @@ public class BattleStatsChooserTest {
 
                 CreatureEffectSource source = new CreatureEffectSource("test", new EffectPersistence(TickType.INSTANT),
                                 null,
-                                "For a test", false)
-                                .addDamage(new DamageDice(1, DieType.HUNDRED, DamageFlavor.BLUDGEONING))
-                                .addDamage(new DamageDice(2, DieType.SIX, DamageFlavor.AGGRO));
+                                "For a test", new Deltas()
+                                                .addDamage(new DamageDice(1, DieType.HUNDRED,
+                                                                DamageFlavor.BLUDGEONING))
+                                                .addDamage(new DamageDice(2, DieType.SIX, DamageFlavor.AGGRO)));
 
-                MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
                 CreatureEffect effect = new CreatureEffect(source, attacker.getNPC(), attacker.getNPC());
 
-                for (RollResult rr : effect.getDamageResult()) {
-                        if (rr instanceof FlavoredRollResult) {
-                                FlavoredRollResult frr = (FlavoredRollResult) rr;
-                                if (DamageFlavor.AGGRO.equals(frr.getDamageFlavor())) {
-                                        mrrBuilder.addRollResults(frr.none());
-                                } else {
-                                        mrrBuilder.addRollResults(frr.negative());
-                                }
-                        }
-                }
-
-                effect.updateDamageResult(mrrBuilder.Build());
-
                 CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                                .setEffect(effect).Build();
+                                .fromCreatureEffect(effect).setHighlightedDelta(source.getOnApplication()).Build();
 
                 System.out.println(cam.print());
 
@@ -162,11 +152,9 @@ public class BattleStatsChooserTest {
 
                 System.out.println(battleStats.toString());
 
-                Truth.assertThat(
-                                battleStats.getBattleStats(BattleStatsQuery.ONLY_LIVING)
-                                                .get(attacker.getNPC().getName())
-                                                .getStats()
-                                                .get(BattleStat.AGGRO_DAMAGE))
-                                .isAtLeast(1);
+                final Map<BattleStat, Integer> retrieved = battleStats.getBattleStats(BattleStatsQuery.ONLY_LIVING)
+                                .get(attacker.getNPC().getName()).getStats();
+                System.out.println(retrieved);
+                Truth.assertThat(retrieved.get(BattleStat.AGGRO_DAMAGE)).isAtLeast(1);
         }
 }

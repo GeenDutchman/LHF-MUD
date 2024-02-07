@@ -6,15 +6,19 @@ import java.util.StringJoiner;
 import com.lhf.server.interfaces.NotNull;
 
 public class EffectPersistence implements Comparable<EffectPersistence> {
-    public class Ticker {
+    public static class Ticker {
+        private final int count;
+        private final TickType tickSize;
         private int countdown;
 
-        public Ticker(int countdown) {
-            this.countdown = countdown;
+        public Ticker(int count, TickType tickSize) {
+            this.count = count;
+            this.tickSize = tickSize;
+            this.countdown = count;
         }
 
         public int tick(TickType type) {
-            if (EffectPersistence.this.getTickSize().equals(type) && this.countdown > 0) {
+            if (this.tickSize.equals(type) && this.countdown > 0) {
                 this.countdown = this.countdown - 1;
             }
             return this.countdown;
@@ -27,9 +31,14 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
         @Override
         public String toString() {
             if (this.countdown > 0) {
-                return String.valueOf(this.countdown) + "/" + EffectPersistence.this.toString();
+                return String.format("%d / %d %s", this.countdown, this.count, this.tickSize);
             }
-            return EffectPersistence.this.toString();
+            StringJoiner sj = new StringJoiner(" ");
+            if (this.count > 0) {
+                sj.add(String.valueOf(this.count));
+            }
+            sj.add(this.tickSize.name());
+            return sj.toString();
         }
 
         public int getCount() {
@@ -78,7 +87,7 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
     }
 
     public Ticker getTicker() {
-        return new Ticker(this.count);
+        return new Ticker(this.count, this.tickSize);
     }
 
     @Override

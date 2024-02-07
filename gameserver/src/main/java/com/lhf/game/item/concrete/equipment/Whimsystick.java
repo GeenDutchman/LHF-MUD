@@ -12,6 +12,7 @@ import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.Dice;
 import com.lhf.game.dice.DiceD6;
@@ -35,9 +36,8 @@ public class Whimsystick extends Weapon {
                 super("Whimsystick", Whimsystick.description,
                                 Set.of(new CreatureEffectSource("Bonk", new EffectPersistence(TickType.INSTANT),
                                                 new EffectResistance(EnumSet.of(Attributes.STR), Stats.AC),
-                                                "It is bonked.", false)
-                                                .addDamage(new DamageDice(1, DieType.SIX,
-                                                                DamageFlavor.MAGICAL_BLUDGEONING))),
+                                                "It is bonked.", new Deltas().addDamage(new DamageDice(1, DieType.SIX,
+                                                                DamageFlavor.MAGICAL_BLUDGEONING)))),
                                 DamageFlavor.MAGICAL_BLUDGEONING, WeaponSubtype.MARTIAL);
 
                 this.slots = Collections.singletonList(EquipmentSlots.WEAPON);
@@ -46,8 +46,8 @@ public class Whimsystick extends Weapon {
                 this.equipEffects = Collections
                                 .singletonList(new CreatureEffectSource("AC bonus",
                                                 new EffectPersistence(TickType.CONDITIONAL),
-                                                null, "This will magically increase your AC", false)
-                                                .addStatChange(Stats.AC, Whimsystick.acBonus));
+                                                null, "This will magically increase your AC",
+                                                new Deltas().setStatChange(Stats.AC, Whimsystick.acBonus)));
         }
 
         @Override
@@ -64,7 +64,7 @@ public class Whimsystick extends Weapon {
 
                         extraSources.add(new CreatureEffectSource("Whimsy healing",
                                         new EffectPersistence(TickType.INSTANT),
-                                        null, "The whimsystick chose to heal", false).addDamage(healDice));
+                                        null, "The whimsystick chose to heal", new Deltas().addDamage(healDice)));
                 }
                 return super.generateAttack(attacker, extraSources);
         }

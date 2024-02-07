@@ -85,14 +85,16 @@ public class Weapon extends Equipable {
     }
 
     @Override
-    public SeeEvent produceMessage() {
-        SeeEvent.Builder seeOutMessage = (Builder) super.produceMessage().copyBuilder();
+    public SeeEvent produceMessage(Builder seeOutMessage) {
+        if (seeOutMessage == null) {
+            seeOutMessage = (Builder) super.produceMessage(seeOutMessage).copyBuilder();
+        }
         if (this.getEffectSources() != null) {
             for (CreatureEffectSource source : this.getEffectSources()) {
-                if (source.getDamages() == null) {
+                if (source.getOnApplication() == null) {
                     continue;
                 }
-                for (DamageDice dd : source.getDamages()) {
+                for (DamageDice dd : source.getOnApplication().getDamages()) {
                     seeOutMessage.addSeen(SeeCategory.DAMAGES, dd);
                 }
             }

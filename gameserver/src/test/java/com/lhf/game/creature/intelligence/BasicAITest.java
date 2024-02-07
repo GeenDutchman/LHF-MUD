@@ -84,7 +84,7 @@ public class BasicAITest {
                 Attack attack = attacker.getNPC().attack(attacker.getNPC().defaultWeapon());
                 CreatureEffect effect = attack.getEffects().stream().findFirst().get();
                 CreatureAffectedEvent adm = CreatureAffectedEvent.getBuilder().setAffected(victim.getNPC())
-                                .setEffect(effect)
+                                .fromCreatureEffect(effect)
                                 .Build();
                 sendMsgAndWait(adm, victim);
 
@@ -92,9 +92,9 @@ public class BasicAITest {
 
                 victim.getNPC().addSubArea(SubAreaSort.BATTLE); // turn it on!
 
-                Truth.assertThat(effect.getDamageResult().getTotal()).isNotEqualTo(0);
+                Truth.assertThat(effect.getApplicationDamageResult().getTotal()).isNotEqualTo(0);
                 CreatureAffectedEvent doneAttack = CreatureAffectedEvent.getBuilder().setAffected(victim.getNPC())
-                                .setEffect(effect).Build();
+                                .fromCreatureEffect(effect).Build();
                 sendMsgAndWait(doneAttack, victim);
 
                 Mockito.verify(victim.sssb, Mockito.timeout(1000)).send(doneAttack);

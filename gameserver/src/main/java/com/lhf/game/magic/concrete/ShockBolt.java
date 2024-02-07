@@ -10,6 +10,7 @@ import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.Attributes;
@@ -23,8 +24,8 @@ public class ShockBolt extends CreatureTargetingSpellEntry {
     private static final Set<CreatureEffectSource> spellEffects = Set.of(
             new CreatureEffectSource("Zap", new EffectPersistence(TickType.INSTANT),
                     new EffectResistance(EnumSet.of(Attributes.INT, Attributes.WIS, Attributes.CHA), Stats.AC),
-                    "This spell zaps things.", false)
-                    .addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.LIGHTNING)));
+                    "This spell zaps things.", new Deltas()
+                            .addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.LIGHTNING))));
 
     public ShockBolt() {
         super(ResourceCost.NO_COST, "Shock Bolt", "Astra Horeb", spellEffects,

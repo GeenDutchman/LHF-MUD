@@ -10,8 +10,6 @@ import com.lhf.game.item.IItem;
 public interface InventoryOwner extends ItemContainer {
     Inventory getInventory();
 
-    void setInventory(Inventory inventory);
-
     String printInventory();
 
     String getName();

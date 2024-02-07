@@ -5,7 +5,7 @@ import java.util.Objects;
 import com.lhf.TaggedExaminable;
 import com.lhf.messages.events.SeeEvent;
 
-public abstract class EntityEffectSource implements TaggedExaminable {
+public abstract class EntityEffectSource implements TaggedExaminable, Comparable<EntityEffectSource> {
     protected final String className;
     protected final String name;
     protected final EffectPersistence persistence;
@@ -75,20 +75,45 @@ public abstract class EntityEffectSource implements TaggedExaminable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, persistence);
+        return Objects.hash(className, name, persistence, resistance);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
+        if (this == obj)
             return true;
-        }
-        if (!(obj instanceof EntityEffectSource)) {
+        if (!(obj instanceof EntityEffectSource))
             return false;
-        }
         EntityEffectSource other = (EntityEffectSource) obj;
-        return Objects.equals(name, other.name)
-                && Objects.equals(persistence, other.persistence);
+        return Objects.equals(className, other.className) && Objects.equals(name, other.name)
+                && Objects.equals(persistence, other.persistence) && Objects.equals(resistance, other.resistance);
+    }
+
+    @Override
+    public final int compareTo(EntityEffectSource arg0) {
+        if (this.equals(arg0)) {
+            return 0;
+        }
+        int comparison = this.className.compareTo(arg0.className);
+        if (comparison != 0) {
+            return comparison;
+        }
+        comparison = this.name.compareTo(arg0.name);
+        if (comparison != 0) {
+            return comparison;
+        }
+        if (this.persistence == null && arg0.persistence != null) {
+            return 1;
+        } else if (this.persistence != null && arg0.persistence == null) {
+            return -1;
+        } else if (this.persistence != null && arg0.persistence != null) {
+            comparison = this.persistence.compareTo(arg0.persistence);
+            if (comparison != 0) {
+                return comparison;
+            }
+        }
+
+        return 0;
     }
 
     public abstract boolean isOffensive();

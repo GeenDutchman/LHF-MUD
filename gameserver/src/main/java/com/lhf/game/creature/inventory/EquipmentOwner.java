@@ -1,6 +1,5 @@
 package com.lhf.game.creature.inventory;
 
-import java.util.EnumMap;
 import java.util.Map;
 
 import com.lhf.game.enums.EquipmentSlots;
@@ -28,5 +27,4 @@ public interface EquipmentOwner {
         }
     }
 
-    void setEquipmentSlots(EnumMap<EquipmentSlots, Equipable> equipmentSlots);
 }

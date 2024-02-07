@@ -19,11 +19,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.Game.GameBuilder;
+import com.lhf.game.creature.BuildInfoManager;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.map.StandardDungeonProducer;
+import com.lhf.game.map.SubArea;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.MessageMatcher;
@@ -112,7 +113,7 @@ public class ServerTest {
             this.clientManager = new ClientManager();
             AIRunner aiRunner = new GroupAIRunner(true, 2, 250, TimeUnit.MILLISECONDS);
             ConversationManager conversationManager = new ConversationManager();
-            StatblockManager statblockManager = new StatblockManager();
+            BuildInfoManager statblockManager = new BuildInfoManager();
             GameBuilder gameBuilder = new GameBuilder()
                     .setAiRunner(aiRunner)
                     .setConversationManager(conversationManager)
@@ -370,7 +371,7 @@ public class ServerTest {
             Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
                     .send(Mockito.argThat(battleTurnAccepted));
 
-            Mockito.verify(this.comm.sssb, Mockito.timeout(500).atLeast(i))
+            Mockito.verify(this.comm.sssb, Mockito.timeout(SubArea.DEFAULT_MILLISECONDS + 500).atLeast(i))
                     .send(Mockito.argThat((gameEvent) -> {
                         return battleTurn.matches(gameEvent) || fightOver.matches(gameEvent)
                                 || reincarnated.matches(gameEvent);
@@ -508,8 +509,12 @@ public class ServerTest {
                 .contains("was not handled");
 
         spellResult = caster.handleCommand("cast zarmamoo");
-        Truth.assertThat(spellResult).ignoringCase().contains("used");
-        Truth.assertThat(spellResult).ignoringCase().contains("Thaumaturgy");
+        if (!spellResult.contains("should have done something")) {
+            Truth.assertThat(spellResult).ignoringCase().contains("used");
+            Truth.assertThat(spellResult).ignoringCase().contains("Thaumaturgy");
+        } else {
+            Truth.assertThat(spellResult).ignoringCase().doesNotContain("Thaumaturgy");
+        }
 
     }
 

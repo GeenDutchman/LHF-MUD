@@ -1,7 +1,6 @@
 package com.lhf.game.creature;
 
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -14,8 +13,8 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import com.lhf.game.CreatureContainer;
-import com.lhf.game.EntityEffect;
 import com.lhf.game.battle.Attack;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.inventory.Inventory;
@@ -28,9 +27,9 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.AItem;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.Command;
@@ -39,6 +38,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.ITickEvent;
+import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.GameEvent.Builder;
@@ -157,11 +157,6 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public void setInventory(Inventory inventory) {
-        wrapped.setInventory(inventory);
-    }
-
-    @Override
     public final CommandChainHandler getSuccessor() {
         return this.successor;
     }
@@ -177,8 +172,8 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public GameEvent processEffect(EntityEffect effect, boolean reverse) {
-        return wrapped.processEffect(effect, reverse);
+    public GameEvent processEffect(CreatureEffect effect) {
+        return wrapped.processEffect(effect);
     }
 
     @Override
@@ -192,18 +187,8 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public void setEquipmentSlots(EnumMap<EquipmentSlots, Equipable> equipmentSlots) {
-        wrapped.setEquipmentSlots(equipmentSlots);
-    }
-
-    @Override
     public Optional<IItem> getItem(String name) {
         return wrapped.getItem(name);
-    }
-
-    @Override
-    public boolean isCorrectEffectType(EntityEffect effect) {
-        return wrapped.isCorrectEffectType(effect);
     }
 
     @Override
@@ -214,11 +199,6 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     @Override
     public boolean hasItem(String name) {
         return wrapped.hasItem(name);
-    }
-
-    @Override
-    public boolean shouldAdd(EntityEffect effect, boolean reverse) {
-        return wrapped.shouldAdd(effect, reverse);
     }
 
     @Override
@@ -237,19 +217,9 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public boolean shouldRemove(EntityEffect effect, boolean reverse) {
-        return wrapped.shouldRemove(effect, reverse);
-    }
-
-    @Override
     public Collection<IItem> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
             Integer objNameRegexLen, Class<? extends AItem> clazz, Boolean isVisible) {
         return wrapped.filterItems(filters, className, objectName, objNameRegexLen, clazz, isVisible);
-    }
-
-    @Override
-    public GameEvent applyEffect(CreatureEffect effect, boolean reverse) {
-        return wrapped.applyEffect(effect, reverse);
     }
 
     @Override
@@ -273,6 +243,12 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
         Reply reply = wrapped.handle(ctx, cmd);
         this.addSelfToContext(ctx);
         return reply;
+    }
+
+    @Override
+    public CreatureAffectedEvent.Builder processEffectDelta(CreatureEffect creatureEffect,
+            Deltas deltas) {
+        return wrapped.processEffectDelta(creatureEffect, deltas);
     }
 
     @Override
@@ -361,12 +337,6 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    @Deprecated
-    public void setAttributes(AttributeBlock attributes) {
-        wrapped.setAttributes(attributes);
-    }
-
-    @Override
     public MultiRollResult check(Attributes attribute) {
         return INonPlayerCharacter.super.check(attribute);
     }
@@ -379,11 +349,6 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     @Override
     public Map<Stats, Integer> getStats() {
         return wrapped.getStats();
-    }
-
-    @Override
-    public void setStats(EnumMap<Stats, Integer> stats) {
-        wrapped.setStats(stats);
     }
 
     @Override
@@ -457,11 +422,6 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public void setProficiencies(EnumSet<EquipmentTypes> proficiences) {
-        wrapped.setProficiencies(proficiences);
-    }
-
-    @Override
     public final EnumSet<SubAreaSort> getSubAreaSorts() {
         return wrapped.getSubAreaSorts();
     }
@@ -494,11 +454,6 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     @Override
     public String getCreatureRace() {
         return wrapped.getCreatureRace();
-    }
-
-    @Override
-    public void setCreatureRace(String creatureRace) {
-        wrapped.setCreatureRace(creatureRace);
     }
 
     @Override

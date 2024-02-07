@@ -12,6 +12,7 @@ import com.lhf.game.creature.CreatureVisitor;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.SeeEvent.Builder;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 public class Equipable extends Usable {
@@ -79,8 +80,10 @@ public class Equipable extends Usable {
     }
 
     @Override
-    public SeeEvent produceMessage() {
-        SeeEvent.Builder seeOutMessage = (SeeEvent.Builder) super.produceMessage().copyBuilder();
+    public SeeEvent produceMessage(Builder seeOutMessage) {
+        if (seeOutMessage == null) {
+            seeOutMessage = (SeeEvent.Builder) super.produceMessage(seeOutMessage).copyBuilder();
+        }
         for (CreatureEffectSource effector : this.getEquippingEffects()) {
             seeOutMessage.addEffector(effector);
         }
@@ -109,7 +112,8 @@ public class Equipable extends Usable {
             if (effector.getPersistence() != null
                     && TickType.CONDITIONAL.equals(effector.getPersistence().getTickSize())) {
                 ICreature.eventAccepter.accept(unequipper,
-                        unequipper.applyEffect(new CreatureEffect(effector, unequipper, this), true));
+                        unequipper.processEffectDelta(new CreatureEffect(effector, unequipper, this),
+                                effector.getOnRemoval()).Build());
             }
         }
     }

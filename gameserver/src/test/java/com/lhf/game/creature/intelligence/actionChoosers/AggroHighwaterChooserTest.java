@@ -17,6 +17,7 @@ import com.lhf.game.battle.BattleStats;
 import com.lhf.game.battle.BattleStats.BattleStatsQuery;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.intelligence.AIChooser;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
@@ -64,11 +65,12 @@ public class AggroHighwaterChooserTest {
 
                 CreatureEffectSource source = new CreatureEffectSource("test", new EffectPersistence(TickType.INSTANT),
                                 null,
-                                "For a test", false)
-                                .addDamage(new DamageDice(6, DieType.SIX, DamageFlavor.BLUDGEONING));
+                                "For a test", new Deltas()
+                                                .addDamage(new DamageDice(6, DieType.SIX, DamageFlavor.BLUDGEONING)));
 
                 CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                                .setEffect(new CreatureEffect(source, attacker.getNPC(), attacker.getNPC())).Build();
+                                .fromCreatureEffect(new CreatureEffect(source, attacker.getNPC(), attacker.getNPC()))
+                                .Build();
 
                 finder.getNPC().getHarmMemories().update(cam);
                 battleStats.update(cam);
@@ -92,11 +94,12 @@ public class AggroHighwaterChooserTest {
                 CreatureEffectSource source2 = new CreatureEffectSource("test2",
                                 new EffectPersistence(TickType.INSTANT),
                                 null,
-                                "For a test", false)
-                                .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO));
+                                "For a test", new Deltas()
+                                                .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO)));
 
                 CreatureAffectedEvent cam2 = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                                .setEffect(new CreatureEffect(source2, subAttacker.getNPC(), subAttacker.getNPC()))
+                                .fromCreatureEffect(
+                                                new CreatureEffect(source2, subAttacker.getNPC(), subAttacker.getNPC()))
                                 .Build();
 
                 finder.getNPC().getHarmMemories().update(cam2);

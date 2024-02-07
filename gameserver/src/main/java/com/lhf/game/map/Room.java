@@ -20,7 +20,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.IMonster;
@@ -29,7 +28,6 @@ import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.item.AItem;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemNoOpVisitor;
@@ -175,16 +173,15 @@ public class Room implements Area {
         }
 
         protected Set<INonPlayerCharacter> buildCreatures(
-                AIRunner aiRunner, Room successor, StatblockManager statblockManager,
-                ConversationManager conversationManager, boolean fallbackNoConversation,
-                boolean fallbackDefaultStatblock) {
+                AIRunner aiRunner, Room successor,
+                ConversationManager conversationManager, boolean fallbackNoConversation) {
             Collection<INonPlayerCharacterBuildInfo> toBuild = this.getNPCsToBuild();
             if (toBuild == null) {
                 return Set.of();
             }
-            CreatureFactory factory = CreatureFactory.fromAIRunner(successor, statblockManager, conversationManager,
+            CreatureFactory factory = CreatureFactory.fromAIRunner(successor, conversationManager,
                     aiRunner,
-                    fallbackNoConversation, fallbackDefaultStatblock);
+                    fallbackNoConversation);
 
             for (final INonPlayerCharacterBuildInfo builder : toBuild) {
                 if (builder == null) {
@@ -197,18 +194,17 @@ public class Room implements Area {
 
         @Override
         public Room quickBuild(CommandChainHandler successor, Land land, AIRunner aiRunner) {
-            return this.build(successor, land, aiRunner, null, null, true, true);
+            return this.build(successor, land, aiRunner, null, true);
         }
 
         @Override
         public Room build(CommandChainHandler successor, Land land, AIRunner aiRunner,
-                StatblockManager statblockManager, ConversationManager conversationManager,
-                boolean fallbackNoConversation,
-                boolean fallbackDefaultStatblock) {
+                ConversationManager conversationManager,
+                boolean fallbackNoConversation) {
             this.logger.log(Level.INFO, () -> String.format("Building room '%s'", this.name));
             return Room.fromBuilder(this, () -> land, () -> successor, () -> (room) -> {
-                final Set<INonPlayerCharacter> creaturesBuilt = this.buildCreatures(aiRunner, room, statblockManager,
-                        conversationManager, fallbackNoConversation, fallbackDefaultStatblock);
+                final Set<INonPlayerCharacter> creaturesBuilt = this.buildCreatures(aiRunner, room,
+                        conversationManager, fallbackNoConversation);
                 room.addCreatures(creaturesBuilt, false);
                 for (final ISubAreaBuildInfo subAreaBuilder : this.getSubAreasToBuild()) {
                     room.addSubArea(subAreaBuilder);
@@ -495,17 +491,8 @@ public class Room implements Area {
     }
 
     @Override
-    public boolean isCorrectEffectType(EntityEffect effect) {
-        return effect != null && effect instanceof RoomEffect;
-    }
-
-    @Override
-    public RoomAffectedEvent processEffect(EntityEffect effect, boolean reverse) {
-        if (!this.isCorrectEffectType(effect)) {
-            return null;
-        }
-        this.logger.log(Level.FINER, () -> String.format("Room processing effect '%s'", effect.getName()));
-        RoomEffect roomEffect = (RoomEffect) effect;
+    public RoomAffectedEvent processEffect(RoomEffect roomEffect) {
+        this.logger.log(Level.FINER, () -> String.format("Room processing effect '%s'", roomEffect.getName()));
         INonPlayerCharacter summonedNPC = roomEffect.getQuickSummonedNPC(this);
         if (summonedNPC != null) {
             this.logger.log(Level.INFO, () -> String.format("Summoned npc %s", summonedNPC.getName()));

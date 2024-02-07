@@ -2,7 +2,6 @@ package com.lhf.game.creature;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
@@ -17,7 +16,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import com.lhf.game.EffectPersistence.Ticker;
-import com.lhf.game.EntityEffect;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo.SummonData;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
@@ -33,6 +32,7 @@ import com.lhf.game.item.IItem;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.CreatureAffectedEvent.Builder;
 
 public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlayerCharacter>
         extends WrappedINonPlayerCharacter<SummonedType> {
@@ -89,14 +89,6 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public void setInventory(Inventory inventory) {
-        if (this.checkSummonIsAlive()) {
-            super.setInventory(inventory);
-        }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'setInventory(inventory)'");
-    }
-
-    @Override
     public String printInventory() {
         if (this.checkSummonIsAlive()) {
             return super.printInventory();
@@ -115,9 +107,18 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public GameEvent processEffect(EntityEffect effect, boolean reverse) {
+    public Builder processEffectDelta(CreatureEffect creatureEffect, Deltas deltas) {
         if (this.checkSummonIsAlive()) {
-            return super.processEffect(effect, reverse);
+            return super.processEffectDelta(creatureEffect, deltas);
+        }
+        this.log(Level.WARNING, "This summon is dead, and cannot perform 'processEffectDelta(effect, deltas)'");
+        return null;
+    }
+
+    @Override
+    public GameEvent processEffect(CreatureEffect effect) {
+        if (this.checkSummonIsAlive()) {
+            return super.processEffect(effect);
         }
         this.log(Level.WARNING, "This summon is dead, and cannot perform 'processEffect(effect, reverse)'");
         return null;
@@ -139,15 +140,6 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
         }
         this.log(Level.WARNING, "This summon is dead, and cannot perform 'getEquipmentSlots()'");
         return Map.of();
-    }
-
-    @Override
-    public void setEquipmentSlots(EnumMap<EquipmentSlots, Equipable> equipmentSlots) {
-        if (this.checkSummonIsAlive()) {
-            super.setEquipmentSlots(equipmentSlots);
-            return;
-        }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'setEquipmentSlots(equipmentSlots)'");
     }
 
     @Override
@@ -174,15 +166,6 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
             return super.hasItem(name);
         }
         this.log(Level.WARNING, "This summon is dead, and cannot perform 'hasItem(name)'");
-        return false;
-    }
-
-    @Override
-    public boolean shouldAdd(EntityEffect effect, boolean reverse) {
-        if (this.checkSummonIsAlive()) {
-            return super.shouldAdd(effect, reverse);
-        }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'shouldAdd(effect, reverse)'");
         return false;
     }
 
@@ -214,15 +197,6 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public boolean shouldRemove(EntityEffect effect, boolean reverse) {
-        if (this.checkSummonIsAlive()) {
-            return super.shouldRemove(effect, reverse);
-        }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'shouldRemove(effect, reverse)'");
-        return false;
-    }
-
-    @Override
     public Collection<IItem> filterItems(EnumSet<ItemFilters> filters, String className, String objectName,
             Integer objNameRegexLen, Class<? extends AItem> clazz, Boolean isVisible) {
         if (this.checkSummonIsAlive()) {
@@ -231,15 +205,6 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
         this.log(Level.WARNING,
                 "This summon is dead, and cannot perform 'filterItems(filters, className, objectName, objNameRegexLen, clazz, isVisible)'");
         return List.of();
-    }
-
-    @Override
-    public GameEvent applyEffect(CreatureEffect effect, boolean reverse) {
-        if (this.checkSummonIsAlive()) {
-            return super.applyEffect(effect, reverse);
-        }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'applyEffect(effect, reverse)'");
-        return null;
     }
 
     @Override
@@ -381,9 +346,9 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     @Override
     public synchronized boolean isAlive() {
         Consumer<SummonedType> killit = toDie -> {
-            EnumMap<Stats, Integer> foundStats = new EnumMap<>(toDie.getStats());
-            foundStats.put(Stats.CURRENTHP, 0);
-            toDie.setStats(foundStats);
+            Integer current = toDie.getStats().getOrDefault(Stats.MAXHP,
+                    toDie.getStats().getOrDefault(Stats.CURRENTHP, 0));
+            wrapped.updateHitpoints(-2 * current);
         };
 
         if (this.timeLeft != null && this.timeLeft.getCountdown() <= 0) {
@@ -423,16 +388,6 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    @Deprecated
-    public void setAttributes(AttributeBlock attributes) {
-        if (this.checkSummonIsAlive()) {
-            super.setAttributes(attributes);
-            return;
-        }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'setAttributes(attributes)'");
-    }
-
-    @Override
     public MultiRollResult check(Attributes attribute) {
         if (this.checkSummonIsAlive()) {
             return super.check(attribute);
@@ -457,15 +412,6 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
         }
         this.log(Level.WARNING, "This summon is dead, and cannot perform 'getStats()'");
         return Map.of();
-    }
-
-    @Override
-    public void setStats(EnumMap<Stats, Integer> stats) {
-        if (this.checkSummonIsAlive()) {
-            super.setStats(stats);
-            return;
-        }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'setStats(stats)'");
     }
 
     @Override

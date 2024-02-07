@@ -1,20 +1,29 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.DMVocation;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
+import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.DamgeFlavorReaction;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.Stats;
+import com.lhf.game.item.Equipable;
+import com.lhf.game.item.Takeable;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.server.client.CommandInvoker;
@@ -127,6 +136,126 @@ public class DungeonMaster extends NonPlayerCharacter {
             return this;
         }
 
+        public DungeonMasterBuildInfo setCreatureRace(String race) {
+            iNPCBuilder.setCreatureRace(race);
+            return this;
+        }
+
+        public String getCreatureRace() {
+            return iNPCBuilder.getCreatureRace();
+        }
+
+        public DungeonMasterBuildInfo defaultStats() {
+            iNPCBuilder.defaultStats();
+            return this;
+        }
+
+        public DungeonMasterBuildInfo setAttributeBlock(AttributeBlock block) {
+            iNPCBuilder.setAttributeBlock(block);
+            return this;
+        }
+
+        public DungeonMasterBuildInfo setAttributeBlock(Integer strength, Integer dexterity, Integer constitution,
+                Integer intelligence,
+                Integer wisdom, Integer charisma) {
+            iNPCBuilder.setAttributeBlock(strength, dexterity, constitution, intelligence, wisdom, charisma);
+            return this;
+        }
+
+        public DungeonMasterBuildInfo resetFlavorReactions() {
+            iNPCBuilder.resetFlavorReactions();
+            return this;
+        }
+
+        public DungeonMasterBuildInfo addFlavorReaction(DamgeFlavorReaction sort, DamageFlavor flavor) {
+            iNPCBuilder.addFlavorReaction(sort, flavor);
+            return this;
+        }
+
+        public AttributeBlock getAttributeBlock() {
+            return iNPCBuilder.getAttributeBlock();
+        }
+
+        public DungeonMasterBuildInfo setStats(Map<Stats, Integer> newStats) {
+            iNPCBuilder.setStats(newStats);
+            return this;
+        }
+
+        public DungeonMasterBuildInfo setStat(Stats stat, int value) {
+            iNPCBuilder.setStat(stat, value);
+            return this;
+        }
+
+        public EnumMap<Stats, Integer> getStats() {
+            return iNPCBuilder.getStats();
+        }
+
+        public DungeonMasterBuildInfo setProficiencies(EnumSet<EquipmentTypes> types) {
+            iNPCBuilder.setProficiencies(types);
+            return this;
+        }
+
+        public DungeonMasterBuildInfo addProficiency(EquipmentTypes type) {
+            iNPCBuilder.addProficiency(type);
+            return this;
+        }
+
+        public EnumSet<EquipmentTypes> getProficiencies() {
+            return iNPCBuilder.getProficiencies();
+        }
+
+        public DungeonMasterBuildInfo setInventory(Inventory other) {
+            iNPCBuilder.setInventory(other);
+            return this;
+        }
+
+        public DungeonMasterBuildInfo addItem(Takeable item) {
+            iNPCBuilder.addItem(item);
+            return this;
+        }
+
+        public Inventory getInventory() {
+            return iNPCBuilder.getInventory();
+        }
+
+        public DungeonMasterBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
+            iNPCBuilder.addEquipment(slot, equipable);
+            return this;
+        }
+
+        public DungeonMasterBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
+            iNPCBuilder.setEquipmentSlots(slots);
+            return this;
+        }
+
+        public EnumMap<EquipmentSlots, Equipable> getEquipmentSlots() {
+            return iNPCBuilder.getEquipmentSlots();
+        }
+
+        public DungeonMasterBuildInfo setCreatureEffects(Set<CreatureEffect> others) {
+            iNPCBuilder.setCreatureEffects(others);
+            return this;
+        }
+
+        public Set<CreatureEffect> getCreatureEffects() {
+            return iNPCBuilder.getCreatureEffects();
+        }
+
+        public DungeonMasterBuildInfo defaultFlavorReactions() {
+            iNPCBuilder.defaultFlavorReactions();
+            return this;
+        }
+
+        public DungeonMasterBuildInfo setDamageFlavorReactions(
+                EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> other) {
+            iNPCBuilder.setDamageFlavorReactions(other);
+            return this;
+        }
+
+        public EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> getDamageFlavorReactions() {
+            return iNPCBuilder.getDamageFlavorReactions();
+        }
+
         public DungeonMasterBuildInfo setName(String name) {
             iNPCBuilder.setName(name);
             return this;
@@ -134,6 +263,11 @@ public class DungeonMaster extends NonPlayerCharacter {
 
         public String getName() {
             return iNPCBuilder.getName();
+        }
+
+        @Override
+        public String getRawName() {
+            return iNPCBuilder.getRawName();
         }
 
         public DungeonMasterBuildInfo setFaction(CreatureFaction faction) {
@@ -150,8 +284,9 @@ public class DungeonMaster extends NonPlayerCharacter {
             return this;
         }
 
-        public CreatureBuildInfo setVocation(VocationName vocationName) {
-            return iNPCBuilder.setVocation(vocationName);
+        public DungeonMasterBuildInfo setVocation(VocationName vocationName) {
+            iNPCBuilder.setVocation(vocationName);
+            return this;
         }
 
         public DungeonMasterBuildInfo setVocationLevel(int level) {
@@ -167,45 +302,9 @@ public class DungeonMaster extends NonPlayerCharacter {
             return iNPCBuilder.getVocationLevel();
         }
 
-        public DungeonMasterBuildInfo setStatblock(Statblock statblock) {
-            iNPCBuilder.setStatblock(statblock);
-            return this;
-        }
-
-        public DungeonMasterBuildInfo setStatblockName(String statblockName) {
-            iNPCBuilder.setStatblockName(statblockName);
-            return this;
-        }
-
-        public String getStatblockName() {
-            return iNPCBuilder.getStatblockName();
-        }
-
-        public Statblock loadStatblock(StatblockManager statblockManager) throws FileNotFoundException {
-            return iNPCBuilder.loadStatblock(statblockManager);
-        }
-
-        @Override
-        public Statblock loadBlankStatblock() {
-            return iNPCBuilder.loadBlankStatblock();
-        }
-
-        public DungeonMasterBuildInfo useBlankStatblock() {
-            iNPCBuilder.useBlankStatblock();
-            return this;
-        }
-
-        public Statblock getStatblock() {
-            return iNPCBuilder.getStatblock();
-        }
-
         public DungeonMasterBuildInfo setCorpse(Corpse corpse) {
             iNPCBuilder.setCorpse(corpse);
             return this;
-        }
-
-        public Corpse getCorpse() {
-            return iNPCBuilder.getCorpse();
         }
 
         @Override
@@ -239,8 +338,8 @@ public class DungeonMaster extends NonPlayerCharacter {
 
     public DungeonMaster(DungeonMasterBuildInfo builder,
             @NotNull CommandInvoker controller, CommandChainHandler successor,
-            @NotNull Statblock statblock, ConversationTree conversationTree) {
-        super(builder, controller, successor, statblock, conversationTree);
+            ConversationTree conversationTree) {
+        super(builder, controller, successor, conversationTree);
     }
 
     public static DungeonMasterBuildInfo getDMBuilder() {

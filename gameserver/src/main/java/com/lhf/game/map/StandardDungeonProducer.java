@@ -1,19 +1,20 @@
 package com.lhf.game.map;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
 
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleManager;
+import com.lhf.game.creature.BuildInfoManager;
 import com.lhf.game.creature.CreatureEffectSource;
-import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
-import com.lhf.game.creature.Monster;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
+import com.lhf.game.creature.MonsterBuildInfo;
 import com.lhf.game.creature.NameGenerator;
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.StatblockManager;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DiceDC;
 import com.lhf.game.dice.DieType;
@@ -35,15 +36,18 @@ import com.lhf.game.item.concrete.equipment.RustyDagger;
 import com.lhf.game.item.concrete.equipment.Shortsword;
 import com.lhf.game.item.concrete.equipment.Whimsystick;
 import com.lhf.game.map.Dungeon.DungeonBuilder;
+import com.lhf.game.serialization.GsonBuilderFactory;
 
 public final class StandardDungeonProducer {
-        public static DungeonBuilder buildStaticDungeonBuilder(StatblockManager statblockLoader)
-                        throws FileNotFoundException {
+        public static DungeonBuilder buildStaticDungeonBuilder(BuildInfoManager statblockLoader)
+                        throws JsonIOException, JsonSyntaxException, IOException {
                 DungeonBuilder builder = DungeonBuilder.newInstance();
 
-                Statblock goblin = statblockLoader.statblockFromfile("goblin");
-                Statblock bugbear = statblockLoader.statblockFromfile("bugbear");
-                Statblock hobgoblin = statblockLoader.statblockFromfile("hobgoblin");
+                GsonBuilderFactory gsonFactory = GsonBuilderFactory.start().creatureInfoBuilders();
+
+                MonsterBuildInfo goblin = statblockLoader.monsterBuildInfoFromFile(gsonFactory, "goblin");
+                MonsterBuildInfo bugbear = statblockLoader.monsterBuildInfoFromFile(gsonFactory, "bugbear");
+                MonsterBuildInfo hobgoblin = statblockLoader.monsterBuildInfoFromFile(gsonFactory, "hobgoblin");
 
                 BattleManager.Builder battleBuilder = BattleManager.Builder.getInstance();
                 RestArea.Builder restBuilder = RestArea.Builder.getInstance();
@@ -91,8 +95,9 @@ public final class StandardDungeonProducer {
                                 new EnumMap<>(Map.of(Attributes.DEX, new DiceDC(12))))
                                 .addEffect(new CreatureEffectSource("Spike", new EffectPersistence(TickType.INSTANT),
                                                 new EffectResistance(Attributes.DEX, 10, null),
-                                                "A spike that pierces you.", false)
-                                                .addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.PIERCING))));
+                                                "A spike that pierces you.", new Deltas()
+                                                                .addDamage(new DamageDice(1, DieType.FOUR,
+                                                                                DamageFlavor.PIERCING)))));
 
                 Room.RoomBuilder secretRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
                                 .setName("Secret Room")
@@ -158,16 +163,12 @@ public final class StandardDungeonProducer {
                 treasuryBuilder.addItem(vaultLever);
 
                 // Monsters
-                IMonsterBuildInfo g1 = Monster.getMonsterBuilder().setName(NameGenerator.Generate("goblin"))
-                                .setStatblock(goblin).useDefaultConversation();
-                historyHallBuilder.addNPCBuilder(g1);
+                historyHallBuilder.addNPCBuilder(
+                                goblin.setName(NameGenerator.Generate("goblin")).useDefaultConversation());
 
-                IMonsterBuildInfo boss = Monster.getMonsterBuilder().setName("Boss Bear").setStatblock(bugbear);
-                statueRoomBuilder.addNPCBuilder(boss);
+                statueRoomBuilder.addNPCBuilder(bugbear.setName("Boss Bear"));
 
-                IMonsterBuildInfo rightHandMan = Monster.getMonsterBuilder()
-                                .setName(NameGenerator.Generate("Right")).setStatblock(hobgoblin);
-                offeringRoomBuilder.addNPCBuilder(rightHandMan);
+                offeringRoomBuilder.addNPCBuilder(hobgoblin.setName(NameGenerator.Generate("Right")));
 
                 // Set starting room
                 builder.addStartingRoom(entryRoomBuilder);

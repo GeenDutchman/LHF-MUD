@@ -14,12 +14,9 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.EntityEffect;
-import com.lhf.game.ItemContainer;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.Statblock.DamgeFlavorReaction;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.dice.DamageDice.FlavoredRollResult;
@@ -28,6 +25,7 @@ import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.DamgeFlavorReaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.HealthBuckets;
@@ -49,13 +47,19 @@ import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
 
 public abstract class Creature implements ICreature {
+    private final String creatureRace;
+    private final AttributeBlock attributeBlock;
+    private final EnumMap<Stats, Integer> stats;
+    private final EnumSet<EquipmentTypes> proficiencies;
+    private final Inventory inventory;
+    private final EnumMap<EquipmentSlots, Equipable> equipment;
+    private final EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> damageFlavorReactions;
     private final String name; // Username for players, description name (e.g., goblin 1) for monsters/NPCs
     private final ICreatureID creatureID;
     private final GameEventProcessorID gameEventProcessorID;
     private CreatureFaction faction; // See shared enum
     private Vocation vocation;
     private final TreeSet<CreatureEffect> effects;
-    private final Statblock statblock;
 
     private EnumSet<SubAreaSort> subAreaSorts; // what sub area engagements is the creature in?
     private transient CommandInvoker controller;
@@ -64,32 +68,43 @@ public abstract class Creature implements ICreature {
     private transient final Logger logger;
 
     protected Creature(ICreatureBuildInfo builder,
-            @NotNull CommandInvoker controller, CommandChainHandler successor,
-            @NotNull Statblock statblock) {
+            @NotNull CommandInvoker controller, CommandChainHandler successor) {
         this.gameEventProcessorID = new GameEventProcessorID();
         this.creatureID = new ICreatureID();
         this.name = builder.getName();
-        if (statblock == null) {
-            throw new IllegalArgumentException("Creature cannot have a null statblock!");
-        }
         if (controller == null) {
             throw new IllegalArgumentException("Creature cannot have a null controller!");
         }
+        this.creatureRace = builder.getCreatureRace();
+        this.attributeBlock = builder.getAttributeBlock();
+        this.stats = builder.getStats();
+        this.proficiencies = builder.getProficiencies();
+        this.inventory = builder.getInventory();
+        this.equipment = builder.getEquipmentSlots();
+        this.damageFlavorReactions = builder.getDamageFlavorReactions();
         this.cmds = this.buildCommands();
         this.faction = builder.getFaction();
         this.vocation = VocationFactory.getVocation(builder.getVocation(), builder.getVocationLevel());
 
         this.effects = new TreeSet<>();
-        this.statblock = new Statblock(statblock);
         this.controller = controller;
         this.controller.setSuccessor(this);
         this.successor = successor;
-        ItemContainer.transfer(builder.getCorpse(), this.getInventory(), null, false);
 
         // We don't start them in battle
         this.subAreaSorts = EnumSet.noneOf(SubAreaSort.class);
         this.logger = Logger
                 .getLogger(String.format("%s.%s", this.getClass().getName(), this.name.replaceAll("\\W", "_")));
+
+        // re-equip them
+        if (equipment != null && !equipment.isEmpty()) {
+            for (final Equipable thing : equipment.values()) {
+                if (thing == null) {
+                    continue;
+                }
+                thing.onEquippedBy(this);
+            }
+        }
     }
 
     @Override
@@ -104,11 +119,11 @@ public abstract class Creature implements ICreature {
     }
 
     private int getHealth() {
-        return this.statblock.getStats().getOrDefault(Stats.CURRENTHP, 0);
+        return this.getStats().getOrDefault(Stats.CURRENTHP, 0);
     }
 
     private int getMaxHealth() {
-        return this.statblock.getStats().getOrDefault(Stats.MAXHP, 0);
+        return this.getStats().getOrDefault(Stats.MAXHP, 0);
     }
 
     @Override
@@ -126,7 +141,7 @@ public abstract class Creature implements ICreature {
         int current = this.getHealth();
         int max = this.getMaxHealth();
         current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
-        this.statblock.getStats().replace(Stats.CURRENTHP, current);
+        this.stats.replace(Stats.CURRENTHP, current);
         if (current <= 0) {
             ICreature.announceDeath(this);
         }
@@ -134,17 +149,16 @@ public abstract class Creature implements ICreature {
 
     @Override
     public void updateXp(int value) {
-        int current = this.statblock.getStats().getOrDefault(Stats.XPEARNED, 0);
+        int current = this.getStats().getOrDefault(Stats.XPEARNED, 0);
         current += value;
-        this.statblock.getStats().replace(Stats.XPEARNED, current);
+        this.stats.replace(Stats.XPEARNED, current);
         if (this.vocation != null) {
             this.vocation.addExperience(value);
         }
     }
 
     private void updateAttribute(Attributes attribute, int value) {
-        AttributeBlock retrieved = this.statblock.getAttributes();
-        retrieved.setScoreBonus(attribute, retrieved.getScoreBonus(attribute) + value);
+        this.attributeBlock.setScoreBonus(attribute, attributeBlock.getScoreBonus(attribute) + value);
     }
 
     private void updateStat(Stats stat, int value) {
@@ -159,13 +173,13 @@ public abstract class Creature implements ICreature {
         };
         switch (stat) {
             case MAXHP:
-                this.statblock.getStats().merge(stat, value, merger);
+                this.stats.merge(stat, value, merger);
                 // fallthrough
             case CURRENTHP:
                 int current = this.getHealth();
                 int max = this.getMaxHealth();
                 current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
-                this.statblock.getStats().replace(Stats.CURRENTHP, current);
+                this.stats.replace(Stats.CURRENTHP, current);
                 break;
             case XPEARNED:
                 if (this.vocation != null) {
@@ -179,7 +193,7 @@ public abstract class Creature implements ICreature {
             case XPWORTH:
                 // fallthrough
             default:
-                this.statblock.getStats().merge(stat, value, merger);
+                this.stats.merge(stat, value, merger);
                 break;
         }
 
@@ -189,7 +203,7 @@ public abstract class Creature implements ICreature {
 
     @Override
     public Map<Stats, Integer> getStats() {
-        return Collections.unmodifiableMap(this.statblock.getStats());
+        return Collections.unmodifiableMap(this.stats);
     }
 
     @Override
@@ -212,17 +226,17 @@ public abstract class Creature implements ICreature {
 
     @Override
     public AttributeBlock getAttributes() {
-        return this.statblock.getAttributes();
+        return this.attributeBlock;
     }
 
     @Override
     public Set<EquipmentTypes> getProficiencies() {
-        return this.statblock.getProficiencies();
+        return this.proficiencies;
     }
 
     @Override
     public Map<EquipmentSlots, Equipable> getEquipmentSlots() {
-        return this.statblock.getEquipmentSlots();
+        return this.equipment;
     }
 
     @Override
@@ -251,47 +265,29 @@ public abstract class Creature implements ICreature {
         return this.getSubAreaSorts().contains(SubAreaSort.BATTLE);
     }
 
-    protected MultiRollResult adjustDamageByFlavor(MultiRollResult mrr, boolean reverse) {
+    protected MultiRollResult adjustDamageByFlavor(MultiRollResult mrr) {
         if (mrr == null) {
             return null;
         }
         MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
-        EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> dfr = this.statblock.getDamageFlavorReactions();
+        final EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> dfr = this.damageFlavorReactions;
         for (RollResult rr : mrr) {
             if (rr instanceof FlavoredRollResult) {
                 FlavoredRollResult frr = (FlavoredRollResult) rr;
                 if (dfr.get(DamgeFlavorReaction.CURATIVES).contains(frr.getDamageFlavor())) {
-                    if (reverse) {
-                        mrrBuilder.addRollResults(frr.negative());
-                    } else {
-                        mrrBuilder.addRollResults(frr);
-                    }
+                    mrrBuilder.addRollResults(frr);
                 } else if (dfr.get(DamgeFlavorReaction.IMMUNITIES).contains(frr.getDamageFlavor())) {
                     mrrBuilder.addRollResults(frr.none());
                 } else if (dfr.get(DamgeFlavorReaction.RESISTANCES).contains(frr.getDamageFlavor())) {
-                    if (reverse) {
-                        mrrBuilder.addRollResults(frr.half());
-                    } else {
-                        mrrBuilder.addRollResults(frr.negative().half());
-                    }
+                    mrrBuilder.addRollResults(frr.negative().half());
                 } else if (dfr.get(DamgeFlavorReaction.WEAKNESSES).contains(frr.getDamageFlavor())) {
-                    if (reverse) {
-                        mrrBuilder.addRollResults(frr.twice());
-                    } else {
-                        mrrBuilder.addRollResults(frr.negative().twice());
-                    }
+                    mrrBuilder.addRollResults(frr.negative().twice());
                 } else {
-                    if (reverse) {
-                        mrrBuilder.addRollResults(frr);
-                    } else {
-                        mrrBuilder.addRollResults(frr.negative());
-                    }
+                    mrrBuilder.addRollResults(frr.negative());
                 }
             } else {
                 if (dfr.get(DamgeFlavorReaction.IMMUNITIES).size() > 0) {
                     mrrBuilder.addRollResults(rr.none()); // if they have any immunities, unflavored damge does nothing
-                } else if (reverse) {
-                    mrrBuilder.addRollResults(rr.negative());
                 } else {
                     mrrBuilder.addRollResults(rr);
                 }
@@ -307,59 +303,48 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public boolean isCorrectEffectType(EntityEffect effect) {
-        return effect != null && effect instanceof CreatureEffect;
-    }
-
-    @Override
-    public boolean shouldAdd(EntityEffect effect, boolean reverse) {
-        return this.isAlive() && ICreature.super.shouldAdd(effect, reverse);
-    }
-
-    @Override
-    public CreatureAffectedEvent processEffect(EntityEffect effect, boolean reverse) {
-        if (!this.isCorrectEffectType(effect)) {
-            return null;
+    public CreatureAffectedEvent.Builder processEffectDelta(CreatureEffect creatureEffect, Deltas deltas) {
+        CreatureAffectedEvent.Builder builder = CreatureAffectedEvent.getBuilder().setAffected(this)
+                .setHighlightedDelta(deltas).fromCreatureEffect(creatureEffect);
+        if (deltas == null) {
+            return builder;
         }
-        CreatureEffect creatureEffect = (CreatureEffect) effect;
-        MultiRollResult mrr = this.adjustDamageByFlavor(creatureEffect.getDamageResult(), reverse);
-        if (mrr != null) {
-            creatureEffect.updateDamageResult(mrr);
+        MultiRollResult mrr = this.adjustDamageByFlavor(deltas.rollDamages());
+        if (mrr != null && !mrr.isEmpty()) {
+            builder.setDamages(mrr);
             this.updateHitpoints(mrr.getRoll());
         }
-        for (Stats delta : creatureEffect.getStatChanges().keySet()) {
-            int amount = creatureEffect.getStatChanges().get(delta);
-            if (reverse) {
-                amount = amount * -1;
-            }
+        for (Stats delta : deltas.getStatChanges().keySet()) {
+            int amount = deltas.getStatChanges().getOrDefault(delta, 0);
             this.updateStat(delta, amount);
         }
         if (this.isAlive()) {
-            for (Attributes delta : creatureEffect.getAttributeScoreChanges().keySet()) {
-                int amount = creatureEffect.getAttributeScoreChanges().get(delta);
-                if (reverse) {
-                    amount = amount * -1;
-                }
+            for (Attributes delta : deltas.getAttributeScoreChanges().keySet()) {
+                int amount = deltas.getAttributeScoreChanges().getOrDefault(delta, 0);
                 this.updateAttribute(delta, amount);
             }
-            for (Attributes delta : creatureEffect.getAttributeBonusChanges().keySet()) {
-                int amount = creatureEffect.getAttributeBonusChanges().get(delta);
-                if (reverse) {
-                    amount = amount * -1;
-                }
+            for (Attributes delta : deltas.getAttributeBonusChanges().keySet()) {
+                int amount = deltas.getAttributeBonusChanges().getOrDefault(delta, 0);
                 this.updateModifier(delta, amount);
             }
             // for now...cannot curse someone with being a renegade
-            if (creatureEffect.isRestoreFaction()) {
+            if (deltas.isRestoreFaction()) {
                 this.restoreFaction();
             }
         } else {
             ICreature.announceDeath(this);
         }
+        return builder;
+    }
 
-        CreatureAffectedEvent camOut = CreatureAffectedEvent.getBuilder().setAffected(this)
-                .setEffect(creatureEffect).setReversed(reverse).setBroacast().Build();
-        return camOut;
+    @Override
+    public CreatureAffectedEvent processEffect(CreatureEffect creatureEffect) {
+        if (creatureEffect == null) {
+            return null;
+        }
+        CreatureAffectedEvent.Builder camOut = this.processEffectDelta(creatureEffect,
+                creatureEffect.getApplicationDeltas());
+        return camOut.Build();
     }
 
     @Override
@@ -369,12 +354,7 @@ public abstract class Creature implements ICreature {
 
     @Override
     public String getCreatureRace() {
-        return this.statblock.getCreatureRace();
-    }
-
-    @Override
-    public void setCreatureRace(String creatureRace) {
-        this.statblock.setCreatureRace(creatureRace);
+        return this.creatureRace;
     }
 
     @Override
@@ -388,31 +368,6 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public void setAttributes(AttributeBlock attributes) {
-        this.statblock.setAttributes(attributes);
-    }
-
-    @Override
-    public void setStats(EnumMap<Stats, Integer> stats) {
-        this.statblock.setStats(stats);
-    }
-
-    @Override
-    public void setProficiencies(EnumSet<EquipmentTypes> proficiencies) {
-        this.statblock.setProficiencies(proficiencies);
-    }
-
-    @Override
-    public void setInventory(Inventory inventory) {
-        this.statblock.setInventory(inventory);
-    }
-
-    @Override
-    public void setEquipmentSlots(EnumMap<EquipmentSlots, Equipable> equipmentSlots) {
-        this.statblock.setEquipmentSlots(equipmentSlots);
-    }
-
-    @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof ICreature)) {
             return false;
@@ -423,12 +378,12 @@ public abstract class Creature implements ICreature {
 
     @Override
     public Inventory getInventory() {
-        return this.statblock.getInventory();
+        return this.inventory;
     }
 
     @Override
     public String printInventory() {
-        return this.statblock.getInventory().getInventoryOutMessage(this.getEquipmentSlots()).toString();
+        return this.getInventory().getInventoryOutMessage(this.getEquipmentSlots()).toString();
     }
 
     @Override

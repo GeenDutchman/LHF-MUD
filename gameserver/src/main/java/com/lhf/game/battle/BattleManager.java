@@ -29,7 +29,6 @@ import com.lhf.game.battle.commandHandlers.BattleGoHandler;
 import com.lhf.game.battle.commandHandlers.BattlePassHandler;
 import com.lhf.game.battle.commandHandlers.BattleUseHandler;
 import com.lhf.game.creature.CreatureEffect;
-import com.lhf.game.creature.CreatureVisitor;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.Player;
 import com.lhf.game.enums.Attributes;
@@ -187,15 +186,20 @@ public class BattleManager extends SubArea {
 
         @Override
         public void onRoundStart() {
-            Map<Boolean, Set<ICreature>> partitions = BattleManager.this.getCreatures().stream()
-                    .filter(c -> c != null).collect(Collectors.partitioningBy(
-                            creature -> BattleManager.this.isReadyToFlush(creature),
-                            Collectors.toSet()));
-            BattleManager.this.announce(
+            Set<ICreature> actionsNeeded = new TreeSet<>();
+            for (final ICreature creature : BattleManager.this.getCreatures()) {
+                if (creature == null) {
+                    continue;
+                }
+                if (!BattleManager.this.isReadyToFlush(creature)) {
+                    actionsNeeded.add(creature);
+                }
+            }
+            BattleManager.this.announceDirect(
                     BattleRoundEvent.getBuilder().setNeedSubmission(BattleRoundEvent.RoundAcceptance.NEEDED)
                             .setNotBroadcast().setRoundCount(this.getPhase())
                             .Build(),
-                    partitions.getOrDefault(true, null));
+                    actionsNeeded);
         }
 
         @Override

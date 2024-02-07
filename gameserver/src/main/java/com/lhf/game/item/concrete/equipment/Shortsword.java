@@ -8,6 +8,7 @@ import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.Attributes;
@@ -25,8 +26,8 @@ public class Shortsword extends Weapon {
         super("Shortsword", Shortsword.description, Set.of(
                 new CreatureEffectSource("Slash", new EffectPersistence(TickType.INSTANT),
                         new EffectResistance(EnumSet.of(Attributes.STR), Stats.AC),
-                        "Swords cut things", false)
-                        .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.SLASHING))),
+                        "Swords cut things",
+                        new Deltas().addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.SLASHING)))),
                 DamageFlavor.SLASHING, WeaponSubtype.MARTIAL);
 
         this.slots = List.of(EquipmentSlots.WEAPON);

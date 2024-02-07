@@ -1,14 +1,17 @@
 package com.lhf.game.creature.vocation;
 
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import com.lhf.Taggable;
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.Statblock.StatblockBuilder;
+import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
+import com.lhf.game.item.Takeable;
 import com.lhf.game.item.concrete.HealPotion;
 import com.lhf.game.item.concrete.equipment.LeatherArmor;
 import com.lhf.game.item.concrete.equipment.Longsword;
@@ -26,93 +29,93 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
     public enum VocationName implements Taggable {
         FIGHTER {
             @Override
-            public StatblockBuilder createNewDefaultStatblock(String creatureRace) {
-                StatblockBuilder builder = Statblock.getBuilder().setCreatureRace(creatureRace);
+            public Set<EquipmentTypes> defaultProficiencies() {
+                return EnumSet.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.MEDIUMARMOR, EquipmentTypes.SHIELD,
+                        EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MARTIALWEAPONS);
+            }
 
-                builder.addProficiency(EquipmentTypes.LIGHTARMOR);
-                builder.addProficiency(EquipmentTypes.MEDIUMARMOR);
-                builder.addProficiency(EquipmentTypes.SHIELD);
-                builder.addProficiency(EquipmentTypes.SIMPLEMELEEWEAPONS);
-                builder.addProficiency(EquipmentTypes.MARTIALWEAPONS);
+            @Override
+            public List<Takeable> defaultInventory() {
+                return List.of(Vocation.longsword, Vocation.leatherArmor, new HealPotion(), Vocation.shield);
+            }
 
-                builder.addItemToInventory(Vocation.longsword);
-                builder.addItemToInventory(Vocation.leatherArmor);
-                builder.addItemToInventory(new HealPotion());
-                builder.addItemToInventory(Vocation.shield);
+            @Override
+            public Map<Stats, Integer> defaultStats() {
+                return Map.of(Stats.MAXHP, 12, Stats.CURRENTHP, 12, Stats.AC, 11, Stats.XPWORTH, 500);
+            }
 
-                // Set default stats
-                builder.setStat(Stats.MAXHP, 12);
-                builder.setStat(Stats.CURRENTHP, 12);
-                builder.setStat(Stats.AC, 11);
-                builder.setStat(Stats.XPWORTH, 500);
-
-                builder.setAttributeBlock(16, 12, 14, 8, 10, 12);
-
-                return builder;
+            @Override
+            public AttributeBlock defaultAttributes() {
+                return new AttributeBlock(16, 12, 14, 8, 10, 12);
             }
         },
         MAGE {
+
             @Override
-            public StatblockBuilder createNewDefaultStatblock(String creatureRace) {
-                StatblockBuilder builder = Statblock.getBuilder().setCreatureRace(creatureRace);
-                builder.addProficiency(EquipmentTypes.SIMPLEMELEEWEAPONS);
-                builder.addProficiency(EquipmentTypes.LIGHTARMOR);
+            public Set<EquipmentTypes> defaultProficiencies() {
+                return EnumSet.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.SIMPLEMELEEWEAPONS);
+            }
 
-                builder.addItemToInventory(Vocation.leatherArmor);
-                builder.addItemToInventory(new HealPotion());
+            @Override
+            public List<Takeable> defaultInventory() {
+                return List.of(Vocation.leatherArmor, new HealPotion());
+            }
 
-                // Set default stats
-                builder.setStat(Stats.MAXHP, 9);
-                builder.setStat(Stats.CURRENTHP, 9);
-                builder.setStat(Stats.AC, 11);
-                builder.setStat(Stats.XPWORTH, 500);
+            @Override
+            public Map<Stats, Integer> defaultStats() {
+                return Map.of(Stats.MAXHP, 9, Stats.CURRENTHP, 9, Stats.AC, 11, Stats.XPWORTH, 500);
+            }
 
-                builder.setAttributeBlock(8, 12, 10, 16, 14, 12);
-
-                return builder;
+            @Override
+            public AttributeBlock defaultAttributes() {
+                return new AttributeBlock(8, 12, 10, 16, 14, 12);
             }
         },
         DUNGEON_MASTER {
+
             @Override
-            public StatblockBuilder createNewDefaultStatblock(String creatureRace) {
-                StatblockBuilder builder = Statblock.getBuilder().setCreatureRace(creatureRace);
-
-                builder.addProficiencies(EnumSet.allOf(EquipmentTypes.class));
-
-                builder.addItemToInventory(new HealPotion());
-
-                // Set default stats
-                builder.setStat(Stats.MAXHP, Integer.MAX_VALUE / 3);
-                builder.setStat(Stats.CURRENTHP, Integer.MAX_VALUE / 3);
-                builder.setStat(Stats.AC, Integer.MAX_VALUE / 3);
-                builder.setStat(Stats.XPWORTH, Integer.MAX_VALUE / 3);
-                builder.setStat(Stats.PROFICIENCYBONUS, Integer.MAX_VALUE / 3);
-
-                builder.setAttributeBlock(100, 100, 100, 100, 100, 100);
-
-                return builder;
+            public Set<EquipmentTypes> defaultProficiencies() {
+                return EnumSet.allOf(EquipmentTypes.class);
             }
+
+            @Override
+            public List<Takeable> defaultInventory() {
+                return List.of(new HealPotion());
+            }
+
+            @Override
+            public Map<Stats, Integer> defaultStats() {
+                return Map.of(Stats.MAXHP, Integer.MAX_VALUE / 3, Stats.CURRENTHP, Integer.MAX_VALUE / 3, Stats.AC,
+                        Integer.MAX_VALUE / 3, Stats.XPWORTH, Integer.MAX_VALUE / 3, Stats.PROFICIENCYBONUS,
+                        Integer.MAX_VALUE / 3);
+            }
+
+            @Override
+            public AttributeBlock defaultAttributes() {
+                return new AttributeBlock(100, 100, 100, 100, 100, 100);
+            }
+
         },
         HEALER {
+
             @Override
-            public StatblockBuilder createNewDefaultStatblock(String creatureRace) {
-                StatblockBuilder builder = Statblock.getBuilder().setCreatureRace(creatureRace);
-                builder.addProficiency(EquipmentTypes.SIMPLEMELEEWEAPONS);
-                builder.addProficiency(EquipmentTypes.LIGHTARMOR);
+            public Set<EquipmentTypes> defaultProficiencies() {
+                return EnumSet.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.SIMPLEMELEEWEAPONS);
+            }
 
-                builder.addItemToInventory(Vocation.leatherArmor);
-                builder.addItemToInventory(new HealPotion());
-                builder.addItemToInventory(new HealPotion());
+            @Override
+            public List<Takeable> defaultInventory() {
+                return List.of(Vocation.leatherArmor, new HealPotion(), new HealPotion());
+            }
 
-                // Set default stats
-                builder.setStat(Stats.MAXHP, 9);
-                builder.setStat(Stats.CURRENTHP, 9);
-                builder.setStat(Stats.AC, 11);
-                builder.setStat(Stats.XPWORTH, 500);
+            @Override
+            public Map<Stats, Integer> defaultStats() {
+                return Map.of(Stats.MAXHP, 9, Stats.CURRENTHP, 9, Stats.AC, 11, Stats.XPWORTH, 500);
+            }
 
-                builder.setAttributeBlock(8, 10, 12, 14, 16, 12);
-
-                return builder;
+            @Override
+            public AttributeBlock defaultAttributes() {
+                return new AttributeBlock(8, 10, 12, 14, 16, 12);
             }
         };
 
@@ -148,7 +151,13 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
             return this.getStartTag() + this.toString() + this.getEndTag();
         }
 
-        public abstract StatblockBuilder createNewDefaultStatblock(String creatureRace);
+        public abstract Set<EquipmentTypes> defaultProficiencies();
+
+        public abstract List<Takeable> defaultInventory();
+
+        public abstract Map<Stats, Integer> defaultStats();
+
+        public abstract AttributeBlock defaultAttributes();
 
     }
 

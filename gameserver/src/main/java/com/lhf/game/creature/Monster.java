@@ -3,7 +3,6 @@ package com.lhf.game.creature;
 import java.util.Objects;
 
 import com.lhf.game.creature.conversation.ConversationTree;
-import com.lhf.game.creature.statblock.Statblock;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
@@ -11,15 +10,15 @@ import com.lhf.server.interfaces.NotNull;
 public class Monster extends NonPlayerCharacter implements IMonster {
     private final long monsterNumber;
 
-    protected Monster(IMonsterBuildInfo builder,
+    protected Monster(MonsterBuildInfo builder,
             @NotNull CommandInvoker controller, CommandChainHandler successor,
-            @NotNull Statblock statblock, ConversationTree conversationTree) {
-        super(builder, controller, successor, statblock, conversationTree);
+            ConversationTree conversationTree) {
+        super(builder, controller, successor, conversationTree);
         this.monsterNumber = builder.getSerialNumber();
     }
 
-    public static IMonsterBuildInfo getMonsterBuilder() {
-        return new IMonsterBuildInfo();
+    public static MonsterBuildInfo getMonsterBuilder() {
+        return new MonsterBuildInfo();
     }
 
     @Override

@@ -3,7 +3,7 @@ package com.lhf.game.map;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffectSource;
-import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
+import com.lhf.game.creature.MonsterBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 
 public class RoomEffectSource extends EntityEffectSource {
@@ -11,12 +11,12 @@ public class RoomEffectSource extends EntityEffectSource {
     // TODO: implement banishment, with limited to how many
 
     protected INPCBuildInfo npcToSummon;
-    protected IMonsterBuildInfo monsterToSummon;
+    protected MonsterBuildInfo monsterToSummon;
 
     public RoomEffectSource(RoomEffectSource other) {
         super(other.name, other.persistence, other.resistance, other.description);
         this.npcToSummon = other.npcToSummon != null ? new INPCBuildInfo(other.npcToSummon) : null;
-        this.monsterToSummon = other.monsterToSummon != null ? new IMonsterBuildInfo(other.monsterToSummon) : null;
+        this.monsterToSummon = other.monsterToSummon != null ? new MonsterBuildInfo(other.monsterToSummon) : null;
     }
 
     public RoomEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
@@ -31,7 +31,7 @@ public class RoomEffectSource extends EntityEffectSource {
         return new RoomEffectSource(this);
     }
 
-    public RoomEffectSource setCreatureToSummon(IMonsterBuildInfo toSummon) {
+    public RoomEffectSource setCreatureToSummon(MonsterBuildInfo toSummon) {
         this.monsterToSummon = toSummon;
         return this;
     }
@@ -45,7 +45,7 @@ public class RoomEffectSource extends EntityEffectSource {
         return npcToSummon;
     }
 
-    public IMonsterBuildInfo getMonsterToSummon() {
+    public MonsterBuildInfo getMonsterToSummon() {
         return monsterToSummon;
     }
 

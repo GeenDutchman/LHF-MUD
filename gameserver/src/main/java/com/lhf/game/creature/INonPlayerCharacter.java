@@ -2,8 +2,10 @@ package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -12,14 +14,15 @@ import java.util.StringJoiner;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.TickType;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.commandHandlers.FollowHandler;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.dice.DamageDice;
@@ -28,10 +31,12 @@ import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.DamgeFlavorReaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
+import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
@@ -66,15 +71,15 @@ public interface INonPlayerCharacter extends ICreature {
         private final static CreatureEffectSource source = new CreatureEffectSource("Blessed Punch",
                 new EffectPersistence(TickType.INSTANT),
                 new EffectResistance(EnumSet.allOf(Attributes.class), Stats.AC), "A blessed fist punches harder.",
-                false);
+                new Deltas());
         private final static String description = "This is a Fist attached to a Creature who is blessed\n";
 
         BlessedFist() {
             super("Blessed Fist", BlessedFist.description, Set.of(BlessedFist.source), DamageFlavor.MAGICAL_BLUDGEONING,
                     WeaponSubtype.CREATUREPART);
-            if (BlessedFist.source.getDamages().size() == 0) {
+            if (BlessedFist.source.onApplication.getDamages().size() == 0) {
                 for (DamageFlavor df : DamageFlavor.values()) {
-                    BlessedFist.source.addDamage(new DamageDice(1, DieType.FOUR, df));
+                    BlessedFist.source.onApplication.addDamage(new DamageDice(1, DieType.FOUR, df));
                 }
             }
 
@@ -206,18 +211,21 @@ public interface INonPlayerCharacter extends ICreature {
             if (cam == null || !this.owner.equals(cam.getAffected())) {
                 return this;
             }
-            CreatureEffect ce = cam.getEffect();
+            Deltas ce = cam.getHighlightedDelta();
             if (ce == null) {
                 return this;
             }
-            MultiRollResult damage = ce.getDamageResult();
+            MultiRollResult damage = cam.getDamages();
+            if (damage == null) {
+                return this;
+            }
             if (ce.isOffensive()) {
-                this.lastAttackerName = Optional.of(ce.creatureResponsible().getName());
+                this.lastAttackerName = Optional.of(cam.getCreatureResponsible().getName());
                 this.lastDamageAmount = damage.getTotal();
             }
             if (damage.getTotal() >= this.lastMassDamageAmount) {
                 this.lastMassDamageAmount = damage.getTotal();
-                this.lastMassAttackerName = Optional.of(ce.creatureResponsible().getName());
+                this.lastMassAttackerName = Optional.of(cam.getCreatureResponsible().getName());
             }
             return this;
         }
@@ -409,6 +417,125 @@ public interface INonPlayerCharacter extends ICreature {
             return this;
         }
 
+        public INPCBuildInfo setCreatureRace(String race) {
+            creatureBuilder.setCreatureRace(race);
+            return this;
+        }
+
+        public String getCreatureRace() {
+            return creatureBuilder.getCreatureRace();
+        }
+
+        public INPCBuildInfo defaultStats() {
+            creatureBuilder.defaultStats();
+            return this;
+        }
+
+        public INPCBuildInfo setAttributeBlock(AttributeBlock block) {
+            creatureBuilder.setAttributeBlock(block);
+            return this;
+        }
+
+        public INPCBuildInfo setAttributeBlock(Integer strength, Integer dexterity, Integer constitution,
+                Integer intelligence,
+                Integer wisdom, Integer charisma) {
+            creatureBuilder.setAttributeBlock(strength, dexterity, constitution, intelligence, wisdom, charisma);
+            return this;
+        }
+
+        public INPCBuildInfo resetFlavorReactions() {
+            creatureBuilder.resetFlavorReactions();
+            return this;
+        }
+
+        public INPCBuildInfo addFlavorReaction(DamgeFlavorReaction sort, DamageFlavor flavor) {
+            creatureBuilder.addFlavorReaction(sort, flavor);
+            return this;
+        }
+
+        public AttributeBlock getAttributeBlock() {
+            return creatureBuilder.getAttributeBlock();
+        }
+
+        public INPCBuildInfo setStats(Map<Stats, Integer> newStats) {
+            creatureBuilder.setStats(newStats);
+            return this;
+        }
+
+        public INPCBuildInfo setStat(Stats stat, int value) {
+            creatureBuilder.setStat(stat, value);
+            return this;
+        }
+
+        public EnumMap<Stats, Integer> getStats() {
+            return creatureBuilder.getStats();
+        }
+
+        public INPCBuildInfo setProficiencies(EnumSet<EquipmentTypes> types) {
+            creatureBuilder.setProficiencies(types);
+            return this;
+        }
+
+        public INPCBuildInfo addProficiency(EquipmentTypes type) {
+            creatureBuilder.addProficiency(type);
+            return this;
+        }
+
+        public EnumSet<EquipmentTypes> getProficiencies() {
+            return creatureBuilder.getProficiencies();
+        }
+
+        public INPCBuildInfo setInventory(Inventory other) {
+            creatureBuilder.setInventory(other);
+            return this;
+        }
+
+        public INPCBuildInfo addItem(Takeable item) {
+            creatureBuilder.addItem(item);
+            return this;
+        }
+
+        public Inventory getInventory() {
+            return creatureBuilder.getInventory();
+        }
+
+        public INPCBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
+            creatureBuilder.addEquipment(slot, equipable);
+            return this;
+        }
+
+        public INPCBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
+            creatureBuilder.setEquipmentSlots(slots);
+            return this;
+        }
+
+        public EnumMap<EquipmentSlots, Equipable> getEquipmentSlots() {
+            return creatureBuilder.getEquipmentSlots();
+        }
+
+        public INPCBuildInfo setCreatureEffects(Set<CreatureEffect> others) {
+            creatureBuilder.setCreatureEffects(others);
+            return this;
+        }
+
+        public Set<CreatureEffect> getCreatureEffects() {
+            return creatureBuilder.getCreatureEffects();
+        }
+
+        public INPCBuildInfo defaultFlavorReactions() {
+            creatureBuilder.defaultFlavorReactions();
+            return this;
+        }
+
+        public INPCBuildInfo setDamageFlavorReactions(EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> other) {
+            creatureBuilder.setDamageFlavorReactions(other);
+            return this;
+        }
+
+        public EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> getDamageFlavorReactions() {
+            return creatureBuilder.getDamageFlavorReactions();
+        }
+
         public INPCBuildInfo setName(String name) {
             creatureBuilder.setName(name);
             return this;
@@ -416,6 +543,11 @@ public interface INonPlayerCharacter extends ICreature {
 
         public String getName() {
             return creatureBuilder.getName();
+        }
+
+        @Override
+        public String getRawName() {
+            return creatureBuilder.getRawName();
         }
 
         public INPCBuildInfo setFaction(CreatureFaction faction) {
@@ -432,8 +564,9 @@ public interface INonPlayerCharacter extends ICreature {
             return this;
         }
 
-        public CreatureBuildInfo setVocation(VocationName vocationName) {
-            return creatureBuilder.setVocation(vocationName);
+        public INPCBuildInfo setVocation(VocationName vocationName) {
+            creatureBuilder.setVocation(vocationName);
+            return this;
         }
 
         public INPCBuildInfo setVocationLevel(int level) {
@@ -449,45 +582,9 @@ public interface INonPlayerCharacter extends ICreature {
             return creatureBuilder.getVocationLevel();
         }
 
-        public INPCBuildInfo setStatblock(Statblock statblock) {
-            creatureBuilder.setStatblock(statblock);
-            return this;
-        }
-
-        public INPCBuildInfo setStatblockName(String statblockName) {
-            creatureBuilder.setStatblockName(statblockName);
-            return this;
-        }
-
-        public String getStatblockName() {
-            return creatureBuilder.getStatblockName();
-        }
-
-        public Statblock loadStatblock(StatblockManager statblockManager) throws FileNotFoundException {
-            return creatureBuilder.loadStatblock(statblockManager);
-        }
-
-        @Override
-        public Statblock loadBlankStatblock() {
-            return creatureBuilder.loadBlankStatblock();
-        }
-
-        public INPCBuildInfo useBlankStatblock() {
-            creatureBuilder.useBlankStatblock();
-            return this;
-        }
-
-        public Statblock getStatblock() {
-            return creatureBuilder.getStatblock();
-        }
-
         public INPCBuildInfo setCorpse(Corpse corpse) {
             creatureBuilder.setCorpse(corpse);
             return this;
-        }
-
-        public Corpse getCorpse() {
-            return creatureBuilder.getCorpse();
         }
 
         @Override

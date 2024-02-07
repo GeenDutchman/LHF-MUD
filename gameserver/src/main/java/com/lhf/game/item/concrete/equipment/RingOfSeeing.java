@@ -3,6 +3,7 @@ package com.lhf.game.item.concrete.equipment;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
@@ -21,8 +22,7 @@ public class RingOfSeeing extends Equipable {
         this.slots.add(EquipmentSlots.LEFTHAND);
         this.slots.add(EquipmentSlots.RIGHTHAND);
         this.equipEffects.add(new CreatureEffectSource("Seeing wisdom", new EffectPersistence(TickType.CONDITIONAL),
-                null, "If you can see, then you are wise.", false)
-                .addAttributeBonusChange(Attributes.WIS, 2));
+                null, "If you can see, then you are wise.", new Deltas().setAttributeBonusChange(Attributes.WIS, 2)));
     }
 
     @Override

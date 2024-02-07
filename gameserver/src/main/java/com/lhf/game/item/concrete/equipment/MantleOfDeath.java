@@ -5,12 +5,13 @@ import java.util.List;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
-import com.lhf.game.item.Equipable;
+import com.lhf.game.item.EquipableHiddenEffect;
 
-public class MantleOfDeath extends Equipable {
+public class MantleOfDeath extends EquipableHiddenEffect {
     private final int AC = 10;
     private final int MAX_HEALTH = 100;
 
@@ -21,10 +22,11 @@ public class MantleOfDeath extends Equipable {
 
         this.slots = List.of(EquipmentSlots.ARMOR);
         this.types = List.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
-        this.equipEffects = List.of(new CreatureEffectSource("AC Boost", new EffectPersistence(TickType.CONDITIONAL),
-                null, "Wearing armor makes you harder to hit", false)
-                .addStatChange(Stats.AC, this.AC).addStatChange(Stats.MAXHP, this.MAX_HEALTH)
-                .addStatChange(Stats.CURRENTHP, this.MAX_HEALTH));
+        this.hiddenEquipEffects = List
+                .of(new CreatureEffectSource("AC Boost", new EffectPersistence(TickType.CONDITIONAL),
+                        null, "Wearing armor makes you harder to hit",
+                        new Deltas().setStatChange(Stats.AC, this.AC).setStatChange(Stats.MAXHP, this.MAX_HEALTH)
+                                .setStatChange(Stats.CURRENTHP, this.MAX_HEALTH)));
     }
 
     @Override

@@ -6,15 +6,17 @@ import java.util.function.Consumer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import com.lhf.game.EntityEffect;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.battle.BattleManager.IBattleManagerBuildInfo;
 import com.lhf.game.creature.CreatureBuildInfo;
+import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.DungeonMaster.DungeonMasterBuildInfo;
-import com.lhf.game.creature.ICreatureBuildInfo.CreatureBuilderID;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreatureBuildInfo;
-import com.lhf.game.creature.IMonster.IMonsterBuildInfo;
+import com.lhf.game.creature.ICreatureBuildInfo.CreatureBuilderID;
+import com.lhf.game.creature.MonsterBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player.PlayerBuildInfo;
@@ -49,9 +51,11 @@ import com.lhf.game.map.Area.AreaBuilder;
 import com.lhf.game.map.Area.AreaBuilder.AreaBuilderID;
 import com.lhf.game.map.CloseableDoorway;
 import com.lhf.game.map.DMRoom.DMRoomBuilder;
+import com.lhf.game.map.DMRoomEffect;
 import com.lhf.game.map.DMRoomEffectSource;
 import com.lhf.game.map.Doorway;
 import com.lhf.game.map.Dungeon.DungeonBuilder;
+import com.lhf.game.map.DungeonEffect;
 import com.lhf.game.map.DungeonEffectSource;
 import com.lhf.game.map.KeyedDoorway;
 import com.lhf.game.map.Land.LandBuilder;
@@ -59,10 +63,11 @@ import com.lhf.game.map.Land.LandBuilder.LandBuilderID;
 import com.lhf.game.map.OneWayDoorway;
 import com.lhf.game.map.RestArea.IRestAreaBuildInfo;
 import com.lhf.game.map.Room.RoomBuilder;
+import com.lhf.game.map.RoomEffect;
 import com.lhf.game.map.RoomEffectSource;
 import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
-import com.lhf.game.map.SubArea.SubAreaBuilder;
 import com.lhf.game.map.SubArea.ISubAreaBuildInfo.SubAreaBuilderID;
+import com.lhf.game.map.SubArea.SubAreaBuilder;
 
 public class GsonBuilderFactory {
     private enum Loaded {
@@ -111,6 +116,22 @@ public class GsonBuilderFactory {
         return this;
     }
 
+    public synchronized GsonBuilderFactory effects() {
+        if (!this.loaded.contains(Loaded.EFFECTS)) {
+            this.loaded.add(Loaded.EFFECTS);
+            this.effectSources();
+            RuntimeTypeAdapterFactory<EntityEffect> effectAdapter = RuntimeTypeAdapterFactory
+                    .of(EntityEffect.class, "className", true)
+                    .registerSubtype(CreatureEffect.class, CreatureEffect.class.getName())
+                    .registerSubtype(DungeonEffect.class, DungeonEffect.class.getName())
+                    .registerSubtype(RoomEffect.class, RoomEffect.class.getName())
+                    .registerSubtype(DMRoomEffect.class, DMRoomEffect.class.getName())
+                    .recognizeSubtypes();
+            this.gsonBuilder.registerTypeAdapterFactory(effectAdapter);
+        }
+        return this;
+    }
+
     public synchronized GsonBuilderFactory items() {
         if (!this.loaded.contains(Loaded.ITEMS)) {
             this.loaded.add(Loaded.ITEMS);
@@ -141,6 +162,8 @@ public class GsonBuilderFactory {
     public synchronized GsonBuilderFactory creatureInfoBuilders() {
         if (!this.loaded.contains(Loaded.CREATURE_INFO)) {
             this.loaded.add(Loaded.CREATURE_INFO);
+            this.items();
+            this.effects();
             this.conversation();
             this.aiHandlers();
             this.gsonBuilder.registerTypeAdapter(CreatureBuilderID.class, new CreatureBuilderID.IDTypeAdapter());
@@ -150,7 +173,7 @@ public class GsonBuilderFactory {
                     .registerSubtype(PlayerBuildInfo.class, PlayerBuildInfo.class.getName())
                     .registerSubtype(INonPlayerCharacterBuildInfo.class, INonPlayerCharacterBuildInfo.class.getName())
                     .registerSubtype(DungeonMasterBuildInfo.class, DungeonMasterBuildInfo.class.getName())
-                    .registerSubtype(IMonsterBuildInfo.class, IMonsterBuildInfo.class.getName())
+                    .registerSubtype(MonsterBuildInfo.class, MonsterBuildInfo.class.getName())
                     .registerSubtype(INPCBuildInfo.class, INPCBuildInfo.class.getName())
                     .recognizeSubtypes();
             this.gsonBuilder.registerTypeAdapterFactory(creatureBuilderAdapterFactory);

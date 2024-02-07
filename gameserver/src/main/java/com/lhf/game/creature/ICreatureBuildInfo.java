@@ -1,22 +1,60 @@
 package com.lhf.game.creature;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import com.lhf.game.creature.statblock.Statblock;
-import com.lhf.game.creature.statblock.StatblockManager;
+import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
-import com.lhf.game.item.concrete.Corpse;
+import com.lhf.game.enums.DamageFlavor;
+import com.lhf.game.enums.DamgeFlavorReaction;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.enums.Stats;
+import com.lhf.game.item.Equipable;
 import com.lhf.server.interfaces.NotNull;
 
 public interface ICreatureBuildInfo extends Serializable {
+
+    public static final int DEFAULT_HP = 12;
+    public static final int DEFAULT_AC = 11;
+    public static final int DEFAULT_XP_WORTH = 500;
+
+    public static void setDefaultFlavorReactions(
+            EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> needDefaults) {
+        if (needDefaults == null) {
+            needDefaults = new EnumMap<>(DamgeFlavorReaction.class);
+        }
+        for (DamgeFlavorReaction reaction : DamgeFlavorReaction.values()) {
+            needDefaults.computeIfAbsent(reaction, key -> EnumSet.noneOf(DamageFlavor.class));
+        }
+        needDefaults
+                .computeIfAbsent(DamgeFlavorReaction.CURATIVES, key -> EnumSet.of(DamageFlavor.HEALING))
+                .add(DamageFlavor.HEALING);
+        needDefaults
+                .computeIfAbsent(DamgeFlavorReaction.IMMUNITIES, key -> EnumSet.of(DamageFlavor.AGGRO))
+                .add(DamageFlavor.AGGRO);
+    }
+
+    public static void setDefaultStats(EnumMap<Stats, Integer> needDefaults) {
+        if (needDefaults == null) {
+            needDefaults = new EnumMap<>(Stats.class);
+        }
+        needDefaults.put(Stats.MAXHP, ICreatureBuildInfo.DEFAULT_HP);
+        needDefaults.put(Stats.CURRENTHP, ICreatureBuildInfo.DEFAULT_HP);
+        needDefaults.put(Stats.AC, ICreatureBuildInfo.DEFAULT_AC);
+        needDefaults.put(Stats.XPWORTH, ICreatureBuildInfo.DEFAULT_XP_WORTH);
+    }
+
     public final static class CreatureBuilderID implements Comparable<ICreatureBuildInfo.CreatureBuilderID> {
         private final UUID id;
 
@@ -74,27 +112,37 @@ public interface ICreatureBuildInfo extends Serializable {
 
     }
 
+    public final static String defaultRaceName = "Creature";
+
     public String getClassName();
 
     public ICreatureBuildInfo.CreatureBuilderID getCreatureBuilderID();
 
+    public String getCreatureRace();
+
+    public AttributeBlock getAttributeBlock();
+
+    public EnumMap<Stats, Integer> getStats();
+
+    public EnumSet<EquipmentTypes> getProficiencies();
+
+    public Inventory getInventory();
+
+    public EnumMap<EquipmentSlots, Equipable> getEquipmentSlots();
+
+    public Set<CreatureEffect> getCreatureEffects();
+
+    public EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> getDamageFlavorReactions();
+
     public String getName();
+
+    public String getRawName();
 
     public CreatureFaction getFaction();
 
     public VocationName getVocation();
 
     public Integer getVocationLevel();
-
-    public String getStatblockName();
-
-    public Statblock getStatblock();
-
-    public Statblock loadStatblock(StatblockManager statblockManager) throws FileNotFoundException;
-
-    public Statblock loadBlankStatblock();
-
-    public Corpse getCorpse();
 
     public void acceptBuildInfoVisitor(ICreatureBuildInfoVisitor visitor);
 }
