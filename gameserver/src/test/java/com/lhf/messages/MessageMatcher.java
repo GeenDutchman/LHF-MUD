@@ -122,4 +122,12 @@ public class MessageMatcher implements ArgumentMatcher<GameEvent> {
         return true;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("MessageMatcher [type=").append(type).append(", contained=").append(contained)
+                .append(", notContained=").append(notContained).append("]");
+        return builder.toString();
+    }
+
 }
