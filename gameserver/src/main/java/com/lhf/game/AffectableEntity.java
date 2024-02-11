@@ -56,7 +56,7 @@ public interface AffectableEntity<Effect extends EntityEffect> {
         NavigableSet<Effect> effects = this.getMutableEffects();
         if (effects != null) {
             effects.removeIf(effect -> {
-                if (effect.tick(tickEvent.getTickType()) == 0) {
+                if (effect.tick(tickEvent) == 0) {
                     this.applyEffect(effect);
                     return true;
                 }

@@ -6,6 +6,7 @@ import com.lhf.Taggable;
 import com.lhf.TaggedExaminable;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.ICreature;
+import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.server.interfaces.NotNull;
 
@@ -58,8 +59,11 @@ public abstract class EntityEffect implements TaggedExaminable, Comparable<Entit
         return this.ticker;
     }
 
-    public int tick(TickType type) {
-        return this.ticker != null ? this.ticker.tick(type) : 0;
+    public int tick(ITickEvent tickEvent) {
+        if (tickEvent == null) {
+            return this.ticker != null ? this.ticker.getCountdown() : 0;
+        }
+        return this.ticker != null ? this.ticker.tick(tickEvent.getTickType()) : 0;
     }
 
     @Override
