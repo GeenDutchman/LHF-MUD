@@ -56,7 +56,7 @@ public interface AffectableEntity<Effect extends EntityEffect> {
         if (effects != null) {
             effects.removeIf(effect -> {
                 if (effect.tick(tickEvent)) {
-                    this.applyEffect(effect);
+                    this.processEffect(effect);
                 }
                 return effect.isReadyForRemoval();
             });

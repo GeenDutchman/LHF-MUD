@@ -6,6 +6,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -213,6 +214,25 @@ public interface ICreature
     public default ClientID getClientID() {
         CommandInvoker controller = this.getController();
         return controller != null ? controller.getClientID() : null;
+    }
+
+    @Override
+    default void tick(GameEvent tickEvent) {
+        if (tickEvent == null) {
+            return;
+        }
+        NavigableSet<CreatureEffect> effects = this.getMutableEffects();
+        if (effects != null) {
+            effects.removeIf(effect -> {
+                if (effect.tick(tickEvent)) {
+                    final Deltas deltas = effect.getDeltasForTick(tickEvent.getTickType());
+                    if (deltas != null) {
+                        this.processEffectDelta(effect, deltas);
+                    }
+                }
+                return effect.isReadyForRemoval();
+            });
+        }
     }
 
     @Override
