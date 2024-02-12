@@ -53,7 +53,6 @@ import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
-import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
@@ -222,10 +221,9 @@ public interface ICreature
             if (event == null) {
                 return;
             }
-            if (event instanceof ITickEvent tickEvent) {
-                this.tick(tickEvent);
-            }
+
             this.announce(event);
+            this.tick(event);
         };
     }
 

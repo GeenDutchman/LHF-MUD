@@ -8,9 +8,8 @@ import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.ITickEvent;
 
-public class CreatureStatusRequestedEvent extends GameEvent implements ITickEvent {
+public class CreatureStatusRequestedEvent extends GameEvent {
     private final static TickType tickType = TickType.ACTION;
     private final boolean full;
     private final String name;

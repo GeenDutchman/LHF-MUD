@@ -8,13 +8,12 @@ import java.util.StringJoiner;
 
 import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.item.Equipable;
 import com.lhf.game.item.AItem;
+import com.lhf.game.item.Equipable;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.ITickEvent;
 
-public class InventoryRequestedEvent extends GameEvent implements ITickEvent {
+public class InventoryRequestedEvent extends GameEvent {
     private final Collection<Takeable> items;
     private final Map<EquipmentSlots, Equipable> equipment;
     private final static TickType tickType = TickType.ACTION;

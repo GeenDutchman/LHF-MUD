@@ -5,13 +5,12 @@ import java.util.StringJoiner;
 
 import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.item.AItem;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.IItem;
-import com.lhf.game.item.AItem;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.ITickEvent;
 
-public class ItemEquippedEvent extends GameEvent implements ITickEvent {
+public class ItemEquippedEvent extends GameEvent {
     public enum EquipResultType {
         SUCCESS, BADSLOT, NOTEQUIPBLE;
     }

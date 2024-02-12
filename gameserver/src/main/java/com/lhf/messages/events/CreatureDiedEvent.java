@@ -6,9 +6,8 @@ import com.lhf.Taggable;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.ITickEvent;
 
-public class CreatureDiedEvent extends GameEvent implements ITickEvent {
+public class CreatureDiedEvent extends GameEvent {
     private final ICreature dearlyDeparted;
     private final Taggable cause;
     private final String extraInfo;

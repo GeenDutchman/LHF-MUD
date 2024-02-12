@@ -4,9 +4,8 @@ import java.util.Optional;
 
 import com.lhf.game.TickType;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.ITickEvent;
 
-public class TickEvent extends GameEvent implements ITickEvent {
+public class TickEvent extends GameEvent {
     private final TickType tickType;
     private final Optional<String> tickSpecificity;
 
@@ -29,7 +28,7 @@ public class TickEvent extends GameEvent implements ITickEvent {
             return new TickEvent(this);
         }
 
-        public Builder fromITickEvent(ITickEvent event) {
+        public Builder fromGameEvent(GameEvent event) {
             if (event != null) {
                 this.tickType = event.getTickType() != null ? event.getTickType() : TickType.INSTANT;
                 this.tickSpecificity = event.getTickSpecificity().orElse(null);

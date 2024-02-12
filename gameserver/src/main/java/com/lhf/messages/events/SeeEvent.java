@@ -12,9 +12,8 @@ import com.lhf.Taggable;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.TickType;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.ITickEvent;
 
-public class SeeEvent extends GameEvent implements ITickEvent {
+public class SeeEvent extends GameEvent {
     public enum SeeCategory {
         DIRECTION, CREATURE, PLAYER, NPC, MONSTER, ROOM_ITEM, TAKEABLE, EFFECTS, EQUIPMENT_SLOTS, PROFICIENCIES, STATS,
         ATTRIBUTE_SCORE, ATTRIBUTE_BONUS,
