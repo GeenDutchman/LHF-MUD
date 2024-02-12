@@ -2,7 +2,6 @@ package com.lhf.messages.events;
 
 import java.util.Collections;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -118,10 +117,6 @@ public abstract class GameEvent implements Comparable<GameEvent> {
 
     public TickType getTickType() {
         return null;
-    }
-
-    public Optional<String> getTickSpecificity() {
-        return Optional.empty();
     }
 
     // Called to render as a human-readable string
