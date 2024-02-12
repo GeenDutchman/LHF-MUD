@@ -1,10 +1,9 @@
 package com.lhf.messages.events;
 
 import com.lhf.game.TickType;
-import com.lhf.messages.ITickEvent;
 import com.lhf.messages.GameEventType;
 
-public class TickEvent extends GameEvent implements ITickEvent {
+public class TickEvent extends GameEvent {
     private final TickType tickType;
 
     public static class Builder extends GameEvent.Builder<Builder> {
@@ -25,7 +24,7 @@ public class TickEvent extends GameEvent implements ITickEvent {
             return new TickEvent(this);
         }
 
-        public Builder fromITickEvent(ITickEvent event) {
+        public Builder fromGameEvent(GameEvent event) {
             if (event != null) {
                 this.tickType = event.getTickType() != null ? event.getTickType() : TickType.INSTANT;
             }

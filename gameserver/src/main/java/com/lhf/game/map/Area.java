@@ -46,7 +46,6 @@ import com.lhf.game.map.commandHandlers.AreaUseHandler;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
-import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
@@ -279,10 +278,9 @@ public interface Area
             if (event == null) {
                 return;
             }
-            if (event instanceof ITickEvent tickEvent) {
-                this.tick(tickEvent);
-            }
+
             this.announceDirect(event, this.getGameEventProcessors());
+            this.tick(event);
         };
     }
 

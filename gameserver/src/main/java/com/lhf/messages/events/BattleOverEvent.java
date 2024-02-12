@@ -2,9 +2,8 @@ package com.lhf.messages.events;
 
 import com.lhf.game.TickType;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.ITickEvent;
 
-public class BattleOverEvent extends GameEvent implements ITickEvent {
+public class BattleOverEvent extends GameEvent {
     public static class Builder extends GameEvent.Builder<Builder> {
 
         protected Builder() {

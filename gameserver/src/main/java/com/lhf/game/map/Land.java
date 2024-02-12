@@ -35,7 +35,6 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventProcessor;
-import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.BadGoEvent;
 import com.lhf.messages.events.BadGoEvent.BadGoType;
 import com.lhf.messages.events.BadMessageEvent;
@@ -368,10 +367,9 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
             if (event == null) {
                 return;
             }
-            if (event instanceof ITickEvent tickEvent) {
-                this.tick(tickEvent);
-            }
+
             this.announceDirect(event, this.getGameEventProcessors());
+            this.tick(event);
         };
     }
 

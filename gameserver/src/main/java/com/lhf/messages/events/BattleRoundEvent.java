@@ -2,12 +2,11 @@ package com.lhf.messages.events;
 
 import java.util.StringJoiner;
 
-import com.lhf.messages.ITickEvent;
-import com.lhf.messages.GameEventType;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
+import com.lhf.messages.GameEventType;
 
-public class BattleRoundEvent extends GameEvent implements ITickEvent {
+public class BattleRoundEvent extends GameEvent {
     public enum RoundAcceptance {
         REJECTED, ACCEPTED, NEEDED, PERFORMED, MISSING, COMPLETED;
     }

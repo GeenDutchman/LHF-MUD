@@ -17,11 +17,16 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
             this.countdown = count;
         }
 
-        public int tick(TickType type) {
+        public synchronized boolean tick(TickType type) {
             if (this.tickSize.equals(type) && this.countdown > 0) {
                 this.countdown = this.countdown - 1;
+                return true;
             }
-            return this.countdown;
+            return false;
+        }
+
+        public boolean isDone() {
+            return this.countdown == 0;
         }
 
         public int getCountdown() {

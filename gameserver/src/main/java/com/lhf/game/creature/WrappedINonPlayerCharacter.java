@@ -37,7 +37,6 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventProcessor;
-import com.lhf.messages.ITickEvent;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
@@ -534,7 +533,7 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public void tick(ITickEvent tickEvent) {
+    public void tick(GameEvent tickEvent) {
         wrapped.tick(tickEvent);
     }
 
