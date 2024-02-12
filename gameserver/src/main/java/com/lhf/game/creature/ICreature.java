@@ -225,7 +225,7 @@ public interface ICreature
         if (effects != null) {
             effects.removeIf(effect -> {
                 if (effect.tick(tickEvent)) {
-                    final Deltas deltas = effect.getDeltasForTick(tickEvent.getTickType());
+                    final Deltas deltas = effect.getDeltasForEvent(tickEvent);
                     if (deltas != null) {
                         this.processEffectDelta(effect, deltas);
                     }

@@ -9,6 +9,7 @@ import com.lhf.game.EntityEffect;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.dice.MultiRollResult;
+import com.lhf.messages.events.GameEvent;
 
 public class CreatureEffect extends EntityEffect {
     protected MultiRollResult applicationDamageResult, removalDamageResult;
@@ -85,6 +86,14 @@ public class CreatureEffect extends EntityEffect {
 
     public Deltas getDeltasForTick(TickType tickType) {
         return this.getSource().deltasForTick(tickType);
+    }
+
+    public Deltas getDeltasForEvent(GameEvent event) {
+        if (event == null) {
+            return null;
+        }
+        final TickType tickType = event.getTickType();
+        return this.getDeltasForTick(tickType);
     }
 
     public boolean isOffensive() {
