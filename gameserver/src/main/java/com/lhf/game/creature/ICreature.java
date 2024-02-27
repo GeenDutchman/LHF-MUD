@@ -6,7 +6,6 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -54,7 +53,6 @@ import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
-import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
@@ -214,25 +212,6 @@ public interface ICreature
     public default ClientID getClientID() {
         CommandInvoker controller = this.getController();
         return controller != null ? controller.getClientID() : null;
-    }
-
-    @Override
-    default void tick(GameEvent tickEvent) {
-        if (tickEvent == null) {
-            return;
-        }
-        NavigableSet<CreatureEffect> effects = this.getMutableEffects();
-        if (effects != null) {
-            effects.removeIf(effect -> {
-                if (effect.tick(tickEvent)) {
-                    final Deltas deltas = effect.getDeltasForEvent(tickEvent);
-                    if (deltas != null) {
-                        this.processEffectDelta(effect, deltas);
-                    }
-                }
-                return effect.isReadyForRemoval();
-            });
-        }
     }
 
     @Override
@@ -610,8 +589,6 @@ public interface ICreature
         }
         return ctx;
     }
-
-    public CreatureAffectedEvent.Builder processEffectDelta(CreatureEffect creatureEffect, Deltas deltas);
 
     /**
      * Produces a {@link com.lhf.messages.events.SeeEvent SeeOutMessage}

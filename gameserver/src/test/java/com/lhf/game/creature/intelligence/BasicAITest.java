@@ -92,7 +92,7 @@ public class BasicAITest {
 
                 victim.getNPC().addSubArea(SubAreaSort.BATTLE); // turn it on!
 
-                Truth.assertThat(effect.getApplicationDamageResult().getTotal()).isNotEqualTo(0);
+                Truth.assertThat(effect.getApplicationDamageResult(null).getTotal()).isNotEqualTo(0);
                 CreatureAffectedEvent doneAttack = CreatureAffectedEvent.getBuilder().setAffected(victim.getNPC())
                                 .fromCreatureEffect(effect).Build();
                 sendMsgAndWait(doneAttack, victim);

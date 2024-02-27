@@ -39,6 +39,7 @@ import com.lhf.game.map.SubArea.SubAreaBuilder;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.CreatureDiedEvent;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.RoomAffectedEvent;
 import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.messages.events.RoomExitedEvent;
@@ -491,7 +492,7 @@ public class Room implements Area {
     }
 
     @Override
-    public RoomAffectedEvent processEffect(RoomEffect roomEffect) {
+    public RoomAffectedEvent processEffectApplication(RoomEffect roomEffect) {
         this.logger.log(Level.FINER, () -> String.format("Room processing effect '%s'", roomEffect.getName()));
         INonPlayerCharacter summonedNPC = roomEffect.getQuickSummonedNPC(this);
         if (summonedNPC != null) {
@@ -504,6 +505,22 @@ public class Room implements Area {
             this.addCreature(summonedMonster);
         }
         return RoomAffectedEvent.getBuilder().setRoom(this).setEffect(roomEffect).Build();
+    }
+
+    @Override
+    public GameEvent processEffectRemoval(RoomEffect effect) {
+        this.log(Level.INFO, () -> String.format("Currently room effects (among which '%s'), cannot really be removed",
+                effect.getName()));
+        return null;
+    }
+
+    @Override
+    public GameEvent processEffectEvent(RoomEffect effect, GameEvent event) {
+        this.log(Level.INFO,
+                () -> String.format(
+                        "Current room effects (among which '%s'), cannot really happen on any event (like '%s')",
+                        effect.getName(), event.getEventType()));
+        return null;
     }
 
     @Override

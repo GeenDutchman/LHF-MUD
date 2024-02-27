@@ -37,6 +37,7 @@ import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.CreatureAffectedEvent;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemEquippedEvent;
 import com.lhf.messages.events.ItemEquippedEvent.EquipResultType;
 import com.lhf.messages.events.ItemNotPossessedEvent;
@@ -265,7 +266,7 @@ public abstract class Creature implements ICreature {
         return this.getSubAreaSorts().contains(SubAreaSort.BATTLE);
     }
 
-    protected MultiRollResult adjustDamageByFlavor(MultiRollResult mrr) {
+    private MultiRollResult adjustDamageByFlavor(MultiRollResult mrr) {
         if (mrr == null) {
             return null;
         }
@@ -302,17 +303,16 @@ public abstract class Creature implements ICreature {
         return mrrBuilder.Build();
     }
 
-    @Override
-    public CreatureAffectedEvent.Builder processEffectDelta(CreatureEffect creatureEffect, Deltas deltas) {
+    private CreatureAffectedEvent.Builder processEffectDelta(CreatureEffect creatureEffect, Deltas deltas,
+            MultiRollResult preAdjustedDamages) {
         CreatureAffectedEvent.Builder builder = CreatureAffectedEvent.getBuilder().setAffected(this)
                 .setHighlightedDelta(deltas).fromCreatureEffect(creatureEffect);
         if (deltas == null) {
             return builder;
         }
-        MultiRollResult mrr = this.adjustDamageByFlavor(deltas.rollDamages());
-        if (mrr != null && !mrr.isEmpty()) {
-            builder.setDamages(mrr);
-            this.updateHitpoints(mrr.getRoll());
+        if (preAdjustedDamages != null && !preAdjustedDamages.isEmpty()) {
+            builder.setDamages(preAdjustedDamages);
+            this.updateHitpoints(preAdjustedDamages.getRoll());
         }
         for (Stats delta : deltas.getStatChanges().keySet()) {
             int amount = deltas.getStatChanges().getOrDefault(delta, 0);
@@ -338,13 +338,60 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
-    public CreatureAffectedEvent processEffect(CreatureEffect creatureEffect) {
-        if (creatureEffect == null) {
+    public GameEvent processEffectEvent(final CreatureEffect effect, final GameEvent event) {
+        if (effect == null) {
+            this.log(Level.WARNING, "Cannot process null effect for any event");
             return null;
         }
-        CreatureAffectedEvent.Builder camOut = this.processEffectDelta(creatureEffect,
-                creatureEffect.getApplicationDeltas());
-        return camOut.Build();
+        final Deltas deltas = effect.getDeltasForEvent(event);
+        if (deltas == null) {
+            this.log(Level.FINE,
+                    () -> String.format("Effect %s does nothing on event %s", effect.getName(), event.getEventType()));
+            return null;
+        }
+        final MultiRollResult damages = effect.getTickDamageResult(event.getTickType(),
+                (mrr) -> this.adjustDamageByFlavor(mrr));
+        CreatureAffectedEvent changeEvent = this.processEffectDelta(effect, deltas, damages).Build();
+        this.announce(changeEvent);
+        return changeEvent;
+    }
+
+    @Override
+    public CreatureAffectedEvent processEffectApplication(CreatureEffect effect) {
+        if (effect == null) {
+            this.log(Level.WARNING, "Cannot process application of null effect");
+            return null;
+        }
+        final Deltas deltas = effect.getApplicationDeltas();
+        if (deltas == null) {
+            this.log(Level.FINE,
+                    () -> String.format("Effect %s does nothing on application", effect.getName()));
+            return null;
+        }
+        final MultiRollResult damages = effect
+                .getApplicationDamageResult((mrr) -> this.adjustDamageByFlavor(mrr));
+        CreatureAffectedEvent camOut = this.processEffectDelta(effect, deltas, damages).Build();
+        this.announce(camOut);
+        return camOut;
+    }
+
+    @Override
+    public GameEvent processEffectRemoval(CreatureEffect effect) {
+        if (effect == null) {
+            this.log(Level.WARNING, "Cannot process removal of null effect");
+            return null;
+        }
+        final Deltas deltas = effect.getApplicationDeltas();
+        if (deltas == null) {
+            this.log(Level.FINE,
+                    () -> String.format("Effect %s does nothing on removal", effect.getName()));
+            return null;
+        }
+        final MultiRollResult damages = effect
+                .getApplicationDamageResult((mrr) -> this.adjustDamageByFlavor(mrr));
+        CreatureAffectedEvent camOut = this.processEffectDelta(effect, deltas, damages).Build();
+        this.announce(camOut);
+        return camOut;
     }
 
     @Override

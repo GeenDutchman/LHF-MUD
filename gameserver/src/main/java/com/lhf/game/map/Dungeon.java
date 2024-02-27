@@ -423,8 +423,19 @@ public class Dungeon implements Land {
     }
 
     @Override
-    public GameEvent processEffect(DungeonEffect effect) {
-        throw new UnsupportedOperationException(String.format("Cannot perform effect '%s'", effect));
+    public GameEvent processEffectApplication(DungeonEffect effect) {
+        throw new UnsupportedOperationException(String.format("Cannot process application of effect '%s'", effect));
+    }
+
+    @Override
+    public GameEvent processEffectRemoval(DungeonEffect effect) {
+        throw new UnsupportedOperationException(String.format("Cannot process removal of effect '%s'", effect));
+    }
+
+    @Override
+    public GameEvent processEffectEvent(DungeonEffect effect, GameEvent event) {
+        throw new UnsupportedOperationException(
+                String.format("Cannot perform effect '%s' on event '%s'", effect, event));
     }
 
     @Override

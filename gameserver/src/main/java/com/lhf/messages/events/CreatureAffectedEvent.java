@@ -54,9 +54,7 @@ public class CreatureAffectedEvent extends GameEvent {
         public Builder fromCreatureEffect(CreatureEffect effect) {
             if (effect != null) {
                 this.setCreatureResponsible(effect.creatureResponsible())
-                        .setGeneratedBy(effect.getGeneratedBy())
-                        .setHighlightedDelta(effect.getApplicationDeltas())
-                        .setDamages(effect.getApplicationDamageResult());
+                        .setGeneratedBy(effect.getGeneratedBy());
             }
             return this;
         }

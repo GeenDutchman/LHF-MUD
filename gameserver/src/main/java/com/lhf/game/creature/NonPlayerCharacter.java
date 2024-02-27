@@ -92,8 +92,8 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     }
 
     @Override
-    public CreatureAffectedEvent processEffect(CreatureEffect effect) {
-        CreatureAffectedEvent cam = super.processEffect(effect);
+    public CreatureAffectedEvent processEffectApplication(CreatureEffect effect) {
+        CreatureAffectedEvent cam = super.processEffectApplication(effect);
         final HarmMemories memories = this.getHarmMemories();
         if (memories != null) {
             memories.update(cam);

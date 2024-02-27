@@ -1,6 +1,7 @@
 package com.lhf.game;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.NavigableSet;
 
 import com.lhf.messages.events.GameEvent;
@@ -15,27 +16,50 @@ public interface AffectableEntity<Effect extends EntityEffect> {
     /**
      * Process the effect and does the actuall application of them to the entity.
      * 
-     * @param effect  to be applied
-     * @param reverse if it should be reversed
+     * @param effect to be applied
      * @return a resultant message or null
      */
-    GameEvent processEffect(Effect effect);
+    GameEvent processEffectApplication(Effect effect);
+
+    GameEvent processEffectRemoval(Effect effect);
 
     /**
      * This applies the effect to the AffectableEntity.
      * 
-     * @param effect  the effect to apply
-     * @param reverse true if the effect is to be undone
+     * @param effect the effect to apply
      * @return a message or null
      */
     default GameEvent applyEffect(Effect effect) {
-        GameEvent processed = this.processEffect(effect);
+        GameEvent processed = this.processEffectApplication(effect);
         final EffectPersistence persistence = effect.getPersistence();
         if (persistence != null && !TickType.INSTANT.equals(persistence.getTickSize())) {
             this.getMutableEffects().add(effect);
         }
         return processed;
     }
+
+    default GameEvent repealEffect(String effectName) {
+        if (effectName == null) {
+            return null;
+        }
+        NavigableSet<Effect> effects = this.getMutableEffects();
+        if (effects == null) {
+            return null;
+        }
+        for (Iterator<Effect> effectIterator = effects.iterator(); effectIterator.hasNext();) {
+            final Effect effect = effectIterator.next();
+            if (effect == null) {
+                effectIterator.remove();
+            } else if (effectName.equals(effect.getName())) {
+                GameEvent processed = this.processEffectRemoval(effect);
+                effectIterator.remove();
+                return processed;
+            }
+        }
+        return null;
+    }
+
+    GameEvent processEffectEvent(Effect effect, GameEvent event);
 
     /**
      * This is to be called when it's possible for an effect to expire.
@@ -56,7 +80,7 @@ public interface AffectableEntity<Effect extends EntityEffect> {
         if (effects != null) {
             effects.removeIf(effect -> {
                 if (effect.tick(tickEvent)) {
-                    this.processEffect(effect);
+                    this.processEffectEvent(effect, tickEvent);
                 }
                 return effect.isReadyForRemoval();
             });

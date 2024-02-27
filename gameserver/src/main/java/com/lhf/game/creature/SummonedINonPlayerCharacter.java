@@ -16,7 +16,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import com.lhf.game.EffectPersistence.Ticker;
-import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo.SummonData;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
@@ -30,7 +29,6 @@ import com.lhf.game.item.AItem;
 import com.lhf.game.item.Equipable;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.concrete.Corpse;
-import com.lhf.messages.events.CreatureAffectedEvent.Builder;
 import com.lhf.messages.events.GameEvent;
 
 public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlayerCharacter>
@@ -106,20 +104,36 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public Builder processEffectDelta(CreatureEffect creatureEffect, Deltas deltas) {
+    public GameEvent processEffectEvent(CreatureEffect effect, GameEvent event) {
         if (this.checkSummonIsAlive()) {
-            return super.processEffectDelta(creatureEffect, deltas);
+            return super.processEffectEvent(effect, event);
         }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'processEffectDelta(effect, deltas)'");
+        this.log(Level.WARNING,
+                String.format("This summon is dead, and cannot perform 'processEffectEvent(effect:%s, event:%s)'",
+                        effect != null ? ":" + effect.getName() : "nulleffect",
+                        event != null ? event.getEventType() : "nullevent"));
         return null;
     }
 
     @Override
-    public GameEvent processEffect(CreatureEffect effect) {
+    public GameEvent processEffectRemoval(CreatureEffect effect) {
         if (this.checkSummonIsAlive()) {
-            return super.processEffect(effect);
+            return super.processEffectRemoval(effect);
         }
-        this.log(Level.WARNING, "This summon is dead, and cannot perform 'processEffect(effect, reverse)'");
+        this.log(Level.WARNING,
+                String.format("This summon is dead, and cannot perform 'processEffectRemoval(effect:%s)'",
+                        effect != null ? effect.getName() : "nulleffect"));
+        return null;
+    }
+
+    @Override
+    public GameEvent processEffectApplication(CreatureEffect effect) {
+        if (this.checkSummonIsAlive()) {
+            return super.processEffectApplication(effect);
+        }
+        this.log(Level.WARNING,
+                String.format("This summon is dead, and cannot perform 'processEffectApplication(effect:%s)'",
+                        effect != null ? effect.getName() : "nulleffect"));
         return null;
     }
 

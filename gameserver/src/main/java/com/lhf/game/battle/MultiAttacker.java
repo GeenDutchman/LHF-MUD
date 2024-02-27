@@ -1,12 +1,18 @@
 package com.lhf.game.battle;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.lhf.Taggable;
-import com.lhf.game.creature.ICreature;
+import com.lhf.game.EffectPersistence;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
-import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.ResourceCost;
@@ -116,15 +122,15 @@ public interface MultiAttacker extends Taggable {
                 chaMod += Integer.max(this.getAggrovationLevel(), 1);
             }
 
+            Set<CreatureEffect> effects = new HashSet<>(attack.getEffects());
+
             DamageDice dd = new DamageDice(chaMod, DieType.SIX, DamageFlavor.AGGRO);
-            for (CreatureEffect crEffect : attack) {
-                if (crEffect.isOffensive()) {
-                    MultiRollResult mrr = crEffect.getApplicationDamageResult();
-                    MultiRollResult.Builder rebuilder = new MultiRollResult.Builder().addMultiRollResult(mrr);
-                    rebuilder.addRollResults(dd.rollDice());
-                    crEffect.updateApplicationDamage(rebuilder.Build());
-                }
-            }
+            CreatureEffect effect = new CreatureEffect(
+                    new CreatureEffectSource("AGGRO effect", new EffectPersistence(TickType.INSTANT), null,
+                            "Multi-attackers are especially aggravating", new Deltas().addDamage(dd)),
+                    attacker, this);
+            effects.add(effect);
+            return new Attack(attacker, attack.getWeapon(), effects);
         }
         return attack;
     }

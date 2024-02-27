@@ -112,8 +112,7 @@ public class Equipable extends Usable {
             if (effector.getPersistence() != null
                     && TickType.CONDITIONAL.equals(effector.getPersistence().getTickSize())) {
                 ICreature.eventAccepter.accept(unequipper,
-                        unequipper.processEffectDelta(new CreatureEffect(effector, unequipper, this),
-                                effector.getOnRemoval()).Build());
+                        unequipper.repealEffect(effector.getName()));
             }
         }
     }

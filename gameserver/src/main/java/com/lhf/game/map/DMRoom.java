@@ -366,7 +366,7 @@ public class DMRoom extends Room {
     }
 
     @Override
-    public RoomAffectedEvent processEffect(RoomEffect effect) {
+    public RoomAffectedEvent processEffectApplication(RoomEffect effect) {
         if (effect instanceof DMRoomEffect dmRoomEffect) {
             this.logger.log(Level.FINER, () -> String.format("DMRoom processing effect '%s'", dmRoomEffect.getName()));
             if (dmRoomEffect.getEnsoulUsername() != null) {
@@ -399,7 +399,7 @@ public class DMRoom extends Room {
                 this.addNewPlayer(factory.getBuiltCreatures().getPlayers().first());
             }
         }
-        return super.processEffect(effect);
+        return super.processEffectApplication(effect);
     }
 
     protected class SayHandler extends AreaSayHandler {

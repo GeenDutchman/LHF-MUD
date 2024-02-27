@@ -116,9 +116,7 @@ public class CarnivorousArmor extends EquipableHiddenEffect {
         if (equippedAndUsed) {
             ICreature.eventAccepter.accept(disowner,
                     disowner.applyEffect(new CreatureEffect(CarnivorousArmor.lastBite, disowner, this)));
-            ICreature.eventAccepter.accept(disowner,
-                    disowner.processEffectDelta(new CreatureEffect(eatingACResults, disowner, this),
-                            eatingACResults.getOnRemoval()).Build());
+            ICreature.eventAccepter.accept(disowner, disowner.repealEffect(eatingACResults.getName()));
         }
         equipped = false;
         equippedAndUsed = false;
