@@ -1,26 +1,27 @@
 package com.lhf.game.creature;
 
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.function.Function;
 
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
-import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.GameEventTester;
 
 public class CreatureEffect extends EntityEffect {
     protected MultiRollResult applicationDamageResult, removalDamageResult;
-    protected Map<TickType, MultiRollResult> tickDamageResult;
+    protected Map<GameEventTester, MultiRollResult> tickDamageResult;
 
     public CreatureEffect(CreatureEffectSource source, ICreature creatureResponsible, Taggable generatedBy) {
         super(source, creatureResponsible, generatedBy);
         this.applicationDamageResult = null;
         this.removalDamageResult = null;
-        this.tickDamageResult = new EnumMap<>(TickType.class);
+        this.tickDamageResult = new TreeMap<>();
     }
 
     public CreatureEffectSource getSource() {
@@ -57,27 +58,25 @@ public class CreatureEffect extends EntityEffect {
         if (event == null) {
             return null;
         }
-        final TickType tickType = event.getTickType();
-        if (tickType == null) {
+        final Entry<GameEventTester, Deltas> entry = this.getSource().getTesterEntryForEvent(event);
+        if (entry == null) {
             return null;
         }
-        return tickDamageResult.compute(tickType, (tt, value) -> {
+        final GameEventTester tester = entry.getKey();
+        final Deltas deltas = entry.getValue();
+        if (tester == null || deltas == null) {
+            return null;
+        }
+        return tickDamageResult.compute(tester, (tt, value) -> {
             if (value != null) {
                 return adjustor != null ? adjustor.apply(value) : value;
             }
-            final Map<TickType, Deltas> deltasMap = this.getSource().getOnTickEvent();
-            if (deltasMap == null) {
-                return null;
-            }
-            final Deltas deltas = deltasMap.getOrDefault(tt, null);
-            if (deltas == null) {
-                return null;
-            }
+
             return adjustor != null ? adjustor.apply(deltas.rollDamages()) : deltas.rollDamages();
         });
     }
 
-    public Map<TickType, MultiRollResult> getTickDamageResult() {
+    public Map<GameEventTester, MultiRollResult> getTickDamageResult() {
         return Collections.unmodifiableMap(tickDamageResult);
     }
 

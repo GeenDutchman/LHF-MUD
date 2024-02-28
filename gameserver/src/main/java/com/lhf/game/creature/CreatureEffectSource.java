@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringJoiner;
+import java.util.TreeMap;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
@@ -18,6 +19,7 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.GameEventTester;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.Builder;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
@@ -251,7 +253,7 @@ public class CreatureEffectSource extends EntityEffectSource {
     }
 
     protected final Deltas onApplication, onRemoval;
-    protected final Map<TickType, Deltas> onTickEvent;
+    protected final Map<GameEventTester, Deltas> onTickEvent;
 
     public CreatureEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
             String description, Deltas applicationDeltas) {
@@ -261,15 +263,16 @@ public class CreatureEffectSource extends EntityEffectSource {
                 && (persistence != null && !TickType.INSTANT.equals(persistence.getTickSize()))
                         ? applicationDeltas.reversal()
                         : null;
-        this.onTickEvent = new EnumMap<>(TickType.class);
+        this.onTickEvent = new TreeMap<>();
     }
 
     public CreatureEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
-            String description, Deltas applicationDeltas, Map<TickType, Deltas> tickDeltas, Deltas removalDeltas) {
+            String description, Deltas applicationDeltas, Map<GameEventTester, Deltas> tickDeltas,
+            Deltas removalDeltas) {
         super(name, persistence, resistance, description);
         this.onApplication = applicationDeltas;
         this.onRemoval = removalDeltas;
-        this.onTickEvent = tickDeltas != null ? new EnumMap<>(tickDeltas) : new EnumMap<>(TickType.class);
+        this.onTickEvent = tickDeltas != null ? new TreeMap<>(tickDeltas) : new TreeMap<>();
     }
 
     @Override
@@ -288,15 +291,38 @@ public class CreatureEffectSource extends EntityEffectSource {
         return onRemoval;
     }
 
-    public Map<TickType, Deltas> getOnTickEvent() {
+    public Map<GameEventTester, Deltas> getOnTickEvent() {
         return onTickEvent;
     }
 
-    public Deltas getDeltasForEvent(GameEvent event) {
-        if (event == null) {
+    /**
+     * Returns unmodifiable map entry of Entry<GameEventTester, Deltas> or null
+     * 
+     * @param event
+     * @return
+     */
+    public Entry<GameEventTester, Deltas> getTesterEntryForEvent(GameEvent event) {
+        if (event == null || this.onTickEvent == null) {
             return null;
         }
-        return this.onTickEvent.getOrDefault(event.getTickType(), null);
+        for (final Entry<GameEventTester, Deltas> entry : Collections.unmodifiableSet(this.onTickEvent.entrySet())) {
+            final GameEventTester tester = entry.getKey();
+            if (tester == null || !tester.test(event)) {
+                continue;
+            }
+            if (entry.getValue() != null) {
+                return entry;
+            }
+        }
+        return null;
+    }
+
+    public Deltas getDeltasForEvent(GameEvent event) {
+        final Entry<GameEventTester, Deltas> entry = this.getTesterEntryForEvent(event);
+        if (entry == null) {
+            return null;
+        }
+        return entry.getValue();
     }
 
     @Override
@@ -358,10 +384,15 @@ public class CreatureEffectSource extends EntityEffectSource {
             }
         }
         if (this.onTickEvent != null && this.onTickEvent.size() > 0) {
-            for (final Entry<TickType, Deltas> tickDeltas : this.onTickEvent.entrySet()) {
-                final String tickDescription = tickDeltas.getValue().printDescription();
+            for (final Entry<GameEventTester, Deltas> tickDeltas : this.onTickEvent.entrySet()) {
+                final GameEventTester tester = tickDeltas.getKey();
+                final Deltas deltas = tickDeltas.getValue();
+                if (tester == null || deltas == null) {
+                    continue;
+                }
+                final String tickDescription = deltas.printDescription();
                 if (tickDescription.length() > 0) {
-                    sj.add("On a").add(tickDeltas.getKey().toString()).add("tick: ").add(tickDescription);
+                    sj.add(tester.toString()).add(tickDescription);
                 }
             }
         }
