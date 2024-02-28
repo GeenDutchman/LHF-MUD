@@ -59,7 +59,7 @@ public class QuestSource extends CreatureEffectSource {
     @Override
     public String printDescription() {
         StringJoiner sj = new StringJoiner(" ");
-        sj.add("This quest").add(String.format("\"%s\"", this.getName())).add("entails the folowing:");
+        sj.add("This quest").add(String.format("\"%s\"", this.getName())).add("entails the following:");
         sj.add(this.description).add("\r\n");
         if (this.onApplication != null) {
             final String applicationDescription = this.onApplication.printDescription();
