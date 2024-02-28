@@ -2,43 +2,53 @@ package com.lhf.game.creature;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.StringJoiner;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
-import com.lhf.game.TickType;
+import com.lhf.messages.GameEventType;
+import com.lhf.messages.events.GameEventTester;
+import com.lhf.messages.events.QuestEvent.QuestEventType;
 
 public class QuestSource extends CreatureEffectSource {
-    protected final Deltas onSuccess, onFailure;
 
     public QuestSource(String name, EffectPersistence persistence, EffectResistance resistance, String description,
             Deltas applicationDeltas, Deltas onSuccess, Deltas onFailure) {
         super(name, persistence, resistance, description, applicationDeltas);
-        this.onSuccess = onSuccess;
-        this.onFailure = onFailure;
+        if (onSuccess != null) {
+            this.onTickEvent
+                    .put(new GameEventTester(GameEventType.QUEST, Set.of(name, QuestEventType.COMPLETED.toString()),
+                            Set.of(QuestEventType.FAILED.toString()), null), onSuccess);
+        }
+        if (onFailure != null) {
+            this.onTickEvent
+                    .put(new GameEventTester(GameEventType.QUEST, Set.of(name, QuestEventType.FAILED.toString()),
+                            Set.of(QuestEventType.COMPLETED.toString()), null), onFailure);
+        }
     }
 
     public QuestSource(String name, EffectPersistence persistence, EffectResistance resistance, String description,
-            Deltas applicationDeltas, Map<TickType, Deltas> tickDeltas, Deltas removalDeltas, Deltas onSuccess,
+            Deltas applicationDeltas, Map<GameEventTester, Deltas> tickDeltas, Deltas removalDeltas, Deltas onSuccess,
             Deltas onFailure) {
         super(name, persistence, resistance, description, applicationDeltas, tickDeltas, removalDeltas);
-        this.onSuccess = onSuccess;
-        this.onFailure = onFailure;
+        if (onSuccess != null) {
+            this.onTickEvent
+                    .put(new GameEventTester(GameEventType.QUEST, Set.of(name, QuestEventType.COMPLETED.toString()),
+                            Set.of(QuestEventType.FAILED.toString()), null), onSuccess);
+        }
+        if (onFailure != null) {
+            this.onTickEvent
+                    .put(new GameEventTester(GameEventType.QUEST, Set.of(name, QuestEventType.FAILED.toString()),
+                            Set.of(QuestEventType.COMPLETED.toString()), null), onFailure);
+        }
     }
 
     @Override
     public QuestSource makeCopy() {
         QuestSource copy = new QuestSource(this.getName(), persistence, resistance, description, onApplication,
-                onTickEvent, onRemoval, onSuccess, onFailure);
+                onTickEvent, onRemoval, null, null);
         return copy;
-    }
-
-    public Deltas getOnSuccess() {
-        return onSuccess;
-    }
-
-    public Deltas getOnFailure() {
-        return onFailure;
     }
 
     @Override
@@ -51,18 +61,6 @@ public class QuestSource extends CreatureEffectSource {
         StringJoiner sj = new StringJoiner(" ");
         sj.add("This quest").add(String.format("\"%s\"", this.getName())).add("entails the folowing:");
         sj.add(this.description).add("\r\n");
-        if (this.onSuccess != null) {
-            final String successDescription = this.onSuccess.printDescription();
-            if (successDescription.length() > 0) {
-                sj.add("On success:").add(successDescription);
-            }
-        }
-        if (this.onFailure != null) {
-            final String failureDescription = this.onFailure.printDescription();
-            if (failureDescription.length() > 0) {
-                sj.add("On failure:").add(failureDescription);
-            }
-        }
         if (this.onApplication != null) {
             final String applicationDescription = this.onApplication.printDescription();
             if (applicationDescription.length() > 0) {
@@ -70,10 +68,15 @@ public class QuestSource extends CreatureEffectSource {
             }
         }
         if (this.onTickEvent != null && this.onTickEvent.size() > 0) {
-            for (final Entry<TickType, Deltas> tickDeltas : this.onTickEvent.entrySet()) {
-                final String tickDescription = tickDeltas.getValue().printDescription();
+            for (final Entry<GameEventTester, Deltas> tickDeltas : this.onTickEvent.entrySet()) {
+                final GameEventTester tester = tickDeltas.getKey();
+                final Deltas deltas = tickDeltas.getValue();
+                if (tester == null || deltas == null) {
+                    continue;
+                }
+                final String tickDescription = deltas.printDescription();
                 if (tickDescription.length() > 0) {
-                    sj.add("On a").add(tickDeltas.getKey().toString()).add("tick: ").add(tickDescription);
+                    sj.add(tester.toString()).add(tickDescription);
                 }
             }
         }
