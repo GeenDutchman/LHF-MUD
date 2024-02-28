@@ -17,6 +17,7 @@ import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.Builder;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
@@ -291,11 +292,11 @@ public class CreatureEffectSource extends EntityEffectSource {
         return onTickEvent;
     }
 
-    public Deltas deltasForTick(TickType tickType) {
-        if (this.onTickEvent == null) {
+    public Deltas getDeltasForEvent(GameEvent event) {
+        if (event == null) {
             return null;
         }
-        return this.onTickEvent.getOrDefault(tickType, null);
+        return this.onTickEvent.getOrDefault(event.getTickType(), null);
     }
 
     @Override

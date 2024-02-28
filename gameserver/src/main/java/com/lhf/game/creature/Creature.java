@@ -349,7 +349,7 @@ public abstract class Creature implements ICreature {
                     () -> String.format("Effect %s does nothing on event %s", effect.getName(), event.getEventType()));
             return null;
         }
-        final MultiRollResult damages = effect.getTickDamageResult(event.getTickType(),
+        final MultiRollResult damages = effect.getEventDamageResult(event,
                 (mrr) -> this.adjustDamageByFlavor(mrr));
         CreatureAffectedEvent changeEvent = this.processEffectDelta(effect, deltas, damages).Build();
         this.announce(changeEvent);

@@ -52,7 +52,12 @@ public class CreatureEffect extends EntityEffect {
         return removalDamageResult;
     }
 
-    public MultiRollResult getTickDamageResult(TickType tickType, Function<MultiRollResult, MultiRollResult> adjustor) {
+    public MultiRollResult getEventDamageResult(GameEvent event,
+            Function<MultiRollResult, MultiRollResult> adjustor) {
+        if (event == null) {
+            return null;
+        }
+        final TickType tickType = event.getTickType();
         if (tickType == null) {
             return null;
         }
@@ -84,16 +89,11 @@ public class CreatureEffect extends EntityEffect {
         return this.getSource().getOnRemoval();
     }
 
-    public Deltas getDeltasForTick(TickType tickType) {
-        return this.getSource().deltasForTick(tickType);
-    }
-
     public Deltas getDeltasForEvent(GameEvent event) {
         if (event == null) {
             return null;
         }
-        final TickType tickType = event.getTickType();
-        return this.getDeltasForTick(tickType);
+        return this.getSource().getDeltasForEvent(event);
     }
 
     public boolean isOffensive() {
