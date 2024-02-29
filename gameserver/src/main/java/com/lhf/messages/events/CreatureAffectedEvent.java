@@ -155,13 +155,20 @@ public class CreatureAffectedEvent extends GameEvent {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
-        if (this.getCreatureResponsible() != null) {
-            sj.add(this.getCreatureResponsible().getColorTaggedName()).add("used");
-            sj.add(this.getGeneratedBy().getColorTaggedName()).add("on");
+        if (this.creatureResponsible != null) {
+            sj.add(this.creatureResponsible.getColorTaggedName());
+            if (this.generatedBy != null) {
+                sj.add("used").add(this.generatedBy.getColorTaggedName()).add("on");
+            } else {
+                sj.add("affected");
+            }
+            sj.add(this.addressCreature(this.affected, false) + "!");
+        } else if (this.generatedBy != null) {
+            sj.add(this.generatedBy.getColorTaggedName()).add("affected")
+                    .add(this.addressCreature(this.affected, false) + "!");
         } else {
-            sj.add(this.getGeneratedBy().getColorTaggedName()).add("affected");
+            sj.add(this.addressCreature(creatureResponsible, false)).add("is affected!");
         }
-        sj.add(this.addressCreature(this.affected, false) + "!");
         sj.add("\r\n");
         MultiRollResult damageResults = this.getDamages();
         if (damageResults != null && !damageResults.isEmpty()) {

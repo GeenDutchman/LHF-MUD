@@ -89,6 +89,10 @@ public class QuestEvent extends GameEvent {
 
     }
 
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
     public QuestEvent(Builder builder) {
         super(builder);
         this.questEventType = builder.getQuestEventType();

@@ -82,7 +82,11 @@ public interface AffectableEntity<Effect extends EntityEffect> {
                 if (effect.tick(tickEvent)) {
                     this.processEffectEvent(effect, tickEvent);
                 }
-                return effect.isReadyForRemoval();
+                if (effect.isReadyForRemoval()) {
+                    this.processEffectRemoval(effect);
+                    return true;
+                }
+                return false;
             });
         }
     }

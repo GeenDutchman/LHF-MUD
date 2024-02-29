@@ -381,7 +381,7 @@ public abstract class Creature implements ICreature {
             this.log(Level.WARNING, "Cannot process removal of null effect");
             return null;
         }
-        final Deltas deltas = effect.getApplicationDeltas();
+        final Deltas deltas = effect.getOnRemovalDeltas();
         if (deltas == null) {
             this.log(Level.FINE,
                     () -> String.format("Effect %s does nothing on removal", effect.getName()));

@@ -211,21 +211,25 @@ public interface INonPlayerCharacter extends ICreature {
             if (cam == null || !this.owner.equals(cam.getAffected())) {
                 return this;
             }
-            Deltas ce = cam.getHighlightedDelta();
+            final Deltas ce = cam.getHighlightedDelta();
             if (ce == null) {
                 return this;
             }
-            MultiRollResult damage = cam.getDamages();
+            final MultiRollResult damage = cam.getDamages();
             if (damage == null) {
                 return this;
             }
+            final ICreature responsible = cam.getCreatureResponsible();
+            if (responsible == null) {
+                return this;
+            }
             if (ce.isOffensive()) {
-                this.lastAttackerName = Optional.of(cam.getCreatureResponsible().getName());
+                this.lastAttackerName = Optional.of(responsible.getName());
                 this.lastDamageAmount = damage.getTotal();
             }
             if (damage.getTotal() >= this.lastMassDamageAmount) {
                 this.lastMassDamageAmount = damage.getTotal();
-                this.lastMassAttackerName = Optional.of(cam.getCreatureResponsible().getName());
+                this.lastMassAttackerName = Optional.of(responsible.getName());
             }
             return this;
         }

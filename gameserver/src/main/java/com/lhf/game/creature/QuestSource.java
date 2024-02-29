@@ -12,10 +12,12 @@ import com.lhf.messages.events.GameEventTester;
 import com.lhf.messages.events.QuestEvent.QuestEventType;
 
 public class QuestSource extends CreatureEffectSource {
+    public final static String QUEST_PREFIX = "QUEST:";
 
     public QuestSource(String name, EffectPersistence persistence, EffectResistance resistance, String description,
             Deltas applicationDeltas, Deltas onSuccess, Deltas onFailure) {
-        super(name, persistence, resistance, description, applicationDeltas);
+        super(name != null && !name.startsWith(QUEST_PREFIX) ? QUEST_PREFIX + name : name,
+                persistence, resistance, description, applicationDeltas);
         if (onSuccess != null) {
             this.onTickEvent
                     .put(new GameEventTester(GameEventType.QUEST, Set.of(name, QuestEventType.COMPLETED.toString()),
@@ -31,7 +33,8 @@ public class QuestSource extends CreatureEffectSource {
     public QuestSource(String name, EffectPersistence persistence, EffectResistance resistance, String description,
             Deltas applicationDeltas, Map<GameEventTester, Deltas> tickDeltas, Deltas removalDeltas, Deltas onSuccess,
             Deltas onFailure) {
-        super(name, persistence, resistance, description, applicationDeltas, tickDeltas, removalDeltas);
+        super(name != null && !name.startsWith(QUEST_PREFIX) ? QUEST_PREFIX + name : name,
+                persistence, resistance, description, applicationDeltas, tickDeltas, removalDeltas);
         if (onSuccess != null) {
             this.onTickEvent
                     .put(new GameEventTester(GameEventType.QUEST, Set.of(name, QuestEventType.COMPLETED.toString()),
