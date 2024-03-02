@@ -1,6 +1,8 @@
 package com.lhf.game.creature;
 
-public interface CreatureVisitor {
+import java.util.function.Consumer;
+
+public interface CreatureVisitor extends Consumer<ICreature> {
     public void visit(Player player);
 
     public void visit(NonPlayerCharacter npc);
@@ -12,5 +14,12 @@ public interface CreatureVisitor {
     public void visit(Monster monster);
 
     public void visit(SummonedMonster sMonster);
+
+    @Override
+    public default void accept(ICreature arg0) {
+        if (arg0 != null) {
+            arg0.acceptCreatureVisitor(this);
+        }
+    }
 
 }
