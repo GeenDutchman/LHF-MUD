@@ -48,7 +48,7 @@ public class QuestSource extends CreatureEffectSource {
 
     }
 
-    public static Builder getBuilder(String name) {
+    public static Builder getQuestBuilder(String name) {
         return new Builder(name);
     }
 
@@ -56,13 +56,6 @@ public class QuestSource extends CreatureEffectSource {
         super(builder.getName() != null && !builder.getName().startsWith(QUEST_PREFIX)
                 ? builder.setName(QUEST_PREFIX + builder.getName())
                 : builder);
-    }
-
-    @Override
-    public QuestSource makeCopy() {
-        QuestSource copy = new QuestSource(this.getName(), persistence, resistance, description, onApplication,
-                onTickEvent, onRemoval, null, null);
-        return copy;
     }
 
     @Override

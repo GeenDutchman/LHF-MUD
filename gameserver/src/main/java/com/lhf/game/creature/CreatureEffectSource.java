@@ -336,7 +336,7 @@ public class CreatureEffectSource extends EntityEffectSource {
 
     }
 
-    public static Builder getBuilder(String name) {
+    public static Builder getCreatureEffectBuilder(String name) {
         return new Builder(name);
     }
 
@@ -345,14 +345,6 @@ public class CreatureEffectSource extends EntityEffectSource {
         this.onApplication = builder.getOnApplication();
         this.onRemoval = builder.getOnRemoval();
         this.onTickEvent = builder.getOnTickEvent();
-    }
-
-    @Override
-    public CreatureEffectSource makeCopy() {
-        CreatureEffectSource copy = new CreatureEffectSource(this.getName(), persistence, resistance, description,
-                this.onApplication, this.onTickEvent, this.onRemoval);
-
-        return copy;
     }
 
     public Deltas getOnApplication() {
@@ -433,7 +425,7 @@ public class CreatureEffectSource extends EntityEffectSource {
     }
 
     @Override
-    public SeeEvent produceMessage(Builder seeOutMessage) {
+    public SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
         if (seeOutMessage == null) {
             seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         }

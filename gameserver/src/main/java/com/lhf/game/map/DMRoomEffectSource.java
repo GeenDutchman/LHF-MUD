@@ -40,11 +40,6 @@ public class DMRoomEffectSource extends RoomEffectSource {
         this.ensoulUserAndSend = builder.isEnsoulUserAndSend();
     }
 
-    @Override
-    public DMRoomEffectSource makeCopy() {
-        return new DMRoomEffectSource(this);
-    }
-
     public boolean isEnsoulsUserAndSend() {
         return ensoulUserAndSend;
     }

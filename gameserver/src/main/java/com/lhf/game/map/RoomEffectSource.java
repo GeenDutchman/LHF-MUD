@@ -65,11 +65,6 @@ public class RoomEffectSource extends EntityEffectSource {
         this.monsterToSummon = builder.getMonsterToSummon();
     }
 
-    @Override
-    public RoomEffectSource makeCopy() {
-        return new RoomEffectSource(this);
-    }
-
     public INPCBuildInfo getNpcToSummon() {
         return npcToSummon;
     }

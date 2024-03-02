@@ -44,11 +44,6 @@ public class DungeonEffectSource extends EntityEffectSource {
         this.areaBuilder = builder.getAreaBuilder();
     }
 
-    @Override
-    public DungeonEffectSource makeCopy() {
-        return new DungeonEffectSource(this.getName(), persistence, resistance, description, addsRoomToDungeon);
-    }
-
     public boolean addsRoomToDungeon() {
         return this.areaBuilder != null;
     }

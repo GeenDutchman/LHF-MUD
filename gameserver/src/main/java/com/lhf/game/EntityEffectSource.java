@@ -78,8 +78,6 @@ public abstract class EntityEffectSource implements TaggedExaminable, Comparable
         this.description = builder.getDescription();
     }
 
-    public abstract EntityEffectSource makeCopy();
-
     public EffectPersistence getPersistence() {
         return persistence;
     }
