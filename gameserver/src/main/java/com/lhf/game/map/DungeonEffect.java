@@ -60,7 +60,7 @@ public class DungeonEffect extends EntityEffect {
     }
 
     public boolean isAddsRoomToDungeon() {
-        return this.getSource().isAddsRoomToDungeon();
+        return this.getSource().addsRoomToDungeon();
     }
 
 }

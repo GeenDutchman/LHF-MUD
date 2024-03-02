@@ -126,8 +126,10 @@ public interface MultiAttacker extends Taggable {
 
             DamageDice dd = new DamageDice(chaMod, DieType.SIX, DamageFlavor.AGGRO);
             CreatureEffect effect = new CreatureEffect(
-                    new CreatureEffectSource("AGGRO effect", new EffectPersistence(TickType.INSTANT), null,
-                            "Multi-attackers are especially aggravating", new Deltas().addDamage(dd)),
+                    CreatureEffectSource.getCreatureEffectBuilder("AGGRO effect")
+                            .setPersistence(new EffectPersistence(TickType.INSTANT))
+                            .setDescription("Multi-attackers are especially aggravating")
+                            .setOnApplication(new Deltas().addDamage(dd)).build(),
                     attacker, this);
             effects.add(effect);
             return new Attack(attacker, attack.getWeapon(), effects);

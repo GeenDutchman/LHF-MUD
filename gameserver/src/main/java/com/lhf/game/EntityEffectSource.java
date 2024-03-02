@@ -50,6 +50,11 @@ public abstract class EntityEffectSource implements TaggedExaminable, Comparable
             return getThis();
         }
 
+        public T instantPersistence() {
+            this.persistence = new EffectPersistence(TickType.INSTANT);
+            return getThis();
+        }
+
         public EffectResistance getResistance() {
             return resistance;
         }

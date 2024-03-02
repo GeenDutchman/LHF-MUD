@@ -17,8 +17,9 @@ public class DMBlessing extends CreatureTargetingSpellEntry {
     public static final String name = "DMBlessing";
 
     private static final Set<CreatureEffectSource> spellEffects = Set.of(
-            new CreatureEffectSource("DMBlessing", new EffectPersistence(TickType.CONDITIONAL),
-                    null, "Effects of the blessing", new Deltas()
+            new CreatureEffectSource.Builder("DMBlessing")
+                    .setPersistence(new EffectPersistence(TickType.CONDITIONAL))
+                    .setDescription("Effects of the blessing").setOnApplication(new Deltas()
                             .setStatChange(Stats.MAXHP, 200)
                             .setStatChange(Stats.MAXHP, 200)
                             .setStatChange(Stats.CURRENTHP, 200)
@@ -26,7 +27,8 @@ public class DMBlessing extends CreatureTargetingSpellEntry {
                             .setAttributeScoreChange(Attributes.STR, 20)
                             .setAttributeScoreChange(Attributes.DEX, 20)
                             .setAttributeScoreChange(Attributes.CHA, 20)
-                            .setAttributeScoreChange(Attributes.CON, 20)));
+                            .setAttributeScoreChange(Attributes.CON, 20))
+                    .build());
 
     public DMBlessing() {
         super(ResourceCost.TENTH_MAGNITUDE, DMBlessing.name, "I bless you", DMBlessing.spellEffects,

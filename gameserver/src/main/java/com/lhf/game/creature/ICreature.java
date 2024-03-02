@@ -18,9 +18,7 @@ import java.util.stream.Collectors;
 
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
-import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
-import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.commandHandlers.EquipHandler;
@@ -134,11 +132,13 @@ public interface ICreature
         private static final String description = "This is a Fist attached to a Creature \n";
 
         Fist() {
-            super("Fist", Fist.description, Set.of(
-                    new CreatureEffectSource("Punch", new EffectPersistence(TickType.INSTANT),
-                            new EffectResistance(EnumSet.of(Attributes.STR, Attributes.DEX), Stats.AC),
-                            "Fists punch things",
-                            new Deltas().addDamage(new DamageDice(1, DieType.TWO, DamageFlavor.BLUDGEONING)))),
+            super("Fist", Fist.description,
+                    Set.of(CreatureEffectSource.getCreatureEffectBuilder("Punch").instantPersistence()
+                            .setResistance(new EffectResistance(EnumSet.of(Attributes.STR, Attributes.DEX), Stats.AC))
+                            .setDescription("Fists punch things")
+                            .setOnApplication(
+                                    new Deltas().addDamage(new DamageDice(1, DieType.TWO, DamageFlavor.BLUDGEONING)))
+                            .build()),
                     DamageFlavor.BLUDGEONING, WeaponSubtype.CREATUREPART);
 
             this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);

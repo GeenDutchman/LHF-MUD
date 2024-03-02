@@ -47,7 +47,7 @@ public class Equipable extends Usable {
         this.types.addAll(other.types);
         this.slots.addAll(other.slots);
         for (final CreatureEffectSource source : other.equipEffects) {
-            this.equipEffects.add(source.makeCopy());
+            this.equipEffects.add(source);
         }
     }
 

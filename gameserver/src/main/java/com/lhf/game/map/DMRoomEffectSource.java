@@ -36,6 +36,16 @@ public class DMRoomEffectSource extends RoomEffectSource {
         this.ensoulUserAndSend = builder.isEnsoulUserAndSend();
     }
 
+    public static DMRoomEffectSource fromRoomEffectSource(RoomEffectSource other) {
+        Builder builder = new Builder(other.getName());
+        builder.setPersistence(other.getPersistence());
+        builder.setResistance(other.getResistance());
+        builder.setDescription(other.printDescription());
+        builder.setNpcToSummon(other.getNpcToSummon());
+        builder.setMonsterToSummon(other.getMonsterToSummon());
+        return builder.build();
+    }
+
     public boolean isEnsoulsUserAndSend() {
         return ensoulUserAndSend;
     }

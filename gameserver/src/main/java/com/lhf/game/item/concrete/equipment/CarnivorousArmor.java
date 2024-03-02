@@ -17,13 +17,16 @@ import com.lhf.messages.events.ItemUsedEvent;
 import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 
 public class CarnivorousArmor extends EquipableHiddenEffect {
-    private static final CreatureEffectSource eatingACResults = new CreatureEffectSource("Protect the Meal",
-            new EffectPersistence(TickType.CONDITIONAL), null, "Must protect the next meal...you!",
-            new Deltas().setStatChange(Stats.AC, 3));
+    private static final CreatureEffectSource eatingACResults = new CreatureEffectSource.Builder("Protect the Meal")
+            .setPersistence(new EffectPersistence(TickType.CONDITIONAL))
+            .setDescription("Must protect the next meal...you!")
+            .setOnApplication(new Deltas().setStatChange(Stats.AC, 3))
+            .build();
 
-    private static final CreatureEffectSource lastBite = new CreatureEffectSource("Last Bite",
-            new EffectPersistence(TickType.INSTANT), null, "As you tear it off, one last bite!",
-            new Deltas().setStatChange(Stats.CURRENTHP, CarnivorousArmor.eatsHealthTo));
+    private static final CreatureEffectSource lastBite = new CreatureEffectSource.Builder("Last Bite")
+            .instantPersistence()
+            .setDescription("As you tear it off, one last bite!")
+            .setOnApplication(new Deltas().setStatChange(Stats.CURRENTHP, CarnivorousArmor.eatsHealthTo)).build();
 
     private static final int AC = 2;
     private static final int eatsHealthTo = 5;
@@ -35,9 +38,10 @@ public class CarnivorousArmor extends EquipableHiddenEffect {
 
         this.slots = List.of(EquipmentSlots.ARMOR);
         this.types = List.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
-        this.equipEffects = List.of(new CreatureEffectSource("It is Armor.",
-                new EffectPersistence(TickType.CONDITIONAL), null, "You are now wearing armor.",
-                new Deltas().setStatChange(Stats.AC, CarnivorousArmor.AC)));
+        this.equipEffects = List.of(new CreatureEffectSource.Builder("It is Armor.")
+                .setPersistence(new EffectPersistence(TickType.CONDITIONAL))
+                .setDescription("You are now wearing armor.")
+                .setOnApplication(new Deltas().setStatChange(Stats.AC, CarnivorousArmor.AC)).build());
     }
 
     @Override
@@ -89,9 +93,10 @@ public class CarnivorousArmor extends EquipableHiddenEffect {
         Integer currHealth = creature.getStats().getOrDefault(Stats.CURRENTHP, 0);
         if (currHealth > eatsHealthTo) {
             int diff = currHealth - eatsHealthTo;
-            final CreatureEffectSource eatingResults = new CreatureEffectSource("Eaten Alive",
-                    new EffectPersistence(TickType.INSTANT), null, "You are eaten alive...just a bite.",
-                    new Deltas().setStatChange(Stats.CURRENTHP, diff * -1));
+            final CreatureEffectSource eatingResults = new CreatureEffectSource.Builder("Eaten Alive")
+                    .instantPersistence()
+                    .setDescription("You are eaten alive...just a bite.")
+                    .setOnApplication(new Deltas().setStatChange(Stats.CURRENTHP, diff * -1)).build();
             String eatDescription = "A thousand teeth sink into your body, and you feel life force ripped out of you.  "
                     +
                     "Once it is sated, you feel the " + this.getColorTaggedName() +

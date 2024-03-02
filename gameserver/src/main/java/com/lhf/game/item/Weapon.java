@@ -26,7 +26,7 @@ public class Weapon extends Equipable {
         this.effectSources = new HashSet<>();
         if (effectSources != null) {
             for (final CreatureEffectSource source : effectSources) {
-                this.effectSources.add(source.makeCopy());
+                this.effectSources.add(source);
             }
         }
         this.mainFlavor = mainFlavor;

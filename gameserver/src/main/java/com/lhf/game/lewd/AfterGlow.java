@@ -10,10 +10,12 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.map.Area;
 
 public class AfterGlow extends LewdProduct {
-    private final CreatureEffectSource afterglow = new CreatureEffectSource("Afterglow",
-            new EffectPersistence(3, TickType.ROOM), null, "Bathing in the afterglow of what you have done.",
-            new Deltas()
-                    .setAttributeBonusChange(Attributes.CHA, 1).setAttributeScoreChange(Attributes.CHA, 1));
+    private final CreatureEffectSource afterglow = new CreatureEffectSource.Builder("Afterglow")
+            .setPersistence(new EffectPersistence(3, TickType.ROOM))
+            .setDescription("Bathing in the afterglow of what you have done.")
+            .setOnApplication(new Deltas()
+                    .setAttributeBonusChange(Attributes.CHA, 1).setAttributeScoreChange(Attributes.CHA, 1))
+            .build();
 
     public AfterGlow() {
     }

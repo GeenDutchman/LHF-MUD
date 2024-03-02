@@ -4,9 +4,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
-import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.dice.DamageDice;
@@ -24,10 +22,12 @@ public class RustyDagger extends Weapon {
 
     public RustyDagger() {
         super("Rusty Dagger", RustyDagger.description, Set.of(
-                new CreatureEffectSource("Stab", new EffectPersistence(TickType.INSTANT),
-                        new EffectResistance(EnumSet.of(Attributes.DEX), Stats.AC),
-                        "Daggers stab things",
-                        new Deltas().addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.PIERCING)))),
+                new CreatureEffectSource.Builder("Stab").instantPersistence()
+                        .setResistance(new EffectResistance(EnumSet.of(Attributes.DEX), Stats.AC))
+                        .setDescription("Daggers stab things")
+                        .setOnApplication(
+                                new Deltas().addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.PIERCING)))
+                        .build()),
                 DamageFlavor.PIERCING, WeaponSubtype.PRECISE);
 
         this.slots = List.of(EquipmentSlots.WEAPON);

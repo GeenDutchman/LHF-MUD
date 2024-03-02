@@ -31,7 +31,7 @@ public class RoomTargetingSpell extends ISpell<RoomEffect> {
             this.effects = new HashSet<>();
             for (EntityEffectSource source : this.getEntry().getEffectSources()) {
                 if (source instanceof RoomEffectSource roomEffectSource) {
-                    this.effects.add(new RoomEffect(roomEffectSource.makeCopy(), this.getCaster(), this));
+                    this.effects.add(new RoomEffect(roomEffectSource, this.getCaster(), this));
                 }
             }
         }

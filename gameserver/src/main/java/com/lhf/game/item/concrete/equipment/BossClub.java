@@ -4,9 +4,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
-import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.dice.DamageDice;
@@ -24,10 +22,12 @@ public class BossClub extends Weapon {
 
     public BossClub() {
         super("Boss Club", BossClub.description, Set.of(
-                new CreatureEffectSource("Bash", new EffectPersistence(TickType.INSTANT),
-                        new EffectResistance(EnumSet.of(Attributes.STR), Stats.AC),
-                        "Club it like a boss.",
-                        new Deltas().addDamage(new DamageDice(2, DieType.EIGHT, DamageFlavor.BLUDGEONING)))),
+                new CreatureEffectSource.Builder("Bash").instantPersistence()
+                        .setResistance(new EffectResistance(EnumSet.of(Attributes.STR), Stats.AC))
+                        .setDescription("Club it like a boss.")
+                        .setOnApplication(
+                                new Deltas().addDamage(new DamageDice(2, DieType.EIGHT, DamageFlavor.BLUDGEONING)))
+                        .build()),
                 DamageFlavor.BLUDGEONING, WeaponSubtype.MARTIAL);
 
         this.slots = List.of(EquipmentSlots.WEAPON);

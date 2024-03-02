@@ -1,12 +1,10 @@
 package com.lhf.game.item.concrete;
 
-import com.lhf.game.EffectPersistence;
-import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.CreatureVisitor;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
@@ -83,8 +81,9 @@ public class HealPotion extends Usable {
             return false;
         }
         useOutMessage.setTarget(target);
-        CreatureEffectSource bce = new CreatureEffectSource(this.healtype.toString() + " healing",
-                new EffectPersistence(TickType.INSTANT), null, "Heals you a little bit", this.setHealing());
+        CreatureEffectSource bce = new CreatureEffectSource.Builder(this.healtype.toString() + " healing")
+                .instantPersistence()
+                .setDescription("Heals you a little bit").setOnApplication(this.setHealing()).build();
         if (ctx.getSubAreaForSort(SubAreaSort.BATTLE) != null) {
             SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
             if (bm.hasCreature(target) && !bm.hasCreature(ctx.getCreature())) {

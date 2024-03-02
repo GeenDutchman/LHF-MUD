@@ -68,10 +68,11 @@ public interface INonPlayerCharacter extends ICreature {
      * Class}.
      */
     public static class BlessedFist extends Weapon {
-        private final static CreatureEffectSource source = new CreatureEffectSource("Blessed Punch",
-                new EffectPersistence(TickType.INSTANT),
-                new EffectResistance(EnumSet.allOf(Attributes.class), Stats.AC), "A blessed fist punches harder.",
-                new Deltas());
+        private final static CreatureEffectSource source = new CreatureEffectSource.Builder("Blessed Punch")
+                .setPersistence(new EffectPersistence(TickType.INSTANT))
+                .setResistance(new EffectResistance(EnumSet.allOf(Attributes.class), Stats.AC))
+                .setDescription("A blessed fist punches harder.").setOnApplication(new Deltas()).build();
+
         private final static String description = "This is a Fist attached to a Creature who is blessed\n";
 
         BlessedFist() {

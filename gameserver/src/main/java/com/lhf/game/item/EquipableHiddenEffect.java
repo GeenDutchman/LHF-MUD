@@ -27,7 +27,7 @@ public class EquipableHiddenEffect extends Equipable {
     public EquipableHiddenEffect(EquipableHiddenEffect other) {
         this(other.getName(), other.descriptionString, other.numCanUseTimes, other.creatureVisitor, other.itemVisitor);
         for (final CreatureEffectSource source : other.hiddenEquipEffects) {
-            this.hiddenEquipEffects.add(source.makeCopy());
+            this.hiddenEquipEffects.add(source);
         }
     }
 
