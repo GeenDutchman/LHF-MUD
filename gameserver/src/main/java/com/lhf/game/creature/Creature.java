@@ -306,7 +306,9 @@ public abstract class Creature implements ICreature {
     private CreatureAffectedEvent.Builder processEffectDelta(CreatureEffect creatureEffect, Deltas deltas,
             MultiRollResult preAdjustedDamages) {
         CreatureAffectedEvent.Builder builder = CreatureAffectedEvent.getBuilder().setAffected(this)
-                .setHighlightedDelta(deltas).fromCreatureEffect(creatureEffect);
+                .setHighlightedDelta(deltas)
+                .setCreatureResponsible(creatureEffect.creatureResponsible())
+                .setGeneratedBy(creatureEffect.getGeneratedBy());
         if (deltas == null) {
             return builder;
         }

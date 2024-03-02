@@ -20,13 +20,11 @@ public interface GameEventProcessorHub extends GameEventProcessor {
 
         Set<GameEventProcessor> sentSet = new TreeSet<>(GameEventProcessor.getComparator());
 
-        recipients.stream()
-                .filter(messenger -> messenger != null)
-                .forEachOrdered(messenger -> {
-                    if (sentSet.add(messenger)) {
-                        GameEventProcessor.acceptEvent(messenger, gameEvent);
-                    }
-                });
+        for (final GameEventProcessor recipient : recipients) {
+            if (recipient != null && sentSet.add(recipient)) {
+                GameEventProcessor.acceptEvent(recipient, gameEvent);
+            }
+        }
         return true;
     }
 

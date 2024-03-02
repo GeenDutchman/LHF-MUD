@@ -15,7 +15,6 @@ import com.google.common.truth.Truth;
 import com.lhf.game.battle.BattleStats;
 import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
 import com.lhf.game.battle.BattleStats.BattleStatsQuery;
-import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.intelligence.AIChooser;
@@ -71,7 +70,9 @@ public class BattleStatsChooserTest {
                 .build();
 
         CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                .fromCreatureEffect(new CreatureEffect(source, attacker.getNPC(), attacker.getNPC()))
+                .setCreatureResponsible(attacker.getNPC())
+                .setGeneratedBy(attacker.getNPC())
+                .setDamages(source.getOnApplication().rollDamages())
                 .setHighlightedDelta(source.getOnApplication()).Build();
 
         finder.getNPC().getHarmMemories().update(cam);
@@ -100,8 +101,9 @@ public class BattleStatsChooserTest {
                 .build();
 
         CreatureAffectedEvent cam2 = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                .fromCreatureEffect(
-                        new CreatureEffect(source2, subAttacker.getNPC(), subAttacker.getNPC()))
+                .setCreatureResponsible(subAttacker.getNPC())
+                .setGeneratedBy(subAttacker.getNPC())
+                .setDamages(source2.getOnApplication().rollDamages())
                 .setHighlightedDelta(source2.getOnApplication())
                 .Build();
 
@@ -141,10 +143,10 @@ public class BattleStatsChooserTest {
                         .addDamage(new DamageDice(2, DieType.SIX, DamageFlavor.AGGRO)))
                 .build();
 
-        CreatureEffect effect = new CreatureEffect(source, attacker.getNPC(), attacker.getNPC());
-
         CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                .fromCreatureEffect(effect).setHighlightedDelta(source.getOnApplication()).Build();
+                .setHighlightedDelta(source.getOnApplication())
+                .setDamages(source.getOnApplication().rollDamages()).setCreatureResponsible(attacker.getNPC())
+                .setGeneratedBy(attacker.getNPC()).Build();
 
         System.out.println(cam.print());
 

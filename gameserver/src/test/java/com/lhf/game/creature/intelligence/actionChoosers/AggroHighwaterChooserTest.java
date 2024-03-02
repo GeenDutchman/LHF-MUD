@@ -13,7 +13,6 @@ import org.mockito.Spy;
 import com.google.common.truth.Truth;
 import com.lhf.game.battle.BattleStats;
 import com.lhf.game.battle.BattleStats.BattleStatsQuery;
-import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.intelligence.AIChooser;
@@ -68,7 +67,9 @@ public class AggroHighwaterChooserTest {
                                 .build();
 
                 CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                                .fromCreatureEffect(new CreatureEffect(source, attacker.getNPC(), attacker.getNPC()))
+                                .setDamages(source.getOnApplication().rollDamages())
+                                .setHighlightedDelta(source.getOnApplication())
+                                .setCreatureResponsible(attacker.getNPC())
                                 .Build();
 
                 finder.getNPC().getHarmMemories().update(cam);
@@ -97,8 +98,10 @@ public class AggroHighwaterChooserTest {
                                 .build();
 
                 CreatureAffectedEvent cam2 = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                                .fromCreatureEffect(
-                                                new CreatureEffect(source2, subAttacker.getNPC(), subAttacker.getNPC()))
+                                .setGeneratedBy(subAttacker.getNPC())
+                                .setCreatureResponsible(subAttacker.getNPC())
+                                .setHighlightedDelta(source2.getOnApplication())
+                                .setDamages(source2.getOnApplication().rollDamages())
                                 .Build();
 
                 finder.getNPC().getHarmMemories().update(cam2);

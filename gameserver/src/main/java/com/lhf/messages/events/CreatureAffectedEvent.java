@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.StringJoiner;
 
@@ -10,6 +11,7 @@ import com.lhf.Taggable.BasicTaggable;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
+import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
 import com.lhf.messages.GameEventType;
 
@@ -43,14 +45,16 @@ public class CreatureAffectedEvent extends GameEvent {
         /**
          * Pulls data from the effect, defaults to application deltas
          * 
-         * Prefer the piecemeal {@link #setCreatureResponsible(ICreature)},
-         * {@link #setGeneratedBy(Taggable)},
-         * {@link #setDamages(MultiRollResult)} and
-         * {@link #setHighlightedDelta(Deltas)}
+         * @deprecated
+         *             Prefer the piecemeal {@link #setCreatureResponsible(ICreature)},
+         *             {@link #setGeneratedBy(Taggable)},
+         *             {@link #setDamages(MultiRollResult)} and
+         *             {@link #setHighlightedDelta(Deltas)}
          * 
          * @param effect
          * @return
          */
+        @Deprecated
         public Builder fromCreatureEffect(CreatureEffect effect) {
             if (effect != null) {
                 this.setCreatureResponsible(effect.creatureResponsible())
@@ -132,6 +136,14 @@ public class CreatureAffectedEvent extends GameEvent {
     public boolean isOffensive() {
         if (this.highlightedDelta != null) {
             return this.highlightedDelta.isOffensive();
+        }
+        if (this.damages != null) {
+            EnumSet<DamageFlavor> offenseSet = EnumSet.allOf(DamageFlavor.class);
+            offenseSet.remove(DamageFlavor.HEALING);
+            int offenseTotal = this.damages.getByFlavors(offenseSet, true);
+            if (offenseTotal != 0) {
+                return true;
+            }
         }
         return false;
     }
