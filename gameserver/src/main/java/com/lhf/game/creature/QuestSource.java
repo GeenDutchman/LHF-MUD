@@ -14,37 +14,48 @@ import com.lhf.messages.events.QuestEvent.QuestEventType;
 public class QuestSource extends CreatureEffectSource {
     public final static String QUEST_PREFIX = "QUEST:";
 
-    public QuestSource(String name, EffectPersistence persistence, EffectResistance resistance, String description,
-            Deltas applicationDeltas, Deltas onSuccess, Deltas onFailure) {
-        super(name != null && !name.startsWith(QUEST_PREFIX) ? QUEST_PREFIX + name : name,
-                persistence, resistance, description, applicationDeltas);
-        if (onSuccess != null) {
-            this.onTickEvent
-                    .put(new GameEventTester(GameEventType.QUEST, Set.of(name, QuestEventType.COMPLETED.toString()),
-                            Set.of(QuestEventType.FAILED.toString()), null), onSuccess);
+    public static class Builder extends CreatureEffectSource.AbstractBuilder<Builder> {
+
+        public Builder(String name) {
+            super(name != null && !name.startsWith(QUEST_PREFIX) ? QUEST_PREFIX + name : name);
         }
-        if (onFailure != null) {
-            this.onTickEvent
-                    .put(new GameEventTester(GameEventType.QUEST, Set.of(name, QuestEventType.FAILED.toString()),
-                            Set.of(QuestEventType.COMPLETED.toString()), null), onFailure);
+
+        public Builder setSuccessDeltas(Deltas onSuccess) {
+            this.setDeltaForTester(
+                    new GameEventTester(GameEventType.QUEST,
+                            Set.of(this.getName(), QuestEventType.COMPLETED.toString()),
+                            Set.of(QuestEventType.FAILED.toString()), null),
+                    onSuccess);
+            return getThis();
         }
+
+        public Builder setFailureDeltas(Deltas onFailure) {
+            this.setDeltaForTester(
+                    new GameEventTester(GameEventType.QUEST, Set.of(this.getName(), QuestEventType.FAILED.toString()),
+                            Set.of(QuestEventType.COMPLETED.toString()), null),
+                    onFailure);
+            return getThis();
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        public QuestSource build() {
+            return new QuestSource(getThis());
+        }
+
     }
 
-    public QuestSource(String name, EffectPersistence persistence, EffectResistance resistance, String description,
-            Deltas applicationDeltas, Map<GameEventTester, Deltas> tickDeltas, Deltas removalDeltas, Deltas onSuccess,
-            Deltas onFailure) {
-        super(name != null && !name.startsWith(QUEST_PREFIX) ? QUEST_PREFIX + name : name,
-                persistence, resistance, description, applicationDeltas, tickDeltas, removalDeltas);
-        if (onSuccess != null) {
-            this.onTickEvent
-                    .put(new GameEventTester(GameEventType.QUEST, Set.of(name, QuestEventType.COMPLETED.toString()),
-                            Set.of(QuestEventType.FAILED.toString()), null), onSuccess);
-        }
-        if (onFailure != null) {
-            this.onTickEvent
-                    .put(new GameEventTester(GameEventType.QUEST, Set.of(name, QuestEventType.FAILED.toString()),
-                            Set.of(QuestEventType.COMPLETED.toString()), null), onFailure);
-        }
+    public static Builder getBuilder(String name) {
+        return new Builder(name);
+    }
+
+    protected QuestSource(CreatureEffectSource.AbstractBuilder<?> builder) {
+        super(builder.getName() != null && !builder.getName().startsWith(QUEST_PREFIX)
+                ? builder.setName(QUEST_PREFIX + builder.getName())
+                : builder);
     }
 
     @Override

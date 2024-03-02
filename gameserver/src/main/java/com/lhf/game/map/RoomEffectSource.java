@@ -10,35 +10,64 @@ public class RoomEffectSource extends EntityEffectSource {
 
     // TODO: implement banishment, with limited to how many
 
-    protected INPCBuildInfo npcToSummon;
-    protected MonsterBuildInfo monsterToSummon;
+    protected final INPCBuildInfo npcToSummon;
+    protected final MonsterBuildInfo monsterToSummon;
 
-    public RoomEffectSource(RoomEffectSource other) {
-        super(other.name, other.persistence, other.resistance, other.description);
-        this.npcToSummon = other.npcToSummon != null ? new INPCBuildInfo(other.npcToSummon) : null;
-        this.monsterToSummon = other.monsterToSummon != null ? new MonsterBuildInfo(other.monsterToSummon) : null;
+    protected static abstract class AbstractBuilder<AB extends AbstractBuilder<AB>>
+            extends EntityEffectSource.Builder<AB> {
+        private INPCBuildInfo npcToSummon;
+        private MonsterBuildInfo monsterToSummon;
+
+        protected AbstractBuilder(String name) {
+            super(name);
+        }
+
+        public INPCBuildInfo getNpcToSummon() {
+            return npcToSummon;
+        }
+
+        public AB setNpcToSummon(INPCBuildInfo npcToSummon) {
+            this.npcToSummon = npcToSummon;
+            return getThis();
+        }
+
+        public MonsterBuildInfo getMonsterToSummon() {
+            return monsterToSummon;
+        }
+
+        public AB setMonsterToSummon(MonsterBuildInfo monsterToSummon) {
+            this.monsterToSummon = monsterToSummon;
+            return getThis();
+        }
+
     }
 
-    public RoomEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
-            String description) {
-        super(name, persistence, resistance, description);
-        this.npcToSummon = null;
-        this.monsterToSummon = null;
+    public static class Builder extends AbstractBuilder<Builder> {
+
+        public Builder(String name) {
+            super(name);
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        public RoomEffectSource build() {
+            return new RoomEffectSource(getThis());
+        }
+
+    }
+
+    public RoomEffectSource(AbstractBuilder<?> builder) {
+        super(builder);
+        this.npcToSummon = builder.getNpcToSummon();
+        this.monsterToSummon = builder.getMonsterToSummon();
     }
 
     @Override
     public RoomEffectSource makeCopy() {
         return new RoomEffectSource(this);
-    }
-
-    public RoomEffectSource setCreatureToSummon(MonsterBuildInfo toSummon) {
-        this.monsterToSummon = toSummon;
-        return this;
-    }
-
-    public RoomEffectSource setCreatureToSummon(INPCBuildInfo toSummon) {
-        this.npcToSummon = toSummon;
-        return this;
     }
 
     public INPCBuildInfo getNpcToSummon() {

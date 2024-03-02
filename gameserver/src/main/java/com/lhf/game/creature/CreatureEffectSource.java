@@ -255,24 +255,96 @@ public class CreatureEffectSource extends EntityEffectSource {
     protected final Deltas onApplication, onRemoval;
     protected final Map<GameEventTester, Deltas> onTickEvent;
 
-    public CreatureEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
-            String description, Deltas applicationDeltas) {
-        super(name, persistence, resistance, description);
-        this.onApplication = applicationDeltas;
-        this.onRemoval = applicationDeltas != null
-                && (persistence != null && !TickType.INSTANT.equals(persistence.getTickSize()))
-                        ? applicationDeltas.reversal()
-                        : null;
-        this.onTickEvent = new TreeMap<>();
+    protected static abstract class AbstractBuilder<AB extends AbstractBuilder<AB>>
+            extends EntityEffectSource.Builder<AB> {
+        private Deltas onApplication, onRemoval;
+        private Map<GameEventTester, Deltas> onTickEvent;
+        private boolean reverseApplication = true;
+
+        protected AbstractBuilder(String name) {
+            super(name);
+            this.onApplication = null;
+            this.onRemoval = null;
+            this.onTickEvent = new TreeMap<>();
+        }
+
+        public Deltas getOnApplication() {
+            return onApplication;
+        }
+
+        public AB setOnApplication(Deltas onApplication) {
+            this.onApplication = onApplication;
+            return getThis();
+        }
+
+        public AB withReversedApplication() {
+            this.reverseApplication = true;
+            return getThis();
+        }
+
+        public AB withoutReversedApplication() {
+            this.reverseApplication = false;
+            return getThis();
+        }
+
+        public Deltas getOnRemoval() {
+            if (onRemoval != null) {
+                return onRemoval;
+            }
+            return this.reverseApplication && this.onApplication != null && !TickType.INSTANT.equals(this.getTickType())
+                    ? this.onApplication.reversal()
+                    : null;
+        }
+
+        public AB setOnRemoval(Deltas onRemoval) {
+            this.onRemoval = onRemoval;
+            return getThis();
+        }
+
+        public Map<GameEventTester, Deltas> getOnTickEvent() {
+            return onTickEvent;
+        }
+
+        public AB setOnTickEvent(Map<GameEventTester, Deltas> onTickEvent) {
+            this.onTickEvent = onTickEvent != null ? onTickEvent : new TreeMap<>();
+            return getThis();
+        }
+
+        public AB setDeltaForTester(GameEventTester tester, Deltas deltas) {
+            if (tester == null || deltas == null) {
+                return getThis();
+            }
+            this.onTickEvent.put(tester, deltas);
+            return getThis();
+        }
     }
 
-    public CreatureEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
-            String description, Deltas applicationDeltas, Map<GameEventTester, Deltas> tickDeltas,
-            Deltas removalDeltas) {
-        super(name, persistence, resistance, description);
-        this.onApplication = applicationDeltas;
-        this.onRemoval = removalDeltas;
-        this.onTickEvent = tickDeltas != null ? new TreeMap<>(tickDeltas) : new TreeMap<>();
+    public static class Builder extends AbstractBuilder<Builder> {
+
+        public Builder(String name) {
+            super(name);
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        public CreatureEffectSource build() {
+            return new CreatureEffectSource(getThis());
+        }
+
+    }
+
+    public static Builder getBuilder(String name) {
+        return new Builder(name);
+    }
+
+    protected CreatureEffectSource(AbstractBuilder<?> builder) {
+        super(builder);
+        this.onApplication = builder.getOnApplication();
+        this.onRemoval = builder.getOnRemoval();
+        this.onTickEvent = builder.getOnTickEvent();
     }
 
     @Override

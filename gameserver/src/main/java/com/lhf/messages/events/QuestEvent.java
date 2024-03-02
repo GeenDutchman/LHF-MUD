@@ -126,11 +126,12 @@ public class QuestEvent extends GameEvent {
         } else {
             sj.add(this.questEventType.toString());
         }
-        sj.add("a quest");
         if (this.questDescription != null && !this.isBroadcast()) {
             sj.add("a quest described by: ").add(this.questDescription);
         } else if (this.questName != null) {
             sj.add("a quest named").add(this.questName);
+        } else {
+            sj.add("a quest");
         }
         return sj.toString();
     }
