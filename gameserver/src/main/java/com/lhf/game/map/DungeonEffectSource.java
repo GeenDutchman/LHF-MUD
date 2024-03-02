@@ -1,7 +1,5 @@
 package com.lhf.game.map;
 
-import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.map.Area.AreaBuilder;
 

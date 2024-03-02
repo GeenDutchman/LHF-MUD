@@ -1,9 +1,5 @@
 package com.lhf.game.map;
 
-import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectResistance;
-import com.lhf.server.interfaces.NotNull;
-
 public class DMRoomEffectSource extends RoomEffectSource {
 
     protected final boolean ensoulUserAndSend;

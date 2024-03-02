@@ -9,8 +9,6 @@ import java.util.Map.Entry;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 
-import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.TickType;
 import com.lhf.game.dice.DamageDice;
@@ -21,7 +19,6 @@ import com.lhf.game.enums.Stats;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.GameEventTester;
 import com.lhf.messages.events.SeeEvent;
-import com.lhf.messages.events.SeeEvent.Builder;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 public class CreatureEffectSource extends EntityEffectSource {

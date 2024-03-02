@@ -1,12 +1,9 @@
 package com.lhf.game.creature;
 
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectResistance;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEventTester;
 import com.lhf.messages.events.QuestEvent.QuestEventType;
