@@ -6,6 +6,7 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -75,7 +76,7 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
                 .collect(Collectors.toCollection(sortSupplier)));
     }
 
-    public static class CreatureFilterQuery {
+    public static class CreatureFilterQuery implements Predicate<ICreature> {
         public EnumSet<CreatureFilters> filters = EnumSet.noneOf(CreatureFilters.class);
         public String name;
         public Integer nameRegexLen;
@@ -110,6 +111,39 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
                     .append(", vocation=").append(vocation).append(", clazz=").append(clazz).append(", isBattling=")
                     .append(isBattling).append("]");
             return builder.toString();
+        }
+
+        @Override
+        public boolean test(final ICreature creature) {
+            if (creature == null) {
+                return false;
+            }
+            if (filters == null || filters.isEmpty()) {
+                return true;
+            }
+            if (filters.contains(CreatureFilters.NAME) && name != null
+                    && !(nameRegexLen != null ? creature.CheckNameRegex(name, nameRegexLen)
+                            : creature.checkName(name))) {
+                return false;
+            }
+            if (filters.contains(CreatureFilters.FACTION) && faction != null ? !faction.equals(creature.getFaction())
+                    : creature.getFaction() != null) {
+                return false;
+            }
+            final Vocation cVocation = creature.getVocation();
+            if (filters.contains(CreatureFilters.VOCATION)
+                    && (cVocation == null ? vocation != null : !vocation.equals(cVocation.getVocationName()))) {
+                return false;
+            }
+            if (filters.contains(CreatureFilters.TYPE) && clazz != null && !clazz.isInstance(creature)) {
+                return false;
+            }
+            if (filters.contains(CreatureFilters.BATTLING) && isBattling != null
+                    && isBattling != creature.isInBattle()) {
+                return false;
+            }
+            return true;
+
         }
 
     }
