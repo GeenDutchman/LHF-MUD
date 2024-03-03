@@ -11,6 +11,7 @@ import com.lhf.game.item.concrete.Item;
 import com.lhf.game.item.concrete.Lever;
 import com.lhf.game.item.concrete.LewdBed;
 import com.lhf.game.item.concrete.LockKey;
+import com.lhf.game.item.concrete.QuestingStone;
 import com.lhf.game.item.concrete.equipment.BossClub;
 import com.lhf.game.item.concrete.equipment.CarnivorousArmor;
 import com.lhf.game.item.concrete.equipment.ChainMail;
@@ -43,6 +44,7 @@ public class IItemRunTypeAdapterFactoryProducer {
                 .registerSubtype(Usable.class, Usable.class.getName())
                 .registerSubtype(HealPotion.class, HealPotion.class.getName())
                 .registerSubtype(LockKey.class, LockKey.class.getName())
+                .registerSubtype(QuestingStone.class, QuestingStone.class.getName())
                 .registerSubtype(Equipable.class, Equipable.class.getName())
                 .registerSubtype(EquipableHiddenEffect.class,
                         EquipableHiddenEffect.class.getName())

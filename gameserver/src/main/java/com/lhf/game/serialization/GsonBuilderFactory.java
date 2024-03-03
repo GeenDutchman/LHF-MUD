@@ -17,6 +17,8 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.creature.ICreatureBuildInfo.CreatureBuilderID;
 import com.lhf.game.creature.MonsterBuildInfo;
+import com.lhf.game.creature.QuestEffect;
+import com.lhf.game.creature.QuestSource;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player.PlayerBuildInfo;
@@ -107,6 +109,7 @@ public class GsonBuilderFactory {
             RuntimeTypeAdapterFactory<EntityEffectSource> effectSourceAdapter = RuntimeTypeAdapterFactory
                     .of(EntityEffectSource.class, "className", true)
                     .registerSubtype(CreatureEffectSource.class, CreatureEffectSource.class.getName())
+                    .registerSubtype(QuestSource.class, QuestSource.class.getName())
                     .registerSubtype(RoomEffectSource.class, RoomEffectSource.class.getName())
                     .registerSubtype(DMRoomEffectSource.class, DMRoomEffectSource.class.getName())
                     .registerSubtype(DungeonEffectSource.class, DungeonEffectSource.class.getName())
@@ -123,6 +126,7 @@ public class GsonBuilderFactory {
             RuntimeTypeAdapterFactory<EntityEffect> effectAdapter = RuntimeTypeAdapterFactory
                     .of(EntityEffect.class, "className", true)
                     .registerSubtype(CreatureEffect.class, CreatureEffect.class.getName())
+                    .registerSubtype(QuestEffect.class, QuestEffect.class.getName())
                     .registerSubtype(DungeonEffect.class, DungeonEffect.class.getName())
                     .registerSubtype(RoomEffect.class, RoomEffect.class.getName())
                     .registerSubtype(DMRoomEffect.class, DMRoomEffect.class.getName())
