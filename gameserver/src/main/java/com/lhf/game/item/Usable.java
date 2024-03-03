@@ -1,9 +1,21 @@
 package com.lhf.game.item;
 
-import com.lhf.game.creature.CreatureVisitor;
+import java.util.Collections;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.function.Consumer;
+
+import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.Area;
+import com.lhf.game.map.SubArea;
+import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandContext;
+import com.lhf.messages.GameEventProcessorHub;
+import com.lhf.messages.events.BattleRoundEvent;
+import com.lhf.messages.events.BattleRoundEvent.RoundAcceptance;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemUsedEvent;
 import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 import com.lhf.messages.events.SeeEvent;
@@ -12,16 +24,15 @@ import com.lhf.messages.events.SeeEvent.Builder;
 public class Usable extends Takeable {
     protected final int numCanUseTimes;
     private int useLeftCount;
-    protected final CreatureVisitor creatureVisitor;
-    protected final ItemVisitor itemVisitor;
+    protected final Set<CreatureEffectSource> creatureUseEffects;
+    // something for items?
     // something for rooms?
 
-    public Usable(String name, CreatureVisitor creatureVisitor) {
+    public Usable(String name, Set<CreatureEffectSource> useOnCreatureEffects) {
         super(name);
         this.numCanUseTimes = 1;
         this.useLeftCount = this.numCanUseTimes;
-        this.creatureVisitor = creatureVisitor;
-        this.itemVisitor = null;
+        this.creatureUseEffects = useOnCreatureEffects != null ? useOnCreatureEffects : Set.of();
     }
 
     /**
@@ -32,17 +43,15 @@ public class Usable extends Takeable {
      * @param useSoManyTimes if > 0 then can use that many times, if < 0 then has
      *                       infinite uses
      */
-    public Usable(String name, String description, int useSoManyTimes, CreatureVisitor creatureVisitor,
-            ItemVisitor itemVisitor) {
+    public Usable(String name, String description, int useSoManyTimes, Set<CreatureEffectSource> useOnCreatureEffects) {
         super(name, description);
         this.numCanUseTimes = useSoManyTimes;
         this.useLeftCount = this.numCanUseTimes;
-        this.creatureVisitor = creatureVisitor;
-        this.itemVisitor = itemVisitor;
+        this.creatureUseEffects = useOnCreatureEffects != null ? useOnCreatureEffects : Set.of();
     }
 
     protected Usable(Usable other) {
-        this(other.getName(), other.descriptionString, other.numCanUseTimes, other.creatureVisitor, other.itemVisitor);
+        this(other.getName(), other.descriptionString, other.numCanUseTimes, other.creatureUseEffects);
     }
 
     @Override
@@ -51,6 +60,95 @@ public class Usable extends Takeable {
             return this;
         }
         return new Usable(this);
+    }
+
+    protected void sendNotice(CommandContext ctx, ICreature creature, GameEvent event) {
+        if (creature == null || event == null) {
+            return;
+        }
+        GameEventProcessorHub hub = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
+        if (hub == null) {
+            hub = ctx.getArea();
+        }
+        if (hub != null) {
+            hub.announce(event);
+        } else {
+            ctx.receive(event);
+            if (!creature.equals(ctx.getCreature())) {
+                ICreature.eventAccepter.accept(creature, event);
+            }
+        }
+    }
+
+    protected void sendNotice(CommandContext ctx, ICreature creature, GameEvent.Builder<?> eventBuilder) {
+        if (creature == null || eventBuilder == null) {
+            return;
+        }
+        GameEventProcessorHub hub = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
+        if (hub == null) {
+            hub = ctx.getArea();
+        }
+        if (hub != null) {
+            hub.announce(eventBuilder.setBroacast().Build());
+        } else {
+            ctx.receive(eventBuilder.setNotBroadcast());
+            if (!creature.equals(ctx.getCreature())) {
+                ICreature.eventAccepter.accept(creature, eventBuilder.setBroacast().Build());
+            }
+        }
+    }
+
+    protected ItemUsedEvent.Builder getCreatureUseBuilder(CommandContext ctx, ICreature target) {
+        return ItemUsedEvent.getBuilder().setUsable(Usable.this).setSubType(UseOutMessageOption.OK)
+                .setItemUser(ctx.getCreature())
+                .setMessage(Usable.this.creatureUseEffects == null || Usable.this.creatureUseEffects.isEmpty()
+                        ? "It does nothing."
+                        : "Affects try to take hold.")
+                .setTarget(target);
+    }
+
+    protected ItemUsedEvent.Builder getItemUseBuilder(CommandContext ctx, IItem target) {
+        return ItemUsedEvent.getBuilder().setUsable(Usable.this).setSubType(UseOutMessageOption.OK)
+                .setItemUser(ctx.getCreature())
+                .setMessage("It does nothing.")
+                .setTarget(target);
+    }
+
+    protected void applyCreatureEffects(CommandContext ctx, ICreature creature) {
+        if (creature == null) {
+            return;
+        }
+        for (final CreatureEffectSource source : Usable.this.creatureUseEffects) {
+            final CreatureEffect effect = new CreatureEffect(source, ctx.getCreature(), Usable.this);
+            this.sendNotice(ctx, creature, creature.applyEffect(effect));
+        }
+    }
+
+    public Consumer<ICreature> produceCreatureConsumer(CommandContext ctx) {
+        return new Consumer<ICreature>() {
+
+            @Override
+            public void accept(ICreature creature) {
+                if (creature == null) {
+                    return;
+                }
+                Usable.this.sendNotice(ctx, creature, Usable.this.getCreatureUseBuilder(ctx, creature));
+                if (Usable.this.creatureUseEffects != null && !Usable.this.creatureUseEffects.isEmpty()) {
+                    Usable.this.applyCreatureEffects(ctx, creature);
+                }
+            }
+
+        };
+
+    }
+
+    public Consumer<IItem> produceItemConsumer(CommandContext ctx) {
+        return new Consumer<IItem>() {
+            @Override
+            public void accept(IItem item) {
+                Usable.this.sendNotice(ctx, ctx.getCreature(), Usable.this.getItemUseBuilder(ctx, item));
+            }
+        };
     }
 
     @Override
@@ -81,7 +179,7 @@ public class Usable extends Takeable {
 
     public boolean useOn(CommandContext ctx, ICreature creature) {
         ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature()).setUsable(this);
-        if (this.creatureVisitor == null || creature == null) {
+        if (creature == null) {
             ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
             return false;
         }
@@ -89,15 +187,28 @@ public class Usable extends Takeable {
             ctx.receive(useOutMessage.setSubType(UseOutMessageOption.USED_UP).Build());
             return false;
         }
-        // TODO: how are we gonna get messages about specific changes from the visitor?
-        creature.acceptCreatureVisitor(creatureVisitor);
-        ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK));
+        final Consumer<ICreature> visitor = this.produceCreatureConsumer(ctx);
+        if (visitor == null) {
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
+            return false;
+        }
+        if (ctx.getSubAreaForSort(SubAreaSort.BATTLE) != null) {
+            SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
+            if (bm.hasCreature(creature) && !bm.hasCreature(ctx.getCreature())) {
+                // give out of turn message
+                bm.addCreature(ctx.getCreature());
+                ctx.receive(BattleRoundEvent.getBuilder().setNeedSubmission(RoundAcceptance.REJECTED)
+                        .setNotBroadcast().Build());
+                return false;
+            }
+        }
+        visitor.accept(creature);
         return true;
     }
 
     public boolean useOn(CommandContext ctx, IItem item) {
         ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature()).setUsable(this);
-        if (this.itemVisitor == null || item == null) {
+        if (item == null) {
             ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
             return false;
         }
@@ -105,13 +216,30 @@ public class Usable extends Takeable {
             ctx.receive(useOutMessage.setSubType(UseOutMessageOption.USED_UP).Build());
             return false;
         }
-        item.acceptItemVisitor(itemVisitor);
-        ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK));
+        final Consumer<IItem> visitor = this.produceItemConsumer(ctx);
+        if (visitor == null) {
+            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
+            return false;
+        }
+        visitor.accept(item);
         return true;
     }
 
     public boolean useOn(CommandContext ctx, Area area) {
         throw new UnsupportedOperationException("TODO: support using on area");
+    }
+
+    public final Set<CreatureEffectSource> getCreatureUseEffects() {
+        return creatureUseEffects != null ? Collections.unmodifiableSet(creatureUseEffects) : Set.of();
+    }
+
+    public final boolean isOffensive() {
+        for (final CreatureEffectSource source : this.getCreatureUseEffects()) {
+            if (source.isOffensive()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -125,6 +253,18 @@ public class Usable extends Takeable {
             return useLeftCount > 0;
         }
         return true;
+    }
+
+    @Override
+    public String printDescription() {
+        StringJoiner sj = new StringJoiner("\n", super.printDescription(), "").setEmptyValue("");
+        if (this.creatureUseEffects != null || !this.creatureUseEffects.isEmpty()) {
+            sj.add("When used on a Creature, it has the following affects:");
+            for (final CreatureEffectSource source : this.creatureUseEffects) {
+                sj.add(source.printDescription());
+            }
+        }
+        return sj.toString();
     }
 
     @Override

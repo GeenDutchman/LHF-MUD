@@ -3,15 +3,19 @@ package com.lhf.game.item;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import com.lhf.game.TickType;
-import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
-import com.lhf.game.creature.CreatureVisitor;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.EquipmentTypes;
+import com.lhf.game.map.Area;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.events.ItemUsedEvent;
 import com.lhf.messages.events.SeeEvent;
+import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 import com.lhf.messages.events.SeeEvent.Builder;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
 
@@ -27,23 +31,23 @@ public class Equipable extends Usable {
     }
 
     public Equipable(String name, String description) {
-        super(name, description, -1, null, null);
+        super(name, description, -1, null);
         this.initLists();
     }
 
     public Equipable(String name, String description, int useSoManyTimes) {
-        super(name, description, useSoManyTimes, null, null);
+        super(name, description, useSoManyTimes, null);
         this.initLists();
     }
 
-    public Equipable(String name, String description, int useSoManyTimes, CreatureVisitor creatureVisitor,
-            ItemVisitor itemVisitor) {
-        super(name, description, useSoManyTimes, creatureVisitor, itemVisitor);
+    public Equipable(String name, String description, int useSoManyTimes,
+            Set<CreatureEffectSource> useOnCreatureEffects) {
+        super(name, description, useSoManyTimes, useOnCreatureEffects);
         this.initLists();
     }
 
     protected Equipable(Equipable other) {
-        this(other.getName(), other.descriptionString, other.numCanUseTimes, other.creatureVisitor, other.itemVisitor);
+        this(other.getName(), other.descriptionString, other.numCanUseTimes, other.creatureUseEffects);
         this.types.addAll(other.types);
         this.slots.addAll(other.slots);
         for (final CreatureEffectSource source : other.equipEffects) {
@@ -76,7 +80,40 @@ public class Equipable extends Usable {
 
     // returns unmodifiable
     public List<CreatureEffectSource> getEquippingEffects() {
-        return Collections.unmodifiableList(this.equipEffects);
+        return this.equipEffects != null ? Collections.unmodifiableList(this.equipEffects) : List.of();
+    }
+
+    @Override
+    public boolean useOn(CommandContext ctx, ICreature creature) {
+        if (!ctx.getCreature().hasItem(this)) {
+            ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature())
+                    .setUsable(this).setSubType(UseOutMessageOption.REQUIRE_EQUIPPED).setTarget(creature);
+            ctx.receive(useOutMessage);
+            return false;
+        }
+        return super.useOn(ctx, creature);
+    }
+
+    @Override
+    public boolean useOn(CommandContext ctx, IItem item) {
+        if (!ctx.getCreature().hasItem(this)) {
+            ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature())
+                    .setUsable(this).setSubType(UseOutMessageOption.REQUIRE_EQUIPPED).setTarget(item);
+            ctx.receive(useOutMessage);
+            return false;
+        }
+        return super.useOn(ctx, item);
+    }
+
+    @Override
+    public boolean useOn(CommandContext ctx, Area area) {
+        if (!ctx.getCreature().hasItem(this)) {
+            ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature())
+                    .setUsable(this).setSubType(UseOutMessageOption.REQUIRE_EQUIPPED).setTarget(area);
+            ctx.receive(useOutMessage);
+            return false;
+        }
+        return super.useOn(ctx, area);
     }
 
     @Override

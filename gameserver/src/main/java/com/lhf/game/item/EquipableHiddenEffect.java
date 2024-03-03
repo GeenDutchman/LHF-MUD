@@ -3,29 +3,34 @@ package com.lhf.game.item;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
-import com.lhf.game.creature.CreatureVisitor;
 import com.lhf.game.creature.ICreature;
+import com.lhf.messages.CommandContext;
 
 public class EquipableHiddenEffect extends Equipable {
     protected List<CreatureEffectSource> hiddenEquipEffects;
+    protected Set<CreatureEffectSource> hiddenUseEffects;
 
     public EquipableHiddenEffect(String name, String description) {
         super(name, description);
         this.hiddenEquipEffects = new ArrayList<>();
     }
 
-    public EquipableHiddenEffect(String name, String description, int useSoManyTimes, CreatureVisitor creatureVisitor,
-            ItemVisitor itemVisitor) {
-        super(name, description, useSoManyTimes, creatureVisitor, itemVisitor);
+    public EquipableHiddenEffect(String name, String description, int useSoManyTimes,
+            Set<CreatureEffectSource> useOnCreatureEffectSources,
+            Set<CreatureEffectSource> hiddenUseOnCreatureEffectSources) {
+        super(name, description, useSoManyTimes, useOnCreatureEffectSources);
         this.hiddenEquipEffects = new ArrayList<>();
+        this.hiddenUseEffects = hiddenUseOnCreatureEffectSources;
     }
 
     public EquipableHiddenEffect(EquipableHiddenEffect other) {
-        this(other.getName(), other.descriptionString, other.numCanUseTimes, other.creatureVisitor, other.itemVisitor);
+        this(other.getName(), other.descriptionString, other.numCanUseTimes, other.creatureUseEffects,
+                other.hiddenUseEffects);
         for (final CreatureEffectSource source : other.hiddenEquipEffects) {
             this.hiddenEquipEffects.add(source);
         }
@@ -45,7 +50,11 @@ public class EquipableHiddenEffect extends Equipable {
     }
 
     public List<CreatureEffectSource> getHiddenEquipEffects() {
-        return Collections.unmodifiableList(hiddenEquipEffects);
+        return hiddenEquipEffects != null ? Collections.unmodifiableList(hiddenEquipEffects) : List.of();
+    }
+
+    public Set<CreatureEffectSource> getHiddenUseEffects() {
+        return hiddenUseEffects != null ? Collections.unmodifiableSet(hiddenUseEffects) : Set.of();
     }
 
     @Override
@@ -65,6 +74,21 @@ public class EquipableHiddenEffect extends Equipable {
                     && TickType.CONDITIONAL.equals(effector.getPersistence().getTickSize())) {
                 ICreature.eventAccepter.accept(unequipper, unequipper.repealEffect(effector.getName()));
             }
+        }
+    }
+
+    @Override
+    protected void applyCreatureEffects(CommandContext ctx, ICreature creature) {
+        if (creature == null) {
+            return;
+        }
+        for (final CreatureEffectSource source : this.getCreatureUseEffects()) {
+            final CreatureEffect effect = new CreatureEffect(source, ctx.getCreature(), EquipableHiddenEffect.this);
+            this.sendNotice(ctx, creature, creature.applyEffect(effect));
+        }
+        for (final CreatureEffectSource source : this.getHiddenUseEffects()) {
+            final CreatureEffect effect = new CreatureEffect(source, ctx.getCreature(), EquipableHiddenEffect.this);
+            this.sendNotice(ctx, creature, creature.applyEffect(effect));
         }
     }
 }

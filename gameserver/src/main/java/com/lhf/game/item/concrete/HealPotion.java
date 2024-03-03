@@ -1,42 +1,51 @@
 package com.lhf.game.item.concrete;
 
-import com.lhf.game.creature.CreatureEffect;
+import java.util.Set;
+
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
-import com.lhf.game.creature.CreatureVisitor;
-import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.dice.DieType;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.HealType;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Usable;
-import com.lhf.game.map.SubArea;
-import com.lhf.game.map.SubArea.SubAreaSort;
-import com.lhf.messages.CommandContext;
-import com.lhf.messages.events.BattleRoundEvent;
-import com.lhf.messages.events.BattleRoundEvent.RoundAcceptance;
-import com.lhf.messages.events.GameEvent;
-import com.lhf.messages.events.ItemUsedEvent;
-import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 
 public class HealPotion extends Usable {
+
+    private static CreatureEffectSource sourceFromHealType(HealType type) {
+        if (type == null) {
+            type = HealType.Regular;
+        }
+        final CreatureEffectSource.Builder builder = CreatureEffectSource
+                .getCreatureEffectBuilder(type.toString() + " Potion Healing");
+        final Deltas deltas = new Deltas().setStatChange(Stats.CURRENTHP, 1);
+        switch (type) {
+            case Critical:
+                deltas.addDamage(new DamageDice(1, DieType.EIGHT, DamageFlavor.HEALING));
+            case Greater:
+                deltas.addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.HEALING));
+            case Regular:
+                deltas.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
+            default:
+                deltas.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
+        }
+        builder.setOnApplication(deltas);
+        return builder.build();
+    }
 
     private final HealType healtype;
 
     public HealPotion() {
-        super(HealType.Regular.toString() + " Potion of Healing", null);
+        super(HealType.Regular.toString() + " Potion of Healing",
+                Set.of(HealPotion.sourceFromHealType(HealType.Regular)));
         this.healtype = HealType.Regular;
     }
 
     public HealPotion(HealType type) {
-        super(type.toString() + " Potion of Healing", null);
+        super((type != null ? type.toString() + " " : "") + "Potion of Healing",
+                Set.of(HealPotion.sourceFromHealType(type)));
         this.healtype = type;
-    }
-
-    public HealPotion(HealType healtype, CreatureVisitor visitor) {
-        super(healtype.toString() + " Potion of Healing", visitor);
-        this.healtype = healtype;
     }
 
     @Override
@@ -44,79 +53,7 @@ public class HealPotion extends Usable {
         if (this.numCanUseTimes < 0) {
             return this;
         }
-        return new HealPotion(this.healtype, this.creatureVisitor);
+        return new HealPotion(this.healtype);
     }
 
-    private Deltas setHealing() {
-        final Deltas deltas = new Deltas();
-        if (this.healtype == null) {
-            deltas.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
-        } else {
-            switch (this.healtype) {
-                case Critical:
-                    deltas.addDamage(new DamageDice(1, DieType.EIGHT, DamageFlavor.HEALING));
-                case Greater:
-                    deltas.addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.HEALING));
-                case Regular:
-                    deltas.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
-                default:
-                    deltas.addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.HEALING));
-
-            }
-        }
-
-        deltas.setStatChange(Stats.CURRENTHP, 1);
-        return deltas;
-    }
-
-    @Override
-    public boolean useOn(CommandContext ctx, ICreature target) {
-        ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature()).setUsable(this);
-        if (target == null) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.NO_USES).Build());
-            return false;
-        }
-        if (!hasUsesLeft()) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.USED_UP).Build());
-            return false;
-        }
-        useOutMessage.setTarget(target);
-        CreatureEffectSource bce = new CreatureEffectSource.Builder(this.healtype.toString() + " healing")
-                .instantPersistence()
-                .setDescription("Heals you a little bit").setOnApplication(this.setHealing()).build();
-        if (ctx.getSubAreaForSort(SubAreaSort.BATTLE) != null) {
-            SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
-            if (bm.hasCreature(target) && !bm.hasCreature(ctx.getCreature())) {
-                // give out of turn message
-                bm.addCreature(ctx.getCreature());
-                ctx.receive(BattleRoundEvent.getBuilder().setNeedSubmission(RoundAcceptance.REJECTED)
-                        .setNotBroadcast().Build());
-                return false;
-            }
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
-            GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
-            bm.announce(results);
-        } else if (ctx.getArea() != null) {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
-            GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
-            ctx.getArea().announce(results);
-        } else {
-            ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).Build());
-            GameEvent results = target.applyEffect(new CreatureEffect(bce, ctx.getCreature(), this));
-            ctx.receive(results);
-            if (ctx.getCreature() != target) {
-                ICreature.eventAccepter.accept(target, results);
-            }
-        }
-        if (this.itemVisitor != null) {
-            target.acceptCreatureVisitor(creatureVisitor);
-        }
-        return true;
-
-    }
-
-    @Override
-    public String printDescription() {
-        return "This is a bottle of " + this.getName();
-    }
 }
