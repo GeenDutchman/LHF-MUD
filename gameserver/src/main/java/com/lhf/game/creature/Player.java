@@ -36,10 +36,24 @@ public class Player extends Creature {
 
         private PlayerBuildInfo(User user) {
             this.className = this.getClass().getName();
-            this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.PLAYER)
-                    .setName(user.getUsername());
             this.id = new CreatureBuilderID();
+            this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.PLAYER)
+                    .setName(user != null ? user.getUsername() : this.id.toString());
             this.user = user;
+        }
+
+        public PlayerBuildInfo(PlayerBuildInfo other) {
+            this.id = new CreatureBuilderID();
+            if (other == null) {
+                this.className = this.getClass().getName();
+                this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.PLAYER)
+                        .setName(this.id.toString());
+                this.user = null;
+            } else {
+                this.className = other.className;
+                this.creatureBuilder = new CreatureBuildInfo(other.creatureBuilder);
+                this.user = null;
+            }
         }
 
         public static PlayerBuildInfo getInstance(User user) {

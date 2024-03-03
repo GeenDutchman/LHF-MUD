@@ -292,28 +292,31 @@ public interface INonPlayerCharacter extends ICreature {
         private String leaderName;
 
         protected INPCBuildInfo() {
-            this.className = this.getClass().getName();
-            this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.NPC);
-            this.id = new CreatureBuilderID();
-            this.aiHandlers = new ArrayList<>();
-            this.summonState = EnumSet.noneOf(SummonData.class);
-            this.leaderName = null;
+            this(null);
         }
 
         public INPCBuildInfo(INPCBuildInfo other) {
-            this.className = other.getClassName();
-            this.creatureBuilder = new CreatureBuildInfo(other.creatureBuilder);
             this.id = new CreatureBuilderID();
-            this.conversationFileName = other.getConversationFileName() != null
-                    ? new String(other.getConversationFileName())
-                    : null;
-            this.conversationTree = null;
-            ConversationTree otherTree = other.getConversationTree();
-            if (otherTree != null) {
-                this.conversationTree = otherTree.makeCopy();
+            if (other != null) {
+                this.className = other.getClassName();
+                this.creatureBuilder = new CreatureBuildInfo(other.creatureBuilder);
+                this.conversationFileName = other.getConversationFileName() != null
+                        ? new String(other.getConversationFileName())
+                        : null;
+                this.conversationTree = null;
+                ConversationTree otherTree = other.getConversationTree();
+                if (otherTree != null) {
+                    this.conversationTree = otherTree.makeCopy();
+                }
+                this.aiHandlers = new ArrayList<>(other.getAIHandlers());
+                this.summonState = EnumSet.copyOf(other.getSummonState());
+            } else {
+                this.className = this.getClass().getName();
+                this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.NPC);
+                this.aiHandlers = new ArrayList<>();
+                this.summonState = EnumSet.noneOf(SummonData.class);
+                this.leaderName = null;
             }
-            this.aiHandlers = new ArrayList<>(other.getAIHandlers());
-            this.summonState = EnumSet.copyOf(other.getSummonState());
         }
 
         @Override
