@@ -402,6 +402,13 @@ public class DMRoom extends Room {
         return super.processEffectApplication(effect);
     }
 
+    @Override
+    public void acceptAreaVisitor(AreaVisitor visitor) {
+        if (visitor != null) {
+            visitor.visit(this);
+        }
+    }
+
     protected class SayHandler extends AreaSayHandler {
 
         @Override

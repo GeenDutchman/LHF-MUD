@@ -32,6 +32,7 @@ import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.ItemPartitionCollectionVisitor;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.item.concrete.Item;
+import com.lhf.game.map.AreaVisitor.AreaVisitorAcceptor;
 import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
 import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.game.map.commandHandlers.AreaAttackHandler;
@@ -53,7 +54,8 @@ import com.lhf.messages.in.AMessageType;
 import com.lhf.server.interfaces.NotNull;
 
 public interface Area
-        extends ItemContainer, CreatureContainer, CommandChainHandler, Comparable<Area>, AffectableEntity<RoomEffect> {
+        extends ItemContainer, CreatureContainer, CommandChainHandler, Comparable<Area>, AffectableEntity<RoomEffect>,
+        AreaVisitorAcceptor {
 
     public interface AreaBuilder extends Serializable {
 
@@ -172,6 +174,8 @@ public interface Area
         }
         return this.getSubAreaForSort(sort) != null;
     }
+
+    public abstract void acceptAreaVisitor(AreaVisitor visitor);
 
     @Override
     default SeeEvent produceMessage() {

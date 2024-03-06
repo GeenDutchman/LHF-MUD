@@ -573,6 +573,13 @@ public class Room implements Area {
     }
 
     @Override
+    public void acceptAreaVisitor(AreaVisitor visitor) {
+        if (visitor != null) {
+            visitor.visit(this);
+        }
+    }
+
+    @Override
     public void setSuccessor(CommandChainHandler successor) {
         this.successor = successor;
     }
