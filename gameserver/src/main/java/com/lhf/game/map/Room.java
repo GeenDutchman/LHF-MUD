@@ -495,15 +495,9 @@ public class Room implements Area {
     public RoomAffectedEvent processEffectApplication(RoomEffect roomEffect) {
         this.logger.log(Level.FINER, () -> String.format("Room processing effect '%s'", roomEffect.getName()));
         CreatureFactory factory = CreatureFactory.withAIRunner(this, null);
-        INonPlayerCharacter summonedNPC = roomEffect.getSummonedNPC(factory);
-        if (summonedNPC != null) {
-            this.logger.log(Level.INFO, () -> String.format("Summoned npc %s", summonedNPC.getName()));
-            this.addCreature(summonedNPC);
-        }
-        IMonster summonedMonster = roomEffect.getSummonedMonster(factory);
-        if (summonedMonster != null) {
-            this.logger.log(Level.INFO, () -> String.format("Summoned monster %s", summonedMonster.getName()));
-            this.addCreature(summonedMonster);
+        Set<ICreature> summoned = roomEffect.getCreatures(factory);
+        if (summoned != null) {
+            this.addCreatures(summoned, false);
         }
         return RoomAffectedEvent.getBuilder().setRoom(this).setEffect(roomEffect).Build();
     }

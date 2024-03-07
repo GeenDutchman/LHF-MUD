@@ -23,7 +23,7 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.server.interfaces.NotNull;
 
-public interface ICreatureBuildInfo extends Serializable {
+public interface ICreatureBuildInfo extends Serializable, Comparable<ICreatureBuildInfo> {
 
     public static final int DEFAULT_HP = 12;
     public static final int DEFAULT_AC = 11;
@@ -117,6 +117,11 @@ public interface ICreatureBuildInfo extends Serializable {
     public String getClassName();
 
     public ICreatureBuildInfo.CreatureBuilderID getCreatureBuilderID();
+
+    @Override
+    default int compareTo(ICreatureBuildInfo arg0) {
+        return this.getCreatureBuilderID().compareTo(arg0.getCreatureBuilderID());
+    }
 
     public String getCreatureRace();
 

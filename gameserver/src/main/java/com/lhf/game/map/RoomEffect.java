@@ -1,11 +1,14 @@
 package com.lhf.game.map;
 
-import java.util.Set;
+import java.util.NavigableSet;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.MonsterBuildInfo;
 import com.lhf.game.creature.SummonedMonster;
@@ -38,6 +41,19 @@ public class RoomEffect extends EntityEffect {
 
     private MonsterBuildInfo getMonsterToSummon() {
         return this.getSource().getMonsterToSummon();
+    }
+
+    public SortedSet<ICreatureBuildInfo> getBuildInfos() {
+        TreeSet<ICreatureBuildInfo> buildInfos = new TreeSet<>();
+        INPCBuildInfo npcSummon = this.getNPCToSummon();
+        if (npcSummon != null) {
+            buildInfos.add(npcSummon);
+        }
+        MonsterBuildInfo monsterSummon = this.getMonsterToSummon();
+        if (monsterSummon != null) {
+            buildInfos.add(monsterSummon);
+        }
+        return buildInfos;
     }
 
     public SummonedNPC getCachedNPC() {
@@ -77,7 +93,7 @@ public class RoomEffect extends EntityEffect {
         return this.summonedMonster;
     }
 
-    public Set<ICreature> getCreatures(CreatureFactory factory) {
+    public NavigableSet<ICreature> getCreatures(CreatureFactory factory) {
         if (factory == null) {
             factory = new CreatureFactory();
         }
