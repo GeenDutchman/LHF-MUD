@@ -103,7 +103,8 @@ public class LewdBedTest {
         Room room = this.builder.setName("Spurned").quickBuild(null, null, null);
         room.addCreatures(Set.of(first.getNPC(), second.getNPC()), false);
         LewdBed bed = new LewdBed(
-                LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30).setLewdProduct(new LewdBabyMaker()),
+                LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30)
+                        .setLewdProduct(new LewdBabyMaker(null)),
                 room);
         room.addItem(bed);
 

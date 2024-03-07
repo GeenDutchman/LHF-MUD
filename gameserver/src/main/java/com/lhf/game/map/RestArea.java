@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import com.lhf.game.creature.ICreature;
@@ -387,7 +388,10 @@ public class RestArea extends SubArea {
                 final VrijPartij first = this.parties.pollFirst();
                 if (first != null) {
                     if (first.check() && this.lewdProduct != null) {
-                        this.lewdProduct.onLewd(area, first);
+                        final Consumer<Area> onLewd = this.lewdProduct.onLewdAreaChanges(first);
+                        if (onLewd != null) {
+                            onLewd.accept(area);
+                        }
                     }
                 }
             }
@@ -651,7 +655,10 @@ public class RestArea extends SubArea {
                     if (LewdStyle.QUICKIE.equals(RestArea.this.lewd) && first.check()) {
                         parties.pollFirst(); // take it off the queue
                         if (RestArea.this.lewdProduct != null) {
-                            RestArea.this.lewdProduct.onLewd(RestArea.this.area, first);
+                            final Consumer<Area> onLewd = RestArea.this.lewdProduct.onLewdAreaChanges(first);
+                            if (onLewd != null) {
+                                onLewd.accept(RestArea.this.area);
+                            }
                         }
                     }
                 } else if (!RestArea.this.parties.contains(party)) {
@@ -682,7 +689,10 @@ public class RestArea extends SubArea {
                         if (LewdStyle.QUICKIE.equals(RestArea.this.lewd) && first.check()) {
                             parties.pollFirst(); // take it off the queue
                             if (RestArea.this.lewdProduct != null) {
-                                RestArea.this.lewdProduct.onLewd(RestArea.this.area, first);
+                                final Consumer<Area> onLewd = RestArea.this.lewdProduct.onLewdAreaChanges(first);
+                                if (onLewd != null) {
+                                    onLewd.accept(RestArea.this.area);
+                                }
                             }
                         }
                     } else {

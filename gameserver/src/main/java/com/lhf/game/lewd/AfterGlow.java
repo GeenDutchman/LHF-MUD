@@ -1,5 +1,7 @@
 package com.lhf.game.lewd;
 
+import java.util.function.Consumer;
+
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffect;
@@ -20,9 +22,20 @@ public class AfterGlow extends LewdProduct {
     public AfterGlow() {
     }
 
-    public void onLewd(Area room, VrijPartij party) {
-        for (ICreature participant : party.getParticipants()) {
-            participant.applyEffect(new CreatureEffect(this.afterglow, participant, room));
+    @Override
+    public Consumer<Area> onLewdAreaChanges(VrijPartij party) {
+        if (party != null) {
+            for (ICreature participant : party.getParticipants()) {
+                participant.applyEffect(new CreatureEffect(this.afterglow, participant, party.getInitiator()));
+            }
         }
+        return new Consumer<Area>() {
+
+            @Override
+            public void accept(Area arg0) {
+                return;
+            }
+
+        };
     }
 }

@@ -235,7 +235,7 @@ public class DMRoom extends Room {
 
             lewdAIHandler.addPartner(dmGary.getName()).addPartner(dmAda.getName());
             RestArea.Builder restBuilder = RestArea.getBuilder().setLewd(LewdStyle.QUICKIE)
-                    .setLewdProduct(new LewdBabyMaker());
+                    .setLewdProduct(new LewdBabyMaker(null));
             CreatureFilterQuery query = new CreatureFilterQuery();
             query.filters.add(CreatureFilters.NAME);
             query.name = "Lovejax";
@@ -325,6 +325,9 @@ public class DMRoom extends Room {
     }
 
     public User getUser(String username) {
+        if (username == null) {
+            return null;
+        }
         for (User user : this.users) {
             if (username.equals(user.getUsername())) {
                 return user;
@@ -334,6 +337,9 @@ public class DMRoom extends Room {
     }
 
     public User removeUser(String username) {
+        if (username == null) {
+            return null;
+        }
         for (User user : this.users) {
             if (username.equals(user.getUsername())) {
                 this.users.remove(user);
@@ -345,6 +351,9 @@ public class DMRoom extends Room {
     }
 
     public boolean addNewPlayer(Player player) {
+        if (this.lands.size() <= 0) {
+            return this.addCreature(player);
+        }
         return this.lands.get(0).addPlayer(player);
     }
 

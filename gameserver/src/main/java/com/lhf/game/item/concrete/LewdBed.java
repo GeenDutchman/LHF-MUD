@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import com.lhf.game.creature.ICreature;
@@ -211,7 +212,10 @@ public class LewdBed extends Bed {
         lewdOutMessage.setParty(party.getParty());
         if (party.accept(joiner).check()) {
             if (this.lewdProduct != null) {
-                this.lewdProduct.onLewd(this.area, party);
+                final Consumer<Area> onLewd = this.lewdProduct.onLewdAreaChanges(party);
+                if (onLewd != null) {
+                    onLewd.accept(area);
+                }
             }
             this.vrijPartijen.remove(index);
         }

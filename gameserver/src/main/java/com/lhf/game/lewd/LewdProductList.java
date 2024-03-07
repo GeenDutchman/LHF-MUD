@@ -3,6 +3,7 @@ package com.lhf.game.lewd;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import com.lhf.game.map.Area;
 
@@ -25,13 +26,30 @@ public class LewdProductList extends LewdProduct {
         return this;
     }
 
-    public void onLewd(Area room, VrijPartij party) {
-        for (LewdProduct product : this.products) {
-            if (product == null || product == this) {
-                continue;
-            }
-            product.onLewd(room, party);
+    @Override
+    public Consumer<Area> onLewdAreaChanges(VrijPartij party) {
+        if (party == null) {
+            return null;
         }
+        return new Consumer<Area>() {
+
+            @Override
+            public void accept(Area arg0) {
+                if (arg0 == null) {
+                    return;
+                }
+                for (final LewdProduct product : LewdProductList.this.products) {
+                    if (product == null || product == LewdProductList.this) {
+                        continue;
+                    }
+                    final Consumer<Area> next = product.onLewdAreaChanges(party);
+                    if (next != null) {
+                        next.accept(arg0);
+                    }
+                }
+            }
+
+        };
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.lhf.game.lewd;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import com.lhf.game.map.Area;
 
@@ -11,7 +12,7 @@ public abstract class LewdProduct {
         this.className = this.getClass().getName();
     }
 
-    public abstract void onLewd(Area room, VrijPartij party);
+    public abstract Consumer<Area> onLewdAreaChanges(VrijPartij party);
 
     @Override
     public int hashCode() {
