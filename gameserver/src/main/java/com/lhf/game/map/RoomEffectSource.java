@@ -64,11 +64,11 @@ public class RoomEffectSource extends EntityEffectSource {
     }
 
     public INPCBuildInfo getNpcToSummon() {
-        return npcToSummon;
+        return npcToSummon != null ? new INPCBuildInfo(npcToSummon) : null;
     }
 
     public MonsterBuildInfo getMonsterToSummon() {
-        return monsterToSummon;
+        return monsterToSummon != null ? new MonsterBuildInfo(monsterToSummon) : null;
     }
 
     @Override
