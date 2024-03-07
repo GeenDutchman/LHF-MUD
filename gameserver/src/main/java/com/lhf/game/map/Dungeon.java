@@ -341,8 +341,7 @@ public class Dungeon implements Land {
             CreatureFactory factory = new CreatureFactory();
             PlayerBuildInfo nextLifeInfo = Player.PlayerBuildInfo.getInstance(oldLife.getUser())
                     .setVocation(oldLife.getVocation().resetLevel());
-            factory.visit(nextLifeInfo);
-            Player nextLife = factory.getBuiltCreatures().getPlayers().first();
+            Player nextLife = factory.buildPlayer(nextLifeInfo);
             nextLife.setSuccessor(this.getStartingArea());
             oldLife.disconnectController(); // events will now not go anywhere
             ICreature.eventAccepter.accept(nextLife,

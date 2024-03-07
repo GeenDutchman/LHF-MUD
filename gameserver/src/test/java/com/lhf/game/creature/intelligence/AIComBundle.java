@@ -49,8 +49,8 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
 
         this.brain = AIComBundle.getAIRunner().produceAI();
         CreatureFactory factory = CreatureFactory.withBrainProducer(this, (buildInfo) -> this.brain);
-        factory.visit(NonPlayerCharacter.getNPCBuilder());
-        this.brain.setNPC(factory.getBuiltCreatures().getNpcs().first());
+        NonPlayerCharacter npc = factory.buildNPC(NonPlayerCharacter.getNPCBuilder());
+        this.brain.setNPC(npc);
         this.brain.SetOut(this.sssb);
     }
 

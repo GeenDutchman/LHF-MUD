@@ -227,8 +227,7 @@ public class Game implements UserListener, CommandChainHandler {
 				Player.PlayerBuildInfo builder = Player.PlayerBuildInfo.getInstance(user);
 				builder.setVocation(selected);
 				CreatureFactory factory = new CreatureFactory();
-				factory.visit(builder);
-				Player player = factory.getBuiltCreatures().getPlayers().first();
+				Player player = factory.buildPlayer(builder);
 				this.controlRoom.addNewPlayer(player);
 				return;
 			}

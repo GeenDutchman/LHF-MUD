@@ -25,6 +25,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.Player.PlayerBuildInfo;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
@@ -311,9 +312,8 @@ public class DMRoom extends Room {
         if (this.filterCreatures(EnumSet.of(CreatureContainer.CreatureFilters.TYPE), null, null, null, null,
                 DungeonMaster.class, null).size() < 2) {
             this.log(Level.INFO, () -> "Conditions met to create and add Player automatically");
-            CreatureFactory factory = new CreatureFactory(this, null, null, true);
-            factory.visit(Player.getPlayerBuilder(user));
-            return this.addNewPlayer(factory.getBuiltCreatures().getPlayers().first());
+            CreatureFactory factory = new CreatureFactory();
+            return this.addNewPlayer(factory.buildPlayer(Player.getPlayerBuilder(user)));
         }
         boolean added = this.users.add(user);
         if (added) {
@@ -394,9 +394,10 @@ public class DMRoom extends Room {
                 }
                 Corpse corpse = (Corpse) maybeCorpse.get();
                 this.removeItem(corpse);
-                CreatureFactory factory = new CreatureFactory(this, null, null, true);
-                factory.visit(Player.getPlayerBuilder(user).setVocation(dmRoomEffect.getVocation()).setCorpse(corpse));
-                this.addNewPlayer(factory.getBuiltCreatures().getPlayers().first());
+                CreatureFactory factory = new CreatureFactory();
+                PlayerBuildInfo playerBuilder = Player.getPlayerBuilder(user).setVocation(dmRoomEffect.getVocation())
+                        .setCorpse(corpse);
+                this.addNewPlayer(factory.buildPlayer(playerBuilder));
             }
         }
         return super.processEffectApplication(effect);
