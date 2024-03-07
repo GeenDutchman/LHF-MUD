@@ -1,5 +1,8 @@
 package com.lhf.game.map;
 
+import java.util.Set;
+import java.util.TreeSet;
+
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.CreatureFactory;
@@ -73,5 +76,14 @@ public class RoomEffect extends EntityEffect {
             }
         }
         return this.summonedMonster;
+    }
+
+    public Set<ICreature> getCreatures(CreatureFactory factory) {
+        if (factory == null) {
+            factory = new CreatureFactory();
+        }
+        this.getSummonedMonster(factory);
+        this.getSummonedNPC(factory);
+        return factory.getBuiltCreatures().getICreatures();
     }
 }
