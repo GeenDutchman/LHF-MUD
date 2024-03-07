@@ -22,7 +22,6 @@ import java.util.logging.Logger;
 
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;

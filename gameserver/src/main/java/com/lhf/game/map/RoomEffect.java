@@ -75,6 +75,8 @@ public class RoomEffect extends EntityEffect {
                 this.summonedNPC = factory.summonNPC(builder, this.creatureResponsible(),
                         this.getPersistence().getTicker());
             }
+        } else if (factory != null) {
+            factory.getBuiltCreatures().accept(this.summonedNPC);
         }
         return this.summonedNPC;
     }
@@ -89,6 +91,8 @@ public class RoomEffect extends EntityEffect {
                 this.summonedMonster = factory.summonMonster(builder, this.creatureResponsible(),
                         this.getPersistence().getTicker());
             }
+        } else if (factory != null) {
+            factory.getBuiltCreatures().accept(this.summonedMonster);
         }
         return this.summonedMonster;
     }
