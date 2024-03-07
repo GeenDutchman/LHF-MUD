@@ -179,6 +179,21 @@ public class Player extends Creature {
             return creatureBuilder.getCreatureEffects();
         }
 
+        public PlayerBuildInfo applyEffect(CreatureEffect effect) {
+            creatureBuilder.applyEffect(effect);
+            return this;
+        }
+
+        public PlayerBuildInfo repealEffect(String name) {
+            creatureBuilder.repealEffect(name);
+            return this;
+        }
+
+        public PlayerBuildInfo repealEffect(CreatureEffect toRepeal) {
+            creatureBuilder.repealEffect(toRepeal);
+            return this;
+        }
+
         public PlayerBuildInfo defaultFlavorReactions() {
             creatureBuilder.defaultFlavorReactions();
             return this;
