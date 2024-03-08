@@ -13,16 +13,15 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lhf.game.creature.CreatureFactory;
-import com.lhf.game.creature.Player;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.lhf.game.creature.BuildInfoManager;
+import com.lhf.game.creature.CreatureFactory;
+import com.lhf.game.creature.Player;
+import com.lhf.game.creature.Player.PlayerBuildInfo;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
-import com.lhf.game.creature.vocation.Vocation;
-import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.magic.ThirdPower;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.DMRoom.DMRoomBuilder;
@@ -220,17 +219,13 @@ public class Game implements UserListener, CommandChainHandler {
 		this.controlRoom.userExitSystem(userManager.getUser(id));
 	}
 
-	public void addNewPlayerToGame(User user, String vocationRequest) {
-		if (vocationRequest != null && vocationRequest.length() > 0) {
-			Vocation selected = VocationFactory.getVocation(vocationRequest);
-			if (selected != null) {
-				Player.PlayerBuildInfo builder = Player.PlayerBuildInfo.getInstance(user);
-				builder.setVocation(selected);
-				CreatureFactory factory = new CreatureFactory();
-				Player player = factory.buildPlayer(builder);
-				this.controlRoom.addNewPlayer(player);
-				return;
-			}
+	public void addNewPlayerToGame(User user, PlayerBuildInfo buildInfo) {
+		if (buildInfo != null) {
+			buildInfo.setUser(user);
+			CreatureFactory factory = new CreatureFactory();
+			Player player = factory.buildPlayer(buildInfo);
+			this.controlRoom.addNewPlayer(player);
+			return;
 		}
 		this.controlRoom.addUser(user);
 	}
