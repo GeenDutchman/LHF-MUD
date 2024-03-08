@@ -1,10 +1,14 @@
 package com.lhf.game.serialization;
 
+import java.io.IOException;
 import java.util.EnumSet;
 import java.util.function.Consumer;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.TypeAdapter;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.EntityEffectSource;
@@ -16,12 +20,12 @@ import com.lhf.game.creature.DungeonMaster.DungeonMasterBuildInfo;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.creature.ICreatureBuildInfo.CreatureBuilderID;
-import com.lhf.game.creature.MonsterBuildInfo;
-import com.lhf.game.creature.QuestEffect;
-import com.lhf.game.creature.QuestSource;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
+import com.lhf.game.creature.MonsterBuildInfo;
 import com.lhf.game.creature.Player.PlayerBuildInfo;
+import com.lhf.game.creature.QuestEffect;
+import com.lhf.game.creature.QuestSource;
 import com.lhf.game.creature.conversation.ConversationPattern;
 import com.lhf.game.creature.conversation.ConversationPatternSerializer;
 import com.lhf.game.creature.intelligence.AIHandler;
@@ -75,6 +79,20 @@ public class GsonBuilderFactory {
     private enum Loaded {
         EFFECTSOURCE, EFFECTS, ITEMS, CONVERSATION, CREATURE_INFO, HANDLERS, SUBAREA, LEWDPRODUCT, AREAS, DOORWAYS,
         LANDS, CACHED, SPELLS;
+    }
+
+    private static final TypeAdapter<JsonElement> strictAdapter = new Gson().getAdapter(JsonElement.class);
+
+    public static final boolean checkValidJSON(String json) {
+        if (json == null || json.isBlank()) {
+            return false;
+        }
+        try {
+            strictAdapter.fromJson(json);
+        } catch (JsonParseException | IOException e) {
+            return false;
+        }
+        return true;
     }
 
     private final GsonBuilder gsonBuilder;

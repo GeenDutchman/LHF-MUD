@@ -1,10 +1,13 @@
 package com.lhf.messages.in;
 
 import java.util.EnumSet;
+import java.util.Map;
 
 import com.lhf.Taggable;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.map.Directions;
+import com.lhf.game.serialization.GsonBuilderFactory;
 import com.lhf.messages.ICommand;
 import com.lhf.messages.grammar.Prepositions;
 
@@ -88,8 +91,8 @@ public enum AMessageType implements Taggable {
             Boolean indirectsvalid = true;
             if (command.getIndirects().size() >= 1) {
                 indirectsvalid = command.getIndirects().containsKey(Prepositions.AT)
-                        || command.getIndirects().containsKey(Prepositions.USE) ||
-                        command.getIndirects().containsKey(Prepositions.WITH);
+                        || command.getIndirects().containsKey(Prepositions.USE)
+                        || command.getIndirects().containsKey(Prepositions.WITH);
             }
             return command.getDirects().size() == 1 && indirectsvalid;
         }
@@ -259,13 +262,41 @@ public enum AMessageType implements Taggable {
     CREATE {
         @Override
         public boolean checkValidity(ICommand command) {
-            return command != null && command.getDirects().size() == 1 && !command.getDirects().get(0).trim().isBlank()
-                    && command.getIndirects().size() >= 1 && command.getIndirects().containsKey(Prepositions.WITH);
+            if (command == null) {
+                return false;
+            }
+            if (command.getDirects().size() != 1) {
+                return false;
+            }
+            String name = command.getDirects().get(0);
+            if (name == null) {
+                return false;
+            }
+            name = name.trim();
+            if (name.isBlank()) {
+                return false;
+            }
+            final Map<Prepositions, String> indirects = command.getIndirects();
+            if (indirects == null || indirects.size() < 1 || indirects.size() > 2
+                    || !indirects.containsKey(Prepositions.WITH)) {
+                return false;
+            }
+            if (indirects.containsKey(Prepositions.AS)) {
+                return VocationName.isVocationName(indirects.getOrDefault(Prepositions.AS, null));
+            } else if (indirects.containsKey(Prepositions.JSON)) {
+                final String json = indirects.getOrDefault(Prepositions.JSON, null);
+                if (!GsonBuilderFactory.checkValidJSON(json)) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+            return true;
         }
 
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
-            return EnumSet.of(Prepositions.WITH, Prepositions.AS);
+            return EnumSet.of(Prepositions.WITH, Prepositions.AS, Prepositions.JSON);
         }
 
     },
@@ -300,16 +331,32 @@ public enum AMessageType implements Taggable {
                 return false;
             }
             boolean indirectsvalid = true;
-            if (command.getIndirects().size() > 0) {
-                final String indirect = command.getIndirects().getOrDefault(Prepositions.USE, null);
-                indirectsvalid = indirect != null && !indirect.isBlank() && command.getDirects().size() >= 1;
+            final Map<Prepositions, String> indirects = command.getIndirects();
+            if (indirects.size() > 1) {
+                indirectsvalid = false;
+            } else if (indirects.size() == 0) {
+                indirectsvalid = true;
+            } else if (indirects.containsKey(Prepositions.USE)) {
+                final String indirect = indirects.getOrDefault(Prepositions.USE, null);
+                indirectsvalid = indirect != null && !indirect.isBlank();
+            } else if (indirects.containsKey(Prepositions.JSON)) {
+                final String indirect = indirects.getOrDefault(Prepositions.JSON, null);
+                indirectsvalid = indirect != null && !indirect.isBlank();
+                if (indirectsvalid) {
+                    final String json = indirects.getOrDefault(Prepositions.JSON, null);
+                    if (!GsonBuilderFactory.checkValidJSON(json)) {
+                        return false;
+                    }
+                }
+            } else {
+                indirectsvalid = false;
             }
-            return indirectsvalid;
+            return indirectsvalid && command.getDirects().size() >= 1;
         }
 
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
-            return EnumSet.of(Prepositions.USE);
+            return EnumSet.of(Prepositions.USE, Prepositions.JSON);
         }
     },
     SPELLBOOK {
