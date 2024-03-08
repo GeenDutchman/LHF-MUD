@@ -1,5 +1,6 @@
 package com.lhf.game.lewd;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.NavigableSet;
@@ -9,6 +10,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.messages.events.LewdEvent;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 
@@ -27,10 +29,12 @@ public class VrijPartij {
     protected final ICreature initiator;
     protected Map<ICreature, LewdAnswer> party;
     protected Set<String> names;
+    protected Set<ICreatureBuildInfo> buildInfos;
 
     public VrijPartij(ICreature initiator, Set<ICreature> partners) {
         this.initiator = initiator;
         this.names = new TreeSet<>();
+        this.buildInfos = new TreeSet<>();
         this.party = Collections.synchronizedNavigableMap(new TreeMap<>());
         if (initiator != null) {
             this.party.put(initiator, LewdAnswer.ACCEPTED);
@@ -73,7 +77,7 @@ public class VrijPartij {
         });
     }
 
-    public VrijPartij addNames(Set<String> babyNames) {
+    public VrijPartij addNames(Collection<String> babyNames) {
         if (babyNames != null && babyNames.size() > 0) {
             this.names.addAll(babyNames);
         }
@@ -87,8 +91,26 @@ public class VrijPartij {
         return this;
     }
 
+    public VrijPartij addBuildInfo(ICreatureBuildInfo buildInfo) {
+        if (buildInfo != null) {
+            this.buildInfos.add(buildInfo);
+        }
+        return this;
+    }
+
+    public VrijPartij addBuildInfos(Collection<ICreatureBuildInfo> addBuildInfos) {
+        if (addBuildInfos != null) {
+            this.buildInfos.addAll(addBuildInfos);
+        }
+        return this;
+    }
+
     public Set<String> getNames() {
         return Collections.unmodifiableSet(this.names);
+    }
+
+    public Set<ICreatureBuildInfo> getBuildInfos() {
+        return Collections.unmodifiableSet(buildInfos);
     }
 
     public Map<ICreature, LewdAnswer> getParty() {

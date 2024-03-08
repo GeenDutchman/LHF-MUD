@@ -1,9 +1,13 @@
 package com.lhf.game.lewd;
 
+import java.util.Collection;
 import java.util.function.Consumer;
 
+import com.lhf.game.creature.CreatureBuildInfoPartitionSetVisitor;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.CreaturePartitionSetVisitor;
+import com.lhf.game.creature.INonPlayerCharacter;
+import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.NameGenerator;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.Player.PlayerBuildInfo;
@@ -44,12 +48,29 @@ public class LewdBabyMaker extends LewdProduct {
                 }
             }
 
+            private void buildCreatures(final Area area, final Collection<INonPlayerCharacterBuildInfo> toBuild,
+                    CreatureFactory factory) {
+                if (area == null || toBuild == null) {
+                    return;
+                }
+                if (factory == null) {
+                    factory = new CreatureFactory();
+                }
+                factory.forEach(toBuild);
+                for (final INonPlayerCharacter npc : factory.getBuiltCreatures().getINpcs()) {
+                    area.addCreature(npc);
+                }
+            }
+
             @Override
             public void visit(Room room) {
                 if (room == null) {
                     return;
                 }
                 this.addCorpses(room);
+                CreatureBuildInfoPartitionSetVisitor partitionSetVisitor = new CreatureBuildInfoPartitionSetVisitor();
+                partitionSetVisitor.forEach(party.getBuildInfos());
+                this.buildCreatures(room, partitionSetVisitor.getINonPlayerCharacterBuildInfos(), null);
             }
 
             @Override
@@ -57,13 +78,19 @@ public class LewdBabyMaker extends LewdProduct {
                 if (room == null) {
                     return;
                 }
-                CreaturePartitionSetVisitor partitions = new CreaturePartitionSetVisitor();
-                partitions.forEach(party.getParticipants());
-                if (partitions.getDungeonMasters().size() != party.size()) {
+
+                CreatureFactory factory = new CreatureFactory();
+                CreatureBuildInfoPartitionSetVisitor builderPartitions = new CreatureBuildInfoPartitionSetVisitor();
+                builderPartitions.forEach(party.getBuildInfos());
+                this.buildCreatures(room, builderPartitions.getINonPlayerCharacterBuildInfos(), factory);
+
+                CreaturePartitionSetVisitor creaturePartitions = new CreaturePartitionSetVisitor();
+                creaturePartitions.forEach(party.getParticipants());
+                if (creaturePartitions.getDungeonMasters().size() != party.size()) {
                     this.addCorpses(room);
                     return;
                 }
-                CreatureFactory factory = new CreatureFactory();
+
                 for (String name : party.getNames()) {
                     final User user = room.removeUser(name);
                     if (user == null) {
@@ -74,6 +101,19 @@ public class LewdBabyMaker extends LewdProduct {
                     }
                     final PlayerBuildInfo buildInfo = LewdBabyMaker.this.getPlayerBuildInfoCopy(user);
                     final Player player = factory.buildPlayer(buildInfo);
+                    room.addNewPlayer(player);
+                }
+
+                for (Player.PlayerBuildInfo buildInfo : builderPartitions.getPlayerBuildInfos()) {
+                    final User user = room.removeUser(buildInfo.getRawName());
+                    if (user == null) {
+                        String name = buildInfo.getName();
+                        Corpse body = new Corpse(
+                                name == null || name.length() <= 0 ? NameGenerator.Generate(null) : name);
+                        room.addItem(body);
+                        continue;
+                    }
+                    final Player player = factory.buildPlayer(buildInfo.setUser(user));
                     room.addNewPlayer(player);
                 }
             }

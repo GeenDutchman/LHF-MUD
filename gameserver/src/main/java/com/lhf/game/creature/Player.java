@@ -30,7 +30,7 @@ public class Player extends Creature {
 
     public static class PlayerBuildInfo implements ICreatureBuildInfo {
         private final String className;
-        private User user;
+        private transient User user;
         private final CreatureBuildInfo creatureBuilder;
         protected final CreatureBuilderID id;
 

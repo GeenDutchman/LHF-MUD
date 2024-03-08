@@ -25,7 +25,7 @@ public interface ICreatureBuildInfoVisitor extends Consumer<ICreatureBuildInfo> 
         }
     }
 
-    default void forEach(final Collection<ICreatureBuildInfo> collection) {
+    default void forEach(final Collection<? extends ICreatureBuildInfo> collection) {
         if (collection == null) {
             return;
         }

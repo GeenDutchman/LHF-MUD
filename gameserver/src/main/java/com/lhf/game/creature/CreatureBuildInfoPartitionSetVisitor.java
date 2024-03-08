@@ -11,7 +11,7 @@ import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player.PlayerBuildInfo;
 
-public class CreatureBuildInfoPartitionSetVisitor implements ICreatureBuildInfoVisitor {
+public final class CreatureBuildInfoPartitionSetVisitor implements ICreatureBuildInfoVisitor {
     private final NavigableSet<PlayerBuildInfo> playerBuildInfos = new TreeSet<>();
     private final NavigableSet<MonsterBuildInfo> monsterBuildInfos = new TreeSet<>();
     private final NavigableSet<INPCBuildInfo> npcBuildInfos = new TreeSet<>();
