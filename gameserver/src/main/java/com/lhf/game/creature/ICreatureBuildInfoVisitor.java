@@ -1,5 +1,6 @@
 package com.lhf.game.creature;
 
+import java.util.Collection;
 import java.util.function.Consumer;
 
 import com.lhf.game.creature.DungeonMaster.DungeonMasterBuildInfo;
@@ -21,6 +22,17 @@ public interface ICreatureBuildInfoVisitor extends Consumer<ICreatureBuildInfo> 
     default void accept(ICreatureBuildInfo arg0) {
         if (arg0 != null) {
             arg0.acceptBuildInfoVisitor(this);
+        }
+    }
+
+    default void forEach(final Collection<ICreatureBuildInfo> collection) {
+        if (collection == null) {
+            return;
+        }
+        for (final ICreatureBuildInfo buildInfo : collection) {
+            if (buildInfo != null) {
+                buildInfo.acceptBuildInfoVisitor(this);
+            }
         }
     }
 }
