@@ -1,5 +1,6 @@
 package com.lhf.game.item.concrete;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -11,7 +12,9 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
+import com.google.gson.JsonParseException;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.lewd.LewdProduct;
 import com.lhf.game.lewd.VrijPartij;
@@ -20,6 +23,8 @@ import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.events.BadMessageEvent;
+import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.BadTargetSelectedEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.LewdEvent;
@@ -179,11 +184,19 @@ public class LewdBed extends Bed {
             }
 
             final LewdInMessage lewdInMessage = new LewdInMessage(cmd);
+
             if (lewdInMessage.getPartners().size() > 0) {
-                return LewdBed.this.handlePopulatedJoin(ctx.getCreature(), lewdInMessage.getPartners(),
-                        lewdInMessage.getNames())
-                                ? ctx.handled()
-                                : ctx.failhandle();
+                try {
+                    return LewdBed.this.handlePopulatedJoin(ctx.getCreature(), lewdInMessage.getPartners(),
+                            lewdInMessage.getNames(), lewdInMessage.getBuildInfos())
+                                    ? ctx.handled()
+                                    : ctx.failhandle();
+                } catch (JsonParseException e) {
+                    LewdBed.this.logger.log(Level.WARNING, e.toString());
+                    ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.OTHER).setNotBroadcast()
+                            .setNotBroadcast().setCommand(cmd));
+                    return ctx.failhandle();
+                }
             } else {
                 return LewdBed.this.handleEmptyJoin(ctx.getCreature()) ? ctx.handled() : ctx.failhandle();
             }
@@ -240,7 +253,8 @@ public class LewdBed extends Bed {
         return true;
     }
 
-    protected boolean handlePopulatedJoin(ICreature joiner, Set<String> possPartners, Set<String> babyNames) {
+    protected boolean handlePopulatedJoin(ICreature joiner, Set<String> possPartners, Set<String> babyNames,
+            Collection<ICreatureBuildInfo> buildInfos) {
         LewdEvent.Builder lewdOutMessage = LewdEvent.getBuilder().setCreature(joiner);
         if (!this.isInBed(joiner)) {
             ICreature.eventAccepter.accept(joiner,
@@ -276,7 +290,7 @@ public class LewdBed extends Bed {
         }
 
         if (this.vrijPartijen.size() == 0 && invited.size() > 0) {
-            VrijPartij party = new VrijPartij(joiner, invited).addNames(babyNames);
+            VrijPartij party = new VrijPartij(joiner, invited).addNames(babyNames).addBuildInfos(buildInfos);
             this.vrijPartijen.put(party.hashCode(), party);
             party.propose();
             return this.handleJoin(joiner, party.hashCode());
@@ -289,7 +303,7 @@ public class LewdBed extends Bed {
                 }
             }
 
-            VrijPartij party = new VrijPartij(joiner, invited).addNames(babyNames);
+            VrijPartij party = new VrijPartij(joiner, invited).addNames(babyNames).addBuildInfos(buildInfos);
             this.vrijPartijen.put(party.hashCode(), party);
             party.propose();
             return this.handleJoin(joiner, party.hashCode());

@@ -15,7 +15,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
+import com.google.gson.JsonParseException;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
@@ -29,6 +31,8 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.PooledMessageChainHandler;
+import com.lhf.messages.events.BadMessageEvent;
+import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.LewdEvent;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
@@ -645,8 +649,17 @@ public class RestArea extends SubArea {
                 }
                 invites.add(result.get());
             }
+            Collection<ICreatureBuildInfo> buildInfos = null;
+            try {
+                buildInfos = lewdInMessage.getBuildInfos();
+            } catch (JsonParseException e) {
+                RestArea.this.log(Level.WARNING, e.toString());
+                ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.OTHER).setNotBroadcast()
+                        .setNotBroadcast().setCommand(lewdInMessage.getCommand()));
+                return ctx.failhandle();
+            }
             VrijPartij party = new VrijPartij(ctx.getCreature(), invites);
-            party.addNames(lewdInMessage.getNames());
+            party.addNames(lewdInMessage.getNames()).addBuildInfos(buildInfos);
             synchronized (RestArea.this.parties) {
                 final ArrayDeque<VrijPartij> parties = RestArea.this.parties;
                 final VrijPartij first = parties.peekFirst();

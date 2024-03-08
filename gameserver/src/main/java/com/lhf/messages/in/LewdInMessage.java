@@ -1,14 +1,23 @@
 package com.lhf.messages.in;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.lhf.game.creature.ICreatureBuildInfo;
+import com.lhf.game.serialization.GsonBuilderFactory;
 import com.lhf.messages.Command;
 import com.lhf.messages.grammar.Prepositions;
 
 public class LewdInMessage extends CommandAdapter {
+    private List<ICreatureBuildInfo> cachedBuilders = new ArrayList<>();
+
     public LewdInMessage(Command command) {
         super(command);
     }
@@ -22,13 +31,16 @@ public class LewdInMessage extends CommandAdapter {
         return partners;
     }
 
-    private String[] split() {
+    private final String[] split() {
         String[] splitten = this.getIndirects().getOrDefault(Prepositions.USE, "").split(Pattern.quote(", "));
         return splitten;
     }
 
-    private Set<String> makeSet(String[] splitten) {
+    private final Set<String> makeSet(String[] splitten) {
         Set<String> babies = new TreeSet<>();
+        if (splitten == null) {
+            return babies;
+        }
         for (String baby : splitten) {
             babies.add(baby);
         }
@@ -41,6 +53,24 @@ public class LewdInMessage extends CommandAdapter {
         }
         String[] splitten = this.split();
         return this.makeSet(splitten);
+    }
+
+    private String getBuilderJSON() {
+        return this.getIndirects().getOrDefault(Prepositions.JSON, null);
+    }
+
+    public synchronized List<ICreatureBuildInfo> getBuildInfos() {
+        if (this.cachedBuilders != null && !this.cachedBuilders.isEmpty()) {
+            return this.cachedBuilders;
+        }
+        final String json = this.getBuilderJSON();
+        if (json != null) {
+            final Type listType = new TypeToken<List<ICreatureBuildInfo>>() {
+            }.getType();
+            final Gson gson = new GsonBuilderFactory().creatureInfoBuilders().build();
+            this.cachedBuilders = gson.fromJson(json, listType);
+        }
+        return this.cachedBuilders;
     }
 
     @Override

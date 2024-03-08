@@ -36,7 +36,7 @@ public class LewdBedTest {
         MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, "meant to be shared");
         Mockito.verify(first.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
 
-        Truth.assertThat(bed.handlePopulatedJoin(first.getNPC(), null, null)).isTrue();
+        Truth.assertThat(bed.handlePopulatedJoin(first.getNPC(), null, null, null)).isTrue();
         Mockito.verify(first.sssb, Mockito.timeout(1000).times(2)).send(Mockito.argThat(matcher));
 
     }
@@ -57,7 +57,8 @@ public class LewdBedTest {
         bed.addCreature(first.getNPC());
         bed.addCreature(second.getNPC());
 
-        Truth.assertThat(bed.handlePopulatedJoin(first.getNPC(), Set.of(second.getNPC().getName()), null)).isTrue();
+        Truth.assertThat(bed.handlePopulatedJoin(first.getNPC(), Set.of(second.getNPC().getName()), null, null))
+                .isTrue();
 
         MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, "is excited to join");
         Mockito.verify(first.sssb, Mockito.timeout(1000).times(2)).send(Mockito.argThat(matcher));
@@ -81,7 +82,8 @@ public class LewdBedTest {
         bed.addCreature(first.getNPC());
         bed.addCreature(second.getNPC());
 
-        Truth.assertThat(bed.handlePopulatedJoin(first.getNPC(), Set.of(second.getNPC().getName()), null)).isTrue();
+        Truth.assertThat(bed.handlePopulatedJoin(first.getNPC(), Set.of(second.getNPC().getName()), null, null))
+                .isTrue();
 
         MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, "does not wish");
 
@@ -115,7 +117,8 @@ public class LewdBedTest {
 
         Truth.assertThat(room.getItem(babyname).isPresent()).isFalse();
 
-        Truth.assertThat(bed.handlePopulatedJoin(first.getNPC(), Set.of(second.getNPC().getName()), Set.of(babyname)))
+        Truth.assertThat(
+                bed.handlePopulatedJoin(first.getNPC(), Set.of(second.getNPC().getName()), Set.of(babyname), null))
                 .isTrue();
         MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, "as they do it");
         Mockito.verify(first.sssb, Mockito.timeout(2000).times(1)).send(Mockito.argThat(matcher));
