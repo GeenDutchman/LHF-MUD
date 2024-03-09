@@ -87,7 +87,7 @@ public abstract class Creature implements ICreature {
         this.faction = builder.getFaction();
         this.vocation = VocationFactory.getVocation(builder.getVocation(), builder.getVocationLevel());
 
-        this.effects = new TreeSet<>();
+        this.effects = new TreeSet<>(builder.getCreatureEffects());
         this.controller = controller;
         this.controller.setSuccessor(this);
         this.successor = successor;
@@ -97,15 +97,6 @@ public abstract class Creature implements ICreature {
         this.logger = Logger
                 .getLogger(String.format("%s.%s", this.getClass().getName(), this.name.replaceAll("\\W", "_")));
 
-        // re-equip them
-        if (equipment != null && !equipment.isEmpty()) {
-            for (final Equipable thing : equipment.values()) {
-                if (thing == null) {
-                    continue;
-                }
-                thing.onEquippedBy(this);
-            }
-        }
     }
 
     @Override

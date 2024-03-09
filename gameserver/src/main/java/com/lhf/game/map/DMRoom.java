@@ -18,14 +18,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.CreatureContainer;
+import com.lhf.game.EffectPersistence;
 import com.lhf.game.Game;
+import com.lhf.game.TickType;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.QuestEffect;
 import com.lhf.game.creature.Player.PlayerBuildInfo;
+import com.lhf.game.creature.QuestSource;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
@@ -33,6 +38,7 @@ import com.lhf.game.creature.intelligence.handlers.SilencedHandler;
 import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.Stats;
 import com.lhf.game.item.AItem;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.concrete.Corpse;
@@ -51,6 +57,7 @@ import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.BadTargetSelectedEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.GameEventTester;
 import com.lhf.messages.events.RoomAffectedEvent;
 import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.messages.events.RoomExitedEvent;
@@ -234,8 +241,13 @@ public class DMRoom extends Room {
             dmGary.setName("Gary Lovejax");
 
             lewdAIHandler.addPartner(dmGary.getName()).addPartner(dmAda.getName());
+            QuestSource questSource = QuestSource.getQuestBuilder("Survive").setDescription("Survive two battles")
+                    .setDeltaForTester(new GameEventTester(GameEventType.FIGHT_OVER, "You have survived this battle"),
+                            new Deltas().setStatChange(Stats.XPEARNED, 100))
+                    .setPersistence(new EffectPersistence(2, TickType.BATTLE)).build();
             RestArea.Builder restBuilder = RestArea.getBuilder().setLewd(LewdStyle.QUICKIE)
-                    .setLewdProduct(new LewdBabyMaker(null));
+                    .setLewdProduct(new LewdBabyMaker(Player.getPlayerBuilder(null)
+                            .applyEffect(new QuestEffect(questSource, null, questSource))));
             CreatureFilterQuery query = new CreatureFilterQuery();
             query.filters.add(CreatureFilters.NAME);
             query.name = "Lovejax";

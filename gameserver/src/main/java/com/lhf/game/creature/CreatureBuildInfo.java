@@ -74,7 +74,6 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
             this.faction = other.faction;
             this.vocation = other.vocation;
             this.vocationLevel = other.vocationLevel != null ? other.vocationLevel.intValue() : null;
-            this.setCreatureEffects(other.effects);
         } else {
             this.className = this.getClass().getName();
             this.creatureRace = defaultRaceName;
@@ -415,8 +414,10 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
     }
 
     public CreatureBuildInfo setCreatureEffects(Set<CreatureEffect> others) {
-        for (CreatureEffect effect : this.effects) {
-            this.processEffectRemoval(effect);
+        if (this.effects != null) {
+            for (CreatureEffect effect : this.effects) {
+                this.processEffectRemoval(effect);
+            }
         }
         this.effects = new TreeSet<>();
         if (others != null) {
