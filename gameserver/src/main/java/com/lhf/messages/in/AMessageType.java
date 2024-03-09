@@ -288,8 +288,6 @@ public enum AMessageType implements Taggable {
                 if (!GsonBuilderFactory.checkValidJSON(json)) {
                     return false;
                 }
-            } else {
-                return false;
             }
             return true;
         }
