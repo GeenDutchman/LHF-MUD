@@ -110,6 +110,9 @@ public class SeeEvent extends GameEvent {
             return deniedReason;
         }
 
+        @Override
+        public abstract SeeEvent Build();
+
     }
 
     public static class Builder extends ABuilder<Builder> {

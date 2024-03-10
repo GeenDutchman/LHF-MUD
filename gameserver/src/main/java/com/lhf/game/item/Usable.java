@@ -19,7 +19,6 @@ import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.ItemUsedEvent;
 import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 import com.lhf.messages.events.SeeEvent;
-import com.lhf.messages.events.SeeEvent.Builder;
 
 public class Usable extends Takeable {
     protected final int numCanUseTimes;
@@ -268,7 +267,7 @@ public class Usable extends Takeable {
     }
 
     @Override
-    public SeeEvent produceMessage(Builder seeOutMessage) {
+    public SeeEvent produceMessage(SeeEvent.ABuilder<?> seeOutMessage) {
         if (seeOutMessage == null) {
             seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         }

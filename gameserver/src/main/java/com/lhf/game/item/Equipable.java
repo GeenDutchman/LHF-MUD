@@ -16,7 +16,6 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.ItemUsedEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
-import com.lhf.messages.events.SeeEvent.Builder;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 public class Equipable extends Usable {
@@ -117,7 +116,7 @@ public class Equipable extends Usable {
     }
 
     @Override
-    public SeeEvent produceMessage(Builder seeOutMessage) {
+    public SeeEvent produceMessage(SeeEvent.ABuilder<?> seeOutMessage) {
         if (seeOutMessage == null) {
             seeOutMessage = (SeeEvent.Builder) super.produceMessage(seeOutMessage).copyBuilder();
         }

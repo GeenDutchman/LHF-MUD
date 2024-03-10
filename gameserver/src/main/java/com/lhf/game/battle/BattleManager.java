@@ -662,7 +662,7 @@ public class BattleManager extends SubArea {
     }
 
     @Override
-    public SeeEvent produceMessage(SeeEvent.Builder seeMessage) {
+    public SeeEvent produceMessage(SeeEvent.ABuilder<?> seeMessage) {
         if (seeMessage == null) {
             seeMessage = SeeEvent.getBuilder().setExaminable(this);
         }

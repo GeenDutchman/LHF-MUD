@@ -469,28 +469,13 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public String printDescription() {
-        StringBuilder sb = new StringBuilder();
-        String statusString = CreatureStatusRequestedEvent.getBuilder().setFromCreature(this, false).Build().toString();
-        sb.append(statusString).append("\r\n");
-        Map<EquipmentSlots, Equipable> equipped = this.getEquipmentSlots();
-        if (equipped.get(EquipmentSlots.HAT) != null) {
-            sb.append("On their head is:").append(equipped.get(EquipmentSlots.HAT).getColorTaggedName());
-        }
-        if (equipped.get(EquipmentSlots.ARMOR) != null) {
-            sb.append("They are wearing:").append(equipped.get(EquipmentSlots.ARMOR).getColorTaggedName());
-        } else {
-            if (equipped.get(EquipmentSlots.NECKLACE) != null) {
-                sb.append("Around their neck is:")
-                        .append(equipped.get(EquipmentSlots.NECKLACE).getColorTaggedName());
-            }
-        }
-        return sb.toString();
+        return wrapped.printDescription();
     }
 
     @Override
-    public SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
+    public SeeEvent produceMessage(SeeEvent.ABuilder<?> seeOutMessage) {
         if (seeOutMessage == null) {
-            seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
+            seeOutMessage = CreatureStatusRequestedEvent.getStatusBuilder().setFromCreature(this);
         }
         seeOutMessage.setExaminable(this);
         for (CreatureEffect effect : this.getEffects()) {

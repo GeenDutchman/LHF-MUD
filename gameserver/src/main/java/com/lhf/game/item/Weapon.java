@@ -4,14 +4,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.lhf.game.battle.Attack;
-import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.DamageDice;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.messages.events.SeeEvent;
-import com.lhf.messages.events.SeeEvent.Builder;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 public class Weapon extends Equipable {
@@ -85,9 +84,9 @@ public class Weapon extends Equipable {
     }
 
     @Override
-    public SeeEvent produceMessage(Builder seeOutMessage) {
+    public SeeEvent produceMessage(SeeEvent.ABuilder<?> seeOutMessage) {
         if (seeOutMessage == null) {
-            seeOutMessage = (Builder) super.produceMessage(seeOutMessage).copyBuilder();
+            seeOutMessage = (SeeEvent.ABuilder<?>) super.produceMessage(seeOutMessage).copyBuilder();
         }
         if (this.getEffectSources() != null) {
             for (CreatureEffectSource source : this.getEffectSources()) {

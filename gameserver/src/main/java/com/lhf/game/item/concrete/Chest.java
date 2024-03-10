@@ -19,7 +19,6 @@ import com.lhf.game.item.Takeable;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.SeeEvent;
-import com.lhf.messages.events.SeeEvent.Builder;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 public class Chest extends InteractObject implements LockableItemContainer {
@@ -126,9 +125,9 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     @Override
-    public SeeEvent produceMessage(Builder seeOutMessage) {
+    public SeeEvent produceMessage(SeeEvent.ABuilder<?> seeOutMessage) {
         if (seeOutMessage == null) {
-            seeOutMessage = SeeEvent.getBuilder();
+            seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         }
         seeOutMessage.setExaminable(this);
         for (IItem thing : this.getItems()) {

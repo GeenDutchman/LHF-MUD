@@ -13,6 +13,7 @@ import com.lhf.game.map.Area.AreaCommandHandler;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
+import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.SeeMessage;
@@ -46,8 +47,9 @@ public class AreaSeeHandler implements AreaCommandHandler {
                 if (found.size() == 1) {
                     ArrayList<ICreature> foundList = new ArrayList<ICreature>(found);
                     final ICreature lookingAt = foundList.get(0);
-                    ctx.receive(lookingAt.produceMessage(SeeEvent.getBuilder()
-                            .addExtraInfo("They are in the room with you.").setExaminable(lookingAt)));
+                    ctx.receive(lookingAt
+                            .produceMessage(CreatureStatusRequestedEvent.getStatusBuilder().setFromCreature(lookingAt)
+                                    .addExtraInfo("They are in the room with you.").setExaminable(lookingAt)));
                     return ctx.handled();
                 }
 
