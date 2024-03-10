@@ -45,8 +45,9 @@ public class AreaSeeHandler implements AreaCommandHandler {
                 // we should be able to see people in a fight
                 if (found.size() == 1) {
                     ArrayList<ICreature> foundList = new ArrayList<ICreature>(found);
-                    ctx.receive(((SeeEvent.Builder) foundList.get(0).produceMessage().copyBuilder())
-                            .addExtraInfo("They are in the room with you. ").Build());
+                    final ICreature lookingAt = foundList.get(0);
+                    ctx.receive(lookingAt.produceMessage(SeeEvent.getBuilder()
+                            .addExtraInfo("They are in the room with you.").setExaminable(lookingAt)));
                     return ctx.handled();
                 }
 

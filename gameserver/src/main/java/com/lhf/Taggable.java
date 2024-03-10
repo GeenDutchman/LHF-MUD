@@ -34,6 +34,10 @@ public interface Taggable {
         public final String endTag;
         public final String contents;
 
+        public static BasicTaggable customTaggable(final String startTag, final String contents, final String endTag) {
+            return new BasicTaggable(startTag, contents, endTag);
+        }
+
         private BasicTaggable(final Taggable from) {
             this(from.getStartTag(), Taggable.extract(from), from.getEndTag());
         }
