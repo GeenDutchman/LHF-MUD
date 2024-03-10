@@ -40,7 +40,7 @@ import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
-import com.lhf.game.magic.concrete.DMBlessing;
+import com.lhf.game.magic.concrete.PlotArmor;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
@@ -59,7 +59,7 @@ public interface INonPlayerCharacter extends ICreature {
 
     /**
      * A BlessedFist is a {@link com.lhf.game.item.Weapon Weapon} used by those NPCs
-     * who maintain their {@link com.lhf.game.magic.concrete.DMBlessing Blessing}
+     * who maintain their {@link com.lhf.game.magic.concrete.PlotArmor Blessing}
      * from the {@link com.lhf.game.creature.DungeonMaster DungeonMaster}.
      * <p>
      * It does the full rainbow of damages, including
@@ -99,7 +99,7 @@ public interface INonPlayerCharacter extends ICreature {
      * A static instance of the
      * {@link com.lhf.game.creature.INonPlayerCharacter.BlessedFist BlessedFist}
      * available to NPCs who maintain their
-     * {@link com.lhf.game.magic.concrete.DMBlessing Blessing}
+     * {@link com.lhf.game.magic.concrete.PlotArmor Blessing}
      * from the {@link com.lhf.game.creature.DungeonMaster DungeonMaster}.
      */
     public static final BlessedFist blessedFist = new BlessedFist();
@@ -648,7 +648,7 @@ public interface INonPlayerCharacter extends ICreature {
      * Creature.
      * <p>
      * It will first check to see if the
-     * {@link com.lhf.game.magic.concrete.DMBlessing Blessing}
+     * {@link com.lhf.game.magic.concrete.PlotArmor Blessing}
      * is maintained. If that is the case, it will return a {@link #blessedFist}.
      * <p>
      * It will then check to see what is in the
@@ -663,9 +663,9 @@ public interface INonPlayerCharacter extends ICreature {
     @Override
     public default Weapon defaultWeapon() {
         if (this.getEquipped(EquipmentSlots.ARMOR) != null) {
-            this.removeEffectByName(DMBlessing.name);
+            this.removeEffectByName(PlotArmor.name);
         }
-        if (this.hasEffect(DMBlessing.name)) {
+        if (this.hasEffect(PlotArmor.name)) {
             return INonPlayerCharacter.blessedFist;
         }
         Equipable found = this.getEquipped(EquipmentSlots.WEAPON);

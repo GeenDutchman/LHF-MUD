@@ -422,7 +422,7 @@ public class CreatureEffectSource extends EntityEffectSource {
     }
 
     @Override
-    public SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
+    public SeeEvent produceMessage(SeeEvent.ABuilder<?> seeOutMessage) {
         if (seeOutMessage == null) {
             seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         }

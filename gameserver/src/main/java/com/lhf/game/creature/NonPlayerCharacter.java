@@ -7,7 +7,7 @@ import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.game.magic.concrete.DMBlessing;
+import com.lhf.game.magic.concrete.PlotArmor;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.in.AMessageType;
@@ -78,7 +78,7 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     public boolean equipItem(String itemName, EquipmentSlots slot) {
         boolean did = super.equipItem(itemName, slot);
         if (this.getEquipped(EquipmentSlots.ARMOR) != null) {
-            this.removeEffectByName(DMBlessing.name);
+            this.removeEffectByName(PlotArmor.name);
         }
         return did;
     }
@@ -86,7 +86,7 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     @Override
     public void setFaction(CreatureFaction faction) {
         if (!CreatureFaction.NPC.equals(faction)) {
-            this.removeEffectByName(DMBlessing.name);
+            this.removeEffectByName(PlotArmor.name);
         }
         super.setFaction(faction);
     }
