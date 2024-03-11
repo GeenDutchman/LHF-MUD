@@ -350,7 +350,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     public void tick(GameEvent tickEvent) {
         super.tick(tickEvent);
         if (tickEvent != null && this.timeLeft != null) {
-            if (this.timeLeft.tick(tickEvent.getTickType())) {
+            if (this.timeLeft.test(tickEvent)) {
                 this.isAlive();
             }
         }

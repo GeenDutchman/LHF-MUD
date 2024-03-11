@@ -3,26 +3,36 @@ package com.lhf.game;
 import java.util.Objects;
 import java.util.StringJoiner;
 
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.GameEventTester;
 import com.lhf.server.interfaces.NotNull;
 
 public class EffectPersistence implements Comparable<EffectPersistence> {
-    public static class Ticker {
+    public static class Ticker extends GameEventTester {
         private final int count;
-        private final TickType tickSize;
         private int countdown;
 
         public Ticker(int count, TickType tickSize) {
+            super(null, null, null, tickSize);
             this.count = count;
-            this.tickSize = tickSize;
             this.countdown = count;
         }
 
-        public synchronized boolean tick(TickType type) {
-            if (this.tickSize.equals(type) && this.countdown > 0) {
-                this.countdown = this.countdown - 1;
-                return true;
+        public Ticker(int count, final GameEventTester other) {
+            super(other);
+            this.count = count;
+            this.countdown = count;
+        }
+
+        public Ticker(final Ticker other) {
+            this(other.count, other);
+        }
+
+        @Override
+        protected synchronized void successHook(GameEvent argument, String reason) {
+            if (this.countdown > 0) {
+                --this.countdown;
             }
-            return false;
         }
 
         public boolean isDone() {
@@ -36,13 +46,13 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
         @Override
         public String toString() {
             if (this.countdown > 0) {
-                return String.format("%d / %d %s", this.countdown, this.count, this.tickSize);
+                return String.format("%d / %d %s", this.countdown, this.count, super.toString());
             }
             StringJoiner sj = new StringJoiner(" ");
             if (this.count > 0) {
                 sj.add(String.valueOf(this.count));
             }
-            sj.add(this.tickSize.name());
+            sj.add(super.toString());
             return sj.toString();
         }
 
@@ -50,73 +60,65 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
             return count;
         }
 
-        public TickType getTickSize() {
-            return tickSize;
-        }
     }
 
-    private final int count;
-    private final TickType tickSize;
+    private final Ticker baseTicker;
 
     public EffectPersistence(@NotNull TickType tickSize) {
-        this.tickSize = tickSize;
-        if (TickType.CONDITIONAL.equals(tickSize)) {
-            this.count = -1;
-        } else {
-            this.count = 1;
-        }
+        this(TickType.CONDITIONAL.equals(tickSize) ? -1 : 1, tickSize);
     }
 
     public EffectPersistence(int count, @NotNull TickType tickSize) {
-        this.tickSize = tickSize;
+        int calcCount = count;
         if (TickType.INSTANT.equals(tickSize)) {
-            this.count = 1;
+            calcCount = 1;
         } else if (TickType.CONDITIONAL.equals(tickSize)) {
-            this.count = -1;
+            calcCount = -1;
+        }
+        this.baseTicker = new Ticker(calcCount, tickSize);
+    }
+
+    public EffectPersistence(@NotNull Ticker base) {
+        if (base != null) {
+            this.baseTicker = new Ticker(base);
         } else {
-            this.count = count;
+            this.baseTicker = new Ticker(1, TickType.INSTANT);
         }
     }
 
     public EffectPersistence(EffectPersistence persistence) {
-        this.tickSize = persistence.tickSize;
-        this.count = persistence.count;
+        this.baseTicker = new Ticker(persistence.baseTicker);
     }
 
     public int getCount() {
-        return count;
+        return this.baseTicker.getCount();
     }
 
     public TickType getTickSize() {
-        return tickSize;
+        return this.baseTicker.getTickType();
     }
 
-    public Ticker getTicker() {
-        return new Ticker(this.count, this.tickSize);
+    // protected Ticker getTicker() {
+    // return this.baseTicker;
+    // }
+
+    public Ticker getFreshTicker() {
+        return new Ticker(this.baseTicker);
     }
 
     @Override
     public String toString() {
-        StringJoiner sj = new StringJoiner(" ");
-        if (this.count > 0) {
-            sj.add(String.valueOf(this.count));
-        }
-        sj.add(this.tickSize.name());
-        return sj.toString();
+        return this.baseTicker.toString();
     }
 
     @Override
     public int compareTo(EffectPersistence o) {
-        int compareSize = this.getTickSize().compareTo(o.getTickSize());
-        if (compareSize != 0) {
-            return compareSize;
-        }
-        return this.getCount() - o.getCount();
+        return this.baseTicker.compareTo(o.baseTicker);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, tickSize);
+        return Objects.hash(baseTicker);
     }
 
     @Override
@@ -128,7 +130,7 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
             return false;
         }
         EffectPersistence other = (EffectPersistence) obj;
-        return count == other.count && tickSize == other.tickSize;
+        return this.baseTicker.equals(other.baseTicker);
     }
 
 }

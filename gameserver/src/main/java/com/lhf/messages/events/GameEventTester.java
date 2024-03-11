@@ -45,6 +45,22 @@ public class GameEventTester implements Predicate<GameEvent>, Comparable<GameEve
         this(other.type, other.contained, other.notContained, other.tickType);
     }
 
+    public GameEventType getType() {
+        return type;
+    }
+
+    public SortedSet<String> getContained() {
+        return contained;
+    }
+
+    public SortedSet<String> getNotContained() {
+        return notContained;
+    }
+
+    public TickType getTickType() {
+        return tickType;
+    }
+
     protected void failHook(final GameEvent argument, final String reason) {
     }
 
