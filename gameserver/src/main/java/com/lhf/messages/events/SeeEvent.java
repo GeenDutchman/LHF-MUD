@@ -250,7 +250,10 @@ public class SeeEvent extends GameEvent {
         if (this.extraInfo != null && this.extraInfo.length() > 0) {
             sj.add(this.extraInfo.toString()).add("\r\n");
         }
-        sj.add("<description>").add(this.examinable.printDescription()).add("</description>").add("\r\n");
+        final String descriptor = this.examinable.printDescription();
+        if (descriptor != null && !descriptor.isBlank()) {
+            sj.add("<description>").add(descriptor).add("</description>").add("\r\n");
+        }
         sj = this.listTaggables(sj);
         String listedEffects = this.listEffectors();
         if (!listedEffects.isBlank()) {
