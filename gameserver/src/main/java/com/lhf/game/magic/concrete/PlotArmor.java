@@ -8,9 +8,12 @@ import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.Attributes;
+import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
+import com.lhf.messages.GameEventType;
+import com.lhf.messages.events.GameEventTester;
 
 public class PlotArmor extends CreatureTargetingSpellEntry {
 
@@ -18,7 +21,11 @@ public class PlotArmor extends CreatureTargetingSpellEntry {
 
     private static final Set<CreatureEffectSource> spellEffects = Set.of(
             new CreatureEffectSource.Builder(name)
-                    .setPersistence(new EffectPersistence(TickType.CONDITIONAL))
+                    .setPersistence(new EffectPersistence(new EffectPersistence.Ticker(1, new GameEventTester(
+                            GameEventType.EQUIP,
+                            Set.of("You successfully equipped your",
+                                    EquipmentSlots.ARMOR.getColorTaggedName()),
+                            null, TickType.CONDITIONAL))))
                     .setDescription("Effects of the blessing").setOnApplication(new Deltas()
                             .setStatChange(Stats.MAXHP, 200)
                             .setStatChange(Stats.MAXHP, 200)
