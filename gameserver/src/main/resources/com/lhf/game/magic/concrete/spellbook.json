@@ -26,8 +26,11 @@
         "className": "com.lhf.game.creature.CreatureEffectSource",
         "name": "Zap",
         "persistence": {
-          "count": 1,
-          "tickSize": "INSTANT"
+          "baseTicker": {
+            "count": 1,
+            "countdown": 1,
+            "tickType": "INSTANT"
+          }
         },
         "resistance": {
           "actorAttrs": [
@@ -54,8 +57,11 @@
         "className": "com.lhf.game.map.RoomEffectSource",
         "name": "Announce yourself",
         "persistence": {
-          "count": 1,
-          "tickSize": "INSTANT"
+          "baseTicker": {
+            "count": 1,
+            "countdown": 1,
+            "tickType": "INSTANT"
+          }
         },
         "resistance": {
           "actorAttrs": [
@@ -105,8 +111,11 @@
         "className": "com.lhf.game.creature.CreatureEffectSource",
         "name": "Healing",
         "persistence": {
-          "count": 1,
-          "tickSize": "INSTANT"
+          "baseTicker": {
+            "count": 1,
+            "countdown": 1,
+            "tickType": "INSTANT"
+          }
         },
         "description": "Healing"
       }
@@ -208,8 +217,11 @@
                         "className": "com.lhf.game.creature.CreatureEffectSource",
                         "name": "Armor AC Boost",
                         "persistence": {
-                          "count": -1,
-                          "tickSize": "CONDITIONAL"
+                          "baseTicker": {
+                            "count": -1,
+                            "countdown": -1,
+                            "tickType": "CONDITIONAL"
+                          }
                         },
                         "description": "Wearing armor makes you harder to hit"
                       }
@@ -307,8 +319,11 @@
         "className": "com.lhf.game.map.RoomEffectSource",
         "name": "Summon Electric Wisp",
         "persistence": {
-          "count": 2,
-          "tickSize": "ROUND"
+          "baseTicker": {
+            "count": 2,
+            "countdown": 2,
+            "tickType": "ROUND"
+          }
         },
         "resistance": {
           "actorAttrs": [
@@ -355,8 +370,11 @@
         "className": "com.lhf.game.creature.CreatureEffectSource",
         "name": "Loud Zap",
         "persistence": {
-          "count": 1,
-          "tickSize": "INSTANT"
+          "baseTicker": {
+            "count": 1,
+            "countdown": 1,
+            "tickType": "INSTANT"
+          }
         },
         "resistance": {
           "actorAttrs": [
@@ -385,8 +403,11 @@
         "className": "com.lhf.game.map.DMRoomEffectSource",
         "name": "Ensoul and send",
         "persistence": {
-          "count": 1,
-          "tickSize": "INSTANT"
+          "baseTicker": {
+            "count": 1,
+            "countdown": 1,
+            "tickType": "INSTANT"
+          }
         },
         "description": "Ensouls a user and sends them off into the dungeons!"
       }
