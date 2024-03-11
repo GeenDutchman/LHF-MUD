@@ -25,7 +25,7 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
         }
 
         public Ticker(final Ticker other) {
-            this(other.count, other);
+            this(other != null ? other.count : 0, other);
         }
 
         @Override
@@ -108,12 +108,18 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
 
     @Override
     public String toString() {
+        if (this.baseTicker == null) {
+            return "no persistence";
+        }
         return this.baseTicker.toString();
     }
 
     @Override
     public int compareTo(EffectPersistence o) {
-        return this.baseTicker.compareTo(o.baseTicker);
+        if (this.baseTicker != null) {
+            return this.baseTicker.compareTo(o.baseTicker);
+        }
+        return o.baseTicker != null ? -1 : 0;
     }
 
     @Override
@@ -130,6 +136,9 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
             return false;
         }
         EffectPersistence other = (EffectPersistence) obj;
+        if (this.baseTicker == null) {
+            return other.baseTicker == null;
+        }
         return this.baseTicker.equals(other.baseTicker);
     }
 
