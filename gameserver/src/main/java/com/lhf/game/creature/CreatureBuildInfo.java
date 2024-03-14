@@ -55,41 +55,44 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
     // protected String statblockName; // TODO: turn this into buildinfoname
 
     protected CreatureBuildInfo() {
-        this(null);
+        this.className = this.getClass().getName();
+        this.creatureRace = defaultRaceName;
+        this.attributeBlock = new AttributeBlock();
+        this.stats = new EnumMap<>(Stats.class);
+        this.defaultStats();
+        this.proficiencies = EnumSet.noneOf(EquipmentTypes.class);
+        this.inventory = new Inventory();
+        this.equipmentSlots = new EnumMap<>(EquipmentSlots.class);
+        this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReaction.class);
+        this.defaultFlavorReactions();
+        this.name = null;
+        this.faction = null;
+        this.vocation = null;
+        this.vocationLevel = null;
+        this.effects = new TreeSet<>();
     }
 
-    public CreatureBuildInfo(CreatureBuildInfo other) {
+    public CreatureBuildInfo(ICreatureBuildInfo other) {
+        this();
+        this.copyFrom(other);
+    }
+
+    public CreatureBuildInfo copyFrom(ICreatureBuildInfo other) {
         if (other != null) {
-            this.className = other.getClassName();
-            this.setCreatureRace(other.creatureRace);
-            this.setAttributeBlock(other.attributeBlock);
-            this.setStats(other.stats);
-            this.setProficiencies(other.proficiencies);
-            this.setInventory(other.inventory);
-            this.setEquipmentSlots(other.equipmentSlots);
-            this.setCreatureEffects(other.effects);
-            this.setDamageFlavorReactions(other.damageFlavorReactions);
-            this.name = other.name != null ? new String(other.name) : null;
-            this.faction = other.faction;
-            this.vocation = other.vocation;
-            this.vocationLevel = other.vocationLevel != null ? other.vocationLevel.intValue() : null;
-        } else {
-            this.className = this.getClass().getName();
-            this.creatureRace = defaultRaceName;
-            this.attributeBlock = new AttributeBlock();
-            this.stats = new EnumMap<>(Stats.class);
-            this.defaultStats();
-            this.proficiencies = EnumSet.noneOf(EquipmentTypes.class);
-            this.inventory = new Inventory();
-            this.equipmentSlots = new EnumMap<>(EquipmentSlots.class);
-            this.damageFlavorReactions = new EnumMap<>(DamgeFlavorReaction.class);
-            this.defaultFlavorReactions();
-            this.name = null;
-            this.faction = null;
-            this.vocation = null;
-            this.vocationLevel = null;
-            this.effects = new TreeSet<>();
+            this.setCreatureRace(other.getCreatureRace());
+            this.setAttributeBlock(other.getAttributeBlock());
+            this.setStats(other.getStats());
+            this.setProficiencies(other.getProficiencies());
+            this.setInventory(other.getInventory());
+            this.setEquipmentSlots(other.getEquipmentSlots());
+            this.setCreatureEffects(other.getCreatureEffects());
+            this.setDamageFlavorReactions(other.getDamageFlavorReactions());
+            this.name = other.getRawName() != null ? new String(other.getRawName()) : null;
+            this.faction = other.getFaction();
+            this.vocation = other.getVocation();
+            this.vocationLevel = other.getVocationLevel() != null ? other.getVocationLevel().intValue() : null;
         }
+        return this;
     }
 
     @Override

@@ -41,9 +41,23 @@ public class DungeonMaster extends NonPlayerCharacter {
             this.iNPCBuilder = new INPCBuildInfo().setFaction(CreatureFaction.NPC).setVocation(new DMVocation());
         }
 
-        public DungeonMasterBuildInfo(DungeonMasterBuildInfo other) {
-            this.className = other.getClassName();
-            this.iNPCBuilder = new INPCBuildInfo(other.iNPCBuilder);
+        public DungeonMasterBuildInfo(INonPlayerCharacterBuildInfo other) {
+            this();
+            this.copyFromINonPlayerCharacterBuildInfo(other);
+        }
+
+        public DungeonMasterBuildInfo copyFromICreatureBuildInfo(ICreatureBuildInfo buildInfo) {
+            if (buildInfo != null) {
+                this.iNPCBuilder.copyFromICreatureBuildInfo(buildInfo).setFaction(CreatureFaction.NPC);
+            }
+            return this;
+        }
+
+        public DungeonMasterBuildInfo copyFromINonPlayerCharacterBuildInfo(INonPlayerCharacterBuildInfo buildInfo) {
+            if (buildInfo != null) {
+                this.iNPCBuilder.copyFromINonPlayerCharacterBuildInfo(buildInfo).setFaction(CreatureFaction.NPC);
+            }
+            return this;
         }
 
         public static DungeonMasterBuildInfo getInstance() {

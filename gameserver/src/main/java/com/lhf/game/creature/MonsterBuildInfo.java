@@ -34,17 +34,27 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
     private static transient long serialNumber = 0;
 
     protected MonsterBuildInfo() {
-        this(null);
+        this.className = this.getClass().getName();
+        this.iNPCBuilder = new INPCBuildInfo().setFaction(CreatureFaction.MONSTER);
     }
 
-    public MonsterBuildInfo(MonsterBuildInfo other) {
-        if (other != null) {
-            this.className = other.getClassName();
-            this.iNPCBuilder = new INPCBuildInfo(other.iNPCBuilder);
-        } else {
-            this.className = this.getClass().getName();
-            this.iNPCBuilder = new INPCBuildInfo().setFaction(CreatureFaction.MONSTER);
+    public MonsterBuildInfo(INonPlayerCharacterBuildInfo npcBuilder) {
+        this();
+        this.copyFromINonPlayerCharacterBuildInfo(npcBuilder);
+    }
+
+    public MonsterBuildInfo copyFromICreatureBuildInfo(ICreatureBuildInfo buildInfo) {
+        if (buildInfo != null) {
+            this.iNPCBuilder.copyFromICreatureBuildInfo(buildInfo).setFaction(CreatureFaction.MONSTER);
         }
+        return this;
+    }
+
+    public MonsterBuildInfo copyFromINonPlayerCharacterBuildInfo(INonPlayerCharacterBuildInfo buildInfo) {
+        if (buildInfo != null) {
+            this.iNPCBuilder.copyFromINonPlayerCharacterBuildInfo(buildInfo).setFaction(CreatureFaction.MONSTER);
+        }
+        return this;
     }
 
     public static MonsterBuildInfo getInstance() {

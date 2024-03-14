@@ -34,28 +34,48 @@ public class Player extends Creature {
         private final CreatureBuildInfo creatureBuilder;
         protected final CreatureBuilderID id = new CreatureBuilderID();
 
-        private PlayerBuildInfo(User user) {
+        public PlayerBuildInfo() {
             this.className = this.getClass().getName();
-            this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.PLAYER)
-                    .setName(user != null ? user.getUsername() : this.id.toString());
-            this.user = user;
+            this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.PLAYER);
+            this.user = null;
         }
 
-        public PlayerBuildInfo(PlayerBuildInfo other) {
-            if (other == null) {
-                this.className = this.getClass().getName();
-                this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.PLAYER)
-                        .setName(this.id.toString());
-                this.user = null;
-            } else {
-                this.className = other.className;
-                this.creatureBuilder = new CreatureBuildInfo(other.creatureBuilder);
-                this.user = null;
-            }
+        private PlayerBuildInfo(User user) {
+            this();
+            this.setUser(user);
+        }
+
+        public PlayerBuildInfo(ICreatureBuildInfo buildInfo) {
+            this();
+            this.copyFromICreatureBuildInfo(buildInfo);
+        }
+
+        public static PlayerBuildInfo fromOther(PlayerBuildInfo buildInfo) {
+            return new PlayerBuildInfo(buildInfo);
         }
 
         public static PlayerBuildInfo getInstance(User user) {
+            if (user == null) {
+                return new PlayerBuildInfo();
+            }
             return new PlayerBuildInfo(user);
+        }
+
+        public PlayerBuildInfo copyFromICreatureBuildInfo(ICreatureBuildInfo buildInfo) {
+            if (buildInfo != null) {
+                this.creatureBuilder.copyFrom(buildInfo).setFaction(CreatureFaction.PLAYER);
+                if (this.user != null) {
+                    this.setName(this.user.getUsername());
+                }
+            }
+            return this;
+        }
+
+        public PlayerBuildInfo copyFromPlayerBuildInfo(PlayerBuildInfo buildInfo) {
+            if (buildInfo != null) {
+                this.copyFromICreatureBuildInfo(buildInfo);
+            }
+            return this;
         }
 
         public User getUser() {

@@ -292,30 +292,52 @@ public interface INonPlayerCharacter extends ICreature {
         private String leaderName;
 
         protected INPCBuildInfo() {
-            this(null);
+            this.className = this.getClass().getName();
+            this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.NPC);
+            this.conversationFileName = null;
+            this.conversationTree = null;
+            this.aiHandlers = new ArrayList<>();
+            this.summonState = EnumSet.noneOf(SummonData.class);
+            this.leaderName = null;
         }
 
-        public INPCBuildInfo(INPCBuildInfo other) {
-            if (other != null) {
-                this.className = other.getClassName();
-                this.creatureBuilder = new CreatureBuildInfo(other.creatureBuilder);
-                this.conversationFileName = other.getConversationFileName() != null
-                        ? new String(other.getConversationFileName())
-                        : null;
-                this.conversationTree = null;
-                ConversationTree otherTree = other.getConversationTree();
-                if (otherTree != null) {
-                    this.conversationTree = otherTree.makeCopy();
-                }
-                this.aiHandlers = new ArrayList<>(other.getAIHandlers());
-                this.summonState = EnumSet.copyOf(other.getSummonState());
-            } else {
-                this.className = this.getClass().getName();
-                this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.NPC);
-                this.aiHandlers = new ArrayList<>();
-                this.summonState = EnumSet.noneOf(SummonData.class);
-                this.leaderName = null;
+        public INPCBuildInfo(ICreatureBuildInfo basicInfo, String conversationFileName, ConversationTree tree,
+                List<AIHandler> handlers, Set<SummonData> summonState) {
+            this();
+            this.copyFromICreatureBuildInfo(basicInfo);
+            this.setConversationFileName(conversationFileName);
+            this.setConversationTree(tree != null ? tree.makeCopy() : null);
+            this.aiHandlers = handlers != null ? new ArrayList<>(handlers) : new ArrayList<>();
+            this.setSummonStates(summonState);
+        }
+
+        public INPCBuildInfo(INonPlayerCharacterBuildInfo other) {
+            this();
+            this.copyFromINonPlayerCharacterBuildInfo(other);
+        }
+
+        public INPCBuildInfo copyFromICreatureBuildInfo(ICreatureBuildInfo buildInfo) {
+            if (buildInfo != null) {
+                this.creatureBuilder.copyFrom(buildInfo).setFaction(CreatureFaction.NPC);
             }
+            return this;
+        }
+
+        public INPCBuildInfo copyFromINonPlayerCharacterBuildInfo(INonPlayerCharacterBuildInfo buildInfo) {
+            if (buildInfo != null) {
+                this.copyFromICreatureBuildInfo(buildInfo);
+                this.setConversationFileName(buildInfo.getConversationFileName());
+                ConversationTree otherTree = buildInfo.getConversationTree();
+                if (otherTree != null) {
+                    this.setConversationTree(otherTree.makeCopy());
+                }
+                this.setSummonStates(buildInfo.getSummonState());
+                List<AIHandler> otherHandlers = buildInfo.getAIHandlers();
+                if (otherHandlers != null) {
+                    this.aiHandlers = new ArrayList<>(otherHandlers);
+                }
+            }
+            return this;
         }
 
         @Override
