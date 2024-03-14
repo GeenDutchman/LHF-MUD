@@ -330,14 +330,24 @@ public enum AMessageType implements Taggable {
             }
             boolean indirectsvalid = true;
             final Map<Prepositions, String> indirects = command.getIndirects();
-            if (indirects.size() > 1) {
-                indirectsvalid = false;
-            } else if (indirects.size() == 0) {
+            if (indirects == null || indirects.size() == 0) {
                 indirectsvalid = true;
-            } else if (indirects.containsKey(Prepositions.USE)) {
-                final String indirect = indirects.getOrDefault(Prepositions.USE, null);
-                indirectsvalid = indirect != null && !indirect.isBlank();
-            } else if (indirects.containsKey(Prepositions.JSON)) {
+            } else if (indirects.containsKey(Prepositions.USE) || indirects.containsKey(Prepositions.AS)) {
+                int count = 0;
+                final String used = indirects.getOrDefault(Prepositions.USE, null);
+                if (used != null) {
+                    indirectsvalid = indirectsvalid && !used.isBlank();
+                    ++count;
+                }
+                final String ased = indirects.getOrDefault(Prepositions.AS, null);
+                if (ased != null) {
+                    indirectsvalid = indirectsvalid && !ased.isBlank();
+                    ++count;
+                }
+                if (count != indirects.size()) {
+                    indirectsvalid = false; // contains other prepositions: not valid
+                }
+            } else if (indirects.size() == 1 && indirects.containsKey(Prepositions.JSON)) {
                 final String indirect = indirects.getOrDefault(Prepositions.JSON, null);
                 indirectsvalid = indirect != null && !indirect.isBlank();
                 if (indirectsvalid) {
@@ -354,7 +364,7 @@ public enum AMessageType implements Taggable {
 
         @Override
         public EnumSet<Prepositions> getAllowedPrepositions() {
-            return EnumSet.of(Prepositions.USE, Prepositions.JSON);
+            return EnumSet.of(Prepositions.USE, Prepositions.AS, Prepositions.JSON);
         }
     },
     SPELLBOOK {
