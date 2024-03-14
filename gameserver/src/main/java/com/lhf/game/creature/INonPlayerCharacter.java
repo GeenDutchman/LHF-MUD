@@ -593,8 +593,8 @@ public interface INonPlayerCharacter extends ICreature {
             return this;
         }
 
-        public INPCBuildInfo setVocation(VocationName vocationName) {
-            creatureBuilder.setVocation(vocationName);
+        public INPCBuildInfo setVocationName(VocationName vocationName) {
+            creatureBuilder.setVocationName(vocationName);
             return this;
         }
 
@@ -603,8 +603,8 @@ public interface INonPlayerCharacter extends ICreature {
             return this;
         }
 
-        public VocationName getVocation() {
-            return creatureBuilder.getVocation();
+        public VocationName getVocationName() {
+            return creatureBuilder.getVocationName();
         }
 
         public Integer getVocationLevel() {

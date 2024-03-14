@@ -85,7 +85,7 @@ public abstract class Creature implements ICreature {
         this.damageFlavorReactions = builder.getDamageFlavorReactions();
         this.cmds = this.buildCommands();
         this.faction = builder.getFaction();
-        this.vocation = VocationFactory.getVocation(builder.getVocation(), builder.getVocationLevel());
+        this.vocation = VocationFactory.getVocation(builder.getVocationName(), builder.getVocationLevel());
 
         this.effects = new TreeSet<>(builder.getCreatureEffects());
         this.controller = controller;

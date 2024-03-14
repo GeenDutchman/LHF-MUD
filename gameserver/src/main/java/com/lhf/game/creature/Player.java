@@ -263,8 +263,8 @@ public class Player extends Creature {
             return this;
         }
 
-        public PlayerBuildInfo setVocation(VocationName vocationName) {
-            creatureBuilder.setVocation(vocationName);
+        public PlayerBuildInfo setVocationName(VocationName vocationName) {
+            creatureBuilder.setVocationName(vocationName);
             return this;
         }
 
@@ -273,8 +273,8 @@ public class Player extends Creature {
             return this;
         }
 
-        public VocationName getVocation() {
-            return creatureBuilder.getVocation();
+        public VocationName getVocationName() {
+            return creatureBuilder.getVocationName();
         }
 
         public Integer getVocationLevel() {

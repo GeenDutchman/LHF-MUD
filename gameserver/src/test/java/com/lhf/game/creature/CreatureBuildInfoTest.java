@@ -75,7 +75,7 @@ public class CreatureBuildInfoTest {
         PlayerBuildInfo buildInfo = PlayerBuildInfo.getInstance(null);
         String name = NameGenerator.Generate(null);
         buildInfo.setName(name);
-        buildInfo.setVocation(VocationName.HEALER);
+        buildInfo.setVocationName(VocationName.HEALER);
         toBuild.add(buildInfo);
         Gson gson = GsonBuilderFactory.start().items().creatureInfoBuilders().prettyPrinting().build();
         String json = gson.toJson(toBuild);

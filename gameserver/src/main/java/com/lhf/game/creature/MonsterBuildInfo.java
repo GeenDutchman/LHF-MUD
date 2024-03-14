@@ -298,7 +298,7 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
     }
 
     public MonsterBuildInfo setVocation(VocationName vocationName) {
-        iNPCBuilder.setVocation(vocationName);
+        iNPCBuilder.setVocationName(vocationName);
         return this;
     }
 
@@ -307,8 +307,8 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
         return this;
     }
 
-    public VocationName getVocation() {
-        return iNPCBuilder.getVocation();
+    public VocationName getVocationName() {
+        return iNPCBuilder.getVocationName();
     }
 
     public Integer getVocationLevel() {

@@ -89,7 +89,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
             this.setDamageFlavorReactions(other.getDamageFlavorReactions());
             this.name = other.getRawName() != null ? new String(other.getRawName()) : null;
             this.faction = other.getFaction();
-            this.vocation = other.getVocation();
+            this.vocation = other.getVocationName();
             this.vocationLevel = other.getVocationLevel() != null ? other.getVocationLevel().intValue() : null;
         }
         return this;
@@ -516,7 +516,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         return this;
     }
 
-    public CreatureBuildInfo setVocation(VocationName vocationName) {
+    public CreatureBuildInfo setVocationName(VocationName vocationName) {
         this.vocation = vocationName;
         return this;
     }
@@ -526,7 +526,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         return this;
     }
 
-    public VocationName getVocation() {
+    public VocationName getVocationName() {
         return this.vocation;
     }
 

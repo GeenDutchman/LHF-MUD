@@ -48,7 +48,7 @@ public class CreatureCreator {
             builder.addEquipment(entry.getKey(), entry.getValue(), false);
         }
         builder.setDamageFlavorReactions(adapter.getDamageFlavorReactions());
-        builder.setVocation(adapter.getVocation());
+        builder.setVocation(adapter.getVocationName());
         builder.setVocationLevel(adapter.getVocationLevel());
 
         return builder;
@@ -68,7 +68,7 @@ public class CreatureCreator {
             builder.addEquipment(entry.getKey(), entry.getValue(), false);
         }
         builder.setDamageFlavorReactions(adapter.getDamageFlavorReactions());
-        builder.setVocation(adapter.getVocation());
+        builder.setVocationName(adapter.getVocationName());
         builder.setVocationLevel(adapter.getVocationLevel());
         return builder;
     }
@@ -88,7 +88,7 @@ public class CreatureCreator {
             builder.addEquipment(entry.getKey(), entry.getValue(), false);
         }
         builder.setDamageFlavorReactions(adapter.getDamageFlavorReactions());
-        builder.setVocation(adapter.getVocation());
+        builder.setVocation(adapter.getVocationName());
         builder.setVocationLevel(adapter.getVocationLevel());
         return builder;
     }

@@ -159,7 +159,7 @@ public interface ICreatureBuildInfo extends Serializable, Comparable<ICreatureBu
 
     public CreatureFaction getFaction();
 
-    public VocationName getVocation();
+    public VocationName getVocationName();
 
     public Integer getVocationLevel();
 

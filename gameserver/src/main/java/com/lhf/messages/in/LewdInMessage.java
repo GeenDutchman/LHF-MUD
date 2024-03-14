@@ -62,7 +62,7 @@ public class LewdInMessage extends CommandAdapter {
         boolean hasNextVocation = nameIterator.hasNext();
         while (hasNextName || hasNextVocation) {
             pairs.add(new CreatureBuildInfo(null).setName(hasNextName ? nameIterator.next() : null)
-                    .setVocation(hasNextVocation ? vocationIterator.next() : null));
+                    .setVocationName(hasNextVocation ? vocationIterator.next() : null));
             hasNextName = nameIterator.hasNext();
             hasNextVocation = vocationIterator.hasNext();
         }

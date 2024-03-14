@@ -297,7 +297,7 @@ public class DungeonMaster extends NonPlayerCharacter {
         }
 
         public DungeonMasterBuildInfo setVocation(VocationName vocationName) {
-            iNPCBuilder.setVocation(vocationName);
+            iNPCBuilder.setVocationName(vocationName);
             return this;
         }
 
@@ -306,8 +306,8 @@ public class DungeonMaster extends NonPlayerCharacter {
             return this;
         }
 
-        public VocationName getVocation() {
-            return iNPCBuilder.getVocation();
+        public VocationName getVocationName() {
+            return iNPCBuilder.getVocationName();
         }
 
         public Integer getVocationLevel() {

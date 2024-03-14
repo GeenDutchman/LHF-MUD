@@ -46,7 +46,7 @@ public class CreateInMessage extends CommandAdapter {
             this.cachedBuild = gson.fromJson(json, Player.PlayerBuildInfo.class);
         } else if (this.vocationRequest() != null) {
             this.cachedBuild = new Player.PlayerBuildInfo(null).setName(this.getUsername())
-                    .setVocation(VocationName.getVocationName(this.vocationRequest()));
+                    .setVocationName(VocationName.getVocationName(this.vocationRequest()));
         }
         return this.cachedBuild;
     }

@@ -93,7 +93,7 @@ public class LewdBabyMaker extends LewdProduct {
                 if (player == null || template == null) {
                     return;
                 }
-                final VocationName name = template.getVocation();
+                final VocationName name = template.getVocationName();
                 if (name != null) {
                     player.setVocation(VocationFactory.getVocation(name));
                 }
