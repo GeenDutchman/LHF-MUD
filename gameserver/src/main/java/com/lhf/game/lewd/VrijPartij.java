@@ -13,6 +13,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.messages.events.LewdEvent;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
+import com.lhf.messages.in.LewdInMessage.NameVocationPair;
 
 /**
  * The steps are to set everyone to INCLUDED except
@@ -28,7 +29,7 @@ public class VrijPartij {
     protected final int hash;
     protected final ICreature initiator;
     protected Map<ICreature, LewdAnswer> party;
-    protected Set<String> names;
+    protected Set<NameVocationPair> names;
     protected Set<ICreatureBuildInfo> buildInfos;
 
     public VrijPartij(ICreature initiator, Set<ICreature> partners) {
@@ -77,7 +78,7 @@ public class VrijPartij {
         });
     }
 
-    public VrijPartij addNames(Collection<String> babyNames) {
+    public VrijPartij addNames(Collection<NameVocationPair> babyNames) {
         if (babyNames != null && babyNames.size() > 0) {
             this.names.addAll(babyNames);
         }
@@ -86,7 +87,7 @@ public class VrijPartij {
 
     public VrijPartij addName(String name) {
         if (name != null && name.length() > 0) {
-            this.names.add(name);
+            this.names.add(new NameVocationPair(name));
         }
         return this;
     }
@@ -105,7 +106,7 @@ public class VrijPartij {
         return this;
     }
 
-    public Set<String> getNames() {
+    public Set<NameVocationPair> getNames() {
         return Collections.unmodifiableSet(this.names);
     }
 

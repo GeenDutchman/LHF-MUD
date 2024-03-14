@@ -14,6 +14,7 @@ import com.lhf.game.lewd.LewdBabyMaker;
 import com.lhf.game.map.Room;
 import com.lhf.game.map.Room.RoomBuilder;
 import com.lhf.messages.MessageMatcher;
+import com.lhf.messages.in.LewdInMessage.NameVocationPair;
 import com.lhf.messages.GameEventType;
 
 @ExtendWith(MockitoExtension.class)
@@ -118,7 +119,8 @@ public class LewdBedTest {
         Truth.assertThat(room.getItem(babyname).isPresent()).isFalse();
 
         Truth.assertThat(
-                bed.handlePopulatedJoin(first.getNPC(), Set.of(second.getNPC().getName()), Set.of(babyname), null))
+                bed.handlePopulatedJoin(first.getNPC(), Set.of(second.getNPC().getName()),
+                        Set.of(new NameVocationPair(babyname)), null))
                 .isTrue();
         MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, "as they do it");
         Mockito.verify(first.sssb, Mockito.timeout(2000).times(1)).send(Mockito.argThat(matcher));

@@ -16,6 +16,7 @@ import com.lhf.game.map.Area;
 import com.lhf.game.map.AreaVisitor;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Room;
+import com.lhf.messages.in.LewdInMessage.NameVocationPair;
 import com.lhf.server.client.user.User;
 
 public class LewdBabyMaker extends LewdProduct {
@@ -39,8 +40,12 @@ public class LewdBabyMaker extends LewdProduct {
         return new AreaVisitor() {
 
             private void addCorpses(Area area) {
-                for (String name : party.getNames()) {
-                    if (name.length() <= 0) {
+                for (NameVocationPair pairing : party.getNames()) {
+                    String name = null;
+                    if (pairing != null) {
+                        name = pairing.name;
+                    }
+                    if (name == null || name.length() <= 0) {
                         name = NameGenerator.Generate(null);
                     }
                     Corpse body = new Corpse(name);
@@ -91,11 +96,12 @@ public class LewdBabyMaker extends LewdProduct {
                     return;
                 }
 
-                for (String name : party.getNames()) {
-                    final User user = room.removeUser(name);
+                for (NameVocationPair pairing : party.getNames()) {
+                    final User user = room.removeUser(pairing.name);
                     if (user == null) {
                         Corpse body = new Corpse(
-                                name == null || name.length() <= 0 ? NameGenerator.Generate(null) : name);
+                                pairing.name == null || pairing.name.length() <= 0 ? NameGenerator.Generate(null)
+                                        : pairing.name);
                         room.addItem(body);
                         continue;
                     }

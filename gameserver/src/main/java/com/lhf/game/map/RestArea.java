@@ -651,7 +651,7 @@ public class RestArea extends SubArea {
             }
             Collection<ICreatureBuildInfo> buildInfos = null;
             try {
-                buildInfos = lewdInMessage.getBuildInfos();
+                buildInfos = lewdInMessage.getJSONBuildInfos();
             } catch (JsonParseException e) {
                 RestArea.this.log(Level.WARNING, e.toString());
                 ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.OTHER).setNotBroadcast()
@@ -659,7 +659,7 @@ public class RestArea extends SubArea {
                 return ctx.failhandle();
             }
             VrijPartij party = new VrijPartij(ctx.getCreature(), invites);
-            party.addNames(lewdInMessage.getNames()).addBuildInfos(buildInfos);
+            party.addNames(lewdInMessage.getNameVocationPairs()).addBuildInfos(buildInfos);
             synchronized (RestArea.this.parties) {
                 final ArrayDeque<VrijPartij> parties = RestArea.this.parties;
                 final VrijPartij first = parties.peekFirst();

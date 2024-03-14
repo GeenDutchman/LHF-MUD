@@ -31,6 +31,7 @@ import com.lhf.messages.events.LewdEvent;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.LewdInMessage;
+import com.lhf.messages.in.LewdInMessage.NameVocationPair;
 
 public class LewdBed extends Bed {
 
@@ -188,7 +189,7 @@ public class LewdBed extends Bed {
             if (lewdInMessage.getPartners().size() > 0) {
                 try {
                     return LewdBed.this.handlePopulatedJoin(ctx.getCreature(), lewdInMessage.getPartners(),
-                            lewdInMessage.getNames(), lewdInMessage.getBuildInfos())
+                            lewdInMessage.getNameVocationPairs(), lewdInMessage.getJSONBuildInfos())
                                     ? ctx.handled()
                                     : ctx.failhandle();
                 } catch (JsonParseException e) {
@@ -253,7 +254,8 @@ public class LewdBed extends Bed {
         return true;
     }
 
-    protected boolean handlePopulatedJoin(ICreature joiner, Set<String> possPartners, Collection<String> babyNames,
+    protected boolean handlePopulatedJoin(ICreature joiner, Set<String> possPartners,
+            Collection<NameVocationPair> nameVocationPairs,
             Collection<ICreatureBuildInfo> buildInfos) {
         LewdEvent.Builder lewdOutMessage = LewdEvent.getBuilder().setCreature(joiner);
         if (!this.isInBed(joiner)) {
@@ -290,7 +292,7 @@ public class LewdBed extends Bed {
         }
 
         if (this.vrijPartijen.size() == 0 && invited.size() > 0) {
-            VrijPartij party = new VrijPartij(joiner, invited).addNames(babyNames).addBuildInfos(buildInfos);
+            VrijPartij party = new VrijPartij(joiner, invited).addNames(nameVocationPairs).addBuildInfos(buildInfos);
             this.vrijPartijen.put(party.hashCode(), party);
             party.propose();
             return this.handleJoin(joiner, party.hashCode());
@@ -303,7 +305,7 @@ public class LewdBed extends Bed {
                 }
             }
 
-            VrijPartij party = new VrijPartij(joiner, invited).addNames(babyNames).addBuildInfos(buildInfos);
+            VrijPartij party = new VrijPartij(joiner, invited).addNames(nameVocationPairs).addBuildInfos(buildInfos);
             this.vrijPartijen.put(party.hashCode(), party);
             party.propose();
             return this.handleJoin(joiner, party.hashCode());

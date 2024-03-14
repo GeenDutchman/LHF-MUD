@@ -9,6 +9,7 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.lewd.LewdAnswer;
 import com.lhf.messages.GameEventType;
+import com.lhf.messages.in.LewdInMessage.NameVocationPair;
 
 public class LewdEvent extends GameEvent {
     public enum LewdOutMessageType {
@@ -18,13 +19,13 @@ public class LewdEvent extends GameEvent {
     private final LewdOutMessageType subType;
     private final Map<ICreature, LewdAnswer> party;
     private final ICreature creature;
-    private final Set<String> babyNames;
+    private final Set<NameVocationPair> babyNames;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private LewdOutMessageType subType;
         private Map<ICreature, LewdAnswer> party = Map.of();
         private ICreature creature;
-        private Set<String> babyNames = Set.of();
+        private Set<NameVocationPair> babyNames = Set.of();
 
         protected Builder() {
             super(GameEventType.LEWD);
@@ -57,12 +58,12 @@ public class LewdEvent extends GameEvent {
             return this;
         }
 
-        public Set<String> getBabyNames() {
+        public Set<NameVocationPair> getBabyNames() {
             return Collections.unmodifiableSet(babyNames);
         }
 
-        public Builder setBabyNames(Set<String> babyNames) {
-            this.babyNames = babyNames != null ? babyNames : Set.of();
+        public Builder setBabyNames(Set<NameVocationPair> set) {
+            this.babyNames = set != null ? set : Set.of();
             return this;
         }
 
@@ -218,7 +219,7 @@ public class LewdEvent extends GameEvent {
         return creature;
     }
 
-    public Set<String> getBabyNames() {
+    public Set<NameVocationPair> getBabyNames() {
         return this.babyNames;
     }
 
