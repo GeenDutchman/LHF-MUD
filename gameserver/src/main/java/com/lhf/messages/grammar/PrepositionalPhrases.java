@@ -3,6 +3,7 @@ package com.lhf.messages.grammar;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,6 +34,23 @@ public class PrepositionalPhrases implements GrammarStateMachine, Iterable<Prepo
 
     public PhraseList getPhraseListByPreposition(Prepositions preposition) {
         return this.phraseMap.get(preposition);
+    }
+
+    public EnumMap<Prepositions, List<String>> getMappedPhraseLists() {
+        EnumMap<Prepositions, List<String>> mapped = new EnumMap<>(Prepositions.class);
+        for (final Map.Entry<Prepositions, PhraseList> entry : this.phraseMap.entrySet()) {
+            final Prepositions key = entry.getKey();
+            final PhraseList phraseList = entry.getValue();
+            if (key == null || phraseList == null || phraseList.isEmpty()) {
+                continue;
+            }
+            final List<String> stringlist = phraseList.getListResult();
+            if (stringlist == null || stringlist.isEmpty()) {
+                continue;
+            }
+            mapped.put(entry.getKey(), stringlist);
+        }
+        return mapped;
     }
 
     @Override

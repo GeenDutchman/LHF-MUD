@@ -76,6 +76,10 @@ public class PhraseList implements GrammarStateMachine, Iterable<Phrase> {
         return true;
     }
 
+    public boolean isEmpty() {
+        return this.phrases == null || this.phrases.size() == 0;
+    }
+
     public List<String> getListResult() {
         List<String> result = new ArrayList<>();
         for (final Phrase phrase : this.phrases) {

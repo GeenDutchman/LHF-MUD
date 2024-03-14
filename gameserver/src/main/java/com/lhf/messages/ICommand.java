@@ -15,8 +15,12 @@ public interface ICommand {
 
     public Boolean isValid();
 
-    public String getByPreposition(Prepositions preposition);
+    public List<String> getByPreposition(Prepositions preposition);
 
-    public Map<Prepositions, String> getIndirects();
+    public String getByPrepositionAsString(Prepositions preposition);
+
+    public Map<Prepositions, List<String>> getIndirects();
+
+    public Map<Prepositions, String> getIndirectsAsStrings();
 
 }
