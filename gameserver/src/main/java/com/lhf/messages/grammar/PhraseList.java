@@ -76,11 +76,24 @@ public class PhraseList implements GrammarStateMachine, Iterable<Phrase> {
         return true;
     }
 
+    public List<String> getListResult() {
+        List<String> result = new ArrayList<>();
+        for (final Phrase phrase : this.phrases) {
+            if (phrase != null) {
+                final String phraseResult = phrase.getResult();
+                if (phraseResult == null || phraseResult.isEmpty() || phraseResult.isBlank()) {
+                    continue;
+                }
+                result.add(phraseResult);
+            }
+        }
+        return result;
+    }
+
     @Override
     public String getResult() {
         StringJoiner sj = new StringJoiner(", ");
-        for (Phrase phrase : this.phrases) {
-            String result = phrase.getResult();
+        for (final String result : this.getListResult()) {
             if (result.length() > 0) {
                 sj.add(result);
             }
