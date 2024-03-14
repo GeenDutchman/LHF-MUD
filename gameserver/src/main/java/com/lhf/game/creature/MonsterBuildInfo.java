@@ -30,7 +30,7 @@ import com.lhf.game.item.concrete.Corpse;
 public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
     private final String className;
     private final INPCBuildInfo iNPCBuilder;
-    protected final CreatureBuilderID id;
+    protected final CreatureBuilderID id = new CreatureBuilderID();
     private static transient long serialNumber = 0;
 
     protected MonsterBuildInfo() {
@@ -38,7 +38,6 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
     }
 
     public MonsterBuildInfo(MonsterBuildInfo other) {
-        this.id = new CreatureBuilderID();
         if (other != null) {
             this.className = other.getClassName();
             this.iNPCBuilder = new INPCBuildInfo(other.iNPCBuilder);

@@ -284,7 +284,7 @@ public interface INonPlayerCharacter extends ICreature {
 
         private final String className;
         private final CreatureBuildInfo creatureBuilder;
-        protected final CreatureBuilderID id;
+        protected final CreatureBuilderID id = new CreatureBuilderID();
         private String conversationFileName = null;
         private ConversationTree conversationTree = null;
         private List<AIHandler> aiHandlers;
@@ -296,7 +296,6 @@ public interface INonPlayerCharacter extends ICreature {
         }
 
         public INPCBuildInfo(INPCBuildInfo other) {
-            this.id = new CreatureBuilderID();
             if (other != null) {
                 this.className = other.getClassName();
                 this.creatureBuilder = new CreatureBuildInfo(other.creatureBuilder);

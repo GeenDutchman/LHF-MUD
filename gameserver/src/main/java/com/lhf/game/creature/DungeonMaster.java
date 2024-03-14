@@ -34,18 +34,16 @@ public class DungeonMaster extends NonPlayerCharacter {
     public static class DungeonMasterBuildInfo implements INonPlayerCharacterBuildInfo {
         private final String className;
         private final INPCBuildInfo iNPCBuilder;
-        protected final CreatureBuilderID id;
+        protected final CreatureBuilderID id = new CreatureBuilderID();
 
         protected DungeonMasterBuildInfo() {
             this.className = this.getClass().getName();
             this.iNPCBuilder = new INPCBuildInfo().setFaction(CreatureFaction.NPC).setVocation(new DMVocation());
-            this.id = new CreatureBuilderID();
         }
 
         public DungeonMasterBuildInfo(DungeonMasterBuildInfo other) {
             this.className = other.getClassName();
             this.iNPCBuilder = new INPCBuildInfo(other.iNPCBuilder);
-            this.id = new CreatureBuilderID();
         }
 
         public static DungeonMasterBuildInfo getInstance() {

@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
@@ -99,11 +100,24 @@ public interface ICreatureBuildInfo extends Serializable, Comparable<ICreatureBu
 
             @Override
             public void write(JsonWriter out, CreatureBuilderID value) throws IOException {
-                out.value(value.getId().toString());
+                if (value == null) {
+                    out.nullValue();
+                    return;
+                }
+                final UUID inner = value.getId();
+                if (inner == null) {
+                    out.nullValue();
+                    return;
+                }
+                out.value(inner.toString());
             }
 
             @Override
             public CreatureBuilderID read(JsonReader in) throws IOException {
+                if (in.peek() == JsonToken.NULL) {
+                    in.nextNull();
+                    return new CreatureBuilderID();
+                }
                 final String asStr = in.nextString();
                 return new CreatureBuilderID(UUID.fromString(asStr));
             }

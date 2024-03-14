@@ -32,18 +32,16 @@ public class Player extends Creature {
         private final String className;
         private transient User user;
         private final CreatureBuildInfo creatureBuilder;
-        protected final CreatureBuilderID id;
+        protected final CreatureBuilderID id = new CreatureBuilderID();
 
         private PlayerBuildInfo(User user) {
             this.className = this.getClass().getName();
-            this.id = new CreatureBuilderID();
             this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.PLAYER)
                     .setName(user != null ? user.getUsername() : this.id.toString());
             this.user = user;
         }
 
         public PlayerBuildInfo(PlayerBuildInfo other) {
-            this.id = new CreatureBuilderID();
             if (other == null) {
                 this.className = this.getClass().getName();
                 this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.PLAYER)
@@ -271,6 +269,14 @@ public class Player extends Creature {
         @Override
         public void acceptBuildInfoVisitor(ICreatureBuildInfoVisitor visitor) {
             visitor.visit(this);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("PlayerBuildInfo [user=").append(user).append(", creatureBuilder=").append(creatureBuilder)
+                    .append(", id=").append(id).append("]");
+            return builder.toString();
         }
 
     }

@@ -39,7 +39,7 @@ import com.lhf.game.item.concrete.Corpse;
 public final class CreatureBuildInfo implements ICreatureBuildInfo {
 
     private final String className;
-    protected final CreatureBuilderID id;
+    protected final CreatureBuilderID id = new CreatureBuilderID();;
     private String creatureRace;
     private AttributeBlock attributeBlock;
     private EnumMap<Stats, Integer> stats;
@@ -59,7 +59,6 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
     }
 
     public CreatureBuildInfo(CreatureBuildInfo other) {
-        this.id = new CreatureBuilderID();
         if (other != null) {
             this.className = other.getClassName();
             this.setCreatureRace(other.creatureRace);
@@ -569,8 +568,9 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(this.id.toString());
+        StringBuilder sb = new StringBuilder();
         sb.append(this.getClass().getSimpleName()).append(" with the following characteristics: \r\n");
+        sb.append("BuilderID:").append(this.id.toString()).append("\r\n");
         sb.append("With race: ").append(this.creatureRace).append("\r\n");
         if (this.name == null) {
             sb.append("Name will be generated.\r\n");
