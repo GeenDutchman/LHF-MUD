@@ -19,11 +19,7 @@ public class EquipMessage extends CommandAdapter {
     }
 
     public EquipmentSlots getEquipSlot() {
-        String strSlot = this.getByPreposition(Prepositions.TO);
-        if (strSlot == null) {
-            return null;
-        }
-        return EquipmentSlots.getEquipmentSlot(strSlot);
+        return EquipmentSlots.getEquipmentSlot(this.getFirstByPreposition(Prepositions.TO));
     }
 
     @Override

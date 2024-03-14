@@ -25,7 +25,7 @@ public class TakeMessage extends CommandAdapter {
     }
 
     public Optional<String> fromContainer() {
-        return Optional.ofNullable(this.getIndirects().getOrDefault(Prepositions.FROM, null));
+        return Optional.ofNullable(this.getFirstByPreposition(Prepositions.FROM));
     }
 
     @Override

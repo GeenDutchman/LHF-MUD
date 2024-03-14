@@ -1,6 +1,7 @@
 package com.lhf.messages.in;
 
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -338,22 +339,22 @@ public enum AMessageType implements Taggable {
             if (indirects == null || indirects.size() == 0) {
                 indirectsvalid = true;
             } else if (indirects.containsKey(Prepositions.USE) || indirects.containsKey(Prepositions.AS)) {
-                int count = 0;
                 final List<String> used = indirects.getOrDefault(Prepositions.USE, null);
-                if (used != null) {
-                    indirectsvalid = indirectsvalid && !used.isEmpty();
-                    ++count;
-                }
                 final List<String> ased = indirects.getOrDefault(Prepositions.AS, null);
-                if (ased != null) {
+                if (used != null && ased != null && indirects.size() == 2) {
+                    indirectsvalid = indirectsvalid && !used.isEmpty() && !ased.isEmpty() && used.size() == ased.size();
+                } else if (used != null && indirects.size() == 1) {
+                    indirectsvalid = indirectsvalid && !used.isEmpty();
+                } else if (ased != null && indirects.size() == 1) {
                     indirectsvalid = indirectsvalid && !ased.isEmpty();
-                    ++count;
-                    if (used != null) {
-                        indirectsvalid = indirectsvalid && ased.size() == used.size();
-                    }
+                } else {
+                    indirectsvalid = false;
                 }
-                if (count != indirects.size()) {
-                    indirectsvalid = false; // contains other prepositions: not valid
+                if (indirectsvalid && ased != null) {
+                    for (Iterator<String> asIterator = ased.iterator(); indirectsvalid && asIterator.hasNext();) {
+                        final String vocationName = asIterator.next();
+                        indirectsvalid = indirectsvalid && VocationName.isVocationName(vocationName);
+                    }
                 }
             } else if (indirects.size() == 1 && indirects.containsKey(Prepositions.JSON)) {
                 final List<String> jsonListing = indirects.getOrDefault(Prepositions.JSON, null);

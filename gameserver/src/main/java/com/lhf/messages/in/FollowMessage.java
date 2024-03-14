@@ -14,12 +14,13 @@ public class FollowMessage extends CommandAdapter {
     }
 
     public String getPersonToFollow() {
-        return USE_NULL.equalsIgnoreCase(this.getIndirects().get(Prepositions.USE)) ? null : this.getDirects().get(0);
+        return USE_NULL.equalsIgnoreCase(this.getFirstByPreposition(Prepositions.USE)) ? null
+                : this.getDirects().get(0);
     }
 
     public Boolean isOverride() {
         return this.getIndirects().size() == 1
-                && AS_OVERRIDE.equalsIgnoreCase(this.getIndirects().get(Prepositions.AS));
+                && AS_OVERRIDE.equalsIgnoreCase(this.getFirstByPreposition(Prepositions.AS));
     }
 
     @Override

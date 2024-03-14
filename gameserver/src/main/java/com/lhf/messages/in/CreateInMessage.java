@@ -25,15 +25,15 @@ public class CreateInMessage extends CommandAdapter {
     }
 
     public String getPassword() {
-        return this.getIndirects().getOrDefault(Prepositions.WITH, null);
+        return this.getFirstByPreposition(Prepositions.WITH);
     }
 
     private String vocationRequest() {
-        return this.getIndirects().getOrDefault(Prepositions.AS, null);
+        return this.getFirstByPreposition(Prepositions.AS);
     }
 
     private String getBuilderJSON() {
-        return this.getIndirects().getOrDefault(Prepositions.JSON, null);
+        return this.getFirstByPreposition(Prepositions.JSON);
     }
 
     public synchronized Player.PlayerBuildInfo getBuildInfo() throws JsonParseException {

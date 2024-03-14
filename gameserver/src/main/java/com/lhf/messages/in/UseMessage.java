@@ -18,7 +18,7 @@ public class UseMessage extends CommandAdapter {
     }
 
     public String getTarget() {
-        return this.getIndirects().getOrDefault(Prepositions.ON, null);
+        return this.getFirstByPreposition(Prepositions.ON);
     }
 
     @Override

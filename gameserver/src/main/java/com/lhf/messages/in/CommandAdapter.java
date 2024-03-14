@@ -43,6 +43,10 @@ public abstract class CommandAdapter {
         return command.getByPreposition(prepositions);
     }
 
+    protected String getFirstByPreposition(Prepositions preposition) {
+        return command.getFirstByPreposition(preposition);
+    }
+
     protected String getByPrepositionAsString(Prepositions preposition) {
         return command.getByPrepositionAsString(preposition);
     }

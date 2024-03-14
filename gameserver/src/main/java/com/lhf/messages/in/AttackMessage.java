@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
+import com.lhf.messages.grammar.Prepositions;
 
 public class AttackMessage extends CommandAdapter {
 
@@ -13,7 +14,7 @@ public class AttackMessage extends CommandAdapter {
     }
 
     public String getWeapon() {
-        return this.getIndirects().getOrDefault("with", null);
+        return this.getFirstByPreposition(Prepositions.WITH);
     }
 
     public int getNumTargets() {

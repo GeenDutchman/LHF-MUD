@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.lhf.game.creature.ICreatureBuildInfo;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.serialization.GsonBuilderFactory;
 import com.lhf.messages.Command;
 import com.lhf.messages.grammar.Prepositions;
@@ -31,32 +32,17 @@ public class LewdInMessage extends CommandAdapter {
         return partners;
     }
 
-    private final String[] split() {
-        String[] splitten = this.getIndirects().getOrDefault(Prepositions.USE, "").split(Pattern.quote(", "));
-        return splitten;
+    public List<String> getNames() {
+        return new ArrayList<>(this.getByPreposition(Prepositions.USE));
     }
 
-    private final Set<String> makeSet(String[] splitten) {
-        Set<String> babies = new TreeSet<>();
-        if (splitten == null) {
-            return babies;
-        }
-        for (String baby : splitten) {
-            babies.add(baby);
-        }
-        return babies;
-    }
-
-    public Set<String> getNames() {
-        if (this.getIndirects().size() < 1) {
-            return new TreeSet<>();
-        }
-        String[] splitten = this.split();
-        return this.makeSet(splitten);
+    public List<VocationName> getVocationNames() {
+        return this.getByPreposition(Prepositions.AS).stream()
+                .map(stringName -> VocationName.getVocationName(stringName)).filter(name -> name != null).toList();
     }
 
     private String getBuilderJSON() {
-        return this.getIndirects().getOrDefault(Prepositions.JSON, null);
+        return this.getFirstByPreposition(Prepositions.JSON);
     }
 
     public synchronized List<ICreatureBuildInfo> getBuildInfos() {
