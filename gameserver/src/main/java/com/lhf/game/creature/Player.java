@@ -309,6 +309,9 @@ public class Player extends Creature {
     }
 
     public static PlayerBuildInfo getPlayerBuilder(User user) {
+        if (user == null) {
+            return new PlayerBuildInfo();
+        }
         return new PlayerBuildInfo(user);
     }
 

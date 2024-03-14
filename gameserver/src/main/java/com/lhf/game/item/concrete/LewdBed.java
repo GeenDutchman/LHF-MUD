@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import com.google.gson.JsonParseException;
+import com.lhf.game.creature.CreatureBuildInfo;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.enums.EquipmentSlots;
@@ -31,7 +32,6 @@ import com.lhf.messages.events.LewdEvent;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.LewdInMessage;
-import com.lhf.messages.in.LewdInMessage.NameVocationPair;
 
 public class LewdBed extends Bed {
 
@@ -189,7 +189,7 @@ public class LewdBed extends Bed {
             if (lewdInMessage.getPartners().size() > 0) {
                 try {
                     return LewdBed.this.handlePopulatedJoin(ctx.getCreature(), lewdInMessage.getPartners(),
-                            lewdInMessage.getNameVocationPairs(), lewdInMessage.getJSONBuildInfos())
+                            lewdInMessage.getBasicBuildInfos(), lewdInMessage.getJSONBuildInfos())
                                     ? ctx.handled()
                                     : ctx.failhandle();
                 } catch (JsonParseException e) {
@@ -255,7 +255,7 @@ public class LewdBed extends Bed {
     }
 
     protected boolean handlePopulatedJoin(ICreature joiner, Set<String> possPartners,
-            Collection<NameVocationPair> nameVocationPairs,
+            Collection<CreatureBuildInfo> templateBuildInfos,
             Collection<ICreatureBuildInfo> buildInfos) {
         LewdEvent.Builder lewdOutMessage = LewdEvent.getBuilder().setCreature(joiner);
         if (!this.isInBed(joiner)) {
@@ -292,7 +292,8 @@ public class LewdBed extends Bed {
         }
 
         if (this.vrijPartijen.size() == 0 && invited.size() > 0) {
-            VrijPartij party = new VrijPartij(joiner, invited).addNames(nameVocationPairs).addBuildInfos(buildInfos);
+            VrijPartij party = new VrijPartij(joiner, invited).addTemplateBuildInfos(templateBuildInfos)
+                    .addFullBuildInfos(buildInfos);
             this.vrijPartijen.put(party.hashCode(), party);
             party.propose();
             return this.handleJoin(joiner, party.hashCode());
@@ -305,7 +306,8 @@ public class LewdBed extends Bed {
                 }
             }
 
-            VrijPartij party = new VrijPartij(joiner, invited).addNames(nameVocationPairs).addBuildInfos(buildInfos);
+            VrijPartij party = new VrijPartij(joiner, invited).addTemplateBuildInfos(templateBuildInfos)
+                    .addFullBuildInfos(buildInfos);
             this.vrijPartijen.put(party.hashCode(), party);
             party.propose();
             return this.handleJoin(joiner, party.hashCode());

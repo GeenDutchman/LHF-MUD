@@ -10,6 +10,7 @@ import java.util.TreeSet;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.lhf.game.creature.CreatureBuildInfo;
 import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.serialization.GsonBuilderFactory;
@@ -18,43 +19,6 @@ import com.lhf.messages.grammar.Prepositions;
 
 public class LewdInMessage extends CommandAdapter {
     private List<ICreatureBuildInfo> cachedBuilders = new ArrayList<>();
-
-    public static class NameVocationPair {
-        public final String name;
-        public final VocationName vocation;
-
-        public NameVocationPair(String name) {
-            this.name = name;
-            this.vocation = null;
-        }
-
-        public NameVocationPair(String name, String vocation) {
-            this.name = name;
-            this.vocation = VocationName.getVocationName(vocation);
-        }
-
-        public NameVocationPair(String name, VocationName vocation) {
-            this.name = name;
-            this.vocation = vocation;
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder builder = new StringBuilder();
-            if (this.name != null) {
-                builder.append("Name: '").append(this.name).append("'' ");
-            } else {
-                builder.append("No name given ");
-            }
-            if (this.vocation != null) {
-                builder.append("As: ").append(this.vocation);
-            } else {
-                builder.append("no vocation given");
-            }
-            return builder.toString();
-        }
-
-    }
 
     public LewdInMessage(Command command) {
         super(command);
@@ -82,8 +46,8 @@ public class LewdInMessage extends CommandAdapter {
                 .map(stringName -> VocationName.getVocationName(stringName)).filter(name -> name != null).toList();
     }
 
-    public List<NameVocationPair> getNameVocationPairs() {
-        List<NameVocationPair> pairs = new ArrayList<>();
+    public List<CreatureBuildInfo> getBasicBuildInfos() {
+        List<CreatureBuildInfo> pairs = new ArrayList<>();
         List<String> names = this.getNames();
         if (names == null) {
             names = List.of();
@@ -97,8 +61,8 @@ public class LewdInMessage extends CommandAdapter {
         boolean hasNextName = nameIterator.hasNext();
         boolean hasNextVocation = nameIterator.hasNext();
         while (hasNextName || hasNextVocation) {
-            pairs.add(new NameVocationPair(hasNextName ? nameIterator.next() : null,
-                    hasNextVocation ? vocationIterator.next() : null));
+            pairs.add(new CreatureBuildInfo(null).setName(hasNextName ? nameIterator.next() : null)
+                    .setVocation(hasNextVocation ? vocationIterator.next() : null));
             hasNextName = nameIterator.hasNext();
             hasNextVocation = vocationIterator.hasNext();
         }

@@ -532,7 +532,8 @@ public class RestArea extends SubArea {
                 LewdEvent.Builder builder = LewdEvent.getBuilder().setNotBroadcast()
                         .setSubType(LewdOutMessageType.STATUS);
                 if (first != null) {
-                    builder.setParty(first.getParty()).setBabyNames(first.getNames()).setCreature(first.getInitiator());
+                    builder.setParty(first.getParty()).setTemplates(first.getTemplateBuildInfos())
+                            .setCreature(first.getInitiator());
                 }
                 ctx.receive(builder);
             }
@@ -659,7 +660,7 @@ public class RestArea extends SubArea {
                 return ctx.failhandle();
             }
             VrijPartij party = new VrijPartij(ctx.getCreature(), invites);
-            party.addNames(lewdInMessage.getNameVocationPairs()).addBuildInfos(buildInfos);
+            party.addTemplateBuildInfos(lewdInMessage.getBasicBuildInfos()).addFullBuildInfos(buildInfos);
             synchronized (RestArea.this.parties) {
                 final ArrayDeque<VrijPartij> parties = RestArea.this.parties;
                 final VrijPartij first = parties.peekFirst();

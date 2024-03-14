@@ -3,6 +3,7 @@ package com.lhf.game.lewd;
 import java.util.Collection;
 import java.util.function.Consumer;
 
+import com.lhf.game.creature.CreatureBuildInfo;
 import com.lhf.game.creature.CreatureBuildInfoPartitionSetVisitor;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.CreaturePartitionSetVisitor;
@@ -16,7 +17,6 @@ import com.lhf.game.map.Area;
 import com.lhf.game.map.AreaVisitor;
 import com.lhf.game.map.DMRoom;
 import com.lhf.game.map.Room;
-import com.lhf.messages.in.LewdInMessage.NameVocationPair;
 import com.lhf.server.client.user.User;
 
 public class LewdBabyMaker extends LewdProduct {
@@ -40,10 +40,10 @@ public class LewdBabyMaker extends LewdProduct {
         return new AreaVisitor() {
 
             private void addCorpses(Area area) {
-                for (NameVocationPair pairing : party.getNames()) {
+                for (CreatureBuildInfo pairing : party.getTemplateBuildInfos()) {
                     String name = null;
                     if (pairing != null) {
-                        name = pairing.name;
+                        name = pairing.getName();
                     }
                     if (name == null || name.length() <= 0) {
                         name = NameGenerator.Generate(null);
@@ -74,7 +74,7 @@ public class LewdBabyMaker extends LewdProduct {
                 }
                 this.addCorpses(room);
                 CreatureBuildInfoPartitionSetVisitor partitionSetVisitor = new CreatureBuildInfoPartitionSetVisitor();
-                partitionSetVisitor.forEach(party.getBuildInfos());
+                partitionSetVisitor.forEach(party.getFullBuildInfos());
                 this.buildCreatures(room, partitionSetVisitor.getINonPlayerCharacterBuildInfos(), null);
             }
 
@@ -86,7 +86,7 @@ public class LewdBabyMaker extends LewdProduct {
 
                 CreatureFactory factory = new CreatureFactory();
                 CreatureBuildInfoPartitionSetVisitor builderPartitions = new CreatureBuildInfoPartitionSetVisitor();
-                builderPartitions.forEach(party.getBuildInfos());
+                builderPartitions.forEach(party.getFullBuildInfos());
                 this.buildCreatures(room, builderPartitions.getINonPlayerCharacterBuildInfos(), factory);
 
                 CreaturePartitionSetVisitor creaturePartitions = new CreaturePartitionSetVisitor();
@@ -96,16 +96,21 @@ public class LewdBabyMaker extends LewdProduct {
                     return;
                 }
 
-                for (NameVocationPair pairing : party.getNames()) {
-                    final User user = room.removeUser(pairing.name);
+                for (CreatureBuildInfo pairing : party.getTemplateBuildInfos()) {
+                    String name = null;
+                    if (pairing != null) {
+                        name = pairing.getName();
+                    }
+                    final User user = room.removeUser(name);
                     if (user == null) {
                         Corpse body = new Corpse(
-                                pairing.name == null || pairing.name.length() <= 0 ? NameGenerator.Generate(null)
-                                        : pairing.name);
+                                name == null || name.length() <= 0 ? NameGenerator.Generate(null)
+                                        : name);
                         room.addItem(body);
                         continue;
                     }
-                    final PlayerBuildInfo buildInfo = LewdBabyMaker.this.getPlayerBuildInfoCopy(user);
+                    final PlayerBuildInfo buildInfo = LewdBabyMaker.this.getPlayerBuildInfoCopy(user)
+                            .copyFromICreatureBuildInfo(pairing);
                     final Player player = factory.buildPlayer(buildInfo);
                     room.addNewPlayer(player);
                 }
