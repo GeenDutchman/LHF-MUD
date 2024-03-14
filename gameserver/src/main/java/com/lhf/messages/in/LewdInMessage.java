@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
-import java.util.regex.Pattern;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -70,7 +69,7 @@ public class LewdInMessage extends CommandAdapter {
         } else {
             sj.add("No partner specified");
         }
-        Set<String> names = this.getNames();
+        List<String> names = this.getNames();
         if (names != null && names.size() > 0) {
             sj.add("Baby Names:").add(names.toString());
         }

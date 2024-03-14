@@ -253,7 +253,7 @@ public class LewdBed extends Bed {
         return true;
     }
 
-    protected boolean handlePopulatedJoin(ICreature joiner, Set<String> possPartners, Set<String> babyNames,
+    protected boolean handlePopulatedJoin(ICreature joiner, Set<String> possPartners, Collection<String> babyNames,
             Collection<ICreatureBuildInfo> buildInfos) {
         LewdEvent.Builder lewdOutMessage = LewdEvent.getBuilder().setCreature(joiner);
         if (!this.isInBed(joiner)) {
