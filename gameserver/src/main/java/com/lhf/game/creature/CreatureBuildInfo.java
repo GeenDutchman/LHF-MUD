@@ -84,7 +84,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
             this.setStats(other.getStats());
             this.setProficiencies(other.getProficiencies());
             this.setInventory(other.getInventory());
-            this.setEquipmentSlots(other.getEquipmentSlots());
+            this.setEquipmentSlots(other.getEquipmentSlots(), false);
             this.setCreatureEffects(other.getCreatureEffects());
             this.setDamageFlavorReactions(other.getDamageFlavorReactions());
             this.name = other.getRawName() != null ? new String(other.getRawName()) : null;
@@ -226,21 +226,25 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         }
     }
 
-    public CreatureBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
+    public CreatureBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable, boolean withoutEffects) {
         if (slot == null || equipable == null) {
             return this;
         }
         final Equipable retrieved = this.equipmentSlots.getOrDefault(slot, null);
         if (retrieved != null) {
-            this.onEquipmentChange(retrieved, false);
+            if (!withoutEffects) {
+                this.onEquipmentChange(retrieved, false);
+            }
             this.inventory.addItem(retrieved);
         }
         this.equipmentSlots.put(slot, equipable);
-        this.onEquipmentChange(equipable, true);
+        if (!withoutEffects) {
+            this.onEquipmentChange(equipable, true);
+        }
         return this;
     }
 
-    public CreatureBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
+    public CreatureBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots, boolean withoutEffects) {
         this.equipmentSlots = new EnumMap<>(EquipmentSlots.class);
         if (slots != null) {
             for (final Entry<EquipmentSlots, Equipable> entry : slots.entrySet()) {
@@ -250,7 +254,9 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
                 }
                 Equipable copied = equipable.makeCopy();
                 this.equipmentSlots.put(entry.getKey(), copied);
-                this.onEquipmentChange(copied, true);
+                if (!withoutEffects) {
+                    this.onEquipmentChange(copied, true);
+                }
             }
         }
         return this;

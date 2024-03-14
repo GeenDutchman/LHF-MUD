@@ -43,7 +43,7 @@ public class CreatureBuildInfoTest {
         EnumMap<EquipmentSlots, Equipable> equipped = new EnumMap<>(EquipmentSlots.class);
         RustyDagger dagger = new RustyDagger();
         equipped.put(EquipmentSlots.WEAPON, dagger);
-        s.setEquipmentSlots(equipped);
+        s.setEquipmentSlots(equipped, false);
 
         Gson gson = GsonBuilderFactory.start().items().creatureInfoBuilders().prettyPrinting().build();
         String json = gson.toJson(s);

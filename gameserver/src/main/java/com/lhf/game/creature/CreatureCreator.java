@@ -45,7 +45,7 @@ public class CreatureCreator {
         builder.setInventory(adapter.getInventory());
         adapter.equipFromInventory(builder.getInventory(), builder.getEquipmentSlots());
         for (final Entry<EquipmentSlots, Equipable> entry : builder.getEquipmentSlots().entrySet()) {
-            builder.addEquipment(entry.getKey(), entry.getValue());
+            builder.addEquipment(entry.getKey(), entry.getValue(), false);
         }
         builder.setDamageFlavorReactions(adapter.getDamageFlavorReactions());
         builder.setVocation(adapter.getVocation());
@@ -65,7 +65,7 @@ public class CreatureCreator {
         builder.setInventory(adapter.getInventory());
         adapter.equipFromInventory(builder.getInventory(), builder.getEquipmentSlots());
         for (final Entry<EquipmentSlots, Equipable> entry : builder.getEquipmentSlots().entrySet()) {
-            builder.addEquipment(entry.getKey(), entry.getValue());
+            builder.addEquipment(entry.getKey(), entry.getValue(), false);
         }
         builder.setDamageFlavorReactions(adapter.getDamageFlavorReactions());
         builder.setVocation(adapter.getVocation());
@@ -85,7 +85,7 @@ public class CreatureCreator {
         builder.setInventory(adapter.getInventory());
         adapter.equipFromInventory(builder.getInventory(), builder.getEquipmentSlots());
         for (final Entry<EquipmentSlots, Equipable> entry : builder.getEquipmentSlots().entrySet()) {
-            builder.addEquipment(entry.getKey(), entry.getValue());
+            builder.addEquipment(entry.getKey(), entry.getValue(), false);
         }
         builder.setDamageFlavorReactions(adapter.getDamageFlavorReactions());
         builder.setVocation(adapter.getVocation());

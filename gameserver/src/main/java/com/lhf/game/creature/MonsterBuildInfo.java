@@ -232,13 +232,13 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
         return iNPCBuilder.getInventory();
     }
 
-    public MonsterBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
-        iNPCBuilder.addEquipment(slot, equipable);
+    public MonsterBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable, boolean withoutEffects) {
+        iNPCBuilder.addEquipment(slot, equipable, withoutEffects);
         return this;
     }
 
-    public MonsterBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
-        iNPCBuilder.setEquipmentSlots(slots);
+    public MonsterBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots, boolean withoutEffects) {
+        iNPCBuilder.setEquipmentSlots(slots, withoutEffects);
         return this;
     }
 

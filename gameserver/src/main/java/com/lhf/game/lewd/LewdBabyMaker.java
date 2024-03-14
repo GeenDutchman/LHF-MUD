@@ -1,10 +1,16 @@
 package com.lhf.game.lewd;
 
 import java.util.Collection;
+import java.util.EnumMap;
+import java.util.Map.Entry;
+import java.util.NavigableSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
+import com.lhf.game.ItemContainer;
 import com.lhf.game.creature.CreatureBuildInfo;
 import com.lhf.game.creature.CreatureBuildInfoPartitionSetVisitor;
+import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.CreaturePartitionSetVisitor;
 import com.lhf.game.creature.INonPlayerCharacter;
@@ -12,6 +18,10 @@ import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.NameGenerator;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.Player.PlayerBuildInfo;
+import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.EquipmentSlots;
+import com.lhf.game.item.Equipable;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.AreaVisitor;
@@ -78,6 +88,41 @@ public class LewdBabyMaker extends LewdProduct {
                 this.buildCreatures(room, partitionSetVisitor.getINonPlayerCharacterBuildInfos(), null);
             }
 
+            private void directedOverwrite(PlayerBuildInfo player, CreatureBuildInfo template) {
+                if (player == null || template == null) {
+                    return;
+                }
+                final VocationName name = template.getVocation();
+                if (name != null) {
+                    player.setVocation(name);
+                }
+                final Inventory inventory = template.getInventory();
+                if (inventory != null && !inventory.isEmpty()) {
+                    ItemContainer.transfer(inventory, player.getInventory(), null, false);
+                }
+                final EnumMap<EquipmentSlots, Equipable> slots = template.getEquipmentSlots();
+                if (slots != null && !slots.isEmpty()) {
+                    for (final Entry<EquipmentSlots, Equipable> entry : slots.entrySet()) {
+                        player.addEquipment(entry.getKey(), entry.getValue(), false);
+                    }
+                }
+                final NavigableSet<CreatureEffect> effects = template.getCreatureEffects();
+                final Set<CreatureEffect> alreadyEffects = player.getCreatureEffects();
+                if (effects != null && !effects.isEmpty()) {
+                    for (final CreatureEffect effect : effects) {
+                        if (effect == null) {
+                            continue;
+                        }
+                        CreatureEffect composed = new CreatureEffect(effect.getSource(), null, effect.getGeneratedBy());
+                        if (alreadyEffects.contains(composed)) {
+                            continue;
+                        }
+                        player.applyEffect(composed);
+                    }
+                }
+
+            }
+
             @Override
             public void visit(DMRoom room) {
                 if (room == null) {
@@ -109,8 +154,8 @@ public class LewdBabyMaker extends LewdProduct {
                         room.addItem(body);
                         continue;
                     }
-                    final PlayerBuildInfo buildInfo = LewdBabyMaker.this.getPlayerBuildInfoCopy(user)
-                            .copyFromICreatureBuildInfo(pairing);
+                    final PlayerBuildInfo buildInfo = LewdBabyMaker.this.getPlayerBuildInfoCopy(user);
+                    this.directedOverwrite(buildInfo, pairing);
                     final Player player = factory.buildPlayer(buildInfo);
                     room.addNewPlayer(player);
                 }

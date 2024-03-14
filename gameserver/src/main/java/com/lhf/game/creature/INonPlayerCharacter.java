@@ -528,13 +528,13 @@ public interface INonPlayerCharacter extends ICreature {
             return creatureBuilder.getInventory();
         }
 
-        public INPCBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
-            creatureBuilder.addEquipment(slot, equipable);
+        public INPCBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable, boolean withoutEffects) {
+            creatureBuilder.addEquipment(slot, equipable, withoutEffects);
             return this;
         }
 
-        public INPCBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
-            creatureBuilder.setEquipmentSlots(slots);
+        public INPCBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots, boolean withoutEffects) {
+            creatureBuilder.setEquipmentSlots(slots, withoutEffects);
             return this;
         }
 

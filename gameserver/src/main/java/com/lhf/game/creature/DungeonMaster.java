@@ -230,13 +230,13 @@ public class DungeonMaster extends NonPlayerCharacter {
             return iNPCBuilder.getInventory();
         }
 
-        public DungeonMasterBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
-            iNPCBuilder.addEquipment(slot, equipable);
+        public DungeonMasterBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable, boolean withoutEffects) {
+            iNPCBuilder.addEquipment(slot, equipable, withoutEffects);
             return this;
         }
 
-        public DungeonMasterBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
-            iNPCBuilder.setEquipmentSlots(slots);
+        public DungeonMasterBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots, boolean withoutEffects) {
+            iNPCBuilder.setEquipmentSlots(slots, withoutEffects);
             return this;
         }
 
