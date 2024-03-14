@@ -19,6 +19,7 @@ import com.lhf.game.creature.NameGenerator;
 import com.lhf.game.creature.Player;
 import com.lhf.game.creature.Player.PlayerBuildInfo;
 import com.lhf.game.creature.inventory.Inventory;
+import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.Equipable;
@@ -94,7 +95,7 @@ public class LewdBabyMaker extends LewdProduct {
                 }
                 final VocationName name = template.getVocation();
                 if (name != null) {
-                    player.setVocation(name);
+                    player.setVocation(VocationFactory.getVocation(name));
                 }
                 final Inventory inventory = template.getInventory();
                 if (inventory != null && !inventory.isEmpty()) {
