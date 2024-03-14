@@ -1,6 +1,7 @@
 package com.lhf.messages.in;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 
 import com.lhf.Taggable;
@@ -135,8 +136,12 @@ public enum AMessageType implements Taggable {
                 validated = false;
             } else {
                 if (command.getIndirects().containsKey(Prepositions.TO)) {
-                    validated = command.getDirects().size() == 1
-                            && EquipmentSlots.isEquipmentSlot(command.getByPreposition(Prepositions.TO));
+                    final List<String> toList = command.getByPreposition(Prepositions.TO);
+                    if (toList == null || toList.size() != 1) {
+                        validated = false;
+                    } else {
+                        validated = EquipmentSlots.isEquipmentSlot(command.getByPrepositionAsString(Prepositions.TO));
+                    }
                 }
             }
             return command.getDirects().size() >= 1 && validated;
@@ -276,7 +281,7 @@ public enum AMessageType implements Taggable {
             if (name.isBlank()) {
                 return false;
             }
-            final Map<Prepositions, String> indirects = command.getIndirects();
+            final Map<Prepositions, String> indirects = command.getIndirectsAsStrings();
             if (indirects == null || indirects.size() < 1 || indirects.size() > 2
                     || !indirects.containsKey(Prepositions.WITH)) {
                 return false;
@@ -329,29 +334,35 @@ public enum AMessageType implements Taggable {
                 return false;
             }
             boolean indirectsvalid = true;
-            final Map<Prepositions, String> indirects = command.getIndirects();
+            final Map<Prepositions, List<String>> indirects = command.getIndirects();
             if (indirects == null || indirects.size() == 0) {
                 indirectsvalid = true;
             } else if (indirects.containsKey(Prepositions.USE) || indirects.containsKey(Prepositions.AS)) {
                 int count = 0;
-                final String used = indirects.getOrDefault(Prepositions.USE, null);
+                final List<String> used = indirects.getOrDefault(Prepositions.USE, null);
                 if (used != null) {
-                    indirectsvalid = indirectsvalid && !used.isBlank();
+                    indirectsvalid = indirectsvalid && !used.isEmpty();
                     ++count;
                 }
-                final String ased = indirects.getOrDefault(Prepositions.AS, null);
+                final List<String> ased = indirects.getOrDefault(Prepositions.AS, null);
                 if (ased != null) {
-                    indirectsvalid = indirectsvalid && !ased.isBlank();
+                    indirectsvalid = indirectsvalid && !ased.isEmpty();
                     ++count;
+                    if (used != null) {
+                        indirectsvalid = indirectsvalid && ased.size() == used.size();
+                    }
                 }
                 if (count != indirects.size()) {
                     indirectsvalid = false; // contains other prepositions: not valid
                 }
             } else if (indirects.size() == 1 && indirects.containsKey(Prepositions.JSON)) {
-                final String indirect = indirects.getOrDefault(Prepositions.JSON, null);
-                indirectsvalid = indirect != null && !indirect.isBlank();
-                if (indirectsvalid) {
-                    final String json = indirects.getOrDefault(Prepositions.JSON, null);
+                final List<String> jsonListing = indirects.getOrDefault(Prepositions.JSON, null);
+                indirectsvalid = indirectsvalid && jsonListing != null && jsonListing.size() == 1;
+                if (indirectsvalid && jsonListing != null) {
+                    final String json = jsonListing.get(0);
+                    if (json == null) {
+                        return false;
+                    }
                     if (!GsonBuilderFactory.checkValidJSON(json)) {
                         return false;
                     }
@@ -418,12 +429,16 @@ public enum AMessageType implements Taggable {
                 return true;
             }
             if (command.getIndirects().size() == 1
-                    && ("override".equalsIgnoreCase(command.getIndirects().get(Prepositions.AS))
-                            || "null".equalsIgnoreCase(command.getIndirects().get(Prepositions.USE)))) {
+                    && ("override".equalsIgnoreCase(
+                            command.getIndirects().getOrDefault(Prepositions.AS, List.of("invalid")).get(0))
+                            || "null".equalsIgnoreCase(command.getIndirects()
+                                    .getOrDefault(Prepositions.USE, List.of("invalid")).get(0)))) {
                 return true;
             } else if (command.getIndirects().size() == 2
-                    && ("override".equalsIgnoreCase(command.getIndirects().get(Prepositions.AS))
-                            && "null".equalsIgnoreCase(command.getIndirects().get(Prepositions.USE)))) {
+                    && ("override".equalsIgnoreCase(
+                            command.getIndirects().getOrDefault(Prepositions.AS, List.of("invalid")).get(0))
+                            && "null".equalsIgnoreCase(command.getIndirects()
+                                    .getOrDefault(Prepositions.USE, List.of("invalid")).get(0)))) {
                 return true;
             }
             return false;
