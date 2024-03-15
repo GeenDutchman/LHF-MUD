@@ -25,7 +25,7 @@ public abstract class EntityEffect implements TaggedExaminable, Comparable<Entit
         this.generatedBy = Taggable.basicTaggable(generatedBy);
         final EffectPersistence persistence = this.source.getPersistence();
         if (persistence != null) {
-            this.ticker = persistence.getFreshTicker();
+            this.ticker = persistence.getTicker();
         } else {
             this.ticker = null;
         }

@@ -21,11 +21,11 @@ public class PlotArmor extends CreatureTargetingSpellEntry {
 
     private static final Set<CreatureEffectSource> spellEffects = Set.of(
             new CreatureEffectSource.Builder(name)
-                    .setPersistence(new EffectPersistence(new EffectPersistence.Ticker(1, new GameEventTester(
+                    .setPersistence(new EffectPersistence(1, new GameEventTester(
                             GameEventType.EQUIP,
                             Set.of("You successfully equipped your",
                                     EquipmentSlots.ARMOR.getColorTaggedName()),
-                            null, TickType.CONDITIONAL))))
+                            null, TickType.CONDITIONAL)))
                     .setDescription("Effects of the blessing").setOnApplication(new Deltas()
                             .setStatChange(Stats.MAXHP, 200)
                             .setStatChange(Stats.MAXHP, 200)

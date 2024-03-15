@@ -10,7 +10,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.TypeAdapter;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
-import com.lhf.game.EffectPersistence;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.battle.BattleManager.IBattleManagerBuildInfo;
@@ -130,7 +129,6 @@ public class GsonBuilderFactory {
                     .of(GameEventTester.class, "className", true)
                     .registerSubtype(GameEventTester.class, GameEventTester.class.getName())
                     .registerSubtype(ComposedGameEventTester.class, ComposedGameEventTester.class.getName())
-                    .registerSubtype(EffectPersistence.Ticker.class, EffectPersistence.Ticker.class.getName())
                     .recognizeSubtypes();
             this.gsonBuilder.registerTypeAdapterFactory(eventTesterAdapter).enableComplexMapKeySerialization();
         }
