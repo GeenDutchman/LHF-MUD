@@ -1,7 +1,6 @@
 package com.lhf.game.serialization;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.EnumSet;
 import java.util.function.Consumer;
 
@@ -75,9 +74,9 @@ import com.lhf.game.map.RoomEffect;
 import com.lhf.game.map.RoomEffectSource;
 import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
 import com.lhf.game.map.SubArea.ISubAreaBuildInfo.SubAreaBuilderID;
+import com.lhf.game.map.SubArea.SubAreaBuilder;
 import com.lhf.messages.events.ComposedGameEventTester;
 import com.lhf.messages.events.GameEventTester;
-import com.lhf.game.map.SubArea.SubAreaBuilder;
 
 public class GsonBuilderFactory {
     private enum Loaded {
