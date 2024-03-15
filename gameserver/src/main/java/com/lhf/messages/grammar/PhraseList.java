@@ -106,6 +106,11 @@ public class PhraseList implements GrammarStateMachine, Iterable<Phrase> {
     }
 
     @Override
+    public String toString() {
+        return this.getResult();
+    }
+
+    @Override
     public Iterator<Phrase> iterator() {
         return this.phrases.iterator();
     }

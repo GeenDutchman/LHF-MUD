@@ -64,6 +64,11 @@ public class PrepositionalPhrases implements GrammarStateMachine, Iterable<Prepo
     }
 
     @Override
+    public String toString() {
+        return this.getResult();
+    }
+
+    @Override
     public Boolean isValid() {
         if (this.phraseMap.size() == 0) {
             return false;

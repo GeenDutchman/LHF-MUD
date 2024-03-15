@@ -125,4 +125,9 @@ public class GrammaredCommandPhrase implements GrammarStateMachine {
         return sj.toString();
     }
 
+    @Override
+    public String toString() {
+        return this.getResult();
+    }
+
 }
