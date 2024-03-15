@@ -351,7 +351,7 @@ public class ServerTest {
     }
 
     @Test
-    void testAttack() {
+    void testAttackMonster() {
         this.comm.create("AttackTester");
         String extract = this.comm.handleCommand("go east", GameEventType.SEE);
         Truth.assertThat(extract).ignoringCase().contains("<monster>");

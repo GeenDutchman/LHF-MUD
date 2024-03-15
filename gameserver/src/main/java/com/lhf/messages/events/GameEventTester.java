@@ -15,6 +15,7 @@ import com.lhf.game.TickType;
 import com.lhf.messages.GameEventType;
 
 public class GameEventTester implements Predicate<GameEvent>, Comparable<GameEventTester>, Serializable {
+    private final String className = this.getClass().getName();
     private final GameEventType type;
     private final SortedSet<String> contained;
     private final SortedSet<String> notContained;
@@ -43,6 +44,10 @@ public class GameEventTester implements Predicate<GameEvent>, Comparable<GameEve
 
     public GameEventTester(GameEventTester other) {
         this(other.type, other.contained, other.notContained, other.tickType);
+    }
+
+    public String getClassName() {
+        return className;
     }
 
     public GameEventType getType() {
@@ -223,16 +228,16 @@ public class GameEventTester implements Predicate<GameEvent>, Comparable<GameEve
     public String toString() {
         StringJoiner sj = new StringJoiner(" ", "Triggers when an event", "").setEmptyValue("is received");
         if (this.type != null) {
-            sj.add("has the type").add(this.type.toString() + ",");
+            sj.add(" has the type").add(this.type.toString() + ",");
         }
         if (this.tickType != null) {
-            sj.add("ticks like").add(this.tickType.toString() + ",");
+            sj.add(" ticks like").add(this.tickType.toString() + ",");
         }
         if (this.contained != null && this.contained.size() > 0) {
-            sj.add("contains any of the phrases:").add(this.contained.toString() + ",");
+            sj.add(" contains any of the phrases:").add(this.contained.toString() + ",");
         }
         if (this.notContained != null && this.notContained.size() > 0) {
-            sj.add("does not contain any of the phrases:").add(this.notContained.toString());
+            sj.add(" does not contain any of the phrases:").add(this.notContained.toString());
         }
         return sj.toString();
     }

@@ -1,6 +1,7 @@
 package com.lhf.game.serialization;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.EnumSet;
 import java.util.function.Consumer;
 
@@ -10,6 +11,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.TypeAdapter;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import com.lhf.game.EffectPersistence;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.battle.BattleManager.IBattleManagerBuildInfo;
@@ -73,12 +75,14 @@ import com.lhf.game.map.RoomEffect;
 import com.lhf.game.map.RoomEffectSource;
 import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
 import com.lhf.game.map.SubArea.ISubAreaBuildInfo.SubAreaBuilderID;
+import com.lhf.messages.events.ComposedGameEventTester;
+import com.lhf.messages.events.GameEventTester;
 import com.lhf.game.map.SubArea.SubAreaBuilder;
 
 public class GsonBuilderFactory {
     private enum Loaded {
         EFFECTSOURCE, EFFECTS, ITEMS, CONVERSATION, CREATURE_INFO, HANDLERS, SUBAREA, LEWDPRODUCT, AREAS, DOORWAYS,
-        LANDS, CACHED, SPELLS;
+        LANDS, CACHED, SPELLS, GAMEEVENTTESTERS;
     }
 
     private static final TypeAdapter<JsonElement> strictAdapter = new Gson().getAdapter(JsonElement.class);
@@ -120,9 +124,24 @@ public class GsonBuilderFactory {
         return this;
     }
 
+    private synchronized GsonBuilderFactory gameEventTesters() {
+        if (!this.loaded.contains(Loaded.GAMEEVENTTESTERS)) {
+            this.loaded.add(Loaded.GAMEEVENTTESTERS);
+            RuntimeTypeAdapterFactory<GameEventTester> eventTesterAdapter = RuntimeTypeAdapterFactory
+                    .of(GameEventTester.class, "className", true)
+                    .registerSubtype(GameEventTester.class, GameEventTester.class.getName())
+                    .registerSubtype(ComposedGameEventTester.class, ComposedGameEventTester.class.getName())
+                    .registerSubtype(EffectPersistence.Ticker.class, EffectPersistence.Ticker.class.getName())
+                    .recognizeSubtypes();
+            this.gsonBuilder.registerTypeAdapterFactory(eventTesterAdapter).enableComplexMapKeySerialization();
+        }
+        return this;
+    }
+
     private synchronized GsonBuilderFactory effectSources() {
         if (!this.loaded.contains(Loaded.EFFECTSOURCE)) {
             this.loaded.add(Loaded.EFFECTSOURCE);
+            this.gameEventTesters();
             this.creatureInfoBuilders();
             RuntimeTypeAdapterFactory<EntityEffectSource> effectSourceAdapter = RuntimeTypeAdapterFactory
                     .of(EntityEffectSource.class, "className", true)
@@ -140,6 +159,7 @@ public class GsonBuilderFactory {
     public synchronized GsonBuilderFactory effects() {
         if (!this.loaded.contains(Loaded.EFFECTS)) {
             this.loaded.add(Loaded.EFFECTS);
+            this.gameEventTesters();
             this.effectSources();
             RuntimeTypeAdapterFactory<EntityEffect> effectAdapter = RuntimeTypeAdapterFactory
                     .of(EntityEffect.class, "className", true)
@@ -157,6 +177,7 @@ public class GsonBuilderFactory {
     public synchronized GsonBuilderFactory items() {
         if (!this.loaded.contains(Loaded.ITEMS)) {
             this.loaded.add(Loaded.ITEMS);
+            this.gameEventTesters();
             this.effectSources();
             this.gsonBuilder.registerTypeAdapterFactory(IItemRunTypeAdapterFactoryProducer.produce());
         }
@@ -299,6 +320,7 @@ public class GsonBuilderFactory {
     public synchronized GsonBuilderFactory spells() {
         if (!this.loaded.contains(Loaded.SPELLS)) {
             this.loaded.add(Loaded.SPELLS);
+            this.gameEventTesters();
             this.items();
             this.creatureInfoBuilders();
             this.effectSources();

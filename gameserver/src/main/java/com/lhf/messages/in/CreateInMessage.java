@@ -5,7 +5,7 @@ import java.util.StringJoiner;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.lhf.game.creature.Player;
-import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.serialization.GsonBuilderFactory;
 import com.lhf.messages.Command;
 import com.lhf.messages.grammar.Prepositions;
@@ -46,7 +46,7 @@ public class CreateInMessage extends CommandAdapter {
             this.cachedBuild = gson.fromJson(json, Player.PlayerBuildInfo.class);
         } else if (this.vocationRequest() != null) {
             this.cachedBuild = new Player.PlayerBuildInfo(null).setName(this.getUsername())
-                    .setVocationName(VocationName.getVocationName(this.vocationRequest()));
+                    .setVocation(VocationFactory.getVocation(this.vocationRequest()));
         }
         return this.cachedBuild;
     }
