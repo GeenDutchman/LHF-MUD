@@ -241,10 +241,12 @@ public class DMRoom extends Room {
             dmGary.setName("Gary Lovejax");
 
             lewdAIHandler.addPartner(dmGary.getName()).addPartner(dmAda.getName());
+            final GameEventTester questTester = new GameEventTester(GameEventType.FIGHT_OVER,
+                    Set.of("You have survived this battle"), null, TickType.BATTLE, false);
             QuestSource questSource = QuestSource.getQuestBuilder("Survive").setDescription("Survive two battles")
-                    .setDeltaForTester(new GameEventTester(GameEventType.FIGHT_OVER, "You have survived this battle"),
+                    .setDeltaForTester(questTester,
                             new Deltas().setStatChange(Stats.XPEARNED, 100))
-                    .setPersistence(new EffectPersistence(2, TickType.BATTLE)).build();
+                    .setPersistence(new EffectPersistence(2, questTester)).build();
             RestArea.Builder restBuilder = RestArea.getBuilder().setLewd(LewdStyle.QUICKIE)
                     .setLewdProduct(new LewdBabyMaker(Player.getPlayerBuilder(null)
                             .applyEffect(new QuestEffect(questSource, null, questSource))));

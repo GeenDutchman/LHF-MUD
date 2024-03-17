@@ -14,24 +14,24 @@ public class MessageMatcher extends GameEventTester implements ArgumentMatcher<G
     protected String sentTo = "";
 
     public MessageMatcher(GameEventType type, Collection<String> contained, Collection<String> notContained,
-            TickType tickType) {
-        super(type, contained, notContained, tickType);
+            TickType tickType, Boolean expectBroadcast) {
+        super(type, contained, notContained, tickType, expectBroadcast);
     }
 
     public MessageMatcher(GameEventType type, List<String> containedWords, List<String> notContainedWords) {
-        this(type, containedWords, notContainedWords, null);
+        this(type, containedWords, notContainedWords, null, false);
     }
 
     public MessageMatcher(GameEventType type, String contained) {
-        this(type, List.of(contained), null, null);
+        this(type, List.of(contained), null, null, false);
     }
 
     public MessageMatcher(GameEventType type) {
-        this(type, null, null, null);
+        this(type, null, null, null, false);
     }
 
     public MessageMatcher(String contained) {
-        this(null, List.of(contained), null, null);
+        this(null, List.of(contained), null, null, false);
     }
 
     public MessageMatcher(MessageMatcher other) {

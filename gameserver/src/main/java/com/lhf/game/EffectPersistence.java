@@ -18,7 +18,7 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
         public Ticker(int count, TickType tickSize) {
             this.count = count;
             this.tickSize = tickSize;
-            this.tester = new GameEventTester(null, null, null, tickSize);
+            this.tester = new GameEventTester(null, null, null, tickSize, false);
             this.countdown = count;
         }
 
@@ -88,7 +88,7 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
         }
 
         public GameEventTester getGameEventTester() {
-            return this.tester != null ? this.tester : new GameEventTester(null, null, null, this.getTickSize());
+            return this.tester != null ? this.tester : new GameEventTester(null, null, null, this.getTickSize(), false);
         }
     }
 
@@ -98,7 +98,7 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
 
     public EffectPersistence(@NotNull TickType tickSize) {
         this.tickSize = tickSize;
-        this.basicTester = new GameEventTester(null, null, null, tickSize);
+        this.basicTester = new GameEventTester(null, null, null, tickSize, false);
         if (TickType.CONDITIONAL.equals(tickSize)) {
             this.count = -1;
         } else {
@@ -108,7 +108,7 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
 
     public EffectPersistence(int count, @NotNull TickType tickSize) {
         this.tickSize = tickSize;
-        this.basicTester = new GameEventTester(null, null, null, tickSize);
+        this.basicTester = new GameEventTester(null, null, null, tickSize, false);
         if (TickType.INSTANT.equals(tickSize)) {
             this.count = 1;
         } else if (TickType.CONDITIONAL.equals(tickSize)) {
@@ -139,7 +139,8 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
     }
 
     public GameEventTester getGameEventTester() {
-        return this.basicTester != null ? this.basicTester : new GameEventTester(null, null, null, this.getTickSize());
+        return this.basicTester != null ? this.basicTester
+                : new GameEventTester(null, null, null, this.getTickSize(), false);
     }
 
     public Ticker getTicker() {

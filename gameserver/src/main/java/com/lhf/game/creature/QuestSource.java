@@ -21,7 +21,7 @@ public class QuestSource extends CreatureEffectSource {
             this.setDeltaForTester(
                     new GameEventTester(GameEventType.QUEST,
                             Set.of(this.getName(), QuestEventType.COMPLETED.toString()),
-                            Set.of(QuestEventType.FAILED.toString()), null),
+                            Set.of(QuestEventType.FAILED.toString()), null, false),
                     onSuccess);
             return getThis();
         }
@@ -29,7 +29,7 @@ public class QuestSource extends CreatureEffectSource {
         public Builder setFailureDeltas(Deltas onFailure) {
             this.setDeltaForTester(
                     new GameEventTester(GameEventType.QUEST, Set.of(this.getName(), QuestEventType.FAILED.toString()),
-                            Set.of(QuestEventType.COMPLETED.toString()), null),
+                            Set.of(QuestEventType.COMPLETED.toString()), null, false),
                     onFailure);
             return getThis();
         }

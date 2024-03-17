@@ -16,8 +16,8 @@ public class ComposedGameEventTester extends GameEventTester {
     private final GameEventTester next;
 
     public ComposedGameEventTester(GameEventType type, Collection<String> contained, Collection<String> notContained,
-            TickType tickType, Operation operation, GameEventTester next) {
-        super(type, contained, notContained, tickType);
+            TickType tickType, Boolean expectBroacast, Operation operation, GameEventTester next) {
+        super(type, contained, notContained, tickType, expectBroacast);
         this.operation = operation != null ? operation : Operation.OR;
         this.next = next;
     }

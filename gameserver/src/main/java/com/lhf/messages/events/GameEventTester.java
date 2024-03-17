@@ -20,30 +20,32 @@ public class GameEventTester implements Predicate<GameEvent>, Comparable<GameEve
     private final SortedSet<String> contained;
     private final SortedSet<String> notContained;
     private final TickType tickType;
+    private final Boolean expectBroadcast;
 
     public GameEventTester(GameEventType type, Collection<String> contained, Collection<String> notContained,
-            TickType tickType) {
+            TickType tickType, Boolean expectBroadcast) {
         this.type = type;
         this.contained = contained != null ? Collections.unmodifiableSortedSet(new TreeSet<>(contained)) : null;
         this.notContained = notContained != null ? Collections.unmodifiableSortedSet(new TreeSet<>(notContained))
                 : null;
         this.tickType = tickType;
+        this.expectBroadcast = expectBroadcast;
     }
 
     public GameEventTester(GameEventType type, String containedString) {
-        this(type, List.of(containedString), null, null);
+        this(type, List.of(containedString), null, null, false);
     }
 
     public GameEventTester(String containedString) {
-        this(null, List.of(containedString), null, null);
+        this(null, List.of(containedString), null, null, false);
     }
 
     public GameEventTester(GameEventType type) {
-        this(type, null, null, null);
+        this(type, null, null, null, false);
     }
 
     public GameEventTester(GameEventTester other) {
-        this(other.type, other.contained, other.notContained, other.tickType);
+        this(other.type, other.contained, other.notContained, other.tickType, other.expectBroadcast);
     }
 
     public String getClassName() {
@@ -64,6 +66,10 @@ public class GameEventTester implements Predicate<GameEvent>, Comparable<GameEve
 
     public TickType getTickType() {
         return tickType;
+    }
+
+    public Boolean expectingBroadcast() {
+        return this.expectBroadcast;
     }
 
     protected void failHook(final GameEvent argument, final String reason) {
@@ -88,6 +94,12 @@ public class GameEventTester implements Predicate<GameEvent>, Comparable<GameEve
         if (this.tickType != null && this.tickType != argument.getTickType()) {
             this.failHook(argument, String.format("Expected tick type '%s', but got type '%s', no match", this.tickType,
                     argument.getTickType()));
+            return false;
+        }
+
+        if (this.expectBroadcast != null && argument.isBroadcast() != this.expectBroadcast) {
+            this.failHook(argument, String.format("Expected event %s broadcasted, but the opposite was so, no match",
+                    this.expectBroadcast ? "to be" : "NOT to be"));
             return false;
         }
 
@@ -232,6 +244,9 @@ public class GameEventTester implements Predicate<GameEvent>, Comparable<GameEve
         }
         if (this.tickType != null) {
             sj.add(" ticks like").add(this.tickType.toString() + ",");
+        }
+        if (this.expectBroadcast != null) {
+            sj.add(this.expectBroadcast ? " is a broadcast," : " is a direct message,");
         }
         if (this.contained != null && this.contained.size() > 0) {
             sj.add(" contains any of the phrases:").add(this.contained.toString() + ",");
