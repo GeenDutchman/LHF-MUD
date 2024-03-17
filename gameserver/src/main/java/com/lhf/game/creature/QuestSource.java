@@ -13,23 +13,31 @@ public class QuestSource extends CreatureEffectSource {
 
     public static class Builder extends CreatureEffectSource.AbstractBuilder<Builder> {
 
+        private final static GameEventTester produceSuccessTester(Builder builder) {
+            return new GameEventTester(GameEventType.QUEST,
+                    Set.of(builder.getName(), QuestEventType.COMPLETED.toString()),
+                    Set.of(QuestEventType.FAILED.toString()), null, false);
+        }
+
+        private final static GameEventTester produceFailureTester(Builder builder) {
+            return new GameEventTester(GameEventType.QUEST, Set.of(builder.getName(), QuestEventType.FAILED.toString()),
+                    Set.of(QuestEventType.COMPLETED.toString()), null, false);
+        }
+
         public Builder(String name) {
             super(name != null && !name.startsWith(QUEST_PREFIX) ? QUEST_PREFIX + name : name);
         }
 
         public Builder setSuccessDeltas(Deltas onSuccess) {
             this.setDeltaForTester(
-                    new GameEventTester(GameEventType.QUEST,
-                            Set.of(this.getName(), QuestEventType.COMPLETED.toString()),
-                            Set.of(QuestEventType.FAILED.toString()), null, false),
+                    Builder.produceSuccessTester(getThis()),
                     onSuccess);
             return getThis();
         }
 
         public Builder setFailureDeltas(Deltas onFailure) {
             this.setDeltaForTester(
-                    new GameEventTester(GameEventType.QUEST, Set.of(this.getName(), QuestEventType.FAILED.toString()),
-                            Set.of(QuestEventType.COMPLETED.toString()), null, false),
+                    Builder.produceFailureTester(getThis()),
                     onFailure);
             return getThis();
         }

@@ -15,6 +15,7 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
         private final GameEventTester tester;
         private int countdown;
 
+        @Deprecated(forRemoval = false)
         public Ticker(int count, TickType tickSize) {
             this.count = count;
             this.tickSize = tickSize;
@@ -119,7 +120,7 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
     }
 
     public EffectPersistence(int count, GameEventTester tester) {
-        this.count = 1;
+        this.count = count;
         this.basicTester = tester;
         this.tickSize = null;
     }
@@ -144,7 +145,7 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
     }
 
     public Ticker getTicker() {
-        return new Ticker(this.count, this.tickSize);
+        return new Ticker(this.count, this.getGameEventTester());
     }
 
     @Override

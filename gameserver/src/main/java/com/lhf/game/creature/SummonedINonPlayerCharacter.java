@@ -358,6 +358,13 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
 
     @Override
     public synchronized boolean isAlive() {
+        if (!super.isAlive()) {
+            this.log(Level.INFO, () -> "Ran out of health");
+            return false;
+        }
+
+        // if it is alive health point wise, now to check for other causes of death, and
+        // kill it
         Consumer<SummonedType> killit = toDie -> {
             Integer current = toDie.getStats().getOrDefault(Stats.MAXHP,
                     toDie.getStats().getOrDefault(Stats.CURRENTHP, 0));
@@ -375,10 +382,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
             killit.accept(this.wrapped);
             return false;
         }
-        if (!super.isAlive()) {
-            this.log(Level.INFO, () -> "Ran out of health");
-            return false;
-        }
+
         return true;
     }
 
