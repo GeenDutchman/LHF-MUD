@@ -27,6 +27,7 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
             this.count = count;
             this.tickSize = null;
             this.tester = tester;
+            this.countdown = count;
         }
 
         public Ticker(Ticker other) {
@@ -34,10 +35,12 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
                 this.count = other.count;
                 this.tickSize = other.tickSize;
                 this.tester = other.getGameEventTester();
+                this.countdown = other.count;
             } else {
                 this.count = 0;
                 this.tickSize = null;
                 this.tester = null;
+                this.countdown = 0;
             }
         }
 
@@ -48,7 +51,7 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
                 return false;
             }
             boolean testResult = eventTester.test(event);
-            if (testResult && this.countdown > 0) {
+            if (testResult && this.count >= 0 && this.countdown > 0) {
                 --this.countdown;
                 return testResult;
             }
@@ -56,9 +59,20 @@ public class EffectPersistence implements Comparable<EffectPersistence> {
         }
 
         public boolean isDone() {
-            return this.countdown == 0;
+            if (this.count == 0) {
+                return true;
+            }
+            return this.count >= 0 && this.countdown == 0;
         }
 
+        /**
+         * Returns the countdown for the ticker
+         * 
+         * @deprecated do not draw conclusions about the timer being done from the value
+         *             returned from this method
+         * @return the countdown value
+         */
+        @Deprecated(forRemoval = false)
         public int getCountdown() {
             return countdown;
         }

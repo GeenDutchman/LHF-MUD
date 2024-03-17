@@ -371,7 +371,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
             wrapped.updateHitpoints(-2 * current);
         };
 
-        if (this.timeLeft != null && this.timeLeft.getCountdown() <= 0) {
+        if (this.timeLeft != null && this.timeLeft.isDone()) {
             this.log(Level.INFO, () -> "Countdown ended");
             killit.accept(this.wrapped);
             return false;

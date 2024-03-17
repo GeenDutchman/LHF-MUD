@@ -245,7 +245,7 @@ public class DMRoom extends Room {
                     Set.of("You have survived this battle"), null, TickType.BATTLE, false);
             QuestSource questSource = QuestSource.getQuestBuilder("Survive").setDescription("Survive two battles")
                     .setDeltaForTester(questTester,
-                            new Deltas().setStatChange(Stats.MAXHP, 10).setStatChange(Stats.CURRENTHP, 10))
+                            new Deltas().setStatChange(Stats.MAXHP, 5).setStatChange(Stats.CURRENTHP, 5))
                     .setPersistence(new EffectPersistence(2, questTester)).build();
             RestArea.Builder restBuilder = RestArea.getBuilder().setLewd(LewdStyle.QUICKIE)
                     .setLewdProduct(new LewdBabyMaker(Player.getPlayerBuilder(null)
