@@ -119,6 +119,9 @@ public interface ICreature
 
     @Override
     public default void acceptItemVisitor(ItemVisitor visitor) {
+        if (visitor == null) {
+            return;
+        }
         InventoryOwner.super.acceptItemVisitor(visitor);
         EquipmentOwner.super.acceptItemVisitor(visitor);
     }
