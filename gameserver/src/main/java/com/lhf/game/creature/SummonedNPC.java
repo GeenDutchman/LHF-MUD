@@ -1,13 +1,9 @@
 package com.lhf.game.creature;
 
-import java.io.FileNotFoundException;
 import java.util.EnumSet;
 
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo.SummonData;
-import com.lhf.game.creature.conversation.ConversationManager;
-import com.lhf.game.creature.intelligence.AIRunner;
-import com.lhf.messages.CommandChainHandler;
 
 public class SummonedNPC extends SummonedINonPlayerCharacter<NonPlayerCharacter> {
 
@@ -15,15 +11,12 @@ public class SummonedNPC extends SummonedINonPlayerCharacter<NonPlayerCharacter>
         super(NPC, summonData, summoner, timeLeft);
     }
 
-    public static SummonedNPC fromBuildInfo(INPCBuildInfo builder, ICreature summoner, Ticker timeLeft,
-            AIRunner aiRunner,
-            CommandChainHandler successor,
-            ConversationManager conversationManager) throws FileNotFoundException {
-        CreatureFactory factory = CreatureFactory.fromAIRunner(successor, conversationManager,
-                aiRunner, false);
-        factory.visit(builder);
-        return new SummonedNPC(factory.getBuiltCreatures().getNpcs().first(), builder.getSummonState(),
-                summoner, timeLeft);
+    public static SummonedNPC fromBuildInfo(INPCBuildInfo builder, CreatureFactory factory, ICreature summoner,
+            Ticker timeLeft) {
+        if (factory == null) {
+            factory = new CreatureFactory();
+        }
+        return factory.summonNPC(builder, summoner, timeLeft);
     }
 
     @Override

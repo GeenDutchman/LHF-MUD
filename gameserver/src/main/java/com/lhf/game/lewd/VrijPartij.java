@@ -1,6 +1,8 @@
 package com.lhf.game.lewd;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Objects;
@@ -8,7 +10,14 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.lhf.game.creature.CreatureBuildInfo;
+import com.lhf.game.creature.DungeonMaster.DungeonMasterBuildInfo;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.ICreatureBuildInfo;
+import com.lhf.game.creature.ICreatureBuildInfoVisitor;
+import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
+import com.lhf.game.creature.MonsterBuildInfo;
+import com.lhf.game.creature.Player.PlayerBuildInfo;
 import com.lhf.messages.events.LewdEvent;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 
@@ -22,15 +31,17 @@ import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
  * 
  * @see com.lhf.game.lewd.LewdAnswer
  */
-public class VrijPartij {
+public class VrijPartij implements ICreatureBuildInfoVisitor {
     protected final int hash;
     protected final ICreature initiator;
     protected Map<ICreature, LewdAnswer> party;
-    protected Set<String> names;
+    protected Set<CreatureBuildInfo> templateBuildInfos;
+    protected Set<ICreatureBuildInfo> fullBuildInfos;
 
     public VrijPartij(ICreature initiator, Set<ICreature> partners) {
         this.initiator = initiator;
-        this.names = new TreeSet<>();
+        this.templateBuildInfos = new LinkedHashSet<>();
+        this.fullBuildInfos = new TreeSet<>();
         this.party = Collections.synchronizedNavigableMap(new TreeMap<>());
         if (initiator != null) {
             this.party.put(initiator, LewdAnswer.ACCEPTED);
@@ -73,22 +84,75 @@ public class VrijPartij {
         });
     }
 
-    public VrijPartij addNames(Set<String> babyNames) {
+    public VrijPartij addTemplateBuildInfos(Collection<CreatureBuildInfo> babyNames) {
         if (babyNames != null && babyNames.size() > 0) {
-            this.names.addAll(babyNames);
+            this.templateBuildInfos.addAll(babyNames);
         }
         return this;
     }
 
-    public VrijPartij addName(String name) {
+    public VrijPartij addTemplateBuildInfo(String name) {
         if (name != null && name.length() > 0) {
-            this.names.add(name);
+            this.templateBuildInfos.add(new CreatureBuildInfo(null).setName(name));
         }
         return this;
     }
 
-    public Set<String> getNames() {
-        return Collections.unmodifiableSet(this.names);
+    public VrijPartij addFullBuildInfo(ICreatureBuildInfo buildInfo) {
+        if (buildInfo != null) {
+            this.fullBuildInfos.add(buildInfo);
+        }
+        return this;
+    }
+
+    public VrijPartij addFullBuildInfos(Collection<ICreatureBuildInfo> addBuildInfos) {
+        if (addBuildInfos != null) {
+            this.fullBuildInfos.addAll(addBuildInfos);
+        }
+        return this;
+    }
+
+    public Set<CreatureBuildInfo> getTemplateBuildInfos() {
+        return Collections.unmodifiableSet(this.templateBuildInfos);
+    }
+
+    public Set<ICreatureBuildInfo> getFullBuildInfos() {
+        return Collections.unmodifiableSet(fullBuildInfos);
+    }
+
+    @Override
+    public void visit(PlayerBuildInfo buildInfo) {
+        if (buildInfo != null) {
+            this.fullBuildInfos.add(buildInfo);
+        }
+    }
+
+    @Override
+    public void visit(MonsterBuildInfo buildInfo) {
+        if (buildInfo != null) {
+            this.fullBuildInfos.add(buildInfo);
+        }
+    }
+
+    @Override
+    public void visit(INPCBuildInfo buildInfo) {
+        if (buildInfo != null) {
+            this.fullBuildInfos.add(buildInfo);
+        }
+    }
+
+    @Override
+    public void visit(DungeonMasterBuildInfo buildInfo) {
+        if (buildInfo != null) {
+            this.fullBuildInfos.add(buildInfo);
+        }
+    }
+
+    @Override
+    public void visit(CreatureBuildInfo buildInfo) {
+        if (buildInfo != null) {
+            this.templateBuildInfos.add(buildInfo);
+        }
     }
 
     public Map<ICreature, LewdAnswer> getParty() {

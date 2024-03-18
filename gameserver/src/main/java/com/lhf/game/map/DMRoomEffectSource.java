@@ -1,38 +1,49 @@
 package com.lhf.game.map;
 
-import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectResistance;
-import com.lhf.server.interfaces.NotNull;
-
 public class DMRoomEffectSource extends RoomEffectSource {
 
     protected final boolean ensoulUserAndSend;
 
-    public DMRoomEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
-            String description) {
-        super(name, persistence, resistance, description);
-        this.ensoulUserAndSend = false;
+    public static class Builder extends RoomEffectSource.AbstractBuilder<Builder> {
+        private boolean ensoulUserAndSend;
+
+        public Builder(String name) {
+            super(name);
+        }
+
+        public boolean isEnsoulUserAndSend() {
+            return ensoulUserAndSend;
+        }
+
+        public Builder setEnsoulUserAndSend(boolean ensoulUserAndSend) {
+            this.ensoulUserAndSend = ensoulUserAndSend;
+            return getThis();
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        public DMRoomEffectSource build() {
+            return new DMRoomEffectSource(getThis());
+        }
+
     }
 
-    public DMRoomEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
-            String description, boolean ensoulUserAndSend) {
-        super(name, persistence, resistance, description);
-        this.ensoulUserAndSend = ensoulUserAndSend;
+    public DMRoomEffectSource(Builder builder) {
+        super(builder);
+        this.ensoulUserAndSend = builder.isEnsoulUserAndSend();
     }
 
-    public DMRoomEffectSource(@NotNull DMRoomEffectSource other) {
-        super(other.name, other.persistence, other.resistance, other.description);
-        this.ensoulUserAndSend = other.ensoulUserAndSend;
-    }
-
-    public DMRoomEffectSource(@NotNull RoomEffectSource sub) {
-        super(sub);
-        this.ensoulUserAndSend = false;
-    }
-
-    @Override
-    public DMRoomEffectSource makeCopy() {
-        return new DMRoomEffectSource(this);
+    public static DMRoomEffectSource fromRoomEffectSource(RoomEffectSource other) {
+        Builder builder = new Builder(other.getName());
+        builder.setPersistence(other.getPersistence());
+        builder.setResistance(other.getResistance());
+        builder.setDescription(other.printDescription());
+        builder.setNpcToSummon(other.getNpcToSummon());
+        builder.setMonsterToSummon(other.getMonsterToSummon());
+        return builder.build();
     }
 
     public boolean isEnsoulsUserAndSend() {

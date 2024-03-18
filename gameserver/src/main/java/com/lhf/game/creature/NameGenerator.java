@@ -23,7 +23,8 @@ public class NameGenerator {
     public static String Generate(String currName) {
         String name = null;
         do {
-            name = currName == null ? NameGenerator.GenerateGiven() : currName;
+            name = currName == null || currName.isEmpty() || currName.isBlank() ? NameGenerator.GenerateGiven()
+                    : currName;
             name = NameGenerator.GenerateSuffix(name);
         } while (NameGenerator.namespace.contains(name));
         NameGenerator.namespace.add(name);

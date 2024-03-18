@@ -3,7 +3,6 @@ package com.lhf.messages.in;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
-import java.util.regex.Pattern;
 
 import com.lhf.messages.Command;
 import com.lhf.messages.grammar.Prepositions;
@@ -26,22 +25,20 @@ public class CastMessage extends CommandAdapter {
             return new ArrayList<>();
         }
         List<String> targets = new ArrayList<>();
-        String[] splitten = this.getIndirects().get(Prepositions.AT).split(Pattern.quote(", ")); // TODO: test this
-        for (String target : splitten) {
-            targets.add(target);
-        }
+        targets.addAll(this.getIndirects().getOrDefault(Prepositions.AT, List.of())); // TODO: test this
+
         return targets;
     }
 
     public Integer getLevel() {
-        String value = this.getIndirects().getOrDefault(Prepositions.USE, null);
-        if (value == null) {
+        String firstLevel = this.getFirstByPreposition(Prepositions.USE);
+        if (firstLevel == null || firstLevel.isBlank()) {
             return null;
         }
-        return Integer.valueOf(value);
+        return Integer.valueOf(firstLevel);
     }
 
-    public String getMetadata(Prepositions prepositions) {
+    public List<String> getMetadata(Prepositions prepositions) {
         return this.getByPreposition(prepositions);
     }
 

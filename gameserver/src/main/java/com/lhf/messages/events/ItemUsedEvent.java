@@ -127,7 +127,8 @@ public class ItemUsedEvent extends GameEvent {
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
         if (this.subType == null) {
-            sj.add("You used this").add(this.printItem() + ".");
+            sj.add(this.addressCreature(this.itemUser, true)).add("used this").add(
+                    this.printItem() + (this.target != null ? "on " + this.target.getColorTaggedName() + "." : "."));
         } else {
             switch (this.subType) {
                 case NO_USES:
@@ -139,7 +140,8 @@ public class ItemUsedEvent extends GameEvent {
                             .add("equipped in order to use it!");
                 case OK:
                 default:
-                    sj.add("You used this").add(this.printItem() + ".");
+                    sj.add(this.addressCreature(this.itemUser, true)).add("used this").add(this.printItem()
+                            + (this.target != null ? "on " + this.target.getColorTaggedName() + "." : "."));
             }
         }
         if (this.message != null && !this.message.isBlank()) {

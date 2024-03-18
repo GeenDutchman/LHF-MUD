@@ -1,10 +1,14 @@
 package com.lhf.game.serialization;
 
+import java.io.IOException;
 import java.util.EnumSet;
 import java.util.function.Consumer;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.TypeAdapter;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.EntityEffectSource;
@@ -16,10 +20,12 @@ import com.lhf.game.creature.DungeonMaster.DungeonMasterBuildInfo;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.creature.ICreatureBuildInfo.CreatureBuilderID;
-import com.lhf.game.creature.MonsterBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
+import com.lhf.game.creature.MonsterBuildInfo;
 import com.lhf.game.creature.Player.PlayerBuildInfo;
+import com.lhf.game.creature.QuestEffect;
+import com.lhf.game.creature.QuestSource;
 import com.lhf.game.creature.conversation.ConversationPattern;
 import com.lhf.game.creature.conversation.ConversationPatternSerializer;
 import com.lhf.game.creature.intelligence.AIHandler;
@@ -68,11 +74,27 @@ import com.lhf.game.map.RoomEffectSource;
 import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
 import com.lhf.game.map.SubArea.ISubAreaBuildInfo.SubAreaBuilderID;
 import com.lhf.game.map.SubArea.SubAreaBuilder;
+import com.lhf.messages.events.ComposedGameEventTester;
+import com.lhf.messages.events.GameEventTester;
 
 public class GsonBuilderFactory {
     private enum Loaded {
         EFFECTSOURCE, EFFECTS, ITEMS, CONVERSATION, CREATURE_INFO, HANDLERS, SUBAREA, LEWDPRODUCT, AREAS, DOORWAYS,
-        LANDS, CACHED, SPELLS;
+        LANDS, CACHED, SPELLS, GAMEEVENTTESTERS;
+    }
+
+    private static final TypeAdapter<JsonElement> strictAdapter = new Gson().getAdapter(JsonElement.class);
+
+    public static final boolean checkValidJSON(String json) {
+        if (json == null || json.isBlank()) {
+            return false;
+        }
+        try {
+            strictAdapter.fromJson(json);
+        } catch (JsonParseException | IOException e) {
+            return false;
+        }
+        return true;
     }
 
     private final GsonBuilder gsonBuilder;
@@ -100,13 +122,28 @@ public class GsonBuilderFactory {
         return this;
     }
 
+    private synchronized GsonBuilderFactory gameEventTesters() {
+        if (!this.loaded.contains(Loaded.GAMEEVENTTESTERS)) {
+            this.loaded.add(Loaded.GAMEEVENTTESTERS);
+            RuntimeTypeAdapterFactory<GameEventTester> eventTesterAdapter = RuntimeTypeAdapterFactory
+                    .of(GameEventTester.class, "className", true)
+                    .registerSubtype(GameEventTester.class, GameEventTester.class.getName())
+                    .registerSubtype(ComposedGameEventTester.class, ComposedGameEventTester.class.getName())
+                    .recognizeSubtypes();
+            this.gsonBuilder.registerTypeAdapterFactory(eventTesterAdapter).enableComplexMapKeySerialization();
+        }
+        return this;
+    }
+
     private synchronized GsonBuilderFactory effectSources() {
         if (!this.loaded.contains(Loaded.EFFECTSOURCE)) {
             this.loaded.add(Loaded.EFFECTSOURCE);
+            this.gameEventTesters();
             this.creatureInfoBuilders();
             RuntimeTypeAdapterFactory<EntityEffectSource> effectSourceAdapter = RuntimeTypeAdapterFactory
                     .of(EntityEffectSource.class, "className", true)
                     .registerSubtype(CreatureEffectSource.class, CreatureEffectSource.class.getName())
+                    .registerSubtype(QuestSource.class, QuestSource.class.getName())
                     .registerSubtype(RoomEffectSource.class, RoomEffectSource.class.getName())
                     .registerSubtype(DMRoomEffectSource.class, DMRoomEffectSource.class.getName())
                     .registerSubtype(DungeonEffectSource.class, DungeonEffectSource.class.getName())
@@ -119,10 +156,12 @@ public class GsonBuilderFactory {
     public synchronized GsonBuilderFactory effects() {
         if (!this.loaded.contains(Loaded.EFFECTS)) {
             this.loaded.add(Loaded.EFFECTS);
+            this.gameEventTesters();
             this.effectSources();
             RuntimeTypeAdapterFactory<EntityEffect> effectAdapter = RuntimeTypeAdapterFactory
                     .of(EntityEffect.class, "className", true)
                     .registerSubtype(CreatureEffect.class, CreatureEffect.class.getName())
+                    .registerSubtype(QuestEffect.class, QuestEffect.class.getName())
                     .registerSubtype(DungeonEffect.class, DungeonEffect.class.getName())
                     .registerSubtype(RoomEffect.class, RoomEffect.class.getName())
                     .registerSubtype(DMRoomEffect.class, DMRoomEffect.class.getName())
@@ -135,6 +174,7 @@ public class GsonBuilderFactory {
     public synchronized GsonBuilderFactory items() {
         if (!this.loaded.contains(Loaded.ITEMS)) {
             this.loaded.add(Loaded.ITEMS);
+            this.gameEventTesters();
             this.effectSources();
             this.gsonBuilder.registerTypeAdapterFactory(IItemRunTypeAdapterFactoryProducer.produce());
         }
@@ -277,6 +317,7 @@ public class GsonBuilderFactory {
     public synchronized GsonBuilderFactory spells() {
         if (!this.loaded.contains(Loaded.SPELLS)) {
             this.loaded.add(Loaded.SPELLS);
+            this.gameEventTesters();
             this.items();
             this.creatureInfoBuilders();
             this.effectSources();

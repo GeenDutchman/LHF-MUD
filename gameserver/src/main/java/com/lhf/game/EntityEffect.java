@@ -52,7 +52,7 @@ public abstract class EntityEffect implements TaggedExaminable, Comparable<Entit
     }
 
     public boolean isReadyForRemoval() {
-        return this.ticker != null ? this.ticker.getCountdown() == 0 : true;
+        return this.ticker != null ? this.ticker.isDone() : true;
     }
 
     public Ticker getTicker() {
@@ -63,7 +63,7 @@ public abstract class EntityEffect implements TaggedExaminable, Comparable<Entit
         if (tickEvent == null) {
             return false;
         }
-        return this.ticker != null ? this.ticker.tick(tickEvent.getTickType()) : false;
+        return this.ticker != null ? this.ticker.test(tickEvent) : false;
     }
 
     @Override

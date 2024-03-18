@@ -23,10 +23,13 @@ public class MantleOfDeath extends EquipableHiddenEffect {
         this.slots = List.of(EquipmentSlots.ARMOR);
         this.types = List.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.LEATHER);
         this.hiddenEquipEffects = List
-                .of(new CreatureEffectSource("AC Boost", new EffectPersistence(TickType.CONDITIONAL),
-                        null, "Wearing armor makes you harder to hit",
-                        new Deltas().setStatChange(Stats.AC, this.AC).setStatChange(Stats.MAXHP, this.MAX_HEALTH)
-                                .setStatChange(Stats.CURRENTHP, this.MAX_HEALTH)));
+                .of(new CreatureEffectSource.Builder("AC Boost")
+                        .setPersistence(new EffectPersistence(TickType.CONDITIONAL))
+                        .setDescription("Wearing armor makes you harder to hit")
+                        .setOnApplication(new Deltas().setStatChange(Stats.AC, this.AC)
+                                .setStatChange(Stats.MAXHP, this.MAX_HEALTH)
+                                .setStatChange(Stats.CURRENTHP, this.MAX_HEALTH))
+                        .build());
     }
 
     @Override

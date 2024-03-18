@@ -2,19 +2,26 @@ package com.lhf.game.creature;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.lhf.game.EffectPersistence;
 import com.lhf.game.ItemContainer;
+import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.dice.DamageDice.FlavoredRollResult;
+import com.lhf.game.dice.Dice.RollResult;
+import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.DamageFlavor;
@@ -32,7 +39,7 @@ import com.lhf.game.item.concrete.Corpse;
 public final class CreatureBuildInfo implements ICreatureBuildInfo {
 
     private final String className;
-    protected final CreatureBuilderID id;
+    protected final CreatureBuilderID id = new CreatureBuilderID();;
     private String creatureRace;
     private AttributeBlock attributeBlock;
     private EnumMap<Stats, Integer> stats;
@@ -49,7 +56,6 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
 
     protected CreatureBuildInfo() {
         this.className = this.getClass().getName();
-        this.id = new CreatureBuilderID();
         this.creatureRace = defaultRaceName;
         this.attributeBlock = new AttributeBlock();
         this.stats = new EnumMap<>(Stats.class);
@@ -66,21 +72,27 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         this.effects = new TreeSet<>();
     }
 
-    public CreatureBuildInfo(CreatureBuildInfo other) {
-        this.className = other.getClassName();
-        this.id = new CreatureBuilderID();
-        this.setCreatureRace(other.creatureRace);
-        this.setAttributeBlock(other.attributeBlock);
-        this.setStats(other.stats);
-        this.setProficiencies(other.proficiencies);
-        this.setInventory(other.inventory);
-        this.setEquipmentSlots(other.equipmentSlots);
-        this.setCreatureEffects(other.effects);
-        this.setDamageFlavorReactions(other.damageFlavorReactions);
-        this.name = other.name != null ? new String(other.name) : null;
-        this.faction = other.faction;
-        this.vocation = other.vocation;
-        this.vocationLevel = other.vocationLevel != null ? other.vocationLevel.intValue() : null;
+    public CreatureBuildInfo(ICreatureBuildInfo other) {
+        this();
+        this.copyFrom(other);
+    }
+
+    public CreatureBuildInfo copyFrom(ICreatureBuildInfo other) {
+        if (other != null) {
+            this.setCreatureRace(other.getCreatureRace());
+            this.setAttributeBlock(other.getAttributeBlock());
+            this.setStats(other.getStats());
+            this.setProficiencies(other.getProficiencies());
+            this.setInventory(other.getInventory());
+            this.setEquipmentSlots(other.getEquipmentSlots(), false);
+            this.setCreatureEffects(other.getCreatureEffects());
+            this.setDamageFlavorReactions(other.getDamageFlavorReactions());
+            this.name = other.getRawName() != null ? new String(other.getRawName()) : null;
+            this.faction = other.getFaction();
+            this.vocation = other.getVocationName();
+            this.vocationLevel = other.getVocationLevel() != null ? other.getVocationLevel().intValue() : null;
+        }
+        return this;
     }
 
     @Override
@@ -203,45 +215,36 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
                 if (source == null) {
                     continue;
                 }
-                Deltas deltas = putOn ? source.getOnApplication() : source.getOnRemoval();
-                if (deltas == null) {
-                    continue;
-                }
                 // effects match based on their source
                 final CreatureEffect composed = new CreatureEffect(source, null, equipable);
-                if ((putOn && this.effects.add(composed)) || (!putOn && this.effects.remove(composed))) {
-                    for (Stats stat : deltas.getStatChanges().keySet()) {
-                        int amount = deltas.getStatChanges().getOrDefault(stat, 0);
-                        this.stats.put(stat, this.stats.getOrDefault(stat, 0) + amount);
-                    }
-                    for (Attributes delta : deltas.getAttributeScoreChanges().keySet()) {
-                        int amount = deltas.getAttributeScoreChanges().getOrDefault(delta, 0);
-                        this.attributeBlock.setScoreBonus(delta, this.attributeBlock.getScoreBonus(delta) + amount);
-                    }
-                    for (Attributes delta : deltas.getAttributeBonusChanges().keySet()) {
-                        int amount = deltas.getAttributeBonusChanges().getOrDefault(delta, 0);
-                        this.attributeBlock.setModBonus(delta, this.attributeBlock.getModBonus(delta) + amount);
-                    }
+                if (putOn) {
+                    this.applyEffect(composed);
+                } else {
+                    this.repealEffect(composed);
                 }
             }
         }
     }
 
-    public CreatureBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
+    public CreatureBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable, boolean withoutEffects) {
         if (slot == null || equipable == null) {
             return this;
         }
         final Equipable retrieved = this.equipmentSlots.getOrDefault(slot, null);
         if (retrieved != null) {
-            this.onEquipmentChange(retrieved, false);
+            if (!withoutEffects) {
+                this.onEquipmentChange(retrieved, false);
+            }
             this.inventory.addItem(retrieved);
         }
         this.equipmentSlots.put(slot, equipable);
-        this.onEquipmentChange(equipable, true);
+        if (!withoutEffects) {
+            this.onEquipmentChange(equipable, true);
+        }
         return this;
     }
 
-    public CreatureBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
+    public CreatureBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots, boolean withoutEffects) {
         this.equipmentSlots = new EnumMap<>(EquipmentSlots.class);
         if (slots != null) {
             for (final Entry<EquipmentSlots, Equipable> entry : slots.entrySet()) {
@@ -251,7 +254,9 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
                 }
                 Equipable copied = equipable.makeCopy();
                 this.equipmentSlots.put(entry.getKey(), copied);
-                this.onEquipmentChange(copied, true);
+                if (!withoutEffects) {
+                    this.onEquipmentChange(copied, true);
+                }
             }
         }
         return this;
@@ -262,19 +267,174 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         return this.equipmentSlots;
     }
 
-    public CreatureBuildInfo setCreatureEffects(Set<CreatureEffect> others) {
-        this.effects = new TreeSet<>();
-        if (others != null) {
-            for (final CreatureEffect effect : others) {
-                this.effects.add(
-                        new CreatureEffect(effect.getSource(), effect.creatureResponsible(), effect.getGeneratedBy()));
+    private MultiRollResult adjustDamageByFlavor(MultiRollResult mrr) {
+        if (mrr == null) {
+            return null;
+        }
+        MultiRollResult.Builder mrrBuilder = new MultiRollResult.Builder();
+        final EnumMap<DamgeFlavorReaction, EnumSet<DamageFlavor>> dfr = this.damageFlavorReactions;
+        for (RollResult rr : mrr) {
+            if (rr instanceof FlavoredRollResult) {
+                FlavoredRollResult frr = (FlavoredRollResult) rr;
+                if (dfr.get(DamgeFlavorReaction.CURATIVES).contains(frr.getDamageFlavor())) {
+                    mrrBuilder.addRollResults(frr);
+                } else if (dfr.get(DamgeFlavorReaction.IMMUNITIES).contains(frr.getDamageFlavor())) {
+                    mrrBuilder.addRollResults(frr.none());
+                } else if (dfr.get(DamgeFlavorReaction.RESISTANCES).contains(frr.getDamageFlavor())) {
+                    mrrBuilder.addRollResults(frr.negative().half());
+                } else if (dfr.get(DamgeFlavorReaction.WEAKNESSES).contains(frr.getDamageFlavor())) {
+                    mrrBuilder.addRollResults(frr.negative().twice());
+                } else {
+                    mrrBuilder.addRollResults(frr.negative());
+                }
+            } else {
+                if (dfr.get(DamgeFlavorReaction.IMMUNITIES).size() > 0) {
+                    mrrBuilder.addRollResults(rr.none()); // if they have any immunities, unflavored damge does nothing
+                } else {
+                    mrrBuilder.addRollResults(rr);
+                }
+            }
+        }
+
+        if (dfr.get(DamgeFlavorReaction.IMMUNITIES).size() == 0) { // if they have any immunities, unflavored damge
+                                                                   // does nothing
+            mrrBuilder.addBonuses(mrr.getBonuses());
+        }
+
+        return mrrBuilder.Build();
+    }
+
+    private CreatureBuildInfo processEffectDelta(CreatureEffect creatureEffect, Deltas deltas,
+            MultiRollResult preAdjustedDamages) {
+        if (deltas != null) {
+            if (preAdjustedDamages != null && !preAdjustedDamages.isEmpty()) {
+                int current = this.stats.getOrDefault(Stats.AC, 0);
+                int max = this.stats.getOrDefault(Stats.MAXHP, 1);
+                current = Integer.max(0, Integer.min(max, current + preAdjustedDamages.getTotal())); // stick between 0
+                                                                                                     // and max
+                this.stats.replace(Stats.CURRENTHP, current);
+            }
+            for (Stats stat : deltas.getStatChanges().keySet()) {
+                int amount = deltas.getStatChanges().getOrDefault(stat, 0);
+                this.stats.put(stat, this.stats.getOrDefault(stat, 0) + amount);
+            }
+            for (Attributes delta : deltas.getAttributeScoreChanges().keySet()) {
+                int amount = deltas.getAttributeScoreChanges().getOrDefault(delta, 0);
+                this.attributeBlock.setScoreBonus(delta, this.attributeBlock.getScoreBonus(delta) + amount);
+            }
+            for (Attributes delta : deltas.getAttributeBonusChanges().keySet()) {
+                int amount = deltas.getAttributeBonusChanges().getOrDefault(delta, 0);
+                this.attributeBlock.setModBonus(delta, this.attributeBlock.getModBonus(delta) + amount);
+            }
+        }
+
+        return this;
+    }
+
+    @Override
+    public NavigableSet<CreatureEffect> getCreatureEffects() {
+        return this.effects;
+    }
+
+    private CreatureBuildInfo processEffectApplication(CreatureEffect effect) {
+        if (effect == null) {
+            return this;
+        }
+        final Deltas deltas = effect.getApplicationDeltas();
+        if (deltas == null) {
+            return this;
+        }
+        final MultiRollResult damages = effect
+                .getApplicationDamageResult((mrr) -> this.adjustDamageByFlavor(mrr));
+        return this.processEffectDelta(effect, deltas, damages);
+    }
+
+    private CreatureBuildInfo processEffectRemoval(CreatureEffect effect) {
+        if (effect == null) {
+            return this;
+        }
+        final Deltas deltas = effect.getOnRemovalDeltas();
+        if (deltas == null) {
+            return this;
+        }
+        final MultiRollResult damages = effect
+                .getRemovalDamageResult((mrr) -> this.adjustDamageByFlavor(mrr));
+        return this.processEffectDelta(effect, deltas, damages);
+    }
+
+    public CreatureBuildInfo applyEffect(CreatureEffect effect) {
+        this.processEffectApplication(effect);
+        final EffectPersistence persistence = effect.getPersistence();
+        if (persistence != null && !TickType.INSTANT.equals(persistence.getTickSize())) {
+            this.effects.add(effect);
+        }
+        return this;
+    }
+
+    public CreatureBuildInfo repealEffect(String effectName) {
+        if (effectName == null) {
+            return this;
+        }
+        NavigableSet<CreatureEffect> effects = this.getCreatureEffects();
+        if (effects == null) {
+            return this;
+        }
+        for (Iterator<CreatureEffect> effectIterator = effects.iterator(); effectIterator.hasNext();) {
+            final CreatureEffect effect = effectIterator.next();
+            if (effect == null) {
+                effectIterator.remove();
+            } else if (effectName.equals(effect.getName())) {
+                this.processEffectRemoval(effect);
+                effectIterator.remove();
+                return this;
             }
         }
         return this;
     }
 
-    public Set<CreatureEffect> getCreatureEffects() {
-        return this.effects;
+    public CreatureBuildInfo repealEffect(CreatureEffect toRepeal) {
+        if (toRepeal == null) {
+            return this;
+        }
+        if (this.effects == null) {
+            return this;
+        }
+        for (Iterator<CreatureEffect> effectIterator = this.effects.iterator(); effectIterator.hasNext();) {
+            final CreatureEffect effect = effectIterator.next();
+            if (effect == null) {
+                effectIterator.remove();
+            } else if (toRepeal.equals(effect)) {
+                this.processEffectRemoval(effect);
+                effectIterator.remove();
+                return this;
+            }
+        }
+        return this;
+    }
+
+    public CreatureBuildInfo removeEffectByName(String name) {
+        this.getCreatureEffects().removeIf(effect -> effect.getName().equals(name));
+        return this;
+    }
+
+    public boolean hasEffect(String name) {
+        return this.getCreatureEffects().stream().anyMatch(effect -> effect.getName().equals(name));
+    }
+
+    public CreatureBuildInfo setCreatureEffects(Set<CreatureEffect> others) {
+        if (this.effects != null) {
+            for (CreatureEffect effect : this.effects) {
+                this.processEffectRemoval(effect);
+            }
+        }
+        this.effects = new TreeSet<>();
+        if (others != null) {
+            for (final CreatureEffect effect : others) {
+                this.applyEffect(
+                        new CreatureEffect(effect.getSource(), effect.creatureResponsible(), effect.getGeneratedBy()));
+            }
+        }
+        return this;
     }
 
     public CreatureBuildInfo defaultFlavorReactions() {
@@ -356,7 +516,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         return this;
     }
 
-    public CreatureBuildInfo setVocation(VocationName vocationName) {
+    public CreatureBuildInfo setVocationName(VocationName vocationName) {
         this.vocation = vocationName;
         return this;
     }
@@ -366,7 +526,7 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
         return this;
     }
 
-    public VocationName getVocation() {
+    public VocationName getVocationName() {
         return this.vocation;
     }
 
@@ -417,8 +577,9 @@ public final class CreatureBuildInfo implements ICreatureBuildInfo {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(this.id.toString());
+        StringBuilder sb = new StringBuilder();
         sb.append(this.getClass().getSimpleName()).append(" with the following characteristics: \r\n");
+        sb.append("BuilderID:").append(this.id.toString()).append("\r\n");
         sb.append("With race: ").append(this.creatureRace).append("\r\n");
         if (this.name == null) {
             sb.append("Name will be generated.\r\n");

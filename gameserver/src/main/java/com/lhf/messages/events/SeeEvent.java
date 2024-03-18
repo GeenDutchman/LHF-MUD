@@ -41,49 +41,53 @@ public class SeeEvent extends GameEvent {
     private final String extraInfo;
     private final String deniedReason;
 
-    public static class Builder extends GameEvent.Builder<Builder> {
+    public abstract static class ABuilder<T extends ABuilder<T>> extends GameEvent.Builder<T> {
         private Examinable examinable;
         private NavigableMap<String, List<Taggable>> seenCategorized = new TreeMap<>();
         private List<EntityEffectSource> effects = new ArrayList<>();
         private StringJoiner extraInfo = new StringJoiner("\r\n").setEmptyValue("");
         private String deniedReason;
 
-        protected Builder() {
+        protected ABuilder() {
             super(GameEventType.SEE);
         }
 
-        public Builder setExaminable(Examinable examinable) {
+        protected ABuilder(GameEventType type) {
+            super(type);
+        }
+
+        public T setExaminable(Examinable examinable) {
             this.examinable = examinable;
-            return this;
+            return this.getThis();
         }
 
-        public Builder addExtraInfo(String extraInfo) {
+        public T addExtraInfo(String extraInfo) {
             this.extraInfo.add(extraInfo);
-            return this;
+            return this.getThis();
         }
 
-        public Builder addSeen(String category, Taggable thing) {
+        public T addSeen(String category, Taggable thing) {
             if (this.seenCategorized == null) {
                 this.seenCategorized = new TreeMap<>();
             }
             this.seenCategorized.putIfAbsent(category, new ArrayList<>());
             this.seenCategorized.get(category).add(thing);
-            return this;
+            return this.getThis();
         }
 
-        public Builder addSeen(SeeCategory category, Taggable thing) {
+        public T addSeen(SeeCategory category, Taggable thing) {
             this.addSeen(category.name(), thing);
-            return this;
+            return this.getThis();
         }
 
-        public Builder addEffector(EntityEffectSource effect) {
+        public T addEffector(EntityEffectSource effect) {
             this.effects.add(effect);
-            return this;
+            return this.getThis();
         }
 
-        public Builder setDeniedReason(String deniedReason) {
+        public T setDeniedReason(String deniedReason) {
             this.deniedReason = deniedReason;
-            return this;
+            return this.getThis();
         }
 
         public Examinable getExaminable() {
@@ -107,6 +111,12 @@ public class SeeEvent extends GameEvent {
         }
 
         @Override
+        public abstract SeeEvent Build();
+
+    }
+
+    public static class Builder extends ABuilder<Builder> {
+        @Override
         public Builder getThis() {
             return this;
         }
@@ -115,14 +125,13 @@ public class SeeEvent extends GameEvent {
         public SeeEvent Build() {
             return new SeeEvent(this);
         }
-
     }
 
     public static Builder getBuilder() {
         return new Builder();
     }
 
-    public SeeEvent(Builder builder) {
+    public SeeEvent(ABuilder<?> builder) {
         super(builder);
         this.examinable = builder.getExaminable();
         this.extraInfo = builder.getExtraInfo();
@@ -233,15 +242,18 @@ public class SeeEvent extends GameEvent {
         }
         StringJoiner sj = new StringJoiner(" ");
         if (this.examinable instanceof Taggable) {
-            sj.add(((Taggable) this.examinable).getColorTaggedName());
+            sj.add("Name:").add(((Taggable) this.examinable).getColorTaggedName());
         } else {
-            sj.add(this.examinable.getName());
+            sj.add("Name:").add(this.examinable.getName());
         }
         sj.add("\r\n");
         if (this.extraInfo != null && this.extraInfo.length() > 0) {
             sj.add(this.extraInfo.toString()).add("\r\n");
         }
-        sj.add("<description>").add(this.examinable.printDescription()).add("</description>").add("\r\n");
+        final String descriptor = this.examinable.printDescription();
+        if (descriptor != null && !descriptor.isBlank()) {
+            sj.add("<description>").add(descriptor).add("</description>").add("\r\n");
+        }
         sj = this.listTaggables(sj);
         String listedEffects = this.listEffectors();
         if (!listedEffects.isBlank()) {

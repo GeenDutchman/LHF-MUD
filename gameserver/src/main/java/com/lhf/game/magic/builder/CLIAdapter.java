@@ -346,8 +346,8 @@ public class CLIAdapter implements SpellEntryBuilderAdapter {
             System.out.println("Should it restore the faction?");
             boolean restore = this.yesOrNo();
             Deltas deltas = new Deltas().setRestoreFaction(restore);
-            CreatureEffectSource source = new CreatureEffectSource(effectName, persistence, resistance,
-                    effectDescription, deltas);
+            CreatureEffectSource source = new CreatureEffectSource.Builder(effectName).setPersistence(persistence)
+                    .setResistance(resistance).setDescription(effectDescription).setOnApplication(deltas).build();
             System.out.printf("Added %s \n", source.toString());
             sources.add(source);
 

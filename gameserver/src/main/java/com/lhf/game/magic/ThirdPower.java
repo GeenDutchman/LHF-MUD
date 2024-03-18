@@ -364,9 +364,12 @@ public class ThirdPower implements CommandChainHandler {
                     this.log(Level.FINE,
                             () -> String.format("Caster '%s' is targeting '%s' in the DMRoom", caster.getName(),
                                     target));
-                    final String vocationName = casting.getMetadata(Prepositions.AS);
-                    final Vocation vocation = VocationFactory.getVocation(vocationName);
-                    if (vocation != null || vocationName != null) {
+                    final List<String> vocationNames = casting.getMetadata(Prepositions.AS);
+                    Vocation vocation = null;
+                    if (vocationNames != null && !vocationNames.isEmpty()) {
+                        vocation = VocationFactory.getVocation(vocationNames.get(0));
+                    }
+                    if (vocation != null) {
                         spell.addUsernameToEnsoul(target, vocation);
                     } else {
                         this.log(Level.WARNING,

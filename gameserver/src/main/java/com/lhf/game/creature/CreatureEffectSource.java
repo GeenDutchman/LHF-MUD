@@ -7,9 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringJoiner;
+import java.util.TreeMap;
 
-import com.lhf.game.EffectPersistence;
-import com.lhf.game.EffectResistance;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.TickType;
 import com.lhf.game.dice.DamageDice;
@@ -17,8 +16,9 @@ import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
+import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.GameEventTester;
 import com.lhf.messages.events.SeeEvent;
-import com.lhf.messages.events.SeeEvent.Builder;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
 
 public class CreatureEffectSource extends EntityEffectSource {
@@ -250,33 +250,98 @@ public class CreatureEffectSource extends EntityEffectSource {
     }
 
     protected final Deltas onApplication, onRemoval;
-    protected final Map<TickType, Deltas> onTickEvent;
+    protected final Map<GameEventTester, Deltas> onTickEvent;
 
-    public CreatureEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
-            String description, Deltas applicationDeltas) {
-        super(name, persistence, resistance, description);
-        this.onApplication = applicationDeltas;
-        this.onRemoval = applicationDeltas != null
-                && (persistence != null && !TickType.INSTANT.equals(persistence.getTickSize()))
-                        ? applicationDeltas.reversal()
-                        : null;
-        this.onTickEvent = new EnumMap<>(TickType.class);
+    protected static abstract class AbstractBuilder<AB extends AbstractBuilder<AB>>
+            extends EntityEffectSource.Builder<AB> {
+        private Deltas onApplication, onRemoval;
+        private Map<GameEventTester, Deltas> onTickEvent;
+        private boolean reverseApplication = true;
+
+        protected AbstractBuilder(String name) {
+            super(name);
+            this.onApplication = null;
+            this.onRemoval = null;
+            this.onTickEvent = new TreeMap<>();
+        }
+
+        public Deltas getOnApplication() {
+            return onApplication;
+        }
+
+        public AB setOnApplication(Deltas onApplication) {
+            this.onApplication = onApplication;
+            return getThis();
+        }
+
+        public AB withReversedApplication() {
+            this.reverseApplication = true;
+            return getThis();
+        }
+
+        public AB withoutReversedApplication() {
+            this.reverseApplication = false;
+            return getThis();
+        }
+
+        public Deltas getOnRemoval() {
+            if (onRemoval != null) {
+                return onRemoval;
+            }
+            return this.reverseApplication && this.onApplication != null && !TickType.INSTANT.equals(this.getTickType())
+                    ? this.onApplication.reversal()
+                    : null;
+        }
+
+        public AB setOnRemoval(Deltas onRemoval) {
+            this.onRemoval = onRemoval;
+            return getThis();
+        }
+
+        public Map<GameEventTester, Deltas> getOnTickEvent() {
+            return onTickEvent;
+        }
+
+        public AB setOnTickEvent(Map<GameEventTester, Deltas> onTickEvent) {
+            this.onTickEvent = onTickEvent != null ? onTickEvent : new TreeMap<>();
+            return getThis();
+        }
+
+        public AB setDeltaForTester(GameEventTester tester, Deltas deltas) {
+            if (tester == null || deltas == null) {
+                return getThis();
+            }
+            this.onTickEvent.put(tester, deltas);
+            return getThis();
+        }
     }
 
-    public CreatureEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
-            String description, Deltas applicationDeltas, Map<TickType, Deltas> tickDeltas, Deltas removalDeltas) {
-        super(name, persistence, resistance, description);
-        this.onApplication = applicationDeltas;
-        this.onRemoval = removalDeltas;
-        this.onTickEvent = tickDeltas != null ? new EnumMap<>(tickDeltas) : new EnumMap<>(TickType.class);
+    public static class Builder extends AbstractBuilder<Builder> {
+
+        public Builder(String name) {
+            super(name);
+        }
+
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        public CreatureEffectSource build() {
+            return new CreatureEffectSource(getThis());
+        }
+
     }
 
-    @Override
-    public CreatureEffectSource makeCopy() {
-        CreatureEffectSource copy = new CreatureEffectSource(this.getName(), persistence, resistance, description,
-                this.onApplication, this.onTickEvent, this.onRemoval);
+    public static Builder getCreatureEffectBuilder(String name) {
+        return new Builder(name);
+    }
 
-        return copy;
+    protected CreatureEffectSource(AbstractBuilder<?> builder) {
+        super(builder);
+        this.onApplication = builder.getOnApplication();
+        this.onRemoval = builder.getOnRemoval();
+        this.onTickEvent = builder.getOnTickEvent();
     }
 
     public Deltas getOnApplication() {
@@ -287,15 +352,38 @@ public class CreatureEffectSource extends EntityEffectSource {
         return onRemoval;
     }
 
-    public Map<TickType, Deltas> getOnTickEvent() {
+    public Map<GameEventTester, Deltas> getOnTickEvent() {
         return onTickEvent;
     }
 
-    public Deltas deltasForTick(TickType tickType) {
-        if (this.onTickEvent == null) {
+    /**
+     * Returns unmodifiable map entry of Entry<GameEventTester, Deltas> or null
+     * 
+     * @param event
+     * @return
+     */
+    public Entry<GameEventTester, Deltas> getTesterEntryForEvent(GameEvent event) {
+        if (event == null || this.onTickEvent == null) {
             return null;
         }
-        return this.onTickEvent.getOrDefault(tickType, null);
+        for (final Entry<GameEventTester, Deltas> entry : Collections.unmodifiableSet(this.onTickEvent.entrySet())) {
+            final GameEventTester tester = entry.getKey();
+            if (tester == null || !tester.test(event)) {
+                continue;
+            }
+            if (entry.getValue() != null) {
+                return entry;
+            }
+        }
+        return null;
+    }
+
+    public Deltas getDeltasForEvent(GameEvent event) {
+        final Entry<GameEventTester, Deltas> entry = this.getTesterEntryForEvent(event);
+        if (entry == null) {
+            return null;
+        }
+        return entry.getValue();
     }
 
     @Override
@@ -334,7 +422,7 @@ public class CreatureEffectSource extends EntityEffectSource {
     }
 
     @Override
-    public SeeEvent produceMessage(Builder seeOutMessage) {
+    public SeeEvent produceMessage(SeeEvent.ABuilder<?> seeOutMessage) {
         if (seeOutMessage == null) {
             seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         }
@@ -357,10 +445,15 @@ public class CreatureEffectSource extends EntityEffectSource {
             }
         }
         if (this.onTickEvent != null && this.onTickEvent.size() > 0) {
-            for (final Entry<TickType, Deltas> tickDeltas : this.onTickEvent.entrySet()) {
-                final String tickDescription = tickDeltas.getValue().printDescription();
+            for (final Entry<GameEventTester, Deltas> tickDeltas : this.onTickEvent.entrySet()) {
+                final GameEventTester tester = tickDeltas.getKey();
+                final Deltas deltas = tickDeltas.getValue();
+                if (tester == null || deltas == null) {
+                    continue;
+                }
+                final String tickDescription = deltas.printDescription();
                 if (tickDescription.length() > 0) {
-                    sj.add("On a").add(tickDeltas.getKey().toString()).add("tick: ").add(tickDescription);
+                    sj.add(tester.toString()).add(tickDescription);
                 }
             }
         }

@@ -11,11 +11,8 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import com.google.common.truth.Truth;
-import com.lhf.game.EffectPersistence;
-import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleStats;
 import com.lhf.game.battle.BattleStats.BattleStatsQuery;
-import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.intelligence.AIChooser;
@@ -63,13 +60,16 @@ public class AggroHighwaterChooserTest {
 
                 // attacker does some harm
 
-                CreatureEffectSource source = new CreatureEffectSource("test", new EffectPersistence(TickType.INSTANT),
-                                null,
-                                "For a test", new Deltas()
-                                                .addDamage(new DamageDice(6, DieType.SIX, DamageFlavor.BLUDGEONING)));
+                CreatureEffectSource source = new CreatureEffectSource.Builder("test").instantPersistence()
+                                .setDescription("For a test")
+                                .setOnApplication(new Deltas()
+                                                .addDamage(new DamageDice(6, DieType.SIX, DamageFlavor.BLUDGEONING)))
+                                .build();
 
                 CreatureAffectedEvent cam = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                                .fromCreatureEffect(new CreatureEffect(source, attacker.getNPC(), attacker.getNPC()))
+                                .setDamages(source.getOnApplication().rollDamages())
+                                .setHighlightedDelta(source.getOnApplication())
+                                .setCreatureResponsible(attacker.getNPC())
                                 .Build();
 
                 finder.getNPC().getHarmMemories().update(cam);
@@ -91,15 +91,17 @@ public class AggroHighwaterChooserTest {
 
                 // subattacker does not enough harm
 
-                CreatureEffectSource source2 = new CreatureEffectSource("test2",
-                                new EffectPersistence(TickType.INSTANT),
-                                null,
-                                "For a test", new Deltas()
-                                                .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO)));
+                CreatureEffectSource source2 = new CreatureEffectSource.Builder("test2").instantPersistence()
+                                .setDescription("For a test")
+                                .setOnApplication(new Deltas()
+                                                .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.AGGRO)))
+                                .build();
 
                 CreatureAffectedEvent cam2 = CreatureAffectedEvent.getBuilder().setAffected(finder.getNPC())
-                                .fromCreatureEffect(
-                                                new CreatureEffect(source2, subAttacker.getNPC(), subAttacker.getNPC()))
+                                .setGeneratedBy(subAttacker.getNPC())
+                                .setCreatureResponsible(subAttacker.getNPC())
+                                .setHighlightedDelta(source2.getOnApplication())
+                                .setDamages(source2.getOnApplication().rollDamages())
                                 .Build();
 
                 finder.getNPC().getHarmMemories().update(cam2);

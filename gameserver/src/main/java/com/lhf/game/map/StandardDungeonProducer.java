@@ -6,9 +6,7 @@ import java.util.Map;
 
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
-import com.lhf.game.TickType;
 import com.lhf.game.battle.BattleManager;
 import com.lhf.game.creature.BuildInfoManager;
 import com.lhf.game.creature.CreatureEffectSource;
@@ -93,11 +91,13 @@ public final class StandardDungeonProducer {
                 trappedHallBuilder.addItem(new Trap("Spiked Pit",
                                 "A thin layer of carpet over a spiked pit.", true,
                                 new EnumMap<>(Map.of(Attributes.DEX, new DiceDC(12))))
-                                .addEffect(new CreatureEffectSource("Spike", new EffectPersistence(TickType.INSTANT),
-                                                new EffectResistance(Attributes.DEX, 10, null),
-                                                "A spike that pierces you.", new Deltas()
+                                .addEffect(new CreatureEffectSource.Builder("Spike").instantPersistence()
+                                                .setResistance(new EffectResistance(Attributes.DEX, 10, null))
+                                                .setDescription("A spike that pierces you.")
+                                                .setOnApplication(new Deltas()
                                                                 .addDamage(new DamageDice(1, DieType.FOUR,
-                                                                                DamageFlavor.PIERCING)))));
+                                                                                DamageFlavor.PIERCING)))
+                                                .build()));
 
                 Room.RoomBuilder secretRoomBuilder = Room.RoomBuilder.getInstance().addSubAreaBuilder(battleBuilder)
                                 .setName("Secret Room")

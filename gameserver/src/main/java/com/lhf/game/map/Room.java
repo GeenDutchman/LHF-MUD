@@ -22,7 +22,6 @@ import java.util.logging.Logger;
 
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.creature.IMonster;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;
@@ -39,6 +38,7 @@ import com.lhf.game.map.SubArea.SubAreaBuilder;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.events.CreatureDiedEvent;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.RoomAffectedEvent;
 import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.messages.events.RoomExitedEvent;
@@ -491,19 +491,30 @@ public class Room implements Area {
     }
 
     @Override
-    public RoomAffectedEvent processEffect(RoomEffect roomEffect) {
+    public RoomAffectedEvent processEffectApplication(RoomEffect roomEffect) {
         this.logger.log(Level.FINER, () -> String.format("Room processing effect '%s'", roomEffect.getName()));
-        INonPlayerCharacter summonedNPC = roomEffect.getQuickSummonedNPC(this);
-        if (summonedNPC != null) {
-            this.logger.log(Level.INFO, () -> String.format("Summoned npc %s", summonedNPC.getName()));
-            this.addCreature(summonedNPC);
-        }
-        IMonster summonedMonster = roomEffect.getQuickSummonedMonster(this);
-        if (summonedMonster != null) {
-            this.logger.log(Level.INFO, () -> String.format("Summoned monster %s", summonedMonster.getName()));
-            this.addCreature(summonedMonster);
+        CreatureFactory factory = CreatureFactory.withAIRunner(this, null);
+        Set<ICreature> summoned = roomEffect.getCreatures(factory);
+        if (summoned != null) {
+            this.addCreatures(summoned, false);
         }
         return RoomAffectedEvent.getBuilder().setRoom(this).setEffect(roomEffect).Build();
+    }
+
+    @Override
+    public GameEvent processEffectRemoval(RoomEffect effect) {
+        this.log(Level.INFO, () -> String.format("Currently room effects (among which '%s'), cannot really be removed",
+                effect.getName()));
+        return null;
+    }
+
+    @Override
+    public GameEvent processEffectEvent(RoomEffect effect, GameEvent event) {
+        this.log(Level.INFO,
+                () -> String.format(
+                        "Current room effects (among which '%s'), cannot really happen on any event (like '%s')",
+                        effect.getName(), event.getEventType()));
+        return null;
     }
 
     @Override
@@ -553,6 +564,13 @@ public class Room implements Area {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void acceptAreaVisitor(AreaVisitor visitor) {
+        if (visitor != null) {
+            visitor.visit(this);
+        }
     }
 
     @Override

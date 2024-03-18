@@ -18,7 +18,7 @@ public class SayMessage extends CommandAdapter {
     }
 
     public String getTarget() {
-        return this.getIndirects().getOrDefault(Prepositions.TO, null);
+        return this.getFirstByPreposition(Prepositions.TO);
 
     }
 

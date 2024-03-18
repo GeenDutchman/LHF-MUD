@@ -2,9 +2,12 @@ package com.lhf.game.item.concrete;
 
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Consumer;
 
-import com.lhf.game.item.ItemVisitor;
+import com.lhf.game.Lockable;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.Usable;
+import com.lhf.messages.CommandContext;
 
 public class LockKey extends Usable {
 
@@ -17,7 +20,7 @@ public class LockKey extends Usable {
      * @param lockedItemUuid
      */
     public LockKey(UUID lockedItemUuid) {
-        super(LockKey.generateKeyName(lockedItemUuid), "A key for ... something.", 1, null, null);
+        super(LockKey.generateKeyName(lockedItemUuid), "A key for ... something.", 1, null);
         this.lockedItemUuid = lockedItemUuid;
         this.keyUuid = UUID.randomUUID();
     }
@@ -30,13 +33,7 @@ public class LockKey extends Usable {
      *                       infinite uses
      */
     public LockKey(UUID lockedItemUuid, int useSoManyTimes) {
-        super(LockKey.generateKeyName(lockedItemUuid), "A key for ... something.", useSoManyTimes, null, null);
-        this.lockedItemUuid = lockedItemUuid;
-        this.keyUuid = UUID.randomUUID();
-    }
-
-    public LockKey(UUID lockedItemUuid, int useSoManyTimes, ItemVisitor itemVisitor) {
-        super(LockKey.generateKeyName(lockedItemUuid), "A key for ... something.", useSoManyTimes, null, itemVisitor);
+        super(LockKey.generateKeyName(lockedItemUuid), "A key for ... something.", useSoManyTimes, null);
         this.lockedItemUuid = lockedItemUuid;
         this.keyUuid = UUID.randomUUID();
     }
@@ -48,6 +45,27 @@ public class LockKey extends Usable {
 
     public static String generateKeyName(UUID lockedItemUuid) {
         return "Key " + lockedItemUuid.toString();
+    }
+
+    @Override
+    public Consumer<IItem> produceItemConsumer(CommandContext ctx) {
+        return new Consumer<IItem>() {
+            @Override
+            public void accept(IItem item) {
+                if (item != null && item instanceof Lockable lockable
+                        && LockKey.this.keyUuid.equals(lockable.getLockUUID())) {
+                    if (lockable.isUnlocked()) {
+                        lockable.lock();
+                    } else {
+                        lockable.unlock();
+                    }
+                    LockKey.this.sendNotice(ctx, ctx.getCreature(), LockKey.this.getItemUseBuilder(ctx, item)
+                            .setMessage(lockable.isUnlocked() ? "It is now unlocked." : "It is now locked."));
+                }
+                LockKey.this.sendNotice(ctx, ctx.getCreature(), LockKey.this.getItemUseBuilder(ctx, item));
+            }
+        };
+
     }
 
     public UUID getDoorwayUuid() {

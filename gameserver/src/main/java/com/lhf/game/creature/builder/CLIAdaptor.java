@@ -431,7 +431,7 @@ public class CLIAdaptor implements CreatorAdaptor {
     }
 
     @Override
-    public VocationName getVocation() {
+    public VocationName getVocationName() {
         System.out.println("Should the creature have a Vocation?");
         if (this.yesOrNo()) {
             VocationName vName = null;

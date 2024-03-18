@@ -1,10 +1,12 @@
 package com.lhf.messages.events;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 
+import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.lewd.LewdAnswer;
@@ -18,13 +20,13 @@ public class LewdEvent extends GameEvent {
     private final LewdOutMessageType subType;
     private final Map<ICreature, LewdAnswer> party;
     private final ICreature creature;
-    private final Set<String> babyNames;
+    private final Set<ICreatureBuildInfo> templates;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private LewdOutMessageType subType;
         private Map<ICreature, LewdAnswer> party = Map.of();
         private ICreature creature;
-        private Set<String> babyNames = Set.of();
+        private Set<ICreatureBuildInfo> templates = Set.of();
 
         protected Builder() {
             super(GameEventType.LEWD);
@@ -57,12 +59,22 @@ public class LewdEvent extends GameEvent {
             return this;
         }
 
-        public Set<String> getBabyNames() {
-            return Collections.unmodifiableSet(babyNames);
+        public Set<ICreatureBuildInfo> getTemplates() {
+            return Collections.unmodifiableSet(templates);
         }
 
-        public Builder setBabyNames(Set<String> babyNames) {
-            this.babyNames = babyNames != null ? babyNames : Set.of();
+        public Builder setTemplates(Set<? extends ICreatureBuildInfo> set) {
+            if (set != null) {
+                this.templates = new LinkedHashSet<>();
+                for (ICreatureBuildInfo iCreatureBuildInfo : set) {
+                    if (iCreatureBuildInfo == null) {
+                        continue;
+                    }
+                    this.templates.add(iCreatureBuildInfo);
+                }
+            } else {
+                this.templates = Set.of();
+            }
             return this;
         }
 
@@ -87,7 +99,7 @@ public class LewdEvent extends GameEvent {
         this.subType = builder.getSubType();
         this.party = builder.getParty();
         this.creature = builder.getCreature();
-        this.babyNames = builder.getBabyNames();
+        this.templates = builder.getTemplates();
     }
 
     private String statusString() {
@@ -218,8 +230,8 @@ public class LewdEvent extends GameEvent {
         return creature;
     }
 
-    public Set<String> getBabyNames() {
-        return this.babyNames;
+    public Set<ICreatureBuildInfo> getTemplates() {
+        return this.templates;
     }
 
     @Override

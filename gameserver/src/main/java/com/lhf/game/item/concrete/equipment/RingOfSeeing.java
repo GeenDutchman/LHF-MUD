@@ -21,8 +21,10 @@ public class RingOfSeeing extends Equipable {
 
         this.slots.add(EquipmentSlots.LEFTHAND);
         this.slots.add(EquipmentSlots.RIGHTHAND);
-        this.equipEffects.add(new CreatureEffectSource("Seeing wisdom", new EffectPersistence(TickType.CONDITIONAL),
-                null, "If you can see, then you are wise.", new Deltas().setAttributeBonusChange(Attributes.WIS, 2)));
+        this.equipEffects.add(new CreatureEffectSource.Builder("Seeing wisdom")
+                .setPersistence(new EffectPersistence(TickType.CONDITIONAL))
+                .setDescription("If you can see, then you are wise.")
+                .setOnApplication(new Deltas().setAttributeBonusChange(Attributes.WIS, 2)).build());
     }
 
     @Override

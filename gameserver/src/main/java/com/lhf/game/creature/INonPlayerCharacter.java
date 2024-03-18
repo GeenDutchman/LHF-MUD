@@ -40,7 +40,7 @@ import com.lhf.game.item.Takeable;
 import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
-import com.lhf.game.magic.concrete.DMBlessing;
+import com.lhf.game.magic.concrete.PlotArmor;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
@@ -59,7 +59,7 @@ public interface INonPlayerCharacter extends ICreature {
 
     /**
      * A BlessedFist is a {@link com.lhf.game.item.Weapon Weapon} used by those NPCs
-     * who maintain their {@link com.lhf.game.magic.concrete.DMBlessing Blessing}
+     * who maintain their {@link com.lhf.game.magic.concrete.PlotArmor Blessing}
      * from the {@link com.lhf.game.creature.DungeonMaster DungeonMaster}.
      * <p>
      * It does the full rainbow of damages, including
@@ -68,10 +68,11 @@ public interface INonPlayerCharacter extends ICreature {
      * Class}.
      */
     public static class BlessedFist extends Weapon {
-        private final static CreatureEffectSource source = new CreatureEffectSource("Blessed Punch",
-                new EffectPersistence(TickType.INSTANT),
-                new EffectResistance(EnumSet.allOf(Attributes.class), Stats.AC), "A blessed fist punches harder.",
-                new Deltas());
+        private final static CreatureEffectSource source = new CreatureEffectSource.Builder("Blessed Punch")
+                .setPersistence(new EffectPersistence(TickType.INSTANT))
+                .setResistance(new EffectResistance(EnumSet.allOf(Attributes.class), Stats.AC))
+                .setDescription("A blessed fist punches harder.").setOnApplication(new Deltas()).build();
+
         private final static String description = "This is a Fist attached to a Creature who is blessed\n";
 
         BlessedFist() {
@@ -98,7 +99,7 @@ public interface INonPlayerCharacter extends ICreature {
      * A static instance of the
      * {@link com.lhf.game.creature.INonPlayerCharacter.BlessedFist BlessedFist}
      * available to NPCs who maintain their
-     * {@link com.lhf.game.magic.concrete.DMBlessing Blessing}
+     * {@link com.lhf.game.magic.concrete.PlotArmor Blessing}
      * from the {@link com.lhf.game.creature.DungeonMaster DungeonMaster}.
      */
     public static final BlessedFist blessedFist = new BlessedFist();
@@ -211,21 +212,25 @@ public interface INonPlayerCharacter extends ICreature {
             if (cam == null || !this.owner.equals(cam.getAffected())) {
                 return this;
             }
-            Deltas ce = cam.getHighlightedDelta();
+            final Deltas ce = cam.getHighlightedDelta();
             if (ce == null) {
                 return this;
             }
-            MultiRollResult damage = cam.getDamages();
+            final MultiRollResult damage = cam.getDamages();
             if (damage == null) {
                 return this;
             }
+            final ICreature responsible = cam.getCreatureResponsible();
+            if (responsible == null) {
+                return this;
+            }
             if (ce.isOffensive()) {
-                this.lastAttackerName = Optional.of(cam.getCreatureResponsible().getName());
+                this.lastAttackerName = Optional.of(responsible.getName());
                 this.lastDamageAmount = damage.getTotal();
             }
             if (damage.getTotal() >= this.lastMassDamageAmount) {
                 this.lastMassDamageAmount = damage.getTotal();
-                this.lastMassAttackerName = Optional.of(cam.getCreatureResponsible().getName());
+                this.lastMassAttackerName = Optional.of(responsible.getName());
             }
             return this;
         }
@@ -279,7 +284,7 @@ public interface INonPlayerCharacter extends ICreature {
 
         private final String className;
         private final CreatureBuildInfo creatureBuilder;
-        protected final CreatureBuilderID id;
+        protected final CreatureBuilderID id = new CreatureBuilderID();
         private String conversationFileName = null;
         private ConversationTree conversationTree = null;
         private List<AIHandler> aiHandlers;
@@ -289,26 +294,50 @@ public interface INonPlayerCharacter extends ICreature {
         protected INPCBuildInfo() {
             this.className = this.getClass().getName();
             this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.NPC);
-            this.id = new CreatureBuilderID();
+            this.conversationFileName = null;
+            this.conversationTree = null;
             this.aiHandlers = new ArrayList<>();
             this.summonState = EnumSet.noneOf(SummonData.class);
             this.leaderName = null;
         }
 
-        public INPCBuildInfo(INPCBuildInfo other) {
-            this.className = other.getClassName();
-            this.creatureBuilder = new CreatureBuildInfo(other.creatureBuilder);
-            this.id = new CreatureBuilderID();
-            this.conversationFileName = other.getConversationFileName() != null
-                    ? new String(other.getConversationFileName())
-                    : null;
-            this.conversationTree = null;
-            ConversationTree otherTree = other.getConversationTree();
-            if (otherTree != null) {
-                this.conversationTree = otherTree.makeCopy();
+        public INPCBuildInfo(ICreatureBuildInfo basicInfo, String conversationFileName, ConversationTree tree,
+                List<AIHandler> handlers, Set<SummonData> summonState) {
+            this();
+            this.copyFromICreatureBuildInfo(basicInfo);
+            this.setConversationFileName(conversationFileName);
+            this.setConversationTree(tree != null ? tree.makeCopy() : null);
+            this.aiHandlers = handlers != null ? new ArrayList<>(handlers) : new ArrayList<>();
+            this.setSummonStates(summonState);
+        }
+
+        public INPCBuildInfo(INonPlayerCharacterBuildInfo other) {
+            this();
+            this.copyFromINonPlayerCharacterBuildInfo(other);
+        }
+
+        public INPCBuildInfo copyFromICreatureBuildInfo(ICreatureBuildInfo buildInfo) {
+            if (buildInfo != null) {
+                this.creatureBuilder.copyFrom(buildInfo).setFaction(CreatureFaction.NPC);
             }
-            this.aiHandlers = new ArrayList<>(other.getAIHandlers());
-            this.summonState = EnumSet.copyOf(other.getSummonState());
+            return this;
+        }
+
+        public INPCBuildInfo copyFromINonPlayerCharacterBuildInfo(INonPlayerCharacterBuildInfo buildInfo) {
+            if (buildInfo != null) {
+                this.copyFromICreatureBuildInfo(buildInfo);
+                this.setConversationFileName(buildInfo.getConversationFileName());
+                ConversationTree otherTree = buildInfo.getConversationTree();
+                if (otherTree != null) {
+                    this.setConversationTree(otherTree.makeCopy());
+                }
+                this.setSummonStates(buildInfo.getSummonState());
+                List<AIHandler> otherHandlers = buildInfo.getAIHandlers();
+                if (otherHandlers != null) {
+                    this.aiHandlers = new ArrayList<>(otherHandlers);
+                }
+            }
+            return this;
         }
 
         @Override
@@ -499,13 +528,13 @@ public interface INonPlayerCharacter extends ICreature {
             return creatureBuilder.getInventory();
         }
 
-        public INPCBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
-            creatureBuilder.addEquipment(slot, equipable);
+        public INPCBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable, boolean withoutEffects) {
+            creatureBuilder.addEquipment(slot, equipable, withoutEffects);
             return this;
         }
 
-        public INPCBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
-            creatureBuilder.setEquipmentSlots(slots);
+        public INPCBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots, boolean withoutEffects) {
+            creatureBuilder.setEquipmentSlots(slots, withoutEffects);
             return this;
         }
 
@@ -564,8 +593,8 @@ public interface INonPlayerCharacter extends ICreature {
             return this;
         }
 
-        public INPCBuildInfo setVocation(VocationName vocationName) {
-            creatureBuilder.setVocation(vocationName);
+        public INPCBuildInfo setVocationName(VocationName vocationName) {
+            creatureBuilder.setVocationName(vocationName);
             return this;
         }
 
@@ -574,8 +603,8 @@ public interface INonPlayerCharacter extends ICreature {
             return this;
         }
 
-        public VocationName getVocation() {
-            return creatureBuilder.getVocation();
+        public VocationName getVocationName() {
+            return creatureBuilder.getVocationName();
         }
 
         public Integer getVocationLevel() {
@@ -640,7 +669,7 @@ public interface INonPlayerCharacter extends ICreature {
      * Creature.
      * <p>
      * It will first check to see if the
-     * {@link com.lhf.game.magic.concrete.DMBlessing Blessing}
+     * {@link com.lhf.game.magic.concrete.PlotArmor Blessing}
      * is maintained. If that is the case, it will return a {@link #blessedFist}.
      * <p>
      * It will then check to see what is in the
@@ -655,9 +684,9 @@ public interface INonPlayerCharacter extends ICreature {
     @Override
     public default Weapon defaultWeapon() {
         if (this.getEquipped(EquipmentSlots.ARMOR) != null) {
-            this.removeEffectByName(DMBlessing.name);
+            this.removeEffectByName(PlotArmor.name);
         }
-        if (this.hasEffect(DMBlessing.name)) {
+        if (this.hasEffect(PlotArmor.name)) {
             return INonPlayerCharacter.blessedFist;
         }
         Equipable found = this.getEquipped(EquipmentSlots.WEAPON);

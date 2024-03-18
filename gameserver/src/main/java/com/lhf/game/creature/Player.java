@@ -30,20 +30,52 @@ public class Player extends Creature {
 
     public static class PlayerBuildInfo implements ICreatureBuildInfo {
         private final String className;
-        private User user;
+        private transient User user;
         private final CreatureBuildInfo creatureBuilder;
-        protected final CreatureBuilderID id;
+        protected final CreatureBuilderID id = new CreatureBuilderID();
+
+        public PlayerBuildInfo() {
+            this.className = this.getClass().getName();
+            this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.PLAYER);
+            this.user = null;
+        }
 
         private PlayerBuildInfo(User user) {
-            this.className = this.getClass().getName();
-            this.creatureBuilder = new CreatureBuildInfo().setFaction(CreatureFaction.PLAYER)
-                    .setName(user.getUsername());
-            this.id = new CreatureBuilderID();
-            this.user = user;
+            this();
+            this.setUser(user);
+        }
+
+        public PlayerBuildInfo(ICreatureBuildInfo buildInfo) {
+            this();
+            this.copyFromICreatureBuildInfo(buildInfo);
+        }
+
+        public static PlayerBuildInfo fromOther(PlayerBuildInfo buildInfo) {
+            return new PlayerBuildInfo(buildInfo);
         }
 
         public static PlayerBuildInfo getInstance(User user) {
+            if (user == null) {
+                return new PlayerBuildInfo();
+            }
             return new PlayerBuildInfo(user);
+        }
+
+        public PlayerBuildInfo copyFromICreatureBuildInfo(ICreatureBuildInfo buildInfo) {
+            if (buildInfo != null) {
+                this.creatureBuilder.copyFrom(buildInfo).setFaction(CreatureFaction.PLAYER);
+                if (this.user != null) {
+                    this.setName(this.user.getUsername());
+                }
+            }
+            return this;
+        }
+
+        public PlayerBuildInfo copyFromPlayerBuildInfo(PlayerBuildInfo buildInfo) {
+            if (buildInfo != null) {
+                this.copyFromICreatureBuildInfo(buildInfo);
+            }
+            return this;
         }
 
         public User getUser() {
@@ -142,13 +174,13 @@ public class Player extends Creature {
             return creatureBuilder.getInventory();
         }
 
-        public PlayerBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
-            creatureBuilder.addEquipment(slot, equipable);
+        public PlayerBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable, boolean withoutEffects) {
+            creatureBuilder.addEquipment(slot, equipable, withoutEffects);
             return this;
         }
 
-        public PlayerBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
-            creatureBuilder.setEquipmentSlots(slots);
+        public PlayerBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots, boolean withoutEffects) {
+            creatureBuilder.setEquipmentSlots(slots, withoutEffects);
             return this;
         }
 
@@ -163,6 +195,21 @@ public class Player extends Creature {
 
         public Set<CreatureEffect> getCreatureEffects() {
             return creatureBuilder.getCreatureEffects();
+        }
+
+        public PlayerBuildInfo applyEffect(CreatureEffect effect) {
+            creatureBuilder.applyEffect(effect);
+            return this;
+        }
+
+        public PlayerBuildInfo repealEffect(String name) {
+            creatureBuilder.repealEffect(name);
+            return this;
+        }
+
+        public PlayerBuildInfo repealEffect(CreatureEffect toRepeal) {
+            creatureBuilder.repealEffect(toRepeal);
+            return this;
         }
 
         public PlayerBuildInfo defaultFlavorReactions() {
@@ -216,8 +263,8 @@ public class Player extends Creature {
             return this;
         }
 
-        public PlayerBuildInfo setVocation(VocationName vocationName) {
-            creatureBuilder.setVocation(vocationName);
+        public PlayerBuildInfo setVocationName(VocationName vocationName) {
+            creatureBuilder.setVocationName(vocationName);
             return this;
         }
 
@@ -226,8 +273,8 @@ public class Player extends Creature {
             return this;
         }
 
-        public VocationName getVocation() {
-            return creatureBuilder.getVocation();
+        public VocationName getVocationName() {
+            return creatureBuilder.getVocationName();
         }
 
         public Integer getVocationLevel() {
@@ -244,6 +291,14 @@ public class Player extends Creature {
             visitor.visit(this);
         }
 
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("PlayerBuildInfo [user=").append(user).append(", creatureBuilder=").append(creatureBuilder)
+                    .append(", id=").append(id).append("]");
+            return builder.toString();
+        }
+
     }
 
     public Player(PlayerBuildInfo builder,
@@ -254,6 +309,9 @@ public class Player extends Creature {
     }
 
     public static PlayerBuildInfo getPlayerBuilder(User user) {
+        if (user == null) {
+            return new PlayerBuildInfo();
+        }
         return new PlayerBuildInfo(user);
     }
 

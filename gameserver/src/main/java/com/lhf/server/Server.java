@@ -13,13 +13,16 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.gson.JsonParseException;
 import com.lhf.game.Game;
 import com.lhf.game.Game.GameBuilder;
+import com.lhf.game.creature.Player;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.events.BadFatalEvent;
 import com.lhf.messages.events.BadUserDuplicationEvent;
 import com.lhf.messages.events.UserLeftEvent;
 import com.lhf.messages.events.WelcomeEvent;
@@ -276,8 +279,16 @@ public class Server implements ServerInterface, ConnectionListener {
                 Server.this.clientManager.addUserForClient(client.getClientID(), user.getUserID());
                 client.setSuccessor(user);
                 ctx.setUser(user);
-                Server.this.game.addNewPlayerToGame(user, msg.vocationRequest());
-                return ctx.handled();
+                try {
+                    Player.PlayerBuildInfo buildInfo = msg.getBuildInfo();
+                    Server.this.game.addNewPlayerToGame(user, buildInfo);
+                    return ctx.handled();
+                } catch (JsonParseException e) {
+                    Server.this.log(Level.WARNING, () -> e.toString());
+                    ctx.receive(BadFatalEvent.getBuilder().setException(e).setNotBroadcast()
+                            .setExtraInfo("Cannot build a player with that information."));
+                    return ctx.failhandle();
+                }
             }
             return ctx.failhandle();
         }

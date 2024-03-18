@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import com.lhf.TaggedExaminable;
 import com.lhf.messages.events.SeeEvent;
+import com.lhf.server.interfaces.NotNull;
 
 public abstract class EntityEffectSource implements TaggedExaminable, Comparable<EntityEffectSource> {
     protected final String className;
@@ -12,16 +13,75 @@ public abstract class EntityEffectSource implements TaggedExaminable, Comparable
     protected final EffectResistance resistance;
     protected String description;
 
-    public EntityEffectSource(String name, EffectPersistence persistence, EffectResistance resistance,
-            String description) {
-        this.className = this.getClass().getName();
-        this.name = name;
-        this.persistence = persistence;
-        this.resistance = resistance;
-        this.description = description;
+    public static abstract class Builder<T extends Builder<T>> {
+        private String name;
+        private EffectPersistence persistence;
+        private EffectResistance resistance;
+        private String description;
+
+        public Builder(@NotNull String name) {
+            this.name = name;
+            this.persistence = null;
+            this.resistance = null;
+            this.description = name;
+        }
+
+        public abstract T getThis();
+
+        public String getName() {
+            return name;
+        }
+
+        public T setName(String name) {
+            this.name = name != null && !name.isBlank() ? name : String.format("Effect %d", this.hashCode());
+            return getThis();
+        }
+
+        public EffectPersistence getPersistence() {
+            return persistence;
+        }
+
+        public TickType getTickType() {
+            return persistence != null ? persistence.getTickSize() : null;
+        }
+
+        public T setPersistence(EffectPersistence persistence) {
+            this.persistence = persistence;
+            return getThis();
+        }
+
+        public T instantPersistence() {
+            this.persistence = new EffectPersistence(TickType.INSTANT);
+            return getThis();
+        }
+
+        public EffectResistance getResistance() {
+            return resistance;
+        }
+
+        public T setResistance(EffectResistance resistance) {
+            this.resistance = resistance;
+            return getThis();
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public T setDescription(String description) {
+            this.description = description;
+            return getThis();
+        }
+
     }
 
-    public abstract EntityEffectSource makeCopy();
+    protected EntityEffectSource(Builder<?> builder) {
+        this.className = this.getClass().getName();
+        this.name = builder.getName();
+        this.persistence = builder.getPersistence();
+        this.resistance = builder.getResistance();
+        this.description = builder.getDescription();
+    }
 
     public EffectPersistence getPersistence() {
         return persistence;

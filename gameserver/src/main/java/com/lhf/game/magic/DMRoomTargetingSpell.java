@@ -56,9 +56,10 @@ public class DMRoomTargetingSpell extends ISpell<DMRoomEffect> {
             for (EntityEffectSource source : this.getEntry().getEffectSources()) {
                 DMRoomEffectSource dmRoomEffectSource;
                 if (source instanceof DMRoomEffectSource correctlyTypedSource) {
-                    dmRoomEffectSource = correctlyTypedSource.makeCopy();
+                    dmRoomEffectSource = correctlyTypedSource;
                 } else if (source instanceof RoomEffectSource) {
-                    dmRoomEffectSource = new DMRoomEffectSource((RoomEffectSource) source); // already copies
+                    dmRoomEffectSource = DMRoomEffectSource.fromRoomEffectSource((RoomEffectSource) source); // already
+                                                                                                             // copies
                 } else {
                     continue;
                 }

@@ -18,13 +18,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.game.CreatureContainer;
+import com.lhf.game.EffectPersistence;
 import com.lhf.game.Game;
+import com.lhf.game.TickType;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;
+import com.lhf.game.creature.QuestEffect;
+import com.lhf.game.creature.Player.PlayerBuildInfo;
+import com.lhf.game.creature.QuestSource;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
@@ -32,6 +38,7 @@ import com.lhf.game.creature.intelligence.handlers.SilencedHandler;
 import com.lhf.game.creature.intelligence.handlers.SpeakOnOtherEntry;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
+import com.lhf.game.enums.Stats;
 import com.lhf.game.item.AItem;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.concrete.Corpse;
@@ -50,6 +57,7 @@ import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.BadTargetSelectedEvent;
 import com.lhf.messages.events.BadTargetSelectedEvent.BadTargetOption;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.GameEventTester;
 import com.lhf.messages.events.RoomAffectedEvent;
 import com.lhf.messages.events.RoomEnteredEvent;
 import com.lhf.messages.events.RoomExitedEvent;
@@ -233,8 +241,15 @@ public class DMRoom extends Room {
             dmGary.setName("Gary Lovejax");
 
             lewdAIHandler.addPartner(dmGary.getName()).addPartner(dmAda.getName());
+            final GameEventTester questTester = new GameEventTester(GameEventType.FIGHT_OVER,
+                    Set.of("You have survived this battle"), null, TickType.BATTLE, false);
+            QuestSource questSource = QuestSource.getQuestBuilder("Survive").setDescription("Survive two battles")
+                    .setDeltaForTester(questTester,
+                            new Deltas().setStatChange(Stats.MAXHP, 5).setStatChange(Stats.CURRENTHP, 5))
+                    .setPersistence(new EffectPersistence(2, questTester)).build();
             RestArea.Builder restBuilder = RestArea.getBuilder().setLewd(LewdStyle.QUICKIE)
-                    .setLewdProduct(new LewdBabyMaker());
+                    .setLewdProduct(new LewdBabyMaker(Player.getPlayerBuilder(null)
+                            .applyEffect(new QuestEffect(questSource, null, questSource))));
             CreatureFilterQuery query = new CreatureFilterQuery();
             query.filters.add(CreatureFilters.NAME);
             query.name = "Lovejax";
@@ -311,9 +326,8 @@ public class DMRoom extends Room {
         if (this.filterCreatures(EnumSet.of(CreatureContainer.CreatureFilters.TYPE), null, null, null, null,
                 DungeonMaster.class, null).size() < 2) {
             this.log(Level.INFO, () -> "Conditions met to create and add Player automatically");
-            CreatureFactory factory = new CreatureFactory(this, null, null, true);
-            factory.visit(Player.getPlayerBuilder(user));
-            return this.addNewPlayer(factory.getBuiltCreatures().getPlayers().first());
+            CreatureFactory factory = new CreatureFactory();
+            return this.addNewPlayer(factory.buildPlayer(Player.getPlayerBuilder(user)));
         }
         boolean added = this.users.add(user);
         if (added) {
@@ -325,6 +339,9 @@ public class DMRoom extends Room {
     }
 
     public User getUser(String username) {
+        if (username == null) {
+            return null;
+        }
         for (User user : this.users) {
             if (username.equals(user.getUsername())) {
                 return user;
@@ -334,6 +351,9 @@ public class DMRoom extends Room {
     }
 
     public User removeUser(String username) {
+        if (username == null) {
+            return null;
+        }
         for (User user : this.users) {
             if (username.equals(user.getUsername())) {
                 this.users.remove(user);
@@ -345,6 +365,9 @@ public class DMRoom extends Room {
     }
 
     public boolean addNewPlayer(Player player) {
+        if (this.lands.size() <= 0) {
+            return this.addCreature(player);
+        }
         return this.lands.get(0).addPlayer(player);
     }
 
@@ -366,7 +389,7 @@ public class DMRoom extends Room {
     }
 
     @Override
-    public RoomAffectedEvent processEffect(RoomEffect effect) {
+    public RoomAffectedEvent processEffectApplication(RoomEffect effect) {
         if (effect instanceof DMRoomEffect dmRoomEffect) {
             this.logger.log(Level.FINER, () -> String.format("DMRoom processing effect '%s'", dmRoomEffect.getName()));
             if (dmRoomEffect.getEnsoulUsername() != null) {
@@ -394,12 +417,20 @@ public class DMRoom extends Room {
                 }
                 Corpse corpse = (Corpse) maybeCorpse.get();
                 this.removeItem(corpse);
-                CreatureFactory factory = new CreatureFactory(this, null, null, true);
-                factory.visit(Player.getPlayerBuilder(user).setVocation(dmRoomEffect.getVocation()).setCorpse(corpse));
-                this.addNewPlayer(factory.getBuiltCreatures().getPlayers().first());
+                CreatureFactory factory = new CreatureFactory();
+                PlayerBuildInfo playerBuilder = Player.getPlayerBuilder(user).setVocation(dmRoomEffect.getVocation())
+                        .setCorpse(corpse);
+                this.addNewPlayer(factory.buildPlayer(playerBuilder));
             }
         }
-        return super.processEffect(effect);
+        return super.processEffectApplication(effect);
+    }
+
+    @Override
+    public void acceptAreaVisitor(AreaVisitor visitor) {
+        if (visitor != null) {
+            visitor.visit(this);
+        }
     }
 
     protected class SayHandler extends AreaSayHandler {

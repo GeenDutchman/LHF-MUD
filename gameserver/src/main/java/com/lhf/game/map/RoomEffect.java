@@ -1,21 +1,23 @@
 package com.lhf.game.map;
 
+import java.util.NavigableSet;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.ICreature;
-import com.lhf.game.creature.IMonster;
-import com.lhf.game.creature.MonsterBuildInfo;
-import com.lhf.game.creature.INonPlayerCharacter;
+import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
+import com.lhf.game.creature.MonsterBuildInfo;
 import com.lhf.game.creature.SummonedMonster;
 import com.lhf.game.creature.SummonedNPC;
-import com.lhf.messages.CommandChainHandler;
 import com.lhf.server.interfaces.NotNull;
 
 public class RoomEffect extends EntityEffect {
-    protected INonPlayerCharacter summonedNPC;
-    protected IMonster summonedMonster;
+    protected SummonedNPC summonedNPC;
+    protected SummonedMonster summonedMonster;
 
     public RoomEffect(@NotNull RoomEffect other) {
         super(other.source, other.creatureResponsible, other.generatedBy);
@@ -41,63 +43,66 @@ public class RoomEffect extends EntityEffect {
         return this.getSource().getMonsterToSummon();
     }
 
-    public INonPlayerCharacter getCachedNPC() {
+    public SortedSet<ICreatureBuildInfo> getBuildInfos() {
+        TreeSet<ICreatureBuildInfo> buildInfos = new TreeSet<>();
+        INPCBuildInfo npcSummon = this.getNPCToSummon();
+        if (npcSummon != null) {
+            buildInfos.add(npcSummon);
+        }
+        MonsterBuildInfo monsterSummon = this.getMonsterToSummon();
+        if (monsterSummon != null) {
+            buildInfos.add(monsterSummon);
+        }
+        return buildInfos;
+    }
+
+    public SummonedNPC getCachedNPC() {
         return this.summonedNPC;
     }
 
-    public IMonster getCachedMonster() {
+    public SummonedMonster getCachedMonster() {
         return this.summonedMonster;
     }
 
-    public INonPlayerCharacter getQuickSummonedNPC(CommandChainHandler successor) {
+    public SummonedNPC getSummonedNPC(CreatureFactory factory) {
         if (this.summonedNPC == null) {
             INPCBuildInfo builder = getNPCToSummon();
             if (builder != null) {
-                CreatureFactory factory = CreatureFactory.withAIRunner(successor, null);
+                if (factory == null) {
+                    factory = new CreatureFactory();
+                }
                 factory.visit(builder);
-                this.summonedNPC = new SummonedNPC(factory.getBuiltCreatures().getNpcs().first(),
-                        builder.getSummonState(), this.creatureResponsible(), this.getPersistence().getTicker());
+                this.summonedNPC = factory.summonNPC(builder, this.creatureResponsible(),
+                        this.getPersistence().getTicker());
             }
-        }
-        return summonedNPC;
-    }
-
-    public IMonster getQuickSummonedMonster(CommandChainHandler successor) {
-        if (this.summonedMonster == null) {
-            MonsterBuildInfo builder = getMonsterToSummon();
-            if (builder != null) {
-                CreatureFactory factory = CreatureFactory.withAIRunner(successor, null);
-                factory.visit(builder);
-                this.summonedMonster = new SummonedMonster(factory.getBuiltCreatures().getMonsters().first(),
-                        builder.getSummonState(), this.creatureResponsible(), this.getPersistence().getTicker());
-            }
-        }
-        return this.summonedMonster;
-    }
-
-    public INonPlayerCharacter getSummonedNPC(CommandChainHandler successor) {
-        if (this.summonedNPC == null) {
-            INPCBuildInfo builder = getNPCToSummon();
-            if (builder != null) {
-                CreatureFactory factory = new CreatureFactory(successor, null, null, false);
-                factory.visit(builder);
-                this.summonedMonster = new SummonedMonster(factory.getBuiltCreatures().getMonsters().first(),
-                        builder.getSummonState(), this.creatureResponsible(), this.getPersistence().getTicker());
-            }
+        } else if (factory != null) {
+            factory.getBuiltCreatures().accept(this.summonedNPC);
         }
         return this.summonedNPC;
     }
 
-    public IMonster getSummonedMonster(CommandChainHandler successor) {
+    public SummonedMonster getSummonedMonster(CreatureFactory factory) {
         if (this.summonedMonster == null) {
             MonsterBuildInfo builder = getMonsterToSummon();
             if (builder != null) {
-                CreatureFactory factory = new CreatureFactory(successor, null, null, false);
-                factory.visit(builder);
-                this.summonedMonster = new SummonedMonster(factory.getBuiltCreatures().getMonsters().first(),
-                        builder.getSummonState(), this.creatureResponsible(), this.getPersistence().getTicker());
+                if (factory == null) {
+                    factory = new CreatureFactory();
+                }
+                this.summonedMonster = factory.summonMonster(builder, this.creatureResponsible(),
+                        this.getPersistence().getTicker());
             }
+        } else if (factory != null) {
+            factory.getBuiltCreatures().accept(this.summonedMonster);
         }
         return this.summonedMonster;
+    }
+
+    public NavigableSet<ICreature> getCreatures(CreatureFactory factory) {
+        if (factory == null) {
+            factory = new CreatureFactory();
+        }
+        this.getSummonedMonster(factory);
+        this.getSummonedNPC(factory);
+        return factory.getBuiltCreatures().getICreatures();
     }
 }

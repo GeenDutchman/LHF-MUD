@@ -4,9 +4,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
-import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffectSource;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.dice.DamageDice;
@@ -24,10 +22,11 @@ public class Shortsword extends Weapon {
 
     public Shortsword() {
         super("Shortsword", Shortsword.description, Set.of(
-                new CreatureEffectSource("Slash", new EffectPersistence(TickType.INSTANT),
-                        new EffectResistance(EnumSet.of(Attributes.STR), Stats.AC),
-                        "Swords cut things",
-                        new Deltas().addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.SLASHING)))),
+                new CreatureEffectSource.Builder("Slash").instantPersistence()
+                        .setResistance(new EffectResistance(EnumSet.of(Attributes.STR), Stats.AC))
+                        .setDescription("Swords cut things")
+                        .setOnApplication(new Deltas().addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.SLASHING)))
+                        .build()),
                 DamageFlavor.SLASHING, WeaponSubtype.MARTIAL);
 
         this.slots = List.of(EquipmentSlots.WEAPON);

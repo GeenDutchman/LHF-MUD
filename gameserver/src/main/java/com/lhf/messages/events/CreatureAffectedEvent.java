@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.StringJoiner;
 
@@ -10,6 +11,7 @@ import com.lhf.Taggable.BasicTaggable;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
+import com.lhf.game.enums.DamageFlavor;
 import com.lhf.game.enums.Stats;
 import com.lhf.messages.GameEventType;
 
@@ -43,20 +45,20 @@ public class CreatureAffectedEvent extends GameEvent {
         /**
          * Pulls data from the effect, defaults to application deltas
          * 
-         * Prefer the piecemeal {@link #setCreatureResponsible(ICreature)},
-         * {@link #setGeneratedBy(Taggable)},
-         * {@link #setDamages(MultiRollResult)} and
-         * {@link #setHighlightedDelta(Deltas)}
+         * @deprecated
+         *             Prefer the piecemeal {@link #setCreatureResponsible(ICreature)},
+         *             {@link #setGeneratedBy(Taggable)},
+         *             {@link #setDamages(MultiRollResult)} and
+         *             {@link #setHighlightedDelta(Deltas)}
          * 
          * @param effect
          * @return
          */
+        @Deprecated
         public Builder fromCreatureEffect(CreatureEffect effect) {
             if (effect != null) {
                 this.setCreatureResponsible(effect.creatureResponsible())
-                        .setGeneratedBy(effect.getGeneratedBy())
-                        .setHighlightedDelta(effect.getApplicationDeltas())
-                        .setDamages(effect.getApplicationDamageResult());
+                        .setGeneratedBy(effect.getGeneratedBy());
             }
             return this;
         }
@@ -135,6 +137,14 @@ public class CreatureAffectedEvent extends GameEvent {
         if (this.highlightedDelta != null) {
             return this.highlightedDelta.isOffensive();
         }
+        if (this.damages != null) {
+            EnumSet<DamageFlavor> offenseSet = EnumSet.allOf(DamageFlavor.class);
+            offenseSet.remove(DamageFlavor.HEALING);
+            int offenseTotal = this.damages.getByFlavors(offenseSet, true);
+            if (offenseTotal != 0) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -157,13 +167,20 @@ public class CreatureAffectedEvent extends GameEvent {
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner(" ");
-        if (this.getCreatureResponsible() != null) {
-            sj.add(this.getCreatureResponsible().getColorTaggedName()).add("used");
-            sj.add(this.getGeneratedBy().getColorTaggedName()).add("on");
+        if (this.creatureResponsible != null) {
+            sj.add(this.creatureResponsible.getColorTaggedName());
+            if (this.generatedBy != null) {
+                sj.add("used").add(this.generatedBy.getColorTaggedName()).add("on");
+            } else {
+                sj.add("affected");
+            }
+            sj.add(this.addressCreature(this.affected, false) + "!");
+        } else if (this.generatedBy != null) {
+            sj.add(this.generatedBy.getColorTaggedName()).add("affected")
+                    .add(this.addressCreature(this.affected, false) + "!");
         } else {
-            sj.add(this.getGeneratedBy().getColorTaggedName()).add("affected");
+            sj.add(this.addressCreature(creatureResponsible, false)).add("is affected!");
         }
-        sj.add(this.addressCreature(this.affected, false) + "!");
         sj.add("\r\n");
         MultiRollResult damageResults = this.getDamages();
         if (damageResults != null && !damageResults.isEmpty()) {

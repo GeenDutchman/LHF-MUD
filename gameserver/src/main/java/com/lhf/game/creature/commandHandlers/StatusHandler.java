@@ -29,7 +29,7 @@ public class StatusHandler implements CreatureCommandHandler {
         if (cmd != null && cmd.getType() == this.getHandleType()) {
             ICreature creature = ctx.getCreature();
             ctx.receive(
-                    CreatureStatusRequestedEvent.getBuilder().setNotBroadcast().setFromCreature(creature, true)
+                    CreatureStatusRequestedEvent.getStatusBuilder().setNotBroadcast().setFromCreature(creature, true)
                             .Build());
             return ctx.handled();
         }

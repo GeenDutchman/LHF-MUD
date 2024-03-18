@@ -5,6 +5,7 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.DungeonMaster.DungeonMasterBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
@@ -67,8 +68,11 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
         return this.builtCreatures;
     }
 
-    @Override
-    public void visit(PlayerBuildInfo buildInfo) {
+    public Player buildPlayer(PlayerBuildInfo buildInfo) {
+        if (buildInfo == null) {
+            this.logger.log(Level.INFO, "Null PlayerBuildInfo provided, skipping...");
+            return null;
+        }
         final User user = buildInfo.getUser();
         if (user == null) {
             final String error = String.format("%s must declare a User to create a Player!", buildInfo);
@@ -77,6 +81,12 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
         }
         Player built = new Player(buildInfo, user, this.successor);
         this.builtCreatures.visit(built);
+        return built;
+    }
+
+    @Override
+    public void visit(PlayerBuildInfo buildInfo) {
+        this.buildPlayer(buildInfo);
     }
 
     private ConversationTree loadConversationTree(INonPlayerCharacterBuildInfo buildInfo) {
@@ -103,34 +113,91 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
         return tree;
     }
 
-    @Override
-    public void visit(MonsterBuildInfo buildInfo) {
+    public Monster buildMonster(MonsterBuildInfo buildInfo) {
+        if (buildInfo == null) {
+            this.logger.log(Level.INFO, "Null MonsterBuildInfo provided, skipping...");
+            return null;
+        }
         final ConversationTree tree = this.loadConversationTree(buildInfo);
         final BasicAI brain = this.brainProducer.apply(buildInfo);
         Monster monster = new Monster(buildInfo, brain, successor,
                 tree);
         brain.setNPC(monster);
         this.builtCreatures.visit(monster);
+        return monster;
+    }
+
+    public SummonedMonster summonMonster(MonsterBuildInfo buildInfo, ICreature summoner, Ticker timeLeft) {
+        if (buildInfo == null) {
+            this.logger.log(Level.INFO, "Null MonsterBuildInfo provided, skipping...");
+            return null;
+        }
+        final ConversationTree tree = this.loadConversationTree(buildInfo);
+        final BasicAI brain = this.brainProducer.apply(buildInfo);
+        Monster monster = new Monster(buildInfo, brain, successor,
+                tree);
+        brain.setNPC(monster);
+        SummonedMonster summonedMonster = new SummonedMonster(monster, buildInfo.getSummonState(), summoner, timeLeft);
+        this.builtCreatures.visit(summonedMonster);
+        return summonedMonster;
     }
 
     @Override
-    public void visit(INPCBuildInfo buildInfo) {
+    public void visit(MonsterBuildInfo buildInfo) {
+        this.buildMonster(buildInfo);
+    }
+
+    public NonPlayerCharacter buildNPC(INPCBuildInfo buildInfo) {
+        if (buildInfo == null) {
+            this.logger.log(Level.INFO, "Null INPCBuildInfo provided, skipping...");
+            return null;
+        }
         final ConversationTree tree = this.loadConversationTree(buildInfo);
         final BasicAI brain = this.brainProducer.apply(buildInfo);
         NonPlayerCharacter npc = new NonPlayerCharacter(buildInfo,
                 brain, successor, tree);
         brain.setNPC(npc);
         this.builtCreatures.visit(npc);
+        return npc;
+    }
+
+    public SummonedNPC summonNPC(INPCBuildInfo buildInfo, ICreature summoner, Ticker timeLeft) {
+        if (buildInfo == null) {
+            this.logger.log(Level.INFO, "Null INPCBuildInfo provided, skipping...");
+            return null;
+        }
+        final ConversationTree tree = this.loadConversationTree(buildInfo);
+        final BasicAI brain = this.brainProducer.apply(buildInfo);
+        NonPlayerCharacter npc = new NonPlayerCharacter(buildInfo,
+                brain, successor, tree);
+        brain.setNPC(npc);
+        SummonedNPC summonedNPC = new SummonedNPC(npc, buildInfo.getSummonState(), summoner, timeLeft);
+        this.builtCreatures.visit(summonedNPC);
+        return summonedNPC;
     }
 
     @Override
-    public void visit(DungeonMasterBuildInfo buildInfo) {
+    public void visit(INPCBuildInfo buildInfo) {
+        this.buildNPC(buildInfo);
+    }
+
+    public DungeonMaster buildDungeonMaster(DungeonMasterBuildInfo buildInfo) {
+        if (buildInfo == null) {
+            this.logger.log(Level.INFO, "Null DungeonMasterBuildInfo provided, skipping...");
+            return null;
+        }
         final ConversationTree tree = this.loadConversationTree(buildInfo);
         final BasicAI brain = this.brainProducer.apply(buildInfo);
         DungeonMaster dm = new DungeonMaster(buildInfo, brain,
                 successor, tree);
         brain.setNPC(dm);
         this.builtCreatures.visit(dm);
+        return dm;
+    }
+
+    @Override
+    public void visit(DungeonMasterBuildInfo buildInfo) {
+        this.buildDungeonMaster(buildInfo);
     }
 
     @Override

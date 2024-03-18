@@ -6,7 +6,6 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -19,9 +18,7 @@ import java.util.stream.Collectors;
 
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
-import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
-import com.lhf.game.TickType;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.commandHandlers.EquipHandler;
@@ -54,7 +51,6 @@ import com.lhf.game.map.SubArea.SubAreaSort;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
-import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
@@ -136,11 +132,13 @@ public interface ICreature
         private static final String description = "This is a Fist attached to a Creature \n";
 
         Fist() {
-            super("Fist", Fist.description, Set.of(
-                    new CreatureEffectSource("Punch", new EffectPersistence(TickType.INSTANT),
-                            new EffectResistance(EnumSet.of(Attributes.STR, Attributes.DEX), Stats.AC),
-                            "Fists punch things",
-                            new Deltas().addDamage(new DamageDice(1, DieType.TWO, DamageFlavor.BLUDGEONING)))),
+            super("Fist", Fist.description,
+                    Set.of(CreatureEffectSource.getCreatureEffectBuilder("Punch").instantPersistence()
+                            .setResistance(new EffectResistance(EnumSet.of(Attributes.STR, Attributes.DEX), Stats.AC))
+                            .setDescription("Fists punch things")
+                            .setOnApplication(
+                                    new Deltas().addDamage(new DamageDice(1, DieType.TWO, DamageFlavor.BLUDGEONING)))
+                            .build()),
                     DamageFlavor.BLUDGEONING, WeaponSubtype.CREATUREPART);
 
             this.types = List.of(EquipmentTypes.SIMPLEMELEEWEAPONS, EquipmentTypes.MONSTERPART);
@@ -214,25 +212,6 @@ public interface ICreature
     public default ClientID getClientID() {
         CommandInvoker controller = this.getController();
         return controller != null ? controller.getClientID() : null;
-    }
-
-    @Override
-    default void tick(GameEvent tickEvent) {
-        if (tickEvent == null) {
-            return;
-        }
-        NavigableSet<CreatureEffect> effects = this.getMutableEffects();
-        if (effects != null) {
-            effects.removeIf(effect -> {
-                if (effect.tick(tickEvent)) {
-                    final Deltas deltas = effect.getDeltasForTick(tickEvent.getTickType());
-                    if (deltas != null) {
-                        this.processEffectDelta(effect, deltas);
-                    }
-                }
-                return effect.isReadyForRemoval();
-            });
-        }
     }
 
     @Override
@@ -581,8 +560,6 @@ public interface ICreature
     @Override
     public default String printDescription() {
         StringBuilder sb = new StringBuilder();
-        String statusString = CreatureStatusRequestedEvent.getBuilder().setFromCreature(this, false).Build().toString();
-        sb.append(statusString).append("\r\n");
         Map<EquipmentSlots, Equipable> equipped = this.getEquipmentSlots();
         if (equipped.get(EquipmentSlots.HAT) != null) {
             sb.append("On their head is:").append(equipped.get(EquipmentSlots.HAT).getColorTaggedName());
@@ -611,7 +588,10 @@ public interface ICreature
         return ctx;
     }
 
-    public CreatureAffectedEvent.Builder processEffectDelta(CreatureEffect creatureEffect, Deltas deltas);
+    @Override
+    default SeeEvent produceMessage() {
+        return this.produceMessage(CreatureStatusRequestedEvent.getStatusBuilder().setFromCreature(this));
+    }
 
     /**
      * Produces a {@link com.lhf.messages.events.SeeEvent SeeOutMessage}
@@ -619,9 +599,9 @@ public interface ICreature
      * Effects} upon it.
      */
     @Override
-    public default SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
+    public default SeeEvent produceMessage(SeeEvent.ABuilder<?> seeOutMessage) {
         if (seeOutMessage == null) {
-            seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
+            seeOutMessage = CreatureStatusRequestedEvent.getStatusBuilder().setFromCreature(this);
         }
         seeOutMessage.setExaminable(this);
         for (CreatureEffect effect : this.getEffects()) {

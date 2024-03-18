@@ -1,6 +1,10 @@
 package com.lhf.messages.events;
 
+import java.util.NavigableSet;
+
+import com.lhf.Taggable.BasicTaggable;
 import com.lhf.game.TickType;
+import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
@@ -9,7 +13,7 @@ import com.lhf.game.enums.HealthBuckets;
 import com.lhf.game.enums.Stats;
 import com.lhf.messages.GameEventType;
 
-public class CreatureStatusRequestedEvent extends GameEvent {
+public class CreatureStatusRequestedEvent extends SeeEvent {
     private final static TickType tickType = TickType.ACTION;
     private final boolean full;
     private final String name;
@@ -25,7 +29,7 @@ public class CreatureStatusRequestedEvent extends GameEvent {
     private final Integer vocationLevel;
     private final String vocationResources;
 
-    public static class Builder extends GameEvent.Builder<Builder> {
+    public static class Builder extends SeeEvent.ABuilder<Builder> {
         private boolean full;
         private String name;
         private String colorTaggedName;
@@ -44,25 +48,55 @@ public class CreatureStatusRequestedEvent extends GameEvent {
             super(GameEventType.STATUS);
         }
 
+        public Builder setFromCreature(ICreature creature) {
+            return this.setFromCreature(creature, false);
+        }
+
         public Builder setFromCreature(ICreature creature, boolean full) {
+            this.setExaminable(creature);
             this.full = full;
             this.name = creature.getName();
             this.colorTaggedName = creature.getColorTaggedName();
             this.race = creature.getCreatureRace();
+            this.addExtraInfo(String.format("Race:%s.", this.race != null ? this.race : "None"));
             this.faction = creature.getFaction();
+            this.addExtraInfo(String.format("Faction:%s.", this.faction));
             this.healthBucket = HealthBuckets.calculate(creature.getStats().getOrDefault(Stats.CURRENTHP, 1),
                     creature.getStats().getOrDefault(Stats.MAXHP, 0));
+            this.addSeen("Health", this.healthBucket);
             this.vocationName = creature.getVocation() != null ? creature.getVocation().getVocationName() : null;
             this.vocationLevel = creature.getVocation() != null ? creature.getVocation().getLevel() : null;
+            if (this.vocationName != null) {
+                this.addExtraInfo(String.format("Vocation:%s%s.", this.vocationName.getColorTaggedName(),
+                        this.vocationLevel != null ? this.vocationLevel : ""));
+            }
             if (this.full) {
                 this.vocationResources = creature.getVocation() != null
                         && creature.getVocation().getResourcePool() != null
                                 ? creature.getVocation().getResourcePool().print()
                                 : null;
+                if (this.vocationResources != null) {
+                    this.addExtraInfo(this.vocationResources);
+                }
                 this.currentHealth = creature.getStats().get(Stats.CURRENTHP);
                 this.maxHealth = creature.getStats().get(Stats.MAXHP);
+                if (this.currentHealth != null && this.maxHealth != null) {
+                    this.addSeen("Health", BasicTaggable.customTaggable("<health>",
+                            String.format("%d/%d", this.currentHealth, this.maxHealth), "</health>"));
+                }
                 this.armorClass = creature.getStats().get(Stats.AC);
+                if (this.armorClass != null) {
+                    this.addExtraInfo(String.format("Armor:%s.", this.armorClass));
+                }
                 this.attributes = creature.getAttributes();
+                if (this.attributes != null) {
+                    this.addExtraInfo(String.format("Attributes:%s.", this.attributes.toString()));
+                }
+                final NavigableSet<CreatureEffect> effects = creature.getEffects();
+                if (effects != null) {
+                    effects.stream().filter(effect -> effect != null).map(effect -> effect.getSource())
+                            .forEachOrdered(source -> this.addEffector(source));
+                }
             } else {
                 this.vocationResources = null;
                 this.currentHealth = null;
@@ -125,63 +159,6 @@ public class CreatureStatusRequestedEvent extends GameEvent {
             return vocationResources;
         }
 
-        /*
-         * public Builder setFull(boolean full) {
-         * this.full = full;
-         * return this;
-         * }
-         * 
-         * public Builder setName(String name) {
-         * this.name = name;
-         * return this;
-         * }
-         * 
-         * public Builder setColorTaggedName(String colorTaggedName) {
-         * this.colorTaggedName = colorTaggedName;
-         * return this;
-         * }
-         * 
-         * public Builder setRace(String race) {
-         * this.race = race;
-         * return this;
-         * }
-         * 
-         * public Builder setFaction(CreatureFaction faction) {
-         * this.faction = faction;
-         * return this;
-         * }
-         * 
-         * public Builder setHealthBucket(HealthBuckets healthBucket) {
-         * this.healthBucket = healthBucket;
-         * return this;
-         * }
-         * 
-         * public Builder setCurrentHealth(Integer currentHealth) {
-         * this.currentHealth = currentHealth;
-         * return this;
-         * }
-         * 
-         * public Builder setMaxHealth(Integer maxHealth) {
-         * this.maxHealth = maxHealth;
-         * return this;
-         * }
-         * 
-         * public Builder setArmorClass(Integer armorClass) {
-         * this.armorClass = armorClass;
-         * return this;
-         * }
-         * 
-         * public Builder setAttributes(AttributeBlock attributes) {
-         * this.attributes = attributes;
-         * return this;
-         * }
-         * 
-         * public Builder setVocationName(VocationName vocationName) {
-         * this.vocationName = vocationName;
-         * return this;
-         * }
-         */
-
         @Override
         public CreatureStatusRequestedEvent Build() {
             return new CreatureStatusRequestedEvent(this);
@@ -194,7 +171,7 @@ public class CreatureStatusRequestedEvent extends GameEvent {
 
     }
 
-    public static Builder getBuilder() {
+    public static Builder getStatusBuilder() {
         return new Builder();
     }
 
@@ -213,46 +190,6 @@ public class CreatureStatusRequestedEvent extends GameEvent {
         this.maxHealth = builder.getMaxHealth();
         this.armorClass = builder.getArmorClass();
         this.attributes = builder.getAttributes();
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        if (this.colorTaggedName != null) {
-            sb.append("Name: ").append(this.colorTaggedName).append("\r\n");
-        } else if (this.name != null) {
-            sb.append("Name: ").append(this.name).append("\r\n");
-        }
-        if (this.race != null) {
-            sb.append("Race: ").append(this.race).append("\r\n");
-        }
-        if (this.faction != null) {
-            sb.append("Faction: ").append(this.faction.toString()).append("\r\n");
-        }
-        if (this.vocationName != null) {
-            sb.append("Vocation: ").append(this.vocationName.getColorTaggedName());
-            if (this.vocationLevel != null) {
-                sb.append(" ").append(this.vocationLevel);
-            }
-            if (this.vocationResources != null) {
-                sb.append(" ").append(this.vocationResources);
-            }
-            sb.append("\r\n");
-        }
-        if (this.healthBucket != null) {
-            sb.append("Health: ").append(this.healthBucket.getColorTaggedName());
-        }
-        if (this.full && this.currentHealth != null && this.maxHealth != null) {
-            sb.append(" (").append(this.currentHealth).append("/").append(this.maxHealth).append(")");
-        }
-        sb.append("\r\n");
-        if (this.full && this.armorClass != null) {
-            sb.append("Armor: ").append(this.armorClass).append("\r\n");
-        }
-        if (this.full && this.attributes != null) {
-            sb.append("Attributes:\r\n").append(this.attributes.toString());
-        }
-        return sb.toString();
     }
 
     public boolean isFull() {
@@ -293,6 +230,18 @@ public class CreatureStatusRequestedEvent extends GameEvent {
 
     public AttributeBlock getAttributes() {
         return attributes;
+    }
+
+    public VocationName getVocationName() {
+        return vocationName;
+    }
+
+    public Integer getVocationLevel() {
+        return vocationLevel;
+    }
+
+    public String getVocationResources() {
+        return vocationResources;
     }
 
     @Override

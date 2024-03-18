@@ -30,19 +30,31 @@ import com.lhf.game.item.concrete.Corpse;
 public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
     private final String className;
     private final INPCBuildInfo iNPCBuilder;
-    protected final CreatureBuilderID id;
+    protected final CreatureBuilderID id = new CreatureBuilderID();
     private static transient long serialNumber = 0;
 
     protected MonsterBuildInfo() {
         this.className = this.getClass().getName();
         this.iNPCBuilder = new INPCBuildInfo().setFaction(CreatureFaction.MONSTER);
-        this.id = new CreatureBuilderID();
     }
 
-    public MonsterBuildInfo(MonsterBuildInfo other) {
-        this.className = other.getClassName();
-        this.iNPCBuilder = new INPCBuildInfo(other.iNPCBuilder);
-        this.id = new CreatureBuilderID();
+    public MonsterBuildInfo(INonPlayerCharacterBuildInfo npcBuilder) {
+        this();
+        this.copyFromINonPlayerCharacterBuildInfo(npcBuilder);
+    }
+
+    public MonsterBuildInfo copyFromICreatureBuildInfo(ICreatureBuildInfo buildInfo) {
+        if (buildInfo != null) {
+            this.iNPCBuilder.copyFromICreatureBuildInfo(buildInfo).setFaction(CreatureFaction.MONSTER);
+        }
+        return this;
+    }
+
+    public MonsterBuildInfo copyFromINonPlayerCharacterBuildInfo(INonPlayerCharacterBuildInfo buildInfo) {
+        if (buildInfo != null) {
+            this.iNPCBuilder.copyFromINonPlayerCharacterBuildInfo(buildInfo).setFaction(CreatureFaction.MONSTER);
+        }
+        return this;
     }
 
     public static MonsterBuildInfo getInstance() {
@@ -220,13 +232,13 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
         return iNPCBuilder.getInventory();
     }
 
-    public MonsterBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
-        iNPCBuilder.addEquipment(slot, equipable);
+    public MonsterBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable, boolean withoutEffects) {
+        iNPCBuilder.addEquipment(slot, equipable, withoutEffects);
         return this;
     }
 
-    public MonsterBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
-        iNPCBuilder.setEquipmentSlots(slots);
+    public MonsterBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots, boolean withoutEffects) {
+        iNPCBuilder.setEquipmentSlots(slots, withoutEffects);
         return this;
     }
 
@@ -286,7 +298,7 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
     }
 
     public MonsterBuildInfo setVocation(VocationName vocationName) {
-        iNPCBuilder.setVocation(vocationName);
+        iNPCBuilder.setVocationName(vocationName);
         return this;
     }
 
@@ -295,8 +307,8 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
         return this;
     }
 
-    public VocationName getVocation() {
-        return iNPCBuilder.getVocation();
+    public VocationName getVocationName() {
+        return iNPCBuilder.getVocationName();
     }
 
     public Integer getVocationLevel() {

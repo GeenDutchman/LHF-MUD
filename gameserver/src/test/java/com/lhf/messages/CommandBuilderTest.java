@@ -22,7 +22,7 @@ public class CommandBuilderTest {
         public final Boolean isValid;
         public final AMessageType type;
         public final List<String> directs;
-        public final EnumMap<Prepositions, String> indirects;
+        public final EnumMap<Prepositions, List<String>> indirects;
 
         public ParseTestCase(String testName, String input, Boolean isValid,
                 AMessageType type) {
@@ -40,7 +40,13 @@ public class CommandBuilderTest {
         }
 
         public ParseTestCase addPrepPhrase(Prepositions preposition, String phrase) {
-            this.indirects.put(preposition, phrase);
+            this.indirects.compute(preposition, (prep, listy) -> {
+                if (listy == null) {
+                    listy = new ArrayList<>();
+                }
+                listy.add(phrase);
+                return listy;
+            });
             return this;
         }
 
@@ -73,9 +79,11 @@ public class CommandBuilderTest {
                         this.testName).that(cmd.getType())
                         .isEqualTo(this.type);
                 Truth.assertWithMessage("Directs should be the same for test case '%s'", this.testName)
-                        .that(cmd.getDirects()).containsExactlyElementsIn(this.directs).inOrder();
+                        .that(cmd.getDirects()).containsExactlyElementsIn(this.directs)
+                        .inOrder();
                 Truth.assertWithMessage("Inirects should be the same for test case '%s'", this.testName)
-                        .that(cmd.getIndirects()).containsExactlyEntriesIn(this.indirects).inOrder();
+                        .that(cmd.getIndirects()).containsExactlyEntriesIn(this.indirects)
+                        .inOrder();
             }
         }
 

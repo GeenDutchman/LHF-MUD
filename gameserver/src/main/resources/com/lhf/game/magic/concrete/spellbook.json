@@ -216,6 +216,7 @@
                     ],
                     "numCanUseTimes": -1,
                     "useLeftCount": -1,
+                    "creatureUseEffects": [],
                     "itemID": {
                       "id": "348ca034-edd9-45b3-acf0-82f610ca02e9"
                     },
@@ -228,6 +229,43 @@
                     "healtype": "Regular",
                     "numCanUseTimes": 1,
                     "useLeftCount": 1,
+                    "creatureUseEffects": [
+                      {
+                        "onApplication": {
+                          "statChanges": {
+                            "CURRENTHP": 1
+                          },
+                          "attributeScoreChanges": {},
+                          "attributeBonusChanges": {},
+                          "damages": [
+                            {
+                              "flavor": "HEALING",
+                              "count": 1,
+                              "type": "FOUR"
+                            },
+                            {
+                              "flavor": "HEALING",
+                              "count": 1,
+                              "type": "FOUR"
+                            }
+                          ],
+                          "restoreFaction": false
+                        },
+                        "onRemoval": {
+                          "statChanges": {
+                            "CURRENTHP": -1
+                          },
+                          "attributeScoreChanges": {},
+                          "attributeBonusChanges": {},
+                          "damages": [],
+                          "restoreFaction": false
+                        },
+                        "onTickEvent": {},
+                        "className": "com.lhf.game.creature.CreatureEffectSource",
+                        "name": "Regular Potion Healing",
+                        "description": "Regular Potion Healing"
+                      }
+                    ],
                     "itemID": {
                       "id": "be087637-4fbb-49c8-9995-d94381b09fd3"
                     },

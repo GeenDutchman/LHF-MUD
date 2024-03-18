@@ -34,18 +34,30 @@ public class DungeonMaster extends NonPlayerCharacter {
     public static class DungeonMasterBuildInfo implements INonPlayerCharacterBuildInfo {
         private final String className;
         private final INPCBuildInfo iNPCBuilder;
-        protected final CreatureBuilderID id;
+        protected final CreatureBuilderID id = new CreatureBuilderID();
 
         protected DungeonMasterBuildInfo() {
             this.className = this.getClass().getName();
             this.iNPCBuilder = new INPCBuildInfo().setFaction(CreatureFaction.NPC).setVocation(new DMVocation());
-            this.id = new CreatureBuilderID();
         }
 
-        public DungeonMasterBuildInfo(DungeonMasterBuildInfo other) {
-            this.className = other.getClassName();
-            this.iNPCBuilder = new INPCBuildInfo(other.iNPCBuilder);
-            this.id = new CreatureBuilderID();
+        public DungeonMasterBuildInfo(INonPlayerCharacterBuildInfo other) {
+            this();
+            this.copyFromINonPlayerCharacterBuildInfo(other);
+        }
+
+        public DungeonMasterBuildInfo copyFromICreatureBuildInfo(ICreatureBuildInfo buildInfo) {
+            if (buildInfo != null) {
+                this.iNPCBuilder.copyFromICreatureBuildInfo(buildInfo).setFaction(CreatureFaction.NPC);
+            }
+            return this;
+        }
+
+        public DungeonMasterBuildInfo copyFromINonPlayerCharacterBuildInfo(INonPlayerCharacterBuildInfo buildInfo) {
+            if (buildInfo != null) {
+                this.iNPCBuilder.copyFromINonPlayerCharacterBuildInfo(buildInfo).setFaction(CreatureFaction.NPC);
+            }
+            return this;
         }
 
         public static DungeonMasterBuildInfo getInstance() {
@@ -218,13 +230,13 @@ public class DungeonMaster extends NonPlayerCharacter {
             return iNPCBuilder.getInventory();
         }
 
-        public DungeonMasterBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable) {
-            iNPCBuilder.addEquipment(slot, equipable);
+        public DungeonMasterBuildInfo addEquipment(EquipmentSlots slot, Equipable equipable, boolean withoutEffects) {
+            iNPCBuilder.addEquipment(slot, equipable, withoutEffects);
             return this;
         }
 
-        public DungeonMasterBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots) {
-            iNPCBuilder.setEquipmentSlots(slots);
+        public DungeonMasterBuildInfo setEquipmentSlots(Map<EquipmentSlots, Equipable> slots, boolean withoutEffects) {
+            iNPCBuilder.setEquipmentSlots(slots, withoutEffects);
             return this;
         }
 
@@ -285,7 +297,7 @@ public class DungeonMaster extends NonPlayerCharacter {
         }
 
         public DungeonMasterBuildInfo setVocation(VocationName vocationName) {
-            iNPCBuilder.setVocation(vocationName);
+            iNPCBuilder.setVocationName(vocationName);
             return this;
         }
 
@@ -294,8 +306,8 @@ public class DungeonMaster extends NonPlayerCharacter {
             return this;
         }
 
-        public VocationName getVocation() {
-            return iNPCBuilder.getVocation();
+        public VocationName getVocationName() {
+            return iNPCBuilder.getVocationName();
         }
 
         public Integer getVocationLevel() {

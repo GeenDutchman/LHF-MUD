@@ -5,10 +5,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.lhf.Taggable;
-import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.EffectResistance.TargetResistAmount;
-import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.Attributes;
@@ -19,10 +17,10 @@ import com.lhf.messages.events.SpellCastingEvent;
 
 public class Thaumaturgy extends RoomTargetingSpellEntry {
 
-    private static final Set<RoomEffectSource> spellEffects = Set.of(new RoomEffectSource("Announce yourself",
-            new EffectPersistence(TickType.INSTANT),
-            new EffectResistance(Attributes.CHA, 5, TargetResistAmount.ALL),
-            "Announce yourself to the room!"));
+    private static final Set<RoomEffectSource> spellEffects = Set
+            .of(new RoomEffectSource.Builder("Announce yourself").instantPersistence()
+                    .setResistance(new EffectResistance(Attributes.CHA, 5, TargetResistAmount.ALL))
+                    .setDescription("Announce yourself to the room!").build());
 
     public Thaumaturgy() {
         super(ResourceCost.NO_COST, "Thaumaturgy", "zarmamoo", spellEffects, new HashSet<VocationName>(),

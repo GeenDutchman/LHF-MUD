@@ -21,7 +21,7 @@ public class DropMessage extends CommandAdapter {
     }
 
     public Optional<String> inContainer() {
-        return Optional.ofNullable(this.getIndirects().getOrDefault(Prepositions.IN, null));
+        return Optional.ofNullable(this.getFirstByPreposition(Prepositions.IN));
     }
 
     @Override

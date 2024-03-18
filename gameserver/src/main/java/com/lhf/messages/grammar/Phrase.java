@@ -86,4 +86,9 @@ public class Phrase implements GrammarStateMachine {
     public String getResult() {
         return this.phrase.toString().trim();
     }
+
+    @Override
+    public String toString() {
+        return this.getResult();
+    }
 }

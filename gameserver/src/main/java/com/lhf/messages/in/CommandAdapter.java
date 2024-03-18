@@ -39,17 +39,24 @@ public abstract class CommandAdapter {
         return command.isValid();
     }
 
-    @Deprecated(forRemoval = true)
-    public List<String> getWhat() {
-        return command.getWhat();
+    protected List<String> getByPreposition(Prepositions prepositions) {
+        return command.getByPreposition(prepositions);
     }
 
-    protected String getByPreposition(Prepositions preposition) {
-        return command.getByPreposition(preposition);
+    protected String getFirstByPreposition(Prepositions preposition) {
+        return command.getFirstByPreposition(preposition);
     }
 
-    protected Map<Prepositions, String> getIndirects() {
+    protected String getByPrepositionAsString(Prepositions preposition) {
+        return command.getByPrepositionAsString(preposition);
+    }
+
+    protected Map<Prepositions, List<String>> getIndirects() {
         return command.getIndirects();
+    }
+
+    protected Map<Prepositions, String> getIndirectsAsStrings() {
+        return command.getIndirectsAsStrings();
     }
 
     @Override

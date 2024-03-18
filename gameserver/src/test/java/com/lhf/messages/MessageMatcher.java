@@ -1,47 +1,45 @@
 package com.lhf.messages;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.mockito.ArgumentMatcher;
 
+import com.lhf.game.TickType;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.GameEventTester;
 
-public class MessageMatcher implements ArgumentMatcher<GameEvent> {
-
-    protected GameEventType type;
-    protected List<String> contained;
-    protected List<String> notContained;
+public class MessageMatcher extends GameEventTester implements ArgumentMatcher<GameEvent> {
     protected boolean printIt = false;
     protected String sentTo = "";
 
+    public MessageMatcher(GameEventType type, Collection<String> contained, Collection<String> notContained,
+            TickType tickType, Boolean expectBroadcast) {
+        super(type, contained, notContained, tickType, expectBroadcast);
+    }
+
     public MessageMatcher(GameEventType type, List<String> containedWords, List<String> notContainedWords) {
-        this.type = type;
-        this.contained = containedWords;
-        this.notContained = notContainedWords;
+        this(type, containedWords, notContainedWords, null, false);
     }
 
     public MessageMatcher(GameEventType type, String contained) {
-        this.type = type;
-        this.contained = List.of(contained);
-        this.notContained = null;
+        this(type, List.of(contained), null, null, false);
     }
 
     public MessageMatcher(GameEventType type) {
-        this.type = type;
-        this.contained = null;
-        this.notContained = null;
+        this(type, null, null, null, false);
     }
 
     public MessageMatcher(String contained) {
-        this.contained = List.of(contained);
-        this.notContained = null;
-        this.type = null;
+        this(null, List.of(contained), null, null, false);
+    }
+
+    public MessageMatcher(MessageMatcher other) {
+        super(other);
     }
 
     public MessageMatcher ownedCopy(String newOwner) {
-        return new MessageMatcher(this.type, this.contained != null ? new ArrayList<>(this.contained) : null,
-                this.notContained != null ? new ArrayList<>(this.notContained) : null).setOwner(newOwner);
+        return new MessageMatcher(this).setOwner(newOwner);
     }
 
     public MessageMatcher setOwner(String owner) {
@@ -55,79 +53,48 @@ public class MessageMatcher implements ArgumentMatcher<GameEvent> {
         return this;
     }
 
-    private String printArgument(String argumentAsString) {
-        StringBuilder sb = new StringBuilder("vvvvvvvvvvvvvvvvvvvvvvvvvvv " + this.sentTo + "\n");
-        if (this.sentTo != null && !this.sentTo.isBlank()) {
+    private String printArgument(GameEvent argument) {
+        StringBuilder sb = new StringBuilder();
+        if (argument != null) {
+            sb.append(argument.hashCode());
+        }
+        sb.append("vvvvvvvvvvvvvvvvvvvvvvvvvvv ").append(this.sentTo).append("\n");
+        if (argument != null && this.sentTo != null && !this.sentTo.isBlank()) {
             sb.append(this.sentTo);
+            String argumentAsString = argument.toString();
             if (argumentAsString != null) {
                 sb.append(argumentAsString.replace("\n", "\n" + this.sentTo));
             } else {
                 sb.append(argumentAsString);
             }
         } else {
-            sb.append(argumentAsString);
+            sb.append(argument);
         }
         sb.append("\n").append("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^").append(this.sentTo);
         return sb.toString();
     }
 
     @Override
-    public boolean matches(GameEvent argument) {
-        if (argument == null) {
-            if (this.printIt) {
-                System.out.println(this.printArgument(null) + "null, no match");
-            }
-            return false;
+    protected void failHook(GameEvent argument, String reason) {
+        if (!this.printIt) {
+            return;
         }
-        String argumentAsString = argument.toString();
-        StringBuilder sb = new StringBuilder().append(argument.hashCode()).append(this.printArgument(argumentAsString));
-
-        if (this.type != null && this.type != argument.getEventType()) {
-            if (this.printIt) {
-                sb.append("expected type ").append(this.type).append(" got type ").append(argument.getEventType())
-                        .append(",no match");
-                System.out.println(sb.toString());
-            }
-            return false;
-        }
-
-        if (this.contained != null) {
-            for (String words : this.contained) {
-                if (!argumentAsString.contains(words)) {
-                    if (this.printIt) {
-                        sb.append("expected words \"").append(words).append("\" not found, no match");
-                        System.out.println(sb.toString());
-                    }
-                    return false;
-                }
-            }
-        }
-
-        if (this.notContained != null) {
-            for (String words : this.notContained) {
-                if (argumentAsString.contains(words)) {
-                    if (this.printIt) {
-                        sb.append("not expected words \"").append(words).append("\", but found, no match");
-                        System.out.println(sb.toString());
-                    }
-                    return false;
-                }
-            }
-        }
-
-        if (this.printIt) {
-            sb.append("matched");
-            System.out.println(sb.toString());
-        }
-        return true;
+        System.out.println(String.format("%s -> %s", this.printArgument(argument),
+                reason != null ? reason : "no failure reason given"));
     }
 
     @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("MessageMatcher [type=").append(type).append(", contained=").append(contained)
-                .append(", notContained=").append(notContained).append("]");
-        return builder.toString();
+    protected void successHook(GameEvent argument, String reason) {
+        if (!this.printIt) {
+            return;
+        }
+        System.out.println(String.format("%s -> %s", this.printArgument(argument),
+                reason != null ? reason : "no success reason given"));
+    }
+
+    @Override
+    public boolean matches(GameEvent argument) {
+        return this.test(argument);
     }
 
 }

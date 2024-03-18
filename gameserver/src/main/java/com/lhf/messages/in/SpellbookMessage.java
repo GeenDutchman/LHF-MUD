@@ -3,7 +3,6 @@ package com.lhf.messages.in;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
-import java.util.regex.Pattern;
 
 import com.lhf.messages.Command;
 import com.lhf.messages.grammar.Prepositions;
@@ -26,10 +25,8 @@ public class SpellbookMessage extends CommandAdapter {
             return new ArrayList<>();
         }
         List<String> filters = new ArrayList<>();
-        String[] splitten = this.getIndirects().get(Prepositions.WITH).split(Pattern.quote(","));
-        for (String filter : splitten) {
-            filters.add(filter.trim());
-        }
+        filters.addAll(this.getIndirects().get(Prepositions.WITH));
+
         return filters;
     }
 

@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
@@ -23,7 +24,7 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Equipable;
 import com.lhf.server.interfaces.NotNull;
 
-public interface ICreatureBuildInfo extends Serializable {
+public interface ICreatureBuildInfo extends Serializable, Comparable<ICreatureBuildInfo> {
 
     public static final int DEFAULT_HP = 12;
     public static final int DEFAULT_AC = 11;
@@ -99,11 +100,24 @@ public interface ICreatureBuildInfo extends Serializable {
 
             @Override
             public void write(JsonWriter out, CreatureBuilderID value) throws IOException {
-                out.value(value.getId().toString());
+                if (value == null) {
+                    out.nullValue();
+                    return;
+                }
+                final UUID inner = value.getId();
+                if (inner == null) {
+                    out.nullValue();
+                    return;
+                }
+                out.value(inner.toString());
             }
 
             @Override
             public CreatureBuilderID read(JsonReader in) throws IOException {
+                if (in.peek() == JsonToken.NULL) {
+                    in.nextNull();
+                    return new CreatureBuilderID();
+                }
                 final String asStr = in.nextString();
                 return new CreatureBuilderID(UUID.fromString(asStr));
             }
@@ -117,6 +131,11 @@ public interface ICreatureBuildInfo extends Serializable {
     public String getClassName();
 
     public ICreatureBuildInfo.CreatureBuilderID getCreatureBuilderID();
+
+    @Override
+    default int compareTo(ICreatureBuildInfo arg0) {
+        return this.getCreatureBuilderID().compareTo(arg0.getCreatureBuilderID());
+    }
 
     public String getCreatureRace();
 
@@ -140,7 +159,7 @@ public interface ICreatureBuildInfo extends Serializable {
 
     public CreatureFaction getFaction();
 
-    public VocationName getVocation();
+    public VocationName getVocationName();
 
     public Integer getVocationLevel();
 

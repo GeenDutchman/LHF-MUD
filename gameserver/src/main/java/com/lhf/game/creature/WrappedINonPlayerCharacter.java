@@ -14,7 +14,6 @@ import java.util.logging.Level;
 
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.battle.Attack;
-import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.inventory.Inventory;
@@ -37,7 +36,6 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventProcessor;
-import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.GameEvent.Builder;
@@ -171,8 +169,8 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public GameEvent processEffect(CreatureEffect effect) {
-        return wrapped.processEffect(effect);
+    public GameEvent processEffectApplication(CreatureEffect effect) {
+        return wrapped.processEffectApplication(effect);
     }
 
     @Override
@@ -245,9 +243,13 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public CreatureAffectedEvent.Builder processEffectDelta(CreatureEffect creatureEffect,
-            Deltas deltas) {
-        return wrapped.processEffectDelta(creatureEffect, deltas);
+    public GameEvent processEffectRemoval(CreatureEffect effect) {
+        return wrapped.processEffectRemoval(effect);
+    }
+
+    @Override
+    public GameEvent processEffectEvent(CreatureEffect effect, GameEvent event) {
+        return wrapped.processEffectEvent(effect, event);
     }
 
     @Override
@@ -467,28 +469,13 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
 
     @Override
     public String printDescription() {
-        StringBuilder sb = new StringBuilder();
-        String statusString = CreatureStatusRequestedEvent.getBuilder().setFromCreature(this, false).Build().toString();
-        sb.append(statusString).append("\r\n");
-        Map<EquipmentSlots, Equipable> equipped = this.getEquipmentSlots();
-        if (equipped.get(EquipmentSlots.HAT) != null) {
-            sb.append("On their head is:").append(equipped.get(EquipmentSlots.HAT).getColorTaggedName());
-        }
-        if (equipped.get(EquipmentSlots.ARMOR) != null) {
-            sb.append("They are wearing:").append(equipped.get(EquipmentSlots.ARMOR).getColorTaggedName());
-        } else {
-            if (equipped.get(EquipmentSlots.NECKLACE) != null) {
-                sb.append("Around their neck is:")
-                        .append(equipped.get(EquipmentSlots.NECKLACE).getColorTaggedName());
-            }
-        }
-        return sb.toString();
+        return wrapped.printDescription();
     }
 
     @Override
-    public SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
+    public SeeEvent produceMessage(SeeEvent.ABuilder<?> seeOutMessage) {
         if (seeOutMessage == null) {
-            seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
+            seeOutMessage = CreatureStatusRequestedEvent.getStatusBuilder().setFromCreature(this);
         }
         seeOutMessage.setExaminable(this);
         for (CreatureEffect effect : this.getEffects()) {

@@ -1,6 +1,7 @@
 package com.lhf.messages;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 import com.lhf.messages.grammar.GrammaredCommandPhrase;
 import com.lhf.messages.grammar.Phrase;
@@ -22,7 +24,7 @@ public final class Command implements ICommand {
     protected Boolean isValid;
     protected final AMessageType command;
     protected final List<String> directs;
-    protected final EnumMap<Prepositions, String> indirects;
+    protected final EnumMap<Prepositions, List<String>> indirects;
 
     public static Command parse(String messageIn) {
         String toParse = messageIn.trim();
@@ -51,8 +53,7 @@ public final class Command implements ICommand {
             if (parser.getPreps().isPresent()) {
                 PrepositionalPhrases pp = parser.getPreps().get();
                 for (final Prepositions preposition : pp) {
-                    // TODO: use the list associated per preposition
-                    parsed.addIndirect(preposition, pp.getPhraseListByPreposition(preposition).getResult());
+                    parsed.addIndirectList(preposition, pp.getPhraseListByPreposition(preposition).getListResult());
                 }
             }
             parsed.setValid(parsed.isValid() && commandWord.checkValidity(parsed));
@@ -104,21 +105,66 @@ public final class Command implements ICommand {
     }
 
     protected Command addIndirect(Prepositions preposition, String phrase) {
-        this.indirects.put(preposition, phrase);
+        this.indirects.compute(preposition, (prep, phraseList) -> {
+            if (phraseList == null) {
+                List<String> next = new ArrayList<>();
+                next.add(phrase);
+                return next;
+            }
+            phraseList.add(phrase);
+            return phraseList;
+        });
         return this;
     }
 
-    @Deprecated(forRemoval = true)
-    public List<String> getWhat() {
-        return Collections.unmodifiableList(this.directs);
+    protected Command addIndirectList(Prepositions preposition, Collection<String> phrases) {
+        this.indirects.compute(preposition, (prep, phraseList) -> {
+            if (phrases == null) {
+                return phraseList;
+            }
+            if (phraseList != null) {
+                phraseList.addAll(phrases);
+                return phraseList;
+            }
+            List<String> next = new ArrayList<>(phrases);
+            return next;
+        });
+        return this;
     }
 
-    public String getByPreposition(Prepositions preposition) {
-        return this.indirects.get(preposition);
+    @Override
+    public List<String> getByPreposition(Prepositions preposition) {
+        return this.indirects.getOrDefault(preposition, null);
     }
 
-    public Map<Prepositions, String> getIndirects() {
+    @Override
+    public String getByPrepositionAsString(Prepositions preposition) {
+        if (preposition == null) {
+            return null;
+        }
+        final List<String> value = this.indirects.getOrDefault(preposition, null);
+        if (value == null || value.isEmpty()) {
+            return null;
+        }
+        return value.stream().collect(Collectors.joining(", "));
+    }
+
+    @Override
+    public Map<Prepositions, List<String>> getIndirects() {
         return Collections.unmodifiableMap(this.indirects);
+    }
+
+    @Override
+    public Map<Prepositions, String> getIndirectsAsStrings() {
+        EnumMap<Prepositions, String> asStrings = new EnumMap<>(Prepositions.class);
+        for (final Prepositions key : this.indirects.keySet()) {
+            final String composed = this.getByPrepositionAsString(key);
+            if (composed == null || composed.isEmpty() || composed.isBlank()) {
+                continue;
+            }
+            asStrings.put(key, composed);
+        }
+        return asStrings;
     }
 
     @Override

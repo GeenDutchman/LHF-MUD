@@ -12,9 +12,12 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
+import com.google.gson.JsonParseException;
 import com.lhf.game.creature.ICreature;
+import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.game.enums.Attributes;
@@ -28,6 +31,8 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.PooledMessageChainHandler;
+import com.lhf.messages.events.BadMessageEvent;
+import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.LewdEvent;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
@@ -310,7 +315,7 @@ public class RestArea extends SubArea {
     }
 
     @Override
-    public SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
+    public SeeEvent produceMessage(SeeEvent.ABuilder<?> seeOutMessage) {
         if (seeOutMessage == null) {
             seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         }
@@ -387,7 +392,10 @@ public class RestArea extends SubArea {
                 final VrijPartij first = this.parties.pollFirst();
                 if (first != null) {
                     if (first.check() && this.lewdProduct != null) {
-                        this.lewdProduct.onLewd(area, first);
+                        final Consumer<Area> onLewd = this.lewdProduct.onLewdAreaChanges(first);
+                        if (onLewd != null) {
+                            onLewd.accept(area);
+                        }
                     }
                 }
             }
@@ -524,7 +532,8 @@ public class RestArea extends SubArea {
                 LewdEvent.Builder builder = LewdEvent.getBuilder().setNotBroadcast()
                         .setSubType(LewdOutMessageType.STATUS);
                 if (first != null) {
-                    builder.setParty(first.getParty()).setBabyNames(first.getNames()).setCreature(first.getInitiator());
+                    builder.setParty(first.getParty()).setTemplates(first.getTemplateBuildInfos())
+                            .setCreature(first.getInitiator());
                 }
                 ctx.receive(builder);
             }
@@ -641,8 +650,17 @@ public class RestArea extends SubArea {
                 }
                 invites.add(result.get());
             }
+            Collection<ICreatureBuildInfo> buildInfos = null;
+            try {
+                buildInfos = lewdInMessage.getJSONBuildInfos();
+            } catch (JsonParseException e) {
+                RestArea.this.log(Level.WARNING, e.toString());
+                ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.OTHER).setNotBroadcast()
+                        .setNotBroadcast().setCommand(lewdInMessage.getCommand()));
+                return ctx.failhandle();
+            }
             VrijPartij party = new VrijPartij(ctx.getCreature(), invites);
-            party.addNames(lewdInMessage.getNames());
+            party.addTemplateBuildInfos(lewdInMessage.getBasicBuildInfos()).addFullBuildInfos(buildInfos);
             synchronized (RestArea.this.parties) {
                 final ArrayDeque<VrijPartij> parties = RestArea.this.parties;
                 final VrijPartij first = parties.peekFirst();
@@ -651,7 +669,10 @@ public class RestArea extends SubArea {
                     if (LewdStyle.QUICKIE.equals(RestArea.this.lewd) && first.check()) {
                         parties.pollFirst(); // take it off the queue
                         if (RestArea.this.lewdProduct != null) {
-                            RestArea.this.lewdProduct.onLewd(RestArea.this.area, first);
+                            final Consumer<Area> onLewd = RestArea.this.lewdProduct.onLewdAreaChanges(first);
+                            if (onLewd != null) {
+                                onLewd.accept(RestArea.this.area);
+                            }
                         }
                     }
                 } else if (!RestArea.this.parties.contains(party)) {
@@ -682,7 +703,10 @@ public class RestArea extends SubArea {
                         if (LewdStyle.QUICKIE.equals(RestArea.this.lewd) && first.check()) {
                             parties.pollFirst(); // take it off the queue
                             if (RestArea.this.lewdProduct != null) {
-                                RestArea.this.lewdProduct.onLewd(RestArea.this.area, first);
+                                final Consumer<Area> onLewd = RestArea.this.lewdProduct.onLewdAreaChanges(first);
+                                if (onLewd != null) {
+                                    onLewd.accept(RestArea.this.area);
+                                }
                             }
                         }
                     } else {

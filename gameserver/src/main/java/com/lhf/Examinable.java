@@ -11,7 +11,7 @@ public interface Examinable {
         return this.produceMessage(SeeEvent.getBuilder().setExaminable(this));
     }
 
-    default SeeEvent produceMessage(SeeEvent.Builder seeOutMessage) {
+    default SeeEvent produceMessage(SeeEvent.ABuilder<?> seeOutMessage) {
         if (seeOutMessage == null) {
             seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         }

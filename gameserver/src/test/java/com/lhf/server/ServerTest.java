@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Assertions;
@@ -351,7 +352,7 @@ public class ServerTest {
     }
 
     @Test
-    void testAttack() {
+    void testAttackMonster() {
         this.comm.create("AttackTester");
         String extract = this.comm.handleCommand("go east", GameEventType.SEE);
         Truth.assertThat(extract).ignoringCase().contains("<monster>");
@@ -479,11 +480,14 @@ public class ServerTest {
         bystander.create("bystander");
         bystander.handleCommand("GO east");
 
+        MessageMatcher renegadeMatcher = new MessageMatcher(GameEventType.RENEGADE_ANNOUNCEMENT, Set.of("RENEGADE"),
+                null, null, null);
+
         this.comm.handleCommand("attack " + second.name);
         Mockito.verify(this.comm.sssb, Mockito.atLeastOnce())
-                .send(Mockito.argThat(new MessageMatcher(GameEventType.RENEGADE_ANNOUNCEMENT, "RENEGADE")));
+                .send(Mockito.argThat(renegadeMatcher));
         Mockito.verify(bystander.sssb, Mockito.timeout(500).atLeastOnce()).send(Mockito
-                .argThat(new MessageMatcher(GameEventType.RENEGADE_ANNOUNCEMENT)));
+                .argThat(renegadeMatcher));
         Mockito.verify(bystander.sssb, Mockito.timeout(500).atLeastOnce()).send(
                 Mockito.argThat(new MessageMatcher(GameEventType.JOIN_BATTLE)));
     }
