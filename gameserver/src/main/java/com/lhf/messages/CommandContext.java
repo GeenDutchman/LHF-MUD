@@ -236,11 +236,6 @@ public class CommandContext {
 
     public CommandContext setArea(Area room) {
         this.area = room;
-        if (room != null) {
-            for (final SubArea subArea : room.getSubAreas()) {
-                this.addSubArea(subArea);
-            }
-        }
         return this;
     }
 

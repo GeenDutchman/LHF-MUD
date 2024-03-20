@@ -140,14 +140,15 @@ public class ThirdPower implements CommandChainHandler {
         private CommandContext.Reply affectCreatures(CommandContext ctx, ISpell<CreatureEffect> spell,
                 Collection<ICreature> targets) {
             final ICreature caster = ctx.getCreature();
-            final SubArea battleManager = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
+            final Area area = ctx.getArea();
+            final SubArea battleManager = area.getSubAreaForSort(SubAreaSort.BATTLE);
             final CubeHolder vocation = caster.getVocation() instanceof CubeHolder ? (CubeHolder) caster.getVocation()
                     : null;
 
             for (ICreature target : targets) {
-                if (spell.isOffensive() && battleManager != null) {
-                    CreatureFaction.checkAndHandleTurnRenegade(caster, target, battleManager.getArea());
-                    if (!battleManager.hasCreature(target)) {
+                if (spell.isOffensive()) {
+                    CreatureFaction.checkAndHandleTurnRenegade(caster, target, area);
+                    if (battleManager != null && !battleManager.hasCreature(target)) {
                         battleManager.addCreature(target);
                     }
                 }
@@ -184,8 +185,8 @@ public class ThirdPower implements CommandChainHandler {
                 this.log(Level.SEVERE, "Cannot target creatures with null message or entry");
                 return ctx.failhandle();
             }
-            ICreature caster = ctx.getCreature();
-            Area localRoom = ctx.getArea();
+            final ICreature caster = ctx.getCreature();
+            final Area localRoom = ctx.getArea();
             if (caster == null || localRoom == null) {
                 ctx.receive(SpellFizzledEvent.getBuilder().setAttempter(caster)
                         .setNotBroadcast().setSubType(SpellFizzleType.OTHER).setNotBroadcast().Build());
@@ -210,7 +211,7 @@ public class ThirdPower implements CommandChainHandler {
                         targetName));
             }
 
-            SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
+            SubArea bm = localRoom.getSubAreaForSort(SubAreaSort.BATTLE);
             if (bm != null && !bm.hasRunningThread(this.getClass().getName() + "::handleCastCreatureTargeting()")
                     && spell.isOffensive()) {
                 this.log(Level.INFO,
@@ -272,7 +273,7 @@ public class ThirdPower implements CommandChainHandler {
                 }
             }
 
-            SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
+            SubArea bm = localRoom.getSubAreaForSort(SubAreaSort.BATTLE);
             if (bm != null && !bm.hasRunningThread(this.getClass().getName() + "::handleCastCreatureAOETargeting()")
                     && spell.isOffensive()) {
                 this.log(Level.INFO,
@@ -484,21 +485,23 @@ public class ThirdPower implements CommandChainHandler {
                     return ctx.handled();
                 }
                 final CastMessage castmessage = new CastMessage(cmd);
-                ICreature attempter = ctx.getCreature();
+                final ICreature attempter = ctx.getCreature();
+                final Area area = ctx.getArea();
                 if (attempter.getVocation() == null || !(attempter.getVocation() instanceof CubeHolder)) {
                     SpellFizzledEvent.Builder spellFizzle = SpellFizzledEvent.getBuilder()
                             .setSubType(SpellFizzleType.NOT_CASTER).setAttempter(attempter).setNotBroadcast();
                     ctx.receive(spellFizzle.Build());
-                    if (ctx.getArea() != null) {
-                        ctx.getArea().announce(spellFizzle.setBroacast().Build());
+                    if (area != null) {
+                        area.announce(spellFizzle.setBroacast().Build());
                     }
                     return ctx.handled();
-                } else if (!attempter.isInBattle() && ctx.getSubAreaForSort(SubAreaSort.BATTLE) != null
-                        && ctx.getSubAreaForSort(SubAreaSort.BATTLE)
+                } else if (!attempter.isInBattle() && area.getSubAreaForSort(SubAreaSort.BATTLE) != null
+                        && area.getSubAreaForSort(SubAreaSort.BATTLE)
                                 .hasRunningThread("ThirdPower.CastHandler.flushHandle()")) {
-                    SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
+                    SubArea bm = area.getSubAreaForSort(SubAreaSort.BATTLE);
                     bm.addCreature(attempter);
-                    return bm.handleChain(ctx, castmessage.getCommand());
+                    ctx.addSubArea(bm);
+                    return bm.handleChain(ctx, castmessage.getCommand()); // delegate back to the nearby battle
                 } else {
                     return this.handleCast(ctx, castmessage);
                 }
