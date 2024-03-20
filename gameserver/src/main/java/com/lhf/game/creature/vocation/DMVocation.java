@@ -93,12 +93,6 @@ public class DMVocation extends Vocation implements CubeHolder, MultiAttacker {
     }
 
     @Override
-    public Vocation onLevel() {
-        // level as a DM??
-        return this;
-    }
-
-    @Override
     public Vocation onRestTick() {
         return this;
     }

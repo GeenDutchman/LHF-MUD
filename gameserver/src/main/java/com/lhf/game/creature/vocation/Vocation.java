@@ -1,14 +1,26 @@
 package com.lhf.game.creature.vocation;
 
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 import com.lhf.Taggable;
+import com.lhf.game.creature.CreatureEffect;
+import com.lhf.game.creature.CreatureEffectSource;
+import com.lhf.game.creature.CreatureEffectSource.Deltas;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.resourcepools.ResourcePool;
+import com.lhf.game.dice.Dice;
+import com.lhf.game.dice.DiceD4;
+import com.lhf.game.dice.DiceD8;
+import com.lhf.game.dice.MultiRollResult;
+import com.lhf.game.enums.Attributes;
 import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.Takeable;
@@ -28,6 +40,12 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
     public enum VocationName implements Taggable {
         FIGHTER {
+
+            @Override
+            public Dice getLevelingDice() {
+                return new DiceD8(1);
+            }
+
             @Override
             public Set<EquipmentTypes> defaultProficiencies() {
                 return EnumSet.of(EquipmentTypes.LIGHTARMOR, EquipmentTypes.MEDIUMARMOR, EquipmentTypes.SHIELD,
@@ -50,6 +68,10 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
             }
         },
         MAGE {
+            @Override
+            public Dice getLevelingDice() {
+                return new DiceD4(1);
+            }
 
             @Override
             public Set<EquipmentTypes> defaultProficiencies() {
@@ -72,6 +94,10 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
             }
         },
         DUNGEON_MASTER {
+            @Override
+            public Dice getLevelingDice() {
+                return null; // no point
+            }
 
             @Override
             public Set<EquipmentTypes> defaultProficiencies() {
@@ -97,6 +123,10 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
 
         },
         HEALER {
+            @Override
+            public Dice getLevelingDice() {
+                return new DiceD4(1);
+            }
 
             @Override
             public Set<EquipmentTypes> defaultProficiencies() {
@@ -151,6 +181,8 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
             return this.getStartTag() + this.toString() + this.getEndTag();
         }
 
+        public abstract Dice getLevelingDice();
+
         public abstract Set<EquipmentTypes> defaultProficiencies();
 
         public abstract List<Takeable> defaultInventory();
@@ -165,13 +197,6 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
     protected int experiencePoints;
     protected final VocationName name;
     protected ResourcePool resourcePool;
-
-    public Vocation onLevel() {
-        this.level++;
-        this.experiencePoints = 0;
-        this.getResourcePool().refresh();
-        return this;
-    }
 
     public abstract Vocation onRestTick();
 
@@ -213,19 +238,50 @@ public abstract class Vocation implements Taggable, Comparable<Vocation> {
         return this.resourcePool;
     }
 
-    /**
-     * Adds experience to the Vocation.
-     * 
-     * @param xpGain
-     * @return true if levelled up, false otherwise
-     */
-    public boolean addExperience(int xpGain) {
-        this.experiencePoints += xpGain >= 0 ? xpGain : -1 * xpGain;
-        if (this.experiencePoints >= (this.level + 1) * 100) {
-            this.onLevel();
-            return true;
+    public static final void onExperienceGain(final ICreature creature, final Vocation vocation, final int xpGain) {
+        if (creature == null || vocation == null) {
+            return;
         }
-        return false;
+        synchronized (vocation) {
+            vocation.experiencePoints += xpGain >= 0 ? xpGain : -1 * xpGain;
+            if (vocation.experiencePoints >= (vocation.level + 1) * 100) {
+                ++vocation.level;
+                vocation.experiencePoints = 0;
+                vocation.getResourcePool().refresh();
+                Deltas deltas = new Deltas();
+                deltas.setStatChange(Stats.PROFICIENCYBONUS, 1);
+                final AttributeBlock block = creature.getAttributes();
+                MultiRollResult.Builder resultBuilder = new MultiRollResult.Builder().addBonuses(1);
+                if (block != null) {
+                    if (vocation.level % 4 == 0) {
+                        final TreeMap<Integer, Attributes> topFinder = new TreeMap<>(Comparator.reverseOrder());
+                        for (Attributes attr : Attributes.values()) {
+                            topFinder.put(block.getScore(attr), attr);
+                        }
+                        for (int i = 0; i < 2; i++) {
+                            Entry<Integer, Attributes> entry = topFinder.pollFirstEntry();
+                            if (entry != null) {
+                                deltas.setAttributeScoreChange(entry.getValue(), 1);
+                            }
+                        }
+                    }
+                    resultBuilder.addBonuses(block.getMod(Attributes.CON));
+                    Dice toRoll = vocation.getVocationName().getLevelingDice();
+                    if (toRoll != null) {
+                        resultBuilder.addRollResults(toRoll.rollDice());
+                    }
+                }
+                final MultiRollResult total = resultBuilder.Build();
+                deltas.setStatChange(Stats.MAXHP, total.getRoll()).setStatChange(Stats.CURRENTHP, total.getRoll());
+                CreatureEffect levelUp = new CreatureEffect(
+                        CreatureEffectSource.getCreatureEffectBuilder(String.format("Level up to %d!", vocation.level))
+                                .withoutReversedApplication()
+                                .setOnApplication(deltas).instantPersistence()
+                                .setDescription(String.format("Level up to %d!", vocation.level)).build(),
+                        creature, vocation);
+                ICreature.eventAccepter.accept(creature, creature.applyEffect(levelUp));
+            }
+        }
     }
 
     public String getName() {
