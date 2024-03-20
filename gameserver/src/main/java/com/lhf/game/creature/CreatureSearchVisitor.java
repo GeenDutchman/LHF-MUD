@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import com.lhf.game.CreatureContainer.CreatureFilterQuery;
 import com.lhf.game.CreatureContainer.CreatureFilters;
-import com.lhf.game.creature.vocation.Vocation;
 
 public class CreatureSearchVisitor extends CreaturePartitionSetVisitor {
     private final CreatureFilterQuery query;
@@ -40,29 +39,7 @@ public class CreatureSearchVisitor extends CreaturePartitionSetVisitor {
         if (creature == null) {
             return false;
         }
-        if (this.query.filters.contains(CreatureFilters.NAME) && this.query.name != null
-                && !(this.query.nameRegexLen != null ? creature.CheckNameRegex(this.query.name, this.query.nameRegexLen)
-                        : creature.checkName(this.query.name))) {
-            return false;
-        }
-        if (this.query.filters.contains(CreatureFilters.FACTION) && this.query.faction != null
-                && !this.query.faction.equals(creature.getFaction())) {
-            return false;
-        }
-        if (this.query.filters.contains(CreatureFilters.VOCATION) && this.query.vocation != null) {
-            final Vocation cVocation = creature.getVocation();
-            if (cVocation == null) {
-                return false;
-            }
-            if (!this.query.vocation.equals(cVocation.getVocationName())) {
-                return false;
-            }
-        }
-        if (this.query.filters.contains(CreatureFilters.BATTLING) && this.query.isBattling != null
-                && this.query.isBattling != creature.isInBattle()) {
-            return false;
-        }
-        return true;
+        return this.query != null ? this.query.test(creature) : true;
     }
 
     @Override

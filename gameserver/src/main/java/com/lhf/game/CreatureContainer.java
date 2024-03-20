@@ -52,28 +52,15 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
     public default Collection<ICreature> filterCreatures(EnumSet<CreatureFilters> filters, String name,
             Integer nameRegexLen,
             CreatureFaction faction, VocationName vocation, Class<? extends ICreature> clazz, Boolean isBattling) {
-        Collection<ICreature> retrieved = this.getCreatures();
-        Supplier<Collection<ICreature>> sortSupplier = () -> new TreeSet<ICreature>();
-        return Collections.unmodifiableCollection(retrieved.stream()
-                .filter(creature -> creature != null)
-                .filter(creature -> !filters.contains(CreatureFilters.NAME)
-                        || (name != null && (nameRegexLen != null ? creature.CheckNameRegex(name, nameRegexLen)
-                                : creature.checkName(name))))
-                .filter(creature -> !filters.contains(CreatureFilters.FACTION)
-                        || (faction != null && faction.equals(creature.getFaction())))
-                .filter(creature -> {
-                    if (!filters.contains(CreatureFilters.VOCATION)) {
-                        return true;
-                    }
-                    Vocation cVocation = creature.getVocation();
-                    return cVocation == null ? vocation == null
-                            : (vocation != null && vocation.equals(cVocation.getVocationName()));
-                })
-                .filter(creature -> !filters.contains(CreatureFilters.TYPE)
-                        || (clazz != null && clazz.isInstance(creature)))
-                .filter(creature -> !filters.contains(CreatureFilters.BATTLING)
-                        || (isBattling != null && isBattling == creature.isInBattle()))
-                .collect(Collectors.toCollection(sortSupplier)));
+        CreatureFilterQuery query = new CreatureFilterQuery();
+        query.filters = filters;
+        query.name = name;
+        query.nameRegexLen = nameRegexLen;
+        query.faction = faction;
+        query.vocation = vocation;
+        query.clazz = clazz;
+        query.isBattling = isBattling;
+        return this.filterCreatures(query);
     }
 
     public static class CreatureFilterQuery implements Predicate<ICreature> {
@@ -126,8 +113,9 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
                             : creature.checkName(name))) {
                 return false;
             }
-            if (filters.contains(CreatureFilters.FACTION) && faction != null ? !faction.equals(creature.getFaction())
-                    : creature.getFaction() != null) {
+            if (filters.contains(CreatureFilters.FACTION) &&
+                    (faction != null ? !faction.equals(creature.getFaction())
+                            : creature.getFaction() != null)) {
                 return false;
             }
             final Vocation cVocation = creature.getVocation();
@@ -158,11 +146,13 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
     }
 
     public default Collection<ICreature> filterCreatures(CreatureFilterQuery query) {
-        if (query == null) {
-            return this.filterCreatures(EnumSet.noneOf(CreatureFilters.class), null, null, null, null, null, null);
+        final Collection<ICreature> retrieved = this.getCreatures();
+        if (query == null || retrieved == null) {
+            return retrieved;
         }
-        return this.filterCreatures(query.filters, query.name, query.nameRegexLen, query.faction, query.vocation,
-                query.clazz, query.isBattling);
+        Supplier<Collection<ICreature>> sortSupplier = () -> new TreeSet<ICreature>();
+        return Collections.unmodifiableCollection(
+                retrieved.stream().filter(query).collect(Collectors.toCollection(sortSupplier)));
     }
 
     public default Optional<ICreature> getCreature(String name) {

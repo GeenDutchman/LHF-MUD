@@ -84,7 +84,7 @@ public class Equipable extends Usable {
 
     @Override
     public boolean useOn(CommandContext ctx, ICreature creature) {
-        if (!ctx.getCreature().hasItem(this)) {
+        if (!ctx.getCreature().hasItemEquipped(this)) {
             ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature())
                     .setUsable(this).setSubType(UseOutMessageOption.REQUIRE_EQUIPPED).setTarget(creature);
             ctx.receive(useOutMessage);
@@ -95,7 +95,7 @@ public class Equipable extends Usable {
 
     @Override
     public boolean useOn(CommandContext ctx, IItem item) {
-        if (!ctx.getCreature().hasItem(this)) {
+        if (!ctx.getCreature().hasItemEquipped(this)) {
             ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature())
                     .setUsable(this).setSubType(UseOutMessageOption.REQUIRE_EQUIPPED).setTarget(item);
             ctx.receive(useOutMessage);
@@ -106,7 +106,7 @@ public class Equipable extends Usable {
 
     @Override
     public boolean useOn(CommandContext ctx, Area area) {
-        if (!ctx.getCreature().hasItem(this)) {
+        if (!ctx.getCreature().hasItemEquipped(this)) {
             ItemUsedEvent.Builder useOutMessage = ItemUsedEvent.getBuilder().setItemUser(ctx.getCreature())
                     .setUsable(this).setSubType(UseOutMessageOption.REQUIRE_EQUIPPED).setTarget(area);
             ctx.receive(useOutMessage);

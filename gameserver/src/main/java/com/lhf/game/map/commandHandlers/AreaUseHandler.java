@@ -73,7 +73,7 @@ public class AreaUseHandler implements AreaCommandHandler {
         }
         Usable usable = maybeItem.get();
         if (useMessage.getTarget() == null || useMessage.getTarget().isBlank()) {
-            usable.useOn(ctx, usable);
+            usable.useOn(ctx, ctx.getCreature());
             return ctx.handled();
         }
         Collection<ICreature> maybeCreature = ctx.getArea().getCreaturesLike(useMessage.getTarget());

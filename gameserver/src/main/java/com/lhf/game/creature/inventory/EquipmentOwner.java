@@ -14,6 +14,14 @@ public interface EquipmentOwner {
 
     Equipable getEquipped(EquipmentSlots slot);
 
+    public default boolean hasItemEquipped(final Equipable equipable) {
+        final Map<EquipmentSlots, Equipable> equipped = this.getEquipmentSlots();
+        if (equipped == null || equipped.isEmpty()) {
+            return false;
+        }
+        return equipped.values().contains(equipable);
+    }
+
     String getName();
 
     Map<EquipmentSlots, Equipable> getEquipmentSlots();

@@ -2,20 +2,28 @@ package com.lhf.game.item;
 
 import java.util.Optional;
 
+import com.lhf.game.ItemContainer.ItemFilterQuery;
+import com.lhf.game.ItemContainer.ItemFilters;
 import com.lhf.game.item.concrete.Item;
 
 public class ItemNameSearchVisitor extends ItemPartitionCollectionVisitor {
-    protected final String searchName;
-    protected final Integer regexLength;
+    protected final ItemFilterQuery query;
 
     public ItemNameSearchVisitor(String searchName) {
-        this.searchName = searchName;
-        this.regexLength = null;
+        this.query = new ItemFilterQuery();
+        this.query.objectName = searchName;
+        this.query.filters.add(ItemFilters.OBJECT_NAME);
     }
 
     public ItemNameSearchVisitor(String searchName, Integer regexLength) {
-        this.searchName = searchName;
-        this.regexLength = regexLength;
+        this.query = new ItemFilterQuery();
+        this.query.objectName = searchName;
+        this.query.objectNameRegexLen = regexLength;
+        this.query.filters.add(ItemFilters.OBJECT_NAME);
+    }
+
+    public ItemNameSearchVisitor(ItemFilterQuery query) {
+        this.query = query != null ? query : new ItemFilterQuery();
     }
 
     public void copyFrom(ItemPartitionCollectionVisitor partitioner) {
@@ -26,61 +34,58 @@ public class ItemNameSearchVisitor extends ItemPartitionCollectionVisitor {
                 .forEachOrdered(item -> item.acceptItemVisitor(this));
     }
 
-    private boolean checkItemName(IItem item) {
+    private boolean testItem(IItem item) {
         if (item == null) {
             return false;
         }
-        if (this.searchName == null || this.searchName.isEmpty()) {
-            return true;
-        }
-        return this.regexLength != null ? item.CheckNameRegex(searchName, regexLength) : item.checkName(searchName);
+        return this.query != null ? this.query.test(item) : true;
     }
 
     @Override
     public void visit(InteractObject interactObject) {
-        if (this.checkItemName(interactObject)) {
+        if (this.testItem(interactObject)) {
             super.visit(interactObject);
         }
     }
 
     @Override
     public void visit(Item note) {
-        if (this.checkItemName(note)) {
+        if (this.testItem(note)) {
             super.visit(note);
         }
     }
 
     @Override
     public void visit(Takeable takeable) {
-        if (this.checkItemName(takeable)) {
+        if (this.testItem(takeable)) {
             super.visit(takeable);
         }
     }
 
     @Override
     public void visit(Usable usable) {
-        if (this.checkItemName(usable)) {
+        if (this.testItem(usable)) {
             super.visit(usable);
         }
     }
 
     @Override
     public void visit(Equipable equipable) {
-        if (this.checkItemName(equipable)) {
+        if (this.testItem(equipable)) {
             super.visit(equipable);
         }
     }
 
     @Override
     public void visit(Weapon weapon) {
-        if (this.checkItemName(weapon)) {
+        if (this.testItem(weapon)) {
             super.visit(weapon);
         }
     }
 
     @Override
     public void visit(EquipableHiddenEffect equipableHiddenEffect) {
-        if (this.checkItemName(equipableHiddenEffect)) {
+        if (this.testItem(equipableHiddenEffect)) {
             super.visit(equipableHiddenEffect);
         }
     }

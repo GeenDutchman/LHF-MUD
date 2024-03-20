@@ -98,16 +98,16 @@ public class Usable extends Takeable {
     }
 
     protected ItemUsedEvent.Builder getCreatureUseBuilder(CommandContext ctx, ICreature target) {
-        return ItemUsedEvent.getBuilder().setUsable(Usable.this).setSubType(UseOutMessageOption.OK)
+        return ItemUsedEvent.getBuilder().setUsable(this).setSubType(UseOutMessageOption.OK)
                 .setItemUser(ctx.getCreature())
-                .setMessage(Usable.this.creatureUseEffects == null || Usable.this.creatureUseEffects.isEmpty()
+                .setMessage(this.creatureUseEffects == null || this.creatureUseEffects.isEmpty()
                         ? "It does nothing."
                         : "Affects try to take hold.")
                 .setTarget(target);
     }
 
     protected ItemUsedEvent.Builder getItemUseBuilder(CommandContext ctx, IItem target) {
-        return ItemUsedEvent.getBuilder().setUsable(Usable.this).setSubType(UseOutMessageOption.OK)
+        return ItemUsedEvent.getBuilder().setUsable(this).setSubType(UseOutMessageOption.OK)
                 .setItemUser(ctx.getCreature())
                 .setMessage("It does nothing.")
                 .setTarget(target);
@@ -117,13 +117,17 @@ public class Usable extends Takeable {
         if (creature == null) {
             return;
         }
-        for (final CreatureEffectSource source : Usable.this.creatureUseEffects) {
-            final CreatureEffect effect = new CreatureEffect(source, ctx.getCreature(), Usable.this);
+        if (this.creatureUseEffects == null || this.creatureUseEffects.isEmpty()) {
+            return;
+        }
+        for (final CreatureEffectSource source : this.creatureUseEffects) {
+            final CreatureEffect effect = new CreatureEffect(source, ctx.getCreature(), this);
             this.sendNotice(ctx, creature, creature.applyEffect(effect));
         }
     }
 
     public Consumer<ICreature> produceCreatureConsumer(CommandContext ctx) {
+        final Usable self = this;
         return new Consumer<ICreature>() {
 
             @Override
@@ -131,10 +135,8 @@ public class Usable extends Takeable {
                 if (creature == null) {
                     return;
                 }
-                Usable.this.sendNotice(ctx, creature, Usable.this.getCreatureUseBuilder(ctx, creature));
-                if (Usable.this.creatureUseEffects != null && !Usable.this.creatureUseEffects.isEmpty()) {
-                    Usable.this.applyCreatureEffects(ctx, creature);
-                }
+                self.sendNotice(ctx, creature, self.getCreatureUseBuilder(ctx, creature));
+                self.applyCreatureEffects(ctx, creature);
             }
 
         };
@@ -142,12 +144,7 @@ public class Usable extends Takeable {
     }
 
     public Consumer<IItem> produceItemConsumer(CommandContext ctx) {
-        return new Consumer<IItem>() {
-            @Override
-            public void accept(IItem item) {
-                Usable.this.sendNotice(ctx, ctx.getCreature(), Usable.this.getItemUseBuilder(ctx, item));
-            }
-        };
+        return null; // we don't have this functionality for most Usables
     }
 
     @Override
