@@ -815,6 +815,12 @@ public class BattleManager extends SubArea {
             } else {
                 ctx.receive(roundMessage);
             }
+            if (RoundAcceptance.ACCEPTED.equals(roundMessage.getNeedSubmission())) {
+                final SubArea battleManager = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
+                if (battleManager != null) {
+                    battleManager.announce(roundMessage.setBroacast(), ctx.getCreature());
+                }
+            }
             return empoolResult;
         }
 
