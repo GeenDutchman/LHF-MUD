@@ -213,15 +213,15 @@ public class Server implements ServerInterface, ConnectionListener {
             if (cmd != null && cmd.getType() == AMessageType.EXIT) {
                 Server.this.logger.log(Level.INFO, "client " + ctx.getClient().toString() + " is exiting");
                 Client ch = Server.this.clientManager.getConnection(ctx.getClient().getClientID());
-
+                UserLeftEvent.Builder leftEvent = UserLeftEvent.getBuilder();
                 if (ctx.getUserID() != null) {
                     Server.this.game.userLeft(ctx.getUserID());
                     User leaving = Server.this.userManager.getUser(ctx.getUserID());
                     Server.this.userManager.removeUser(ctx.getUserID());
-                    ctx.receive(UserLeftEvent.getBuilder().setUser(leaving).setNotBroadcast().Build());
+                    ctx.receive(leftEvent.setUser(leaving).setNotBroadcast().Build());
                 } else {
                     if (ch != null) {
-                        ctx.receive(UserLeftEvent.getBuilder().setNotBroadcast().Build());
+                        ctx.receive(leftEvent.setNotBroadcast().Build());
                     }
                 }
 

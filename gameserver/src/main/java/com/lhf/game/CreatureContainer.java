@@ -113,8 +113,9 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
                             : creature.checkName(name))) {
                 return false;
             }
-            if (filters.contains(CreatureFilters.FACTION) && faction != null ? !faction.equals(creature.getFaction())
-                    : creature.getFaction() != null) {
+            if (filters.contains(CreatureFilters.FACTION) &&
+                    (faction != null ? !faction.equals(creature.getFaction())
+                            : creature.getFaction() != null)) {
                 return false;
             }
             final Vocation cVocation = creature.getVocation();
