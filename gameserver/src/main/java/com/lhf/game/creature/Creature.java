@@ -145,7 +145,7 @@ public abstract class Creature implements ICreature {
         current += value;
         this.stats.replace(Stats.XPEARNED, current);
         if (this.vocation != null) {
-            this.vocation.addExperience(value);
+            Vocation.onExperienceGain(this, vocation, value);
         }
     }
 
@@ -174,10 +174,8 @@ public abstract class Creature implements ICreature {
                 this.stats.replace(Stats.CURRENTHP, current);
                 break;
             case XPEARNED:
-                if (this.vocation != null) {
-                    this.vocation.addExperience(value);
-                }
-                // fallthrough
+                this.updateXp(value);
+                break;
             case AC:
                 // fallthrough
             case PROFICIENCYBONUS:
