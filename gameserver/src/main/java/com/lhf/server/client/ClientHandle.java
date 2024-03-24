@@ -97,12 +97,12 @@ public class ClientHandle extends Client implements Runnable {
         connected = true;
         killIt = false;
         this.connectionListener = cl;
-        this.logger.log(Level.FINEST, "ClientHandle created");
+        this.log(Level.FINEST, "ClientHandle created");
     }
 
     @Override
     public void run() {
-        this.logger.log(Level.FINER, "Running ClientHandle");
+        this.log(Level.FINER, "Running ClientHandle");
         String value;
         try {
             while (!this.killIt && ((value = in.readLine()) != null)) {
@@ -111,12 +111,12 @@ public class ClientHandle extends Client implements Runnable {
             }
         } catch (IOException e) {
             final BadFatalEvent fatal = BadFatalEvent.getBuilder().setException(e).setExtraInfo("recoverable").Build();
-            this.logger.log(Level.SEVERE, fatal.toString(), e);
+            this.log(Level.SEVERE, fatal.toString(), e);
             Client.eventAccepter.accept(this, fatal);
         } catch (Exception e) {
             final BadFatalEvent fatal = BadFatalEvent.getBuilder().setException(e).setExtraInfo("irrecoverable")
                     .Build();
-            this.logger.log(Level.SEVERE, fatal.toString(), e);
+            this.log(Level.SEVERE, fatal.toString(), e);
             Client.eventAccepter.accept(this, fatal);
             throw e;
         } finally {
@@ -127,21 +127,21 @@ public class ClientHandle extends Client implements Runnable {
     }
 
     public void kill() {
-        this.logger.log(Level.INFO, "Disconnecting ClientHandler");
+        this.log(Level.INFO, "Disconnecting ClientHandler");
         this.killIt = true;
         if (connected && socket.isConnected()) {
             try {
                 socket.close();
                 connected = false;
             } catch (IOException e) {
-                this.logger.log(Level.WARNING, e.getMessage());
+                this.log(Level.WARNING, e.getMessage());
                 e.printStackTrace();
             }
         }
     }
 
     void disconnect() {
-        this.logger.log(Level.INFO, "Requesting ClientHandler to stop");
+        this.log(Level.INFO, "Requesting ClientHandler to stop");
         this.killIt = true;
     }
 

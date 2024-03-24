@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.INonPlayerCharacter;
@@ -33,7 +32,6 @@ import com.lhf.server.client.DoNothingSendStrategy;
 import com.lhf.server.interfaces.NotNull;
 
 public class BasicAI extends Client {
-    protected final String basicLoggerName;
     protected transient INonPlayerCharacter npc;
     protected Map<GameEventType, AIChunk> handlers;
     protected BlockingQueue<GameEvent> queue;
@@ -42,7 +40,6 @@ public class BasicAI extends Client {
 
     protected BasicAI(AIRunner runner) {
         super();
-        this.basicLoggerName = String.format("%s.%d", this.getClass().getName(), this.getClientID().hashCode());
         this.allowedSuccessorTypes = new HashSet<>(Set.of(NonPlayerCharacter.class, DungeonMaster.class,
                 SummonedNPC.class, Monster.class, SummonedMonster.class, INonPlayerCharacter.class));
         this.queue = new ArrayBlockingQueue<>(32, true);
@@ -74,8 +71,8 @@ public class BasicAI extends Client {
             if (ai != null) {
                 ai.handle(this, event);
             } else {
-                this.log(Level.WARNING, () -> String.format("No handler found for %s: %s",
-                        event.getEventType(), event.print()));
+                this.log(Level.WARNING,
+                        () -> String.format("No handler found for %s: %s", event.getEventType(), event.print()));
             }
         }
     }
@@ -103,9 +100,8 @@ public class BasicAI extends Client {
         this.handlers.put(GameEventType.BAD_TARGET_SELECTED, (BasicAI bai, GameEvent event) -> {
             if (event.getEventType().equals(GameEventType.BAD_TARGET_SELECTED) && bai.getNpc().isInBattle()) {
                 BadTargetSelectedEvent btsm = (BadTargetSelectedEvent) event;
-                this.log(Level.WARNING,
-                        () -> String.format("Selected a bad target: %s with possible targets", btsm,
-                                btsm.getPossibleTargets()));
+                this.log(Level.WARNING, () -> String.format("Selected a bad target: %s with possible targets", btsm,
+                        btsm.getPossibleTargets()));
             }
         });
 
@@ -150,9 +146,8 @@ public class BasicAI extends Client {
     }
 
     public void setNPC(INonPlayerCharacter nextNPC) {
-        this.logger.log(Level.CONFIG,
-                () -> String.format("Transitioning BasicAI %s from %s to back %s", this.getClientID(), this.npc,
-                        nextNPC));
+        this.log(Level.CONFIG, () -> String.format("Transitioning BasicAI %s from %s to back %s", this.getClientID(),
+                this.npc, nextNPC));
         if (nextNPC == null && this.npc != null) {
             this.npc.log(Level.WARNING, () -> String.format("Controller %s detaching!", this.getClientID()));
             this.npc.setController(null); // detach controller
@@ -160,9 +155,9 @@ public class BasicAI extends Client {
         this.npc = nextNPC;
         if (this.npc != null) {
             this.npc.setController(this);
-            this.logger = Logger.getLogger(this.basicLoggerName + "." + npc.getName().replaceAll("\\W", "_"));
+            this.updateLoggerSuffix(npc.getName());
         } else {
-            this.logger = Logger.getLogger(this.basicLoggerName);
+            this.updateLoggerSuffix(null);
         }
         super.setSuccessor(nextNPC);
     }
