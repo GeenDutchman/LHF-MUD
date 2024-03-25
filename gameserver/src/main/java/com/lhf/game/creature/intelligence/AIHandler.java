@@ -1,12 +1,14 @@
 package com.lhf.game.creature.intelligence;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.logging.Logger;
 
 import com.lhf.messages.GameEventType;
+import com.lhf.messages.events.GameEvent;
 import com.lhf.server.interfaces.NotNull;
 
-public abstract class AIHandler implements AIChunk, Comparable<AIHandler> {
+public abstract class AIHandler implements Comparable<AIHandler>, Serializable {
     protected final String className;
     protected final transient Logger logger;
     protected final GameEventType outMessageType;
@@ -40,5 +42,7 @@ public abstract class AIHandler implements AIChunk, Comparable<AIHandler> {
     public int compareTo(AIHandler arg0) {
         return this.outMessageType.compareTo(arg0.outMessageType);
     }
+
+    public abstract void handle(BasicAI bai, GameEvent event);
 
 }

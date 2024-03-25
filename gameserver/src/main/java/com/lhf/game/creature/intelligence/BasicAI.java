@@ -17,15 +17,16 @@ import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.SummonedMonster;
 import com.lhf.game.creature.SummonedNPC;
+import com.lhf.game.creature.intelligence.handlers.BadTargetSelectedHandler;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler;
+import com.lhf.game.creature.intelligence.handlers.FightOverHandler;
+import com.lhf.game.creature.intelligence.handlers.FleeHandler;
 import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.creature.intelligence.handlers.RoomExitHandler;
 import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.events.BadTargetSelectedEvent;
-import com.lhf.messages.events.BattleCreatureFledEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.DoNothingSendStrategy;
@@ -33,7 +34,7 @@ import com.lhf.server.interfaces.NotNull;
 
 public class BasicAI extends Client {
     protected transient INonPlayerCharacter npc;
-    protected Map<GameEventType, AIChunk> handlers;
+    protected Map<GameEventType, AIHandler> handlers;
     protected BlockingQueue<GameEvent> queue;
     protected transient AIRunner runner;
     protected final transient Set<Class<? extends INonPlayerCharacter>> allowedSuccessorTypes;
@@ -67,7 +68,7 @@ public class BasicAI extends Client {
 
     public void process(GameEvent event) {
         if (event != null) {
-            AIChunk ai = this.handlers.get(event.getEventType());
+            AIHandler ai = this.handlers.get(event.getEventType());
             if (ai != null) {
                 ai.handle(this, event);
             } else {
@@ -81,40 +82,15 @@ public class BasicAI extends Client {
         if (this.handlers == null) {
             this.handlers = new TreeMap<>();
         }
-        this.handlers.put(GameEventType.FIGHT_OVER, (BasicAI bai, GameEvent event) -> {
-            if (event.getEventType().equals(GameEventType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
-                bai.npc.getHarmMemories().reset();
-            }
-        });
 
-        this.handlers.put(GameEventType.FLEE, (BasicAI bai, GameEvent event) -> {
-            if (event.getEventType().equals(GameEventType.FLEE)) {
-                BattleCreatureFledEvent flee = (BattleCreatureFledEvent) event;
-                if (flee.isFled() && flee.getRunner() != null) {
-                    if (flee.getRunner() == bai.getNpc()) {
-                        bai.npc.getHarmMemories().reset();
-                    }
-                }
-            }
-        });
-        this.handlers.put(GameEventType.BAD_TARGET_SELECTED, (BasicAI bai, GameEvent event) -> {
-            if (event.getEventType().equals(GameEventType.BAD_TARGET_SELECTED) && bai.getNpc().isInBattle()) {
-                BadTargetSelectedEvent btsm = (BadTargetSelectedEvent) event;
-                this.log(Level.WARNING, () -> String.format("Selected a bad target: %s with possible targets", btsm,
-                        btsm.getPossibleTargets()));
-            }
-        });
-
+        this.addHandler(new FightOverHandler());
+        this.addHandler(new FleeHandler());
+        this.addHandler(new BadTargetSelectedHandler());
         this.addHandler(new BattleTurnHandler());
         this.addHandler(new SpokenPromptChunk());
         this.addHandler(new RoomExitHandler());
         this.addHandler(new HandleCreatureAffected());
         this.addHandler(new LewdAIHandler().setPartnersOnly());
-    }
-
-    public BasicAI addHandler(GameEventType type, AIChunk chunk) {
-        this.handlers.put(type, chunk);
-        return this;
     }
 
     public BasicAI addHandler(@NotNull AIHandler aiHandler) {
