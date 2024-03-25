@@ -217,4 +217,24 @@ public class BasicAI extends Client {
         super.log(logLevel, composed);
     }
 
+    @Override
+    public synchronized void log(Level level, String msg, Throwable thrown) {
+        String composed = this.toString() + ": " + msg;
+        if (this.npc != null) {
+            this.npc.log(level, composed, thrown);
+            return;
+        }
+        super.log(level, msg, thrown);
+    }
+
+    @Override
+    public synchronized void log(Level level, Throwable thrown, Supplier<String> msgSupplier) {
+        Supplier<String> composed = () -> this.toString() + (msgSupplier != null ? ": " + msgSupplier.get() : "");
+        if (this.npc != null) {
+            this.npc.log(level, thrown, composed);
+            return;
+        }
+        super.log(level, thrown, msgSupplier);
+    }
+
 }

@@ -539,6 +539,16 @@ public abstract class Creature implements ICreature {
     }
 
     @Override
+    public synchronized void log(Level level, String msg, Throwable thrown) {
+        this.logger.log(level, msg, thrown);
+    }
+
+    @Override
+    public synchronized void log(Level level, Throwable thrown, Supplier<String> msgSupplier) {
+        this.logger.log(level, thrown, msgSupplier);
+    }
+
+    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append(this.getClass().getSimpleName()).append(" [name=").append(name).append(", health=")

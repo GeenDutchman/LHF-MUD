@@ -90,6 +90,16 @@ public class User implements CommandInvoker, Comparable<User> {
     }
 
     @Override
+    public synchronized void log(Level level, String msg, Throwable thrown) {
+        this.logger.log(level, msg, thrown);
+    }
+
+    @Override
+    public synchronized void log(Level level, Throwable thrown, Supplier<String> msgSupplier) {
+        this.logger.log(level, thrown, msgSupplier);
+    }
+
+    @Override
     public CommandContext addSelfToContext(CommandContext ctx) {
         if (ctx == null) {
             ctx = new CommandContext();

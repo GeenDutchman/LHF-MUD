@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import com.lhf.messages.Command;
@@ -160,6 +161,26 @@ public class ClientHandle extends Client implements Runnable {
         Map<AMessageType, CommandHandler> cmdMap = super.getCommands(ctx);
         cmdMap.put(AMessageType.REPEAT, this.repeatHandler);
         return cmdMap;
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, String logMessage) {
+        super.log(logLevel, logMessage);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        super.log(logLevel, logMessageSupplier);
+    }
+
+    @Override
+    public synchronized void log(Level level, String msg, Throwable thrown) {
+        super.log(level, msg, thrown);
+    }
+
+    @Override
+    public synchronized void log(Level level, Throwable thrown, Supplier<String> msgSupplier) {
+        super.log(level, thrown, msgSupplier);
     }
 
 }

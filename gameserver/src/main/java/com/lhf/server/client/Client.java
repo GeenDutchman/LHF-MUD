@@ -134,12 +134,12 @@ public class Client implements CommandInvoker {
     public synchronized void updateLoggerSuffix(String name) {
         if (name == null || name.isEmpty() || name.isBlank() || this.basicLoggerName.equals(name)) {
             if (this.logger.getName() != this.basicLoggerName) {
-                this.logger.log(Level.WARNING, () -> String.format("Changing logger to %s", this.basicLoggerName));
+                this.log(Level.WARNING, () -> String.format("Changing logger to %s", this.basicLoggerName));
                 this.logger = Logger.getLogger(this.basicLoggerName);
             }
         } else {
             final String newSuffix = String.format("%s.%s", basicLoggerName, name.replaceAll("\\W", "_"));
-            this.logger.log(Level.WARNING, () -> String.format("Changing logger to %s", newSuffix));
+            this.log(Level.WARNING, () -> String.format("Changing logger to %s", newSuffix));
             this.logger = Logger.getLogger(newSuffix);
         }
     }
@@ -154,10 +154,12 @@ public class Client implements CommandInvoker {
         this.logger.log(logLevel, logMessageSupplier);
     }
 
+    @Override
     public synchronized void log(Level level, String msg, Throwable thrown) {
         this.logger.log(level, msg, thrown);
     }
 
+    @Override
     public synchronized void log(Level level, Throwable thrown, Supplier<String> msgSupplier) {
         this.logger.log(level, thrown, msgSupplier);
     }

@@ -235,6 +235,16 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
+    public void log(Level level, String msg, Throwable thrown) {
+        wrapped.log(level, msg, thrown);
+    }
+
+    @Override
+    public void log(Level level, Throwable thrown, Supplier<String> msgSupplier) {
+        wrapped.log(level, thrown, msgSupplier);
+    }
+
+    @Override
     public Reply handle(CommandContext ctx, Command cmd) {
         this.addSelfToContext(ctx); // just in case
         Reply reply = wrapped.handle(ctx, cmd);
