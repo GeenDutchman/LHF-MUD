@@ -47,9 +47,8 @@ import com.lhf.server.interfaces.NotNull;
 
 /**
  * An interface for all things NPC. This way we can create fun things like
- * wrappers, mocks, and the like.
- * Adds functionality to the {@link com.lhf.game.creature.ICreature Creature}
- * interface.
+ * wrappers, mocks, and the like. Adds functionality to the
+ * {@link com.lhf.game.creature.ICreature Creature} interface.
  * 
  * @see {@link com.lhf.game.creature.ICreature ICreature}
  */
@@ -99,14 +98,14 @@ public interface INonPlayerCharacter extends ICreature {
      * A static instance of the
      * {@link com.lhf.game.creature.INonPlayerCharacter.BlessedFist BlessedFist}
      * available to NPCs who maintain their
-     * {@link com.lhf.game.magic.concrete.PlotArmor Blessing}
-     * from the {@link com.lhf.game.creature.DungeonMaster DungeonMaster}.
+     * {@link com.lhf.game.magic.concrete.PlotArmor Blessing} from the
+     * {@link com.lhf.game.creature.DungeonMaster DungeonMaster}.
      */
     public static final BlessedFist blessedFist = new BlessedFist();
 
     /**
-     * HarmMemories are meant to be used in a battle to remember things like:
-     * "Who hit me last?" and "How much did that hurt?". Then the NPC can use that
+     * HarmMemories are meant to be used in a battle to remember things like: "Who
+     * hit me last?" and "How much did that hurt?". Then the NPC can use that
      * information to decide what to do next in a fight.
      */
     public static class HarmMemories {
@@ -123,8 +122,7 @@ public interface INonPlayerCharacter extends ICreature {
 
         /**
          * Creates HarmMemories for an NPC. Raises a NullPointerException if the
-         * provided `owner` is null.
-         * Is protected so that only NPCs can make them.
+         * provided `owner` is null. Is protected so that only NPCs can make them.
          * 
          * @param owner {@link com.lhf.game.creature.INonPlayerCharacter NPC} that must
          *              not be null
@@ -186,8 +184,8 @@ public interface INonPlayerCharacter extends ICreature {
         }
 
         /**
-         * Resets all the memories to an empty or default state.
-         * Returns `this` so it is chainable.
+         * Resets all the memories to an empty or default state. Returns `this` so it is
+         * chainable.
          */
         public HarmMemories reset() {
             this.lastAttackerName = Optional.empty();
@@ -262,6 +260,10 @@ public interface INonPlayerCharacter extends ICreature {
 
         public ConversationTree getConversationTree();
 
+        public default boolean usesNoDefaultAIHandlers() {
+            return false;
+        }
+
         public List<AIHandler> getAIHandlers();
 
         public default AIHandler[] getAiHandlersAsArray() {
@@ -290,6 +292,7 @@ public interface INonPlayerCharacter extends ICreature {
         private List<AIHandler> aiHandlers;
         private EnumSet<SummonData> summonState;
         private String leaderName;
+        private boolean noDefaultAIHandlers;
 
         protected INPCBuildInfo() {
             this.className = this.getClass().getName();
@@ -299,6 +302,7 @@ public interface INonPlayerCharacter extends ICreature {
             this.aiHandlers = new ArrayList<>();
             this.summonState = EnumSet.noneOf(SummonData.class);
             this.leaderName = null;
+            this.noDefaultAIHandlers = false;
         }
 
         public INPCBuildInfo(ICreatureBuildInfo basicInfo, String conversationFileName, ConversationTree tree,
@@ -309,6 +313,7 @@ public interface INonPlayerCharacter extends ICreature {
             this.setConversationTree(tree != null ? tree.makeCopy() : null);
             this.aiHandlers = handlers != null ? new ArrayList<>(handlers) : new ArrayList<>();
             this.setSummonStates(summonState);
+            this.noDefaultAIHandlers = false;
         }
 
         public INPCBuildInfo(INonPlayerCharacterBuildInfo other) {
@@ -336,6 +341,7 @@ public interface INonPlayerCharacter extends ICreature {
                 if (otherHandlers != null) {
                     this.aiHandlers = new ArrayList<>(otherHandlers);
                 }
+                this.noDefaultAIHandlers = buildInfo.usesNoDefaultAIHandlers();
             }
             return this;
         }
@@ -409,6 +415,16 @@ public interface INonPlayerCharacter extends ICreature {
             return this.aiHandlers.toArray(new AIHandler[this.aiHandlers.size()]);
         }
 
+        public INPCBuildInfo setIgnoreDefaultAIHandlers(boolean ignore) {
+            this.noDefaultAIHandlers = ignore;
+            return this;
+        }
+
+        @Override
+        public boolean usesNoDefaultAIHandlers() {
+            return this.noDefaultAIHandlers;
+        }
+
         public INPCBuildInfo clearAIHandlers() {
             this.aiHandlers.clear();
             return this;
@@ -466,8 +482,7 @@ public interface INonPlayerCharacter extends ICreature {
         }
 
         public INPCBuildInfo setAttributeBlock(Integer strength, Integer dexterity, Integer constitution,
-                Integer intelligence,
-                Integer wisdom, Integer charisma) {
+                Integer intelligence, Integer wisdom, Integer charisma) {
             creatureBuilder.setAttributeBlock(strength, dexterity, constitution, intelligence, wisdom, charisma);
             return this;
         }
@@ -669,8 +684,8 @@ public interface INonPlayerCharacter extends ICreature {
      * Creature.
      * <p>
      * It will first check to see if the
-     * {@link com.lhf.game.magic.concrete.PlotArmor Blessing}
-     * is maintained. If that is the case, it will return a {@link #blessedFist}.
+     * {@link com.lhf.game.magic.concrete.PlotArmor Blessing} is maintained. If that
+     * is the case, it will return a {@link #blessedFist}.
      * <p>
      * It will then check to see what is in the
      * {@link com.lhf.game.enums.EquipmentSlots#WEAPON Weapon} slot according to
@@ -746,8 +761,7 @@ public interface INonPlayerCharacter extends ICreature {
 
     /**
      * Returns the {@link com.lhf.game.creature.INonPlayerCharacter.HarmMemories
-     * HarmMemories} of this NPC.
-     * Should never be null.
+     * HarmMemories} of this NPC. Should never be null.
      * 
      * @return {@link com.lhf.game.creature.INonPlayerCharacter.HarmMemories
      *         HarmMemories}
