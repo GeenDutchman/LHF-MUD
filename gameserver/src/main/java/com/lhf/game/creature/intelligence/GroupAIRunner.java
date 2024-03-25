@@ -89,15 +89,10 @@ public class GroupAIRunner implements AIRunner {
     }
 
     @Override
-    public BasicAI produceAI(AIHandler... handlers) {
+    public BasicAI produceAI() {
         BasicAI ai = new BasicAI(this);
         this.logger.log(Level.FINE, "Producing an AI " + ai.getClientID().toString());
         this.aiMap.put(ai.getClientID(), new AIPair<BasicAI>(ai));
-        if (handlers != null) {
-            for (AIHandler handler : handlers) {
-                ai.addHandler(handler);
-            }
-        }
         return ai;
     }
 

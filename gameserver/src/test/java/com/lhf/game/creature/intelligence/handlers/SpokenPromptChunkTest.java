@@ -3,6 +3,7 @@ package com.lhf.game.creature.intelligence.handlers;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNode;
 import com.lhf.game.creature.intelligence.AIComBundle;
@@ -12,8 +13,7 @@ public class SpokenPromptChunkTest {
     @Test
     void testPromptSelf() {
         SpokenPromptChunk chunk = new SpokenPromptChunk();
-        AIComBundle listener = new AIComBundle();
-        listener.brain.addHandler(chunk);
+        AIComBundle listener = new AIComBundle(NonPlayerCharacter.getNPCBuilder().addAIHandler(chunk));
 
         String body = "I have been addressed";
         ConversationTreeNode node = new ConversationTreeNode(body);
@@ -37,11 +37,10 @@ public class SpokenPromptChunkTest {
 
     @Test
     void testOtherPrompter() {
-        AIComBundle speaker = new AIComBundle();
-        AIComBundle listener = new AIComBundle();
         SpokenPromptChunk chunk = new SpokenPromptChunk();
+        AIComBundle speaker = new AIComBundle();
         chunk.addPrompter(speaker.getNPC().getEventProcessorID());
-        listener.brain.addHandler(chunk);
+        AIComBundle listener = new AIComBundle(NonPlayerCharacter.getNPCBuilder().addAIHandler(chunk));
 
         String prompt = "NONOBJECT";
         SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC()).setMessage("PROMPT SEE " + prompt)
@@ -56,9 +55,8 @@ public class SpokenPromptChunkTest {
     @Test
     void testNotPrompter() {
         AIComBundle speaker = new AIComBundle();
-        AIComBundle listener = new AIComBundle();
         SpokenPromptChunk chunk = new SpokenPromptChunk();
-        listener.brain.addHandler(chunk);
+        AIComBundle listener = new AIComBundle(NonPlayerCharacter.getNPCBuilder().addAIHandler(chunk));
 
         String prompt = "NONOBJECT";
         SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC()).setMessage("PROMPT SEE " + prompt)

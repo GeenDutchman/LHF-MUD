@@ -3,7 +3,6 @@ package com.lhf.game.creature.intelligence;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -17,24 +16,14 @@ import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.SummonedMonster;
 import com.lhf.game.creature.SummonedNPC;
-import com.lhf.game.creature.intelligence.handlers.BadTargetSelectedHandler;
-import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler;
-import com.lhf.game.creature.intelligence.handlers.FightOverHandler;
-import com.lhf.game.creature.intelligence.handlers.FleeHandler;
-import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
-import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
-import com.lhf.game.creature.intelligence.handlers.RoomExitHandler;
-import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.DoNothingSendStrategy;
-import com.lhf.server.interfaces.NotNull;
 
 public class BasicAI extends Client {
     protected transient INonPlayerCharacter npc;
-    protected Map<GameEventType, AIHandler> handlers;
     protected BlockingQueue<GameEvent> queue;
     protected transient AIRunner runner;
     protected final transient Set<Class<? extends INonPlayerCharacter>> allowedSuccessorTypes;
@@ -45,8 +34,6 @@ public class BasicAI extends Client {
                 SummonedNPC.class, Monster.class, SummonedMonster.class, INonPlayerCharacter.class));
         this.queue = new ArrayBlockingQueue<>(32, true);
         this.SetOut(new DoNothingSendStrategy());
-        this.handlers = new TreeMap<>();
-        this.initBasicHandlers();
         this.runner = runner;
     }
 
@@ -67,8 +54,15 @@ public class BasicAI extends Client {
     }
 
     public void process(GameEvent event) {
+        if (this.npc == null) {
+            return;
+        }
+        final Map<GameEventType, AIHandler> handlers = this.npc.getAIHandlers();
+        if (handlers == null) {
+            return;
+        }
         if (event != null) {
-            AIHandler ai = this.handlers.get(event.getEventType());
+            AIHandler ai = handlers.get(event.getEventType());
             if (ai != null) {
                 ai.handle(this, event);
             } else {
@@ -76,26 +70,6 @@ public class BasicAI extends Client {
                         () -> String.format("No handler found for %s: %s", event.getEventType(), event.print()));
             }
         }
-    }
-
-    private void initBasicHandlers() {
-        if (this.handlers == null) {
-            this.handlers = new TreeMap<>();
-        }
-
-        this.addHandler(new FightOverHandler());
-        this.addHandler(new FleeHandler());
-        this.addHandler(new BadTargetSelectedHandler());
-        this.addHandler(new BattleTurnHandler());
-        this.addHandler(new SpokenPromptChunk());
-        this.addHandler(new RoomExitHandler());
-        this.addHandler(new HandleCreatureAffected());
-        this.addHandler(new LewdAIHandler().setPartnersOnly());
-    }
-
-    public BasicAI addHandler(@NotNull AIHandler aiHandler) {
-        this.handlers.put(aiHandler.getOutMessageType(), aiHandler);
-        return this;
     }
 
     @Override

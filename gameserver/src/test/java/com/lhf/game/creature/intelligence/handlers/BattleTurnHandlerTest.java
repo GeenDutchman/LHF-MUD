@@ -17,6 +17,7 @@ import com.google.common.truth.Truth;
 import com.google.common.truth.Truth8;
 import com.lhf.game.battle.BattleStats;
 import com.lhf.game.battle.BattleStats.BattleStatsQuery;
+import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
 import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler.TargetLists;
@@ -44,22 +45,19 @@ public class BattleTurnHandlerTest {
 
     @Test
     void testChooseEnemyTarget() {
-        AIComBundle finder = new AIComBundle();
+        BattleTurnHandler handler = new BattleTurnHandler();
+        AIComBundle finder = new AIComBundle(NonPlayerCharacter.getNPCBuilder().addAIHandler(handler));
         finder.getNPC().setFaction(CreatureFaction.RENEGADE);
         AIComBundle attacker = new AIComBundle();
         AIComBundle subAttacker = new AIComBundle();
 
-        BattleTurnHandler handler = new BattleTurnHandler();
-        finder.brain.addHandler(handler);
         BattleStats battleStats = new BattleStats()
                 .initialize(List.of(finder.getNPC(), attacker.getNPC(), subAttacker.getNPC()));
 
         TargetLists targets = handler.chooseTargets(
                 Optional.of(BattleStatsRequestedEvent.getBuilder()
-                        .addRecords(battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING))
-                        .Build()),
-                finder.getNPC().getHarmMemories(),
-                finder.getNPC().getFaction());
+                        .addRecords(battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING)).Build()),
+                finder.getNPC().getHarmMemories(), finder.getNPC().getFaction());
         Truth.assertThat(targets.enemies()).hasSize(2);
         Truth.assertThat(targets.enemies().get(0).getValue()).isAtLeast(targets.enemies().get(1).getValue());
 
@@ -81,12 +79,9 @@ public class BattleTurnHandlerTest {
                     public Reply answer(InvocationOnMock invocation) throws Throwable {
                         CommandContext ctx = invocation.getArgument(0);
                         Command cmd = invocation.getArgument(1);
-                        if (cmd.getType().equals(AMessageType.ATTACK)
-                                && cmd.getWhole().contains("bloohoo")) {
-                            BadTargetSelectedEvent btsm = BadTargetSelectedEvent
-                                    .getBuilder()
-                                    .setBde(BadTargetOption.DNE)
-                                    .setBadTarget("bloohoo")
+                        if (cmd.getType().equals(AMessageType.ATTACK) && cmd.getWhole().contains("bloohoo")) {
+                            BadTargetSelectedEvent btsm = BadTargetSelectedEvent.getBuilder()
+                                    .setBde(BadTargetOption.DNE).setBadTarget("bloohoo")
                                     .setPossibleTargets(new ArrayList<>()).Build();
                             ctx.receive(btsm);
                             return ctx.handled();
@@ -103,8 +98,7 @@ public class BattleTurnHandlerTest {
 
         // trigger it
         AIComBundle.eventAccepter.accept(searcher.getNPC(),
-                BattleRoundEvent.getBuilder().setAboutCreature(searcher.getNPC()).setNeeded()
-                        .Build());
+                BattleRoundEvent.getBuilder().setAboutCreature(searcher.getNPC()).setNeeded().Build());
 
         Truth8.assertThat(searcher.getNPC().getHarmMemories().getLastAttackerName()).isEmpty();
         Mockito.verify(searcher.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),

@@ -303,14 +303,6 @@ public interface INonPlayerCharacter extends ICreature {
 
         public List<AIHandler> getAIHandlers();
 
-        public default AIHandler[] getAiHandlersAsArray() {
-            List<AIHandler> handlers = this.getAIHandlers();
-            if (handlers == null) {
-                return new AIHandler[0];
-            }
-            return handlers.toArray(new AIHandler[handlers.size()]);
-        }
-
         public EnumSet<SummonData> getSummonState();
 
         public String getLeaderName();

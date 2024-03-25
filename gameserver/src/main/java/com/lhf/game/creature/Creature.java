@@ -72,6 +72,8 @@ public abstract class Creature implements ICreature {
         this.gameEventProcessorID = new GameEventProcessorID();
         this.creatureID = new ICreatureID();
         this.name = builder.getName();
+        this.logger = Logger
+                .getLogger(String.format("%s.%s", this.getClass().getName(), this.name.replaceAll("\\W", "_")));
         if (controller == null) {
             throw new IllegalArgumentException("Creature cannot have a null controller!");
         }
@@ -93,8 +95,6 @@ public abstract class Creature implements ICreature {
 
         // We don't start them in battle
         this.subAreaSorts = EnumSet.noneOf(SubAreaSort.class);
-        this.logger = Logger
-                .getLogger(String.format("%s.%s", this.getClass().getName(), this.name.replaceAll("\\W", "_")));
 
     }
 

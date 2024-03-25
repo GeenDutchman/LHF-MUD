@@ -13,13 +13,14 @@ import org.mockito.Mockito;
 
 import com.lhf.game.creature.CreatureFactory;
 import com.lhf.game.creature.INonPlayerCharacter;
+import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
-import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.in.AMessageType;
 import com.lhf.server.client.ComBundle;
 
 public class AIComBundle extends ComBundle implements CommandChainHandler {
@@ -43,13 +44,20 @@ public class AIComBundle extends ComBundle implements CommandChainHandler {
     public CommandChainHandler mockedWrappedHandler;
 
     public AIComBundle() {
+        this(null);
+    }
+
+    public AIComBundle(INPCBuildInfo buildInfo) {
         super();
+        if (buildInfo == null) {
+            buildInfo = NonPlayerCharacter.getNPCBuilder();
+        }
         this.gameEventProcessorID = new GameEventProcessorID();
         this.mockedWrappedHandler = Mockito.mock(CommandChainHandler.class);
 
         this.brain = AIComBundle.getAIRunner().produceAI();
-        CreatureFactory factory = CreatureFactory.withBrainProducer(this, (buildInfo) -> this.brain);
-        NonPlayerCharacter npc = factory.buildNPC(NonPlayerCharacter.getNPCBuilder());
+        CreatureFactory factory = CreatureFactory.withBrainProducer(this, (builder) -> this.brain);
+        NonPlayerCharacter npc = factory.buildNPC(buildInfo);
         this.brain.setNPC(npc);
         this.brain.SetOut(this.sssb);
     }
