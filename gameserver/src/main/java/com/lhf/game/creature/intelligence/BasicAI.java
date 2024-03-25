@@ -146,6 +146,12 @@ public class BasicAI extends Client {
     }
 
     public void setNPC(INonPlayerCharacter nextNPC) {
+        if (this.npc != null && nextNPC != null && this.npc.equals(nextNPC)) {
+            return;
+        }
+        if (this.npc == null && nextNPC == null) {
+            return;
+        }
         this.log(Level.CONFIG, () -> String.format("Transitioning BasicAI %s from %s to back %s", this.getClientID(),
                 this.npc, nextNPC));
         if (nextNPC == null && this.npc != null) {

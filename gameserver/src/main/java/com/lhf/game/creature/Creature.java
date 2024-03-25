@@ -68,8 +68,7 @@ public abstract class Creature implements ICreature {
     private transient Map<AMessageType, CommandHandler> cmds;
     private transient final Logger logger;
 
-    protected Creature(ICreatureBuildInfo builder,
-            @NotNull CommandInvoker controller, CommandChainHandler successor) {
+    protected Creature(ICreatureBuildInfo builder, @NotNull CommandInvoker controller, CommandChainHandler successor) {
         this.gameEventProcessorID = new GameEventProcessorID();
         this.creatureID = new ICreatureID();
         this.name = builder.getName();
@@ -164,27 +163,27 @@ public abstract class Creature implements ICreature {
             return a != null ? a : b;
         };
         switch (stat) {
-            case MAXHP:
-                this.stats.merge(stat, value, merger);
-                // fallthrough
-            case CURRENTHP:
-                int current = this.getHealth();
-                int max = this.getMaxHealth();
-                current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
-                this.stats.replace(Stats.CURRENTHP, current);
-                break;
-            case XPEARNED:
-                this.updateXp(value);
-                break;
-            case AC:
-                // fallthrough
-            case PROFICIENCYBONUS:
-                // fallthrough
-            case XPWORTH:
-                // fallthrough
-            default:
-                this.stats.merge(stat, value, merger);
-                break;
+        case MAXHP:
+            this.stats.merge(stat, value, merger);
+            // fallthrough
+        case CURRENTHP:
+            int current = this.getHealth();
+            int max = this.getMaxHealth();
+            current = Integer.max(0, Integer.min(max, current + value)); // stick between 0 and max
+            this.stats.replace(Stats.CURRENTHP, current);
+            break;
+        case XPEARNED:
+            this.updateXp(value);
+            break;
+        case AC:
+            // fallthrough
+        case PROFICIENCYBONUS:
+            // fallthrough
+        case XPWORTH:
+            // fallthrough
+        default:
+            this.stats.merge(stat, value, merger);
+            break;
         }
 
     }
@@ -295,8 +294,7 @@ public abstract class Creature implements ICreature {
     private CreatureAffectedEvent.Builder processEffectDelta(CreatureEffect creatureEffect, Deltas deltas,
             MultiRollResult preAdjustedDamages) {
         CreatureAffectedEvent.Builder builder = CreatureAffectedEvent.getBuilder().setAffected(this)
-                .setHighlightedDelta(deltas)
-                .setCreatureResponsible(creatureEffect.creatureResponsible())
+                .setHighlightedDelta(deltas).setCreatureResponsible(creatureEffect.creatureResponsible())
                 .setGeneratedBy(creatureEffect.getGeneratedBy());
         if (deltas == null) {
             return builder;
@@ -340,11 +338,10 @@ public abstract class Creature implements ICreature {
                     () -> String.format("Effect %s does nothing on event %s", effect.getName(), event.getEventType()));
             return null;
         }
-        final MultiRollResult damages = effect.getEventDamageResult(event,
-                (mrr) -> this.adjustDamageByFlavor(mrr));
-        CreatureAffectedEvent changeEvent = this.processEffectDelta(effect, deltas, damages).Build();
-        this.announce(changeEvent);
-        return changeEvent;
+        final MultiRollResult damages = effect.getEventDamageResult(event, (mrr) -> this.adjustDamageByFlavor(mrr));
+        CreatureAffectedEvent.Builder changeEvent = this.processEffectDelta(effect, deltas, damages);
+        this.announce(changeEvent.setNotBroadcast());
+        return changeEvent.setBroacast().Build();
     }
 
     @Override
@@ -355,12 +352,10 @@ public abstract class Creature implements ICreature {
         }
         final Deltas deltas = effect.getApplicationDeltas();
         if (deltas == null) {
-            this.log(Level.FINE,
-                    () -> String.format("Effect %s does nothing on application", effect.getName()));
+            this.log(Level.FINE, () -> String.format("Effect %s does nothing on application", effect.getName()));
             return null;
         }
-        final MultiRollResult damages = effect
-                .getApplicationDamageResult((mrr) -> this.adjustDamageByFlavor(mrr));
+        final MultiRollResult damages = effect.getApplicationDamageResult((mrr) -> this.adjustDamageByFlavor(mrr));
         CreatureAffectedEvent camOut = this.processEffectDelta(effect, deltas, damages).Build();
         this.announce(camOut);
         return camOut;
@@ -374,12 +369,10 @@ public abstract class Creature implements ICreature {
         }
         final Deltas deltas = effect.getOnRemovalDeltas();
         if (deltas == null) {
-            this.log(Level.FINE,
-                    () -> String.format("Effect %s does nothing on removal", effect.getName()));
+            this.log(Level.FINE, () -> String.format("Effect %s does nothing on removal", effect.getName()));
             return null;
         }
-        final MultiRollResult damages = effect
-                .getApplicationDamageResult((mrr) -> this.adjustDamageByFlavor(mrr));
+        final MultiRollResult damages = effect.getApplicationDamageResult((mrr) -> this.adjustDamageByFlavor(mrr));
         CreatureAffectedEvent camOut = this.processEffectDelta(effect, deltas, damages).Build();
         this.announce(camOut);
         return camOut;
@@ -450,9 +443,8 @@ public abstract class Creature implements ICreature {
             ICreature.eventAccepter.accept(this, equipMessage.setSubType(EquipResultType.BADSLOT).Build());
             return true;
         }
-        ICreature.eventAccepter.accept(this,
-                ItemNotPossessedEvent.getBuilder().setNotBroadcast().setItemType(IItem.class.getSimpleName())
-                        .setItemName(itemName).Build());
+        ICreature.eventAccepter.accept(this, ItemNotPossessedEvent.getBuilder().setNotBroadcast()
+                .setItemType(IItem.class.getSimpleName()).setItemName(itemName).Build());
         return true;
     }
 
@@ -549,9 +541,8 @@ public abstract class Creature implements ICreature {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append(this.getClass().getSimpleName()).append(" [name=").append(name)
-                .append(", health=").append(this.getHealthBucket())
-                .append(", faction=").append(faction).append(", vocation=")
+        builder.append(this.getClass().getSimpleName()).append(" [name=").append(name).append(", health=")
+                .append(this.getHealthBucket()).append(", faction=").append(faction).append(", vocation=")
                 .append(vocation).append("]");
         return builder.toString();
     }
