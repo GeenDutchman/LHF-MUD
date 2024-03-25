@@ -2,6 +2,7 @@ package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.function.Consumer;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
@@ -21,6 +23,14 @@ import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
+import com.lhf.game.creature.intelligence.handlers.BadTargetSelectedHandler;
+import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler;
+import com.lhf.game.creature.intelligence.handlers.FightOverHandler;
+import com.lhf.game.creature.intelligence.handlers.FleeHandler;
+import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
+import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
+import com.lhf.game.creature.intelligence.handlers.RoomExitHandler;
+import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.Vocation;
@@ -41,6 +51,7 @@ import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.PlotArmor;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
@@ -55,6 +66,32 @@ import com.lhf.server.interfaces.NotNull;
 public interface INonPlayerCharacter extends ICreature {
     public static final AIRunner defaultAIRunner = new GroupAIRunner(true);
     public static final FollowHandler followHandler = new FollowHandler();
+
+    private static Map<GameEventType, AIHandler> generateDefaultAIHandlers() {
+        Map<GameEventType, AIHandler> handlers = new EnumMap<>(GameEventType.class);
+        Consumer<AIHandler> adder = new Consumer<AIHandler>() {
+
+            @Override
+            public void accept(AIHandler arg0) {
+                if (arg0 != null) {
+                    handlers.put(arg0.getOutMessageType(), arg0);
+                }
+            }
+
+        };
+
+        adder.accept(new FightOverHandler());
+        adder.accept(new FleeHandler());
+        adder.accept(new BadTargetSelectedHandler());
+        adder.accept(new BattleTurnHandler());
+        adder.accept(new SpokenPromptChunk());
+        adder.accept(new RoomExitHandler());
+        adder.accept(new HandleCreatureAffected());
+        adder.accept(new LewdAIHandler().setPartnersOnly());
+        return Collections.unmodifiableMap(handlers);
+    }
+
+    public final static Map<GameEventType, AIHandler> defaultAIHandlers = generateDefaultAIHandlers();
 
     /**
      * A BlessedFist is a {@link com.lhf.game.item.Weapon Weapon} used by those NPCs
@@ -774,6 +811,10 @@ public interface INonPlayerCharacter extends ICreature {
      * @param cont {@link com.lhf.server.client.CommandInvoker Controller}
      */
     public abstract void setController(CommandInvoker cont);
+
+    public default Map<GameEventType, AIHandler> getAIHandlers() {
+        return defaultAIHandlers;
+    }
 
     /**
      * Gets the name of the Creature that this NPC will follow, or null
