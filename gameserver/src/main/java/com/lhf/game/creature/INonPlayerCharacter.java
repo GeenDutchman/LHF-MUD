@@ -812,9 +812,7 @@ public interface INonPlayerCharacter extends ICreature {
      */
     public abstract void setController(CommandInvoker cont);
 
-    public default Map<GameEventType, AIHandler> getAIHandlers() {
-        return defaultAIHandlers;
-    }
+    public abstract Map<GameEventType, AIHandler> getAIHandlers();
 
     /**
      * Gets the name of the Creature that this NPC will follow, or null
