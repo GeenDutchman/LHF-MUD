@@ -300,7 +300,8 @@
             "summonState": [
               "LIFELINE_SUMMON",
               "SYMPATHETIC_SUMMON"
-            ]
+            ],
+            "noDefaultAIHandlers": false
           },
           "id": "ba887dde-ed52-404b-afbb-2926d03d825b"
         },

@@ -9,10 +9,8 @@ public interface AIRunner extends Runnable {
      * This is meant to limit how many OutMessages to poll from the BasicAI.
      * 
      * If the number is less than or equal to zero, there is no limit except what is
-     * stored
-     * by the BasicAI. If it is greater than zero, then it will process that many,
-     * with
-     * respect to how many are stored.
+     * stored by the BasicAI. If it is greater than zero, then it will process that
+     * many, with respect to how many are stored.
      * 
      * @return chew
      */
@@ -38,11 +36,5 @@ public interface AIRunner extends Runnable {
      */
     public void getAttention(BasicAI ai) throws InterruptedException;
 
-    /**
-     * Produces a BasicAI that is already registered and has the provided handlers.
-     * 
-     * @param handlers
-     * @return
-     */
-    public BasicAI produceAI(AIHandler... handlers);
+    public BasicAI produceAI();
 }

@@ -111,6 +111,16 @@ public class DungeonMaster extends NonPlayerCharacter {
             return iNPCBuilder.getAIHandlers();
         }
 
+        public DungeonMasterBuildInfo setIgnoreDefaultAIHandlers(boolean ignore) {
+            iNPCBuilder.setIgnoreDefaultAIHandlers(ignore);
+            return this;
+        }
+
+        @Override
+        public boolean usesNoDefaultAIHandlers() {
+            return iNPCBuilder.usesNoDefaultAIHandlers();
+        }
+
         public final AIHandler[] getAiHandlersAsArray() {
             return iNPCBuilder.getAiHandlersAsArray();
         }
@@ -168,8 +178,7 @@ public class DungeonMaster extends NonPlayerCharacter {
         }
 
         public DungeonMasterBuildInfo setAttributeBlock(Integer strength, Integer dexterity, Integer constitution,
-                Integer intelligence,
-                Integer wisdom, Integer charisma) {
+                Integer intelligence, Integer wisdom, Integer charisma) {
             iNPCBuilder.setAttributeBlock(strength, dexterity, constitution, intelligence, wisdom, charisma);
             return this;
         }
@@ -348,9 +357,8 @@ public class DungeonMaster extends NonPlayerCharacter {
         }
     }
 
-    public DungeonMaster(DungeonMasterBuildInfo builder,
-            @NotNull CommandInvoker controller, CommandChainHandler successor,
-            ConversationTree conversationTree) {
+    public DungeonMaster(DungeonMasterBuildInfo builder, @NotNull CommandInvoker controller,
+            CommandChainHandler successor, ConversationTree conversationTree) {
         super(builder, controller, successor, conversationTree);
     }
 

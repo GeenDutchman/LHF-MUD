@@ -90,8 +90,7 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
         return this;
     }
 
-    public ConversationTree loadConversationTree(ConversationManager conversationManager)
-            throws FileNotFoundException {
+    public ConversationTree loadConversationTree(ConversationManager conversationManager) throws FileNotFoundException {
         return iNPCBuilder.loadConversationTree(conversationManager);
     }
 
@@ -111,6 +110,16 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
 
     public List<AIHandler> getAIHandlers() {
         return iNPCBuilder.getAIHandlers();
+    }
+
+    public MonsterBuildInfo setIgnoreDefaultAIHandlers(boolean ignore) {
+        iNPCBuilder.setIgnoreDefaultAIHandlers(ignore);
+        return this;
+    }
+
+    @Override
+    public boolean usesNoDefaultAIHandlers() {
+        return iNPCBuilder.usesNoDefaultAIHandlers();
     }
 
     public final AIHandler[] getAiHandlersAsArray() {
@@ -170,8 +179,7 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
     }
 
     public MonsterBuildInfo setAttributeBlock(Integer strength, Integer dexterity, Integer constitution,
-            Integer intelligence,
-            Integer wisdom, Integer charisma) {
+            Integer intelligence, Integer wisdom, Integer charisma) {
         iNPCBuilder.setAttributeBlock(strength, dexterity, constitution, intelligence, wisdom, charisma);
         return this;
     }
@@ -328,8 +336,7 @@ public final class MonsterBuildInfo implements INonPlayerCharacterBuildInfo {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("IMonsterBuildInfo [iNPCBuilder=").append(iNPCBuilder).append(", id=").append(id)
-                .append("]");
+        builder.append("IMonsterBuildInfo [iNPCBuilder=").append(iNPCBuilder).append(", id=").append(id).append("]");
         return builder.toString();
     }
 

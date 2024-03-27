@@ -16,6 +16,7 @@ import com.lhf.game.CreatureContainer;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
+import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.Vocation;
@@ -36,6 +37,7 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventProcessor;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.GameEvent.Builder;
@@ -235,6 +237,16 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
+    public void log(Level level, String msg, Throwable thrown) {
+        wrapped.log(level, msg, thrown);
+    }
+
+    @Override
+    public void log(Level level, Throwable thrown, Supplier<String> msgSupplier) {
+        wrapped.log(level, thrown, msgSupplier);
+    }
+
+    @Override
     public Reply handle(CommandContext ctx, Command cmd) {
         this.addSelfToContext(ctx); // just in case
         Reply reply = wrapped.handle(ctx, cmd);
@@ -420,6 +432,11 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     @Override
     public void setController(CommandInvoker cont) {
         wrapped.setController(cont);
+    }
+
+    @Override
+    public Map<GameEventType, AIHandler> getAIHandlers() {
+        return wrapped.getAIHandlers();
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.function.Consumer;
 
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.EffectResistance;
@@ -21,6 +23,14 @@ import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.AIRunner;
 import com.lhf.game.creature.intelligence.GroupAIRunner;
+import com.lhf.game.creature.intelligence.handlers.BadTargetSelectedHandler;
+import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler;
+import com.lhf.game.creature.intelligence.handlers.FightOverHandler;
+import com.lhf.game.creature.intelligence.handlers.FleeHandler;
+import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
+import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
+import com.lhf.game.creature.intelligence.handlers.RoomExitHandler;
+import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.game.creature.inventory.Inventory;
 import com.lhf.game.creature.statblock.AttributeBlock;
 import com.lhf.game.creature.vocation.Vocation;
@@ -41,21 +51,47 @@ import com.lhf.game.item.Weapon;
 import com.lhf.game.item.concrete.Corpse;
 import com.lhf.game.item.interfaces.WeaponSubtype;
 import com.lhf.game.magic.concrete.PlotArmor;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
 
 /**
  * An interface for all things NPC. This way we can create fun things like
- * wrappers, mocks, and the like.
- * Adds functionality to the {@link com.lhf.game.creature.ICreature Creature}
- * interface.
+ * wrappers, mocks, and the like. Adds functionality to the
+ * {@link com.lhf.game.creature.ICreature Creature} interface.
  * 
  * @see {@link com.lhf.game.creature.ICreature ICreature}
  */
 public interface INonPlayerCharacter extends ICreature {
     public static final AIRunner defaultAIRunner = new GroupAIRunner(true);
     public static final FollowHandler followHandler = new FollowHandler();
+
+    private static Map<GameEventType, AIHandler> generateDefaultAIHandlers() {
+        Map<GameEventType, AIHandler> handlers = new EnumMap<>(GameEventType.class);
+        Consumer<AIHandler> adder = new Consumer<AIHandler>() {
+
+            @Override
+            public void accept(AIHandler arg0) {
+                if (arg0 != null) {
+                    handlers.put(arg0.getOutMessageType(), arg0);
+                }
+            }
+
+        };
+
+        adder.accept(new FightOverHandler());
+        adder.accept(new FleeHandler());
+        adder.accept(new BadTargetSelectedHandler());
+        adder.accept(new BattleTurnHandler());
+        adder.accept(new SpokenPromptChunk());
+        adder.accept(new RoomExitHandler());
+        adder.accept(new HandleCreatureAffected());
+        adder.accept(new LewdAIHandler().setPartnersOnly());
+        return Collections.unmodifiableMap(handlers);
+    }
+
+    public final static Map<GameEventType, AIHandler> defaultAIHandlers = generateDefaultAIHandlers();
 
     /**
      * A BlessedFist is a {@link com.lhf.game.item.Weapon Weapon} used by those NPCs
@@ -99,14 +135,14 @@ public interface INonPlayerCharacter extends ICreature {
      * A static instance of the
      * {@link com.lhf.game.creature.INonPlayerCharacter.BlessedFist BlessedFist}
      * available to NPCs who maintain their
-     * {@link com.lhf.game.magic.concrete.PlotArmor Blessing}
-     * from the {@link com.lhf.game.creature.DungeonMaster DungeonMaster}.
+     * {@link com.lhf.game.magic.concrete.PlotArmor Blessing} from the
+     * {@link com.lhf.game.creature.DungeonMaster DungeonMaster}.
      */
     public static final BlessedFist blessedFist = new BlessedFist();
 
     /**
-     * HarmMemories are meant to be used in a battle to remember things like:
-     * "Who hit me last?" and "How much did that hurt?". Then the NPC can use that
+     * HarmMemories are meant to be used in a battle to remember things like: "Who
+     * hit me last?" and "How much did that hurt?". Then the NPC can use that
      * information to decide what to do next in a fight.
      */
     public static class HarmMemories {
@@ -123,8 +159,7 @@ public interface INonPlayerCharacter extends ICreature {
 
         /**
          * Creates HarmMemories for an NPC. Raises a NullPointerException if the
-         * provided `owner` is null.
-         * Is protected so that only NPCs can make them.
+         * provided `owner` is null. Is protected so that only NPCs can make them.
          * 
          * @param owner {@link com.lhf.game.creature.INonPlayerCharacter NPC} that must
          *              not be null
@@ -186,8 +221,8 @@ public interface INonPlayerCharacter extends ICreature {
         }
 
         /**
-         * Resets all the memories to an empty or default state.
-         * Returns `this` so it is chainable.
+         * Resets all the memories to an empty or default state. Returns `this` so it is
+         * chainable.
          */
         public HarmMemories reset() {
             this.lastAttackerName = Optional.empty();
@@ -262,15 +297,11 @@ public interface INonPlayerCharacter extends ICreature {
 
         public ConversationTree getConversationTree();
 
-        public List<AIHandler> getAIHandlers();
-
-        public default AIHandler[] getAiHandlersAsArray() {
-            List<AIHandler> handlers = this.getAIHandlers();
-            if (handlers == null) {
-                return new AIHandler[0];
-            }
-            return handlers.toArray(new AIHandler[handlers.size()]);
+        public default boolean usesNoDefaultAIHandlers() {
+            return false;
         }
+
+        public List<AIHandler> getAIHandlers();
 
         public EnumSet<SummonData> getSummonState();
 
@@ -290,6 +321,7 @@ public interface INonPlayerCharacter extends ICreature {
         private List<AIHandler> aiHandlers;
         private EnumSet<SummonData> summonState;
         private String leaderName;
+        private boolean noDefaultAIHandlers;
 
         protected INPCBuildInfo() {
             this.className = this.getClass().getName();
@@ -299,6 +331,7 @@ public interface INonPlayerCharacter extends ICreature {
             this.aiHandlers = new ArrayList<>();
             this.summonState = EnumSet.noneOf(SummonData.class);
             this.leaderName = null;
+            this.noDefaultAIHandlers = false;
         }
 
         public INPCBuildInfo(ICreatureBuildInfo basicInfo, String conversationFileName, ConversationTree tree,
@@ -309,6 +342,7 @@ public interface INonPlayerCharacter extends ICreature {
             this.setConversationTree(tree != null ? tree.makeCopy() : null);
             this.aiHandlers = handlers != null ? new ArrayList<>(handlers) : new ArrayList<>();
             this.setSummonStates(summonState);
+            this.noDefaultAIHandlers = false;
         }
 
         public INPCBuildInfo(INonPlayerCharacterBuildInfo other) {
@@ -336,6 +370,7 @@ public interface INonPlayerCharacter extends ICreature {
                 if (otherHandlers != null) {
                     this.aiHandlers = new ArrayList<>(otherHandlers);
                 }
+                this.noDefaultAIHandlers = buildInfo.usesNoDefaultAIHandlers();
             }
             return this;
         }
@@ -409,6 +444,16 @@ public interface INonPlayerCharacter extends ICreature {
             return this.aiHandlers.toArray(new AIHandler[this.aiHandlers.size()]);
         }
 
+        public INPCBuildInfo setIgnoreDefaultAIHandlers(boolean ignore) {
+            this.noDefaultAIHandlers = ignore;
+            return this;
+        }
+
+        @Override
+        public boolean usesNoDefaultAIHandlers() {
+            return this.noDefaultAIHandlers;
+        }
+
         public INPCBuildInfo clearAIHandlers() {
             this.aiHandlers.clear();
             return this;
@@ -466,8 +511,7 @@ public interface INonPlayerCharacter extends ICreature {
         }
 
         public INPCBuildInfo setAttributeBlock(Integer strength, Integer dexterity, Integer constitution,
-                Integer intelligence,
-                Integer wisdom, Integer charisma) {
+                Integer intelligence, Integer wisdom, Integer charisma) {
             creatureBuilder.setAttributeBlock(strength, dexterity, constitution, intelligence, wisdom, charisma);
             return this;
         }
@@ -669,8 +713,8 @@ public interface INonPlayerCharacter extends ICreature {
      * Creature.
      * <p>
      * It will first check to see if the
-     * {@link com.lhf.game.magic.concrete.PlotArmor Blessing}
-     * is maintained. If that is the case, it will return a {@link #blessedFist}.
+     * {@link com.lhf.game.magic.concrete.PlotArmor Blessing} is maintained. If that
+     * is the case, it will return a {@link #blessedFist}.
      * <p>
      * It will then check to see what is in the
      * {@link com.lhf.game.enums.EquipmentSlots#WEAPON Weapon} slot according to
@@ -746,8 +790,7 @@ public interface INonPlayerCharacter extends ICreature {
 
     /**
      * Returns the {@link com.lhf.game.creature.INonPlayerCharacter.HarmMemories
-     * HarmMemories} of this NPC.
-     * Should never be null.
+     * HarmMemories} of this NPC. Should never be null.
      * 
      * @return {@link com.lhf.game.creature.INonPlayerCharacter.HarmMemories
      *         HarmMemories}
@@ -760,6 +803,8 @@ public interface INonPlayerCharacter extends ICreature {
      * @param cont {@link com.lhf.server.client.CommandInvoker Controller}
      */
     public abstract void setController(CommandInvoker cont);
+
+    public abstract Map<GameEventType, AIHandler> getAIHandlers();
 
     /**
      * Gets the name of the Creature that this NPC will follow, or null

@@ -1,14 +1,18 @@
 package com.lhf.game.creature;
 
 import java.io.FileNotFoundException;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Map;
 
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.conversation.ConversationTree;
+import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.magic.concrete.PlotArmor;
 import com.lhf.messages.CommandChainHandler;
+import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.CreatureAffectedEvent;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.server.client.CommandInvoker;
@@ -22,14 +26,22 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
 
     private ConversationTree convoTree = null;
     private transient final HarmMemories harmMemories;
+    private transient final Map<GameEventType, AIHandler> aiHandlers;
     private String leaderName;
 
-    protected NonPlayerCharacter(INonPlayerCharacterBuildInfo builder,
-            @NotNull CommandInvoker controller, CommandChainHandler successor,
-            ConversationTree conversationTree) {
+    protected NonPlayerCharacter(INonPlayerCharacterBuildInfo builder, @NotNull CommandInvoker controller,
+            CommandChainHandler successor, ConversationTree conversationTree) {
         super(builder, controller, successor);
         this.convoTree = conversationTree;
         this.leaderName = builder.getLeaderName();
+        Map<GameEventType, AIHandler> someHandlers = new EnumMap<>(GameEventType.class);
+        if (!builder.usesNoDefaultAIHandlers()) {
+            someHandlers.putAll(INonPlayerCharacter.defaultAIHandlers);
+        }
+        for (AIHandler handler : builder.getAIHandlers()) {
+            someHandlers.put(handler.getOutMessageType(), handler);
+        }
+        this.aiHandlers = Collections.unmodifiableMap(someHandlers);
         this.harmMemories = HarmMemories.makeMemories(this);
     }
 
@@ -104,6 +116,11 @@ public class NonPlayerCharacter extends Creature implements INonPlayerCharacter 
     @Override
     public void setController(CommandInvoker cont) {
         super.setController(cont);
+    }
+
+    @Override
+    public Map<GameEventType, AIHandler> getAIHandlers() {
+        return this.aiHandlers;
     }
 
     @Override

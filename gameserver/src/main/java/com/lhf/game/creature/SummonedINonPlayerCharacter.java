@@ -233,6 +233,17 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
+    public void log(Level level, String msg, Throwable thrown) {
+        super.log(level, msg != null ? "Summon: " + msg : msg, thrown);
+    }
+
+    @Override
+    public void log(Level level, Throwable thrown, Supplier<String> msgSupplier) {
+        Supplier<String> nextSupplier = msgSupplier != null ? () -> "Summon: " + msgSupplier.get() : msgSupplier;
+        super.log(level, thrown, nextSupplier);
+    }
+
+    @Override
     public GameEvent applyEffect(CreatureEffect effect) {
         if (this.checkSummonIsAlive()) {
             return super.applyEffect(effect);
@@ -499,9 +510,8 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append(this.getClass().getSimpleName()).append(" [wrapped=").append(this.wrapped)
-                .append(", summonData=")
-                .append(summonData).append(", summoner=")
-                .append(summoner).append(", timeLeft=").append(timeLeft).append("]");
+                .append(", summonData=").append(summonData).append(", summoner=").append(summoner).append(", timeLeft=")
+                .append(timeLeft).append("]");
         return builder.toString();
     }
 

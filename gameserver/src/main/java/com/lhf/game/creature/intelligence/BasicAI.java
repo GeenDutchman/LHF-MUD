@@ -3,14 +3,12 @@ package com.lhf.game.creature.intelligence;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.lhf.game.creature.DungeonMaster;
 import com.lhf.game.creature.INonPlayerCharacter;
@@ -18,37 +16,24 @@ import com.lhf.game.creature.Monster;
 import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.SummonedMonster;
 import com.lhf.game.creature.SummonedNPC;
-import com.lhf.game.creature.intelligence.handlers.BattleTurnHandler;
-import com.lhf.game.creature.intelligence.handlers.HandleCreatureAffected;
-import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
-import com.lhf.game.creature.intelligence.handlers.RoomExitHandler;
-import com.lhf.game.creature.intelligence.handlers.SpokenPromptChunk;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.GameEventType;
-import com.lhf.messages.events.BadTargetSelectedEvent;
-import com.lhf.messages.events.BattleCreatureFledEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.DoNothingSendStrategy;
-import com.lhf.server.interfaces.NotNull;
 
 public class BasicAI extends Client {
-    protected final String basicLoggerName;
     protected transient INonPlayerCharacter npc;
-    protected Map<GameEventType, AIChunk> handlers;
     protected BlockingQueue<GameEvent> queue;
     protected transient AIRunner runner;
     protected final transient Set<Class<? extends INonPlayerCharacter>> allowedSuccessorTypes;
 
     protected BasicAI(AIRunner runner) {
         super();
-        this.basicLoggerName = String.format("%s.%d", this.getClass().getName(), this.getClientID().hashCode());
         this.allowedSuccessorTypes = new HashSet<>(Set.of(NonPlayerCharacter.class, DungeonMaster.class,
                 SummonedNPC.class, Monster.class, SummonedMonster.class, INonPlayerCharacter.class));
         this.queue = new ArrayBlockingQueue<>(32, true);
         this.SetOut(new DoNothingSendStrategy());
-        this.handlers = new TreeMap<>();
-        this.initBasicHandlers();
         this.runner = runner;
     }
 
@@ -69,61 +54,22 @@ public class BasicAI extends Client {
     }
 
     public void process(GameEvent event) {
+        if (this.npc == null) {
+            return;
+        }
+        final Map<GameEventType, AIHandler> handlers = this.npc.getAIHandlers();
+        if (handlers == null) {
+            return;
+        }
         if (event != null) {
-            AIChunk ai = this.handlers.get(event.getEventType());
+            AIHandler ai = handlers.get(event.getEventType());
             if (ai != null) {
                 ai.handle(this, event);
             } else {
-                this.log(Level.WARNING, () -> String.format("No handler found for %s: %s",
-                        event.getEventType(), event.print()));
-            }
-        }
-    }
-
-    private void initBasicHandlers() {
-        if (this.handlers == null) {
-            this.handlers = new TreeMap<>();
-        }
-        this.handlers.put(GameEventType.FIGHT_OVER, (BasicAI bai, GameEvent event) -> {
-            if (event.getEventType().equals(GameEventType.FIGHT_OVER) && bai.getNpc().isInBattle()) {
-                bai.npc.getHarmMemories().reset();
-            }
-        });
-
-        this.handlers.put(GameEventType.FLEE, (BasicAI bai, GameEvent event) -> {
-            if (event.getEventType().equals(GameEventType.FLEE)) {
-                BattleCreatureFledEvent flee = (BattleCreatureFledEvent) event;
-                if (flee.isFled() && flee.getRunner() != null) {
-                    if (flee.getRunner() == bai.getNpc()) {
-                        bai.npc.getHarmMemories().reset();
-                    }
-                }
-            }
-        });
-        this.handlers.put(GameEventType.BAD_TARGET_SELECTED, (BasicAI bai, GameEvent event) -> {
-            if (event.getEventType().equals(GameEventType.BAD_TARGET_SELECTED) && bai.getNpc().isInBattle()) {
-                BadTargetSelectedEvent btsm = (BadTargetSelectedEvent) event;
                 this.log(Level.WARNING,
-                        () -> String.format("Selected a bad target: %s with possible targets", btsm,
-                                btsm.getPossibleTargets()));
+                        () -> String.format("No handler found for %s: %s", event.getEventType(), event.print()));
             }
-        });
-
-        this.addHandler(new BattleTurnHandler());
-        this.addHandler(new SpokenPromptChunk());
-        this.addHandler(new RoomExitHandler());
-        this.addHandler(new HandleCreatureAffected());
-        this.addHandler(new LewdAIHandler().setPartnersOnly());
-    }
-
-    public BasicAI addHandler(GameEventType type, AIChunk chunk) {
-        this.handlers.put(type, chunk);
-        return this;
-    }
-
-    public BasicAI addHandler(@NotNull AIHandler aiHandler) {
-        this.handlers.put(aiHandler.getOutMessageType(), aiHandler);
-        return this;
+        }
     }
 
     @Override
@@ -150,9 +96,14 @@ public class BasicAI extends Client {
     }
 
     public void setNPC(INonPlayerCharacter nextNPC) {
-        this.logger.log(Level.CONFIG,
-                () -> String.format("Transitioning BasicAI %s from %s to back %s", this.getClientID(), this.npc,
-                        nextNPC));
+        if (this.npc != null && nextNPC != null && this.npc.equals(nextNPC)) {
+            return;
+        }
+        if (this.npc == null && nextNPC == null) {
+            return;
+        }
+        this.log(Level.CONFIG, () -> String.format("Transitioning BasicAI %s from %s to back %s", this.getClientID(),
+                this.npc, nextNPC));
         if (nextNPC == null && this.npc != null) {
             this.npc.log(Level.WARNING, () -> String.format("Controller %s detaching!", this.getClientID()));
             this.npc.setController(null); // detach controller
@@ -160,9 +111,9 @@ public class BasicAI extends Client {
         this.npc = nextNPC;
         if (this.npc != null) {
             this.npc.setController(this);
-            this.logger = Logger.getLogger(this.basicLoggerName + "." + npc.getName().replaceAll("\\W", "_"));
+            this.updateLoggerSuffix(npc.getName());
         } else {
-            this.logger = Logger.getLogger(this.basicLoggerName);
+            this.updateLoggerSuffix(null);
         }
         super.setSuccessor(nextNPC);
     }
@@ -214,6 +165,26 @@ public class BasicAI extends Client {
             return;
         }
         super.log(logLevel, composed);
+    }
+
+    @Override
+    public synchronized void log(Level level, String msg, Throwable thrown) {
+        String composed = this.toString() + ": " + msg;
+        if (this.npc != null) {
+            this.npc.log(level, composed, thrown);
+            return;
+        }
+        super.log(level, msg, thrown);
+    }
+
+    @Override
+    public synchronized void log(Level level, Throwable thrown, Supplier<String> msgSupplier) {
+        Supplier<String> composed = () -> this.toString() + (msgSupplier != null ? ": " + msgSupplier.get() : "");
+        if (this.npc != null) {
+            this.npc.log(level, thrown, composed);
+            return;
+        }
+        super.log(level, thrown, msgSupplier);
     }
 
 }

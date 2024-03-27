@@ -71,17 +71,17 @@ public class Client implements CommandInvoker {
     protected final ClientID id;
     protected SendStrategy out;
     protected final GameEventProcessorID gameEventProcessorID;
-    protected transient Logger logger;
+    protected final String basicLoggerName;
+    private transient Logger logger;
     protected transient CommandChainHandler _successor;
 
     protected Client() {
         this.id = new ClientID();
         this.gameEventProcessorID = new GameEventProcessorID();
-        this.logger = Logger
-                .getLogger(String.format("%s.%d", this.getClass().getName(), this.getClientID().hashCode()));
-        this.log(Level.FINEST,
-                () -> String.format("Creating client %s.%d", this.getClass().getName(),
-                        this.getEventProcessorID().hashCode()));
+        this.basicLoggerName = String.format("%s.%d", this.getClass().getName(), this.getClientID().hashCode());
+        this.logger = Logger.getLogger(basicLoggerName);
+        this.log(Level.FINEST, () -> String.format("Creating client %s.%d", this.getClass().getName(),
+                this.getEventProcessorID().hashCode()));
         this._successor = null;
         this.out = null;
     }
@@ -131,6 +131,19 @@ public class Client implements CommandInvoker {
         };
     }
 
+    public synchronized void updateLoggerSuffix(String name) {
+        if (name == null || name.isEmpty() || name.isBlank() || this.basicLoggerName.equals(name)) {
+            if (this.logger.getName() != this.basicLoggerName) {
+                this.log(Level.WARNING, () -> String.format("Changing logger to %s", this.basicLoggerName));
+                this.logger = Logger.getLogger(this.basicLoggerName);
+            }
+        } else {
+            final String newSuffix = String.format("%s.%s", basicLoggerName, name.replaceAll("\\W", "_"));
+            this.log(Level.WARNING, () -> String.format("Changing logger to %s", newSuffix));
+            this.logger = Logger.getLogger(newSuffix);
+        }
+    }
+
     @Override
     public synchronized void log(Level logLevel, String logMessage) {
         this.logger.log(logLevel, logMessage);
@@ -139,6 +152,16 @@ public class Client implements CommandInvoker {
     @Override
     public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
         this.logger.log(logLevel, logMessageSupplier);
+    }
+
+    @Override
+    public synchronized void log(Level level, String msg, Throwable thrown) {
+        this.logger.log(level, msg, thrown);
+    }
+
+    @Override
+    public synchronized void log(Level level, Throwable thrown, Supplier<String> msgSupplier) {
+        this.logger.log(level, thrown, msgSupplier);
     }
 
     void disconnect() throws IOException {
@@ -192,13 +215,11 @@ public class Client implements CommandInvoker {
         Map<AMessageType, String> helps = reply.getHelps();
 
         if (badMessageType != null) {
-            Client.eventAccepter.accept(this,
-                    BadMessageEvent.getBuilder().setBadMessageType(badMessageType).setHelps(helps).setCommand(msg)
-                            .Build());
+            Client.eventAccepter.accept(this, BadMessageEvent.getBuilder().setBadMessageType(badMessageType)
+                    .setHelps(helps).setCommand(msg).Build());
         } else {
-            Client.eventAccepter.accept(this,
-                    HelpNeededEvent.getHelpBuilder().setHelps(helps).setSingleHelp(msg == null ? null : msg.getType())
-                            .Build());
+            Client.eventAccepter.accept(this, HelpNeededEvent.getHelpBuilder().setHelps(helps)
+                    .setSingleHelp(msg == null ? null : msg.getType()).Build());
         }
         return reply.resolve();
     }

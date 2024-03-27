@@ -276,6 +276,7 @@ public class Server implements ServerInterface, ConnectionListener {
                 }
                 user.setSuccessor(Server.this);
                 Client client = Server.this.clientManager.getConnection(ctx.getClient().getClientID());
+                client.updateLoggerSuffix(user.getUsername());
                 Server.this.clientManager.addUserForClient(client.getClientID(), user.getUserID());
                 client.setSuccessor(user);
                 ctx.setUser(user);

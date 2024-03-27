@@ -29,15 +29,14 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
         this.builtCreatures = new CreaturePartitionSetVisitor();
         this.successor = null;
         this.conversationManager = null;
-        this.brainProducer = (buildInfo) -> NonPlayerCharacter.defaultAIRunner
-                .produceAI(buildInfo.getAiHandlersAsArray());
+        this.brainProducer = (buildInfo) -> NonPlayerCharacter.defaultAIRunner.produceAI();
         this.fallbackNoConversation = true;
     }
 
     public static CreatureFactory withAIRunner(CommandChainHandler successor, AIRunner aiRunner) {
         final Function<INonPlayerCharacterBuildInfo, BasicAI> brainProducer = aiRunner != null
-                ? (buildInfo) -> aiRunner.produceAI(buildInfo.getAiHandlersAsArray())
-                : (buildInfo) -> NonPlayerCharacter.defaultAIRunner.produceAI(buildInfo.getAiHandlersAsArray());
+                ? (buildInfo) -> aiRunner.produceAI()
+                : (buildInfo) -> NonPlayerCharacter.defaultAIRunner.produceAI();
         return new CreatureFactory(successor, null, brainProducer, true);
     }
 
@@ -46,21 +45,19 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
         return new CreatureFactory(successor, null, brainProducer, true);
     }
 
-    public static CreatureFactory fromAIRunner(CommandChainHandler successor,
-            ConversationManager conversationManager, AIRunner aiRunner, boolean fallbackNoConversation) {
+    public static CreatureFactory fromAIRunner(CommandChainHandler successor, ConversationManager conversationManager,
+            AIRunner aiRunner, boolean fallbackNoConversation) {
         return new CreatureFactory(successor, conversationManager,
-                aiRunner != null ? (buildInfo) -> aiRunner.produceAI(buildInfo.getAiHandlersAsArray()) : null,
-                fallbackNoConversation);
+                aiRunner != null ? (buildInfo) -> aiRunner.produceAI() : null, fallbackNoConversation);
     }
 
-    public CreatureFactory(CommandChainHandler successor,
-            ConversationManager conversationManager, Function<INonPlayerCharacterBuildInfo, BasicAI> brainProducer,
-            boolean fallbackNoConversation) {
+    public CreatureFactory(CommandChainHandler successor, ConversationManager conversationManager,
+            Function<INonPlayerCharacterBuildInfo, BasicAI> brainProducer, boolean fallbackNoConversation) {
         this.builtCreatures = new CreaturePartitionSetVisitor();
         this.successor = successor;
         this.conversationManager = conversationManager;
         this.brainProducer = brainProducer != null ? brainProducer
-                : (buildInfo) -> NonPlayerCharacter.defaultAIRunner.produceAI(buildInfo.getAiHandlersAsArray());
+                : (buildInfo) -> NonPlayerCharacter.defaultAIRunner.produceAI();
         this.fallbackNoConversation = fallbackNoConversation;
     }
 
@@ -120,8 +117,7 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
         }
         final ConversationTree tree = this.loadConversationTree(buildInfo);
         final BasicAI brain = this.brainProducer.apply(buildInfo);
-        Monster monster = new Monster(buildInfo, brain, successor,
-                tree);
+        Monster monster = new Monster(buildInfo, brain, successor, tree);
         brain.setNPC(monster);
         this.builtCreatures.visit(monster);
         return monster;
@@ -134,8 +130,7 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
         }
         final ConversationTree tree = this.loadConversationTree(buildInfo);
         final BasicAI brain = this.brainProducer.apply(buildInfo);
-        Monster monster = new Monster(buildInfo, brain, successor,
-                tree);
+        Monster monster = new Monster(buildInfo, brain, successor, tree);
         brain.setNPC(monster);
         SummonedMonster summonedMonster = new SummonedMonster(monster, buildInfo.getSummonState(), summoner, timeLeft);
         this.builtCreatures.visit(summonedMonster);
@@ -154,8 +149,7 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
         }
         final ConversationTree tree = this.loadConversationTree(buildInfo);
         final BasicAI brain = this.brainProducer.apply(buildInfo);
-        NonPlayerCharacter npc = new NonPlayerCharacter(buildInfo,
-                brain, successor, tree);
+        NonPlayerCharacter npc = new NonPlayerCharacter(buildInfo, brain, successor, tree);
         brain.setNPC(npc);
         this.builtCreatures.visit(npc);
         return npc;
@@ -168,8 +162,7 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
         }
         final ConversationTree tree = this.loadConversationTree(buildInfo);
         final BasicAI brain = this.brainProducer.apply(buildInfo);
-        NonPlayerCharacter npc = new NonPlayerCharacter(buildInfo,
-                brain, successor, tree);
+        NonPlayerCharacter npc = new NonPlayerCharacter(buildInfo, brain, successor, tree);
         brain.setNPC(npc);
         SummonedNPC summonedNPC = new SummonedNPC(npc, buildInfo.getSummonState(), summoner, timeLeft);
         this.builtCreatures.visit(summonedNPC);
@@ -188,8 +181,7 @@ public class CreatureFactory implements ICreatureBuildInfoVisitor {
         }
         final ConversationTree tree = this.loadConversationTree(buildInfo);
         final BasicAI brain = this.brainProducer.apply(buildInfo);
-        DungeonMaster dm = new DungeonMaster(buildInfo, brain,
-                successor, tree);
+        DungeonMaster dm = new DungeonMaster(buildInfo, brain, successor, tree);
         brain.setNPC(dm);
         this.builtCreatures.visit(dm);
         return dm;

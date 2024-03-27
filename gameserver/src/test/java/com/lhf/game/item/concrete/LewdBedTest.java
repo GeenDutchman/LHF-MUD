@@ -9,6 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.lhf.game.creature.CreatureBuildInfo;
+import com.lhf.game.creature.INonPlayerCharacter.INPCBuildInfo;
+import com.lhf.game.creature.NonPlayerCharacter;
 import com.lhf.game.creature.intelligence.AIComBundle;
 import com.lhf.game.creature.intelligence.handlers.LewdAIHandler;
 import com.lhf.game.lewd.LewdBabyMaker;
@@ -44,11 +46,12 @@ public class LewdBedTest {
 
     @Test
     void testOnePartner() {
-        AIComBundle first = new AIComBundle();
-        AIComBundle second = new AIComBundle();
-
-        first.brain.addHandler(new LewdAIHandler(Set.of(second.getNPC().getName())));
-        second.brain.addHandler(new LewdAIHandler(Set.of(first.getNPC().getName())));
+        LewdAIHandler lewdhandler = new LewdAIHandler();
+        INPCBuildInfo npcBuilder = NonPlayerCharacter.getNPCBuilder().addAIHandler(lewdhandler);
+        AIComBundle first = new AIComBundle(npcBuilder);
+        AIComBundle second = new AIComBundle(npcBuilder);
+        lewdhandler.addPartner(second.getNPC().getName());
+        lewdhandler.addPartner(first.getNPC().getName());
 
         Room room = this.builder.setName("Pair").quickBuild(null, null, null);
         room.addCreatures(Set.of(first.getNPC(), second.getNPC()), true);
@@ -61,10 +64,11 @@ public class LewdBedTest {
         Truth.assertThat(bed.handlePopulatedJoin(first.getNPC(), Set.of(second.getNPC().getName()), null, null))
                 .isTrue();
 
-        MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, "is excited to join");
+        MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, Set.of("is excited to join"), Set.of(), null,
+                true);
         Mockito.verify(first.sssb, Mockito.timeout(1000).times(2)).send(Mockito.argThat(matcher));
         Mockito.verify(second.sssb, Mockito.timeout(1000).times(2)).send(Mockito.argThat(matcher));
-        matcher = new MessageMatcher(GameEventType.LEWD, "as they do it");
+        matcher = new MessageMatcher(GameEventType.LEWD, Set.of("as they do it"), Set.of(), null, true);
         Mockito.verify(first.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
         Mockito.verify(second.sssb, Mockito.timeout(1000).times(1)).send(Mockito.argThat(matcher));
 
@@ -86,29 +90,28 @@ public class LewdBedTest {
         Truth.assertThat(bed.handlePopulatedJoin(first.getNPC(), Set.of(second.getNPC().getName()), null, null))
                 .isTrue();
 
-        MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, "does not wish");
+        MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, Set.of("does not wish"), Set.of(), null, true);
 
         Mockito.verify(first.sssb, Mockito.timeout(1000)).send(Mockito.argThat(matcher));
         Mockito.verify(second.sssb, Mockito.timeout(1000)).send(Mockito.argThat(matcher));
-        Mockito.verify(first.sssb, Mockito.timeout(1000).atLeastOnce())
-                .send(Mockito.argThat(new MessageMatcher(GameEventType.LEWD, "meant to be shared")));
+        Mockito.verify(first.sssb, Mockito.timeout(1000).atLeastOnce()).send(Mockito
+                .argThat(new MessageMatcher(GameEventType.LEWD, Set.of("meant to be shared"), Set.of(), null, true)));
 
     }
 
     @Test
     void testBabymaker() {
-        AIComBundle first = new AIComBundle();
-        AIComBundle second = new AIComBundle();
-
-        first.brain.addHandler(new LewdAIHandler(Set.of(second.getNPC().getName())));
-        second.brain.addHandler(new LewdAIHandler(Set.of(first.getNPC().getName())));
+        LewdAIHandler lewdhandler = new LewdAIHandler();
+        INPCBuildInfo npcBuilder = NonPlayerCharacter.getNPCBuilder().addAIHandler(lewdhandler);
+        AIComBundle first = new AIComBundle(npcBuilder);
+        AIComBundle second = new AIComBundle(npcBuilder);
+        lewdhandler.addPartner(second.getNPC().getName());
+        lewdhandler.addPartner(first.getNPC().getName());
 
         Room room = this.builder.setName("Spurned").quickBuild(null, null, null);
         room.addCreatures(Set.of(first.getNPC(), second.getNPC()), false);
-        LewdBed bed = new LewdBed(
-                LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30)
-                        .setLewdProduct(new LewdBabyMaker(null)),
-                room);
+        LewdBed bed = new LewdBed(LewdBed.Builder.getInstance().setCapacity(1).setSleepSeconds(30)
+                .setLewdProduct(new LewdBabyMaker(null)), room);
         room.addItem(bed);
 
         Truth.assertThat(bed.addCreature(first.getNPC())).isTrue();
@@ -118,11 +121,9 @@ public class LewdBedTest {
 
         Truth.assertThat(room.getItem(babyname).isPresent()).isFalse();
 
-        Truth.assertThat(
-                bed.handlePopulatedJoin(first.getNPC(), Set.of(second.getNPC().getName()),
-                        Set.of(new CreatureBuildInfo(null).setName(babyname)), null))
-                .isTrue();
-        MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, "as they do it");
+        Truth.assertThat(bed.handlePopulatedJoin(first.getNPC(), Set.of(second.getNPC().getName()),
+                Set.of(new CreatureBuildInfo(null).setName(babyname)), null)).isTrue();
+        MessageMatcher matcher = new MessageMatcher(GameEventType.LEWD, Set.of("as they do it"), Set.of(), null, true);
         Mockito.verify(first.sssb, Mockito.timeout(2000).times(1)).send(Mockito.argThat(matcher));
         Mockito.verify(second.sssb, Mockito.timeout(2000).times(1)).send(Mockito.argThat(matcher));
 

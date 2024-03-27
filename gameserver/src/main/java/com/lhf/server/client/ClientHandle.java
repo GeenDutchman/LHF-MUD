@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import com.lhf.messages.Command;
@@ -97,12 +98,12 @@ public class ClientHandle extends Client implements Runnable {
         connected = true;
         killIt = false;
         this.connectionListener = cl;
-        this.logger.log(Level.FINEST, "ClientHandle created");
+        this.log(Level.FINEST, "ClientHandle created");
     }
 
     @Override
     public void run() {
-        this.logger.log(Level.FINER, "Running ClientHandle");
+        this.log(Level.FINER, "Running ClientHandle");
         String value;
         try {
             while (!this.killIt && ((value = in.readLine()) != null)) {
@@ -111,12 +112,12 @@ public class ClientHandle extends Client implements Runnable {
             }
         } catch (IOException e) {
             final BadFatalEvent fatal = BadFatalEvent.getBuilder().setException(e).setExtraInfo("recoverable").Build();
-            this.logger.log(Level.SEVERE, fatal.toString(), e);
+            this.log(Level.SEVERE, fatal.toString(), e);
             Client.eventAccepter.accept(this, fatal);
         } catch (Exception e) {
             final BadFatalEvent fatal = BadFatalEvent.getBuilder().setException(e).setExtraInfo("irrecoverable")
                     .Build();
-            this.logger.log(Level.SEVERE, fatal.toString(), e);
+            this.log(Level.SEVERE, fatal.toString(), e);
             Client.eventAccepter.accept(this, fatal);
             throw e;
         } finally {
@@ -127,21 +128,21 @@ public class ClientHandle extends Client implements Runnable {
     }
 
     public void kill() {
-        this.logger.log(Level.INFO, "Disconnecting ClientHandler");
+        this.log(Level.INFO, "Disconnecting ClientHandler");
         this.killIt = true;
         if (connected && socket.isConnected()) {
             try {
                 socket.close();
                 connected = false;
             } catch (IOException e) {
-                this.logger.log(Level.WARNING, e.getMessage());
+                this.log(Level.WARNING, e.getMessage());
                 e.printStackTrace();
             }
         }
     }
 
     void disconnect() {
-        this.logger.log(Level.INFO, "Requesting ClientHandler to stop");
+        this.log(Level.INFO, "Requesting ClientHandler to stop");
         this.killIt = true;
     }
 
@@ -160,6 +161,26 @@ public class ClientHandle extends Client implements Runnable {
         Map<AMessageType, CommandHandler> cmdMap = super.getCommands(ctx);
         cmdMap.put(AMessageType.REPEAT, this.repeatHandler);
         return cmdMap;
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, String logMessage) {
+        super.log(logLevel, logMessage);
+    }
+
+    @Override
+    public synchronized void log(Level logLevel, Supplier<String> logMessageSupplier) {
+        super.log(logLevel, logMessageSupplier);
+    }
+
+    @Override
+    public synchronized void log(Level level, String msg, Throwable thrown) {
+        super.log(level, msg, thrown);
+    }
+
+    @Override
+    public synchronized void log(Level level, Throwable thrown, Supplier<String> msgSupplier) {
+        super.log(level, thrown, msgSupplier);
     }
 
 }

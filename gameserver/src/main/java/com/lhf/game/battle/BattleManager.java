@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.battle.BattleStats.BattleStatsQuery;
 import com.lhf.game.battle.commandHandlers.BattleAttackHandler;
+import com.lhf.game.battle.commandHandlers.BattleCastHandler;
 import com.lhf.game.battle.commandHandlers.BattleGoHandler;
 import com.lhf.game.battle.commandHandlers.BattlePassHandler;
 import com.lhf.game.battle.commandHandlers.BattleUseHandler;
@@ -85,11 +86,6 @@ public class BattleManager extends SubArea {
         @Override
         public SubAreaSort getSubAreaSort() {
             return delegate.getSubAreaSort();
-        }
-
-        public Builder setAllowCasting(SubAreaCasting allowCasting) {
-            delegate.setAllowCasting(allowCasting);
-            return this;
         }
 
         public SubAreaCasting isAllowCasting() {
@@ -197,8 +193,7 @@ public class BattleManager extends SubArea {
             }
             BattleManager.this.announceDirect(
                     BattleRoundEvent.getBuilder().setNeedSubmission(BattleRoundEvent.RoundAcceptance.NEEDED)
-                            .setNotBroadcast().setRoundCount(this.getPhase())
-                            .Build(),
+                            .setNotBroadcast().setRoundCount(this.getPhase()).Build(),
                     actionsNeeded);
         }
 
@@ -341,17 +336,16 @@ public class BattleManager extends SubArea {
 
         final Consumer<? super Ordering> flushProcessor = ordering -> {
             Deque<IPoolEntry> poolEntries = ordering.entry;
-            this.log(Level.FINEST, () -> String.format("Flush Initiative: %d, Actions: %d, Creature: %s",
-                    ordering.roll, poolEntries != null ? poolEntries.size() : 0, ordering.creature));
+            this.log(Level.FINEST, () -> String.format("Flush Initiative: %d, Actions: %d, Creature: %s", ordering.roll,
+                    poolEntries != null ? poolEntries.size() : 0, ordering.creature));
             if (!this.hasRunningThread("flushProcessor")) {
                 this.log(Level.FINE,
                         () -> String.format("The battle is over but %s still tried to go!", ordering.creature));
                 return;
             }
             if (ordering.creature == null || (!ordering.creature.isAlive() && ordering.creature.isInBattle())) {
-                this.log(Level.WARNING,
-                        () -> String.format("Creature %s is dead or not in battle, cannot perform action",
-                                ordering.creature));
+                this.log(Level.WARNING, () -> String
+                        .format("Creature %s is dead or not in battle, cannot perform action", ordering.creature));
                 return;
             }
             if (poolEntries != null && poolEntries.size() > 0) {
@@ -366,8 +360,8 @@ public class BattleManager extends SubArea {
             } else {
                 Set<CreatureEffect> penalties = this.calculateWastePenalty(ordering.creature);
                 if (ordering.creature != null && penalties != null && penalties.size() > 0) {
-                    this.log(Level.INFO, () -> String.format("Penalties: %s, earned by Creature: %s", penalties,
-                            ordering.creature));
+                    this.log(Level.INFO,
+                            () -> String.format("Penalties: %s, earned by Creature: %s", penalties, ordering.creature));
                     for (Iterator<CreatureEffect> effectIterator = penalties.iterator(); effectIterator.hasNext()
                             && ordering.creature.isAlive();) {
                         this.announce(ordering.creature.applyEffect(effectIterator.next()));
@@ -380,8 +374,8 @@ public class BattleManager extends SubArea {
 
         synchronized (this.actionPools) {
             this.log(Level.FINER, "Now flushing actionpool");
-            this.actionPools.entrySet().stream().map(
-                    entry -> new Ordering(entry.getKey().check(Attributes.DEX).getRoll(), entry.getKey(),
+            this.actionPools.entrySet().stream()
+                    .map(entry -> new Ordering(entry.getKey().check(Attributes.DEX).getRoll(), entry.getKey(),
                             entry.getValue()))
                     .sorted().forEachOrdered(flushProcessor);
         }
@@ -427,9 +421,10 @@ public class BattleManager extends SubArea {
                     c.addSubArea(SubAreaSort.BATTLE);
                     c.setSuccessor(this);
                     this.battleStats.initialize(this.getCreatures());
-                    BattleJoinedEvent.Builder joinedMessage = BattleJoinedEvent.getBuilder().setJoiner(c)
-                            .setBroacast();// new JoinBattleMessage(c, this.isBattleOngoing(),
-                                           // false);
+                    BattleJoinedEvent.Builder joinedMessage = BattleJoinedEvent.getBuilder().setJoiner(c).setBroacast();// new
+                                                                                                                        // JoinBattleMessage(c,
+                                                                                                                        // this.isBattleOngoing(),
+                                                                                                                        // false);
                     synchronized (this.roundThread) {
                         boolean ongoing = this.hasRunningThread("addCreature()");
                         joinedMessage.setOngoing(ongoing);
@@ -460,11 +455,10 @@ public class BattleManager extends SubArea {
             return false;
         }
         final AtomicBoolean atomicBoolean = new AtomicBoolean(false);
-        this.clearCreatures(creature -> creature != null && creature.equals(c), true,
-                creature -> {
-                    this.battleStats.remove(creature.getName());
-                    atomicBoolean.set(true);
-                });
+        this.clearCreatures(creature -> creature != null && creature.equals(c), true, creature -> {
+            this.battleStats.remove(creature.getName());
+            atomicBoolean.set(true);
+        });
         return atomicBoolean.get();
     }
 
@@ -490,8 +484,7 @@ public class BattleManager extends SubArea {
         }
         this.log(Level.FINER, () -> {
             StringJoiner sj = new StringJoiner(" ", String.format("%s Checking for competing factions...", whochecks),
-                    "")
-                    .setEmptyValue("No factions found");
+                    "").setEmptyValue("No factions found");
             if (factionCounts.size() > 0) {
                 sj.add("Factions found:");
                 for (Map.Entry<CreatureFaction, Integer> entry : factionCounts.entrySet()) {
@@ -529,8 +522,8 @@ public class BattleManager extends SubArea {
                 thread.start();
                 this.roundThread.set(thread);
             } else {
-                this.log(Level.WARNING, () -> String.format("%s tried to start an already started fight",
-                        instigator.getName()));
+                this.log(Level.WARNING,
+                        () -> String.format("%s tried to start an already started fight", instigator.getName()));
             }
             return this.roundThread.get();
         }
@@ -633,8 +626,8 @@ public class BattleManager extends SubArea {
     }
 
     /**
-     * Calculates a penalty for if player does not respond.
-     * Scales to the level of the player.
+     * Calculates a penalty for if player does not respond. Scales to the level of
+     * the player.
      * 
      * @param waster
      * @return Set<CreatureEffect>
@@ -749,11 +742,10 @@ public class BattleManager extends SubArea {
     }
 
     public interface PooledBattleManagerCommandHandler extends PooledSubAreaCommandHandler {
-        static final EnumMap<AMessageType, CommandHandler> pooledBattleManagerCommandHandlers = new EnumMap<>(Map.of(
-                AMessageType.ATTACK, new BattleAttackHandler(),
-                AMessageType.GO, new BattleGoHandler(),
-                AMessageType.PASS, new BattlePassHandler(),
-                AMessageType.USE, new BattleUseHandler()));
+        static final EnumMap<AMessageType, CommandHandler> pooledBattleManagerCommandHandlers = new EnumMap<>(
+                Map.of(AMessageType.ATTACK, new BattleAttackHandler(), AMessageType.GO, new BattleGoHandler(),
+                        AMessageType.PASS, new BattlePassHandler(), AMessageType.USE, new BattleUseHandler(),
+                        AMessageType.CAST, new BattleCastHandler()));
 
         default SubArea firstSubArea(CommandContext ctx) {
             for (final SubArea subArea : ctx.getSubAreas()) {
@@ -801,8 +793,8 @@ public class BattleManager extends SubArea {
         @Override
         default boolean onEmpool(CommandContext ctx, boolean empoolResult) {
             RoundThread thread = ctx.getSubAreaForSort(SubAreaSort.BATTLE).getRoundThread();
-            BattleRoundEvent.Builder roundMessage = BattleRoundEvent.getBuilder()
-                    .setAboutCreature(ctx.getCreature()).setNotBroadcast()
+            BattleRoundEvent.Builder roundMessage = BattleRoundEvent.getBuilder().setAboutCreature(ctx.getCreature())
+                    .setNotBroadcast()
                     .setNeedSubmission(empoolResult ? RoundAcceptance.ACCEPTED : RoundAcceptance.REJECTED);
             if (thread != null) {
                 synchronized (thread) {
@@ -836,9 +828,8 @@ public class BattleManager extends SubArea {
     }
 
     /**
-     * Calls for reinforcements for the battling creatures.
-     * If the targetCreature is a renegade or has no faction, it cannot call for
-     * reinforcements.
+     * Calls for reinforcements for the battling creatures. If the targetCreature is
+     * a renegade or has no faction, it cannot call for reinforcements.
      * 
      */
     public void callReinforcements() {
@@ -917,8 +908,7 @@ public class BattleManager extends SubArea {
             if (event == null) {
                 return;
             }
-            this.log(Level.FINEST,
-                    () -> String.format("Received message %s, announcing", event.getUuid()));
+            this.log(Level.FINEST, () -> String.format("Received message %s, announcing", event.getUuid()));
             this.announceDirect(event, this.getGameEventProcessors());
         };
     }
