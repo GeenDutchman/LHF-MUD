@@ -16,8 +16,7 @@ public class DungeonTargetingSpellEntry extends SpellEntry {
     protected final boolean addsRoomToDungeon;
 
     public DungeonTargetingSpellEntry(ResourceCost level, String name, Set<DungeonEffectSource> effectSources,
-            Set<VocationName> allowed, String description,
-            boolean addsRoomToDungeon) {
+            Set<VocationName> allowed, String description, boolean addsRoomToDungeon) {
         super(level, name, effectSources, allowed, description);
         this.addsRoomToDungeon = addsRoomToDungeon;
     }
@@ -39,7 +38,7 @@ public class DungeonTargetingSpellEntry extends SpellEntry {
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         StringBuilder sb = new StringBuilder(this.description);
         if (this.isAddsRoomToDungeon()) {
             sb.append("And will add a room to the current dungeon.");

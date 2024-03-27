@@ -9,6 +9,10 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.lhf.Taggable;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
@@ -50,18 +54,28 @@ public class User implements CommandInvoker, Comparable<User> {
     }
 
     @Override
-    public String getStartTag() {
-        return "<user>";
+    public String getName() {
+        return username;
     }
 
     @Override
-    public String getEndTag() {
-        return "</user>";
+    public String getTagName() {
+        return "user";
     }
 
     @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + getUsername() + this.getEndTag();
+    public String getSimpleContent() {
+        return this.getUsername();
+    }
+
+    @Override
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = Taggable.buildXMLElementFromTaggable(nodeGenerator, this);
+        if (myElement != null) {
+            myElement.setAttribute("id", this.getUsername());
+            myElement.setIdAttribute("id", true);
+        }
+        return myElement;
     }
 
     @Override

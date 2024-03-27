@@ -99,7 +99,7 @@ public class LewdAIHandler extends AIHandler {
 
     @Override
     public void handle(BasicAI bai, GameEvent event) {
-        if (GameEventType.LEWD.equals(event.getEventType())) {
+        if (GameEventType.LEWD.equals(event.getXmlEventType())) {
             LewdEvent lom = (LewdEvent) event;
             this.logger.log(Level.FINEST, () -> String.format("%s: processing \"%s\"", bai.toString(), lom.print()));
             if (lom.getSubType() == LewdOutMessageType.PROPOSED) {

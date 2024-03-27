@@ -21,8 +21,8 @@ public class CreatureTargetingSpellEntry extends SpellEntry {
     }
 
     public CreatureTargetingSpellEntry(ResourceCost level, String name, String invocation,
-            Set<CreatureEffectSource> effectSources,
-            Set<VocationName> allowed, String description, boolean singleTarget) {
+            Set<CreatureEffectSource> effectSources, Set<VocationName> allowed, String description,
+            boolean singleTarget) {
         super(level, name, invocation, effectSources, allowed, description);
         this.singleTarget = singleTarget;
     }
@@ -44,7 +44,7 @@ public class CreatureTargetingSpellEntry extends SpellEntry {
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         StringJoiner sj = new StringJoiner(" ");
         sj.add(this.description);
         if (this.singleTarget) {

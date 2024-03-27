@@ -79,13 +79,12 @@ public class RoomEffectSource extends EntityEffectSource {
 
     @Override
     public int aiScore() {
-        return (this.monsterToSummon != null ? 2 : 1) *
-                (this.npcToSummon != null ? 10 : 1);
+        return (this.monsterToSummon != null ? 2 : 1) * (this.npcToSummon != null ? 10 : 1);
     }
 
     @Override
     public String printDescription() {
-        StringBuilder sb = new StringBuilder(super.printDescription());
+        StringBuilder sb = new StringBuilder(super.getDescription());
         if (this.monsterToSummon != null) {
             sb.append("\r\nWill summon the following Monster:\r\n");
             sb.append(this.monsterToSummon.toString());

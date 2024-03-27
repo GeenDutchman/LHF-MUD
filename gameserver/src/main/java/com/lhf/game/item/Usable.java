@@ -100,17 +100,14 @@ public class Usable extends Takeable {
     protected ItemUsedEvent.Builder getCreatureUseBuilder(CommandContext ctx, ICreature target) {
         return ItemUsedEvent.getBuilder().setUsable(this).setSubType(UseOutMessageOption.OK)
                 .setItemUser(ctx.getCreature())
-                .setMessage(this.creatureUseEffects == null || this.creatureUseEffects.isEmpty()
-                        ? "It does nothing."
+                .setMessage(this.creatureUseEffects == null || this.creatureUseEffects.isEmpty() ? "It does nothing."
                         : "Affects try to take hold.")
                 .setTarget(target);
     }
 
     protected ItemUsedEvent.Builder getItemUseBuilder(CommandContext ctx, IItem target) {
         return ItemUsedEvent.getBuilder().setUsable(this).setSubType(UseOutMessageOption.OK)
-                .setItemUser(ctx.getCreature())
-                .setMessage("It does nothing.")
-                .setTarget(target);
+                .setItemUser(ctx.getCreature()).setMessage("It does nothing.").setTarget(target);
     }
 
     protected void applyCreatureEffects(CommandContext ctx, ICreature creature) {
@@ -193,8 +190,8 @@ public class Usable extends Takeable {
             if (bm.hasCreature(creature) && !bm.hasCreature(ctx.getCreature())) {
                 // give out of turn message
                 bm.addCreature(ctx.getCreature());
-                ctx.receive(BattleRoundEvent.getBuilder().setNeedSubmission(RoundAcceptance.REJECTED)
-                        .setNotBroadcast().Build());
+                ctx.receive(BattleRoundEvent.getBuilder().setNeedSubmission(RoundAcceptance.REJECTED).setNotBroadcast()
+                        .Build());
                 return false;
             }
         }
@@ -252,12 +249,12 @@ public class Usable extends Takeable {
     }
 
     @Override
-    public String printDescription() {
-        StringJoiner sj = new StringJoiner("\n", super.printDescription(), "").setEmptyValue("");
+    public String getDescription() {
+        StringJoiner sj = new StringJoiner("\n", super.getDescription(), "").setEmptyValue("");
         if (this.creatureUseEffects != null || !this.creatureUseEffects.isEmpty()) {
             sj.add("When used on a Creature, it has the following affects:");
             for (final CreatureEffectSource source : this.creatureUseEffects) {
-                sj.add(source.printDescription());
+                sj.add(source.getDescription());
             }
         }
         return sj.toString();
@@ -278,8 +275,7 @@ public class Usable extends Takeable {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append(this.getClass().getSimpleName()).append(" [numCanUseTimes=").append(numCanUseTimes)
-                .append(", useLeftCount=").append(useLeftCount)
-                .append("]");
+                .append(", useLeftCount=").append(useLeftCount).append("]");
         return builder.toString();
     }
 

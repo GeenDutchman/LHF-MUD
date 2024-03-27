@@ -4,14 +4,13 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.lhf.Taggable;
-import com.lhf.TaggedExaminable;
+import com.lhf.Examinable;
 import com.lhf.game.EntityEffect;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.ResourceCost;
 import com.lhf.messages.events.SeeEvent;
 
-public abstract class ISpell<T extends EntityEffect>
-        implements Comparable<ISpell<?>>, Iterable<T>, TaggedExaminable {
+public abstract class ISpell<T extends EntityEffect> implements Comparable<ISpell<?>>, Iterable<T>, Examinable {
     private final String className;
     protected final SpellEntry entry;
     protected transient ICreature caster;
@@ -59,8 +58,8 @@ public abstract class ISpell<T extends EntityEffect>
     public abstract Set<T> getEffects();
 
     @Override
-    public String printDescription() {
-        return this.entry.printDescription();
+    public String getDescription() {
+        return this.entry.getDescription();
     }
 
     public ICreature creatureResponsible() {
@@ -72,18 +71,13 @@ public abstract class ISpell<T extends EntityEffect>
     }
 
     @Override
-    public String getStartTag() {
-        return this.entry.getStartTag();
+    public String getTagName() {
+        return this.entry.getTagName();
     }
 
     @Override
-    public String getEndTag() {
-        return this.entry.getEndTag();
-    }
-
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.getName() + this.getEndTag();
+    public String getSimpleContent() {
+        return this.getName();
     }
 
     @Override

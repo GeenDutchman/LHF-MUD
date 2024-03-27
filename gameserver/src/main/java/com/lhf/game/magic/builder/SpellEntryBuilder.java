@@ -61,17 +61,17 @@ public class SpellEntryBuilder {
         Set<CreatureEffectSource> effectSources = null;
 
         switch (adapter.menuChoice(List.of("creaturetarget", "aoe", "room", "dungeon"))) {
-            case 0:
-                boolean singleTarget = adapter.buildSingleTarget();
-                effectSources = adapter.buildCreatureEffectSources();
-                return new CreatureTargetingSpellEntry(level, name, invocation, effectSources, allowed, description,
-                        singleTarget);
-            case 1:
-                AutoTargeted safe = adapter.buildAutoSafe();
-                effectSources = adapter.buildCreatureEffectSources();
-                return new CreatureAOESpellEntry(level, name, invocation, effectSources, allowed, description, safe);
-            default:
-                throw new IllegalStateException("Cannot build other types of spells!  For now anyway...");
+        case 0:
+            boolean singleTarget = adapter.buildSingleTarget();
+            effectSources = adapter.buildCreatureEffectSources();
+            return new CreatureTargetingSpellEntry(level, name, invocation, effectSources, allowed, description,
+                    singleTarget);
+        case 1:
+            AutoTargeted safe = adapter.buildAutoSafe();
+            effectSources = adapter.buildCreatureEffectSources();
+            return new CreatureAOESpellEntry(level, name, invocation, effectSources, allowed, description, safe);
+        default:
+            throw new IllegalStateException("Cannot build other types of spells!  For now anyway...");
         }
 
     }
@@ -91,55 +91,55 @@ public class SpellEntryBuilder {
             menuChoice = adapter.menuChoice(List.of("exit", "make", "print", "list", "add", "save"));
             System.out.println(menuChoice);
             switch (menuChoice) {
-                case 0:
-                    System.out.println("Exiting...");
-                    return;
-                case 1:
-                    System.out.println("Making a spell entry...");
-                    selected = SpellEntryBuilder.makeSpellEntry(adapter);
+            case 0:
+                System.out.println("Exiting...");
+                return;
+            case 1:
+                System.out.println("Making a spell entry...");
+                selected = SpellEntryBuilder.makeSpellEntry(adapter);
+                System.out.println(selected);
+                break;
+            case 2:
+                if (selected != null) {
+                    System.out.println("Selected:");
                     System.out.println(selected);
-                    break;
-                case 2:
-                    if (selected != null) {
-                        System.out.println("Selected:");
-                        System.out.println(selected);
+                } else {
+                    System.out.println("No spellentry selected or made");
+                }
+                break;
+            case 3:
+                System.out.println("Printing spellbook:");
+                for (SpellEntry entry : spellbook.getEntries()) {
+                    System.out.printf("%s %s\r\n", entry.getLevel(), entry.getName());
+                    System.out.println(entry.getDescription());
+                }
+                break;
+            case 4:
+                if (selected != null) {
+                    System.out.println("Adding " + selected.getName());
+                    if (!spellbook.addEntry(selected)) {
+                        System.err.println("It was not added.");
                     } else {
-                        System.out.println("No spellentry selected or made");
+                        System.out.println("Added, but not saved!");
                     }
-                    break;
-                case 3:
-                    System.out.println("Printing spellbook:");
-                    for (SpellEntry entry : spellbook.getEntries()) {
-                        System.out.printf("%s %s\r\n", entry.getLevel(), entry.getName());
-                        System.out.println(entry.printDescription());
+                } else {
+                    System.out.println("No spellentry selected or made");
+                }
+                break;
+            case 5:
+                System.out.println("Saving....");
+                try {
+                    if (!spellbook.saveToFile(null)) {
+                        System.err.println("It was not saved, but no exception");
                     }
-                    break;
-                case 4:
-                    if (selected != null) {
-                        System.out.println("Adding " + selected.getName());
-                        if (!spellbook.addEntry(selected)) {
-                            System.err.println("It was not added.");
-                        } else {
-                            System.out.println("Added, but not saved!");
-                        }
-                    } else {
-                        System.out.println("No spellentry selected or made");
-                    }
-                    break;
-                case 5:
-                    System.out.println("Saving....");
-                    try {
-                        if (!spellbook.saveToFile(null)) {
-                            System.err.println("It was not saved, but no exception");
-                        }
-                    } catch (Exception e) {
-                        System.err.println("It was not saved.");
-                        e.printStackTrace();
-                    }
-                    break;
-                default:
-                    System.out.println("Unrecognized option, repeating menu...");
-                    break;
+                } catch (Exception e) {
+                    System.err.println("It was not saved.");
+                    e.printStackTrace();
+                }
+                break;
+            default:
+                System.out.println("Unrecognized option, repeating menu...");
+                break;
             }
         } while (menuChoice != 0);
     }

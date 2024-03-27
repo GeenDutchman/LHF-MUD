@@ -68,9 +68,8 @@ public class SpokenPromptChunk extends AIHandler {
                             String.format("Result has prompt \"%s\" for %s", prompt, bai.toString()));
                     Command cmd = Command.parse(prompt);
                     CommandContext.Reply handled = bai.handleChain(null, cmd);
-                    this.logger.log(Level.FINER,
-                            () -> String.format("%s: prompted command \"%s\" handled: %s", bai.toString(),
-                                    cmd.toString(), handled));
+                    this.logger.log(Level.FINER, () -> String.format("%s: prompted command \"%s\" handled: %s",
+                            bai.toString(), cmd.toString(), handled));
                 }
             }
         } else {
@@ -80,17 +79,17 @@ public class SpokenPromptChunk extends AIHandler {
 
     @Override
     public void handle(BasicAI bai, GameEvent event) {
-        if (event.getEventType().equals(GameEventType.SPEAKING)) {
+        if (event.getXmlEventType().equals(GameEventType.SPEAKING)) {
             SpeakingEvent sm = (SpeakingEvent) event;
             if (!sm.getShouting() && sm.getHearer() != null && sm.getHearer() instanceof INonPlayerCharacter) {
                 if (sm.getSayer() instanceof ICreature || (this.allowUsers && sm.getSayer() instanceof User)) {
-                    if (sm.getMessage().startsWith("PROMPT") &&
-                            (this.prompters.contains(sm.getSayer().getEventProcessorID())
+                    if (sm.getMessage().startsWith("PROMPT")
+                            && (this.prompters.contains(sm.getSayer().getEventProcessorID())
                                     || sm.getSayer().getEventProcessorID().equals(bai.getEventProcessorID()))) {
                         String prompt = sm.getMessage().replaceFirst("PROMPT", "").trim();
-                        this.logger.log(Level.INFO, String.format("Prompt \"%s\" received from %s for %s", prompt,
-                                sm.getSayer().getColorTaggedName(),
-                                bai.getNpc() != null ? bai.getNpc().getName() : bai.getColorTaggedName()));
+                        this.logger.log(Level.INFO,
+                                String.format("Prompt \"%s\" received from %s for %s", prompt, sm.getSayer().getName(),
+                                        bai.getNpc() != null ? bai.getNpc().getName() : bai.getName()));
                         Command cmd = Command.parse(prompt);
                         bai.handleChain(null, cmd);
                     } else {

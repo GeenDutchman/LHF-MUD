@@ -50,8 +50,8 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
     }
 
     public default Collection<ICreature> filterCreatures(EnumSet<CreatureFilters> filters, String name,
-            Integer nameRegexLen,
-            CreatureFaction faction, VocationName vocation, Class<? extends ICreature> clazz, Boolean isBattling) {
+            Integer nameRegexLen, CreatureFaction faction, VocationName vocation, Class<? extends ICreature> clazz,
+            Boolean isBattling) {
         CreatureFilterQuery query = new CreatureFilterQuery();
         query.filters = filters;
         query.name = name;
@@ -113,9 +113,8 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
                             : creature.checkName(name))) {
                 return false;
             }
-            if (filters.contains(CreatureFilters.FACTION) &&
-                    (faction != null ? !faction.equals(creature.getFaction())
-                            : creature.getFaction() != null)) {
+            if (filters.contains(CreatureFilters.FACTION)
+                    && (faction != null ? !faction.equals(creature.getFaction()) : creature.getFaction() != null)) {
                 return false;
             }
             final Vocation cVocation = creature.getVocation();
@@ -179,10 +178,8 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
     }
 
     public default Optional<Player> getPlayer(String name) {
-        Optional<ICreature> asCreature = this
-                .filterCreatures(EnumSet.of(CreatureFilters.TYPE, CreatureFilters.NAME), name, null, null, null,
-                        Player.class, null)
-                .stream().findFirst();
+        Optional<ICreature> asCreature = this.filterCreatures(EnumSet.of(CreatureFilters.TYPE, CreatureFilters.NAME),
+                name, null, null, null, Player.class, null).stream().findFirst();
         if (asCreature.isPresent()) {
             return Optional.of((Player) asCreature.get());
         }
@@ -205,8 +202,7 @@ public interface CreatureContainer extends Examinable, GameEventProcessorHub {
     @Override
     default Collection<GameEventProcessor> getGameEventProcessors() {
         TreeSet<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
-        messengers.addAll(this.getCreatures().stream()
-                .filter(creature -> creature != null)
+        messengers.addAll(this.getCreatures().stream().filter(creature -> creature != null)
                 .map(creature -> (GameEventProcessor) creature).toList());
         return messengers;
     }

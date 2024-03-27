@@ -7,6 +7,8 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.server.client.Client.ClientID;
 
 public interface CommandInvoker extends CommandChainHandler {
+    public String getName();
+
     CommandInvoker getInnerCommandInvoker();
 
     default ClientID getClientID() {

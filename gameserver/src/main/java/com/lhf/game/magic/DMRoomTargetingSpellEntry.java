@@ -11,8 +11,7 @@ public class DMRoomTargetingSpellEntry extends RoomTargetingSpellEntry {
     private Boolean ensoulsUsers = null;
 
     public DMRoomTargetingSpellEntry(ResourceCost level, String name, String invocation,
-            Set<DMRoomEffectSource> effectSources,
-            Set<VocationName> allowed, String description) {
+            Set<DMRoomEffectSource> effectSources, Set<VocationName> allowed, String description) {
         super(level, name, invocation, effectSources, allowed, description);
     }
 
@@ -38,8 +37,8 @@ public class DMRoomTargetingSpellEntry extends RoomTargetingSpellEntry {
     }
 
     @Override
-    public String printDescription() {
-        StringBuilder sb = new StringBuilder(super.printDescription());
+    public String getDescription() {
+        StringBuilder sb = new StringBuilder(super.getDescription());
         if (this.isEnsoulsUsers()) {
             sb.append("This spell will ensoul and send off users. ").append("\r\n");
         }

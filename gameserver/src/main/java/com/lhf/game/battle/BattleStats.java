@@ -59,48 +59,48 @@ public class BattleStats implements GameEventProcessor {
             return xpLens;
         }
         switch (vocationName) {
-            case DUNGEON_MASTER:
-                return xpLens.andThen((deltas) -> {
-                    for (BattleStat stat : EnumSet.of(BattleStat.NUM_DAMAGES, BattleStat.MAX_DAMAGE)) {
-                        Integer value = deltas.getOrDefault(stat, 1);
-                        if (value > 0) {
-                            deltas.merge(stat, value, adder);
-                        }
+        case DUNGEON_MASTER:
+            return xpLens.andThen((deltas) -> {
+                for (BattleStat stat : EnumSet.of(BattleStat.NUM_DAMAGES, BattleStat.MAX_DAMAGE)) {
+                    Integer value = deltas.getOrDefault(stat, 1);
+                    if (value > 0) {
+                        deltas.merge(stat, value, adder);
                     }
-                    return deltas;
-                });
-            case FIGHTER:
-                return xpLens.andThen((deltas) -> {
-                    for (BattleStat stat : EnumSet.of(BattleStat.TOTAL_DAMAGE, BattleStat.AGGRO_DAMAGE)) {
-                        Integer value = deltas.getOrDefault(stat, 0) / Integer.max(vocation.getLevel(), 1);
-                        if (value > 0) {
-                            deltas.merge(stat, value, adder);
-                        }
+                }
+                return deltas;
+            });
+        case FIGHTER:
+            return xpLens.andThen((deltas) -> {
+                for (BattleStat stat : EnumSet.of(BattleStat.TOTAL_DAMAGE, BattleStat.AGGRO_DAMAGE)) {
+                    Integer value = deltas.getOrDefault(stat, 0) / Integer.max(vocation.getLevel(), 1);
+                    if (value > 0) {
+                        deltas.merge(stat, value, adder);
                     }
-                    return deltas;
-                });
-            case HEALER:
-                return xpLens.andThen((deltas) -> {
-                    for (BattleStat stat : EnumSet.of(BattleStat.AVG_DAMAGE, BattleStat.HEALING_PERFORMED)) {
-                        Integer value = deltas.getOrDefault(stat, 0) / Integer.max(vocation.getLevel(), 1);
-                        if (value > 0) {
-                            deltas.merge(stat, value, adder);
-                        }
+                }
+                return deltas;
+            });
+        case HEALER:
+            return xpLens.andThen((deltas) -> {
+                for (BattleStat stat : EnumSet.of(BattleStat.AVG_DAMAGE, BattleStat.HEALING_PERFORMED)) {
+                    Integer value = deltas.getOrDefault(stat, 0) / Integer.max(vocation.getLevel(), 1);
+                    if (value > 0) {
+                        deltas.merge(stat, value, adder);
                     }
-                    return deltas;
-                });
-            case MAGE:
-                return xpLens.andThen((deltas) -> {
-                    for (BattleStat stat : EnumSet.of(BattleStat.TOTAL_DAMAGE, BattleStat.AVG_DAMAGE)) {
-                        Integer value = deltas.getOrDefault(stat, 0) / Integer.max(vocation.getLevel(), 1);
-                        if (value > 0) {
-                            deltas.merge(stat, value, adder);
-                        }
+                }
+                return deltas;
+            });
+        case MAGE:
+            return xpLens.andThen((deltas) -> {
+                for (BattleStat stat : EnumSet.of(BattleStat.TOTAL_DAMAGE, BattleStat.AVG_DAMAGE)) {
+                    Integer value = deltas.getOrDefault(stat, 0) / Integer.max(vocation.getLevel(), 1);
+                    if (value > 0) {
+                        deltas.merge(stat, value, adder);
                     }
-                    return deltas;
-                });
-            default:
-                return xpLens;
+                }
+                return deltas;
+            });
+        default:
+            return xpLens;
 
         }
     }
@@ -134,8 +134,7 @@ public class BattleStats implements GameEventProcessor {
         private EnumMap<BattleStat, Integer> stats;
         private boolean dead;
 
-        public BattleStatRecord(String targetName, CreatureFaction faction, Vocation vocation,
-                HealthBuckets bucket) {
+        public BattleStatRecord(String targetName, CreatureFaction faction, Vocation vocation, HealthBuckets bucket) {
             this.targetName = targetName;
             this.faction = faction;
             this.vocation = vocation;
@@ -221,11 +220,9 @@ public class BattleStats implements GameEventProcessor {
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append("BattleStats [targetName=").append(targetName)
-                    .append(", dead=").append(this.dead)
-                    .append(", faction=").append(faction)
-                    .append(", vocation=").append(vocation)
-                    .append(", bucket=").append(bucket);
+            builder.append("BattleStats [targetName=").append(targetName).append(", dead=").append(this.dead)
+                    .append(", faction=").append(faction).append(", vocation=").append(vocation).append(", bucket=")
+                    .append(bucket);
             this.stats.entrySet().stream()
                     .forEach(entry -> builder.append(", ").append(entry.getKey()).append("=").append(entry.getValue()));
             builder.append("]");
@@ -302,10 +299,8 @@ public class BattleStats implements GameEventProcessor {
         }
 
         if (!this.battleStats.containsKey(responsible.getName())) {
-            this.battleStats.put(responsible.getName(),
-                    new BattleStatRecord(responsible.getName(), responsible.getFaction(),
-                            responsible.getVocation(),
-                            responsible.getHealthBucket()));
+            this.battleStats.put(responsible.getName(), new BattleStatRecord(responsible.getName(),
+                    responsible.getFaction(), responsible.getVocation(), responsible.getHealthBucket()));
         }
 
         BattleStatRecord found = this.battleStats.get(responsible.getName());
@@ -327,15 +322,11 @@ public class BattleStats implements GameEventProcessor {
             if (found.getMaxDamage() < roll) {
                 deltas.put(BattleStat.MAX_DAMAGE, roll - found.getMaxDamage());
             }
-            int healingPerformed = damages.getByFlavors(
-                    EnumSet.of(DamageFlavor.HEALING),
-                    false);
+            int healingPerformed = damages.getByFlavors(EnumSet.of(DamageFlavor.HEALING), false);
             if (healingPerformed != 0) {
                 deltas.put(BattleStat.HEALING_PERFORMED, healingPerformed);
             }
-            int aggroPerformed = damages.getByFlavors(
-                    EnumSet.of(DamageFlavor.AGGRO),
-                    true);
+            int aggroPerformed = damages.getByFlavors(EnumSet.of(DamageFlavor.AGGRO), true);
             if (aggroPerformed != 0) {
                 deltas.put(BattleStat.AGGRO_DAMAGE, aggroPerformed);
             }
@@ -373,10 +364,8 @@ public class BattleStats implements GameEventProcessor {
         for (ICreature creature : creatures) {
             if (creature != null) {
                 if (!this.battleStats.containsKey(creature.getName())) {
-                    this.battleStats.put(creature.getName(),
-                            new BattleStatRecord(creature.getName(), creature.getFaction(),
-                                    creature.getVocation(),
-                                    creature.getHealthBucket()));
+                    this.battleStats.put(creature.getName(), new BattleStatRecord(creature.getName(),
+                            creature.getFaction(), creature.getVocation(), creature.getHealthBucket()));
                 } else {
                     BattleStatRecord found = this.battleStats.get(creature.getName());
                     found.faction = creature.getFaction(); // update just in case
@@ -428,14 +417,14 @@ public class BattleStats implements GameEventProcessor {
                 return false;
             }
             switch (query) {
-                case ALL:
-                    return true;
-                case ONLY_DEAD:
-                    return record.isDead();
-                case ONLY_LIVING:
-                    return !record.isDead();
-                default:
-                    return true;
+            case ALL:
+                return true;
+            case ONLY_DEAD:
+                return record.isDead();
+            case ONLY_LIVING:
+                return !record.isDead();
+            default:
+                return true;
 
             }
         }).collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue())));
@@ -464,24 +453,19 @@ public class BattleStats implements GameEventProcessor {
     }
 
     @Override
-    public String getStartTag() {
-        return "<BattleStats>";
-    }
+    public String getTagName() {
+        return "BattleStats";
+    };
 
     @Override
-    public String getEndTag() {
-        return "</BattleStats>";
-    }
-
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + "Battle Statistics" + this.getEndTag();
+    public String getSimpleContent() {
+        return "Battle Statistics";
     }
 
     @Override
     public Consumer<GameEvent> getAcceptHook() {
         return (event) -> {
-            if (event != null && GameEventType.CREATURE_AFFECTED.equals(event.getEventType())) {
+            if (event != null && GameEventType.CREATURE_AFFECTED.equals(event.getXmlEventType())) {
                 CreatureAffectedEvent cam = (CreatureAffectedEvent) event;
                 this.update(cam);
             }

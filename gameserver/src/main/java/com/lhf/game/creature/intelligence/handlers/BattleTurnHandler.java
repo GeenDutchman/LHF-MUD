@@ -64,8 +64,7 @@ public class BattleTurnHandler extends AIHandler {
         return roller.rollDice().getRoll() / (double) roller.getType().getType();
     }
 
-    public TargetLists chooseTargets(Optional<BattleStatsRequestedEvent> battleMemories,
-            HarmMemories harmMemories,
+    public TargetLists chooseTargets(Optional<BattleStatsRequestedEvent> battleMemories, HarmMemories harmMemories,
             CreatureFaction myFaction) {
         if (battleMemories == null || battleMemories.isEmpty()) {
             return new TargetLists(new ArrayList<>(), new ArrayList<>());
@@ -77,18 +76,14 @@ public class BattleTurnHandler extends AIHandler {
                                         || (myFaction != null && myFaction.allied(stat.getFaction())),
                                 Collectors.toSet()));
         SortedMap<String, Double> possEnemies = this.targetChoosers.stream()
-                .flatMap(chooser -> chooser
-                        .choose(partitioned.getOrDefault(false, null), harmMemories, List.of())
-                        .entrySet()
-                        .stream())
+                .flatMap(chooser -> chooser.choose(partitioned.getOrDefault(false, null), harmMemories, List.of())
+                        .entrySet().stream())
                 .collect(Collectors.groupingBy(Map.Entry::getKey, TreeMap::new,
                         Collectors.summingDouble(Map.Entry::getValue)));
 
         SortedMap<String, Double> possAllies = this.targetChoosers.stream()
-                .flatMap(chooser -> chooser
-                        .choose(partitioned.getOrDefault(true, null), harmMemories, List.of())
-                        .entrySet()
-                        .stream())
+                .flatMap(chooser -> chooser.choose(partitioned.getOrDefault(true, null), harmMemories, List.of())
+                        .entrySet().stream())
                 .collect(Collectors.groupingBy(Map.Entry::getKey, TreeMap::new,
                         Collectors.summingDouble(Map.Entry::getValue)));
 
@@ -110,10 +105,9 @@ public class BattleTurnHandler extends AIHandler {
     public void meleeAttackTargets(BasicAI bai, List<Map.Entry<String, Double>> targetList) {
         for (Map.Entry<String, Double> targetEntry : targetList) {
             CommandContext.Reply reply = bai.ProcessString("attack " + targetEntry.getKey());
-            this.logger
-                    .info(() -> String.format("Attacking target %s has reply: %s", targetEntry, reply.toString()));
+            this.logger.info(() -> String.format("Attacking target %s has reply: %s", targetEntry, reply.toString()));
             if (reply.getMessages().stream()
-                    .noneMatch(message -> message.getEventType().equals(GameEventType.BAD_TARGET_SELECTED))) {
+                    .noneMatch(message -> message.getXmlEventType().equals(GameEventType.BAD_TARGET_SELECTED))) {
                 return;
             }
         }
@@ -122,16 +116,14 @@ public class BattleTurnHandler extends AIHandler {
     }
 
     // Returns empty if not to flee, otherwise populated with "flee <direction>"
-    private Optional<String> processFlee(Optional<BattleStatsRequestedEvent> battleMemories,
-            HarmMemories harmMemories,
+    private Optional<String> processFlee(Optional<BattleStatsRequestedEvent> battleMemories, HarmMemories harmMemories,
             CreatureFaction myFaction) {
         if (battleMemories.isEmpty()) {
             return Optional.empty();
         }
         Optional<HealthBuckets> selfHealthBucket = battleMemories.get().getRecords().stream()
                 .filter(stat -> stat != null && harmMemories.getOwnerName().equals(stat.getTargetName()))
-                .map(stat -> stat.getBucket())
-                .findFirst();
+                .map(stat -> stat.getBucket()).findFirst();
 
         boolean shouldFlee = selfHealthBucket.isPresent()
                 && selfHealthBucket.get().compareTo(HealthBuckets.CRITICALLY_INJURED) <= 0;
@@ -196,10 +188,9 @@ public class BattleTurnHandler extends AIHandler {
         final double offensiveFocus = VocationName.HEALER.equals(bai.getNpc().getVocation().getVocationName()) ? 0.2
                 : 0.8;
         if (bai.getNpc().getVocation().getVocationName().isCubeHolder()) {
-            Optional<SpellEntryRequestedEvent> spellbookEntries = bai.ProcessString("SPELLBOOK").getMessages()
-                    .stream()
+            Optional<SpellEntryRequestedEvent> spellbookEntries = bai.ProcessString("SPELLBOOK").getMessages().stream()
                     .filter(gameEvent -> gameEvent != null
-                            && GameEventType.SPELL_ENTRY.equals((gameEvent.getEventType())))
+                            && GameEventType.SPELL_ENTRY.equals((gameEvent.getXmlEventType())))
                     .map(gameEvent -> ((SpellEntryRequestedEvent) gameEvent)).findFirst();
             if (spellbookEntries.isPresent()) {
                 try {
@@ -211,8 +202,7 @@ public class BattleTurnHandler extends AIHandler {
                         return noised;
                     };
                     final TreeMap<Double, SpellEntry> scoredSpellEntries = new TreeMap<>();
-                    spellbookEntries.get().getEntries().stream()
-                            .filter(entry -> entry != null)
+                    spellbookEntries.get().getEntries().stream().filter(entry -> entry != null)
                             .forEach(entry -> scoredSpellEntries.put(spellScoring.apply(entry), entry));
                     if (scoredSpellEntries.isEmpty()) {
                         return command;
@@ -227,12 +217,12 @@ public class BattleTurnHandler extends AIHandler {
                             return Optional.empty();
                         }
                         if (targetedSpell.isSingleTarget()) {
-                            command = Optional.of("Cast " + targetedSpell.getInvocation() + " at "
-                                    + listToPeruse.get(0).getKey());
+                            command = Optional.of(
+                                    "Cast " + targetedSpell.getInvocation() + " at " + listToPeruse.get(0).getKey());
                         } else {
-                            command = Optional.of(listToPeruse.stream()
-                                    .map(targetEntry -> targetEntry.getKey()).collect(Collectors.joining(" at ",
-                                            "Cast " + targetedSpell.getInvocation() + " at ", "")));
+                            command = Optional.of(
+                                    listToPeruse.stream().map(targetEntry -> targetEntry.getKey()).collect(Collectors
+                                            .joining(" at ", "Cast " + targetedSpell.getInvocation() + " at ", "")));
                         }
                     } else {
                         command = Optional.of("Cast " + spellEntry.getInvocation());
@@ -258,7 +248,7 @@ public class BattleTurnHandler extends AIHandler {
         if (RoundAcceptance.NEEDED.equals(btm.getNeedSubmission())) {
             Reply reply = bai.ProcessString("STATS");
             Optional<BattleStatsRequestedEvent> statsOutOpt = reply.getMessages().stream()
-                    .filter(gameEvent -> gameEvent != null && GameEventType.STATS.equals(gameEvent.getEventType()))
+                    .filter(gameEvent -> gameEvent != null && GameEventType.STATS.equals(gameEvent.getXmlEventType()))
                     .map(gameEvent -> ((BattleStatsRequestedEvent) gameEvent)).findFirst();
 
             if (statsOutOpt.isEmpty()) {
@@ -274,18 +264,14 @@ public class BattleTurnHandler extends AIHandler {
 
             HarmMemories harmMemories = bai.getNpc().getHarmMemories();
             CreatureFaction myFaction = bai.getNpc().getFaction();
-            Optional<String> command = processFlee(statsOutOpt,
-                    harmMemories,
-                    myFaction);
+            Optional<String> command = processFlee(statsOutOpt, harmMemories, myFaction);
             if (command.isPresent()) {
                 // CommandContext.Reply reply = bai.ProcessString(command.get());
                 bai.ProcessString(command.get());
                 return;
             }
 
-            TargetLists targetList = this.chooseTargets(statsOutOpt,
-                    harmMemories,
-                    myFaction);
+            TargetLists targetList = this.chooseTargets(statsOutOpt, harmMemories, myFaction);
 
             command = getSpellChoice(bai, targetList);
             if (command.isPresent()) {

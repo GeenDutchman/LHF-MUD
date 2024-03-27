@@ -34,114 +34,107 @@ import com.lhf.server.client.Client.ClientID;
 @ExtendWith(MockitoExtension.class)
 public class BasicAITest {
 
-        @Spy
-        private GroupAIRunner aiRunner = new GroupAIRunner(false, 2, 250, TimeUnit.MILLISECONDS);
+    @Spy
+    private GroupAIRunner aiRunner = new GroupAIRunner(false, 2, 250, TimeUnit.MILLISECONDS);
 
-        @BeforeEach
-        public void setUp() throws Exception {
-                MockitoAnnotations.openMocks(this);
-                AIComBundle.setAIRunner(this.aiRunner.start());
-        }
+    @BeforeEach
+    public void setUp() throws Exception {
+        MockitoAnnotations.openMocks(this);
+        AIComBundle.setAIRunner(this.aiRunner.start());
+    }
 
-        private void sendMsgAndWait(GameEvent message, AIComBundle bundle) {
-                INonPlayerCharacter.eventAccepter.accept(bundle.getNPC(), message);
-                Assertions.assertDoesNotThrow(
-                                () -> Mockito.verify(this.aiRunner, timeout(1000).atLeastOnce())
-                                                .process(bundle.brain.getClientID()));
-        }
+    private void sendMsgAndWait(GameEvent message, AIComBundle bundle) {
+        INonPlayerCharacter.eventAccepter.accept(bundle.getNPC(), message);
+        Assertions.assertDoesNotThrow(
+                () -> Mockito.verify(this.aiRunner, timeout(1000).atLeastOnce()).process(bundle.brain.getClientID()));
+    }
 
-        @Test
-        void testBasicConversation() {
-                AIComBundle listener = new AIComBundle();
-                INonPlayerCharacter speaker = Mockito.mock(INonPlayerCharacter.class);
-                Mockito.when(speaker.getColorTaggedName()).thenReturn("<npc>Joe Speaker</npc>");
-                Mockito.when(speaker.getStartTag()).thenReturn("<npc>");
-                Mockito.when(speaker.getEndTag()).thenReturn("</npc>");
-                ClientID clientID = new ClientID();
-                Mockito.when(speaker.getClientID()).thenReturn(clientID);
+    @Test
+    void testBasicConversation() {
+        AIComBundle listener = new AIComBundle();
+        INonPlayerCharacter speaker = Mockito.mock(INonPlayerCharacter.class);
+        Mockito.when(speaker.getSimpleContent()).thenReturn("<npc>Joe Speaker</npc>");
+        Mockito.when(speaker.getTagName()).thenReturn("npc");
+        ClientID clientID = new ClientID();
+        Mockito.when(speaker.getClientID()).thenReturn(clientID);
 
-                String body = "I have been addressed";
-                ConversationTree tree = new ConversationTree(new ConversationTreeNode(body));
+        String body = "I have been addressed";
+        ConversationTree tree = new ConversationTree(new ConversationTreeNode(body));
 
-                listener.getNPC().setConvoTree(tree);
+        listener.getNPC().setConvoTree(tree);
 
-                SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker).setMessage("hello")
-                                .setHearer(listener.getNPC())
-                                .Build();
+        SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker).setMessage("hello").setHearer(listener.getNPC())
+                .Build();
 
-                sendMsgAndWait(sm, listener);
+        sendMsgAndWait(sm, listener);
 
-                Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
-                                Mockito.argThat((command) -> command != null && command.getWhole().contains(body)));
-        }
+        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
+                Mockito.argThat((command) -> command != null && command.getWhole().contains(body)));
+    }
 
-        @Test
-        void testAttacked() {
-                AIComBundle victim = new AIComBundle();
-                AIComBundle attacker = new AIComBundle();
-                attacker.getNPC().setFaction(CreatureFaction.RENEGADE);
+    @Test
+    void testAttacked() {
+        AIComBundle victim = new AIComBundle();
+        AIComBundle attacker = new AIComBundle();
+        attacker.getNPC().setFaction(CreatureFaction.RENEGADE);
 
-                Attack attack = attacker.getNPC().attack(attacker.getNPC().defaultWeapon());
-                CreatureEffect effect = attack.getEffects().stream().findFirst().get();
-                CreatureAffectedEvent adm = CreatureAffectedEvent.getBuilder().setAffected(victim.getNPC())
-                                .setDamages(effect.getApplicationDamageResult(null))
-                                .setCreatureResponsible(effect.creatureResponsible())
-                                .setGeneratedBy(effect.getGeneratedBy())
-                                .setHighlightedDelta(effect.getApplicationDeltas())
-                                .setDamages(effect.getApplicationDamageResult(null))
-                                .Build();
-                sendMsgAndWait(adm, victim);
+        Attack attack = attacker.getNPC().attack(attacker.getNPC().defaultWeapon());
+        CreatureEffect effect = attack.getEffects().stream().findFirst().get();
+        CreatureAffectedEvent adm = CreatureAffectedEvent.getBuilder().setAffected(victim.getNPC())
+                .setDamages(effect.getApplicationDamageResult(null))
+                .setCreatureResponsible(effect.creatureResponsible()).setGeneratedBy(effect.getGeneratedBy())
+                .setHighlightedDelta(effect.getApplicationDeltas()).setDamages(effect.getApplicationDamageResult(null))
+                .Build();
+        sendMsgAndWait(adm, victim);
 
-                Truth8.assertThat(victim.getNPC().getHarmMemories().getLastAttackerName()).isEmpty();
+        Truth8.assertThat(victim.getNPC().getHarmMemories().getLastAttackerName()).isEmpty();
 
-                victim.getNPC().addSubArea(SubAreaSort.BATTLE); // turn it on!
+        victim.getNPC().addSubArea(SubAreaSort.BATTLE); // turn it on!
 
-                Truth.assertThat(effect.getApplicationDamageResult(null).getTotal()).isNotEqualTo(0);
-                CreatureAffectedEvent doneAttack = CreatureAffectedEvent.getBuilder().setAffected(victim.getNPC())
-                                .setDamages(effect.getApplicationDamageResult(null))
-                                .setGeneratedBy(effect.getGeneratedBy())
-                                .setCreatureResponsible(effect.creatureResponsible())
-                                .setHighlightedDelta(effect.getApplicationDeltas()).Build();
-                sendMsgAndWait(doneAttack, victim);
+        Truth.assertThat(effect.getApplicationDamageResult(null).getTotal()).isNotEqualTo(0);
+        CreatureAffectedEvent doneAttack = CreatureAffectedEvent.getBuilder().setAffected(victim.getNPC())
+                .setDamages(effect.getApplicationDamageResult(null)).setGeneratedBy(effect.getGeneratedBy())
+                .setCreatureResponsible(effect.creatureResponsible()).setHighlightedDelta(effect.getApplicationDeltas())
+                .Build();
+        sendMsgAndWait(doneAttack, victim);
 
-                Mockito.verify(victim.sssb, Mockito.timeout(1000)).send(doneAttack);
+        Mockito.verify(victim.sssb, Mockito.timeout(1000)).send(doneAttack);
 
-                Truth.assertWithMessage("The victim should remember an attacker")
-                                .that(victim.getNPC().getHarmMemories().getLastAttackerName().isPresent()).isTrue();
-                Truth.assertWithMessage("The victim should remember the attacker's name")
-                                .that(victim.getNPC().getHarmMemories().getLastAttackerName().get())
-                                .isEqualTo(attacker.getNPC().getName());
-                // verify that both attack effects got handled before reaching the final handler
-                Mockito.verify(victim.mockedWrappedHandler, Mockito.after(100).never()).handle(Mockito.any(),
-                                Mockito.any());
+        Truth.assertWithMessage("The victim should remember an attacker")
+                .that(victim.getNPC().getHarmMemories().getLastAttackerName().isPresent()).isTrue();
+        Truth.assertWithMessage("The victim should remember the attacker's name")
+                .that(victim.getNPC().getHarmMemories().getLastAttackerName().get())
+                .isEqualTo(attacker.getNPC().getName());
+        // verify that both attack effects got handled before reaching the final handler
+        Mockito.verify(victim.mockedWrappedHandler, Mockito.after(100).never()).handle(Mockito.any(), Mockito.any());
 
-        }
+    }
 
-        @Test
-        void testBadTargetDiffFaction() {
-                AIComBundle searcher = new AIComBundle();
-                searcher.getNPC().addSubArea(SubAreaSort.BATTLE);
-                AIComBundle victim = new AIComBundle();
-                victim.getNPC().setFaction(CreatureFaction.MONSTER);
-                ArrayList<Taggable> stuff = new ArrayList<>();
-                stuff.add(victim.getNPC());
-                BadTargetSelectedEvent btsm = BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR)
-                                .setBadTarget("bloohoo jane").setPossibleTargets(stuff).Build();
-                sendMsgAndWait(btsm, searcher);
-                Truth.assertThat(searcher.getNPC().getHarmMemories().getLastAttackerName().isEmpty()).isTrue();
-        }
+    @Test
+    void testBadTargetDiffFaction() {
+        AIComBundle searcher = new AIComBundle();
+        searcher.getNPC().addSubArea(SubAreaSort.BATTLE);
+        AIComBundle victim = new AIComBundle();
+        victim.getNPC().setFaction(CreatureFaction.MONSTER);
+        ArrayList<Taggable> stuff = new ArrayList<>();
+        stuff.add(victim.getNPC());
+        BadTargetSelectedEvent btsm = BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR)
+                .setBadTarget("bloohoo jane").setPossibleTargets(stuff).Build();
+        sendMsgAndWait(btsm, searcher);
+        Truth.assertThat(searcher.getNPC().getHarmMemories().getLastAttackerName().isEmpty()).isTrue();
+    }
 
-        @Test
-        void testBadTargetSameFaction() {
-                AIComBundle searcher = new AIComBundle();
-                searcher.getNPC().addSubArea(SubAreaSort.BATTLE);
-                AIComBundle samefaction = new AIComBundle();
-                ArrayList<Taggable> stuff = new ArrayList<>();
-                stuff.add(samefaction.getNPC());
-                BadTargetSelectedEvent btsm = BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR)
-                                .setBadTarget("bloohoo jane").setPossibleTargets(stuff).Build();
-                sendMsgAndWait(btsm, searcher);
-                Truth8.assertThat(searcher.getNPC().getHarmMemories().getLastAttackerName()).isEmpty();
-        }
+    @Test
+    void testBadTargetSameFaction() {
+        AIComBundle searcher = new AIComBundle();
+        searcher.getNPC().addSubArea(SubAreaSort.BATTLE);
+        AIComBundle samefaction = new AIComBundle();
+        ArrayList<Taggable> stuff = new ArrayList<>();
+        stuff.add(samefaction.getNPC());
+        BadTargetSelectedEvent btsm = BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR)
+                .setBadTarget("bloohoo jane").setPossibleTargets(stuff).Build();
+        sendMsgAndWait(btsm, searcher);
+        Truth8.assertThat(searcher.getNPC().getHarmMemories().getLastAttackerName()).isEmpty();
+    }
 
 }

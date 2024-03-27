@@ -3,14 +3,14 @@ package com.lhf.game;
 import java.util.Objects;
 
 import com.lhf.Taggable;
-import com.lhf.TaggedExaminable;
+import com.lhf.Examinable;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.server.interfaces.NotNull;
 
-public abstract class EntityEffect implements TaggedExaminable, Comparable<EntityEffect> {
+public abstract class EntityEffect implements Examinable, Comparable<EntityEffect> {
 
     protected final String className;
     protected final EntityEffectSource source;
@@ -80,7 +80,7 @@ public abstract class EntityEffect implements TaggedExaminable, Comparable<Entit
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         return this.source.description + "\nIt will last "
                 + (this.ticker == null ? this.getPersistence().toString() : this.ticker.toString());
     }
@@ -91,18 +91,13 @@ public abstract class EntityEffect implements TaggedExaminable, Comparable<Entit
     }
 
     @Override
-    public String getColorTaggedName() {
-        return this.source.getColorTaggedName();
+    public String getTagName() {
+        return this.source.getTagName();
     }
 
     @Override
-    public String getEndTag() {
-        return this.source.getEndTag();
-    }
-
-    @Override
-    public String getStartTag() {
-        return this.source.getStartTag();
+    public String getSimpleContent() {
+        return this.source.getSimpleContent();
     }
 
     @Override

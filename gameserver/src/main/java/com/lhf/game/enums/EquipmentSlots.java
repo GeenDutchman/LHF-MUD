@@ -25,13 +25,13 @@ public enum EquipmentSlots implements Taggable {
     }
 
     @Override
-    public String getStartTag() {
-        return "<equipSlot>";
+    public String getTagName() {
+        return "equipSlot";
     }
 
     @Override
-    public String getEndTag() {
-        return "</equipSlot>";
+    public String getSimpleContent() {
+        return this.toString();
     }
 
     @Override
@@ -39,8 +39,4 @@ public enum EquipmentSlots implements Taggable {
         return this.name();
     }
 
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.toString() + this.getEndTag();
-    }
 }

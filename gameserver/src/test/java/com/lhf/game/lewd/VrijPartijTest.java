@@ -45,7 +45,7 @@ public class VrijPartijTest {
         vrijPartij.propose();
 
         ArgumentMatcher<GameEvent> proposeChecker = (message) -> {
-            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getXmlEventType())) {
                 return false;
             }
             try {
@@ -78,7 +78,7 @@ public class VrijPartijTest {
         vrijPartij.accept(second.getNPC());
 
         ArgumentMatcher<GameEvent> acceptanceChecker = (message) -> {
-            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getXmlEventType())) {
                 return false;
             }
             try {
@@ -133,7 +133,7 @@ public class VrijPartijTest {
         Truth.assertThat(participants).hasSize(0);
 
         ArgumentMatcher<GameEvent> secondAcceptanceChecker = (message) -> {
-            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getXmlEventType())) {
                 return false;
             }
             try {
@@ -166,7 +166,7 @@ public class VrijPartijTest {
         Truth.assertThat(participants).hasSize(0);
 
         ArgumentMatcher<GameEvent> thirdAcceptanceChecker = (message) -> {
-            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getXmlEventType())) {
                 return false;
             }
             try {
@@ -178,7 +178,7 @@ public class VrijPartijTest {
         };
 
         ArgumentMatcher<GameEvent> dunnitChecker = (message) -> {
-            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getXmlEventType())) {
                 return false;
             }
             try {
@@ -233,7 +233,7 @@ public class VrijPartijTest {
         vrijPartij.propose();
 
         ArgumentMatcher<GameEvent> proposeChecker = (message) -> {
-            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getXmlEventType())) {
                 return false;
             }
             try {
@@ -257,7 +257,7 @@ public class VrijPartijTest {
         Truth.assertThat(participants).hasSize(0);
 
         ArgumentMatcher<GameEvent> secondAcceptanceChecker = (message) -> {
-            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getXmlEventType())) {
                 return false;
             }
             try {
@@ -287,7 +287,7 @@ public class VrijPartijTest {
         Truth.assertThat(participants).hasSize(0);
 
         ArgumentMatcher<GameEvent> thirdPass = (message) -> {
-            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getXmlEventType())) {
                 return false;
             }
             try {
@@ -305,7 +305,7 @@ public class VrijPartijTest {
         Mockito.verify(third.sssb, Mockito.timeout(500)).send(Mockito.argThat(thirdPass));
 
         ArgumentMatcher<GameEvent> dunnitChecker = (message) -> {
-            if (message == null || !GameEventType.LEWD.equals(message.getEventType())) {
+            if (message == null || !GameEventType.LEWD.equals(message.getXmlEventType())) {
                 return false;
             }
             try {

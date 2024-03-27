@@ -110,11 +110,9 @@ public class Trap extends InteractObject implements GameEventProcessor {
                         .format("%s is not repeatable and thus cannot be interacted with.", this.getColorTaggedName()));
             } else {
                 this.setActivated(!this.isActivated());
-                builder.setPerformed()
-                        .setDescription(
-                                String.format("%s successfully (%s vs %s) %s the %s", creature.getColorTaggedName(),
-                                        roll.getColorTaggedName(), difficulty.getColorTaggedName(),
-                                        this.isActivated() ? "activated" : "deactivated", this.getColorTaggedName()));
+                builder.setPerformed().setDescription(String.format("%s successfully (%s vs %s) %s the %s",
+                        creature.getColorTaggedName(), roll.getColorTaggedName(), difficulty.getColorTaggedName(),
+                        this.isActivated() ? "activated" : "deactivated", this.getColorTaggedName()));
             }
         }
         this.broadcast(creature, builder);
@@ -124,7 +122,7 @@ public class Trap extends InteractObject implements GameEventProcessor {
     @Override
     public Consumer<GameEvent> getAcceptHook() {
         return (event) -> {
-            if (event == null || event.getEventType() != GameEventType.ROOM_ENTERED || !Trap.this.isActivated()) {
+            if (event == null || event.getXmlEventType() != GameEventType.ROOM_ENTERED || !Trap.this.isActivated()) {
                 return;
             }
             if (this.interactCount > 1 && !this.isRepeatable()) {

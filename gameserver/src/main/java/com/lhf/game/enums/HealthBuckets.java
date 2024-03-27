@@ -44,13 +44,13 @@ public enum HealthBuckets implements Taggable {
     }
 
     @Override
-    public String getStartTag() {
-        return "<health>";
+    public String getTagName() {
+        return "health";
     }
 
     @Override
-    public String getEndTag() {
-        return "</health>";
+    public String getSimpleContent() {
+        return this.toString();
     }
 
     @Override
@@ -58,8 +58,4 @@ public enum HealthBuckets implements Taggable {
         return this.name().toLowerCase().replace('_', ' ');
     }
 
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.toString() + this.getEndTag();
-    }
 }

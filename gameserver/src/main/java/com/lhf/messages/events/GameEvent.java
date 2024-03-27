@@ -18,6 +18,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
@@ -152,14 +153,26 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         return document;
     }
 
-    public abstract Document buildXML(Document document);
+    /**
+     * Adds this GameEvent to the `document`. If the `document` is null, then this
+     * does nothing and returns null. If the `addToMe` parameter is not null, then
+     * it will append the created element to `addToMe`. If `addToMe` is null, the
+     * new element will be appended to the first child of the `document` if it is
+     * present, otherwise it will be added straight to the document. Once finished,
+     * it will return the newly created element.
+     * 
+     * @param document
+     * @param addToMe
+     */
+    public abstract Element buildXML(Document document, Node addToMe);
 
     public final void getXMLString(Writer writer)
             throws ParserConfigurationException, TransformerConfigurationException, TransformerException {
         if (writer == null) {
             return;
         }
-        Document document = this.buildXML(getXMLDocumentStart());
+        Document document = getXMLDocumentStart();
+        this.buildXML(document, document.getFirstChild());
         Transformer transformer = TransformerFactory.newDefaultInstance().newTransformer();
         transformer.transform(new DOMSource(document), new StreamResult(writer));
     }

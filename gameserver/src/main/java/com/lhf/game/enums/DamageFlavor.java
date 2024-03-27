@@ -3,9 +3,8 @@ package com.lhf.game.enums;
 import com.lhf.Taggable;
 
 public enum DamageFlavor implements Taggable {
-    SLASHING, MAGICAL_SLASHING, BLUDGEONING, MAGICAL_BLUDGEONING, PIERCING, MAGICAL_PIERCING,
-    VOID, FORCE, FIRE, COLD, HEALING, NECROTIC, POISON, ACID, LIGHTNING, THUNDER, PSYCHIC,
-    AGGRO;
+    SLASHING, MAGICAL_SLASHING, BLUDGEONING, MAGICAL_BLUDGEONING, PIERCING, MAGICAL_PIERCING, VOID, FORCE, FIRE, COLD,
+    HEALING, NECROTIC, POISON, ACID, LIGHTNING, THUNDER, PSYCHIC, AGGRO;
 
     public interface DamageFlavored {
         public DamageFlavor getDamageFlavor();
@@ -25,23 +24,18 @@ public enum DamageFlavor implements Taggable {
     }
 
     @Override
-    public String getStartTag() {
-        return "<dmgFlavor>";
+    public String getTagName() {
+        return "DamageFlavor";
     }
 
     @Override
-    public String getEndTag() {
-        return "</dmgFlavor>";
+    public String getSimpleContent() {
+        return this.toString();
     }
 
     @Override
     public String toString() {
         return this.name().toLowerCase().replace('_', ' ');
-    }
-
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.toString() + this.getEndTag();
     }
 
 }

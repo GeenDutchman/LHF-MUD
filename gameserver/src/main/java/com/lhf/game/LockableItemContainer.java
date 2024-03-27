@@ -19,8 +19,8 @@ public interface LockableItemContainer extends Lockable, ItemContainer {
         }
 
         @Override
-        public default String printDescription() {
-            return this.getOrigin().printDescription();
+        public default String getDescription() {
+            return this.getOrigin().getDescription();
         }
     }
 }

@@ -485,8 +485,8 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public String printDescription() {
-        return wrapped.printDescription();
+    public String getDescription() {
+        return wrapped.getDescription();
     }
 
     @Override
@@ -502,18 +502,8 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     }
 
     @Override
-    public String getStartTag() {
-        return wrapped.getStartTag();
-    }
-
-    @Override
-    public String getEndTag() {
-        return wrapped.getEndTag();
-    }
-
-    @Override
-    public String getColorTaggedName() {
-        return wrapped.getColorTaggedName();
+    public String getTagName() {
+        return wrapped.getTagName();
     }
 
     @Override

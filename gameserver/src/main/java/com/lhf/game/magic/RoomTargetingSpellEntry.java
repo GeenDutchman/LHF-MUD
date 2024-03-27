@@ -14,8 +14,7 @@ import com.lhf.messages.events.SpellCastingEvent;
 public class RoomTargetingSpellEntry extends SpellEntry {
 
     public RoomTargetingSpellEntry(ResourceCost level, String name, String invocation,
-            Set<? extends RoomEffectSource> effectSources,
-            Set<VocationName> allowed, String description) {
+            Set<? extends RoomEffectSource> effectSources, Set<VocationName> allowed, String description) {
         super(level, name, invocation, effectSources, allowed, description);
     }
 
@@ -37,7 +36,7 @@ public class RoomTargetingSpellEntry extends SpellEntry {
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         StringBuilder sb = new StringBuilder(this.description).append(super.printEffectDescriptions());
         return sb.toString();
     }

@@ -429,17 +429,15 @@ public enum AMessageType implements Taggable {
             } else if (command.getIndirects().size() == 0) {
                 return true;
             }
-            if (command.getIndirects().size() == 1
-                    && ("override".equalsIgnoreCase(
-                            command.getIndirects().getOrDefault(Prepositions.AS, List.of("invalid")).get(0))
-                            || "null".equalsIgnoreCase(command.getIndirects()
-                                    .getOrDefault(Prepositions.USE, List.of("invalid")).get(0)))) {
+            if (command.getIndirects().size() == 1 && ("override"
+                    .equalsIgnoreCase(command.getIndirects().getOrDefault(Prepositions.AS, List.of("invalid")).get(0))
+                    || "null".equalsIgnoreCase(
+                            command.getIndirects().getOrDefault(Prepositions.USE, List.of("invalid")).get(0)))) {
                 return true;
-            } else if (command.getIndirects().size() == 2
-                    && ("override".equalsIgnoreCase(
-                            command.getIndirects().getOrDefault(Prepositions.AS, List.of("invalid")).get(0))
-                            && "null".equalsIgnoreCase(command.getIndirects()
-                                    .getOrDefault(Prepositions.USE, List.of("invalid")).get(0)))) {
+            } else if (command.getIndirects().size() == 2 && ("override"
+                    .equalsIgnoreCase(command.getIndirects().getOrDefault(Prepositions.AS, List.of("invalid")).get(0))
+                    && "null".equalsIgnoreCase(
+                            command.getIndirects().getOrDefault(Prepositions.USE, List.of("invalid")).get(0)))) {
                 return true;
             }
             return false;
@@ -487,18 +485,13 @@ public enum AMessageType implements Taggable {
     public abstract EnumSet<Prepositions> getAllowedPrepositions();
 
     @Override
-    public String getStartTag() {
-        return "<command>";
+    public String getTagName() {
+        return "command";
     }
 
     @Override
-    public String getEndTag() {
-        return "</command>";
-    }
-
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.toString() + this.getEndTag();
+    public String getSimpleContent() {
+        return this.toString();
     }
 
 }

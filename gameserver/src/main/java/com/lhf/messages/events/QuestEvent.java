@@ -72,7 +72,7 @@ public class QuestEvent extends GameEvent {
 
         public Builder fromQuest(QuestEffect quest) {
             if (quest != null) {
-                this.setQuestName(quest.getName()).setQuestDescription(quest.printDescription());
+                this.setQuestName(quest.getName()).setQuestDescription(quest.getDescription());
             }
             return this;
         }

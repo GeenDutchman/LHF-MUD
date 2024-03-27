@@ -91,7 +91,7 @@ public class SpellEntryRequestedEvent extends GameEvent {
         for (SpellEntry entry : this.getEntries()) {
             sj.add(entry.getColorTaggedName()).add("\r\n");
             sj.add(entry.getInvocation()).add("\r\n");
-            sj.add(entry.printDescription());
+            sj.add(entry.getDescription());
         }
         return (this.cubeHolder ? "" : "Only cubeholders can cast spells. ") + sj.toString();
     }

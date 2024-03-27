@@ -13,6 +13,10 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.lhf.Taggable;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -253,18 +257,28 @@ public class Client implements CommandInvoker {
     }
 
     @Override
-    public String getStartTag() {
-        return "<client>";
+    public String getName() {
+        return this.id.toString();
     }
 
     @Override
-    public String getEndTag() {
-        return "</client>";
+    public String getTagName() {
+        return "client";
     }
 
     @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.id.toString() + this.getEndTag();
+    public String getSimpleContent() {
+        return this.id.toString();
+    }
+
+    @Override
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = Taggable.buildXMLElementFromTaggable(nodeGenerator, this);
+        if (myElement != null) {
+            myElement.setAttribute("uuid", this.id.toString());
+            myElement.setIdAttribute("uuid", true);
+        }
+        return myElement;
     }
 
     @Override

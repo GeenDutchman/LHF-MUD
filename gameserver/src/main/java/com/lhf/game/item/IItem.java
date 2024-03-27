@@ -4,9 +4,9 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.PatternSyntaxException;
 
-import com.lhf.TaggedExaminable;
+import com.lhf.Examinable;
 
-public interface IItem extends TaggedExaminable {
+public interface IItem extends Examinable {
 
     public final static class ItemID implements Comparable<ItemID> {
         private final UUID id;
@@ -92,18 +92,8 @@ public interface IItem extends TaggedExaminable {
     }
 
     @Override
-    default String getStartTag() {
-        return "<item>";
-    }
-
-    @Override
-    default String getEndTag() {
-        return "</item>";
-    }
-
-    @Override
-    default String getColorTaggedName() {
-        return this.getStartTag() + this.getName() + this.getEndTag();
+    public default String getTagName() {
+        return "item";
     }
 
 }

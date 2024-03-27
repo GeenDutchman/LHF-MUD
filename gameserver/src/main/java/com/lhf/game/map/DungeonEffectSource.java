@@ -47,10 +47,9 @@ public class DungeonEffectSource extends EntityEffectSource {
     }
 
     @Override
-    public String printDescription() {
-        return super.printDescription()
-                + (this.addsRoomToDungeon() ? "\r\nAdds a room to the dungeon!"
-                        : "\r\nWill modify the current dungeon.");
+    public String getDescription() {
+        return super.getDescription() + (this.addsRoomToDungeon() ? "\r\nAdds a room to the dungeon!"
+                : "\r\nWill modify the current dungeon.");
     }
 
     @Override

@@ -249,13 +249,8 @@ public class BattleManager extends SubArea {
     }
 
     @Override
-    public String getEndTag() {
-        return "</battle>";
-    }
-
-    @Override
-    public String getStartTag() {
-        return "<battle>";
+    public String getTagName() {
+        return "battle";
     }
 
     @Override
@@ -669,7 +664,7 @@ public class BattleManager extends SubArea {
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         StringBuilder sb = new StringBuilder();
         if (this.hasRunningThread("printDescription()")) {
             sb.append("The battle is on! ");

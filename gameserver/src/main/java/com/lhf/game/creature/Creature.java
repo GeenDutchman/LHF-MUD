@@ -334,8 +334,8 @@ public abstract class Creature implements ICreature {
         }
         final Deltas deltas = effect.getDeltasForEvent(event);
         if (deltas == null) {
-            this.log(Level.FINE,
-                    () -> String.format("Effect %s does nothing on event %s", effect.getName(), event.getEventType()));
+            this.log(Level.FINE, () -> String.format("Effect %s does nothing on event %s", effect.getName(),
+                    event.getXmlEventType()));
             return null;
         }
         final MultiRollResult damages = effect.getEventDamageResult(event, (mrr) -> this.adjustDamageByFlavor(mrr));

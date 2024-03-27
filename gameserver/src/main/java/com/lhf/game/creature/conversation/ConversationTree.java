@@ -176,7 +176,7 @@ public class ConversationTree implements Serializable {
                 if (matcher.find()) {
                     ConversationContext ctx = new ConversationContext();
                     ctx.put(ConversationContextKey.TALKER_NAME, Taggable.extract(talker));
-                    ctx.put(ConversationContextKey.TALKER_TAGGED_NAME, talker.getColorTaggedName());
+                    ctx.put(ConversationContextKey.TALKER_TAGGED_NAME, Taggable.basicTaggable(talker).toString());
                     ctx.addTrail(this.start.getNodeID());
                     this.bookmarks.put(talker.getClientID(), ctx);
                     return this.tagIt(ctx, this.start);

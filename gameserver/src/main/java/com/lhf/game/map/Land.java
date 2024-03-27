@@ -152,12 +152,10 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         public abstract AreaBuilderAtlas getAtlas();
 
         public default Map<AreaBuilderID, UUID> translateAtlas(Land builtLand, AIRunner aiRunner,
-                ConversationManager conversationManager,
-                boolean fallbackNoConversation) {
+                ConversationManager conversationManager, boolean fallbackNoConversation) {
 
             final Function<AreaBuilder, Area> transformer = (builder) -> {
-                return builder.build(builtLand, builtLand, aiRunner,
-                        conversationManager, fallbackNoConversation);
+                return builder.build(builtLand, builtLand, aiRunner, conversationManager, fallbackNoConversation);
             };
 
             final AreaBuilderAtlas builderAtlas = this.getAtlas();
@@ -172,8 +170,7 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         }
 
         public abstract Land build(CommandChainHandler successor, AIRunner aiRunner,
-                ConversationManager conversationManager,
-                boolean fallbackNoConversation);
+                ConversationManager conversationManager, boolean fallbackNoConversation);
 
     }
 
@@ -216,21 +213,18 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
     }
 
     public default Area getCreatureArea(ICreature creature) {
-        return this.getAtlas().getAtlasMembers().stream()
-                .filter(area -> area != null && area.hasCreature(creature))
+        return this.getAtlas().getAtlasMembers().stream().filter(area -> area != null && area.hasCreature(creature))
                 .findFirst().orElseGet(() -> null);
     }
 
     public default Area getCreatureArea(String name) {
-        return this.getAtlas().getAtlasMembers().stream()
-                .filter(area -> area != null && area.hasCreature(name, null))
+        return this.getAtlas().getAtlasMembers().stream().filter(area -> area != null && area.hasCreature(name, null))
                 .findFirst().orElseGet(() -> null);
 
     }
 
     public default Area getPlayerArea(UserID id) {
-        return this.getAtlas().getAtlasMembers().stream()
-                .filter(area -> area != null && area.getPlayer(id).isPresent())
+        return this.getAtlas().getAtlasMembers().stream().filter(area -> area != null && area.getPlayer(id).isPresent())
                 .findFirst().orElseGet(() -> null);
 
     }
@@ -242,18 +236,16 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         if (startingArea != null) {
             creatures.addAll(startingArea.getCreatures());
         }
-        this.getAtlas().getAtlasMembers().stream()
-                .filter(area -> area != null)
+        this.getAtlas().getAtlasMembers().stream().filter(area -> area != null)
                 .forEach(area -> creatures.addAll(area.getCreatures()));
         return Collections.unmodifiableSet(creatures);
     }
 
     public interface LandCommandHandler extends CommandHandler {
 
-        static final EnumMap<AMessageType, CommandHandler> landCommandHandlers = new EnumMap<>(Map.of(
-                AMessageType.GO, new LandGoHandler(),
-                AMessageType.SEE, new LandSeeHandler(),
-                AMessageType.SHOUT, new LandShoutHandler()));
+        static final EnumMap<AMessageType, CommandHandler> landCommandHandlers = new EnumMap<>(
+                Map.of(AMessageType.GO, new LandGoHandler(), AMessageType.SEE, new LandSeeHandler(), AMessageType.SHOUT,
+                        new LandShoutHandler()));
 
         @Override
         public default boolean isEnabled(CommandContext ctx) {
@@ -311,9 +303,7 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
                         .getAtlasMappingItem(presentRoom.getUuid());
                 if (mappingItem != null) {
                     Map<Directions, TargetedTester<UUID>> exits = mappingItem.getDirections();
-                    if (exits == null || exits.size() == 0
-                            || !exits.containsKey(toGo)
-                            || exits.get(toGo) == null) {
+                    if (exits == null || exits.size() == 0 || !exits.containsKey(toGo) || exits.get(toGo) == null) {
                         ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
                         return ctx.handled();
                     }
@@ -374,18 +364,13 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
     }
 
     @Override
-    public default String getStartTag() {
-        return "<Land>";
+    default String getTagName() {
+        return "Land";
     }
 
     @Override
-    public default String getEndTag() {
-        return "</Land>";
-    }
-
-    @Override
-    public default String getColorTaggedName() {
-        return this.getStartTag() + this.getName() + this.getEndTag();
+    default String getSimpleContent() {
+        return this.getName();
     }
 
 }

@@ -41,6 +41,11 @@ public class Inventory implements ItemContainer {
     }
 
     @Override
+    public String getTagName() {
+        return "Inventory";
+    }
+
+    @Override
     public boolean addItem(IItem i) {
         if (i instanceof Takeable) {
             this.items.add((Takeable) i);
@@ -56,7 +61,8 @@ public class Inventory implements ItemContainer {
 
     @Override
     public String toString() {
-        return this.items.stream().map(item -> item.getColorTaggedName()).collect(Collectors.joining(", "));
+        return this.items.stream().filter(item -> item != null).map(item -> item.getName())
+                .collect(Collectors.joining(", "));
     }
 
     public InventoryRequestedEvent getInventoryOutMessage() {
@@ -96,7 +102,7 @@ public class Inventory implements ItemContainer {
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         return "This is your inventory.";
     }
 

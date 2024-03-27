@@ -15,6 +15,10 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo.SummonData;
 import com.lhf.game.creature.inventory.Inventory;
@@ -111,7 +115,7 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
         this.log(Level.WARNING,
                 String.format("This summon is dead, and cannot perform 'processEffectEvent(effect:%s, event:%s)'",
                         effect != null ? ":" + effect.getName() : "nulleffect",
-                        event != null ? event.getEventType() : "nullevent"));
+                        event != null ? event.getXmlEventType() : "nullevent"));
         return null;
     }
 
@@ -477,33 +481,44 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public String printDescription() {
-        String summonString = this.summoner != null
-                ? " Has been summoned by " + this.summoner.getColorTaggedName() + ". "
-                : " Is a summoned creature. ";
-        String description = super.printDescription();
+    public String getDescription() {
+        String summonString = " Is a summoned creature. ";
+        String description = super.getDescription();
         if (description == null) {
             return summonString;
         }
         if (!description.contains(summonString)) {
-            return description + summonString;
+            return summonString + description;
         }
         return description;
     }
 
     @Override
-    public String getStartTag() {
-        return "<summon>";
+    public String getTagName() {
+        return "summon";
     }
 
     @Override
-    public String getEndTag() {
-        return "</summon>";
-    }
-
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.getName() + this.getEndTag();
+    public Element buildDetailedXMLElement(Document nodeGenerator) {
+        Element myElement = super.buildDetailedXMLElement(nodeGenerator);
+        if (myElement == null) {
+            return null;
+        }
+        if (this.summoner == null) {
+            return myElement;
+        }
+        Element summonElement = nodeGenerator.createElement("SummonData");
+        summonElement.setAttribute("colored", "false");
+        summonElement.setAttribute("complex", "true");
+        summonElement.appendChild(nodeGenerator.createTextNode("Summoned by "));
+        summonElement.appendChild(this.summoner.buildXMLElement(nodeGenerator));
+        Node first = myElement.getFirstChild();
+        if (first == null) {
+            myElement.insertBefore(summonElement, first);
+        } else {
+            myElement.appendChild(summonElement);
+        }
+        return myElement;
     }
 
     @Override

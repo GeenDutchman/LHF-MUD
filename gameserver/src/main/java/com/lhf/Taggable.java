@@ -4,36 +4,42 @@ import java.util.Objects;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 public interface Taggable {
     public String getTagName();
 
-    public String getTextContent();
+    public String getSimpleContent();
 
-    /**
-     * Creates a new XML element and adds it either to the provided `node`, or falls
-     * back to adding it to the `document`. If the `document` is null, does nothing.
-     * 
-     * @param document
-     * @param node
-     */
-    public default Element addToXMLDocument(Document document, Node node) {
-        if (document == null) {
+    @Deprecated
+    public default String print() {
+        final String tagName = this.getTagName();
+        final String contents = this.getSimpleContent();
+        return new StringBuilder().append('<').append(tagName).append('>').append(contents).append("</").append(tagName)
+                .append('>').toString();
+    }
+
+    public static Element buildXMLElementFromTaggable(Document nodeGenerator, Taggable taggable) {
+        if (nodeGenerator == null || taggable == null) {
             return null;
         }
-        Element taggedElement = document.createElement(this.getTagName());
-        taggedElement.setTextContent(this.getTextContent());
-        if (node != null) {
-            node.appendChild(taggedElement);
-        } else {
-            document.appendChild(taggedElement);
+        Element myElement = nodeGenerator.createElement(taggable.getTagName());
+        myElement.setAttribute("colored", "true");
+        final String simpleContent = taggable.getSimpleContent();
+        if (simpleContent != null && !simpleContent.isEmpty() && !simpleContent.isBlank()) {
+            myElement.appendChild(nodeGenerator.createTextNode(simpleContent));
         }
-        return taggedElement;
+        return myElement;
+    }
+
+    public default Element buildXMLElement(Document nodeGenerator) {
+        if (nodeGenerator == null) {
+            return null;
+        }
+        return Taggable.buildXMLElementFromTaggable(nodeGenerator, this);
     }
 
     public static String extract(Taggable taggable) {
-        return taggable.getTextContent();
+        return taggable.getSimpleContent();
     }
 
     public default BasicTaggable basicTaggable() {
@@ -70,7 +76,7 @@ public interface Taggable {
         }
 
         @Override
-        public String getTextContent() {
+        public String getSimpleContent() {
             return this.contents;
         }
 

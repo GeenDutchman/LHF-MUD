@@ -51,12 +51,12 @@ public class CreatureAOESpell extends ISpell<CreatureEffect> {
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         AutoTargeted original = this.getTypedEntry().getAutoSafe();
         if (!this.safe.equals(original)) {
-            return super.printDescription() + " Overriden so that "
+            return super.getDescription() + " Overriden so that "
                     + (this.isOffensive() ? this.safe.printUnffected() : this.safe.printAffected());
         }
-        return super.printDescription();
+        return super.getDescription();
     }
 }

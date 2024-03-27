@@ -214,9 +214,8 @@ public class RestArea extends SubArea {
         public void onRoundStart() {
             ItemInteractionEvent.Builder iom = ItemInteractionEvent.getBuilder().setPerformed();
             final long minutes = TimeUnit.MINUTES.convert(RestArea.this.getTurnWaitCount(), TimeUnit.MILLISECONDS);
-            final long seconds = TimeUnit.SECONDS
-                    .convert(RestArea.this.getTurnWaitCount() - (TimeUnit.MINUTES.toMillis(minutes)),
-                            TimeUnit.MILLISECONDS);
+            final long seconds = TimeUnit.SECONDS.convert(
+                    RestArea.this.getTurnWaitCount() - (TimeUnit.MINUTES.toMillis(minutes)), TimeUnit.MILLISECONDS);
             iom.setDescription(String.format("This round %d of resting will complete in %d m %d s", this.getPhase(),
                     minutes, seconds));
             RestArea.eventAccepter.accept(RestArea.this, iom.Build());
@@ -303,12 +302,12 @@ public class RestArea extends SubArea {
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         StringBuilder sb = new StringBuilder("This is a rest area.");
         if (!LewdStyle.PRUDE.equals(this.lewd)) {
             sb.append("...");
         }
-        if (this.hasRunningThread("printDescription")) {
+        if (this.hasRunningThread("getDescription")) {
             sb.append(" There is resting going on.");
         }
         return sb.toString();
@@ -329,13 +328,8 @@ public class RestArea extends SubArea {
     }
 
     @Override
-    public String getStartTag() {
-        return "<rest_area>";
-    }
-
-    @Override
-    public String getEndTag() {
-        return "</rest_area>";
+    public String getTagName() {
+        return "rest_area";
     }
 
     @Override
@@ -485,8 +479,7 @@ public class RestArea extends SubArea {
     public interface RestingCommandHandler extends SubAreaCommandHandler {
 
         final static EnumMap<AMessageType, CommandHandler> restingCommandHandlers = new EnumMap<>(
-                Map.of(AMessageType.GO, new RestingGoHandler(),
-                        AMessageType.REST, new RestingRestHandler()));
+                Map.of(AMessageType.GO, new RestingGoHandler(), AMessageType.REST, new RestingRestHandler()));
 
         @Override
         default boolean isEnabled(CommandContext ctx) {

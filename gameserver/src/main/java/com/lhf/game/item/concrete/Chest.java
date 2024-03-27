@@ -38,8 +38,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     public Chest(ChestDescriptor descriptor) {
-        super(ChestDescriptor.generateDescription(descriptor),
-                ChestDescriptor.generateDescription(descriptor));
+        super(ChestDescriptor.generateDescription(descriptor), ChestDescriptor.generateDescription(descriptor));
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.descriptionString = "A " + this.descriptionString;
@@ -48,8 +47,7 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     public Chest(ChestDescriptor descriptor, boolean initialLock, boolean removeOnEmpty) {
-        super(ChestDescriptor.generateDescription(descriptor),
-                ChestDescriptor.generateDescription(descriptor));
+        super(ChestDescriptor.generateDescription(descriptor), ChestDescriptor.generateDescription(descriptor));
         this.chestUuid = UUID.randomUUID();
         this.chestItems = new ArrayList<>();
         this.descriptionString = "A " + this.descriptionString;
@@ -79,9 +77,9 @@ public class Chest extends InteractObject implements LockableItemContainer {
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         StringJoiner sj = new StringJoiner(" ");
-        sj.add(super.printDescription() + ".");
+        sj.add(super.getDescription() + ".");
         if (this.isUnlocked()) {
             sj.add("It is unlocked.");
             sj.add(this.isEmpty() ? "It is empty." : "Something is inside.");
@@ -237,8 +235,8 @@ public class Chest extends InteractObject implements LockableItemContainer {
         }
 
         @Override
-        public String printDescription() {
-            return Chest.this.printDescription();
+        public String getDescription() {
+            return Chest.this.getDescription();
         }
 
         @Override

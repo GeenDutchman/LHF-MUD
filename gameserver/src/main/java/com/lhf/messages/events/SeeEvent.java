@@ -16,9 +16,7 @@ import com.lhf.messages.GameEventType;
 public class SeeEvent extends GameEvent {
     public enum SeeCategory {
         DIRECTION, CREATURE, PLAYER, NPC, MONSTER, ROOM_ITEM, TAKEABLE, EFFECTS, EQUIPMENT_SLOTS, PROFICIENCIES, STATS,
-        ATTRIBUTE_SCORE, ATTRIBUTE_BONUS,
-        DAMAGES, OTHER, INVISIBLE_CREATURE,
-        INVISIBLE_ROOM_ITEM, INVISIBLE_TAKEABLE;
+        ATTRIBUTE_SCORE, ATTRIBUTE_BONUS, DAMAGES, OTHER, INVISIBLE_CREATURE, INVISIBLE_ROOM_ITEM, INVISIBLE_TAKEABLE;
 
         public static SeeCategory getSeeCategory(String value) {
             for (SeeCategory category : values()) {
@@ -155,61 +153,61 @@ public class SeeEvent extends GameEvent {
                 }
             } else {
                 switch (categorized) {
-                    case DIRECTION:
-                        sj.add("Available Directions:");
-                        break;
-                    case CREATURE:
-                        sj.add("Creatures that you can see:");
-                        break;
-                    case PLAYER:
-                        sj.add("Players that you can see:");
-                        break;
-                    case NPC:
-                        sj.add("Non Player Characters that you can see:");
-                        break;
-                    case MONSTER:
-                        sj.add("Monsters that you can see:");
-                        break;
-                    case ROOM_ITEM:
-                        sj.add("Objects that you can see:");
-                        break;
-                    case TAKEABLE:
-                        sj.add("Items that you can see:");
-                        break;
-                    case EFFECTS:
-                        sj.add("Effects that you know of:");
-                        break;
-                    case EQUIPMENT_SLOTS:
-                        sj.add("Equipment slots it will use:");
-                        break;
-                    case PROFICIENCIES:
-                        sj.add("Proficiencies you will need for proper use:");
-                        break;
-                    case STATS:
-                        sj.add("Stats that will change:");
-                        break;
-                    case DAMAGES:
-                        sj.add("Causes damage like:");
-                        break;
-                    case ATTRIBUTE_SCORE:
-                        sj.add("Changes to attribute scores:");
-                        break;
-                    case ATTRIBUTE_BONUS:
-                        sj.add("Changes to attribute bonuses:");
-                        break;
-                    case INVISIBLE_CREATURE:
-                        sj.add("Invisible creatures that you can see:");
-                        break;
-                    case INVISIBLE_ROOM_ITEM:
-                        sj.add("Invisible objects that you can see:");
-                        break;
-                    case INVISIBLE_TAKEABLE:
-                        sj.add("Invisible items that you can see:");
-                        break;
-                    case OTHER:
-                    default:
-                        sj.add("Other things that you can see:");
-                        break;
+                case DIRECTION:
+                    sj.add("Available Directions:");
+                    break;
+                case CREATURE:
+                    sj.add("Creatures that you can see:");
+                    break;
+                case PLAYER:
+                    sj.add("Players that you can see:");
+                    break;
+                case NPC:
+                    sj.add("Non Player Characters that you can see:");
+                    break;
+                case MONSTER:
+                    sj.add("Monsters that you can see:");
+                    break;
+                case ROOM_ITEM:
+                    sj.add("Objects that you can see:");
+                    break;
+                case TAKEABLE:
+                    sj.add("Items that you can see:");
+                    break;
+                case EFFECTS:
+                    sj.add("Effects that you know of:");
+                    break;
+                case EQUIPMENT_SLOTS:
+                    sj.add("Equipment slots it will use:");
+                    break;
+                case PROFICIENCIES:
+                    sj.add("Proficiencies you will need for proper use:");
+                    break;
+                case STATS:
+                    sj.add("Stats that will change:");
+                    break;
+                case DAMAGES:
+                    sj.add("Causes damage like:");
+                    break;
+                case ATTRIBUTE_SCORE:
+                    sj.add("Changes to attribute scores:");
+                    break;
+                case ATTRIBUTE_BONUS:
+                    sj.add("Changes to attribute bonuses:");
+                    break;
+                case INVISIBLE_CREATURE:
+                    sj.add("Invisible creatures that you can see:");
+                    break;
+                case INVISIBLE_ROOM_ITEM:
+                    sj.add("Invisible objects that you can see:");
+                    break;
+                case INVISIBLE_TAKEABLE:
+                    sj.add("Invisible items that you can see:");
+                    break;
+                case OTHER:
+                default:
+                    sj.add("Other things that you can see:");
+                    break;
                 }
             }
             sj.add("\r\n");
@@ -250,7 +248,7 @@ public class SeeEvent extends GameEvent {
         if (this.extraInfo != null && this.extraInfo.length() > 0) {
             sj.add(this.extraInfo.toString()).add("\r\n");
         }
-        final String descriptor = this.examinable.printDescription();
+        final String descriptor = this.examinable.getDescription();
         if (descriptor != null && !descriptor.isBlank()) {
             sj.add("<description>").add(descriptor).add("</description>").add("\r\n");
         }

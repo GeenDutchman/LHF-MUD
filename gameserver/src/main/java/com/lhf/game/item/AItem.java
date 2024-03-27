@@ -125,22 +125,12 @@ public abstract class AItem implements IItem {
     }
 
     @Override
-    public String getStartTag() {
-        return "<item>";
+    public String getTagName() {
+        return "item";
     }
 
     @Override
-    public String getEndTag() {
-        return "</item>";
-    }
-
-    @Override
-    public String getColorTaggedName() {
-        return this.getStartTag() + this.getName() + this.getEndTag();
-    }
-
-    @Override
-    public String printDescription() {
+    public String getDescription() {
         return this.descriptionString;
     }
 
