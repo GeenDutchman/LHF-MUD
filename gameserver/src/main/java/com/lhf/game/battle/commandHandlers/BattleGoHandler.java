@@ -60,12 +60,11 @@ public class BattleGoHandler implements PooledBattleManagerCommandHandler {
             final SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
             Integer check = 10 + bm.getCreatures().size();
             MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
-            BattleCreatureFledEvent.Builder builder = BattleCreatureFledEvent.getBuilder()
-                    .setRunner(ctx.getCreature())
+            BattleCreatureFledEvent.Builder builder = BattleCreatureFledEvent.getBuilder().setRunner(ctx.getCreature())
                     .setRoll(result);
             Reply reply = null;
             if (result.getRoll() >= check) {
-                reply = CommandChainHandler.passUpChain(bm, ctx, cmd);
+                reply = bm.getArea().handleChain(ctx, cmd);
             }
             if (bm.hasCreature(ctx.getCreature())) { // if it is still here, it failed to flee
                 builder.setFled(false);
