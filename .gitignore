@@ -1,6 +1,7 @@
 .vscode/
 *.class
 *.log
+*.log.lck
 gameserver/target/*
 pom.xml.tag
 pom.xml.releaseBackup
