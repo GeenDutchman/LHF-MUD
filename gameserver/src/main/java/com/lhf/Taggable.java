@@ -2,20 +2,38 @@ package com.lhf;
 
 import java.util.Objects;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 public interface Taggable {
-    String getStartTag();
+    public String getTagName();
 
-    String getEndTag();
+    public String getTextContent();
 
-    String getColorTaggedName();
+    /**
+     * Creates a new XML element and adds it either to the provided `node`, or falls
+     * back to adding it to the `document`. If the `document` is null, does nothing.
+     * 
+     * @param document
+     * @param node
+     */
+    public default Element addToXMLDocument(Document document, Node node) {
+        if (document == null) {
+            return null;
+        }
+        Element taggedElement = document.createElement(this.getTagName());
+        taggedElement.setTextContent(this.getTextContent());
+        if (node != null) {
+            node.appendChild(taggedElement);
+        } else {
+            document.appendChild(taggedElement);
+        }
+        return taggedElement;
+    }
 
     public static String extract(Taggable taggable) {
-        int lenStart = taggable.getStartTag().length();
-        int lenEnd = taggable.getEndTag().length();
-        String extracted = taggable.getColorTaggedName();
-        int extractSize = extracted.length() - lenEnd;
-        extracted = extracted.substring(lenStart, extractSize);
-        return extracted;
+        return taggable.getTextContent();
     }
 
     public default BasicTaggable basicTaggable() {
@@ -30,42 +48,35 @@ public interface Taggable {
     }
 
     public static final class BasicTaggable implements Taggable {
-        public final String startTag;
-        public final String endTag;
+        public final String tagName;
         public final String contents;
 
-        public static BasicTaggable customTaggable(final String startTag, final String contents, final String endTag) {
-            return new BasicTaggable(startTag, contents, endTag);
+        public static BasicTaggable customTaggable(final String tagName, final String contents) {
+            return new BasicTaggable(tagName, contents);
         }
 
         private BasicTaggable(final Taggable from) {
-            this(from.getStartTag(), Taggable.extract(from), from.getEndTag());
+            this(from.getTagName(), Taggable.extract(from));
         }
 
-        private BasicTaggable(final String startTag, final String contents, final String endTag) {
-            this.startTag = startTag;
+        private BasicTaggable(final String tagName, final String contents) {
+            this.tagName = tagName;
             this.contents = contents;
-            this.endTag = endTag;
         }
 
         @Override
-        public String getStartTag() {
-            return this.startTag;
+        public String getTagName() {
+            return this.tagName;
         }
 
         @Override
-        public String getEndTag() {
-            return this.endTag;
-        }
-
-        @Override
-        public String getColorTaggedName() {
-            return this.getStartTag() + this.contents + this.getEndTag();
+        public String getTextContent() {
+            return this.contents;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(startTag, endTag, contents);
+            return Objects.hash(tagName, contents);
         }
 
         @Override
@@ -75,15 +86,13 @@ public interface Taggable {
             if (!(obj instanceof BasicTaggable))
                 return false;
             BasicTaggable other = (BasicTaggable) obj;
-            return Objects.equals(startTag, other.startTag) && Objects.equals(endTag, other.endTag)
-                    && Objects.equals(contents, other.contents);
+            return Objects.equals(tagName, other.tagName) && Objects.equals(contents, other.contents);
         }
 
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append("BasicTaggable [startTag=").append(startTag).append(", contents=").append(contents)
-                    .append(", endTag=").append(endTag)
+            builder.append("BasicTaggable [tagName=").append(tagName).append(", contents=").append(contents)
                     .append("]");
             return builder.toString();
         }

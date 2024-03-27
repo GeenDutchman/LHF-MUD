@@ -1,10 +1,23 @@
 package com.lhf.messages.events;
 
+import java.io.Writer;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
@@ -83,7 +96,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         return this.builder;
     }
 
-    public GameEventType getEventType() {
+    public GameEventType getXmlEventType() {
         return this.type;
     }
 
@@ -122,6 +135,35 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     // Called to render as a human-readable string
     public abstract String print();
 
+    protected final static String XML_EVENT_ROOT = "GameEvent";
+    protected final static String XML_EVENT_TYPE = "GameEventType";
+    protected final static String XML_EVENT_UUID = "GameEventUUID";
+
+    protected final Document getXMLDocumentStart() throws ParserConfigurationException {
+        DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+        Document document = docFactory.newDocumentBuilder().newDocument();
+        Element root = document.createElement(XML_EVENT_ROOT);
+        root.setAttribute(XML_EVENT_UUID, this.uuid.toString());
+        root.setIdAttribute(XML_EVENT_UUID, true);
+        document.appendChild(root);
+        Element eventtype = document.createElement(XML_EVENT_TYPE);
+        eventtype.setTextContent(this.type.toString());
+        root.appendChild(eventtype);
+        return document;
+    }
+
+    public abstract Document buildXML(Document document);
+
+    public final void getXMLString(Writer writer)
+            throws ParserConfigurationException, TransformerConfigurationException, TransformerException {
+        if (writer == null) {
+            return;
+        }
+        Document document = this.buildXML(getXMLDocumentStart());
+        Transformer transformer = TransformerFactory.newDefaultInstance().newTransformer();
+        transformer.transform(new DOMSource(document), new StreamResult(writer));
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(type, uuid);
@@ -141,7 +183,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
 
     @Override
     public int compareTo(GameEvent arg0) {
-        int runningCompare = this.type.compareTo(arg0.getEventType());
+        int runningCompare = this.type.compareTo(arg0.getXmlEventType());
         if (runningCompare != 0) {
             return runningCompare;
         }
