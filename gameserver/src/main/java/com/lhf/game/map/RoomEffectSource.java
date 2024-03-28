@@ -83,7 +83,7 @@ public class RoomEffectSource extends EntityEffectSource {
     }
 
     @Override
-    public String printDescription() {
+    public String getDescription() {
         StringBuilder sb = new StringBuilder(super.getDescription());
         if (this.monsterToSummon != null) {
             sb.append("\r\nWill summon the following Monster:\r\n");

@@ -7,6 +7,7 @@ import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.statblock.AttributeBlock;
+import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.game.enums.HealthBuckets;
@@ -17,7 +18,6 @@ public class CreatureStatusRequestedEvent extends SeeEvent {
     private final static TickType tickType = TickType.ACTION;
     private final boolean full;
     private final String name;
-    private final String colorTaggedName;
     private final String race;
     private final CreatureFaction faction;
     private final HealthBuckets healthBucket;
@@ -32,7 +32,6 @@ public class CreatureStatusRequestedEvent extends SeeEvent {
     public static class Builder extends SeeEvent.ABuilder<Builder> {
         private boolean full;
         private String name;
-        private String colorTaggedName;
         private String race;
         private CreatureFaction faction;
         private HealthBuckets healthBucket;
@@ -56,18 +55,18 @@ public class CreatureStatusRequestedEvent extends SeeEvent {
             this.setExaminable(creature);
             this.full = full;
             this.name = creature.getName();
-            this.colorTaggedName = creature.getColorTaggedName();
             this.race = creature.getCreatureRace();
             this.addExtraInfo(String.format("Race:%s.", this.race != null ? this.race : "None"));
             this.faction = creature.getFaction();
             this.addExtraInfo(String.format("Faction:%s.", this.faction));
-            this.healthBucket = HealthBuckets.calculate(creature.getStats().getOrDefault(Stats.CURRENTHP, 1),
-                    creature.getStats().getOrDefault(Stats.MAXHP, 0));
+            this.healthBucket = creature.getHealthBucket();
             this.addSeen("Health", this.healthBucket);
-            this.vocationName = creature.getVocation() != null ? creature.getVocation().getVocationName() : null;
-            this.vocationLevel = creature.getVocation() != null ? creature.getVocation().getLevel() : null;
+            final Vocation vocation = creature.getVocation();
+            this.vocationName = vocation != null ? vocation.getVocationName() : null;
+            this.vocationLevel = vocation != null ? vocation.getLevel() : null;
             if (this.vocationName != null) {
-                this.addExtraInfo(String.format("Vocation:%s%s.", this.vocationName.getColorTaggedName(),
+                this.addSeen("Vocation", creature.getVocation());
+                this.addExtraInfo(String.format("Vocation:%s%s.", this.vocationName.toString(),
                         this.vocationLevel != null ? this.vocationLevel : ""));
             }
             if (this.full) {
@@ -81,8 +80,8 @@ public class CreatureStatusRequestedEvent extends SeeEvent {
                 this.currentHealth = creature.getStats().get(Stats.CURRENTHP);
                 this.maxHealth = creature.getStats().get(Stats.MAXHP);
                 if (this.currentHealth != null && this.maxHealth != null) {
-                    this.addSeen("Health", BasicTaggable.customTaggable("<health>",
-                            String.format("%d/%d", this.currentHealth, this.maxHealth), "</health>"));
+                    this.addSeen("Health", BasicTaggable.customTaggable("health",
+                            String.format("%d/%d", this.currentHealth, this.maxHealth)));
                 }
                 this.armorClass = creature.getStats().get(Stats.AC);
                 if (this.armorClass != null) {
@@ -113,10 +112,6 @@ public class CreatureStatusRequestedEvent extends SeeEvent {
 
         public String getName() {
             return name;
-        }
-
-        public String getColorTaggedName() {
-            return colorTaggedName;
         }
 
         public String getRace() {
@@ -179,7 +174,6 @@ public class CreatureStatusRequestedEvent extends SeeEvent {
         super(builder);
         this.full = builder.isFull();
         this.name = builder.getName();
-        this.colorTaggedName = builder.getColorTaggedName();
         this.race = builder.getRace();
         this.faction = builder.getFaction();
         this.healthBucket = builder.getHealthBucket();
@@ -198,10 +192,6 @@ public class CreatureStatusRequestedEvent extends SeeEvent {
 
     public String getName() {
         return name;
-    }
-
-    public String getColorTaggedName() {
-        return colorTaggedName;
     }
 
     public String getRace() {
@@ -247,11 +237,6 @@ public class CreatureStatusRequestedEvent extends SeeEvent {
     @Override
     public TickType getTickType() {
         return tickType;
-    }
-
-    @Override
-    public String print() {
-        return this.toString();
     }
 
 }

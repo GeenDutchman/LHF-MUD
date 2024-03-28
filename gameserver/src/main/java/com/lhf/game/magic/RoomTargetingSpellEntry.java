@@ -2,7 +2,6 @@ package com.lhf.game.magic;
 
 import java.util.List;
 import java.util.Set;
-import java.util.StringJoiner;
 
 import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
@@ -25,14 +24,8 @@ public class RoomTargetingSpellEntry extends SpellEntry {
 
     @Override
     public SpellCastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
-        StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("Targeting nothing");
-        if (targets != null) {
-            for (Taggable taggable : targets) {
-                sj.add(taggable.getColorTaggedName());
-            }
-        }
-        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sj.toString())
-                .Build();
+        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).defaultTargetingStyle()
+                .setTargets(targets).Build();
     }
 
     @Override

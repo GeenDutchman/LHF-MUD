@@ -109,7 +109,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         if (!this.isBroadcast()) {
             return capitalize ? "You" : "you";
         } else if (creature != null) {
-            return creature.getColorTaggedName();
+            return creature.getName();
         } else {
             return capitalize ? "Someone" : "someone";
         }
@@ -119,9 +119,38 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         if (!this.isBroadcast()) {
             return capitalize ? "Your" : "your";
         } else if (creature != null) {
-            return creature.getColorTaggedName() + "'s";
+            return creature.getName() + "'s";
         } else {
             return capitalize ? "Their" : "their";
+        }
+    }
+
+    protected Node addressCreatureXML(Document nodeGenerator, ICreature creature, boolean capitalize) {
+        if (nodeGenerator == null) {
+            return null;
+        }
+        if (!this.isBroadcast()) {
+            return nodeGenerator.createTextNode(capitalize ? "You" : "you");
+        } else if (creature != null) {
+            return creature.buildXMLElement(nodeGenerator);
+        } else {
+            return nodeGenerator.createTextNode(capitalize ? "Someone" : "someone");
+        }
+    }
+
+    protected Node posessiveCreatureXML(Document nodeGenerator, ICreature creature, boolean capitalize) {
+        if (nodeGenerator == null) {
+            return null;
+        }
+        if (!this.isBroadcast()) {
+            return nodeGenerator.createTextNode(capitalize ? "Your" : "your");
+        } else if (creature != null) {
+            Element named = creature.buildXMLElement(nodeGenerator);
+            named.setAttribute("complex", "true");
+            named.appendChild(nodeGenerator.createTextNode("'s"));
+            return named;
+        } else {
+            return nodeGenerator.createTextNode(capitalize ? "Their" : "their");
         }
     }
 
@@ -134,11 +163,13 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     }
 
     // Called to render as a human-readable string
-    public abstract String print();
+    public abstract String printString();
 
     protected final static String XML_EVENT_ROOT = "GameEvent";
     protected final static String XML_EVENT_TYPE = "GameEventType";
+    protected final static String XML_EVENT_TICK = "GameEventTick";
     protected final static String XML_EVENT_UUID = "GameEventUUID";
+    protected final static String XML_EVENT_CONTENT = "GameEventContent";
 
     protected final Document getXMLDocumentStart() throws ParserConfigurationException {
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
@@ -146,12 +177,26 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         Element root = document.createElement(XML_EVENT_ROOT);
         root.setAttribute(XML_EVENT_UUID, this.uuid.toString());
         root.setIdAttribute(XML_EVENT_UUID, true);
+        root.setAttribute(XML_EVENT_TYPE, this.type.toString());
+        final TickType tick = this.getTickType();
+        if (tick != null) {
+            root.setAttribute(XML_EVENT_TICK, tick.toString());
+        }
         document.appendChild(root);
         Element eventtype = document.createElement(XML_EVENT_TYPE);
         eventtype.setTextContent(this.type.toString());
         root.appendChild(eventtype);
         return document;
     }
+
+    protected final Element produceContentNode(Document nodeGenerator) {
+        if (nodeGenerator == null) {
+            return null;
+        }
+        return nodeGenerator.createElement(XML_EVENT_CONTENT);
+    }
+
+    public abstract Element buildXMLElement(Document nodeGenerator);
 
     /**
      * Adds this GameEvent to the `document`. If the `document` is null, then this
@@ -161,10 +206,25 @@ public abstract class GameEvent implements Comparable<GameEvent> {
      * present, otherwise it will be added straight to the document. Once finished,
      * it will return the newly created element.
      * 
-     * @param document
+     * @param nodeGenerator
      * @param addToMe
      */
-    public abstract Element buildXML(Document document, Node addToMe);
+    public final void buildXML(Document nodeGenerator, Node addToMe) {
+        if (nodeGenerator == null) {
+            return;
+        }
+        Element myElement = this.buildXMLElement(nodeGenerator);
+        if (addToMe != null) {
+            addToMe.appendChild(myElement);
+        } else {
+            Node first = nodeGenerator.getFirstChild();
+            if (first != null) {
+                first.appendChild(myElement);
+            } else {
+                nodeGenerator.appendChild(myElement);
+            }
+        }
+    }
 
     public final void getXMLString(Writer writer)
             throws ParserConfigurationException, TransformerConfigurationException, TransformerException {

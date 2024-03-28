@@ -1,5 +1,8 @@
 package com.lhf.messages.events;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.lhf.game.TickType;
 import com.lhf.messages.GameEventType;
 
@@ -32,10 +35,7 @@ public class BattleOverEvent extends GameEvent {
 
     @Override
     public String toString() {
-        if (!this.isBroadcast()) {
-            return "Take a deep breath.  You have survived this battle!";
-        }
-        return "The fight is over!";
+        return this.printString();
     }
 
     @Override
@@ -44,8 +44,21 @@ public class BattleOverEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public String printString() {
+        if (!this.isBroadcast()) {
+            return "Take a deep breath.  You have survived this battle!";
+        }
+        return "The fight is over!";
+    }
+
+    @Override
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = this.produceContentNode(nodeGenerator);
+        if (myElement != null) {
+            myElement.appendChild(nodeGenerator.createTextNode(
+                    this.isBroadcast() ? "The fight is over!" : "Take a deep breath.  You have survived this battle!"));
+        }
+        return myElement;
     }
 
 }

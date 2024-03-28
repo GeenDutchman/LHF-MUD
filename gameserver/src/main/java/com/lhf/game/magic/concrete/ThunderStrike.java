@@ -18,35 +18,29 @@ import com.lhf.game.enums.ResourceCost;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.magic.CreatureTargetingSpellEntry;
 import com.lhf.messages.events.SpellCastingEvent;
+import com.lhf.messages.events.SpellCastingEvent.TargetingStyle;
 
 public class ThunderStrike extends CreatureTargetingSpellEntry {
 
-    private static final Set<CreatureEffectSource> spellEffects = Set.of(
-            new CreatureEffectSource.Builder("Loud Zap").instantPersistence()
-                    .setResistance(new EffectResistance(EnumSet.of(Attributes.INT), Stats.AC))
-                    .setDescription("Zaps your target").setOnApplication(new Deltas()
-                            .addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.THUNDER))
-                            .addDamage(new DamageDice(1, DieType.FOUR,
-                                    DamageFlavor.LIGHTNING)))
-                    .build());
+    private static final Set<CreatureEffectSource> spellEffects = Set.of(new CreatureEffectSource.Builder("Loud Zap")
+            .instantPersistence().setResistance(new EffectResistance(EnumSet.of(Attributes.INT), Stats.AC))
+            .setDescription("Zaps your target")
+            .setOnApplication(new Deltas().addDamage(new DamageDice(1, DieType.SIX, DamageFlavor.THUNDER))
+                    .addDamage(new DamageDice(1, DieType.FOUR, DamageFlavor.LIGHTNING)))
+            .build());
 
     public ThunderStrike() {
         super(ResourceCost.FIRST_MAGNITUDE, "Thunder Strike", "Bonearge Laarzen", spellEffects,
                 Set.of(VocationName.MAGE),
-                "A small but loud bolt of electricity shocks a creature you choose as a target",
-                true);
+                "A small but loud bolt of electricity shocks a creature you choose as a target", true);
     }
 
     @Override
     public SpellCastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
-        StringBuilder sb = new StringBuilder();
-        for (Taggable target : targets) {
-            sb.append("A large bolt zaps from ").append(caster.getColorTaggedName())
-                    .append("'s hand and thunders toward ").append(target.getColorTaggedName())
-                    .append("!");
-        }
+
         return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this)
-                .setCastEffects(sb.toString())
+                .setTargetingStyle(
+                        new TargetingStyle(true, "A large bolt zaps from ", "'s hand and thunders toward ", "!"))
                 .Build();
     }
 

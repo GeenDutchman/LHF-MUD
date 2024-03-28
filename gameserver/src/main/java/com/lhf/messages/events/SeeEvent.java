@@ -7,6 +7,9 @@ import java.util.NavigableMap;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.lhf.Examinable;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffectSource;
@@ -147,72 +150,14 @@ public class SeeEvent extends GameEvent {
             SeeCategory categorized = SeeCategory.getSeeCategory(category);
             if (categorized == null) {
                 if (category == null) {
-                    sj.add("Other things that you can see:");
+                    sj.add(SeeCategory.OTHER.toString());
                 } else {
                     sj.add(category);
-                }
-            } else {
-                switch (categorized) {
-                case DIRECTION:
-                    sj.add("Available Directions:");
-                    break;
-                case CREATURE:
-                    sj.add("Creatures that you can see:");
-                    break;
-                case PLAYER:
-                    sj.add("Players that you can see:");
-                    break;
-                case NPC:
-                    sj.add("Non Player Characters that you can see:");
-                    break;
-                case MONSTER:
-                    sj.add("Monsters that you can see:");
-                    break;
-                case ROOM_ITEM:
-                    sj.add("Objects that you can see:");
-                    break;
-                case TAKEABLE:
-                    sj.add("Items that you can see:");
-                    break;
-                case EFFECTS:
-                    sj.add("Effects that you know of:");
-                    break;
-                case EQUIPMENT_SLOTS:
-                    sj.add("Equipment slots it will use:");
-                    break;
-                case PROFICIENCIES:
-                    sj.add("Proficiencies you will need for proper use:");
-                    break;
-                case STATS:
-                    sj.add("Stats that will change:");
-                    break;
-                case DAMAGES:
-                    sj.add("Causes damage like:");
-                    break;
-                case ATTRIBUTE_SCORE:
-                    sj.add("Changes to attribute scores:");
-                    break;
-                case ATTRIBUTE_BONUS:
-                    sj.add("Changes to attribute bonuses:");
-                    break;
-                case INVISIBLE_CREATURE:
-                    sj.add("Invisible creatures that you can see:");
-                    break;
-                case INVISIBLE_ROOM_ITEM:
-                    sj.add("Invisible objects that you can see:");
-                    break;
-                case INVISIBLE_TAKEABLE:
-                    sj.add("Invisible items that you can see:");
-                    break;
-                case OTHER:
-                default:
-                    sj.add("Other things that you can see:");
-                    break;
                 }
             }
             sj.add("\r\n");
             for (Taggable taggable : taggedlist) {
-                sj.add(taggable.getColorTaggedName());
+                sj.add(taggable.getSimpleContent());
             }
             sj.add("\r\n");
         }
@@ -230,34 +175,132 @@ public class SeeEvent extends GameEvent {
         return sj.toString();
     }
 
+    private Element buildXMLListedTaggablesElement(Document nodeGenerator) {
+        if (nodeGenerator == null) {
+            return null;
+        }
+        Element listElement = nodeGenerator.createElement("listedTaggables");
+        listElement.setAttribute("colored", "false");
+        for (String category : this.seenCategorized.keySet()) {
+            List<Taggable> taggedlist = this.seenCategorized.get(category);
+            if (taggedlist == null || taggedlist.size() <= 0) {
+                continue;
+            }
+            Element listedItem = null;
+            SeeCategory categorized = SeeCategory.getSeeCategory(category);
+            if (categorized == null) {
+                if (category == null) {
+                    listedItem = nodeGenerator.createElement("OTHER");
+                    listedItem.appendChild(nodeGenerator.createTextNode("Other things that you can see:"));
+                } else {
+                    listedItem = nodeGenerator.createElement(category);
+                }
+            } else {
+                listedItem = nodeGenerator.createElement(categorized.toString());
+                switch (categorized) {
+                case DIRECTION:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Available Directions:")));
+                    break;
+                case CREATURE:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Creatures that you can see:")));
+                    break;
+                case PLAYER:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Players that you can see:")));
+                    break;
+                case NPC:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Non Player Characters that you can see:")));
+                    break;
+                case MONSTER:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Monsters that you can see:")));
+                    break;
+                case ROOM_ITEM:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Objects that you can see:")));
+                    break;
+                case TAKEABLE:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Items that you can see:")));
+                    break;
+                case EFFECTS:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Effects that you know of:")));
+                    break;
+                case EQUIPMENT_SLOTS:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Equipment slots it will use:")));
+                    break;
+                case PROFICIENCIES:
+                    listedItem
+                            .appendChild(nodeGenerator.createTextNode(("Proficiencies you will need for proper use:")));
+                    break;
+                case STATS:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Stats that will change:")));
+                    break;
+                case DAMAGES:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Causes damage like:")));
+                    break;
+                case ATTRIBUTE_SCORE:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Changes to attribute scores:")));
+                    break;
+                case ATTRIBUTE_BONUS:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Changes to attribute bonuses:")));
+                    break;
+                case INVISIBLE_CREATURE:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Invisible creatures that you can see:")));
+                    break;
+                case INVISIBLE_ROOM_ITEM:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Invisible objects that you can see:")));
+                    break;
+                case INVISIBLE_TAKEABLE:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Invisible items that you can see:")));
+                    break;
+                case OTHER:
+                default:
+                    listedItem.appendChild(nodeGenerator.createTextNode(("Other things that you can see:")));
+                    break;
+                }
+            }
+            for (Taggable taggable : taggedlist) {
+                listedItem.appendChild(taggable.buildXMLElement(nodeGenerator));
+            }
+            listElement.appendChild(listedItem);
+        }
+        return listElement;
+    }
+
     @Override
-    public String toString() {
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = this.produceContentNode(nodeGenerator);
+        if (myElement == null) {
+            return myElement;
+        }
         if (this.isDenied()) {
-            return this.deniedReason;
+            myElement.setTextContent(this.deniedReason);
+            return myElement;
         }
         if (this.examinable == null) {
-            return "You cannot see that.";
+            myElement.setTextContent("You cannot see that.");
+            return myElement;
         }
-        StringJoiner sj = new StringJoiner(" ");
-        if (this.examinable instanceof Taggable) {
-            sj.add("Name:").add(((Taggable) this.examinable).getColorTaggedName());
-        } else {
-            sj.add("Name:").add(this.examinable.getName());
+        Element examinableNode = this.examinable.buildDetailedXMLElement(nodeGenerator);
+        if (examinableNode == null) {
+            return myElement;
         }
-        sj.add("\r\n");
-        if (this.extraInfo != null && this.extraInfo.length() > 0) {
-            sj.add(this.extraInfo.toString()).add("\r\n");
+        if (this.extraInfo != null && !this.extraInfo.isBlank()) {
+            myElement.appendChild(nodeGenerator.createTextNode(this.extraInfo));
         }
-        final String descriptor = this.examinable.getDescription();
-        if (descriptor != null && !descriptor.isBlank()) {
-            sj.add("<description>").add(descriptor).add("</description>").add("\r\n");
+        myElement.appendChild(examinableNode);
+        myElement.appendChild(this.buildXMLListedTaggablesElement(nodeGenerator));
+        if (this.effects != null && this.effects.size() > 0) {
+            Element effectElement = nodeGenerator.createElement("DescribedEffects");
+            effectElement.appendChild(nodeGenerator.createTextNode("Effects that you can see the details of:"));
+            for (EntityEffectSource entityEffect : this.effects) {
+                effectElement.appendChild(entityEffect.buildDetailedXMLElement(nodeGenerator));
+            }
+            myElement.appendChild(effectElement);
         }
-        sj = this.listTaggables(sj);
-        String listedEffects = this.listEffectors();
-        if (!listedEffects.isBlank()) {
-            sj.add("\r\n").add(listedEffects);
-        }
-        return sj.toString();
+        return myElement;
+    }
+
+    @Override
+    public String toString() {
+        return this.printString();
     }
 
     public Examinable getExaminable() {
@@ -286,7 +329,28 @@ public class SeeEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public String printString() {
+        if (this.isDenied()) {
+            return this.deniedReason;
+        }
+        if (this.examinable == null) {
+            return "You cannot see that.";
+        }
+        StringJoiner sj = new StringJoiner(" ");
+        sj.add("Name:").add(this.examinable.getName());
+        sj.add("\r\n");
+        if (this.extraInfo != null && this.extraInfo.length() > 0) {
+            sj.add(this.extraInfo.toString()).add("\r\n");
+        }
+        final String descriptor = this.examinable.getDescription();
+        if (descriptor != null && !descriptor.isBlank()) {
+            sj.add(descriptor).add("\r\n");
+        }
+        sj = this.listTaggables(sj);
+        String listedEffects = this.listEffectors();
+        if (!listedEffects.isBlank()) {
+            sj.add("\r\n").add(listedEffects);
+        }
+        return sj.toString();
     }
 }

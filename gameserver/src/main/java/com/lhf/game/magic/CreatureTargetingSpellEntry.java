@@ -33,14 +33,8 @@ public class CreatureTargetingSpellEntry extends SpellEntry {
 
     @Override
     public SpellCastingEvent Cast(ICreature caster, ResourceCost castLevel, List<? extends Taggable> targets) {
-        StringJoiner sj = new StringJoiner(", ", "Targeting: ", "").setEmptyValue("Targeting nothing");
-        if (targets != null) {
-            for (Taggable taggable : targets) {
-                sj.add(taggable.getColorTaggedName());
-            }
-        }
-        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).setCastEffects(sj.toString())
-                .Build();
+        return SpellCastingEvent.getBuilder().setCaster(caster).setSpellEntry(this).defaultTargetingStyle()
+                .setTargets(targets).Build();
     }
 
     @Override

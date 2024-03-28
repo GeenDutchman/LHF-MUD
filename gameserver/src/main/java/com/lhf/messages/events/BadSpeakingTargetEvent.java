@@ -1,15 +1,16 @@
 package com.lhf.messages.events;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.lhf.messages.GameEventType;
 
 public class BadSpeakingTargetEvent extends GameEvent {
     private final String creatureName;
-    private final String taggedCreatureName;
     private final String msg;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private String creatureName;
-        private String taggedCreatureName;
         private String msg;
 
         protected Builder() {
@@ -22,15 +23,6 @@ public class BadSpeakingTargetEvent extends GameEvent {
 
         public Builder setCreatureName(String creatureName) {
             this.creatureName = creatureName;
-            return this;
-        }
-
-        public String getTaggedCreatureName() {
-            return taggedCreatureName;
-        }
-
-        public Builder setTaggedCreatureName(String taggedCreatureName) {
-            this.taggedCreatureName = taggedCreatureName;
             return this;
         }
 
@@ -62,11 +54,8 @@ public class BadSpeakingTargetEvent extends GameEvent {
     public BadSpeakingTargetEvent(Builder builder) {
         super(builder);
         this.creatureName = builder.getCreatureName();
-        this.taggedCreatureName = builder.getTaggedCreatureName();
         StringBuilder temp = new StringBuilder("This room does not contain anyone named ");
-        if (this.taggedCreatureName != null && this.taggedCreatureName.length() > 0) {
-            temp.append(this.taggedCreatureName);
-        } else if (this.creatureName != null && this.creatureName.length() > 0) {
+        if (this.creatureName != null && this.creatureName.length() > 0) {
             temp.append("'").append(this.creatureName).append("'");
         } else {
             temp.append("anything like that");
@@ -84,16 +73,22 @@ public class BadSpeakingTargetEvent extends GameEvent {
         return creatureName;
     }
 
-    public String getTaggedCreatureName() {
-        return taggedCreatureName;
-    }
-
     public String getMsg() {
         return msg;
     }
 
     @Override
-    public String print() {
+    public String printString() {
         return this.msg;
+    }
+
+    @Override
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = this.produceContentNode(nodeGenerator);
+        if (myElement != null) {
+            myElement.setAttribute("complex", "true");
+            myElement.appendChild(nodeGenerator.createTextNode(this.msg));
+        }
+        return myElement;
     }
 }
