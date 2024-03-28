@@ -11,6 +11,8 @@ import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.w3c.dom.Element;
+
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.IItem;
@@ -105,18 +107,35 @@ public class Chest extends InteractObject implements LockableItemContainer {
         if (creature == null) {
             return;
         }
-        ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this);
-        if (this.isUnlocked() && this.isEmpty() && this.isRemoveOnEmpty() && this.area != null) {
+        ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this)
+                .setInteractor(creature);
+        final boolean unlockedState = this.isUnlocked();
+        if (unlockedState && this.isEmpty() && this.isRemoveOnEmpty() && this.area != null) {
             area.removeItem(this);
-            builder.setDescription(
-                    String.format("%s discovers that the %s is contains nothing and it crumbles to dust.",
-                            creature.getColorTaggedName(), this.getColorTaggedName()));
-        } else if (this.isUnlocked()) {
-            builder.setDescription(String.format("%s tries the %s and finds it unlocked", creature.getColorTaggedName(),
-                    this.getColorTaggedName()));
+            builder.setXmlCallbackFunction(nodeGenerator -> {
+                if (nodeGenerator == null) {
+                    return null;
+                }
+                Element description = nodeGenerator.createElement("InteractionDescription");
+                description.appendChild(creature.buildXMLElement(nodeGenerator));
+                description.appendChild(nodeGenerator.createTextNode(" discovers that the "));
+                description.appendChild(this.buildXMLElement(nodeGenerator));
+                description.appendChild(nodeGenerator.createTextNode(" contains nothing and it crumbles to dust."));
+                return description;
+            });
         } else {
-            builder.setDescription(String.format("%s tries the %s and finds it locked", creature.getColorTaggedName(),
-                    this.getColorTaggedName()));
+            builder.setXmlCallbackFunction(nodeGenerator -> {
+                if (nodeGenerator == null) {
+                    return null;
+                }
+                Element description = nodeGenerator.createElement("InteractionDescription");
+                description.appendChild(creature.buildXMLElement(nodeGenerator));
+                description.appendChild(nodeGenerator.createTextNode(" tries the "));
+                description.appendChild(this.buildXMLElement(nodeGenerator));
+                description.appendChild(nodeGenerator
+                        .createTextNode(String.format(" and finds it %s.", unlockedState ? "unlocked" : "locked")));
+                return description;
+            });
         }
         this.broadcast(creature, builder);
         this.interactCount++;

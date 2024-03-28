@@ -5,12 +5,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
+import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.messages.GameEventType;
 
 public class BattleStatsRequestedEvent extends GameEvent {
@@ -106,7 +111,55 @@ public class BattleStatsRequestedEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = this.produceContentNode(nodeGenerator);
+        if (myElement == null) {
+            return myElement;
+        }
+        if (this.records.isEmpty()) {
+            return myElement;
+        }
+        if (this.roundCount.isPresent()) {
+            Element round = nodeGenerator.createElement("Round");
+            round.setTextContent(this.roundCount.get().toString());
+            myElement.appendChild(round);
+        }
+        if (this.turnCount.isPresent()) {
+            Element turn = nodeGenerator.createElement("Turn");
+            turn.setTextContent(this.turnCount.get().toString());
+            myElement.appendChild(turn);
+        }
+        Element battleStats = nodeGenerator.createElement("BattleStats");
+        for (final BattleStatRecord record : this.records) {
+            Element battleStat = nodeGenerator.createElement("BattleStat");
+            Element targetName = nodeGenerator.createElement("TargetName");
+            targetName.setTextContent(record.getTargetName());
+            battleStat.appendChild(targetName);
+            Element faction = nodeGenerator.createElement("Faction");
+            faction.setTextContent(record.getFaction().toString());
+            battleStat.appendChild(faction);
+            final Vocation vocation = record.getVocation();
+            Element vocationElement = nodeGenerator.createElement("Vocation");
+            vocationElement.setTextContent(vocation != null ? vocation.getName() : "null");
+            battleStat.appendChild(vocationElement);
+            Element bucket = nodeGenerator.createElement("HealthBucket");
+            bucket.setTextContent(record.getBucket().toString());
+            battleStat.appendChild(bucket);
+            Element stats = nodeGenerator.createElement("Stats");
+            for (final Entry<BattleStat, Integer> entry : record.getStats().entrySet()) {
+                Element stat = nodeGenerator.createElement(entry.getKey().toString());
+                stat.appendChild(nodeGenerator.createTextNode(entry.getValue().toString()));
+                stats.appendChild(stat);
+            }
+            battleStat.appendChild(stats);
+            battleStats.appendChild(battleStat);
+        }
+        myElement.appendChild(battleStats);
+        return myElement;
+    }
+
+    @Override
+    public String printString() {
         String header = "";
         if (this.records.size() > 0) {
             header = HEADER_STRING + "\n" + DELINEATOR_STRING + "\n";
@@ -133,7 +186,7 @@ public class BattleStatsRequestedEvent extends GameEvent {
 
     @Override
     public String toString() {
-        return this.print();
+        return this.printString();
     }
 
     public Collection<BattleStatRecord> getRecords() {

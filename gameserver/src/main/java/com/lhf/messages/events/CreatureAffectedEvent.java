@@ -4,6 +4,9 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.StringJoiner;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.CreatureEffectSource.Deltas;
 import com.lhf.Taggable;
@@ -45,8 +48,7 @@ public class CreatureAffectedEvent extends GameEvent {
         /**
          * Pulls data from the effect, defaults to application deltas
          * 
-         * @deprecated
-         *             Prefer the piecemeal {@link #setCreatureResponsible(ICreature)},
+         * @deprecated Prefer the piecemeal {@link #setCreatureResponsible(ICreature)},
          *             {@link #setGeneratedBy(Taggable)},
          *             {@link #setDamages(MultiRollResult)} and
          *             {@link #setHighlightedDelta(Deltas)}
@@ -57,8 +59,7 @@ public class CreatureAffectedEvent extends GameEvent {
         @Deprecated
         public Builder fromCreatureEffect(CreatureEffect effect) {
             if (effect != null) {
-                this.setCreatureResponsible(effect.creatureResponsible())
-                        .setGeneratedBy(effect.getGeneratedBy());
+                this.setCreatureResponsible(effect.creatureResponsible()).setGeneratedBy(effect.getGeneratedBy());
             }
             return this;
         }
@@ -166,17 +167,135 @@ public class CreatureAffectedEvent extends GameEvent {
 
     @Override
     public String toString() {
+        return this.printString();
+    }
+
+    @Override
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = this.produceContentNode(nodeGenerator);
+        if (myElement == null) {
+            return myElement;
+        }
+        Element affectation = nodeGenerator.createElement("Affectation");
+        affectation.setAttribute("complex", "true");
+        if (this.creatureResponsible != null) {
+            affectation.appendChild(this.creatureResponsible.buildXMLElement(nodeGenerator));
+            if (this.generatedBy != null) {
+                affectation.appendChild(nodeGenerator.createTextNode(" used "));
+                affectation.appendChild(this.generatedBy.buildXMLElement(nodeGenerator));
+                affectation.appendChild(nodeGenerator.createTextNode(" on "));
+            } else {
+                affectation.appendChild(nodeGenerator.createTextNode(" affected "));
+            }
+            affectation.appendChild(this.addressCreatureXML(nodeGenerator, this.affected, false));
+            affectation.appendChild(nodeGenerator.createTextNode("!"));
+        } else if (this.generatedBy != null) {
+            affectation.appendChild(this.generatedBy.buildXMLElement(nodeGenerator));
+            affectation.appendChild(nodeGenerator.createTextNode(" affected "));
+            affectation.appendChild(this.addressCreatureXML(nodeGenerator, this.affected, false));
+            affectation.appendChild(nodeGenerator.createTextNode("!"));
+        } else {
+            affectation.appendChild(nodeGenerator.createTextNode("The affected one is "));
+            affectation.appendChild(this.addressCreatureXML(nodeGenerator, this.affected, false));
+        }
+        myElement.appendChild(affectation);
+
+        MultiRollResult damageResults = this.getDamages();
+        if (damageResults != null && !damageResults.isEmpty()) {
+            Element damages = nodeGenerator.createElement("Damages");
+            damages.setAttribute("complex", "true");
+            damages.appendChild(this.posessiveCreatureXML(nodeGenerator, this.affected, true));
+            damages.appendChild(nodeGenerator.createTextNode(" health will change by "));
+            Element healthDelta = nodeGenerator.createElement("HealthDelta");
+            healthDelta.appendChild(damageResults.buildXMLElement(nodeGenerator));
+            damages.appendChild(healthDelta);
+            myElement.appendChild(damages);
+        }
+        if (this.highlightedDelta == null) {
+            if (this.isResultedInDeath()) {
+                Element deathNotice = nodeGenerator.createElement("DeathNotice");
+                deathNotice.appendChild(nodeGenerator.createTextNode("And as a result of these things "));
+                deathNotice.appendChild(this.addressCreatureXML(nodeGenerator, this.affected, false));
+                deathNotice.appendChild(nodeGenerator.createTextNode(" has died."));
+                myElement.appendChild(deathNotice);
+            }
+            return myElement;
+        }
+        if (this.highlightedDelta.getStatChanges().size() > 0) {
+            Element statChanges = nodeGenerator.createElement("StatChanges");
+            statChanges.setAttribute("complex", "true");
+            for (Map.Entry<Stats, Integer> deltas : this.highlightedDelta.getStatChanges().entrySet()) {
+                Element statChange = nodeGenerator.createElement("StatChange");
+                Element stat = nodeGenerator.createElement(deltas.getKey().toString());
+                stat.appendChild(nodeGenerator.createTextNode(" stat will change by "));
+                Element value = nodeGenerator.createElement("StatChangeValue");
+                value.setTextContent(Integer.toString(deltas.getValue()));
+                stat.appendChild(value);
+                statChange.appendChild(stat);
+                statChanges.appendChild(statChange);
+            }
+            myElement.appendChild(statChanges);
+        }
+        if (this.isResultedInDeath()) {
+            Element deathNotice = nodeGenerator.createElement("DeathNotice");
+            deathNotice.appendChild(nodeGenerator.createTextNode("And as a result of these things "));
+            deathNotice.appendChild(this.addressCreatureXML(nodeGenerator, this.affected, false));
+            deathNotice.appendChild(nodeGenerator.createTextNode(" has died."));
+            myElement.appendChild(deathNotice);
+            return myElement;
+        }
+        if (this.highlightedDelta.getAttributeScoreChanges().size() > 0) {
+            Element attributeScoreChanges = nodeGenerator.createElement("AttributeScoreChanges");
+            attributeScoreChanges.setAttribute("complex", "true");
+            attributeScoreChanges.appendChild(this.posessiveCreatureXML(nodeGenerator, this.affected, true));
+            for (Map.Entry<Attributes, Integer> deltas : this.highlightedDelta.getAttributeScoreChanges().entrySet()) {
+                Element attributeScoreChange = nodeGenerator.createElement("ScoreChange");
+                Element attribute = nodeGenerator.createElement(deltas.getKey().toString());
+                attribute.appendChild(nodeGenerator.createTextNode(" score will change by "));
+                Element value = nodeGenerator.createElement("ScoreChangeValue");
+                value.setTextContent(Integer.toString(deltas.getValue()));
+                attribute.appendChild(value);
+                attributeScoreChange.appendChild(attribute);
+                attributeScoreChanges.appendChild(attributeScoreChange);
+            }
+            myElement.appendChild(attributeScoreChanges);
+        }
+        if (this.highlightedDelta.getAttributeBonusChanges().size() > 0) {
+            Element attributeBonusChanges = nodeGenerator.createElement("AttributeBonusChanges");
+            attributeBonusChanges.setAttribute("complex", "true");
+            attributeBonusChanges.appendChild(this.posessiveCreatureXML(nodeGenerator, this.affected, true));
+            for (Map.Entry<Attributes, Integer> deltas : this.highlightedDelta.getAttributeBonusChanges().entrySet()) {
+                Element attributeBonusChange = nodeGenerator.createElement("BonusChange");
+                Element attribute = nodeGenerator.createElement(deltas.getKey().toString());
+                attribute.appendChild(nodeGenerator.createTextNode(" bonus will change by "));
+                Element value = nodeGenerator.createElement("BonusChangeValue");
+                value.setTextContent(Integer.toString(deltas.getValue()));
+                attribute.appendChild(value);
+                attributeBonusChange.appendChild(attribute);
+                attributeBonusChanges.appendChild(attributeBonusChange);
+            }
+            myElement.appendChild(attributeBonusChanges);
+        }
+        if (this.highlightedDelta.isRestoreFaction()) {
+            myElement.appendChild(this.posessiveCreatureXML(nodeGenerator, this.affected, true));
+            myElement.appendChild(nodeGenerator.createTextNode(" faction will be restored!"));
+        }
+        return myElement;
+    }
+
+    @Override
+    public String printString() {
         StringJoiner sj = new StringJoiner(" ");
         if (this.creatureResponsible != null) {
-            sj.add(this.creatureResponsible.getColorTaggedName());
+            sj.add(this.creatureResponsible.getName());
             if (this.generatedBy != null) {
-                sj.add("used").add(this.generatedBy.getColorTaggedName()).add("on");
+                sj.add("used").add(this.generatedBy.getSimpleContent()).add("on");
             } else {
                 sj.add("affected");
             }
             sj.add(this.addressCreature(this.affected, false) + "!");
         } else if (this.generatedBy != null) {
-            sj.add(this.generatedBy.getColorTaggedName()).add("affected")
+            sj.add(this.generatedBy.getSimpleContent()).add("affected")
                     .add(this.addressCreature(this.affected, false) + "!");
         } else {
             sj.add(this.addressCreature(creatureResponsible, false)).add("is affected!");
@@ -187,19 +306,19 @@ public class CreatureAffectedEvent extends GameEvent {
             if (!this.isBroadcast()) {
                 sj.add("Your");
             } else if (this.affected != null) {
-                sj.add(this.affected.getColorTaggedName() + "'s");
+                sj.add(this.affected.getSimpleContent() + "'s");
             } else {
                 sj.add("Their");
             }
             sj.add("health will change by");
-            sj.add(damageResults.getColorTaggedName()); // already reversed, if applicable
+            sj.add(damageResults.toString()); // already reversed, if applicable
             sj.add("\r\n");
         }
         if (this.highlightedDelta == null) {
             return sj.toString();
         }
         if (this.highlightedDelta.getStatChanges().size() > 0) {
-            sj.add(this.affected.getColorTaggedName() + "'s");
+            sj.add(this.affected.getName() + "'s");
             for (Map.Entry<Stats, Integer> deltas : this.highlightedDelta.getStatChanges().entrySet()) {
                 int amount = deltas.getValue();
                 sj.add(deltas.getKey().toString()).add("stat will change by").add(String.valueOf(amount));
@@ -207,11 +326,11 @@ public class CreatureAffectedEvent extends GameEvent {
             sj.add("\r\n");
         }
         if (this.isResultedInDeath()) {
-            sj.add("And as a result of these things,").add(this.affected.getColorTaggedName()).add("has died.");
+            sj.add("And as a result of these things,").add(this.affected.getName()).add("has died.");
             return sj.toString();
         }
         if (this.highlightedDelta.getAttributeScoreChanges().size() > 0) {
-            sj.add(this.affected.getColorTaggedName() + "'s");
+            sj.add(this.affected.getName() + "'s");
             for (Map.Entry<Attributes, Integer> deltas : this.highlightedDelta.getAttributeScoreChanges().entrySet()) {
                 int amount = deltas.getValue();
                 sj.add(deltas.getKey().toString()).add("score will change by").add(String.valueOf(amount));
@@ -219,7 +338,7 @@ public class CreatureAffectedEvent extends GameEvent {
             sj.add("\r\n");
         }
         if (this.highlightedDelta.getAttributeBonusChanges().size() > 0) {
-            sj.add(this.affected.getColorTaggedName() + "'s");
+            sj.add(this.affected.getName() + "'s");
             for (Map.Entry<Attributes, Integer> deltas : this.highlightedDelta.getAttributeBonusChanges().entrySet()) {
                 int amount = deltas.getValue();
                 sj.add(deltas.getKey().toString()).add("bonus will change by").add(String.valueOf(amount));
@@ -227,14 +346,9 @@ public class CreatureAffectedEvent extends GameEvent {
             sj.add("\r\n");
         }
         if (this.highlightedDelta.isRestoreFaction()) {
-            sj.add(this.affected.getColorTaggedName() + "'s").add("faction will be restored!");
+            sj.add(this.affected.getName() + "'s").add("faction will be restored!");
         }
         return sj.toString();
-    }
-
-    @Override
-    public String print() {
-        return this.toString();
     }
 
 }

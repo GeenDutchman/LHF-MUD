@@ -8,6 +8,8 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Queue;
 
+import org.w3c.dom.Element;
+
 import com.lhf.game.ItemContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.IItem;
@@ -47,7 +49,8 @@ public class Dispenser extends InteractObject implements ItemContainer {
         if (creature == null) {
             return;
         }
-        ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this);
+        ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this)
+                .setInteractor(creature);
         if (this.area == null) {
             builder.setSubType(InteractOutMessageType.CANNOT).setNotBroadcast();
             ICreature.eventAccepter.accept(creature, builder.Build());
@@ -56,8 +59,17 @@ public class Dispenser extends InteractObject implements ItemContainer {
         try {
             final IItem retrieved = this.itemsToDispense.remove();
             this.area.addItem(retrieved);
-            builder.setPerformed().setBroacast().setDescription(String.format("%s was dispensed because of %s.",
-                    retrieved.getColorTaggedName(), creature.getColorTaggedName()));
+            builder.setPerformed().setBroacast().setXmlCallbackFunction(nodeGenerator -> {
+                if (nodeGenerator == null) {
+                    return null;
+                }
+                Element description = nodeGenerator.createElement("InteractionDescription");
+                description.appendChild(retrieved.buildXMLElement(nodeGenerator));
+                description.appendChild(nodeGenerator.createTextNode(" was dispensed because of "));
+                description.appendChild(creature.buildXMLElement(nodeGenerator));
+                description.appendChild(nodeGenerator.createTextNode("."));
+                return description;
+            });
             Area.eventAccepter.accept(this.area, builder.Build());
             this.interactCount++;
         } catch (NoSuchElementException e) {

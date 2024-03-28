@@ -1,13 +1,19 @@
 package com.lhf.messages.events;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
 
 public class CreatureSpawnedEvent extends GameEvent {
 
     private final String creatureName;
+    private final ICreature creature;
 
     public static class Builder extends GameEvent.Builder<Builder> {
         private String creatureName;
+        private ICreature creature;
 
         protected Builder() {
             super(GameEventType.SPAWN);
@@ -22,6 +28,18 @@ public class CreatureSpawnedEvent extends GameEvent {
             return this;
         }
 
+        public Builder setCreature(ICreature spawned) {
+            this.creature = spawned;
+            if (spawned != null) {
+                this.creatureName = spawned.getName();
+            }
+            return this;
+        }
+
+        public ICreature getCreature() {
+            return creature;
+        }
+
         @Override
         public Builder getThis() {
             return this;
@@ -31,6 +49,7 @@ public class CreatureSpawnedEvent extends GameEvent {
         public CreatureSpawnedEvent Build() {
             return new CreatureSpawnedEvent(this);
         }
+
     }
 
     public static Builder getBuilder() {
@@ -40,12 +59,29 @@ public class CreatureSpawnedEvent extends GameEvent {
     public CreatureSpawnedEvent(Builder builder) {
         super(builder);
         this.creatureName = builder.getCreatureName();
+        this.creature = builder.getCreature();
+    }
+
+    @Override
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = this.produceContentNode(nodeGenerator);
+        if (myElement == null) {
+            return myElement;
+        }
+        if (this.creature != null) {
+            myElement.appendChild(this.creature.buildXMLElement(nodeGenerator));
+        } else if (creatureName != null) {
+            myElement.appendChild(nodeGenerator.createTextNode(creatureName));
+        } else {
+            myElement.appendChild(nodeGenerator.createTextNode("Someone"));
+        }
+        myElement.appendChild(nodeGenerator.createTextNode(" has spawned in this room."));
+        return myElement;
     }
 
     @Override
     public String toString() {
-        return "<description>" + (creatureName != null ? creatureName : "Someone") + " has spawned in this room."
-                + "</description>";
+        return this.printString();
     }
 
     public String getCreatureName() {
@@ -53,7 +89,7 @@ public class CreatureSpawnedEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public String printString() {
+        return (creatureName != null ? creatureName : "Someone") + " has spawned in this room.";
     }
 }

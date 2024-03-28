@@ -23,17 +23,16 @@ public class DungeonTargetingSpell extends ISpell<DungeonEffect> {
         super(entry, caster);
         this.createdRoomName = createdRoomName;
         this.toCreatedRoom = toCreatedRoom;
-        this.createdRoomDescription = "Created by the great mage " + this.getCaster().getColorTaggedName();
+        this.createdRoomDescription = "Created by the great mage " + this.getCaster().getName();
         this.createdRoom = null;
     }
 
     public DungeonTargetingSpell(DungeonTargetingSpellEntry entry, ICreature caster, String createdRoomName,
-            Directions toCreatedRoom,
-            String createdRoomDescription) {
+            Directions toCreatedRoom, String createdRoomDescription) {
         super(entry, caster);
         this.createdRoomName = createdRoomName;
         this.toCreatedRoom = toCreatedRoom;
-        this.createdRoomDescription = "Created by the great mage " + this.getCaster().getColorTaggedName() + "\r\n"
+        this.createdRoomDescription = "Created by the great mage " + this.getCaster().getName() + "\r\n"
                 + createdRoomDescription;
         this.createdRoom = null;
     }
@@ -66,8 +65,8 @@ public class DungeonTargetingSpell extends ISpell<DungeonEffect> {
             this.effects = new HashSet<>();
             for (EntityEffectSource source : this.getEntry().getEffectSources()) {
                 if (source instanceof DungeonEffectSource dungeonEffectSource) {
-                    this.effects.add(new DungeonEffect(dungeonEffectSource, this.getCaster(), this,
-                            this.getRoomName(), this.getDirectionToAddedRoom(), this.getRoomDescription()));
+                    this.effects.add(new DungeonEffect(dungeonEffectSource, this.getCaster(), this, this.getRoomName(),
+                            this.getDirectionToAddedRoom(), this.getRoomDescription()));
                 }
             }
         }

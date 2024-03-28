@@ -222,8 +222,8 @@ public class Dungeon implements Land {
     @Override
     public boolean addPlayer(Player player) {
         Area startingRoom = this.getStartingArea();
-        startingRoom.announce(
-                CreatureSpawnedEvent.getBuilder().setBroacast().setCreatureName(player.getColorTaggedName()).Build());
+        startingRoom.announce(CreatureSpawnedEvent.getBuilder().setBroacast().setCreatureName(player.getName())
+                .setCreature(player).Build());
         player.setSuccessor(this);
         return startingRoom.addPlayer(player);
     }
@@ -260,8 +260,7 @@ public class Dungeon implements Land {
     @Override
     public boolean addCreature(ICreature creature) {
         Area startingRoom = this.getStartingArea();
-        startingRoom.announce(
-                CreatureSpawnedEvent.getBuilder().setCreatureName(creature.getColorTaggedName()).setBroacast().Build());
+        startingRoom.announce(CreatureSpawnedEvent.getBuilder().setCreature(creature).setBroacast().Build());
         creature.setSuccessor(this);
         return startingRoom.addCreature(creature);
     }
@@ -269,8 +268,7 @@ public class Dungeon implements Land {
     public boolean addCreature(ICreature creature, UUID roomUUID) {
         AtlasMappingItem<Area, UUID> areaInfo = this.atlas.getAtlasMappingItem(roomUUID);
         if (areaInfo != null && areaInfo.getAtlasMember() != null) {
-            areaInfo.getAtlasMember()
-                    .announce(CreatureSpawnedEvent.getBuilder().setCreatureName(creature.getColorTaggedName()).Build());
+            areaInfo.getAtlasMember().announce(CreatureSpawnedEvent.getBuilder().setCreature(creature).Build());
             creature.setSuccessor(this);
             return areaInfo.getAtlasMember().addCreature(creature);
         }

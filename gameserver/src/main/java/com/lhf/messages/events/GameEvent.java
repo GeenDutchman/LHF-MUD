@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.Function;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -30,18 +31,15 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     public static abstract class Builder<T extends Builder<T>> {
         private GameEventType type;
         private boolean broadcast;
+        private Function<Document, Element> xmlCallbackFunction;
         protected T thisObject;
 
         protected Builder(GameEventType type) {
             this.type = type;
             this.broadcast = false;
+            this.xmlCallbackFunction = null;
             this.thisObject = this.getThis();
         }
-
-        // public T setType(OutMessageType type) {
-        // this.type = type;
-        // return this.getThis();
-        // }
 
         public GameEventType getType() {
             return this.type;
@@ -61,9 +59,19 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             return this.broadcast;
         }
 
+        public Function<Document, Element> getXmlCallbackFunction() {
+            return xmlCallbackFunction;
+        }
+
+        public T setXmlCallbackFunction(Function<Document, Element> xmlCallbackFunction) {
+            this.xmlCallbackFunction = xmlCallbackFunction;
+            return this.getThis();
+        }
+
         public abstract T getThis();
 
         public abstract GameEvent Build();
+
     }
 
     private final GameEventType type;
@@ -71,6 +79,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     private final Builder<?> builder;
     private final UUID uuid;
     private final SortedSet<GameEventProcessorID> haveRecieved;
+    private final Function<Document, Element> xmlCallbackFunction;
 
     public GameEvent(Builder<?> builder) {
         this.type = builder.getType();
@@ -78,6 +87,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         this.uuid = UUID.randomUUID();
         this.builder = builder;
         this.haveRecieved = Collections.synchronizedSortedSet(new TreeSet<>());
+        this.xmlCallbackFunction = builder.getXmlCallbackFunction();
     }
 
     /**
@@ -214,6 +224,12 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             return;
         }
         Element myElement = this.buildXMLElement(nodeGenerator);
+        if (this.xmlCallbackFunction != null) {
+            Element builtElement = this.xmlCallbackFunction.apply(nodeGenerator);
+            if (builtElement != null) {
+                myElement.appendChild(builtElement);
+            }
+        }
         if (addToMe != null) {
             addToMe.appendChild(myElement);
         } else {

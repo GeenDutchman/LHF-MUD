@@ -88,7 +88,7 @@ public abstract class ISpell<T extends EntityEffect> implements Comparable<ISpel
 
     @Override
     public String toString() {
-        return this.entry.toString() + "Caster: " + this.caster.getColorTaggedName() + "\r\n";
+        return this.entry.toString() + "Caster: " + this.caster.getName() + "\r\n";
     }
 
     @Override

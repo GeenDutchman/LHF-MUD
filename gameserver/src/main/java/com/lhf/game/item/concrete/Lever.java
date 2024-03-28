@@ -1,5 +1,7 @@
 package com.lhf.game.item.concrete;
 
+import org.w3c.dom.Element;
+
 import com.lhf.game.Lockable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.InteractObject;
@@ -37,13 +39,20 @@ public class Lever extends InteractObject {
         if (creature == null) {
             return;
         }
-        ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this);
+        ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this)
+                .setInteractor(creature);
         if (this.lockable == null) {
-            ICreature.eventAccepter
-                    .accept(creature,
-                            builder.setNotBroadcast().setDescription(String.format(
-                                    "The %s moves, but it seems too loose, like it is not connected to anything.",
-                                    this.getColorTaggedName())).Build());
+            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().setXmlCallbackFunction(nodeGenerator -> {
+                if (nodeGenerator == null) {
+                    return null;
+                }
+                Element description = nodeGenerator.createElement("InteractionDescription");
+                description.appendChild(nodeGenerator.createTextNode("The "));
+                description.appendChild(this.buildXMLElement(nodeGenerator));
+                description.appendChild(nodeGenerator
+                        .createTextNode(" moves, but it seems too loose, like it is not connected to anything."));
+                return description;
+            }).Build());
             return;
         } else {
             if (this.lockable.isUnlocked()) {
@@ -51,10 +60,16 @@ public class Lever extends InteractObject {
             } else {
                 this.lockable.unlock();
             }
-            builder.setPerformed()
-                    .setDescription(String.format(
-                            "A **thunk** is heard, and you are pretty sure something changed because of %s.",
-                            creature.getColorTaggedName()));
+            builder.setPerformed().setXmlCallbackFunction(nodeGenerator -> {
+                if (nodeGenerator == null) {
+                    return null;
+                }
+                Element description = nodeGenerator.createElement("InteractionDescription");
+                description.appendChild(nodeGenerator
+                        .createTextNode("A **thunk** is heard, and you are pretty sure something changed because of "));
+                description.appendChild(creature.buildXMLElement(nodeGenerator));
+                return description;
+            });
             this.broadcast(creature, builder);
         }
         this.interactCount++;

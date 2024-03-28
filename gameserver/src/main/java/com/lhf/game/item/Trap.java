@@ -9,6 +9,8 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.w3c.dom.Element;
+
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
@@ -89,7 +91,8 @@ public class Trap extends InteractObject implements GameEventProcessor {
         if (creature == null) {
             return;
         }
-        final ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this);
+        final ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this)
+                .setInteractor(creature);
         final Attributes highest = creature.getHighestAttributeBonus(this.disarmDifficulties.keySet());
         if (highest == null || this.disarmDifficulties.isEmpty()) {
             ICreature.eventAccepter.accept(creature,
@@ -99,20 +102,52 @@ public class Trap extends InteractObject implements GameEventProcessor {
         final MultiRollResult roll = creature.check(highest);
         final DiceDC difficulty = this.disarmDifficulties.get(highest);
         final RollResult difficultyRoll = difficulty.rollDice();
+        final boolean currentActivationState = this.isActivated();
         if (roll.getRoll() < difficultyRoll.getRoll()) {
-            builder.setPerformed()
-                    .setDescription(String.format("%s failed (%s vs %s) to %s the %s", creature.getColorTaggedName(),
-                            roll.getColorTaggedName(), difficulty.getColorTaggedName(),
-                            this.isActivated() ? "deactivate" : "activate", this.getColorTaggedName()));
+            builder.setPerformed().setXmlCallbackFunction(nodeGenerator -> {
+                if (nodeGenerator == null) {
+                    return null;
+                }
+                Element description = nodeGenerator.createElement("InteractionDescription");
+                description.appendChild(creature.buildXMLElement(nodeGenerator));
+                description.appendChild(nodeGenerator.createTextNode(" failed ()"));
+                description.appendChild(roll.buildXMLElement(nodeGenerator));
+                description.appendChild(nodeGenerator.createTextNode(" vs "));
+                description.appendChild(difficulty.buildXMLElement(nodeGenerator));
+                description.appendChild(nodeGenerator.createTextNode(
+                        String.format(") to %s the ", currentActivationState ? "deactivate" : "activate")));
+                description.appendChild(this.buildXMLElement(nodeGenerator));
+                return description;
+            });
         } else {
             if (this.interactCount > 1 && !this.isRepeatable()) {
-                builder.setSubType(InteractOutMessageType.USED_UP).setDescription(String
-                        .format("%s is not repeatable and thus cannot be interacted with.", this.getColorTaggedName()));
+                builder.setSubType(InteractOutMessageType.USED_UP).setXmlCallbackFunction(nodeGenerator -> {
+                    if (nodeGenerator == null) {
+                        return null;
+                    }
+                    Element description = nodeGenerator.createElement("InteractionDescription");
+                    description.appendChild(this.buildXMLElement(nodeGenerator));
+                    description.appendChild(
+                            nodeGenerator.createTextNode(" is not repeatable and thus cannot be interacted with."));
+                    return description;
+                });
             } else {
                 this.setActivated(!this.isActivated());
-                builder.setPerformed().setDescription(String.format("%s successfully (%s vs %s) %s the %s",
-                        creature.getColorTaggedName(), roll.getColorTaggedName(), difficulty.getColorTaggedName(),
-                        this.isActivated() ? "activated" : "deactivated", this.getColorTaggedName()));
+                builder.setPerformed().setXmlCallbackFunction(nodeGenerator -> {
+                    if (nodeGenerator == null) {
+                        return null;
+                    }
+                    Element description = nodeGenerator.createElement("InteractionDescription");
+                    description.appendChild(creature.buildXMLElement(nodeGenerator));
+                    description.appendChild(nodeGenerator.createTextNode(" successfully ("));
+                    description.appendChild(roll.buildXMLElement(nodeGenerator));
+                    description.appendChild(nodeGenerator.createTextNode(" vs "));
+                    description.appendChild(difficulty.buildXMLElement(nodeGenerator));
+                    description.appendChild(nodeGenerator.createTextNode(
+                            String.format(") %s the ", currentActivationState ? "activated" : "deactivated")));
+                    description.appendChild(this.buildXMLElement(nodeGenerator));
+                    return description;
+                });
             }
         }
         this.broadcast(creature, builder);
@@ -164,13 +199,26 @@ public class Trap extends InteractObject implements GameEventProcessor {
                         GameEvent cam = creature.applyEffect(effect);
                         this.broadcast(creature, cam);
                     } else {
+                        final MultiRollResult finalTrapResult = trapResult;
+                        final MultiRollResult finalCreatureResult = creatureResult;
                         ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this)
-                                .setPerformed()
-                                .setDescription(String.format("%s dodged (%s vs %s) an effect from %s",
-                                        creature.getColorTaggedName(),
-                                        creatureResult != null ? creatureResult.getColorTaggedName() : "effortlessly",
-                                        trapResult != null ? trapResult.getColorTaggedName() : "not enough effort",
-                                        this.getColorTaggedName()));
+                                .setPerformed().setXmlCallbackFunction(nodeGenerator -> {
+                                    if (nodeGenerator == null) {
+                                        return null;
+                                    }
+                                    Element description = nodeGenerator.createElement("InteractionDescription");
+                                    description.appendChild(creature.buildXMLElement(nodeGenerator));
+                                    description.appendChild(nodeGenerator.createTextNode(" dodged ("));
+                                    description.appendChild(finalCreatureResult != null
+                                            ? finalCreatureResult.buildXMLElement(nodeGenerator)
+                                            : nodeGenerator.createTextNode("effortlessly"));
+                                    description.appendChild(
+                                            finalTrapResult != null ? finalTrapResult.buildXMLElement(nodeGenerator)
+                                                    : nodeGenerator.createTextNode("not enough effort"));
+                                    description.appendChild(nodeGenerator.createTextNode(" from "));
+                                    description.appendChild(this.buildXMLElement(nodeGenerator));
+                                    return description;
+                                });
                         this.broadcast(creature, builder);
                     }
                 }

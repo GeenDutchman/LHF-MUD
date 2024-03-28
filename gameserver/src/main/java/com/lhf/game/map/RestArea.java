@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
+import org.w3c.dom.Element;
+
 import com.google.gson.JsonParseException;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreatureBuildInfo;
@@ -250,9 +252,18 @@ public class RestArea extends SubArea {
                     creatureVocation.onRestTick();
                 }
                 ItemInteractionEvent.Builder iom = ItemInteractionEvent.getBuilder().setPerformed()
-                        .setDescription(String.format("You slept and got back %s hit points, leaving you %s!",
-                                sleepCheck.getColorTaggedName(), creature.getHealthBucket().getColorTaggedName()))
-                        .setTaggable(RestArea.this);
+                        .setInteractor(creature).setXmlCallbackFunction(nodeGenerator -> {
+                            if (nodeGenerator == null) {
+                                return null;
+                            }
+                            Element sleep = nodeGenerator.createElement("SleepHealing");
+                            sleep.appendChild(nodeGenerator.createTextNode("You slept and got back "));
+                            sleep.appendChild(sleepCheck.buildXMLElement(nodeGenerator));
+                            sleep.appendChild(nodeGenerator.createTextNode(" hit points, leaving you "));
+                            sleep.appendChild(creature.getHealthBucket().buildXMLElement(nodeGenerator));
+                            sleep.appendChild(nodeGenerator.createTextNode("!"));
+                            return sleep;
+                        }).setTaggable(RestArea.this);
                 ICreature.eventAccepter.accept(creature, iom.Build());
             }
         }

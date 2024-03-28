@@ -2,6 +2,9 @@ package com.lhf.messages.events;
 
 import java.util.StringJoiner;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.lhf.Taggable;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
@@ -88,15 +91,25 @@ public class CreatureDiedEvent extends GameEvent {
 
     @Override
     public String toString() {
+        return this.printString();
+    }
+
+    @Override
+    public TickType getTickType() {
+        return TickType.DEATH;
+    }
+
+    @Override
+    public String printString() {
         ICreature dead = this.getDearlyDeparted();
         if (dead == null || dead.isAlive()) {
             return "JK!  Nobody died!";
         }
         StringJoiner sj = new StringJoiner(" ");
-        sj.add(dead.getColorTaggedName()).add("has died.");
+        sj.add(dead.getName()).add("has died.");
         Taggable cause = this.getCause();
         if (cause != null) {
-            sj.add("They died because of:").add(cause.getColorTaggedName() + ".");
+            sj.add("They died because of:").add(cause.getSimpleContent() + ".");
         }
         String extras = this.getExtraInfo();
         if (extras != null && !extras.isBlank()) {
@@ -106,12 +119,31 @@ public class CreatureDiedEvent extends GameEvent {
     }
 
     @Override
-    public TickType getTickType() {
-        return TickType.DEATH;
-    }
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = this.produceContentNode(nodeGenerator);
+        if (myElement == null) {
+            return myElement;
+        }
+        ICreature dead = this.getDearlyDeparted();
 
-    @Override
-    public String print() {
-        return this.toString();
+        if (dead == null || dead.isAlive()) {
+            myElement.appendChild(nodeGenerator.createTextNode("JK! Nobody died!"));
+            return myElement;
+        }
+        myElement.appendChild(dead.buildXMLElement(nodeGenerator));
+        myElement.appendChild(nodeGenerator.createTextNode(" has died."));
+        Taggable cause = this.getCause();
+        if (cause != null) {
+            myElement.appendChild(nodeGenerator.createTextNode(" They died because of: "));
+            myElement.appendChild(cause.buildXMLElement(nodeGenerator));
+            myElement.appendChild(nodeGenerator.createTextNode("."));
+        }
+        String extras = this.getExtraInfo();
+        if (extras != null && !extras.isBlank()) {
+            Element extraElement = nodeGenerator.createElement("Extras");
+            extraElement.appendChild(nodeGenerator.createTextNode(extras));
+            myElement.appendChild(extraElement);
+        }
+        return myElement;
     }
 }
