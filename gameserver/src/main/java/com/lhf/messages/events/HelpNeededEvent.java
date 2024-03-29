@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.in.AMessageType;
 
@@ -90,17 +93,7 @@ public class HelpNeededEvent extends GameEvent {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        if (this.singleHelp != null && this.helps.containsKey(this.singleHelp)) {
-            sb.append(this.singleHelp.getColorTaggedName()).append(":").append("\r\n").append("<description>")
-                    .append(this.helps.get(this.singleHelp)).append("</description>").append("\r\n");
-        } else {
-            for (AMessageType cmdMsg : this.helps.keySet()) {
-                sb.append(cmdMsg.getColorTaggedName()).append(":").append("\r\n").append("<description>")
-                        .append(helps.get(cmdMsg)).append("</description>").append("\r\n");
-            }
-        }
-        return sb.toString();
+        return this.printString();
     }
 
     public Map<AMessageType, String> getHelps() {
@@ -112,7 +105,46 @@ public class HelpNeededEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = this.produceContentNode(nodeGenerator);
+        if (myElement == null) {
+            return myElement;
+        }
+        if (this.singleHelp != null && this.helps.containsKey(this.singleHelp)) {
+            Element helpElement = nodeGenerator.createElement("help");
+            helpElement.setAttribute("command", this.singleHelp.toString());
+            helpElement.setIdAttribute("command", true);
+            helpElement.appendChild(this.singleHelp.buildXMLElement(nodeGenerator));
+            Element helpDescription = nodeGenerator.createElement("description");
+            helpDescription.appendChild(nodeGenerator.createTextNode(this.helps.get(this.singleHelp)));
+            helpElement.appendChild(helpDescription);
+            myElement.appendChild(helpElement);
+        } else {
+            for (AMessageType cmdMsg : this.helps.keySet()) {
+                Element helpElement = nodeGenerator.createElement("help");
+                helpElement.setAttribute("command", cmdMsg.toString());
+                helpElement.setIdAttribute("command", true);
+                helpElement.appendChild(cmdMsg.buildXMLElement(nodeGenerator));
+                Element helpDescription = nodeGenerator.createElement("description");
+                helpDescription.appendChild(nodeGenerator.createTextNode(this.helps.get(cmdMsg)));
+                helpElement.appendChild(helpDescription);
+                myElement.appendChild(helpElement);
+            }
+        }
+        return myElement;
+    }
+
+    @Override
+    public String printString() {
+        StringBuilder sb = new StringBuilder();
+        if (this.singleHelp != null && this.helps.containsKey(this.singleHelp)) {
+            sb.append(this.singleHelp).append(":").append("\r\n").append(this.helps.get(this.singleHelp))
+                    .append("\r\n");
+        } else {
+            for (AMessageType cmdMsg : this.helps.keySet()) {
+                sb.append(cmdMsg).append(":").append("\r\n").append(helps.get(cmdMsg)).append("\r\n");
+            }
+        }
+        return sb.toString();
     }
 }

@@ -2,6 +2,9 @@ package com.lhf.messages.events;
 
 import java.util.StringJoiner;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.lhf.Taggable;
 import com.lhf.messages.GameEventType;
 
@@ -75,71 +78,7 @@ public class ItemDroppedEvent extends GameEvent {
 
     @Override
     public String toString() {
-        StringJoiner sj = new StringJoiner(" ");
-        if (this.dropType == null) {
-            sj.add("You glance at your empty hand as the");
-            if (this.item != null) {
-                sj.add(this.item.getColorTaggedName());
-            } else {
-                sj.add("item");
-            }
-            sj.add("drops to the floor");
-            if (this.destination != null) {
-                sj.add(this.destination.trim().toLowerCase().startsWith("the") ? "of" : "of the")
-                        .add(this.destination);
-            }
-            return sj.toString() + ".";
-        }
-        switch (this.dropType) {
-            case BAD_CONTAINER:
-                sj.add("You attempted to drop");
-                if (this.item != null) {
-                    sj.add("'" + this.item.getColorTaggedName() + "'");
-                } else {
-                    sj.add("that");
-                }
-                if (this.destination != null) {
-                    sj.add("into an unrecognized container or source: " + this.destination + ".");
-                } else {
-                    sj.add("into an unrecognized container or source.");
-                }
-                sj.add("\n");
-                return sj.toString();
-            case LOCKED_CONTAINER:
-                sj.add("You attempted to drop");
-                if (this.item != null) {
-                    sj.add("'" + this.item.getColorTaggedName() + "'");
-                } else {
-                    sj.add("that");
-                }
-                sj.add("into");
-                if (this.destination != null) {
-                    sj.add(this.destination.trim().toLowerCase().startsWith("the") ? "'" + this.destination + "'"
-                            : "the '" + this.destination + "'");
-                } else {
-                    sj.add("some container");
-                }
-                sj.add("but it is locked.");
-                sj.add("\n");
-                return sj.toString();
-            case NO_ITEM:
-                sj.add("You failed to name an item to drop.");
-                return sj.toString();
-            case SUCCESS:
-            default:
-                sj.add("You glance at your empty hand as the");
-                if (this.item != null) {
-                    sj.add(this.item.getColorTaggedName());
-                } else {
-                    sj.add("item");
-                }
-                sj.add("drops to the floor");
-                if (this.destination != null) {
-                    sj.add(this.destination.trim().toLowerCase().startsWith("the") ? "of" : "of the")
-                            .add(this.destination);
-                }
-                return sj.toString() + ".";
-        }
+        return this.printString();
     }
 
     public Taggable getItem() {
@@ -151,8 +90,133 @@ public class ItemDroppedEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = this.produceContentNode(nodeGenerator);
+        if (myElement == null) {
+            return myElement;
+        }
+        myElement.setAttribute("dropType",
+                this.dropType != null ? this.dropType.toString() : DropType.SUCCESS.toString());
+        if (this.dropType == null) {
+            myElement.appendChild(nodeGenerator.createTextNode("You glance at your empty hand as the "));
+            myElement.appendChild(this.item != null ? this.item.buildXMLElement(nodeGenerator)
+                    : nodeGenerator.createTextNode("item"));
+            myElement.appendChild(nodeGenerator.createTextNode(" drops to the floor"));
+            if (this.destination != null) {
+                myElement.appendChild(nodeGenerator
+                        .createTextNode(this.destination.trim().toLowerCase().startsWith("the") ? "of" : "of the"));
+                myElement.appendChild(nodeGenerator.createTextNode(this.destination));
+            }
+            return myElement;
+        }
+        switch (this.dropType) {
+        case BAD_CONTAINER:
+            myElement.appendChild(nodeGenerator.createTextNode("You attempted to drop "));
+            myElement.appendChild(this.item != null ? this.item.buildXMLElement(nodeGenerator)
+                    : nodeGenerator.createTextNode("that"));
+            myElement.appendChild(
+                    nodeGenerator.createTextNode(String.format(" into an unrecognized container or source%s.",
+                            this.destination != null ? ":" + this.destination : "")));
+
+            return myElement;
+        case LOCKED_CONTAINER:
+            myElement.appendChild(nodeGenerator.createTextNode("You attempted to drop "));
+            myElement.appendChild(this.item != null ? this.item.buildXMLElement(nodeGenerator)
+                    : nodeGenerator.createTextNode("that"));
+            String destName = "some container";
+            if (this.destination != null) {
+                if (this.destination.trim().toLowerCase().startsWith("the")) {
+                    destName = "the '" + this.destination + "'";
+                } else {
+                    destName = "'" + this.destination + "'";
+                }
+            }
+            myElement.appendChild(nodeGenerator.createTextNode(String.format("into %s but it is locked.", destName)));
+
+            return myElement;
+        case NO_ITEM:
+            myElement.appendChild(nodeGenerator.createTextNode("You failed to name an item to drop."));
+            return myElement;
+        case SUCCESS:
+        default:
+            myElement.appendChild(nodeGenerator.createTextNode("You glance at your empty hand as the "));
+            myElement.appendChild(this.item != null ? this.item.buildXMLElement(nodeGenerator)
+                    : nodeGenerator.createTextNode("item"));
+            myElement.appendChild(nodeGenerator.createTextNode(" drops to the floor"));
+            if (this.destination != null) {
+                myElement.appendChild(nodeGenerator
+                        .createTextNode(this.destination.trim().toLowerCase().startsWith("the") ? "of" : "of the"));
+                myElement.appendChild(nodeGenerator.createTextNode(this.destination));
+            }
+            return myElement;
+        }
+    }
+
+    @Override
+    public String printString() {
+        StringJoiner sj = new StringJoiner(" ");
+        if (this.dropType == null) {
+            sj.add("You glance at your empty hand as the");
+            if (this.item != null) {
+                sj.add(this.item.getSimpleContent());
+            } else {
+                sj.add("item");
+            }
+            sj.add("drops to the floor");
+            if (this.destination != null) {
+                sj.add(this.destination.trim().toLowerCase().startsWith("the") ? "of" : "of the").add(this.destination);
+            }
+            return sj.toString() + ".";
+        }
+        switch (this.dropType) {
+        case BAD_CONTAINER:
+            sj.add("You attempted to drop");
+            if (this.item != null) {
+                sj.add("'" + this.item.getSimpleContent() + "'");
+            } else {
+                sj.add("that");
+            }
+            if (this.destination != null) {
+                sj.add("into an unrecognized container or source: " + this.destination + ".");
+            } else {
+                sj.add("into an unrecognized container or source.");
+            }
+            sj.add("\n");
+            return sj.toString();
+        case LOCKED_CONTAINER:
+            sj.add("You attempted to drop");
+            if (this.item != null) {
+                sj.add("'" + this.item.getSimpleContent() + "'");
+            } else {
+                sj.add("that");
+            }
+            sj.add("into");
+            if (this.destination != null) {
+                sj.add(this.destination.trim().toLowerCase().startsWith("the") ? "'" + this.destination + "'"
+                        : "the '" + this.destination + "'");
+            } else {
+                sj.add("some container");
+            }
+            sj.add("but it is locked.");
+            sj.add("\n");
+            return sj.toString();
+        case NO_ITEM:
+            sj.add("You failed to name an item to drop.");
+            return sj.toString();
+        case SUCCESS:
+        default:
+            sj.add("You glance at your empty hand as the");
+            if (this.item != null) {
+                sj.add(this.item.getSimpleContent());
+            } else {
+                sj.add("item");
+            }
+            sj.add("drops to the floor");
+            if (this.destination != null) {
+                sj.add(this.destination.trim().toLowerCase().startsWith("the") ? "of" : "of the").add(this.destination);
+            }
+            return sj.toString() + ".";
+        }
     }
 
     public DropType getDropType() {

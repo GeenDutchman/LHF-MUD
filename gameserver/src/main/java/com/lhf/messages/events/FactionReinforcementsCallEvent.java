@@ -1,5 +1,8 @@
 package com.lhf.messages.events;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.GameEventType;
@@ -55,14 +58,7 @@ public class FactionReinforcementsCallEvent extends GameEvent {
 
     @Override
     public String toString() {
-        if (!this.isBroadcast()) {
-            if (this.caller.getFaction() == null || CreatureFaction.RENEGADE.equals(this.caller.getFaction())) {
-                return "You are a RENEGADE or not a member of a faction.  No one is obligated to help you.";
-            }
-            return "You call for reinforcements!";
-        } else {
-            return this.caller.getColorTaggedName() + " calls for reinforcements!";
-        }
+        return this.printString();
     }
 
     public ICreature getCaller() {
@@ -70,8 +66,36 @@ public class FactionReinforcementsCallEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = this.produceContentNode(nodeGenerator);
+        if (myElement == null) {
+            return myElement;
+        }
+        if (!this.isBroadcast()) {
+            if (this.caller.getFaction() == null || CreatureFaction.RENEGADE.equals(this.caller.getFaction())) {
+                myElement.appendChild(nodeGenerator.createTextNode(
+                        "You are a RENEGADE or not a member of a faction.  No one is obligated to help you."));
+                return myElement;
+            }
+            myElement.appendChild(nodeGenerator.createTextNode("You call for reinforcements!"));
+            return myElement;
+        } else {
+            myElement.appendChild(this.caller.buildXMLElement(nodeGenerator));
+            myElement.appendChild(nodeGenerator.createTextNode(" calls for reinforcements!"));
+            return myElement;
+        }
+    }
+
+    @Override
+    public String printString() {
+        if (!this.isBroadcast()) {
+            if (this.caller.getFaction() == null || CreatureFaction.RENEGADE.equals(this.caller.getFaction())) {
+                return "You are a RENEGADE or not a member of a faction.  No one is obligated to help you.";
+            }
+            return "You call for reinforcements!";
+        } else {
+            return this.caller.getName() + " calls for reinforcements!";
+        }
     }
 
 }
