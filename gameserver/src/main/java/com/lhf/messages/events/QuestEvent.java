@@ -2,6 +2,9 @@ package com.lhf.messages.events;
 
 import java.util.StringJoiner;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.QuestEffect;
 import com.lhf.game.creature.QuestSource;
@@ -65,7 +68,7 @@ public class QuestEvent extends GameEvent {
 
         public Builder fromQuest(QuestSource quest) {
             if (quest != null) {
-                this.setQuestName(quest.getName()).setQuestDescription(quest.printDescription());
+                this.setQuestName(quest.getName()).setQuestDescription(quest.getDescription());
             }
             return this;
         }
@@ -119,6 +122,33 @@ public class QuestEvent extends GameEvent {
 
     @Override
     public String toString() {
+        return this.printString();
+    }
+
+    @Override
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = this.produceContentNode(nodeGenerator);
+        if (myElement == null) {
+            return myElement;
+        }
+        myElement.setAttribute("QuestEventType",
+                this.questEventType != null ? this.questEventType.toString() : QuestEventType.VIEWED.toString());
+        myElement.appendChild(this.addressCreatureXML(nodeGenerator, this.whoseQuest, isBroadcast()));
+        myElement.appendChild(nodeGenerator.createTextNode(
+                this.questEventType != null ? this.questEventType.toString() : QuestEventType.VIEWED.toString()));
+        if (this.questDescription != null && !this.isBroadcast()) {
+            myElement.appendChild(
+                    nodeGenerator.createTextNode(String.format(" a quest described by: %s", this.questDescription)));
+        } else if (this.questName != null) {
+            myElement.appendChild(nodeGenerator.createTextNode(String.format(" a quest named %s", this, questName)));
+        } else {
+            myElement.appendChild(nodeGenerator.createTextNode(" a quest"));
+        }
+        return myElement;
+    }
+
+    @Override
+    public String printString() {
         StringJoiner sj = new StringJoiner(" ");
         sj.add(this.addressCreature(this.whoseQuest, isBroadcast()));
         if (this.questEventType == null) {
@@ -134,11 +164,6 @@ public class QuestEvent extends GameEvent {
             sj.add("a quest");
         }
         return sj.toString();
-    }
-
-    @Override
-    public String print() {
-        return this.toString();
     }
 
 }

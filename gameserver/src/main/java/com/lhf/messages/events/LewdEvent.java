@@ -6,6 +6,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.EquipmentSlots;
@@ -115,6 +119,24 @@ public class LewdEvent extends GameEvent {
         }
     }
 
+    private Node statusXML(Document nodeGenerator) {
+        Element partyStatus = nodeGenerator.createElement("PartyStatus");
+        partyStatus.setAttribute("colored", "false");
+        if (this.party != null && this.party.size() > 0) {
+            for (ICreature creature : this.party.keySet()) {
+                Element creatureStatus = nodeGenerator.createElement("CreatureStatus");
+                creatureStatus.setAttribute("colored", "false");
+                creatureStatus.appendChild(creature.buildXMLElement(nodeGenerator));
+                creatureStatus.appendChild(nodeGenerator.createTextNode(
+                        String.format("Response: %s", this.party.getOrDefault(creature, LewdAnswer.ASKED).name())));
+                partyStatus.appendChild(creatureStatus);
+            }
+            return partyStatus;
+        } else {
+            partyStatus.appendChild(nodeGenerator.createTextNode("No one wants to do it right now. "));
+        }
+    }
+
     private String acceptedNamesString(ICreature skip) {
         StringJoiner sj = new StringJoiner(" and ");
         sj.setEmptyValue(" no one ");
@@ -151,68 +173,7 @@ public class LewdEvent extends GameEvent {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        if (this.subType == null) {
-            sb.append(this.statusString());
-            return sb.toString();
-        }
-        switch (this.subType) {
-            case DENIED:
-                if (this.creature != null) {
-                    sb.append(this.creature.getColorTaggedName())
-                            .append(" does not wish to do it or is wearing ARMOR and cannot participate. ");
-                    sb.append("\r\n").append(this.statusString());
-                } else {
-                    sb.append("No one wants to do it.");
-                }
-                break;
-            case ACCEPTED:
-                if (this.creature != null) {
-                    sb.append(this.creature.getColorTaggedName()).append(" is excited to join! ");
-                    sb.append("\r\n").append(this.statusString());
-                } else {
-                    sb.append("Let's do it! ");
-                }
-                break;
-            case PROPOSED:
-                if (this.creature != null) {
-                    sb.append(this.creature.getColorTaggedName()).append(" has asked to lewd ")
-                            .append(this.notDeniedNamesString(this.creature)).append("! \r\n");
-                } else {
-                    sb.append("There is a proposal to be lewd!\r\n");
-                }
-                sb.append("You can agree by entering \"lewd\", or you can pass on all lewding by entering \"pass\". ");
-                sb.append("If in the lucky circumstance you are in more than one group,")
-                        .append(" enter \"lewd\" followed by a comma separated list of who you want to be with! \r\n");
-                sb.append(this.statusString());
-                break;
-            case DUNNIT:
-                sb.append("A blur covers ").append(this.acceptedNamesString(null)).append(" as they do it! ");
-                break;
-            case NOT_READY:
-                sb.append("Your ").append(EquipmentSlots.ARMOR)
-                        .append(" equipment slot must be empty in order to participate and you must be in bed and not in a fight! ");
-                sb.append(" The same goes for everyone you invite!");
-                break;
-            case NO_BODY:
-                sb.append("You need to have a body in order to participate in that! ");
-                break;
-            case ORGY_UNSUPPORTED:
-                sb.append("You are trying to lewd too many people! Perhaps you need to be more selective? ");
-                break;
-            case SOLO_UNSUPPORTED:
-                sb.append("Your lewdness is meant to be shared!  Don't go flyin' solo!");
-                break;
-            case MISSED:
-                sb.append("It looks like that lewdness has already been lewded. ");
-                break;
-            case STATUS:
-                // fallthrough
-            default:
-                sb.append(this.statusString());
-                break;
-        }
-        return sb.toString();
+        return this.printString();
     }
 
     public LewdOutMessageType getSubType() {
@@ -235,8 +196,143 @@ public class LewdEvent extends GameEvent {
     }
 
     @Override
-    public String print() {
-        return this.toString();
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = this.produceContentNode(nodeGenerator);
+        if (myElement == null) {
+            return myElement;
+        }
+        if (this.subType == null) {
+            myElement.appendChild(this.statusXML(nodeGenerator));
+            return myElement;
+        }
+        myElement.setAttribute("LewdOutMessageType", this.subType.toString());
+        switch (this.subType) {
+        case DENIED:
+            if (this.creature != null) {
+                myElement.appendChild(this.creature.buildXMLElement(nodeGenerator));
+                myElement.appendChild(nodeGenerator
+                        .createTextNode(" does not wish to do it or is wearing ARMOR and cannot participate. "));
+                myElement.appendChild(this.statusXML(nodeGenerator));
+            } else {
+                myElement.appendChild(nodeGenerator.createTextNode("No one wants to do it."));
+            }
+            break;
+        case ACCEPTED:
+            if (this.creature != null) {
+                myElement.appendChild(this.creature.buildXMLElement(nodeGenerator));
+                myElement.appendChild(nodeGenerator.createTextNode(" is excited to join! "));
+                myElement.appendChild(this.statusXML(nodeGenerator));
+            } else {
+                myElement.appendChild(nodeGenerator.createTextNode("Let's do it! "));
+            }
+            break;
+        case PROPOSED:
+            if (this.creature != null) {
+                myElement.appendChild(this.creature.buildXMLElement(nodeGenerator));
+                myElement.appendChild(nodeGenerator.createTextNode(" has asked to lewd "));
+                sb.append(this.creature.getColorTaggedName()).append(" has asked to lewd ")
+                        .append(this.notDeniedNamesString(this.creature)).append("! \r\n");
+            } else {
+                sb.append("There is a proposal to be lewd!\r\n");
+            }
+            sb.append("You can agree by entering \"lewd\", or you can pass on all lewding by entering \"pass\". ");
+            sb.append("If in the lucky circumstance you are in more than one group,")
+                    .append(" enter \"lewd\" followed by a comma separated list of who you want to be with! \r\n");
+            sb.append(this.statusString());
+            break;
+        case DUNNIT:
+            sb.append("A blur covers ").append(this.acceptedNamesString(null)).append(" as they do it! ");
+            break;
+        case NOT_READY:
+            sb.append("Your ").append(EquipmentSlots.ARMOR).append(
+                    " equipment slot must be empty in order to participate and you must be in bed and not in a fight! ");
+            sb.append(" The same goes for everyone you invite!");
+            break;
+        case NO_BODY:
+            sb.append("You need to have a body in order to participate in that! ");
+            break;
+        case ORGY_UNSUPPORTED:
+            sb.append("You are trying to lewd too many people! Perhaps you need to be more selective? ");
+            break;
+        case SOLO_UNSUPPORTED:
+            sb.append("Your lewdness is meant to be shared!  Don't go flyin' solo!");
+            break;
+        case MISSED:
+            sb.append("It looks like that lewdness has already been lewded. ");
+            break;
+        case STATUS:
+            // fallthrough
+        default:
+            sb.append(this.statusString());
+            break;
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public String printString() {
+        StringBuilder sb = new StringBuilder();
+        if (this.subType == null) {
+            sb.append(this.statusString());
+            return sb.toString();
+        }
+        switch (this.subType) {
+        case DENIED:
+            if (this.creature != null) {
+                sb.append(this.creature.getColorTaggedName())
+                        .append(" does not wish to do it or is wearing ARMOR and cannot participate. ");
+                sb.append("\r\n").append(this.statusString());
+            } else {
+                sb.append("No one wants to do it.");
+            }
+            break;
+        case ACCEPTED:
+            if (this.creature != null) {
+                sb.append(this.creature.getColorTaggedName()).append(" is excited to join! ");
+                sb.append("\r\n").append(this.statusString());
+            } else {
+                sb.append("Let's do it! ");
+            }
+            break;
+        case PROPOSED:
+            if (this.creature != null) {
+                sb.append(this.creature.getColorTaggedName()).append(" has asked to lewd ")
+                        .append(this.notDeniedNamesString(this.creature)).append("! \r\n");
+            } else {
+                sb.append("There is a proposal to be lewd!\r\n");
+            }
+            sb.append("You can agree by entering \"lewd\", or you can pass on all lewding by entering \"pass\". ");
+            sb.append("If in the lucky circumstance you are in more than one group,")
+                    .append(" enter \"lewd\" followed by a comma separated list of who you want to be with! \r\n");
+            sb.append(this.statusString());
+            break;
+        case DUNNIT:
+            sb.append("A blur covers ").append(this.acceptedNamesString(null)).append(" as they do it! ");
+            break;
+        case NOT_READY:
+            sb.append("Your ").append(EquipmentSlots.ARMOR).append(
+                    " equipment slot must be empty in order to participate and you must be in bed and not in a fight! ");
+            sb.append(" The same goes for everyone you invite!");
+            break;
+        case NO_BODY:
+            sb.append("You need to have a body in order to participate in that! ");
+            break;
+        case ORGY_UNSUPPORTED:
+            sb.append("You are trying to lewd too many people! Perhaps you need to be more selective? ");
+            break;
+        case SOLO_UNSUPPORTED:
+            sb.append("Your lewdness is meant to be shared!  Don't go flyin' solo!");
+            break;
+        case MISSED:
+            sb.append("It looks like that lewdness has already been lewded. ");
+            break;
+        case STATUS:
+            // fallthrough
+        default:
+            sb.append(this.statusString());
+            break;
+        }
+        return sb.toString();
     }
 
 }
