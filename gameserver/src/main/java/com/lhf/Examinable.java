@@ -12,6 +12,10 @@ public interface Examinable extends Taggable {
         return this.getName();
     }
 
+    public default void produceExtraDescription(OutputBuilder builder) {
+        return;
+    }
+
     default SeeEvent produceMessage() {
         return this.produceMessage(SeeEvent.getBuilder().setExaminable(this));
     }

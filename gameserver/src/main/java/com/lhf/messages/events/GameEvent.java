@@ -185,7 +185,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
                     myElement.appendChild(descriptionElement);
                 }
 
-                // TODO: build description for extra stuff
+                toAdd.produceExtraDescription(this);
 
                 if (after != null) {
                     this.root.appendChild(this.document.createTextNode(after));

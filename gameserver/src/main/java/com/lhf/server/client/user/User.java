@@ -9,10 +9,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import com.lhf.Taggable;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
@@ -69,13 +65,10 @@ public class User implements CommandInvoker, Comparable<User> {
     }
 
     @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = Taggable.buildXMLElementFromTaggable(nodeGenerator, this);
-        if (myElement != null) {
-            myElement.setAttribute("id", this.getUsername());
-            myElement.setIdAttribute("id", true);
-        }
-        return myElement;
+    public Map<String, String> getTagAttributes() {
+        Map<String, String> tagAttr = CommandInvoker.super.getTagAttributes();
+        tagAttr.put("id", this.getUsername());
+        return tagAttr;
     }
 
     @Override

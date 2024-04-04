@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.conversation.ConversationManager;
@@ -487,6 +488,11 @@ public abstract class WrappedINonPlayerCharacter<WrappedType extends INonPlayerC
     @Override
     public String getDescription() {
         return wrapped.getDescription();
+    }
+
+    @Override
+    public void produceExtraDescription(OutputBuilder builder) {
+        wrapped.produceExtraDescription(builder);
     }
 
     @Override

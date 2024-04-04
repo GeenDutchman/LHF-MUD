@@ -9,10 +9,14 @@ public interface Taggable {
 
     public String getSimpleContent();
 
-    public default Map<String, String> getTagAttributes() {
+    public static Map<String, String> produceBasicTagAttributes() {
         Map<String, String> tagAttributes = new TreeMap<>();
         tagAttributes.put("colored", "true");
         return tagAttributes;
+    }
+
+    public default Map<String, String> getTagAttributes() {
+        return Taggable.produceBasicTagAttributes();
     }
 
     public static String extract(Taggable taggable) {

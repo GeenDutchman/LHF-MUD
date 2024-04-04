@@ -16,10 +16,8 @@ import java.util.logging.Level;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import com.lhf.Examinable;
+import com.lhf.OutputBuilder;
+import com.lhf.Taggable;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.EffectResistance;
@@ -573,62 +571,37 @@ public interface ICreature extends InventoryOwner, EquipmentOwner, Comparable<IC
     }
 
     @Override
-    public default Element buildXMLElement(Document nodeGenerator) {
-        if (nodeGenerator == null) {
-            return null;
-        }
-        Element myElement = Examinable.buildXMLElementFromExaminable(nodeGenerator, this);
-        if (myElement != null) {
-            myElement.setAttribute("uuid", this.getCreatureID().toString());
-            myElement.setIdAttribute("uuid", true);
-        }
-        return myElement;
+    default Map<String, String> getTagAttributes() {
+        Map<String, String> tagAttr = Taggable.produceBasicTagAttributes();
+        tagAttr.put("uuid", this.getCreatureID().toString());
+        return tagAttr;
     }
 
     @Override
-    default Element buildDetailedXMLElement(Document nodeGenerator) {
-        if (nodeGenerator == null) {
-            return null;
-        }
-        Element myElement = this.buildXMLElement(nodeGenerator);
-        if (myElement == null) {
-            return null;
-        }
-        myElement.setAttribute("uuid", this.getCreatureID().toString());
-        myElement.setIdAttribute("uuid", true);
-        final String description = this.getDescription();
-        myElement.setAttribute("complex", "true");
-        Element descriptionElement = nodeGenerator.createElement(XML_DESCRIPTION);
-        descriptionElement.setAttribute("colored", "true");
-        if (description != null && !description.isEmpty() && !description.isBlank()) {
-            descriptionElement.appendChild(nodeGenerator.createTextNode(description.trim()));
+    default void produceExtraDescription(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
         final Map<EquipmentSlots, Equipable> equipped = this.getEquipmentSlots();
         if (equipped != null) {
             Equipable equipable = equipped.get(EquipmentSlots.HAT);
             if (equipable != null) {
-                descriptionElement.setAttribute("complex", "true");
-                descriptionElement.appendChild(nodeGenerator.createTextNode("On their head is:"));
-                descriptionElement.appendChild(equipable.buildXMLElement(nodeGenerator));
+                builder.appendString("On their head is:");
+                builder.appendTaggable(equipable, " ", ".");
             }
             equipable = equipped.get(EquipmentSlots.ARMOR);
             if (equipable != null) {
-                descriptionElement.setAttribute("complex", "true");
-                descriptionElement.appendChild(nodeGenerator.createTextNode("They are wearing:"));
-                descriptionElement.appendChild(equipable.buildXMLElement(nodeGenerator));
+                builder.appendString("They are wearing:");
+                builder.appendTaggable(equipable, " ", ".");
             } else {
                 equipable = equipped.get(EquipmentSlots.NECKLACE);
                 if (equipable != null) {
-                    descriptionElement.setAttribute("complex", "true");
-                    descriptionElement.appendChild(nodeGenerator.createTextNode("Around their neck is:"));
-                    descriptionElement.appendChild(equipable.buildXMLElement(nodeGenerator));
+                    builder.appendString("Around their neck is:");
+                    builder.appendTaggable(equipable, " ", ".");
                 }
             }
         }
-        if (descriptionElement.hasChildNodes()) {
-            myElement.appendChild(descriptionElement);
-        }
-        return myElement;
+        return;
     }
 
     @Override

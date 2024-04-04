@@ -132,7 +132,7 @@ public interface OutputBuilder {
                 if (description != null && !description.isBlank()) {
                     builder.append("\r\ndescription:").append(description);
                 }
-                // TODO: build description for extra stuff
+                toAdd.produceExtraDescription(this);
                 if (after != null) {
                     builder.append(after);
                 }

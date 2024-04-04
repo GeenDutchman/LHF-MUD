@@ -15,10 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.EffectPersistence.Ticker;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo.SummonData;
 import com.lhf.game.creature.inventory.Inventory;
@@ -499,26 +496,15 @@ public abstract class SummonedINonPlayerCharacter<SummonedType extends INonPlaye
     }
 
     @Override
-    public Element buildDetailedXMLElement(Document nodeGenerator) {
-        Element myElement = super.buildDetailedXMLElement(nodeGenerator);
-        if (myElement == null) {
-            return null;
+    public void produceExtraDescription(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        if (this.summoner == null) {
-            return myElement;
+        if (this.summoner != null) {
+            builder.appendString("Summoned by");
+            builder.appendTaggable(this.summoner, " ", ".");
         }
-        Element summonElement = nodeGenerator.createElement("SummonData");
-        summonElement.setAttribute("colored", "false");
-        summonElement.setAttribute("complex", "true");
-        summonElement.appendChild(nodeGenerator.createTextNode("Summoned by "));
-        summonElement.appendChild(this.summoner.buildXMLElement(nodeGenerator));
-        Node first = myElement.getFirstChild();
-        if (first == null) {
-            myElement.insertBefore(summonElement, first);
-        } else {
-            myElement.appendChild(summonElement);
-        }
-        return myElement;
+        super.produceExtraDescription(builder);
     }
 
     @Override
