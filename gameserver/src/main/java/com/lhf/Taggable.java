@@ -1,41 +1,18 @@
 package com.lhf;
 
+import java.util.Map;
 import java.util.Objects;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import java.util.TreeMap;
 
 public interface Taggable {
     public String getTagName();
 
     public String getSimpleContent();
 
-    @Deprecated
-    public default String print() {
-        final String tagName = this.getTagName();
-        final String contents = this.getSimpleContent();
-        return new StringBuilder().append('<').append(tagName).append('>').append(contents).append("</").append(tagName)
-                .append('>').toString();
-    }
-
-    public static Element buildXMLElementFromTaggable(Document nodeGenerator, Taggable taggable) {
-        if (nodeGenerator == null || taggable == null) {
-            return null;
-        }
-        Element myElement = nodeGenerator.createElement(taggable.getTagName());
-        myElement.setAttribute("colored", "true");
-        final String simpleContent = taggable.getSimpleContent();
-        if (simpleContent != null && !simpleContent.isEmpty() && !simpleContent.isBlank()) {
-            myElement.appendChild(nodeGenerator.createTextNode(simpleContent));
-        }
-        return myElement;
-    }
-
-    public default Element buildXMLElement(Document nodeGenerator) {
-        if (nodeGenerator == null) {
-            return null;
-        }
-        return Taggable.buildXMLElementFromTaggable(nodeGenerator, this);
+    public default Map<String, String> getTagAttributes() {
+        Map<String, String> tagAttributes = new TreeMap<>();
+        tagAttributes.put("colored", "true");
+        return tagAttributes;
     }
 
     public static String extract(Taggable taggable) {
