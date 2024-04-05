@@ -25,6 +25,7 @@ import org.w3c.dom.Element;
 
 import com.lhf.Examinable;
 import com.lhf.OutputBuilder;
+import com.lhf.OutputBuilder.StringOutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.Taggable.BasicTaggable;
 import com.lhf.game.TickType;
@@ -200,8 +201,14 @@ public abstract class GameEvent implements Comparable<GameEvent> {
                 if (before != null) {
                     this.root.appendChild(this.document.createTextNode(before));
                 }
-                Element myElement = this.document.createElement(toAdd.getTagName());
-                this.document.appendChild(myElement);
+                final String tagName = toAdd.getTagName();
+                Element myElement = null;
+                if (tagName != null && !tagName.isEmpty() && !tagName.isBlank()) {
+                    myElement = this.document.createElement(tagName);
+                    this.document.appendChild(myElement);
+                } else {
+                    myElement = this.root;
+                }
                 myElement.appendChild(this.document.createTextNode(toAdd.getSimpleContent()));
                 final Map<String, String> tagAttributes = toAdd.getTagAttributes();
                 if (tagAttributes != null) {
@@ -277,6 +284,10 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         return this.broadcast;
     }
 
+    protected final OutputBuilder addressCreature(OutputBuilder builder, ICreature creature) {
+        return this.addressCreature(builder, creature, true);
+    }
+
     protected final OutputBuilder addressCreature(OutputBuilder builder, ICreature creature, boolean capitalize) {
         if (!this.isBroadcast()) {
             builder.appendString(capitalize ? "You" : "you");
@@ -286,6 +297,10 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             builder.appendString(capitalize ? "Someone" : "someone");
         }
         return builder;
+    }
+
+    protected final OutputBuilder posessiveCreature(OutputBuilder builder, ICreature creature) {
+        return this.possesiveCreature(builder, creature, true);
     }
 
     protected final OutputBuilder possesiveCreature(OutputBuilder builder, ICreature creature, boolean capitalize) {
@@ -308,7 +323,11 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     }
 
     // Called to render as a human-readable string
-    public abstract String printString();
+    public final String printString() {
+        StringOutputBuilder stringOut = new OutputBuilder.StringOutputBuilder();
+        this.buildOutput(stringOut);
+        return stringOut.build();
+    }
 
     public abstract void buildOutput(OutputBuilder builder);
 

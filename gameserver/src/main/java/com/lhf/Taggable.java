@@ -45,6 +45,10 @@ public interface Taggable {
             return new BasicTaggable(tagName, contents, tagAttributes);
         }
 
+        public static BasicTaggable customTaggable(final String tagName, final String contents) {
+            return new BasicTaggable(tagName, contents, Taggable.produceBasicTagAttributes());
+        }
+
         private BasicTaggable(final Taggable from) {
             this(from.getTagName(), Taggable.extract(from), from.getTagAttributes());
         }

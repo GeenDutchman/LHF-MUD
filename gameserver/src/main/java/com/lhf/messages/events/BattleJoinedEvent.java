@@ -1,10 +1,6 @@
 package com.lhf.messages.events;
 
-import java.util.StringJoiner;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
 
@@ -74,28 +70,12 @@ public class BattleJoinedEvent extends GameEvent {
     }
 
     @Override
-    public String printString() {
-        StringJoiner sj = new StringJoiner(" ");
-        sj.add(this.addressCreature(this.joiner, true));
-        sj.add("joined the");
-        if (this.ongoing) {
-            sj.add("ongoing");
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        sj.add("battle!");
-        return sj.toString();
-    }
-
-    @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement == null) {
-            return myElement;
-        }
-        myElement.setAttribute("complex", "true");
-        myElement.appendChild(this.addressCreatureXML(nodeGenerator, joiner, true));
-        myElement.appendChild(
-                nodeGenerator.createTextNode(String.format(" joined the %sbattle!", this.ongoing ? "ongoing " : "")));
-        return myElement;
+        this.addressCreature(builder, joiner, true);
+        builder.appendString(String.format("joined the %sbattle!", this.ongoing ? "ongoing" : ""));
     }
 
 }

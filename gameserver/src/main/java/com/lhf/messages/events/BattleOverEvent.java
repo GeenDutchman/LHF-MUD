@@ -1,8 +1,6 @@
 package com.lhf.messages.events;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.TickType;
 import com.lhf.messages.GameEventType;
 
@@ -44,21 +42,12 @@ public class BattleOverEvent extends GameEvent {
     }
 
     @Override
-    public String printString() {
-        if (!this.isBroadcast()) {
-            return "Take a deep breath.  You have survived this battle!";
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        return "The fight is over!";
-    }
-
-    @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement != null) {
-            myElement.appendChild(nodeGenerator.createTextNode(
-                    this.isBroadcast() ? "The fight is over!" : "Take a deep breath.  You have survived this battle!"));
-        }
-        return myElement;
+        builder.appendString(
+                this.isBroadcast() ? "The fight is over!" : "Take a deep breath.  You have survived this battle!");
     }
 
 }

@@ -23,12 +23,12 @@ public interface OutputBuilder {
 
     public OutputBuilder appendTaggable(Taggable toAdd, String before, String after);
 
-    public default OutputBuilder appendTaggables(Collection<Taggable> taggables) {
+    public default <Tgg extends Taggable> OutputBuilder appendTaggables(Collection<Tgg> taggables) {
         return this.appendTaggables(taggables, ", ", null, null, null);
     }
 
-    public default OutputBuilder appendTaggables(Collection<Taggable> taggables, String separator, String before,
-            String after, String empty) {
+    public default <Tgg extends Taggable> OutputBuilder appendTaggables(Collection<Tgg> taggables, String separator,
+            String before, String after, String empty) {
         if (before != null) {
             this.appendString(before);
         }
@@ -47,12 +47,12 @@ public interface OutputBuilder {
         return this;
     }
 
-    public default OutputBuilder appendTaggablesAndLast(List<Taggable> taggables) {
+    public default <Tgg extends Taggable> OutputBuilder appendTaggablesAndLast(List<Tgg> taggables) {
         return this.appendTaggablesAndLast(taggables, ",", null, null, null);
     }
 
-    public default OutputBuilder appendTaggablesAndLast(List<Taggable> taggables, String separator, String before,
-            String after, String empty) {
+    public default <Tgg extends Taggable> OutputBuilder appendTaggablesAndLast(List<Tgg> taggables, String separator,
+            String before, String after, String empty) {
         if (before != null) {
             this.appendString(before);
         }
@@ -75,12 +75,12 @@ public interface OutputBuilder {
         return this;
     }
 
-    public default OutputBuilder appendTaggablesAndLast(SortedSet<Taggable> taggables) {
+    public default <Tgg extends Taggable> OutputBuilder appendTaggablesAndLast(SortedSet<Tgg> taggables) {
         return this.appendTaggablesAndLast(taggables, ",", null, null, null);
     }
 
-    public default OutputBuilder appendTaggablesAndLast(SortedSet<Taggable> taggables, String separator, String before,
-            String after, String empty) {
+    public default <Tgg extends Taggable> OutputBuilder appendTaggablesAndLast(SortedSet<Tgg> taggables,
+            String separator, String before, String after, String empty) {
         if (before != null) {
             this.appendString(before);
         }
@@ -91,8 +91,8 @@ public interface OutputBuilder {
         } else if (taggables.size() == 1) {
             this.appendTaggable(taggables.first());
         } else {
-            final Taggable last = taggables.last();
-            final SortedSet<Taggable> remainder = taggables.headSet(last);
+            final Tgg last = taggables.last();
+            final SortedSet<Tgg> remainder = taggables.headSet(last);
             for (final Taggable taggable : remainder) {
                 this.appendTaggable(taggable, " ", separator);
             }

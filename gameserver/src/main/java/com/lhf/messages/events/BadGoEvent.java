@@ -3,11 +3,8 @@ package com.lhf.messages.events;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.StringJoiner;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.map.Directions;
 import com.lhf.messages.GameEventType;
 
@@ -98,82 +95,37 @@ public class BadGoEvent extends GameEvent {
     }
 
     @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement == null) {
-            return myElement;
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        myElement.setAttribute("complex", "true");
-        myElement.appendChild(nodeGenerator.createTextNode("You cannot go "));
+        builder.appendString("You cannot go");
         if (this.attempted != null) {
-            myElement.appendChild(this.attempted.buildXMLElement(nodeGenerator));
-            myElement.appendChild(nodeGenerator.createTextNode(". "));
+            builder.appendTaggable(this.attempted, " ", ".");
         } else {
-            myElement.appendChild(nodeGenerator.createTextNode("that way. "));
+            builder.appendString("that way.");
         }
         if (this.subType == BadGoType.DNE || this.attempted == null) {
-            myElement.appendChild(nodeGenerator.createTextNode("That way is a wall. "));
+            builder.appendString("That way is a wall.");
         } else if (this.subType == BadGoType.BLOCKED) {
-            myElement.appendChild(nodeGenerator.createTextNode("Your path is blocked "));
+            builder.appendString("Your path is blocked.");
         } else if (this.subType == BadGoType.NO_ROOM) {
-            myElement.appendChild(nodeGenerator.createTextNode("You are not in a room. "));
+            builder.appendString("You are not in a room.");
         }
         if (this.available != null && this.available.size() > 0) {
             if (this.available.size() == 1 && this.attempted != null && this.subType == BadGoType.BLOCKED) {
-                myElement.appendChild(nodeGenerator
-                        .createTextNode("No other directions are available.  Try finding a way to unblock it. "));
+                builder.appendString("No other directions are available.  Try finding a way to unblock it.");
             } else {
-                Element available = nodeGenerator.createElement("AvailableDirections");
-                available.setAttribute("complex", "true");
-                available.setAttribute("colored", "false");
-                available.appendChild(nodeGenerator.createTextNode("You could try to go one of:"));
+                builder.appendString("You could try to go one of:");
                 for (Directions s : this.available) {
                     if (!(this.subType == BadGoType.BLOCKED && s.equals(this.attempted))) {
-                        available.appendChild(s.buildXMLElement(nodeGenerator));
+                        builder.appendTaggable(s);
                     }
                 }
-                myElement.appendChild(available);
             }
         } else {
-            myElement.appendChild(nodeGenerator.createTextNode("No directions are available."));
+            builder.appendString("No directions are available.");
         }
-        return myElement;
-    }
-
-    @Override
-    public String printString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("You cannot go ");
-        if (this.attempted != null) {
-            sb.append(this.attempted.toString());
-        } else {
-            sb.append("that way");
-        }
-        sb.append(". ");
-        if (this.subType == BadGoType.DNE || this.attempted == null) {
-            sb.append("That way is a wall. ");
-        } else if (this.subType == BadGoType.BLOCKED) {
-            sb.append("Your path is blocked ");
-        } else if (this.subType == BadGoType.NO_ROOM) {
-            sb.append("You are not in a room. ");
-        }
-        if (this.available != null && this.available.size() > 0) {
-            if (this.available.size() == 1 && this.attempted != null && this.subType == BadGoType.BLOCKED) {
-                sb.append("No other directions are available.  Try finding a way to unblock it. ");
-            } else {
-                sb.append("You could try to go one of:");
-                StringJoiner sj = new StringJoiner(", ");
-                for (Directions s : this.available) {
-                    if (!(this.subType == BadGoType.BLOCKED && s.equals(this.attempted))) {
-                        sj.add(s.toString());
-                    }
-                }
-                sb.append(sj.toString());
-            }
-        } else {
-            sb.append("No directions are available.");
-        }
-        return sb.toString();
     }
 
 }

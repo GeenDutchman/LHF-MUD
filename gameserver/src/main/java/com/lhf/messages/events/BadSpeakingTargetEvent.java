@@ -1,8 +1,6 @@
 package com.lhf.messages.events;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.lhf.OutputBuilder;
 import com.lhf.messages.GameEventType;
 
 public class BadSpeakingTargetEvent extends GameEvent {
@@ -78,17 +76,11 @@ public class BadSpeakingTargetEvent extends GameEvent {
     }
 
     @Override
-    public String printString() {
-        return this.msg;
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        builder.appendString(this.msg);
     }
 
-    @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement != null) {
-            myElement.setAttribute("complex", "true");
-            myElement.appendChild(nodeGenerator.createTextNode(this.msg));
-        }
-        return myElement;
-    }
 }

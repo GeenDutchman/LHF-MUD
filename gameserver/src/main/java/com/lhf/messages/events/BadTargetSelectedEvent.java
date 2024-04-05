@@ -2,12 +2,12 @@ package com.lhf.messages.events;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.StringJoiner;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.lhf.OutputBuilder;
 import com.lhf.Taggable;
+import com.lhf.Taggable.BasicTaggable;
 import com.lhf.messages.GameEventType;
 
 public class BadTargetSelectedEvent extends GameEvent {
@@ -96,12 +96,15 @@ public class BadTargetSelectedEvent extends GameEvent {
     }
 
     @Override
-    public String printString() {
-        StringJoiner sj = new StringJoiner(" ");
-        sj.setEmptyValue("");
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+
         if (this.bde == null) {
-            sj.add("You have selected a bad or invalid target.");
+            builder.appendString("You have selected a bad or invalid target.");
         } else {
+            StringJoiner sj = new StringJoiner(" ");
             switch (this.bde) {
             case SELF:
                 sj.add("You cannot target yourself!");
@@ -118,7 +121,7 @@ public class BadTargetSelectedEvent extends GameEvent {
                 break;
             case UNCLEAR:
                 if (this.badTarget != null && this.badTarget.length() > 0) {
-                    sj.add("You cannot target '").add(this.badTarget).add("' because it is unclear.");
+                    sj.add(String.format("You cannot target '%s' because it is unclear.", this.badTarget));
                 } else {
                     sj.add("It is unclear what you are targeting.");
                 }
@@ -127,7 +130,7 @@ public class BadTargetSelectedEvent extends GameEvent {
                 if (this.possibleTargets != null && this.possibleTargets.size() > 0) {
                     sj.add(Integer.toString(this.possibleTargets.size())).add("is too many targets.");
                 } else {
-                    sj.add("You cannot select that many targets");
+                    sj.add("You cannot select that many targets.");
                 }
                 break;
             case UNTARGETABLE:
@@ -140,84 +143,15 @@ public class BadTargetSelectedEvent extends GameEvent {
             default:
                 sj.add("You have selected a bad or invalid target.");
             }
+            builder.appendTaggable(BasicTaggable.customTaggable("Explaination", sj.toString(),
+                    Map.of("BadTargetOption", this.bde.toString(), "colored", "false")));
         }
 
         if (this.possibleTargets != null && this.possibleTargets.size() > 0) {
-            sj.add("Possible targets include:\n");
-            for (Taggable tagger : this.possibleTargets) {
-                sj.add(tagger.getSimpleContent());
-            }
+            builder.appendTaggables(this.possibleTargets, ", ", "Possible targets include:\n", ".",
+                    "No targets at all!");
         }
 
-        return sj.toString();
     }
 
-    @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement == null) {
-            return myElement;
-        }
-
-        if (this.bde == null) {
-            myElement.appendChild(nodeGenerator.createTextNode("You have selected a bad or invalid target."));
-        } else {
-            myElement.setAttribute("BadTargetOption", this.bde.toString());
-            switch (this.bde) {
-            case SELF:
-                myElement.appendChild(nodeGenerator.createTextNode("You cannot target yourself!"));
-                break;
-            case NOTARGET:
-                myElement.appendChild(nodeGenerator.createTextNode("You did not choose any targets."));
-                break;
-            case DNE:
-                if (this.badTarget != null && this.badTarget.length() > 0) {
-                    myElement.appendChild(nodeGenerator.createTextNode(this.badTarget));
-                    myElement.appendChild(
-                            nodeGenerator.createTextNode("does not exist as a target or is not targetable."));
-                } else {
-                    myElement.appendChild(nodeGenerator.createTextNode("One of your targets did not exist."));
-                }
-                break;
-            case UNCLEAR:
-                if (this.badTarget != null && this.badTarget.length() > 0) {
-                    myElement.appendChild(nodeGenerator.createTextNode("You cannot target '"));
-                    myElement.appendChild(nodeGenerator.createTextNode(this.badTarget));
-                    myElement.appendChild(nodeGenerator.createTextNode("' because it is unclear."));
-                } else {
-                    myElement.appendChild(nodeGenerator.createTextNode("It is unclear what you are targeting."));
-                }
-                break;
-            case TOO_MANY:
-                if (this.possibleTargets != null && this.possibleTargets.size() > 0) {
-                    myElement.appendChild(nodeGenerator.createTextNode(Integer.toString(this.possibleTargets.size())));
-                    myElement.appendChild(nodeGenerator.createTextNode("is too many targets."));
-                } else {
-                    myElement.appendChild(nodeGenerator.createTextNode("You cannot select that many targets"));
-                }
-                break;
-            case UNTARGETABLE:
-                if (this.badTarget != null && !this.badTarget.isBlank()) {
-                    myElement.appendChild(nodeGenerator.createTextNode(this.badTarget));
-                    myElement.appendChild(nodeGenerator.createTextNode("is not targetable."));
-                } else {
-                    myElement.appendChild(nodeGenerator.createTextNode("You cannot target this."));
-                }
-                break;
-            default:
-                myElement.appendChild(nodeGenerator.createTextNode("You have selected a bad or invalid target."));
-            }
-        }
-
-        if (this.possibleTargets != null && this.possibleTargets.size() > 0) {
-            Element available = nodeGenerator.createElement("AvailableTargets");
-            available.appendChild(nodeGenerator.createTextNode("Possible targets include:\n"));
-            for (Taggable tagger : this.possibleTargets) {
-                available.appendChild(tagger.buildXMLElement(nodeGenerator));
-            }
-            myElement.appendChild(available);
-        }
-
-        return myElement;
-    }
 }
