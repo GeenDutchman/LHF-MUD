@@ -1,12 +1,8 @@
 package com.lhf.messages.events;
 
 import java.util.List;
-import java.util.StringJoiner;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.TickType;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.item.AItem;
@@ -95,27 +91,15 @@ public class ItemEquippedEvent extends GameEvent {
         this.attemptedSlot = builder.getAttemptedSlot();
     }
 
-    private String printItemName(String defaultItemName) {
+    private void printItemName(OutputBuilder builder, String defaultItemName) {
         if (this.item != null) {
-            return this.item.getName();
+            builder.appendTaggable(this.item);
         } else if (this.attemptedItemName != null && !this.attemptedItemName.isBlank()) {
-            return "'" + this.attemptedItemName + "'";
+            builder.appendString(this.attemptedItemName, " '", "'");
         } else if (defaultItemName != null && !defaultItemName.isBlank()) {
-            return defaultItemName;
+            builder.appendString(defaultItemName);
         } else {
-            return "item";
-        }
-    }
-
-    private Node printItemNameXML(Document nodeGenerator, String defaultItemName) {
-        if (this.item != null) {
-            return this.item.buildXMLElement(nodeGenerator);
-        } else if (this.attemptedItemName != null && !this.attemptedItemName.isBlank()) {
-            return nodeGenerator.createTextNode("'" + this.attemptedItemName + "'");
-        } else if (defaultItemName != null && !defaultItemName.isBlank()) {
-            return nodeGenerator.createTextNode(defaultItemName);
-        } else {
-            return nodeGenerator.createTextNode("item");
+            builder.appendString("item");
         }
     }
 
@@ -125,194 +109,82 @@ public class ItemEquippedEvent extends GameEvent {
     }
 
     @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement == null) {
-            return myElement;
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        myElement.setAttribute("EquipResultType",
-                this.subType != null ? this.subType.toString() : EquipResultType.SUCCESS.toString());
         if (this.isBroadcast()) {
-            myElement.appendChild(nodeGenerator.createTextNode(String.format("Someone %s an item.",
-                    this.getSubType() == EquipResultType.SUCCESS ? "equipped" : "attempted to equip")));
-            return myElement;
+            builder.appendString(String.format("Someone %s an item.",
+                    this.getSubType() == EquipResultType.SUCCESS ? "equipped" : "attempted to equip"));
+            return;
         }
         if (this.subType == null) {
-            myElement.appendChild(nodeGenerator.createTextNode(String.format("You searched to equip %s",
-                    this.attemptedItemName != null ? "'" + this.attemptedItemName + "'" : "an item")));
+            builder.appendString(String.format("You searched to equip %s",
+                    this.attemptedItemName != null ? "'" + this.attemptedItemName + "'" : "an item"));
             if (this.attemptedSlot != null) {
-                myElement.appendChild(nodeGenerator.createTextNode(" to your "));
-                myElement.appendChild(this.attemptedSlot.buildXMLElement(nodeGenerator));
-                myElement.appendChild(nodeGenerator.createTextNode(" equipment slot"));
+                builder.appendString("to your");
+                builder.appendTaggable(this.attemptedSlot);
+                builder.appendString("equipment slot");
             }
             if (this.item != null) {
-                myElement.appendChild(nodeGenerator.createTextNode(", and found "));
-                myElement.appendChild(this.item.buildDetailedXMLElement(nodeGenerator));
+                builder.appendString(", and found", null, null);
+                builder.appendTaggable(this.item);
                 if (this.attemptedSlot != null) {
-                    myElement.appendChild(nodeGenerator.createTextNode(" and you equipped it."));
+                    builder.appendString("and you equipped it.");
                 }
             } else {
-                myElement.appendChild(nodeGenerator.createTextNode(" but did not find such in your inventory. "));
+                builder.appendString("but did not find such in your inventory.");
             }
-            return myElement;
+            return;
         }
         switch (this.subType) {
         case SUCCESS:
-            myElement.appendChild(nodeGenerator.createTextNode("You successfully equipped your "));
-            myElement.appendChild(this.printItemNameXML(nodeGenerator, null));
+            builder.appendString("You successfully equipped your");
+            this.printItemName(builder, null);
             if (this.attemptedSlot != null) {
-                myElement.appendChild(nodeGenerator.createTextNode(" to your "));
-                myElement.appendChild(this.attemptedSlot.buildXMLElement(nodeGenerator));
-                myElement.appendChild(nodeGenerator.createTextNode(" equipment slot"));
+                builder.appendString("to your");
+                builder.appendTaggable(this.attemptedSlot);
+                builder.appendString("equipment slot");
             }
-            myElement.appendChild(nodeGenerator.createTextNode("."));
+            builder.appendString(".", null, null);
             break;
         case BADSLOT:
-            myElement.appendChild(this.attemptedSlot != null ? this.attemptedSlot.buildXMLElement(nodeGenerator)
-                    : nodeGenerator.createTextNode("That slot"));
+            if (this.attemptedSlot != null) {
+                builder.appendTaggable(attemptedSlot);
+            } else {
+                builder.appendString("That slot");
+            }
 
-            myElement.appendChild(nodeGenerator.createTextNode(" is not an appropriate slot for equipping "));
-            myElement.appendChild(this.printItemNameXML(nodeGenerator, "that item"));
-            myElement.appendChild(nodeGenerator.createTextNode("."));
+            builder.appendString("is not an appropriate slot for equippeing");
+            this.printItemName(builder, "that item");
+            builder.appendString(".", null, null);
             if (this.item != null && this.getCorrectSlots().size() > 0) {
-                myElement.appendChild(nodeGenerator.createTextNode("You can equip it to: "));
-                for (EquipmentSlots slots : this.getCorrectSlots()) {
-                    myElement.appendChild(slots.buildXMLElement(nodeGenerator));
-                }
+                builder.appendTaggables(this.getCorrectSlots(), ", ", "You can equip it to:", ".", "No slots");
             }
             break;
         case NOTEQUIPBLE:
-            myElement.appendChild(this.printItemNameXML(nodeGenerator, "that item"));
-            myElement.appendChild(nodeGenerator.createTextNode(" is not equippable!"));
+            this.printItemName(builder, "that item");
+            builder.appendString("is not equippable!");
             break;
         default:
-            myElement.appendChild(nodeGenerator.createTextNode(String.format("You searched to equip %s",
-                    this.attemptedItemName != null ? "'" + this.attemptedItemName + "'" : "an item")));
+            builder.appendString(String.format("You searched to equip %s",
+                    this.attemptedItemName != null ? "'" + this.attemptedItemName + "'" : "an item"));
             if (this.attemptedSlot != null) {
-                myElement.appendChild(nodeGenerator.createTextNode(" to your "));
-                myElement.appendChild(this.attemptedSlot.buildXMLElement(nodeGenerator));
-                myElement.appendChild(nodeGenerator.createTextNode(" equipment slot"));
+                builder.appendString("to your");
+                builder.appendTaggable(this.attemptedSlot);
+                builder.appendString("equipment slot");
             }
             if (this.item != null) {
-                myElement.appendChild(nodeGenerator.createTextNode(", and found "));
-                myElement.appendChild(this.item.buildDetailedXMLElement(nodeGenerator));
+                builder.appendString(", and found", null, null);
+                builder.appendTaggable(this.item);
                 if (this.attemptedSlot != null) {
-                    myElement.appendChild(nodeGenerator.createTextNode(" and you equipped it."));
+                    builder.appendString("and you equipped it.");
                 }
             } else {
-                myElement.appendChild(nodeGenerator.createTextNode(" but did not find such in your inventory. "));
+                builder.appendString("but did not find such in your inventory.");
             }
             break;
         }
-        return myElement;
-    }
-
-    @Override
-    public String printString() {
-        StringBuilder sb = new StringBuilder();
-        if (this.isBroadcast()) {
-            sb.append("Someone ");
-            if (this.getSubType() == EquipResultType.SUCCESS) {
-                sb.append("equipped ");
-            } else {
-                sb.append("attempted to equip ");
-            }
-            sb.append("an item.");
-            return sb.toString();
-        }
-        if (this.subType == null) {
-            sb.append("You searched to equip ");
-            if (this.attemptedItemName != null && this.attemptedItemName.length() > 0) {
-                sb.append("'").append(this.attemptedItemName).append("' ");
-            } else {
-                sb.append("an item ");
-            }
-            if (this.attemptedSlot != null) {
-                sb.append("to your ").append(this.attemptedSlot).append(" equipment slot ");
-            }
-            if (this.item != null) {
-                sb.append(", and found ").append(this.item.getName()).append(" ");
-                if (this.item instanceof Equipable) {
-                    sb.append("which could equip to any of these slots: ");
-                    StringJoiner sj = new StringJoiner(", ");
-                    for (EquipmentSlots slots : this.getCorrectSlots()) {
-                        sj.add(slots.toString());
-                    }
-                    sb.append(sj.toString()).append(". ");
-                    if (this.attemptedSlot != null) {
-                        sb.append("And you equipped it.");
-                    }
-                }
-            } else {
-                sb.append(" but did not find such in your inventory. ");
-            }
-            return sb.toString();
-        }
-        switch (this.subType) {
-        case SUCCESS:
-            sb.append("You successfully equipped your ").append(this.printItemName(null));
-            if (this.attemptedSlot != null) {
-                sb.append(" to your ").append(this.attemptedSlot).append(" equiment slot");
-            }
-            sb.append(".");
-            break;
-        case BADSLOT:
-            if (this.attemptedSlot != null) {
-                sb.append(this.attemptedSlot);
-            } else {
-                sb.append("That slot");
-            }
-            sb.append(" is not an appropriate slot for equipping ");
-            sb.append(this.printItemName("that item"));
-            sb.append(".");
-            if (this.item != null && this.getCorrectSlots().size() > 0) {
-                sb.append("You can equip it to: ");
-                StringJoiner sj = new StringJoiner(", ");
-                for (EquipmentSlots slots : this.getCorrectSlots()) {
-                    sj.add(slots.toString());
-                }
-                sb.append(sj.toString());
-            }
-            break;
-        case NOTEQUIPBLE:
-            if (this.item != null) {
-                sb.append(this.item.getName());
-            } else if (this.attemptedItemName != null) {
-                sb.append("'").append(this.attemptedItemName).append("'");
-            } else {
-                sb.append("that");
-            }
-            sb.append(" is not equippable!");
-            break;
-        default:
-            sb.append("You searched to equip ");
-            if (this.attemptedItemName != null && this.attemptedItemName.length() > 0) {
-                sb.append("'").append(this.attemptedItemName).append("' ");
-            } else {
-                sb.append("an item ");
-            }
-            if (this.attemptedSlot != null) {
-                sb.append("to your ").append(this.attemptedSlot).append(" equipment slot ");
-            }
-            if (this.item != null) {
-                sb.append(", and found ").append(this.item.getName()).append(" ");
-                if (this.item instanceof Equipable) {
-                    sb.append("which could equip to any of these slots: ");
-                    StringJoiner sj = new StringJoiner(", ");
-                    for (EquipmentSlots slots : this.getCorrectSlots()) {
-                        sj.add(slots.toString());
-                    }
-                    sb.append(sj.toString()).append(". ");
-                    if (this.attemptedSlot != null) {
-                        sb.append("And you equipped it.");
-                    }
-                }
-            } else {
-                sb.append(" but did not find such in your inventory. ");
-            }
-            break;
-        }
-        return sb.toString();
     }
 
     public EquipResultType getSubType() {

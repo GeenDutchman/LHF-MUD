@@ -1,8 +1,6 @@
 package com.lhf.messages.events;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.enums.CreatureFaction;
 import com.lhf.messages.GameEventType;
@@ -66,35 +64,21 @@ public class FactionReinforcementsCallEvent extends GameEvent {
     }
 
     @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement == null) {
-            return myElement;
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        if (!this.isBroadcast()) {
-            if (this.caller.getFaction() == null || CreatureFaction.RENEGADE.equals(this.caller.getFaction())) {
-                myElement.appendChild(nodeGenerator.createTextNode(
-                        "You are a RENEGADE or not a member of a faction.  No one is obligated to help you."));
-                return myElement;
-            }
-            myElement.appendChild(nodeGenerator.createTextNode("You call for reinforcements!"));
-            return myElement;
+        if (this.isBroadcast()) {
+            builder.appendTaggable(this.caller);
+            builder.appendString("calls for reinforcements!");
         } else {
-            myElement.appendChild(this.caller.buildXMLElement(nodeGenerator));
-            myElement.appendChild(nodeGenerator.createTextNode(" calls for reinforcements!"));
-            return myElement;
-        }
-    }
-
-    @Override
-    public String printString() {
-        if (!this.isBroadcast()) {
-            if (this.caller.getFaction() == null || CreatureFaction.RENEGADE.equals(this.caller.getFaction())) {
-                return "You are a RENEGADE or not a member of a faction.  No one is obligated to help you.";
+            if (this.caller != null && (this.caller.getFaction() == null
+                    || CreatureFaction.RENEGADE.equals(this.caller.getFaction()))) {
+                builder.appendString(
+                        "You are a RENEGADE or not a member of a faction.  No one is obligated to help you.");
+                return;
             }
-            return "You call for reinforcements!";
-        } else {
-            return this.caller.getName() + " calls for reinforcements!";
+            builder.appendString("You call for reinvorcements!");
         }
     }
 

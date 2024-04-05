@@ -1,8 +1,6 @@
 package com.lhf.messages.events;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
 
@@ -63,23 +61,6 @@ public class CreatureSpawnedEvent extends GameEvent {
     }
 
     @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement == null) {
-            return myElement;
-        }
-        if (this.creature != null) {
-            myElement.appendChild(this.creature.buildXMLElement(nodeGenerator));
-        } else if (creatureName != null) {
-            myElement.appendChild(nodeGenerator.createTextNode(creatureName));
-        } else {
-            myElement.appendChild(nodeGenerator.createTextNode("Someone"));
-        }
-        myElement.appendChild(nodeGenerator.createTextNode(" has spawned in this room."));
-        return myElement;
-    }
-
-    @Override
     public String toString() {
         return this.printString();
     }
@@ -89,7 +70,18 @@ public class CreatureSpawnedEvent extends GameEvent {
     }
 
     @Override
-    public String printString() {
-        return (creatureName != null ? creatureName : "Someone") + " has spawned in this room.";
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        if (this.creature != null) {
+            builder.appendTaggable(creature);
+        } else if (this.creatureName != null) {
+            builder.appendString(creatureName);
+        } else {
+            builder.appendString("Someone");
+        }
+        builder.appendString("has spawned in this room.");
     }
+
 }
