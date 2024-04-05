@@ -1,11 +1,10 @@
 package com.lhf.game.item.concrete;
 
-import org.w3c.dom.Element;
-
 import com.lhf.game.Lockable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.InteractObject;
 import com.lhf.messages.CommandContext;
+import com.lhf.messages.events.GameEvent.XMLOutputBuilder;
 import com.lhf.messages.events.ItemInteractionEvent;
 
 public class Lever extends InteractObject {
@@ -42,16 +41,14 @@ public class Lever extends InteractObject {
         ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this)
                 .setInteractor(creature);
         if (this.lockable == null) {
-            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().setXmlCallbackFunction(nodeGenerator -> {
+            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().setXmlCallback(nodeGenerator -> {
                 if (nodeGenerator == null) {
-                    return null;
+                    return;
                 }
-                Element description = nodeGenerator.createElement("InteractionDescription");
-                description.appendChild(nodeGenerator.createTextNode("The "));
-                description.appendChild(this.buildXMLElement(nodeGenerator));
-                description.appendChild(nodeGenerator
-                        .createTextNode(" moves, but it seems too loose, like it is not connected to anything."));
-                return description;
+                XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                description.appendString("The");
+                description.appendTaggable(this);
+                description.appendString("moves, but it seems too loose, like it is not connected to anything.");
             }).Build());
             return;
         } else {
@@ -60,15 +57,13 @@ public class Lever extends InteractObject {
             } else {
                 this.lockable.unlock();
             }
-            builder.setPerformed().setXmlCallbackFunction(nodeGenerator -> {
+            builder.setPerformed().setXmlCallback(nodeGenerator -> {
                 if (nodeGenerator == null) {
-                    return null;
+                    return;
                 }
-                Element description = nodeGenerator.createElement("InteractionDescription");
-                description.appendChild(nodeGenerator
-                        .createTextNode("A **thunk** is heard, and you are pretty sure something changed because of "));
-                description.appendChild(creature.buildXMLElement(nodeGenerator));
-                return description;
+                XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                description.appendString("A **thunk** is heard, and you are pretty sure something changed because of");
+                description.appendTaggable(creature);
             });
             this.broadcast(creature, builder);
         }

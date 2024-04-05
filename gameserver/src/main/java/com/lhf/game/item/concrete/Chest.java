@@ -11,14 +11,13 @@ import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.w3c.dom.Element;
-
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.CommandContext;
+import com.lhf.messages.events.GameEvent.XMLOutputBuilder;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
@@ -112,29 +111,26 @@ public class Chest extends InteractObject implements LockableItemContainer {
         final boolean unlockedState = this.isUnlocked();
         if (unlockedState && this.isEmpty() && this.isRemoveOnEmpty() && this.area != null) {
             area.removeItem(this);
-            builder.setXmlCallbackFunction(nodeGenerator -> {
+            builder.setXmlCallback(nodeGenerator -> {
                 if (nodeGenerator == null) {
-                    return null;
+                    return;
                 }
-                Element description = nodeGenerator.createElement("InteractionDescription");
-                description.appendChild(creature.buildXMLElement(nodeGenerator));
-                description.appendChild(nodeGenerator.createTextNode(" discovers that the "));
-                description.appendChild(this.buildXMLElement(nodeGenerator));
-                description.appendChild(nodeGenerator.createTextNode(" contains nothing and it crumbles to dust."));
-                return description;
+                XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                description.appendTaggable(creature);
+                description.appendString("discovers that the");
+                description.appendTaggable(this);
+                description.appendString("contains nothing and it crumbles to dust.");
             });
         } else {
-            builder.setXmlCallbackFunction(nodeGenerator -> {
+            builder.setXmlCallback(nodeGenerator -> {
                 if (nodeGenerator == null) {
-                    return null;
+                    return;
                 }
-                Element description = nodeGenerator.createElement("InteractionDescription");
-                description.appendChild(creature.buildXMLElement(nodeGenerator));
-                description.appendChild(nodeGenerator.createTextNode(" tries the "));
-                description.appendChild(this.buildXMLElement(nodeGenerator));
-                description.appendChild(nodeGenerator
-                        .createTextNode(String.format(" and finds it %s.", unlockedState ? "unlocked" : "locked")));
-                return description;
+                XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                description.appendTaggable(creature);
+                description.appendString("tries the");
+                description.appendTaggable(this);
+                description.appendString(String.format("and finds it %s.", unlockedState ? "unlocked" : "locked"));
             });
         }
         this.broadcast(creature, builder);

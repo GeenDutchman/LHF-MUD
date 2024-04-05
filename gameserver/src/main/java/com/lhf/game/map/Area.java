@@ -13,13 +13,9 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import com.lhf.Examinable;
 import com.lhf.game.AffectableEntity;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.ItemContainer;
@@ -313,13 +309,10 @@ public interface Area extends ItemContainer, CreatureContainer, CommandChainHand
     }
 
     @Override
-    default Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = Examinable.buildXMLElementFromExaminable(nodeGenerator, this);
-        if (myElement != null) {
-            myElement.setAttribute("uuid", this.getUuid().toString());
-            myElement.setIdAttribute("uuid", true);
-        }
-        return myElement;
+    default Map<String, String> getTagAttributes() {
+        Map<String, String> tagAttr = CommandChainHandler.super.getTagAttributes();
+        tagAttr.put("uuid", this.getUuid().toString());
+        return tagAttr;
     }
 
 }

@@ -1,5 +1,6 @@
 package com.lhf;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -37,18 +38,21 @@ public interface Taggable {
     public static final class BasicTaggable implements Taggable {
         public final String tagName;
         public final String contents;
+        public final Map<String, String> tagAttributes;
 
-        public static BasicTaggable customTaggable(final String tagName, final String contents) {
-            return new BasicTaggable(tagName, contents);
+        public static BasicTaggable customTaggable(final String tagName, final String contents,
+                final Map<String, String> tagAttributes) {
+            return new BasicTaggable(tagName, contents, tagAttributes);
         }
 
         private BasicTaggable(final Taggable from) {
-            this(from.getTagName(), Taggable.extract(from));
+            this(from.getTagName(), Taggable.extract(from), from.getTagAttributes());
         }
 
-        private BasicTaggable(final String tagName, final String contents) {
+        private BasicTaggable(final String tagName, final String contents, final Map<String, String> tagAttributes) {
             this.tagName = tagName;
             this.contents = contents;
+            this.tagAttributes = Collections.unmodifiableMap(tagAttributes);
         }
 
         @Override
@@ -59,6 +63,11 @@ public interface Taggable {
         @Override
         public String getSimpleContent() {
             return this.contents;
+        }
+
+        @Override
+        public Map<String, String> getTagAttributes() {
+            return this.tagAttributes;
         }
 
         @Override

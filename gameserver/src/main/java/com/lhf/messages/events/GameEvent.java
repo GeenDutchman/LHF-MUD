@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -26,6 +26,7 @@ import org.w3c.dom.Element;
 import com.lhf.Examinable;
 import com.lhf.OutputBuilder;
 import com.lhf.Taggable;
+import com.lhf.Taggable.BasicTaggable;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
@@ -36,13 +37,13 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     public static abstract class Builder<T extends Builder<T>> {
         private GameEventType type;
         private boolean broadcast;
-        private Function<XMLOutputBuilder, Element> xmlCallbackFunction;
+        private Consumer<XMLOutputBuilder> xmlCallback;
         protected T thisObject;
 
         protected Builder(GameEventType type) {
             this.type = type;
             this.broadcast = false;
-            this.xmlCallbackFunction = null;
+            this.xmlCallback = null;
             this.thisObject = this.getThis();
         }
 
@@ -64,12 +65,12 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             return this.broadcast;
         }
 
-        public Function<XMLOutputBuilder, Element> getXmlCallbackFunction() {
-            return xmlCallbackFunction;
+        public Consumer<XMLOutputBuilder> getXmlCallback() {
+            return xmlCallback;
         }
 
-        public T setXmlCallbackFunction(Function<XMLOutputBuilder, Element> xmlCallbackFunction) {
-            this.xmlCallbackFunction = xmlCallbackFunction;
+        public T setXmlCallback(Consumer<XMLOutputBuilder> xmlCallbackFunction) {
+            this.xmlCallback = xmlCallbackFunction;
             return this.getThis();
         }
 
@@ -124,6 +125,10 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             return this;
         }
 
+        public XMLOutputBuilder appendChild(String toAdd) {
+            return this.appendString(toAdd, " ", null);
+        }
+
         @Override
         public XMLOutputBuilder appendString(String toAdd, String before, String after) {
             if (toAdd != null) {
@@ -138,10 +143,8 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             return this;
         }
 
-        public Element produceAppendedElement(String elementName) {
-            Element myElement = this.document.createElement(elementName);
-            this.root.appendChild(myElement);
-            return myElement;
+        public XMLOutputBuilder produceSubBuilder(String subName) {
+            return new XMLOutputBuilder(this.document, subName);
         }
 
         @Override
@@ -150,20 +153,15 @@ public abstract class GameEvent implements Comparable<GameEvent> {
                 if (before != null) {
                     this.root.appendChild(this.document.createTextNode(before));
                 }
-                Element myElement = this.produceAppendedElement(toAdd.getTagName());
+                XMLOutputBuilder myElement = this.produceSubBuilder(toAdd.getTagName());
                 final String name = toAdd.getName();
                 final String simpleContent = toAdd.getSimpleContent();
                 if (name != null && !name.equals(simpleContent)) {
-                    Element nameElement = this.document.createElement("name");
-                    nameElement.setAttribute("colored", "false");
-                    nameElement.appendChild(this.document.createTextNode(name));
-                    myElement.appendChild(nameElement);
+                    Taggable named = BasicTaggable.customTaggable("name", name, Map.of());
+                    myElement.appendTaggable(named);
                 }
                 if (simpleContent != null && !simpleContent.isEmpty() && !simpleContent.isBlank()) {
-                    myElement.appendChild(this.document.createTextNode(simpleContent));
-                }
-                if (myElement.getChildNodes().getLength() > 1) {
-                    myElement.setAttribute("complex", "true");
+                    myElement.appendString(simpleContent);
                 }
                 final Map<String, String> tagAttributes = toAdd.getTagAttributes();
                 if (tagAttributes != null) {
@@ -171,18 +169,16 @@ public abstract class GameEvent implements Comparable<GameEvent> {
                         final String key = entry.getKey();
                         final String value = entry.getValue();
                         if (key != null && value != null) {
-                            myElement.setAttribute(key, value);
+                            myElement.root.setAttribute(key, value);
                         }
                     }
                 }
 
                 final String description = toAdd.getDescription();
                 if (description != null && !description.isEmpty() && !description.isBlank()) {
-                    myElement.setAttribute("complex", "true");
-                    Element descriptionElement = this.document.createElement(XML_DESCRIPTION);
-                    descriptionElement.setAttribute("colored", "true");
-                    descriptionElement.appendChild(this.document.createTextNode(description.trim()));
-                    myElement.appendChild(descriptionElement);
+                    Taggable taggedDescription = BasicTaggable.customTaggable(XML_DESCRIPTION, description.trim(),
+                            Map.of());
+                    myElement.appendTaggable(taggedDescription);
                 }
 
                 toAdd.produceExtraDescription(this);
@@ -194,13 +190,18 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             return this;
         }
 
+        public XMLOutputBuilder appendChild(Taggable toAdd) {
+            return this.appendTaggable(toAdd, " ", null);
+        }
+
         @Override
         public XMLOutputBuilder appendTaggable(Taggable toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
                     this.root.appendChild(this.document.createTextNode(before));
                 }
-                Element myElement = this.produceAppendedElement(toAdd.getTagName());
+                Element myElement = this.document.createElement(toAdd.getTagName());
+                this.document.appendChild(myElement);
                 myElement.appendChild(this.document.createTextNode(toAdd.getSimpleContent()));
                 final Map<String, String> tagAttributes = toAdd.getTagAttributes();
                 if (tagAttributes != null) {
@@ -240,7 +241,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     private final Builder<?> builder;
     private final UUID uuid;
     private final SortedSet<GameEventProcessorID> haveRecieved;
-    private final Function<XMLOutputBuilder, Element> xmlCallbackFunction;
+    private final Consumer<XMLOutputBuilder> xmlCallback;
 
     public GameEvent(Builder<?> builder) {
         this.type = builder.getType();
@@ -248,7 +249,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         this.uuid = UUID.randomUUID();
         this.builder = builder;
         this.haveRecieved = Collections.synchronizedSortedSet(new TreeSet<>());
-        this.xmlCallbackFunction = builder.getXmlCallbackFunction();
+        this.xmlCallback = builder.getXmlCallback();
     }
 
     /**
@@ -325,8 +326,8 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     public final void buildXML() {
         XMLOutputBuilder builder = XMLOutputBuilder.StartEvent(this);
         this.buildOutput(builder);
-        if (this.xmlCallbackFunction != null) {
-            this.xmlCallbackFunction.apply(builder);
+        if (this.xmlCallback != null) {
+            this.xmlCallback.accept(builder);
         }
 
     }

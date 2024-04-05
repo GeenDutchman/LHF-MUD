@@ -9,8 +9,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.w3c.dom.Element;
-
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
@@ -23,6 +21,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
+import com.lhf.messages.events.GameEvent.XMLOutputBuilder;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.events.RoomEnteredEvent;
@@ -104,49 +103,45 @@ public class Trap extends InteractObject implements GameEventProcessor {
         final RollResult difficultyRoll = difficulty.rollDice();
         final boolean currentActivationState = this.isActivated();
         if (roll.getRoll() < difficultyRoll.getRoll()) {
-            builder.setPerformed().setXmlCallbackFunction(nodeGenerator -> {
+            builder.setPerformed().setXmlCallback(nodeGenerator -> {
                 if (nodeGenerator == null) {
-                    return null;
+                    return;
                 }
-                Element description = nodeGenerator.createElement("InteractionDescription");
-                description.appendChild(creature.buildXMLElement(nodeGenerator));
-                description.appendChild(nodeGenerator.createTextNode(" failed ()"));
-                description.appendChild(roll.buildXMLElement(nodeGenerator));
-                description.appendChild(nodeGenerator.createTextNode(" vs "));
-                description.appendChild(difficulty.buildXMLElement(nodeGenerator));
-                description.appendChild(nodeGenerator.createTextNode(
-                        String.format(") to %s the ", currentActivationState ? "deactivate" : "activate")));
-                description.appendChild(this.buildXMLElement(nodeGenerator));
-                return description;
+                XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                description.appendTaggable(creature);
+                description.appendString("failed (");
+                description.appendTaggable(roll);
+                description.appendString(" vs ");
+                description.appendTaggable(difficulty);
+                description.appendString(
+                        String.format(") to %s the ", currentActivationState ? "deactivate" : "activate"));
+                description.appendTaggable(this);
             });
         } else {
             if (this.interactCount > 1 && !this.isRepeatable()) {
-                builder.setSubType(InteractOutMessageType.USED_UP).setXmlCallbackFunction(nodeGenerator -> {
+                builder.setSubType(InteractOutMessageType.USED_UP).setXmlCallback(nodeGenerator -> {
                     if (nodeGenerator == null) {
-                        return null;
+                        return;
                     }
-                    Element description = nodeGenerator.createElement("InteractionDescription");
-                    description.appendChild(this.buildXMLElement(nodeGenerator));
-                    description.appendChild(
-                            nodeGenerator.createTextNode(" is not repeatable and thus cannot be interacted with."));
-                    return description;
+                    XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                    description.appendTaggable(this);
+                    description.appendString("is not repeatable and thus cannot be interacted with.");
                 });
             } else {
                 this.setActivated(!this.isActivated());
-                builder.setPerformed().setXmlCallbackFunction(nodeGenerator -> {
+                builder.setPerformed().setXmlCallback(nodeGenerator -> {
                     if (nodeGenerator == null) {
-                        return null;
+                        return;
                     }
-                    Element description = nodeGenerator.createElement("InteractionDescription");
-                    description.appendChild(creature.buildXMLElement(nodeGenerator));
-                    description.appendChild(nodeGenerator.createTextNode(" successfully ("));
-                    description.appendChild(roll.buildXMLElement(nodeGenerator));
-                    description.appendChild(nodeGenerator.createTextNode(" vs "));
-                    description.appendChild(difficulty.buildXMLElement(nodeGenerator));
-                    description.appendChild(nodeGenerator.createTextNode(
-                            String.format(") %s the ", currentActivationState ? "activated" : "deactivated")));
-                    description.appendChild(this.buildXMLElement(nodeGenerator));
-                    return description;
+                    XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                    description.appendTaggable(creature);
+                    description.appendString("successfully (");
+                    description.appendTaggable(roll);
+                    description.appendString(" vs ");
+                    description.appendTaggable(difficulty);
+                    description.appendString(
+                            String.format(") %s the ", currentActivationState ? "activated" : "deactivated"));
+                    description.appendTaggable(this);
                 });
             }
         }
@@ -202,22 +197,21 @@ public class Trap extends InteractObject implements GameEventProcessor {
                         final MultiRollResult finalTrapResult = trapResult;
                         final MultiRollResult finalCreatureResult = creatureResult;
                         ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this)
-                                .setPerformed().setXmlCallbackFunction(nodeGenerator -> {
+                                .setPerformed().setXmlCallback(nodeGenerator -> {
                                     if (nodeGenerator == null) {
-                                        return null;
+                                        return;
                                     }
-                                    Element description = nodeGenerator.createElement("InteractionDescription");
-                                    description.appendChild(creature.buildXMLElement(nodeGenerator));
-                                    description.appendChild(nodeGenerator.createTextNode(" dodged ("));
-                                    description.appendChild(finalCreatureResult != null
-                                            ? finalCreatureResult.buildXMLElement(nodeGenerator)
-                                            : nodeGenerator.createTextNode("effortlessly"));
-                                    description.appendChild(
-                                            finalTrapResult != null ? finalTrapResult.buildXMLElement(nodeGenerator)
-                                                    : nodeGenerator.createTextNode("not enough effort"));
-                                    description.appendChild(nodeGenerator.createTextNode(" from "));
-                                    description.appendChild(this.buildXMLElement(nodeGenerator));
-                                    return description;
+                                    XMLOutputBuilder description = nodeGenerator
+                                            .produceSubBuilder("InteractionDescription");
+                                    description.appendChild(creature);
+                                    description.appendChild("dodged (");
+                                    description = finalCreatureResult != null
+                                            ? description.appendChild(finalCreatureResult)
+                                            : description.appendChild("effortlessly");
+                                    description = finalTrapResult != null ? description.appendChild(finalTrapResult)
+                                            : description.appendChild("not enough effort");
+                                    description.appendChild("from");
+                                    description.appendChild(this);
                                 });
                         this.broadcast(creature, builder);
                     }

@@ -17,8 +17,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.w3c.dom.Element;
-
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreature.CreatureCommandHandler;
@@ -35,6 +33,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadGoEvent;
 import com.lhf.messages.events.BadGoEvent.BadGoType;
+import com.lhf.messages.events.GameEvent.XMLOutputBuilder;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.in.AMessageType;
@@ -112,15 +111,13 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
                 creatureVocation.onRestTick();
             }
             ItemInteractionEvent.Builder iom = ItemInteractionEvent.getBuilder().setPerformed().setInteractor(occupant)
-                    .setXmlCallbackFunction(nodeGenerator -> {
+                    .setXmlCallback(nodeGenerator -> {
                         if (nodeGenerator == null) {
-                            return null;
+                            return;
                         }
-                        Element sleep = nodeGenerator.createElement("SleepHealing");
-                        sleep.appendChild(nodeGenerator.createTextNode("You slept and got back "));
-                        sleep.appendChild(sleepCheck.buildXMLElement(nodeGenerator));
-                        sleep.appendChild(nodeGenerator.createTextNode(" hit points!"));
-                        return sleep;
+                        nodeGenerator.appendString("You slept and got back");
+                        nodeGenerator.appendTaggable(sleepCheck);
+                        nodeGenerator.appendString("hit points!");
                     }).setTaggable(Bed.this);
             ICreature.eventAccepter.accept(this.occupant, iom.Build());
         }
@@ -233,14 +230,13 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         if (this.addCreature(creature)) {
             builder.setPerformed();
             if (this.area != null) {
-                builder.setBroacast().setXmlCallbackFunction(nodeGenerator -> {
+                builder.setBroacast().setXmlCallback(nodeGenerator -> {
                     if (nodeGenerator == null) {
-                        return null;
+                        return;
                     }
-                    Element description = nodeGenerator.createElement("InteractionDescription");
-                    description.appendChild(creature.buildXMLElement(nodeGenerator));
-                    description.appendChild(nodeGenerator.createTextNode(" got in the bed!"));
-                    return description;
+                    XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                    description.appendTaggable(creature);
+                    description.appendString("got in the bed!");
                 });
                 Area.eventAccepter.accept(this.area, builder.Build());
             }
