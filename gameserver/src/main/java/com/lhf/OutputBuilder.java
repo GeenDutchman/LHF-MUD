@@ -121,7 +121,7 @@ public interface OutputBuilder {
             this.sequences = new ArrayList<>();
             if (name != null) {
                 StringBuilder builder = new StringBuilder();
-                builder.append(name).append(":\r\n");
+                builder.append("\r\n").append(name).append(":\r\n");
                 this.sequences.add(builder.toString());
             }
         }

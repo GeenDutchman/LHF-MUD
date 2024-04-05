@@ -10,12 +10,11 @@ import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.lhf.OutputBuilder;
+import com.lhf.Taggable;
+import com.lhf.Taggable.BasicTaggable;
 import com.lhf.game.battle.BattleStats.BattleStatRecord;
 import com.lhf.game.battle.BattleStats.BattleStatRecord.BattleStat;
-import com.lhf.game.creature.vocation.Vocation;
 import com.lhf.messages.GameEventType;
 
 public class BattleStatsRequestedEvent extends GameEvent {
@@ -111,60 +110,48 @@ public class BattleStatsRequestedEvent extends GameEvent {
     }
 
     @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement == null) {
-            return myElement;
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
         if (this.records.isEmpty()) {
-            return myElement;
+            builder.appendString("No records found.");
+            return;
         }
         if (this.roundCount.isPresent()) {
-            Element round = nodeGenerator.createElement("Round");
-            round.setTextContent(this.roundCount.get().toString());
-            myElement.appendChild(round);
+            builder.appendTaggable(Taggable.BasicTaggable.customTaggable("Round", this.roundCount.get().toString()),
+                    " Round:", null);
         }
         if (this.turnCount.isPresent()) {
-            Element turn = nodeGenerator.createElement("Turn");
-            turn.setTextContent(this.turnCount.get().toString());
-            myElement.appendChild(turn);
+            builder.appendTaggable(Taggable.BasicTaggable.customTaggable("Turn", this.turnCount.get().toString()),
+                    " Turn:", null);
         }
-        Element battleStats = nodeGenerator.createElement("BattleStats");
-        for (final BattleStatRecord record : this.records) {
-            Element battleStat = nodeGenerator.createElement("BattleStat");
-            Element targetName = nodeGenerator.createElement("TargetName");
-            targetName.setTextContent(record.getTargetName());
-            battleStat.appendChild(targetName);
-            Element faction = nodeGenerator.createElement("Faction");
-            faction.setTextContent(record.getFaction().toString());
-            battleStat.appendChild(faction);
-            final Vocation vocation = record.getVocation();
-            Element vocationElement = nodeGenerator.createElement("Vocation");
-            vocationElement.setTextContent(vocation != null ? vocation.getName() : "null");
-            battleStat.appendChild(vocationElement);
-            Element bucket = nodeGenerator.createElement("HealthBucket");
-            bucket.setTextContent(record.getBucket().toString());
-            battleStat.appendChild(bucket);
-            Element stats = nodeGenerator.createElement("Stats");
-            for (final Entry<BattleStat, Integer> entry : record.getStats().entrySet()) {
-                Element stat = nodeGenerator.createElement(entry.getKey().toString());
-                stat.appendChild(nodeGenerator.createTextNode(entry.getValue().toString()));
-                stats.appendChild(stat);
+        OutputBuilder battleStats = builder.produceSubBuilder("BattleStats");
+        for (final BattleStatRecord battleStatRecord : records) {
+            OutputBuilder battleStat = battleStats.produceSubBuilder("BattleStatRecord");
+            battleStat.appendTaggable(BasicTaggable.customTaggable("TargetName", battleStatRecord.getTargetName()));
+            battleStat
+                    .appendTaggable(BasicTaggable.customTaggable("Faction", battleStatRecord.getFaction().toString()));
+            battleStat.appendTaggable(battleStatRecord.getVocation());
+            battleStat.appendTaggable(battleStatRecord.getBucket());
+            OutputBuilder stats = battleStat.produceSubBuilder("Stats");
+            for (final Entry<BattleStat, Integer> entry : battleStatRecord.getStats().entrySet()) {
+                final String key = entry.getKey().toString();
+                final String value = entry.getValue().toString();
+                OutputBuilder stat = stats.produceSubBuilder(key);
+                stat.appendString(key);
+                stat.appendString(value, ":", null);
             }
-            battleStat.appendChild(stats);
-            battleStats.appendChild(battleStat);
         }
-        myElement.appendChild(battleStats);
-        return myElement;
     }
 
     @Override
-    public String printString() {
+    public String toString() {
         String header = "";
         if (this.records.size() > 0) {
             header = HEADER_STRING + "\n" + DELINEATOR_STRING + "\n";
         }
-        StringJoiner sj = new StringJoiner("\n", "<BattleStats>\nBattle Statistics\n" + header, "\n</BattleStats>")
+        StringJoiner sj = new StringJoiner("\n", "Battle Statistics\n" + header, "\n")
                 .setEmptyValue("No statistics found.");
         this.records.stream().forEach(record -> {
             ArrayList<Object> toFormat = new ArrayList<>();
@@ -182,11 +169,6 @@ public class BattleStatsRequestedEvent extends GameEvent {
             sj.add("Turn: " + String.valueOf(this.turnCount.get()));
         }
         return sj.toString();
-    }
-
-    @Override
-    public String toString() {
-        return this.printString();
     }
 
     public Collection<BattleStatRecord> getRecords() {

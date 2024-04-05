@@ -109,11 +109,11 @@ public class BattleRoundEvent extends GameEvent {
                 builder.appendString("had not submitted any action for the round.");
                 break;
             case PERFORMED:
-                this.posessiveCreature(builder, about);
+                this.possesiveCreature(builder, about);
                 builder.appendString("action for the round has been performed.");
                 break;
             case ACCEPTED:
-                this.posessiveCreature(builder, about);
+                this.possesiveCreature(builder, about);
                 builder.appendString("action has been submitted for the round.");
                 break;
             case REJECTED:

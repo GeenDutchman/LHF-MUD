@@ -1,8 +1,6 @@
 package com.lhf.messages.events;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventType;
 
@@ -55,25 +53,16 @@ public class BattleStartedEvent extends GameEvent {
     }
 
     @Override
-    public String printString() {
-        if (!this.isBroadcast()) {
-            return "You are in the fight!";
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        return this.instigator.getName() + " started a fight!";
-    }
-
-    @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement != null) {
-            if (this.isBroadcast()) {
-                myElement.appendChild(this.instigator.buildXMLElement(nodeGenerator));
-                myElement.appendChild(nodeGenerator.createTextNode(" started a fight!"));
-            } else {
-                myElement.appendChild(nodeGenerator.createTextNode("You are in the fight!"));
-            }
+        if (this.isBroadcast()) {
+            builder.appendTaggable(instigator);
+            builder.appendString("started a fight!");
+        } else {
+            builder.appendString("You are in the fight!");
         }
-        return myElement;
     }
 
 }
