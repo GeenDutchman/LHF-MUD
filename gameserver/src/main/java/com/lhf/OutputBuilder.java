@@ -1,5 +1,6 @@
 package com.lhf;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedSet;
@@ -104,12 +105,35 @@ public interface OutputBuilder {
         return this;
     }
 
-    public static class StringOutputBuilder implements OutputBuilder {
-        private StringBuilder builder = new StringBuilder();
+    public abstract OutputBuilder produceSubBuilder(String subName);
+
+    public static class StringOutputBuilder implements OutputBuilder, CharSequence {
+        private final String builderName;
+        private final List<CharSequence> sequences;
+
+        public StringOutputBuilder() {
+            this.builderName = null;
+            this.sequences = new ArrayList<>();
+        }
+
+        public StringOutputBuilder(String name) {
+            this.builderName = name;
+            this.sequences = new ArrayList<>();
+            if (name != null) {
+                StringBuilder builder = new StringBuilder();
+                builder.append(name).append(":\r\n");
+                this.sequences.add(builder.toString());
+            }
+        }
+
+        public String getBuilderName() {
+            return builderName;
+        }
 
         @Override
         public OutputBuilder appendString(String toAdd, String before, String after) {
             if (toAdd != null) {
+                StringBuilder builder = new StringBuilder();
                 if (before != null) {
                     builder.append(before);
                 }
@@ -117,6 +141,7 @@ public interface OutputBuilder {
                 if (after != null) {
                     builder.append(after);
                 }
+                this.sequences.add(builder.toString());
             }
             return this;
         }
@@ -124,18 +149,21 @@ public interface OutputBuilder {
         @Override
         public OutputBuilder appendExaminable(Examinable toAdd, String before, String after) {
             if (toAdd != null) {
+                StringBuilder builder = new StringBuilder();
                 if (before != null) {
                     builder.append(before);
                 }
                 builder.append(toAdd.getName());
                 final String description = toAdd.getDescription();
                 if (description != null && !description.isBlank()) {
-                    builder.append("\r\ndescription:").append(description);
+                    OutputBuilder descriptBuilder = this.produceSubBuilder("Description");
+                    descriptBuilder.appendString(description);
                 }
                 toAdd.produceExtraDescription(this);
                 if (after != null) {
                     builder.append(after);
                 }
+                this.sequences.add(builder);
             }
             return this;
         }
@@ -143,6 +171,7 @@ public interface OutputBuilder {
         @Override
         public OutputBuilder appendTaggable(Taggable toAdd, String before, String after) {
             if (toAdd != null) {
+                StringBuilder builder = new StringBuilder();
                 if (before != null) {
                     builder.append(before);
                 }
@@ -150,12 +179,46 @@ public interface OutputBuilder {
                 if (after != null) {
                     builder.append(after);
                 }
+                this.sequences.add(builder);
             }
             return this;
         }
 
+        @Override
+        public OutputBuilder produceSubBuilder(String subName) {
+            StringOutputBuilder sub = new StringOutputBuilder(subName);
+            this.sequences.add(sub);
+            return sub;
+        }
+
         public String build() {
-            return builder.toString();
+            return this.toString();
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            for (final CharSequence charSequence : sequences) {
+                if (charSequence != null) {
+                    sb.append(charSequence);
+                }
+            }
+            return sb.toString();
+        }
+
+        @Override
+        public char charAt(int arg0) {
+            return this.toString().charAt(arg0);
+        }
+
+        @Override
+        public int length() {
+            return this.toString().length();
+        }
+
+        @Override
+        public CharSequence subSequence(int arg0, int arg1) {
+            return this.toString().subSequence(arg0, arg1);
         }
 
     }

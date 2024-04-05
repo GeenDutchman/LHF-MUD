@@ -144,6 +144,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             return this;
         }
 
+        @Override
         public XMLOutputBuilder produceSubBuilder(String subName) {
             return new XMLOutputBuilder(this.document, subName);
         }
@@ -299,7 +300,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         return builder;
     }
 
-    protected final OutputBuilder posessiveCreature(OutputBuilder builder, ICreature creature) {
+    protected final OutputBuilder possesiveCreature(OutputBuilder builder, ICreature creature) {
         return this.possesiveCreature(builder, creature, true);
     }
 
