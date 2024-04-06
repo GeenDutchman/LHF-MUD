@@ -1,8 +1,6 @@
 package com.lhf.messages.events;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.lhf.OutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.messages.GameEventType;
 
@@ -88,27 +86,15 @@ public class ItemNotPossessedEvent extends GameEvent {
     }
 
     @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement == null) {
-            return myElement;
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
         if (this.found == null) {
-            myElement.appendChild(nodeGenerator
-                    .createTextNode(String.format("You do not have that %s named %s.", this.itemType, this.itemName)));
+            builder.appendString(String.format("You do not have that %s named %s.", this.itemType, this.itemName));
         } else {
-            myElement.appendChild(this.found.buildXMLElement(nodeGenerator));
-            myElement.appendChild(nodeGenerator.createTextNode(String.format(" is not a %s", this.itemType)));
+            builder.appendTaggable(this.found).appendString(String.format("is not a %s", this.itemType));
         }
-        return myElement;
-    }
-
-    @Override
-    public String printString() {
-        if (this.found == null) {
-            return "You do not have that " + this.itemType.toString() + " named '" + this.itemName.toString() + "'";
-        }
-        return this.found.getSimpleContent() + " is not a " + this.itemType.toString();
     }
 
 }

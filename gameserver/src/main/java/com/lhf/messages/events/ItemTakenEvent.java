@@ -6,6 +6,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.lhf.Examinable;
+import com.lhf.OutputBuilder;
 import com.lhf.game.item.IItem;
 import com.lhf.messages.GameEventType;
 
@@ -112,55 +113,53 @@ public class ItemTakenEvent extends GameEvent {
     }
 
     @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement == null) {
-            return myElement;
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
         if (this.subType == null) {
-            myElement.appendChild(nodeGenerator.createTextNode("You tried to take an item. "));
+            builder.appendString("You tried to take an item.");
             if (this.attemptedName != null) {
-                myElement.appendChild(nodeGenerator.createTextNode(
-                        String.format("You tried to take it using the name: %s. ", this.attemptedName)));
+                builder.appendString(String.format("You tried to take it using the name: %s. ", this.attemptedName));
             }
             if (this.item != null) {
-                myElement.appendChild(nodeGenerator.createTextNode("You found this item:"));
-                myElement.appendChild(this.item.buildXMLElement(nodeGenerator));
+                builder.appendString("You found this item:").appendTaggable(item);
             }
-            return myElement;
+            return;
         }
-        myElement.setAttribute("TakeOutType", this.subType.toString());
         switch (this.subType) {
         case FOUND_TAKEN:
-            myElement.appendChild(this.item != null ? this.item.buildXMLElement(nodeGenerator)
-                    : nodeGenerator.createTextNode("Item"));
-            myElement.appendChild(nodeGenerator.createTextNode(
-                    String.format(" successfully taken%s.", this.source != null ? " from " + this.source : "")));
-            return myElement;
+            if (this.item != null) {
+                builder.appendTaggable(item);
+            } else {
+                builder.appendString("Item");
+            }
+            builder.appendString(
+                    String.format(" successfully taken%s.", this.source != null ? " from " + this.source : ""));
+
+            return;
         case NOT_FOUND:
-            myElement.appendChild(nodeGenerator.createTextNode(String.format("Could not find that item %sin %s.",
+            builder.appendString(String.format("Could not find that item %sin %s.",
                     this.attemptedName != null ? "'" + this.attemptedName + "' " : "",
-                    this.source != null ? this.source : "this room")));
+                    this.source != null ? this.source : "this room"));
 
-            return myElement;
+            return;
         case SHORT:
-            myElement.appendChild(nodeGenerator.createTextNode(String.format("You'll need to be more specific than %s!",
-                    this.attemptedName != null ? "'" + this.attemptedName + "'" : "that")));
+            builder.appendString(String.format("You'll need to be more specific than %s!",
+                    this.attemptedName != null ? "'" + this.attemptedName + "'" : "that"));
 
-            return myElement;
+            return;
         case INVALID:
-            myElement.appendChild(nodeGenerator.createTextNode(String.format("I don't think %s is a valid name.",
-                    this.attemptedName != null ? "'" + this.attemptedName + "'" : "that")));
-            return myElement;
+            builder.appendString(String.format("I don't think %s is a valid name.",
+                    this.attemptedName != null ? "'" + this.attemptedName + "'" : "that"));
+            return;
         case GREEDY:
-            myElement.appendChild(nodeGenerator
-                    .createTextNode(String.format("Aren't you being a bit greedy there by trying to grab %s?",
-                            this.attemptedName != null ? "'" + this.attemptedName + "'" : "that")));
-            return myElement;
+            builder.appendString(String.format("Aren't you being a bit greedy there by trying to grab %s?",
+                    this.attemptedName != null ? "'" + this.attemptedName + "'" : "that"));
+            return;
 
         case NOT_TAKEABLE:
-            myElement.appendChild(
-                    nodeGenerator.createTextNode("That's strange--it's stuck in its place. You can't take the"));
+            builder.appendString("That's strange--it's stuck in its place. You can't take the");
             myElement.appendChild(this.item != null ? this.item.buildXMLElement(nodeGenerator)
                     : nodeGenerator.createTextNode("item"));
             return myElement;
@@ -195,6 +194,27 @@ public class ItemTakenEvent extends GameEvent {
             }
             return myElement;
         }
+    }
+
+    @Override
+    public Element buildXMLElement(Document nodeGenerator) {
+        Element myElement = this.produceContentNode(nodeGenerator);
+        if (myElement == null) {
+            return myElement;
+        }
+        if (this.subType == null) {
+            myElement.appendChild(nodeGenerator.createTextNode("You tried to take an item. "));
+            if (this.attemptedName != null) {
+                myElement.appendChild(nodeGenerator.createTextNode());
+            }
+            if (this.item != null) {
+                myElement.appendChild(nodeGenerator.createTextNode("You found this item:"));
+                myElement.appendChild(this.item.buildXMLElement(nodeGenerator));
+            }
+            return myElement;
+        }
+        myElement.setAttribute("TakeOutType", this.subType.toString());
+
     }
 
     @Override

@@ -10,6 +10,10 @@ public interface OutputBuilder {
         return this.appendString(toAdd, " ", null);
     }
 
+    public default OutputBuilder appendChild(String toAdd) {
+        return this.appendString(toAdd, " ", null);
+    }
+
     public OutputBuilder appendString(String toAdd, String before, String after);
 
     public default OutputBuilder appendExaminable(Examinable toAdd) {
@@ -20,6 +24,10 @@ public interface OutputBuilder {
 
     public default OutputBuilder appendTaggable(Taggable toAdd) {
         return this.appendTaggable(toAdd, " ", null);
+    }
+
+    public default OutputBuilder appendChild(Taggable toAdd) {
+        return this.appendTaggable(toAdd);
     }
 
     public OutputBuilder appendTaggable(Taggable toAdd, String before, String after);
