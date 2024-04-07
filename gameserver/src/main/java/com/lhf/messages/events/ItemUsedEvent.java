@@ -1,10 +1,6 @@
 package com.lhf.messages.events;
 
-import java.util.StringJoiner;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.lhf.OutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.Usable;
@@ -122,94 +118,77 @@ public class ItemUsedEvent extends GameEvent {
         return message;
     }
 
-    private String printItem() {
-        return this.usable != null ? this.usable.getName() : "item";
-    }
-
     @Override
     public String toString() {
         return this.printString();
     }
 
     @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement == null) {
-            return myElement;
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
         if (this.subType == null) {
-            myElement.appendChild(this.addressCreatureXML(nodeGenerator, itemUser, true));
-            myElement.appendChild(nodeGenerator.createTextNode(" used this "));
-            myElement.appendChild(this.usable != null ? this.usable.buildXMLElement(nodeGenerator)
-                    : nodeGenerator.createTextNode("item"));
-            if (this.target != null) {
-                myElement.appendChild(nodeGenerator.createTextNode(" on "));
-                myElement.appendChild(this.target.buildXMLElement(nodeGenerator));
+            this.addressCreature(builder, itemUser);
+            builder.appendString(" used this ");
+            if (this.usable != null) {
+                builder.appendTaggable(this.usable);
+            } else {
+                builder.appendString("item");
             }
-            myElement.appendChild(nodeGenerator.createTextNode("."));
+            if (this.target != null) {
+                builder.appendString(" on ");
+                builder.appendTaggable(this.target);
+            }
+            builder.appendString(".", null, null);
         } else {
-            myElement.setAttribute("UseOutMessageOption", this.subType.toString());
             switch (this.subType) {
-            case NO_USES:
-                myElement.appendChild(nodeGenerator.createTextNode("You cannot use this "));
-                myElement.appendChild(this.usable != null ? this.usable.buildXMLElement(nodeGenerator)
-                        : nodeGenerator.createTextNode("item"));
-                myElement.appendChild(nodeGenerator.createTextNode(" like that!"));
-                break;
-            case USED_UP:
-                myElement.appendChild(nodeGenerator.createTextNode("This "));
-                myElement.appendChild(this.usable != null ? this.usable.buildXMLElement(nodeGenerator)
-                        : nodeGenerator.createTextNode("item"));
-                myElement.appendChild(nodeGenerator.createTextNode(" has been used up."));
-                break;
-            case REQUIRE_EQUIPPED:
-                myElement.appendChild(nodeGenerator.createTextNode("YOu need to have this "));
-                myElement.appendChild(this.usable != null ? this.usable.buildXMLElement(nodeGenerator)
-                        : nodeGenerator.createTextNode("item"));
-                myElement.appendChild(nodeGenerator.createTextNode(" equipped in order to use it!"));
-                break;
-            case OK:
-            default:
-                myElement.appendChild(this.addressCreatureXML(nodeGenerator, itemUser, true));
-                myElement.appendChild(nodeGenerator.createTextNode(" used this "));
-                myElement.appendChild(this.usable != null ? this.usable.buildXMLElement(nodeGenerator)
-                        : nodeGenerator.createTextNode("item"));
-                if (this.target != null) {
-                    myElement.appendChild(nodeGenerator.createTextNode(" on "));
-                    myElement.appendChild(this.target.buildXMLElement(nodeGenerator));
-                }
-                myElement.appendChild(nodeGenerator.createTextNode("."));
+                case NO_USES:
+                    builder.appendString("You cannot use this ");
+                    if (this.usable != null) {
+                        builder.appendTaggable(this.usable);
+                    } else {
+                        builder.appendString("item");
+                    }
+                    builder.appendString(" like that!");
+                    break;
+                case USED_UP:
+                    builder.appendString("This ");
+                    if (this.usable != null) {
+                        builder.appendTaggable(this.usable);
+                    } else {
+                        builder.appendString("item");
+                    }
+                    builder.appendString(" has been used up.");
+                    break;
+                case REQUIRE_EQUIPPED:
+                    builder.appendString("YOu need to have this ");
+                    if (this.usable != null) {
+                        builder.appendTaggable(this.usable);
+                    } else {
+                        builder.appendString("item");
+                    }
+                    builder.appendString(" equipped in order to use it!");
+                    break;
+                case OK:
+                default:
+                    this.addressCreature(builder, itemUser);
+                    builder.appendString(" used this ");
+                    if (this.usable != null) {
+                        builder.appendTaggable(this.usable);
+                    } else {
+                        builder.appendString("item");
+                    }
+                    if (this.target != null) {
+                        builder.appendString(" on ");
+                        builder.appendTaggable(this.target);
+                    }
+                    builder.appendString(".", null, null);
             }
         }
         if (this.message != null && !this.message.isBlank()) {
-            myElement.appendChild(nodeGenerator.createTextNode(this.message));
+            builder.appendString(this.message);
         }
-        return myElement;
     }
 
-    @Override
-    public String printString() {
-        StringJoiner sj = new StringJoiner(" ");
-        if (this.subType == null) {
-            sj.add(this.addressCreature(this.itemUser, true)).add("used this")
-                    .add(this.printItem() + (this.target != null ? "on " + this.target.getSimpleContent() + "." : "."));
-        } else {
-            switch (this.subType) {
-            case NO_USES:
-                sj.add("You cannot use this").add(this.printItem()).add("like that!");
-            case USED_UP:
-                sj.add("This").add(this.printItem()).add("has been used up.");
-            case REQUIRE_EQUIPPED:
-                sj.add("You need to have this").add(this.printItem()).add("equipped in order to use it!");
-            case OK:
-            default:
-                sj.add(this.addressCreature(this.itemUser, true)).add("used this").add(
-                        this.printItem() + (this.target != null ? "on " + this.target.getSimpleContent() + "." : "."));
-            }
-        }
-        if (this.message != null && !this.message.isBlank()) {
-            sj.add(this.getMessage());
-        }
-        return sj.toString();
-    }
 }

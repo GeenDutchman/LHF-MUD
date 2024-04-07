@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.messages.GameEventType;
 
@@ -51,20 +52,18 @@ public class PlayerReincarnatedEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("*******************************X_X*********************************************").append("\r\n");
-        sb.append(this.taggedName).append(", You have died. Out of mercy you have been reborn back where you began.");
-        return sb.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        builder.appendString("*******************************X_X*********************************************")
+                .appendString("\r\n");
+        builder.appendString(taggedName)
+                .appendString(", You have died. Out of mercy you have been reborn back where you began.", null, null);
     }
 
     public String getTaggedName() {
         return taggedName;
-    }
-
-    @Override
-    public String print() {
-        return this.toString();
     }
 
 }
