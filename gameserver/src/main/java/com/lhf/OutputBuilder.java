@@ -45,9 +45,13 @@ public interface OutputBuilder {
             if (empty != null) {
                 this.appendString(empty);
             }
+        } else if (taggables.size() == 1) {
+            this.appendTaggable(taggables.stream().findAny().get());
         } else {
+            boolean first = true;
             for (Taggable taggable : taggables) {
-                this.appendTaggable(taggable).appendString(separator);
+                this.appendTaggable(taggable, first ? " " : separator, null);
+                first = false;
             }
         }
         if (after != null) {

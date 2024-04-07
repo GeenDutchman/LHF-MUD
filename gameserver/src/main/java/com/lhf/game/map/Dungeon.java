@@ -336,7 +336,7 @@ public class Dungeon implements Land {
             nextLife.setSuccessor(this.getStartingArea());
             oldLife.disconnectController(); // events will now not go anywhere
             ICreature.eventAccepter.accept(nextLife,
-                    PlayerReincarnatedEvent.getBuilder().setTaggedName(creature).setNotBroadcast().Build());
+                    PlayerReincarnatedEvent.getBuilder().setCreature(creature).setNotBroadcast().Build());
             // ICreature.eventAccepter.accept(nextLife,
             // SeeEvent.getBuilder().setExaminable(startingRoom).Build());
             this.addPlayer(nextLife);
