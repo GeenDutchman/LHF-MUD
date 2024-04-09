@@ -115,7 +115,7 @@ public class BattleTurnHandler extends AIHandler {
         bai.log(Level.WARNING, () -> String.format("Unable to attack anyone, passing: %s", bai.ProcessString("PASS")));
     }
 
-    // Returns empty if not to flee, otherwise populated with "flee <direction>"
+    // Returns empty if not to flee, otherwise populated with "flee [direction]"
     private Optional<String> processFlee(Optional<BattleStatsRequestedEvent> battleMemories, HarmMemories harmMemories,
             CreatureFaction myFaction) {
         if (battleMemories.isEmpty()) {

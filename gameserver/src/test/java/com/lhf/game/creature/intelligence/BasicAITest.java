@@ -53,7 +53,7 @@ public class BasicAITest {
     void testBasicConversation() {
         AIComBundle listener = new AIComBundle();
         INonPlayerCharacter speaker = Mockito.mock(INonPlayerCharacter.class);
-        Mockito.when(speaker.getSimpleContent()).thenReturn("<npc>Joe Speaker</npc>");
+        Mockito.when(speaker.getSimpleContent()).thenReturn("Joe Speaker");
         Mockito.when(speaker.getTagName()).thenReturn("npc");
         ClientID clientID = new ClientID();
         Mockito.when(speaker.getClientID()).thenReturn(clientID);
