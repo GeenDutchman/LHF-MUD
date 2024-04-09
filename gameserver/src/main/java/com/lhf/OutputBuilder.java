@@ -175,7 +175,7 @@ public interface OutputBuilder {
                 if (after != null) {
                     builder.append(after);
                 }
-                this.sequences.add(builder);
+                this.sequences.add(builder.toString());
             }
             return this;
         }
@@ -191,7 +191,7 @@ public interface OutputBuilder {
                 if (after != null) {
                     builder.append(after);
                 }
-                this.sequences.add(builder);
+                this.sequences.add(builder.toString());
             }
             return this;
         }
@@ -212,7 +212,7 @@ public interface OutputBuilder {
             StringBuilder sb = new StringBuilder();
             for (final CharSequence charSequence : sequences) {
                 if (charSequence != null) {
-                    sb.append(charSequence);
+                    sb.append(charSequence.toString());
                 }
             }
             return sb.toString();
