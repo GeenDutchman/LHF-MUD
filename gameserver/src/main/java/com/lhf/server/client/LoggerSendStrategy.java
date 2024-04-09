@@ -25,9 +25,9 @@ public class LoggerSendStrategy implements SendStrategy {
     @Override
     public void send(GameEvent toSend) {
         if (this.logInstance != null) {
-            this.logInstance.log(this.sendLevel, toSend::printString);
+            this.logInstance.log(this.sendLevel, toSend::toString);
         } else {
-            System.out.println(toSend.printString());
+            System.out.println(toSend.toString());
             System.out.flush();
         }
     }

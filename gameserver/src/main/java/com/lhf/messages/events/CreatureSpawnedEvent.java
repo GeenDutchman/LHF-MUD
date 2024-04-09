@@ -60,11 +60,6 @@ public class CreatureSpawnedEvent extends GameEvent {
         this.creature = builder.getCreature();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public String getCreatureName() {
         return creatureName;
     }

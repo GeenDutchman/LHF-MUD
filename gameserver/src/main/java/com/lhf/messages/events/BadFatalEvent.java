@@ -65,11 +65,6 @@ public class BadFatalEvent extends GameEvent {
         this.exception = builder.getException();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public String getExtraInfo() {
         return extraInfo;
     }

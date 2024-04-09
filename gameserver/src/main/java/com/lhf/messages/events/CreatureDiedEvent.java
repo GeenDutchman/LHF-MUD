@@ -86,11 +86,6 @@ public class CreatureDiedEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        return this.printString();
-    }
-
-    @Override
     public TickType getTickType() {
         return TickType.DEATH;
     }

@@ -99,11 +99,6 @@ public class ItemUnequippedEvent extends GameEvent {
         }
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public IItem getItem() {
         return item;
     }
@@ -144,31 +139,31 @@ public class ItemUnequippedEvent extends GameEvent {
             }
         } else {
             switch (this.subType) {
-                case SUCCESS:
-                    builder.appendString("You have unequipped your");
-                    this.describeItem(builder);
-                    break;
-                case ITEM_NOT_EQUIPPED:
-                    builder.appendString("Your ");
-                    this.describeItem(builder);
-                    builder.appendString(" is not equipped");
-                    break;
-                case ITEM_NOT_FOUND:
-                    builder.appendString("That ");
-                    this.describeItem(builder);
-                    builder.appendString(" was not found");
-                    break;
-                default:
-                    builder.appendString("You tried to unequip an item ");
-                    if (this.attemptedName != null && !this.attemptedName.isBlank()) {
-                        builder.appendString(String.format("with the name of %s ", this.attemptedName));
-                    }
-                    if (this.item != null) {
-                        builder.appendString("and an item ");
-                        builder.appendTaggable(item);
-                        builder.appendString(" was found");
-                    }
-                    break;
+            case SUCCESS:
+                builder.appendString("You have unequipped your");
+                this.describeItem(builder);
+                break;
+            case ITEM_NOT_EQUIPPED:
+                builder.appendString("Your ");
+                this.describeItem(builder);
+                builder.appendString(" is not equipped");
+                break;
+            case ITEM_NOT_FOUND:
+                builder.appendString("That ");
+                this.describeItem(builder);
+                builder.appendString(" was not found");
+                break;
+            default:
+                builder.appendString("You tried to unequip an item ");
+                if (this.attemptedName != null && !this.attemptedName.isBlank()) {
+                    builder.appendString(String.format("with the name of %s ", this.attemptedName));
+                }
+                if (this.item != null) {
+                    builder.appendString("and an item ");
+                    builder.appendTaggable(item);
+                    builder.appendString(" was found");
+                }
+                break;
             }
         }
         if (this.slot != null) {

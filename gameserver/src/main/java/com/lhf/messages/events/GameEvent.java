@@ -324,7 +324,8 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     }
 
     // Called to render as a human-readable string
-    public final String printString() {
+    @Override
+    public final String toString() {
         StringOutputBuilder stringOut = new OutputBuilder.StringOutputBuilder();
         this.buildOutput(stringOut);
         return stringOut.build();

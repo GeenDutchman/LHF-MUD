@@ -185,11 +185,6 @@ public class SpellCastingEvent extends GameEvent {
         this.extras = builder.getExtras();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public Collection<Taggable> getTargets() {
         return Collections.unmodifiableCollection(targets);
     }

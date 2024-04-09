@@ -73,9 +73,4 @@ public class BattleRoundWastedEvent extends BattleRoundEvent {
         super.buildOutput(builder);
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
 }

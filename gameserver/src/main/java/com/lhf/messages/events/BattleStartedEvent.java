@@ -43,11 +43,6 @@ public class BattleStartedEvent extends GameEvent {
         this.instigator = builder.getInstigator();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public ICreature getInstigator() {
         return instigator;
     }

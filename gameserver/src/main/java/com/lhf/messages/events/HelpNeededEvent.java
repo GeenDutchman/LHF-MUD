@@ -89,11 +89,6 @@ public class HelpNeededEvent extends GameEvent {
         this.singleHelp = builder.getSingleHelp();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public Map<AMessageType, String> getHelps() {
         return helps;
     }

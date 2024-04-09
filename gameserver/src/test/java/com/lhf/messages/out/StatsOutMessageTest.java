@@ -16,7 +16,7 @@ public class StatsOutMessageTest {
         builder.addRecord(new BattleStatRecord("harvey", CreatureFaction.MONSTER, new Fighter(),
                 HealthBuckets.CRITICALLY_INJURED));
         BattleStatsRequestedEvent message = builder.Build();
-        String messageString = message.print();
+        String messageString = message.toString();
         Truth.assertThat(messageString).contains(CreatureFaction.MONSTER.name());
     }
 }

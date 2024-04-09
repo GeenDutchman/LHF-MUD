@@ -81,11 +81,6 @@ public class ItemNotPossessedEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        return this.printString();
-    }
-
-    @Override
     public void buildOutput(OutputBuilder builder) {
         if (builder == null) {
             return;

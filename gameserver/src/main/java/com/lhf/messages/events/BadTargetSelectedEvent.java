@@ -78,11 +78,6 @@ public class BadTargetSelectedEvent extends GameEvent {
         this.possibleTargets = builder.getPossibleTargets();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public BadTargetOption getBde() {
         return bde;
     }

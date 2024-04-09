@@ -72,11 +72,6 @@ public class ItemDroppedEvent extends GameEvent {
         this.dropType = builder.getDropType();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public Taggable getItem() {
         return item;
     }

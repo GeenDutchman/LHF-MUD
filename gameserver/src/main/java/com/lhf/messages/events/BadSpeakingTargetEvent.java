@@ -62,11 +62,6 @@ public class BadSpeakingTargetEvent extends GameEvent {
         this.msg = temp.toString();
     }
 
-    @Override
-    public String toString() {
-        return msg;
-    }
-
     public String getCreatureName() {
         return creatureName;
     }

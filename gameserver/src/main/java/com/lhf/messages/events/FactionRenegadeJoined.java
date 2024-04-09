@@ -45,11 +45,6 @@ public class FactionRenegadeJoined extends GameEvent {
         this.turned = builder.getTurned();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public ICreature getTurned() {
         return this.turned;
     }

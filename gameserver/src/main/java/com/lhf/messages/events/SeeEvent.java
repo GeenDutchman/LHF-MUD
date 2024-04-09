@@ -139,11 +139,6 @@ public class SeeEvent extends GameEvent {
         this.effects = builder.getEffects();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public Examinable getExaminable() {
         return this.examinable;
     }

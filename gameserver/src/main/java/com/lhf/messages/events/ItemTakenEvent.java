@@ -90,11 +90,6 @@ public class ItemTakenEvent extends GameEvent {
         this.source = builder.getSource();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public String getAttemptedName() {
         return this.attemptedName;
     }
@@ -123,72 +118,70 @@ public class ItemTakenEvent extends GameEvent {
             return;
         }
         switch (this.subType) {
-            case FOUND_TAKEN:
-                if (this.item != null) {
-                    builder.appendTaggable(item);
-                } else {
-                    builder.appendString("Item");
-                }
-                builder.appendString(
-                        String.format(" successfully taken%s.", this.source != null ? " from " + this.source : ""));
+        case FOUND_TAKEN:
+            if (this.item != null) {
+                builder.appendTaggable(item);
+            } else {
+                builder.appendString("Item");
+            }
+            builder.appendString(
+                    String.format(" successfully taken%s.", this.source != null ? " from " + this.source : ""));
 
-                return;
-            case NOT_FOUND:
-                builder.appendString(String.format("Could not find that item %sin %s.",
-                        this.attemptedName != null ? "'" + this.attemptedName + "' " : "",
-                        this.source != null ? this.source : "this room"));
+            return;
+        case NOT_FOUND:
+            builder.appendString(String.format("Could not find that item %sin %s.",
+                    this.attemptedName != null ? "'" + this.attemptedName + "' " : "",
+                    this.source != null ? this.source : "this room"));
 
-                return;
-            case SHORT:
-                builder.appendString(String.format("You'll need to be more specific than %s!",
-                        this.attemptedName != null ? "'" + this.attemptedName + "'" : "that"));
+            return;
+        case SHORT:
+            builder.appendString(String.format("You'll need to be more specific than %s!",
+                    this.attemptedName != null ? "'" + this.attemptedName + "'" : "that"));
 
-                return;
-            case INVALID:
-                builder.appendString(String.format("I don't think %s is a valid name.",
-                        this.attemptedName != null ? "'" + this.attemptedName + "'" : "that"));
-                return;
-            case GREEDY:
-                builder.appendString(String.format("Aren't you being a bit greedy there by trying to grab %s?",
-                        this.attemptedName != null ? "'" + this.attemptedName + "'" : "that"));
-                return;
+            return;
+        case INVALID:
+            builder.appendString(String.format("I don't think %s is a valid name.",
+                    this.attemptedName != null ? "'" + this.attemptedName + "'" : "that"));
+            return;
+        case GREEDY:
+            builder.appendString(String.format("Aren't you being a bit greedy there by trying to grab %s?",
+                    this.attemptedName != null ? "'" + this.attemptedName + "'" : "that"));
+            return;
 
-            case NOT_TAKEABLE:
-                builder.appendString("That's strange--it's stuck in its place. You can't take the");
-                if (this.item != null) {
-                    builder.appendTaggable(item);
-                } else {
-                    builder.appendString("item;");
-                }
-                return;
-            case UNCLEVER:
-                builder.appendString(String.format("Are you trying to be too clever with %s?",
-                        this.attemptedName != null ? "'" + this.attemptedName + "'" : "that"));
-                return;
+        case NOT_TAKEABLE:
+            builder.appendString("That's strange--it's stuck in its place. You can't take the");
+            if (this.item != null) {
+                builder.appendTaggable(item);
+            } else {
+                builder.appendString("item;");
+            }
+            return;
+        case UNCLEVER:
+            builder.appendString(String.format("Are you trying to be too clever with %s?",
+                    this.attemptedName != null ? "'" + this.attemptedName + "'" : "that"));
+            return;
 
-            case BAD_CONTAINER:
-                builder.appendString(
-                        String.format("You attempted to take %s from an unrecognized container or source%s.",
-                                this.attemptedName != null ? "'" + this.attemptedName + "'" : "that",
-                                this.source != null ? this.source : ""));
-                return;
+        case BAD_CONTAINER:
+            builder.appendString(String.format("You attempted to take %s from an unrecognized container or source%s.",
+                    this.attemptedName != null ? "'" + this.attemptedName + "'" : "that",
+                    this.source != null ? this.source : ""));
+            return;
 
-            case LOCKED_CONTAINER:
-                builder.appendString(String.format("You attempted to take %s from %s but it is locked.",
-                        this.attemptedName != null ? "'" + this.attemptedName + "'" : "that",
-                        this.source != null ? this.source : "some container"));
-                return;
+        case LOCKED_CONTAINER:
+            builder.appendString(String.format("You attempted to take %s from %s but it is locked.",
+                    this.attemptedName != null ? "'" + this.attemptedName + "'" : "that",
+                    this.source != null ? this.source : "some container"));
+            return;
 
-            default:
-                builder.appendString("You tried to take an item.");
-                if (this.attemptedName != null) {
-                    builder.appendString(
-                            String.format("You tried to take it using the name: %s. ", this.attemptedName));
-                }
-                if (this.item != null) {
-                    builder.appendString("You found this item:").appendTaggable(item);
-                }
-                return;
+        default:
+            builder.appendString("You tried to take an item.");
+            if (this.attemptedName != null) {
+                builder.appendString(String.format("You tried to take it using the name: %s. ", this.attemptedName));
+            }
+            if (this.item != null) {
+                builder.appendString("You found this item:").appendTaggable(item);
+            }
+            return;
         }
     }
 

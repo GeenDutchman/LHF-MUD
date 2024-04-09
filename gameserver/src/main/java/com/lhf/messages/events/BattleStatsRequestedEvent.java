@@ -145,8 +145,7 @@ public class BattleStatsRequestedEvent extends GameEvent {
         }
     }
 
-    @Override
-    public String toString() {
+    public String printString() {
         String header = "";
         if (this.records.size() > 0) {
             header = HEADER_STRING + "\n" + DELINEATOR_STRING + "\n";

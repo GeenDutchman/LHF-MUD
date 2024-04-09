@@ -90,11 +90,6 @@ public class ItemInteractionEvent extends GameEvent {
         this.description = builder.getDescription();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public ICreature getInteractor() {
         return interactor;
     }

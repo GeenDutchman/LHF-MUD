@@ -131,11 +131,6 @@ public class LewdEvent extends GameEvent {
         }
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public LewdOutMessageType getSubType() {
         return subType;
     }
@@ -165,67 +160,66 @@ public class LewdEvent extends GameEvent {
             return;
         }
         switch (this.subType) {
-            case DENIED:
-                if (this.creature != null) {
-                    builder.appendTaggable(this.creature);
-                    builder.appendString(" does not wish to do it or is wearing ARMOR and cannot participate. ");
-                    this.buildStatus(builder);
-                } else {
-                    builder.appendString("No one wants to do it.");
-                }
-                break;
-            case ACCEPTED:
-                if (this.creature != null) {
-                    builder.appendTaggable(this.creature);
-                    builder.appendString("is excited to join!");
-                    this.buildStatus(builder);
-                } else {
-                    builder.appendString("Let's do it!");
-                }
-                break;
-            case PROPOSED:
-                if (this.creature != null) {
-                    builder.appendTaggable(creature);
-                    builder.appendString("has asked to lewd");
-                    this.buildAboutParty(builder, entry -> !LewdAnswer.DENIED.equals(entry.getValue()));
-                    builder.appendString("!", null, "\r\n");
-                } else {
-                    builder.appendString("There is a proposal to be lewd!\r\n");
-                }
-                builder.appendString(
-                        "You can agree by entering \"lewd\", or you can pass on all lewding by entering \"pass\". ");
-                builder.appendString("If in the lucky circumstance you are in more than one group,")
-                        .appendString(
-                                " enter \"lewd\" followed by a comma separated list of who you want to be with! \r\n");
+        case DENIED:
+            if (this.creature != null) {
+                builder.appendTaggable(this.creature);
+                builder.appendString(" does not wish to do it or is wearing ARMOR and cannot participate. ");
                 this.buildStatus(builder);
-                break;
-            case DUNNIT:
-                builder.appendString("A blur covers");
-                this.buildAboutParty(builder, entry -> LewdAnswer.ACCEPTED.equals(entry.getValue()));
-                builder.appendString("as they do it!");
-                break;
-            case NOT_READY:
-                builder.appendString("Your").appendTaggable(EquipmentSlots.ARMOR).appendString(
-                        " equipment slot must be empty in order to participate and you must be in bed and not in a fight! ");
-                builder.appendString(" The same goes for everyone you invite!");
-                break;
-            case NO_BODY:
-                builder.appendString("You need to have a body in order to participate in that! ");
-                break;
-            case ORGY_UNSUPPORTED:
-                builder.appendString("You are trying to lewd too many people! Perhaps you need to be more selective? ");
-                break;
-            case SOLO_UNSUPPORTED:
-                builder.appendString("Your lewdness is meant to be shared!  Don't go flyin' solo!");
-                break;
-            case MISSED:
-                builder.appendString("It looks like that lewdness has already been lewded. ");
-                break;
-            case STATUS:
-                // fallthrough
-            default:
+            } else {
+                builder.appendString("No one wants to do it.");
+            }
+            break;
+        case ACCEPTED:
+            if (this.creature != null) {
+                builder.appendTaggable(this.creature);
+                builder.appendString("is excited to join!");
                 this.buildStatus(builder);
-                break;
+            } else {
+                builder.appendString("Let's do it!");
+            }
+            break;
+        case PROPOSED:
+            if (this.creature != null) {
+                builder.appendTaggable(creature);
+                builder.appendString("has asked to lewd");
+                this.buildAboutParty(builder, entry -> !LewdAnswer.DENIED.equals(entry.getValue()));
+                builder.appendString("!", null, "\r\n");
+            } else {
+                builder.appendString("There is a proposal to be lewd!\r\n");
+            }
+            builder.appendString(
+                    "You can agree by entering \"lewd\", or you can pass on all lewding by entering \"pass\". ");
+            builder.appendString("If in the lucky circumstance you are in more than one group,").appendString(
+                    " enter \"lewd\" followed by a comma separated list of who you want to be with! \r\n");
+            this.buildStatus(builder);
+            break;
+        case DUNNIT:
+            builder.appendString("A blur covers");
+            this.buildAboutParty(builder, entry -> LewdAnswer.ACCEPTED.equals(entry.getValue()));
+            builder.appendString("as they do it!");
+            break;
+        case NOT_READY:
+            builder.appendString("Your").appendTaggable(EquipmentSlots.ARMOR).appendString(
+                    " equipment slot must be empty in order to participate and you must be in bed and not in a fight! ");
+            builder.appendString(" The same goes for everyone you invite!");
+            break;
+        case NO_BODY:
+            builder.appendString("You need to have a body in order to participate in that! ");
+            break;
+        case ORGY_UNSUPPORTED:
+            builder.appendString("You are trying to lewd too many people! Perhaps you need to be more selective? ");
+            break;
+        case SOLO_UNSUPPORTED:
+            builder.appendString("Your lewdness is meant to be shared!  Don't go flyin' solo!");
+            break;
+        case MISSED:
+            builder.appendString("It looks like that lewdness has already been lewded. ");
+            break;
+        case STATUS:
+            // fallthrough
+        default:
+            this.buildStatus(builder);
+            break;
         }
     }
 

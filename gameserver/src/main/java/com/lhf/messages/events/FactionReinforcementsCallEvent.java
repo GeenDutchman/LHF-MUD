@@ -54,11 +54,6 @@ public class FactionReinforcementsCallEvent extends GameEvent {
         this.caller = builder.getCaller();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public ICreature getCaller() {
         return caller;
     }

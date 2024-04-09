@@ -65,11 +65,6 @@ public class InventoryRequestedEvent extends GameEvent {
         this.equipment = builder.getEquipment();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public Collection<Takeable> getItems() {
         return items;
     }

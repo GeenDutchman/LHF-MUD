@@ -56,11 +56,6 @@ public class BattleJoinedEvent extends GameEvent {
         this.ongoing = builder.isOngoing();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public ICreature getJoiner() {
         return joiner;
     }

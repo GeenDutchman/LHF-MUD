@@ -81,11 +81,6 @@ public class BadGoEvent extends GameEvent {
         this.available = builder.getAvailable();
     }
 
-    @Override
-    public String toString() {
-        return this.printString();
-    }
-
     public Directions getAttempted() {
         return attempted;
     }
