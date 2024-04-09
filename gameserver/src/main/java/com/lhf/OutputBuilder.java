@@ -203,7 +203,7 @@ public interface OutputBuilder {
             return sub;
         }
 
-        public String build() {
+        public String printString() {
             return this.toString();
         }
 

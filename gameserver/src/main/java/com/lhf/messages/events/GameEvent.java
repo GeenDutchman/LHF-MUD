@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.Map;
@@ -9,6 +10,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -244,6 +247,18 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             transformer.transform(new DOMSource(document), new StreamResult(writer));
         }
 
+        public String getXMLString() {
+            StringWriter writer = new StringWriter();
+            try {
+                this.getXMLString(writer);
+                return writer.toString();
+            } catch (ParserConfigurationException | TransformerException e) {
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, e,
+                        () -> "Error printing this: " + this.toString() + " falling back to plain string");
+            }
+            return this.stringified.printString();
+        }
+
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
@@ -342,7 +357,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     public final String toString() {
         StringOutputBuilder stringOut = new OutputBuilder.StringOutputBuilder();
         this.buildOutput(stringOut);
-        return stringOut.build();
+        return stringOut.printString();
     }
 
     public abstract void buildOutput(OutputBuilder builder);
