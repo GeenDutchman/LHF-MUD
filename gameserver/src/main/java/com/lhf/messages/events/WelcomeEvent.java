@@ -1,7 +1,7 @@
 package com.lhf.messages.events;
 
-import java.util.StringJoiner;
-
+import com.lhf.OutputBuilder;
+import com.lhf.Taggable;
 import com.lhf.messages.GameEventType;
 
 public class WelcomeEvent extends GameEvent {
@@ -41,21 +41,22 @@ public class WelcomeEvent extends GameEvent {
         super(builder);
     }
 
-    public String toString() {
-        StringJoiner sj = new StringJoiner("\r\n");
-        sj.add("Welcome to <title>LHF MUD</title>!");
-        sj.add("<description>This is an old-school text-based adventure where multiple users can interact as they trawl the Dungeons of Ibaif!</description>");
-        sj.add("If you wish to have fun with us, either log on or create a user.");
-        sj.add("To create a user, use the command:");
-        sj.add("<command>create \"[username]\" with \"[password]\"</command>");
-        sj.add("If you wish to leave at any time, simply type:");
-        sj.add("<command>exit</command>");
-
-        return sj.toString();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        builder.appendString("Welcome to").appendTaggable(Taggable.BasicTaggable.customTaggable("title", "LHF MUD"),
+                " ", "!\r\n");
+        builder.appendTaggable(Taggable.BasicTaggable.customTaggable("description",
+                "This is an old-school text-based adventure where multiple users can interact as they trawl the Dungeons of Ibaif!"),
+                " ", "\r\n");
+        builder.appendString("If you wish to have fun with us, either log on or create a user.", null, "\r\n");
+        builder.appendString("To create a user, use the command:", null, "\r\n");
+        builder.appendTaggable(
+                Taggable.BasicTaggable.customTaggable("command", "create \"[username]\" with \"[password]\""), null,
+                "\r\n");
+        builder.appendString("If you wish to leave at any time, simply type:", null, "\r\n");
+        builder.appendTaggable(Taggable.BasicTaggable.customTaggable("command", "exit"), null, "\r\n");
     }
 
-    @Override
-    public String print() {
-        return this.toString();
-    }
 }

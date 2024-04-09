@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.messages.GameEventType;
 
 public class UserAbsentEvent extends GameEvent {
@@ -28,12 +29,13 @@ public class UserAbsentEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        return "You have neither created nor logged in as a User, so you can't do much yet.\r\nTry running 'CREATE <username> with <password>'\r\n";
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        builder.appendString("You have neither created nor logged in as a User, so you can't do much yet.\r\n");
+        builder.appendString("Try running `CREATE [username] with [password]` \r\n");
+        builder.appendString("For example: `create Someone with iHaveTheBestPassword`\r\n");
     }
 
-    @Override
-    public String print() {
-        return this.toString();
-    }
 }

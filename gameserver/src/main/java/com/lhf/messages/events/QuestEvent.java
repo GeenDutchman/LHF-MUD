@@ -1,10 +1,6 @@
 package com.lhf.messages.events;
 
-import java.util.StringJoiner;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.QuestEffect;
 import com.lhf.game.creature.QuestSource;
@@ -126,44 +122,23 @@ public class QuestEvent extends GameEvent {
     }
 
     @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement == null) {
-            return myElement;
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        myElement.setAttribute("QuestEventType",
-                this.questEventType != null ? this.questEventType.toString() : QuestEventType.VIEWED.toString());
-        myElement.appendChild(this.addressCreatureXML(nodeGenerator, this.whoseQuest, isBroadcast()));
-        myElement.appendChild(nodeGenerator.createTextNode(
-                this.questEventType != null ? this.questEventType.toString() : QuestEventType.VIEWED.toString()));
-        if (this.questDescription != null && !this.isBroadcast()) {
-            myElement.appendChild(
-                    nodeGenerator.createTextNode(String.format(" a quest described by: %s", this.questDescription)));
-        } else if (this.questName != null) {
-            myElement.appendChild(nodeGenerator.createTextNode(String.format(" a quest named %s", this, questName)));
-        } else {
-            myElement.appendChild(nodeGenerator.createTextNode(" a quest"));
-        }
-        return myElement;
-    }
-
-    @Override
-    public String printString() {
-        StringJoiner sj = new StringJoiner(" ");
-        sj.add(this.addressCreature(this.whoseQuest, isBroadcast()));
+        this.addressCreature(builder, whoseQuest);
         if (this.questEventType == null) {
-            sj.add(QuestEventType.VIEWED.toString());
+            builder.appendString(QuestEventType.VIEWED.toString());
         } else {
-            sj.add(this.questEventType.toString());
+            builder.appendString(this.questEventType.toString());
         }
         if (this.questDescription != null && !this.isBroadcast()) {
-            sj.add("a quest described by: ").add(this.questDescription);
+            builder.appendString("a quest described by:").appendString(questDescription);
         } else if (this.questName != null) {
-            sj.add("a quest named").add(this.questName);
+            builder.appendString("a quest named").appendString(questName);
         } else {
-            sj.add("a quest");
+            builder.appendString("a quest");
         }
-        return sj.toString();
     }
 
 }

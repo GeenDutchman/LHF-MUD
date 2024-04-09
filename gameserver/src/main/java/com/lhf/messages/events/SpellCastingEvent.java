@@ -4,11 +4,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.StringJoiner;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.lhf.OutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.magic.SpellEntry;
@@ -41,69 +38,37 @@ public class SpellCastingEvent extends GameEvent {
             this.suffix = suffix;
         }
 
-        private String listTargets(String caster, Collection<Taggable> targets) {
-            if (targets == null || targets.isEmpty()) {
-                return "";
+        public void buildOutput(OutputBuilder builder, ICreature caster, Collection<Taggable> targets) {
+            if (builder == null || caster == null || targets == null || targets.isEmpty()) {
+                return;
             }
-            StringBuilder sb = new StringBuilder(this.prefix);
-            sb.append(caster != null ? caster : "Someone").append(this.infix);
-            if (this.forEach) {
-                StringJoiner sj = new StringJoiner(this.suffix + " " + sb.toString(), sb.toString(), this.suffix);
-                for (Taggable taggable : targets) {
-                    sj.add(taggable.getSimpleContent());
-                }
-                return sj.toString();
-            } else {
-                StringJoiner sj = new StringJoiner(", ", sb.toString(), this.suffix);
-                for (Taggable taggable : targets) {
-                    sj.add(taggable.getSimpleContent());
-                }
-                return sj.toString();
-            }
-
-        }
-
-        public Element buildXMLElement(Document nodeGenerator, ICreature caster, Collection<Taggable> targets) {
-            if (nodeGenerator == null || caster == null || targets == null || targets.isEmpty()) {
-                return null;
-            }
-            Element myElement = nodeGenerator.createElement("targeting");
-            myElement.setAttribute("colored", "false");
             if (this.forEach) {
                 for (Taggable taggable : targets) {
-                    Element each = nodeGenerator.createElement("singleTarget");
-                    each.setAttribute("colored", "false");
-                    each.setAttribute("complex", "true");
                     if (this.prefix != null) {
-                        each.appendChild(nodeGenerator.createTextNode(this.prefix));
+                        builder.appendString(this.prefix);
                     }
-                    each.appendChild(caster.buildXMLElement(nodeGenerator));
+                    builder.appendTaggable(caster);
                     if (this.infix != null) {
-                        each.appendChild(nodeGenerator.createTextNode(this.infix));
+                        builder.appendString(infix);
                     }
-                    each.appendChild(taggable.buildXMLElement(nodeGenerator));
+                    builder.appendTaggable(taggable);
                     if (this.suffix != null) {
-                        each.appendChild(nodeGenerator.createTextNode(this.suffix));
+                        builder.appendString(suffix);
                     }
-                    myElement.appendChild(each);
                 }
             } else {
-                myElement.setAttribute("complex", "true");
                 if (this.prefix != null) {
-                    myElement.appendChild(nodeGenerator.createTextNode(this.prefix));
+                    builder.appendString(this.prefix);
                 }
-                myElement.appendChild(caster.buildXMLElement(nodeGenerator));
+                builder.appendTaggable(caster);
                 if (this.infix != null) {
-                    myElement.appendChild(nodeGenerator.createTextNode(this.infix));
+                    builder.appendString(infix);
                 }
-                for (Taggable taggable : targets) {
-                    myElement.appendChild(taggable.buildXMLElement(nodeGenerator));
-                }
+                builder.appendTaggables(targets);
                 if (this.suffix != null) {
-                    myElement.appendChild(nodeGenerator.createTextNode(this.suffix));
+                    builder.appendString(suffix);
                 }
             }
-            return myElement;
         }
 
     }
@@ -242,56 +207,26 @@ public class SpellCastingEvent extends GameEvent {
     }
 
     @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        if (nodeGenerator == null) {
-            return null;
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        Element myElement = this.produceContentNode(nodeGenerator);
-        myElement.setAttribute("complex", "true");
-        myElement.appendChild(this.addressCreatureXML(nodeGenerator, caster, true));
-        myElement.appendChild(nodeGenerator.createTextNode(" casts "));
+        this.addressCreature(builder, caster);
+        builder.appendString("casts");
         if (this.spellEntry != null) {
-            myElement.appendChild(
-                    this.spellEntry.buildXMLElement(nodeGenerator).appendChild(nodeGenerator.createTextNode("!")));
+            builder.appendTaggable(this.spellEntry);
         } else {
-            myElement.appendChild(nodeGenerator.createTextNode("a spell!"));
+            builder.appendString("a spell");
         }
+        builder.appendString("!", null, "\r\n");
         final TargetingStyle style = this.getTargetingStyle();
         final Collection<Taggable> foundTargets = this.getTargets();
         if (foundTargets != null && !foundTargets.isEmpty()) {
-            myElement.appendChild(style.buildXMLElement(nodeGenerator, caster, foundTargets));
+            style.buildOutput(builder, caster, foundTargets);
         }
         if (this.extras != null) {
-            Element extraElement = nodeGenerator
-                    .createElement(this.caster != null ? this.caster.getTagName() : "extras");
-            extraElement.setAttribute("colored", "true");
-            extraElement.appendChild(nodeGenerator.createTextNode(this.extras));
-            myElement.appendChild(extraElement);
+            builder.appendString(extras, "\r\n", null);
         }
-        return myElement;
-    }
-
-    @Override
-    public String printString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(this.addressCreature(caster, true));
-        sb.append(" casts ");
-        if (this.spellEntry != null) {
-            sb.append(this.spellEntry.getName());
-        } else {
-            sb.append("a spell");
-        }
-        sb.append("!");
-        final TargetingStyle style = this.getTargetingStyle();
-        final Collection<Taggable> foundTargets = this.getTargets();
-        if (foundTargets != null && !foundTargets.isEmpty()) {
-            sb.append("\r\n");
-            sb.append(style.listTargets(this.addressCreature(caster, true), foundTargets));
-        }
-        if (this.extras != null) {
-            sb.append("\r\n").append(this.extras);
-        }
-        return sb.toString();
     }
 
 }

@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.messages.GameEventType;
 import com.lhf.server.client.CommandInvoker;
 
@@ -80,21 +81,22 @@ public class SpeakingEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
         if (this.sayer != null) {
-            sb.append(this.sayer.getColorTaggedName());
+            builder.appendTaggable(sayer);
         } else {
-            sb.append("Someone");
+            builder.appendString("Someone");
         }
         if (this.shouting) {
-            sb.append(" SHOUTS ");
+            builder.appendString("SHOUTS");
         }
         if (this.hearer != null) {
-            sb.append(" to ").append(this.hearer.getColorTaggedName());
+            builder.appendTaggable(hearer, " to ", null);
         }
-        sb.append(":").append(this.message);
-        return sb.toString();
+        builder.appendString(message, ":", null);
     }
 
     public String getMessage() {
@@ -113,8 +115,4 @@ public class SpeakingEvent extends GameEvent {
         return shouting;
     }
 
-    @Override
-    public String print() {
-        return this.toString();
-    }
 }

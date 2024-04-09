@@ -1,8 +1,6 @@
 package com.lhf.messages.events;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.TickType;
 import com.lhf.messages.GameEventType;
 
@@ -64,13 +62,8 @@ public class TickEvent extends GameEvent {
     }
 
     @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        return null;
-    }
-
-    @Override
-    public String printString() {
-        return "";
+    public void buildOutput(OutputBuilder builder) {
+        return;
     }
 
 }

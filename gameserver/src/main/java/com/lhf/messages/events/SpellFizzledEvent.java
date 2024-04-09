@@ -1,7 +1,6 @@
 package com.lhf.messages.events;
 
-import java.util.StringJoiner;
-
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.dice.MultiRollResult;
 import com.lhf.messages.GameEventType;
@@ -87,41 +86,41 @@ public class SpellFizzledEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        StringJoiner sj = new StringJoiner(" ");
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
         if (this.isBroadcast()) {
             if (this.attempter != null) {
-                sj.add(this.attempter.getColorTaggedName());
+                builder.appendTaggable(attempter);
             } else {
-                sj.add("Someone");
+                builder.appendString("Someone");
             }
-            sj.add(" mumbles and tries to cast a spell...nothing spectacular happens.");
-            return sj.toString();
+            builder.appendString(" mumbles and tries to cast a spell...nothing spectacular happens.");
         }
         if (this.subType == null) {
-            sj.add("Weird, that spell should have done something.");
+            builder.appendString("Weird, that spell should have done something.");
         } else {
             switch (this.subType) {
-                case NOT_CASTER:
-                    sj.add("You are not a caster type, so you cannot cast spells.");
-                case BAD_POWER:
-                    sj.add("You have insufficient power to cast that spell.");
-                case NOT_SPELL:
-                    sj.add("That is not a spell that you can cast.");
-                case MISPRONOUNCE:
-                    sj.add("You did not invoke a spell properly");
-                case OTHER:
-                default:
-                    sj.add("Weird, that spell should have done something.");
+            case NOT_CASTER:
+                builder.appendString("You are not a caster type, so you cannot cast spells.");
+            case BAD_POWER:
+                builder.appendString("You have insufficient power to cast that spell.");
+            case NOT_SPELL:
+                builder.appendString("That is not a spell that you can cast.");
+            case MISPRONOUNCE:
+                builder.appendString("You did not invoke a spell properly");
+            case OTHER:
+            default:
+                builder.appendString("Weird, that spell should have done something.");
             }
         }
         if (this.offense != null) {
-            sj.add("The attempt was so good:").add(this.offense.toString());
+            builder.appendString("The attempt was so good:").appendTaggable(this.offense);
         }
         if (this.defense != null) {
-            sj.add("The defense was like so:").add(this.defense.toString());
+            builder.appendString("The defense was like so:").appendTaggable(this.defense);
         }
-        return sj.toString();
     }
 
     public SpellFizzleType getSubType() {
@@ -138,11 +137,6 @@ public class SpellFizzledEvent extends GameEvent {
 
     public MultiRollResult getDefense() {
         return defense;
-    }
-
-    @Override
-    public String print() {
-        return this.toString();
     }
 
 }

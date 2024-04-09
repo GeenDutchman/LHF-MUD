@@ -2,9 +2,9 @@ package com.lhf.messages.events;
 
 import java.util.Collections;
 import java.util.NavigableSet;
-import java.util.StringJoiner;
 import java.util.TreeSet;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.magic.SpellEntry;
 import com.lhf.messages.GameEventType;
 
@@ -86,19 +86,23 @@ public class SpellEntryRequestedEvent extends GameEvent {
     }
 
     @Override
-    public String toString() {
-        StringJoiner sj = new StringJoiner("\r\n").setEmptyValue("No spells found.");
-        for (SpellEntry entry : this.getEntries()) {
-            sj.add(entry.getColorTaggedName()).add("\r\n");
-            sj.add(entry.getInvocation()).add("\r\n");
-            sj.add(entry.getDescription());
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
         }
-        return (this.cubeHolder ? "" : "Only cubeholders can cast spells. ") + sj.toString();
-    }
-
-    @Override
-    public String print() {
-        return this.toString();
+        if (!this.cubeHolder) {
+            builder.appendString("Only cubeholders can cast spells.\r\n");
+        }
+        final NavigableSet<SpellEntry> retrievedEntries = this.getEntries();
+        if (retrievedEntries != null && !retrievedEntries.isEmpty()) {
+            for (SpellEntry entry : retrievedEntries) {
+                OutputBuilder subBuilder = builder.produceSubBuilder(entry.getName());
+                subBuilder.appendExaminable(entry);
+                subBuilder.appendString("Invocation:").appendString(entry.getInvocation(), null, "\r\n");
+            }
+        } else {
+            builder.appendString("No spells found");
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 package com.lhf.messages.events;
 
+import com.lhf.OutputBuilder;
 import com.lhf.messages.GameEventType;
 import com.lhf.server.client.user.User;
 
@@ -42,23 +43,24 @@ public class UserLeftEvent extends GameEvent {
         this.user = builder.getUser();
     }
 
-    public String toString() {
+    @Override
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
         if (this.isBroadcast()) {
             if (this.user != null) {
-                return user.getUsername() + " has left the server\r\n";
+                builder.appendTaggable(user).appendString("has left the server\r\n");
+                return;
             }
-            return "Goodbye, whoever it was that just left!";
+            builder.appendString("Goodbye, whoever it was that jsut left!");
+            return;
         }
-        return "Goodbye, we hope to see you again soon!";
+        builder.appendString("Goodbye, we hope to see you again soon!");
     }
 
     public User getUser() {
         return user;
-    }
-
-    @Override
-    public String print() {
-        return this.toString();
     }
 
 }

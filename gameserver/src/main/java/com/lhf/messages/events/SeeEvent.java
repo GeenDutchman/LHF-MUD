@@ -7,10 +7,8 @@ import java.util.NavigableMap;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import com.lhf.Examinable;
+import com.lhf.OutputBuilder;
 import com.lhf.Taggable;
 import com.lhf.game.EntityEffectSource;
 import com.lhf.game.TickType;
@@ -141,163 +139,6 @@ public class SeeEvent extends GameEvent {
         this.effects = builder.getEffects();
     }
 
-    private StringJoiner listTaggables(StringJoiner sj) {
-        for (String category : this.seenCategorized.keySet()) {
-            List<Taggable> taggedlist = this.seenCategorized.get(category);
-            if (taggedlist == null || taggedlist.size() <= 0) {
-                continue;
-            }
-            SeeCategory categorized = SeeCategory.getSeeCategory(category);
-            if (categorized == null) {
-                if (category == null) {
-                    sj.add(SeeCategory.OTHER.toString());
-                } else {
-                    sj.add(category);
-                }
-            }
-            sj.add("\r\n");
-            for (Taggable taggable : taggedlist) {
-                sj.add(taggable.getSimpleContent());
-            }
-            sj.add("\r\n");
-        }
-        return sj;
-    }
-
-    private String listEffectors() {
-        StringJoiner sj = new StringJoiner("\r\n");
-        if (this.effects != null && this.effects.size() > 0) {
-            sj.add("Effects that you can see:");
-            for (EntityEffectSource entityEffect : this.effects) {
-                sj.add(entityEffect.toString());
-            }
-        }
-        return sj.toString();
-    }
-
-    private Element buildXMLListedTaggablesElement(Document nodeGenerator) {
-        if (nodeGenerator == null) {
-            return null;
-        }
-        Element listElement = nodeGenerator.createElement("listedTaggables");
-        listElement.setAttribute("colored", "false");
-        for (String category : this.seenCategorized.keySet()) {
-            List<Taggable> taggedlist = this.seenCategorized.get(category);
-            if (taggedlist == null || taggedlist.size() <= 0) {
-                continue;
-            }
-            Element listedItem = null;
-            SeeCategory categorized = SeeCategory.getSeeCategory(category);
-            if (categorized == null) {
-                if (category == null) {
-                    listedItem = nodeGenerator.createElement("OTHER");
-                    listedItem.appendChild(nodeGenerator.createTextNode("Other things that you can see:"));
-                } else {
-                    listedItem = nodeGenerator.createElement(category);
-                }
-            } else {
-                listedItem = nodeGenerator.createElement(categorized.toString());
-                switch (categorized) {
-                case DIRECTION:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Available Directions:")));
-                    break;
-                case CREATURE:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Creatures that you can see:")));
-                    break;
-                case PLAYER:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Players that you can see:")));
-                    break;
-                case NPC:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Non Player Characters that you can see:")));
-                    break;
-                case MONSTER:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Monsters that you can see:")));
-                    break;
-                case ROOM_ITEM:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Objects that you can see:")));
-                    break;
-                case TAKEABLE:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Items that you can see:")));
-                    break;
-                case EFFECTS:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Effects that you know of:")));
-                    break;
-                case EQUIPMENT_SLOTS:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Equipment slots it will use:")));
-                    break;
-                case PROFICIENCIES:
-                    listedItem
-                            .appendChild(nodeGenerator.createTextNode(("Proficiencies you will need for proper use:")));
-                    break;
-                case STATS:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Stats that will change:")));
-                    break;
-                case DAMAGES:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Causes damage like:")));
-                    break;
-                case ATTRIBUTE_SCORE:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Changes to attribute scores:")));
-                    break;
-                case ATTRIBUTE_BONUS:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Changes to attribute bonuses:")));
-                    break;
-                case INVISIBLE_CREATURE:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Invisible creatures that you can see:")));
-                    break;
-                case INVISIBLE_ROOM_ITEM:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Invisible objects that you can see:")));
-                    break;
-                case INVISIBLE_TAKEABLE:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Invisible items that you can see:")));
-                    break;
-                case OTHER:
-                default:
-                    listedItem.appendChild(nodeGenerator.createTextNode(("Other things that you can see:")));
-                    break;
-                }
-            }
-            for (Taggable taggable : taggedlist) {
-                listedItem.appendChild(taggable.buildXMLElement(nodeGenerator));
-            }
-            listElement.appendChild(listedItem);
-        }
-        return listElement;
-    }
-
-    @Override
-    public Element buildXMLElement(Document nodeGenerator) {
-        Element myElement = this.produceContentNode(nodeGenerator);
-        if (myElement == null) {
-            return myElement;
-        }
-        if (this.isDenied()) {
-            myElement.setTextContent(this.deniedReason);
-            return myElement;
-        }
-        if (this.examinable == null) {
-            myElement.setTextContent("You cannot see that.");
-            return myElement;
-        }
-        Element examinableNode = this.examinable.buildDetailedXMLElement(nodeGenerator);
-        if (examinableNode == null) {
-            return myElement;
-        }
-        if (this.extraInfo != null && !this.extraInfo.isBlank()) {
-            myElement.appendChild(nodeGenerator.createTextNode(this.extraInfo));
-        }
-        myElement.appendChild(examinableNode);
-        myElement.appendChild(this.buildXMLListedTaggablesElement(nodeGenerator));
-        if (this.effects != null && this.effects.size() > 0) {
-            Element effectElement = nodeGenerator.createElement("DescribedEffects");
-            effectElement.appendChild(nodeGenerator.createTextNode("Effects that you can see the details of:"));
-            for (EntityEffectSource entityEffect : this.effects) {
-                effectElement.appendChild(entityEffect.buildDetailedXMLElement(nodeGenerator));
-            }
-            myElement.appendChild(effectElement);
-        }
-        return myElement;
-    }
-
     @Override
     public String toString() {
         return this.printString();
@@ -329,28 +170,106 @@ public class SeeEvent extends GameEvent {
     }
 
     @Override
-    public String printString() {
+    public void buildOutput(OutputBuilder builder) {
+        if (builder == null) {
+            return;
+        }
         if (this.isDenied()) {
-            return this.deniedReason;
+            builder.appendString(deniedReason);
+            return;
         }
         if (this.examinable == null) {
-            return "You cannot see that.";
+            builder.appendString("You cannot see that.");
+            return;
         }
-        StringJoiner sj = new StringJoiner(" ");
-        sj.add("Name:").add(this.examinable.getName());
-        sj.add("\r\n");
-        if (this.extraInfo != null && this.extraInfo.length() > 0) {
-            sj.add(this.extraInfo.toString()).add("\r\n");
+        builder.appendExaminable(examinable, null, "\r\n");
+        if (this.extraInfo != null && !this.extraInfo.isBlank()) {
+            builder.appendString(this.extraInfo, null, "\r\n");
         }
-        final String descriptor = this.examinable.getDescription();
-        if (descriptor != null && !descriptor.isBlank()) {
-            sj.add(descriptor).add("\r\n");
+
+        for (String category : this.seenCategorized.keySet()) {
+            List<Taggable> taggedList = this.seenCategorized.get(category);
+            if (taggedList == null || taggedList.isEmpty()) {
+                continue;
+            }
+            OutputBuilder subBuilder = null;
+            SeeCategory categorized = SeeCategory.getSeeCategory(category);
+            if (categorized == null) {
+                categorized = SeeCategory.OTHER;
+                subBuilder = builder.produceSubBuilder(category != null ? category : SeeCategory.OTHER.toString());
+            } else {
+                subBuilder = builder.produceSubBuilder(categorized.toString());
+            }
+            switch (categorized) {
+            case DIRECTION:
+                subBuilder.appendString("Available Directions:");
+                break;
+            case CREATURE:
+                subBuilder.appendString("Creatures that you can see:");
+                break;
+            case PLAYER:
+                subBuilder.appendString("Players that you can see:");
+                break;
+            case NPC:
+                subBuilder.appendString("Non Player Characters that you can see:");
+                break;
+            case MONSTER:
+                subBuilder.appendString("Monsters that you can see:");
+                break;
+            case ROOM_ITEM:
+                subBuilder.appendString("Objects that you can see:");
+                break;
+            case TAKEABLE:
+                subBuilder.appendString("Items that you can see:");
+                break;
+            case EFFECTS:
+                subBuilder.appendString("Effects that you know of:");
+                break;
+            case EQUIPMENT_SLOTS:
+                subBuilder.appendString("Equipment slots it will use:");
+                break;
+            case PROFICIENCIES:
+                subBuilder.appendString("Proficiencies you will need for proper use:");
+                break;
+            case STATS:
+                subBuilder.appendString("Stats that will change:");
+                break;
+            case DAMAGES:
+                subBuilder.appendString("Causes damage like:");
+                break;
+            case ATTRIBUTE_SCORE:
+                subBuilder.appendString("Changes to attribute scores:");
+                break;
+            case ATTRIBUTE_BONUS:
+                subBuilder.appendString("Changes to attribute bonuses:");
+                break;
+            case INVISIBLE_CREATURE:
+                subBuilder.appendString("Invisible creatures that you can see:");
+                break;
+            case INVISIBLE_ROOM_ITEM:
+                subBuilder.appendString("Invisible objects that you can see:");
+                break;
+            case INVISIBLE_TAKEABLE:
+                subBuilder.appendString("Invisible items that you can see:");
+                break;
+            case OTHER:
+            default:
+                if (SeeCategory.OTHER.toString().equalsIgnoreCase(category)) {
+                    subBuilder.appendString("Other things that you can see:");
+                } else {
+                    subBuilder.appendString(category).appendString("that you can see:");
+                }
+                break;
+            }
+            subBuilder.appendTaggables(taggedList, ", ", "\r\n", "\r\n", "None");
         }
-        sj = this.listTaggables(sj);
-        String listedEffects = this.listEffectors();
-        if (!listedEffects.isBlank()) {
-            sj.add("\r\n").add(listedEffects);
+
+        if (this.effects != null && !this.effects.isEmpty()) {
+            builder.appendString("Effects that you can fully see:");
+            for (EntityEffectSource effectSource : this.effects) {
+                builder.appendExaminable(effectSource, "\r\n", null);
+            }
         }
-        return sj.toString();
     }
+
 }
