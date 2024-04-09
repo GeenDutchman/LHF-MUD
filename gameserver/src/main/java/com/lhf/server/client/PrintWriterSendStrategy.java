@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 import com.lhf.messages.events.GameEvent;
 
 public class PrintWriterSendStrategy implements SendStrategy {
-    private PrintWriter writer;
+    protected PrintWriter writer;
 
     public PrintWriterSendStrategy(OutputStream outputStream) {
         this.writer = new PrintWriter(outputStream, true);

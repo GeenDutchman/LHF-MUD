@@ -102,15 +102,18 @@ public abstract class GameEvent implements Comparable<GameEvent> {
 
         private final Document document;
         private final Element root;
+        private final StringOutputBuilder stringified;
 
         public static XMLOutputBuilder StartEvent(GameEvent event) {
-            return new XMLOutputBuilder(documentBuilder.newDocument(), XML_EVENT_ROOT).fromGameEvent(event);
+            return new XMLOutputBuilder(documentBuilder.newDocument(), XML_EVENT_ROOT, new StringOutputBuilder())
+                    .fromGameEvent(event);
         }
 
-        private XMLOutputBuilder(Document doc, String rootName) {
+        private XMLOutputBuilder(Document doc, String rootName, StringOutputBuilder sub) {
             this.document = doc;
             this.root = this.document.createElement(rootName);
             this.document.appendChild(this.root);
+            this.stringified = sub != null ? sub : new StringOutputBuilder(rootName);
         }
 
         private XMLOutputBuilder fromGameEvent(GameEvent event) {
@@ -141,12 +144,13 @@ public abstract class GameEvent implements Comparable<GameEvent> {
                     this.root.appendChild(this.document.createTextNode(after));
                 }
             }
+            this.stringified.appendString(toAdd, before, after);
             return this;
         }
 
         @Override
         public XMLOutputBuilder produceSubBuilder(String subName) {
-            return new XMLOutputBuilder(this.document, subName);
+            return new XMLOutputBuilder(this.document, subName, this.stringified.produceSubBuilder(subName));
         }
 
         @Override
@@ -189,6 +193,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
                     this.root.appendChild(this.document.createTextNode(after));
                 }
             }
+            this.stringified.appendExaminable(toAdd, before, after);
             return this;
         }
 
@@ -203,13 +208,9 @@ public abstract class GameEvent implements Comparable<GameEvent> {
                     this.root.appendChild(this.document.createTextNode(before));
                 }
                 final String tagName = toAdd.getTagName();
-                Element myElement = null;
-                if (tagName != null && !tagName.isEmpty() && !tagName.isBlank()) {
-                    myElement = this.document.createElement(tagName);
-                    this.document.appendChild(myElement);
-                } else {
-                    myElement = this.root;
-                }
+                Element myElement = this.document.createElement(
+                        tagName != null && !tagName.isEmpty() && !tagName.isBlank() ? tagName : "Taggable");
+                this.root.appendChild(myElement);
                 myElement.appendChild(this.document.createTextNode(toAdd.getSimpleContent()));
                 final Map<String, String> tagAttributes = toAdd.getTagAttributes();
                 if (tagAttributes != null) {
@@ -225,6 +226,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
                     this.root.appendChild(this.document.createTextNode(after));
                 }
             }
+            this.stringified.appendTaggable(toAdd, before, after);
             return this;
         }
 
@@ -240,6 +242,18 @@ public abstract class GameEvent implements Comparable<GameEvent> {
 
             Transformer transformer = TransformerFactory.newDefaultInstance().newTransformer();
             transformer.transform(new DOMSource(document), new StreamResult(writer));
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("XMLOutputBuilder [document=").append(document).append(", stringified=").append(stringified)
+                    .append("]");
+            return builder.toString();
+        }
+
+        public String getStringified() {
+            return this.stringified.toString();
         }
 
     }
@@ -343,14 +357,15 @@ public abstract class GameEvent implements Comparable<GameEvent> {
      * 
      * @param nodeGenerator
      * @param addToMe
+     * @return
      */
-    public final void buildXML() {
+    public final XMLOutputBuilder buildXML() {
         XMLOutputBuilder builder = XMLOutputBuilder.StartEvent(this);
         this.buildOutput(builder);
         if (this.xmlCallback != null) {
             this.xmlCallback.accept(builder);
         }
-
+        return builder;
     }
 
     @Override

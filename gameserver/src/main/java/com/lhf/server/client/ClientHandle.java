@@ -93,7 +93,7 @@ public class ClientHandle extends Client implements Runnable {
     protected ClientHandle(Socket socket, ConnectionListener cl) throws IOException {
         super();
         this.socket = socket;
-        this.out = new PrintWriterSendStrategy(socket.getOutputStream());
+        this.out = new XMLPrintWriterSendStrategy(socket.getOutputStream());
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         connected = true;
         killIt = false;

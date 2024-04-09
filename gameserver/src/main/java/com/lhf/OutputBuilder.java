@@ -197,7 +197,7 @@ public interface OutputBuilder {
         }
 
         @Override
-        public OutputBuilder produceSubBuilder(String subName) {
+        public StringOutputBuilder produceSubBuilder(String subName) {
             StringOutputBuilder sub = new StringOutputBuilder(subName);
             this.sequences.add(sub);
             return sub;
