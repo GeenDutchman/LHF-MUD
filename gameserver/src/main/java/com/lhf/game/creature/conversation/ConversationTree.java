@@ -108,7 +108,8 @@ public class ConversationTree implements Serializable {
         return branch;
     }
 
-    private ConversationTreeNodeResult tagIt(ConversationContext ctx, ConversationTreeNode node) {
+    @Deprecated
+    private ConversationTreeNodeResult tagItx(ConversationContext ctx, ConversationTreeNode node) {
         if (node == null) {
             return null;
         }
@@ -262,6 +263,7 @@ public class ConversationTree implements Serializable {
         this.greetings = new TreeSet<>(greetings);
     }
 
+    @Deprecated
     public String getAGreeting() {
         if (this.greetings == null || this.greetings.size() == 0) {
             return null;
