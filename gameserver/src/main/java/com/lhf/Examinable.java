@@ -1,5 +1,10 @@
 package com.lhf;
 
+import java.io.Serializable;
+import java.util.Map;
+
+import com.lhf.OutputBuilder.OutputSequence;
+import com.lhf.OutputBuilder.OutputSequenceElement;
 import com.lhf.messages.events.SeeEvent;
 
 public interface Examinable extends Taggable {
@@ -25,5 +30,88 @@ public interface Examinable extends Taggable {
             seeOutMessage = SeeEvent.getBuilder().setExaminable(this);
         }
         return seeOutMessage.Build();
+    }
+
+    public default BasicExaminable basicExaminable() {
+        return new BasicExaminable(this);
+    }
+
+    public static BasicExaminable basicExaminable(Examinable examinable) {
+        if (examinable == null) {
+            return null;
+        }
+        return new BasicExaminable(examinable);
+    }
+
+    public static final class BasicExaminable implements Examinable, Serializable {
+        public final String tagName;
+        public final String description;
+        public final String name;
+        public final String contents;
+        public final Map<String, String> tagAttributes;
+        public final OutputSequence extraDescription;
+
+        private BasicExaminable(String tagName, String description, String name, String contents,
+                Map<String, String> tagAttributes, OutputSequence extraDescription) {
+            this.tagName = tagName;
+            this.description = description;
+            this.name = name;
+            this.contents = contents;
+            this.tagAttributes = tagAttributes;
+            this.extraDescription = extraDescription;
+        }
+
+        private static OutputSequence retrieveExtras(final Examinable from) {
+            OutputSequence extras = new OutputSequence();
+            from.produceExtraDescription(extras);
+            return extras;
+        }
+
+        private BasicExaminable(final Examinable from) {
+            this(from.getTagName(), from.getDescription(), from.getName(), from.getSimpleContent(),
+                    from.getTagAttributes(), BasicExaminable.retrieveExtras(from));
+        }
+
+        @Override
+        public String getTagName() {
+            return this.tagName;
+        }
+
+        @Override
+        public String getName() {
+            return this.name;
+        }
+
+        @Override
+        public String getDescription() {
+            return this.description;
+        }
+
+        @Override
+        public String getSimpleContent() {
+            return this.contents;
+        }
+
+        @Override
+        public Map<String, String> getTagAttributes() {
+            return tagAttributes;
+        }
+
+        public OutputSequence getExtraDescription() {
+            return extraDescription;
+        }
+
+        @Override
+        public void produceExtraDescription(OutputBuilder builder) {
+            if (builder == null) {
+                return;
+            }
+            for (final OutputSequenceElement thing : this.extraDescription) {
+                if (thing != null) {
+                    builder.appendOutputSequenceElement(new OutputSequenceElement(thing), null, null);
+                }
+            }
+        }
+
     }
 }

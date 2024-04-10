@@ -1,5 +1,6 @@
 package com.lhf;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -35,7 +36,7 @@ public interface Taggable {
         return new BasicTaggable(taggable);
     }
 
-    public static final class BasicTaggable implements Taggable {
+    public static final class BasicTaggable implements Taggable, Serializable {
         public final String tagName;
         public final String contents;
         public final Map<String, String> tagAttributes;

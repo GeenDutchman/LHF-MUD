@@ -1,5 +1,6 @@
 package com.lhf;
 
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -158,7 +159,7 @@ public interface OutputBuilder {
 
     public abstract OutputBuilder produceSubBuilder(String subName);
 
-    public final static class OutputSequenceElement {
+    public final static class OutputSequenceElement implements Serializable {
         private final CharSequence charSequence;
         private final Taggable taggable;
         private final Examinable examinable;
@@ -172,7 +173,7 @@ public interface OutputBuilder {
             this.outputSequence = outputSequence;
         }
 
-        private OutputSequenceElement(OutputSequenceElement other) {
+        public OutputSequenceElement(OutputSequenceElement other) {
             if (other != null) {
                 if (other.charSequence != null) {
                     this.charSequence = other.charSequence.toString();
@@ -259,9 +260,18 @@ public interface OutputBuilder {
                     && Objects.equals(outputSequence, other.outputSequence);
         }
 
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("OutputSequenceElement [charSequence=").append(charSequence).append(", taggable=")
+                    .append(taggable).append(", examinable=").append(examinable).append(", outputSequence=")
+                    .append(outputSequence).append("]");
+            return builder.toString();
+        }
+
     }
 
-    public static final class OutputSequence implements OutputBuilder, Iterable<OutputSequenceElement> {
+    public static final class OutputSequence implements OutputBuilder, Iterable<OutputSequenceElement>, Serializable {
 
         private final String sequenceName;
         public final List<OutputSequenceElement> elements;
@@ -414,6 +424,14 @@ public interface OutputBuilder {
                 return false;
             OutputSequence other = (OutputSequence) obj;
             return Objects.equals(sequenceName, other.sequenceName);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("OutputSequence [sequenceName=").append(sequenceName).append(", elements=").append(elements)
+                    .append("]");
+            return builder.toString();
         }
 
         @Override
