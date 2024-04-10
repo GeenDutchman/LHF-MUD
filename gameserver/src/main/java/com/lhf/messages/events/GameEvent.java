@@ -4,33 +4,19 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
-import com.lhf.Examinable;
 import com.lhf.OutputBuilder;
-import com.lhf.OutputBuilder.StringOutputBuilder;
-import com.lhf.Taggable;
-import com.lhf.Taggable.BasicTaggable;
+import com.lhf.OutputBuilder.OutputSequence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.ICreature;
 import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
@@ -41,13 +27,11 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     public static abstract class Builder<T extends Builder<T>> {
         private GameEventType type;
         private boolean broadcast;
-        private Consumer<XMLOutputBuilder> xmlCallback;
         protected T thisObject;
 
         protected Builder(GameEventType type) {
             this.type = type;
             this.broadcast = false;
-            this.xmlCallback = null;
             this.thisObject = this.getThis();
         }
 
@@ -69,208 +53,34 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             return this.broadcast;
         }
 
-        public Consumer<XMLOutputBuilder> getXmlCallback() {
-            return xmlCallback;
-        }
-
-        public T setXmlCallback(Consumer<XMLOutputBuilder> xmlCallbackFunction) {
-            this.xmlCallback = xmlCallbackFunction;
-            return this.getThis();
-        }
-
         public abstract T getThis();
 
         public abstract GameEvent Build();
 
     }
 
-    public static class XMLOutputBuilder implements OutputBuilder {
-        protected final static String XML_EVENT_ROOT = "GameEvent";
-        protected final static String XML_EVENT_TYPE = "GameEventType";
-        protected final static String XML_EVENT_TICK = "GameEventTick";
-        protected final static String XML_EVENT_UUID = "GameEventUUID";
-        protected final static String XML_DESCRIPTION = "description";
+    protected final static String XML_EVENT_ROOT = "GameEvent";
+    protected final static String XML_EVENT_TYPE = "GameEventType";
+    protected final static String XML_EVENT_TICK = "GameEventTick";
+    protected final static String XML_EVENT_UUID = "GameEventUUID";
 
-        private static DocumentBuilderFactory documentBuilderFactory;
-        private static DocumentBuilder documentBuilder;
-
-        static {
-            XMLOutputBuilder.documentBuilderFactory = DocumentBuilderFactory.newDefaultInstance();
-            try {
-                XMLOutputBuilder.documentBuilder = documentBuilderFactory.newDocumentBuilder();
-            } catch (ParserConfigurationException e) {
-                e.printStackTrace();
-            }
+    public final static Document documentFromGameEvent(GameEvent event) throws ParserConfigurationException {
+        if (event == null) {
+            throw new IllegalArgumentException("Cannot generate document from null event!");
         }
 
-        private final Document document;
-        private final Element root;
-        private final StringOutputBuilder stringified;
+        OutputSequence sequence = new OutputSequence(XML_EVENT_ROOT);
+        event.buildOutput(sequence);
 
-        public static XMLOutputBuilder StartEvent(GameEvent event) {
-            return new XMLOutputBuilder(documentBuilder.newDocument(), XML_EVENT_ROOT, new StringOutputBuilder())
-                    .fromGameEvent(event);
+        Map<String, String> attributes = new TreeMap<>();
+        attributes.put(XML_EVENT_UUID, event.uuid.toString());
+        attributes.put(XML_EVENT_TYPE, event.type.toString());
+        final TickType tick = event.getTickType();
+        if (tick != null) {
+            attributes.put(XML_EVENT_TICK, tick.toString());
         }
 
-        private XMLOutputBuilder(Document doc, String rootName, StringOutputBuilder sub) {
-            this.document = doc;
-            this.root = this.document.createElement(rootName);
-            this.document.appendChild(this.root);
-            this.stringified = sub != null ? sub : new StringOutputBuilder(rootName);
-        }
-
-        private XMLOutputBuilder fromGameEvent(GameEvent event) {
-            if (event != null) {
-                this.root.setAttribute(XML_EVENT_UUID, event.uuid.toString());
-                root.setIdAttribute(XML_EVENT_UUID, true);
-                this.root.setAttribute(XML_EVENT_TYPE, event.type.toString());
-                final TickType tick = event.getTickType();
-                if (tick != null) {
-                    root.setAttribute(XML_EVENT_TICK, tick.toString());
-                }
-            }
-            return this;
-        }
-
-        public XMLOutputBuilder appendChild(String toAdd) {
-            return this.appendString(toAdd, " ", null);
-        }
-
-        @Override
-        public XMLOutputBuilder appendString(String toAdd, String before, String after) {
-            if (toAdd != null) {
-                if (before != null) {
-                    this.root.appendChild(this.document.createTextNode(before));
-                }
-                this.root.appendChild(this.document.createTextNode(toAdd));
-                if (after != null) {
-                    this.root.appendChild(this.document.createTextNode(after));
-                }
-            }
-            this.stringified.appendString(toAdd, before, after);
-            return this;
-        }
-
-        @Override
-        public XMLOutputBuilder produceSubBuilder(String subName) {
-            return new XMLOutputBuilder(this.document, subName, this.stringified.produceSubBuilder(subName));
-        }
-
-        @Override
-        public XMLOutputBuilder appendExaminable(Examinable toAdd, String before, String after) {
-            if (toAdd != null) {
-                if (before != null) {
-                    this.root.appendChild(this.document.createTextNode(before));
-                }
-                XMLOutputBuilder myElement = this.produceSubBuilder(toAdd.getTagName());
-                final String name = toAdd.getName();
-                final String simpleContent = toAdd.getSimpleContent();
-                if (name != null && !name.equals(simpleContent)) {
-                    Taggable named = BasicTaggable.customTaggable("name", name, Map.of());
-                    myElement.appendTaggable(named);
-                }
-                if (simpleContent != null && !simpleContent.isEmpty() && !simpleContent.isBlank()) {
-                    myElement.appendString(simpleContent);
-                }
-                final Map<String, String> tagAttributes = toAdd.getTagAttributes();
-                if (tagAttributes != null) {
-                    for (final Entry<String, String> entry : tagAttributes.entrySet()) {
-                        final String key = entry.getKey();
-                        final String value = entry.getValue();
-                        if (key != null && value != null) {
-                            myElement.root.setAttribute(key, value);
-                        }
-                    }
-                }
-
-                final String description = toAdd.getDescription();
-                if (description != null && !description.isEmpty() && !description.isBlank()) {
-                    Taggable taggedDescription = BasicTaggable.customTaggable(XML_DESCRIPTION, description.trim(),
-                            Map.of());
-                    myElement.appendTaggable(taggedDescription);
-                }
-
-                toAdd.produceExtraDescription(this);
-
-                if (after != null) {
-                    this.root.appendChild(this.document.createTextNode(after));
-                }
-            }
-            this.stringified.appendExaminable(toAdd, before, after);
-            return this;
-        }
-
-        public XMLOutputBuilder appendChild(Taggable toAdd) {
-            return this.appendTaggable(toAdd, " ", null);
-        }
-
-        @Override
-        public XMLOutputBuilder appendTaggable(Taggable toAdd, String before, String after) {
-            if (toAdd != null) {
-                if (before != null) {
-                    this.root.appendChild(this.document.createTextNode(before));
-                }
-                final String tagName = toAdd.getTagName();
-                Element myElement = this.document.createElement(
-                        tagName != null && !tagName.isEmpty() && !tagName.isBlank() ? tagName : "Taggable");
-                this.root.appendChild(myElement);
-                myElement.appendChild(this.document.createTextNode(toAdd.getSimpleContent()));
-                final Map<String, String> tagAttributes = toAdd.getTagAttributes();
-                if (tagAttributes != null) {
-                    for (final Entry<String, String> entry : tagAttributes.entrySet()) {
-                        final String key = entry.getKey();
-                        final String value = entry.getValue();
-                        if (key != null && value != null) {
-                            myElement.setAttribute(key, value);
-                        }
-                    }
-                }
-                if (after != null) {
-                    this.root.appendChild(this.document.createTextNode(after));
-                }
-            }
-            this.stringified.appendTaggable(toAdd, before, after);
-            return this;
-        }
-
-        public Document getDocument() {
-            return this.document;
-        }
-
-        public final void getXMLString(Writer writer)
-                throws ParserConfigurationException, TransformerConfigurationException, TransformerException {
-            if (writer == null) {
-                return;
-            }
-
-            Transformer transformer = TransformerFactory.newDefaultInstance().newTransformer();
-            transformer.transform(new DOMSource(document), new StreamResult(writer));
-        }
-
-        public String getXMLString() {
-            StringWriter writer = new StringWriter();
-            try {
-                this.getXMLString(writer);
-                return writer.toString();
-            } catch (ParserConfigurationException | TransformerException e) {
-                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, e,
-                        () -> "Error printing this: " + this.toString() + " falling back to plain string");
-            }
-            return this.stringified.printString();
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder builder = new StringBuilder();
-            builder.append("XMLOutputBuilder [document=").append(document).append(", stringified=").append(stringified)
-                    .append("]");
-            return builder.toString();
-        }
-
-        public String getStringified() {
-            return this.stringified.toString();
-        }
-
+        return OutputBuilder.documentFromOutputSequence(sequence, attributes);
     }
 
     private final GameEventType type;
@@ -278,7 +88,6 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     private final Builder<?> builder;
     private final UUID uuid;
     private final SortedSet<GameEventProcessorID> haveRecieved;
-    private final Consumer<XMLOutputBuilder> xmlCallback;
 
     public GameEvent(Builder<?> builder) {
         this.type = builder.getType();
@@ -286,7 +95,6 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         this.uuid = UUID.randomUUID();
         this.builder = builder;
         this.haveRecieved = Collections.synchronizedSortedSet(new TreeSet<>());
-        this.xmlCallback = builder.getXmlCallback();
     }
 
     /**
@@ -355,33 +163,23 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     // Called to render as a human-readable string
     @Override
     public final String toString() {
-        StringOutputBuilder stringOut = new OutputBuilder.StringOutputBuilder();
+        OutputSequence stringOut = new OutputBuilder.OutputSequence();
         this.buildOutput(stringOut);
         return stringOut.printString();
     }
 
-    public abstract void buildOutput(OutputBuilder builder);
-
-    /**
-     * Adds this GameEvent to the `document`. If the `document` is null, then this
-     * does nothing and returns null. If the `addToMe` parameter is not null, then
-     * it will append the created element to `addToMe`. If `addToMe` is null, the
-     * new element will be appended to the first child of the `document` if it is
-     * present, otherwise it will be added straight to the document. Once finished,
-     * it will return the newly created element.
-     * 
-     * @param nodeGenerator
-     * @param addToMe
-     * @return
-     */
-    public final XMLOutputBuilder buildXML() {
-        XMLOutputBuilder builder = XMLOutputBuilder.StartEvent(this);
-        this.buildOutput(builder);
-        if (this.xmlCallback != null) {
-            this.xmlCallback.accept(builder);
-        }
-        return builder;
+    public final String printXML() throws ParserConfigurationException, TransformerException {
+        StringWriter writer = new StringWriter();
+        this.writeXML(writer);
+        return writer.toString();
     }
+
+    public final void writeXML(Writer writer) throws ParserConfigurationException, TransformerException {
+        Document myDocument = GameEvent.documentFromGameEvent(this);
+        OutputBuilder.writeDocument(myDocument, writer);
+    }
+
+    public abstract void buildOutput(OutputBuilder builder);
 
     @Override
     public int hashCode() {
