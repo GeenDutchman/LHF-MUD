@@ -6,10 +6,10 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.inventory.InventoryOwner;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.events.GameEvent.XMLOutputBuilder;
 import com.lhf.messages.events.ItemInteractionEvent;
 
 public class GuardedChest extends Chest {
@@ -41,11 +41,11 @@ public class GuardedChest extends Chest {
         final StringJoiner sj = new StringJoiner(", ", " It is guarded by: ", ". ").setEmptyValue("");
         this.listGuards().stream().filter(name -> name != null).forEachOrdered(name -> sj.add(name));
         final boolean unlockedState = this.isUnlocked();
-        builder.setXmlCallback(nodeGenerator -> {
+        builder.setOutputCallback(nodeGenerator -> {
             if (nodeGenerator == null) {
                 return;
             }
-            XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+            OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
             description.appendTaggable(creature);
             description.appendString("finds that they cannot access");
             description.appendTaggable(this);

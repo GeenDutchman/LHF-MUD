@@ -250,7 +250,7 @@ public class RestArea extends SubArea {
                     creatureVocation.onRestTick();
                 }
                 ItemInteractionEvent.Builder iom = ItemInteractionEvent.getBuilder().setPerformed()
-                        .setInteractor(creature).setXmlCallback(nodeGenerator -> {
+                        .setInteractor(creature).setOutputCallback(nodeGenerator -> {
                             if (nodeGenerator == null) {
                                 return;
                             }

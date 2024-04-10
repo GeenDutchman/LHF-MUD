@@ -8,13 +8,13 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Queue;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.ItemContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.map.Area;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.events.GameEvent.XMLOutputBuilder;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.events.SeeEvent;
@@ -58,11 +58,11 @@ public class Dispenser extends InteractObject implements ItemContainer {
         try {
             final IItem retrieved = this.itemsToDispense.remove();
             this.area.addItem(retrieved);
-            builder.setPerformed().setBroacast().setXmlCallback(nodeGenerator -> {
+            builder.setPerformed().setBroacast().setOutputCallback(nodeGenerator -> {
                 if (nodeGenerator == null) {
                     return;
                 }
-                XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                 description.appendTaggable(retrieved);
                 description.appendString("was despensed because of");
                 description.appendTaggable(creature, " ", ".");

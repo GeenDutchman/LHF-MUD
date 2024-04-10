@@ -9,6 +9,7 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -27,11 +28,13 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     public static abstract class Builder<T extends Builder<T>> {
         private GameEventType type;
         private boolean broadcast;
+        private Consumer<OutputBuilder> outputCallback;
         protected T thisObject;
 
         protected Builder(GameEventType type) {
             this.type = type;
             this.broadcast = false;
+            this.outputCallback = null;
             this.thisObject = this.getThis();
         }
 
@@ -53,6 +56,15 @@ public abstract class GameEvent implements Comparable<GameEvent> {
             return this.broadcast;
         }
 
+        public Consumer<OutputBuilder> getOutputCallback() {
+            return outputCallback;
+        }
+
+        public T setOutputCallback(Consumer<OutputBuilder> xmlCallbackFunction) {
+            this.outputCallback = xmlCallbackFunction;
+            return this.getThis();
+        }
+
         public abstract T getThis();
 
         public abstract GameEvent Build();
@@ -71,6 +83,10 @@ public abstract class GameEvent implements Comparable<GameEvent> {
 
         OutputSequence sequence = new OutputSequence(XML_EVENT_ROOT);
         event.buildOutput(sequence);
+        Consumer<OutputBuilder> callback = event.getOutputCallback();
+        if (callback != null) {
+            callback.accept(sequence);
+        }
 
         Map<String, String> attributes = new TreeMap<>();
         attributes.put(XML_EVENT_UUID, event.uuid.toString());
@@ -88,6 +104,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     private final Builder<?> builder;
     private final UUID uuid;
     private final SortedSet<GameEventProcessorID> haveRecieved;
+    private final Consumer<OutputBuilder> outputCallback;
 
     public GameEvent(Builder<?> builder) {
         this.type = builder.getType();
@@ -95,6 +112,7 @@ public abstract class GameEvent implements Comparable<GameEvent> {
         this.uuid = UUID.randomUUID();
         this.builder = builder;
         this.haveRecieved = Collections.synchronizedSortedSet(new TreeSet<>());
+        this.outputCallback = builder.getOutputCallback();
     }
 
     /**
@@ -120,6 +138,10 @@ public abstract class GameEvent implements Comparable<GameEvent> {
 
     public boolean isBroadcast() {
         return this.broadcast;
+    }
+
+    public Consumer<OutputBuilder> getOutputCallback() {
+        return outputCallback;
     }
 
     protected final OutputBuilder addressCreature(OutputBuilder builder, ICreature creature) {
@@ -161,11 +183,18 @@ public abstract class GameEvent implements Comparable<GameEvent> {
     }
 
     // Called to render as a human-readable string
-    @Override
-    public final String toString() {
+    public String printString() {
         OutputSequence stringOut = new OutputBuilder.OutputSequence();
         this.buildOutput(stringOut);
+        if (this.outputCallback != null) {
+            this.outputCallback.accept(stringOut);
+        }
         return stringOut.printString();
+    }
+
+    @Override
+    public final String toString() {
+        return this.printString();
     }
 
     public final String printXML() throws ParserConfigurationException, TransformerException {

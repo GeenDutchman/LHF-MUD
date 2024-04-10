@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.EffectPersistence;
 import com.lhf.game.TickType;
 import com.lhf.game.creature.CreatureEffect;
@@ -16,7 +17,6 @@ import com.lhf.game.enums.EquipmentTypes;
 import com.lhf.game.enums.Stats;
 import com.lhf.game.item.EquipableHiddenEffect;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.events.GameEvent.XMLOutputBuilder;
 import com.lhf.messages.events.ItemUsedEvent;
 import com.lhf.messages.events.ItemUsedEvent.UseOutMessageOption;
 
@@ -84,11 +84,11 @@ public class CarnivorousArmor extends EquipableHiddenEffect {
                     return;
                 }
                 if (CarnivorousArmor.this.equippedAndUsed) {
-                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).setXmlCallback(nodeGenerator -> {
+                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).setOutputCallback(nodeGenerator -> {
                         if (nodeGenerator == null) {
                             return;
                         }
-                        XMLOutputBuilder description = nodeGenerator.produceSubBuilder("ItemUsedDescription");
+                        OutputBuilder description = nodeGenerator.produceSubBuilder("ItemUsedDescription");
                         description.appendString("The");
                         description.appendTaggable(CarnivorousArmor.this);
                         description.appendString("snuggles around you as you poke at it, but otherwise does nothing.");
@@ -102,11 +102,11 @@ public class CarnivorousArmor extends EquipableHiddenEffect {
                             .instantPersistence().setDescription("You are eaten alive...just a bite.")
                             .setOnApplication(new Deltas().setStatChange(Stats.CURRENTHP, diff * -1)).build();
                     CarnivorousArmor.this.equippedAndUsed = true;
-                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).setXmlCallback(nodeGenerator -> {
+                    ctx.receive(useOutMessage.setSubType(UseOutMessageOption.OK).setOutputCallback(nodeGenerator -> {
                         if (nodeGenerator == null) {
                             return;
                         }
-                        XMLOutputBuilder description = nodeGenerator.produceSubBuilder("ItemUsedDescription");
+                        OutputBuilder description = nodeGenerator.produceSubBuilder("ItemUsedDescription");
                         description.appendString(
                                 "A thousand teeth sink into your body, and you feel life force ripped out of you.");
                         description.appendString("Once it is sated, you feel the");

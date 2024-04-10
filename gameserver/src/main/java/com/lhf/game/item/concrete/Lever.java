@@ -1,10 +1,10 @@
 package com.lhf.game.item.concrete;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.Lockable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.InteractObject;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.events.GameEvent.XMLOutputBuilder;
 import com.lhf.messages.events.ItemInteractionEvent;
 
 public class Lever extends InteractObject {
@@ -41,11 +41,11 @@ public class Lever extends InteractObject {
         ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this)
                 .setInteractor(creature);
         if (this.lockable == null) {
-            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().setXmlCallback(nodeGenerator -> {
+            ICreature.eventAccepter.accept(creature, builder.setNotBroadcast().setOutputCallback(nodeGenerator -> {
                 if (nodeGenerator == null) {
                     return;
                 }
-                XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                 description.appendString("The");
                 description.appendTaggable(this);
                 description.appendString("moves, but it seems too loose, like it is not connected to anything.");
@@ -57,11 +57,11 @@ public class Lever extends InteractObject {
             } else {
                 this.lockable.unlock();
             }
-            builder.setPerformed().setXmlCallback(nodeGenerator -> {
+            builder.setPerformed().setOutputCallback(nodeGenerator -> {
                 if (nodeGenerator == null) {
                     return;
                 }
-                XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                 description.appendString("A **thunk** is heard, and you are pretty sure something changed because of");
                 description.appendTaggable(creature);
             });

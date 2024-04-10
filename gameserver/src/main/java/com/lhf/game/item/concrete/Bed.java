@@ -17,6 +17,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.CreatureContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreature.CreatureCommandHandler;
@@ -33,7 +34,6 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadGoEvent;
 import com.lhf.messages.events.BadGoEvent.BadGoType;
-import com.lhf.messages.events.GameEvent.XMLOutputBuilder;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.in.AMessageType;
@@ -111,7 +111,7 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
                 creatureVocation.onRestTick();
             }
             ItemInteractionEvent.Builder iom = ItemInteractionEvent.getBuilder().setPerformed().setInteractor(occupant)
-                    .setXmlCallback(nodeGenerator -> {
+                    .setOutputCallback(nodeGenerator -> {
                         if (nodeGenerator == null) {
                             return;
                         }
@@ -230,11 +230,11 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         if (this.addCreature(creature)) {
             builder.setPerformed();
             if (this.area != null) {
-                builder.setBroacast().setXmlCallback(nodeGenerator -> {
+                builder.setBroacast().setOutputCallback(nodeGenerator -> {
                     if (nodeGenerator == null) {
                         return;
                     }
-                    XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                    OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                     description.appendTaggable(creature);
                     description.appendString("got in the bed!");
                 });

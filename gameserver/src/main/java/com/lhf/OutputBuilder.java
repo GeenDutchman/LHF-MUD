@@ -310,6 +310,7 @@ public interface OutputBuilder {
                     this.elements.add(OutputSequenceElement.ofCharSequence(before));
                 }
                 this.elements.add(OutputSequenceElement.ofExaminable(toAdd));
+                toAdd.produceExtraDescription(this);
                 if (after != null) {
                     this.elements.add(OutputSequenceElement.ofCharSequence(after));
                 }

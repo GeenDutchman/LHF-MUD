@@ -11,13 +11,13 @@ import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.LockableItemContainer;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.item.IItem;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.Takeable;
 import com.lhf.messages.CommandContext;
-import com.lhf.messages.events.GameEvent.XMLOutputBuilder;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.events.SeeEvent.SeeCategory;
@@ -111,22 +111,22 @@ public class Chest extends InteractObject implements LockableItemContainer {
         final boolean unlockedState = this.isUnlocked();
         if (unlockedState && this.isEmpty() && this.isRemoveOnEmpty() && this.area != null) {
             area.removeItem(this);
-            builder.setXmlCallback(nodeGenerator -> {
+            builder.setOutputCallback(nodeGenerator -> {
                 if (nodeGenerator == null) {
                     return;
                 }
-                XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                 description.appendTaggable(creature);
                 description.appendString("discovers that the");
                 description.appendTaggable(this);
                 description.appendString("contains nothing and it crumbles to dust.");
             });
         } else {
-            builder.setXmlCallback(nodeGenerator -> {
+            builder.setOutputCallback(nodeGenerator -> {
                 if (nodeGenerator == null) {
                     return;
                 }
-                XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                 description.appendTaggable(creature);
                 description.appendString("tries the");
                 description.appendTaggable(this);

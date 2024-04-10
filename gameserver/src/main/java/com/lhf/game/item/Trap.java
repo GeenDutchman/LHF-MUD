@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lhf.OutputBuilder;
 import com.lhf.game.EffectResistance;
 import com.lhf.game.creature.CreatureEffect;
 import com.lhf.game.creature.CreatureEffectSource;
@@ -21,7 +22,6 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
-import com.lhf.messages.events.GameEvent.XMLOutputBuilder;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.events.RoomEnteredEvent;
@@ -103,11 +103,11 @@ public class Trap extends InteractObject implements GameEventProcessor {
         final RollResult difficultyRoll = difficulty.rollDice();
         final boolean currentActivationState = this.isActivated();
         if (roll.getRoll() < difficultyRoll.getRoll()) {
-            builder.setPerformed().setXmlCallback(nodeGenerator -> {
+            builder.setPerformed().setOutputCallback(nodeGenerator -> {
                 if (nodeGenerator == null) {
                     return;
                 }
-                XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                 description.appendTaggable(creature);
                 description.appendString("failed (");
                 description.appendTaggable(roll);
@@ -119,21 +119,21 @@ public class Trap extends InteractObject implements GameEventProcessor {
             });
         } else {
             if (this.interactCount > 1 && !this.isRepeatable()) {
-                builder.setSubType(InteractOutMessageType.USED_UP).setXmlCallback(nodeGenerator -> {
+                builder.setSubType(InteractOutMessageType.USED_UP).setOutputCallback(nodeGenerator -> {
                     if (nodeGenerator == null) {
                         return;
                     }
-                    XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                    OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                     description.appendTaggable(this);
                     description.appendString("is not repeatable and thus cannot be interacted with.");
                 });
             } else {
                 this.setActivated(!this.isActivated());
-                builder.setPerformed().setXmlCallback(nodeGenerator -> {
+                builder.setPerformed().setOutputCallback(nodeGenerator -> {
                     if (nodeGenerator == null) {
                         return;
                     }
-                    XMLOutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
+                    OutputBuilder description = nodeGenerator.produceSubBuilder("InteractionDescription");
                     description.appendTaggable(creature);
                     description.appendString("successfully (");
                     description.appendTaggable(roll);
@@ -197,11 +197,11 @@ public class Trap extends InteractObject implements GameEventProcessor {
                         final MultiRollResult finalTrapResult = trapResult;
                         final MultiRollResult finalCreatureResult = creatureResult;
                         ItemInteractionEvent.Builder builder = ItemInteractionEvent.getBuilder().setTaggable(this)
-                                .setPerformed().setXmlCallback(nodeGenerator -> {
+                                .setPerformed().setOutputCallback(nodeGenerator -> {
                                     if (nodeGenerator == null) {
                                         return;
                                     }
-                                    XMLOutputBuilder description = nodeGenerator
+                                    OutputBuilder description = nodeGenerator
                                             .produceSubBuilder("InteractionDescription");
                                     description.appendChild(creature);
                                     description.appendChild("dodged (");
