@@ -31,6 +31,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.lhf.Examinable.BasicExaminable;
 import com.lhf.Taggable.BasicTaggable;
 
 public interface OutputBuilder {
@@ -161,15 +162,15 @@ public interface OutputBuilder {
 
     public final static class OutputSequenceElement implements Serializable {
         private final CharSequence charSequence;
-        private final Taggable taggable;
-        private final Examinable examinable;
+        private final BasicTaggable taggable;
+        private final BasicExaminable examinable;
         private final OutputSequence outputSequence;
 
         private OutputSequenceElement(CharSequence charSequence, Taggable taggable, Examinable examinable,
                 OutputSequence outputSequence) {
             this.charSequence = charSequence;
-            this.taggable = taggable;
-            this.examinable = examinable;
+            this.taggable = Taggable.basicTaggable(taggable);
+            this.examinable = Examinable.basicExaminable(examinable);
             this.outputSequence = outputSequence;
         }
 
@@ -180,8 +181,8 @@ public interface OutputBuilder {
                 } else {
                     this.charSequence = null;
                 }
-                this.taggable = other.taggable;
-                this.examinable = other.examinable;
+                this.taggable = Taggable.basicTaggable(other.taggable);
+                this.examinable = Examinable.basicExaminable(other.examinable);
                 this.outputSequence = new OutputSequence(other.outputSequence);
             } else {
                 this.charSequence = "";
