@@ -2,6 +2,7 @@ package com.lhf;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Objects;
 
 import com.lhf.OutputBuilder.OutputSequence;
 import com.lhf.OutputBuilder.OutputSequenceElement;
@@ -111,6 +112,33 @@ public interface Examinable extends Taggable {
                     builder.appendOutputSequenceElement(new OutputSequenceElement(thing), null, null);
                 }
             }
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(tagName, description, name, contents, tagAttributes, extraDescription);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof BasicExaminable))
+                return false;
+            BasicExaminable other = (BasicExaminable) obj;
+            return Objects.equals(tagName, other.tagName) && Objects.equals(description, other.description)
+                    && Objects.equals(name, other.name) && Objects.equals(contents, other.contents)
+                    && Objects.equals(tagAttributes, other.tagAttributes)
+                    && Objects.equals(extraDescription, other.extraDescription);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("BasicExaminable [tagName=").append(tagName).append(", description=").append(description)
+                    .append(", name=").append(name).append(", contents=").append(contents).append(", tagAttributes=")
+                    .append(tagAttributes).append(", extraDescription=").append(extraDescription).append("]");
+            return builder.toString();
         }
 
     }
