@@ -35,17 +35,21 @@ import com.lhf.Examinable.BasicExaminable;
 import com.lhf.Taggable.BasicTaggable;
 
 public interface OutputBuilder {
-    public default OutputBuilder appendOutputSequenceElement(OutputSequenceElement toAdd) {
-        return this.appendOutputSequenceElement(toAdd, " ", null);
+    public String getBuilderName();
+
+    public List<OutputBuilderElement> getElements();
+
+    public default OutputBuilder appendOutputBuilderElement(OutputBuilderElement toAdd) {
+        return this.appendOutputBuilderElement(toAdd, " ", null);
     }
 
-    public OutputBuilder appendOutputSequenceElement(OutputSequenceElement toAdd, String before, String after);
+    public OutputBuilder appendOutputBuilderElement(OutputBuilderElement toAdd, String before, String after);
 
-    public default OutputBuilder appendOutputSequence(OutputSequence toAdd) {
-        return this.appendOutputSequence(toAdd, " ", null);
+    public default OutputBuilder appendOutputBuilder(OutputBuilder toAdd) {
+        return this.appendOutputBuilder(toAdd, " ", null);
     }
 
-    public OutputBuilder appendOutputSequence(OutputSequence toAdd, String before, String after);
+    public OutputBuilder appendOutputBuilder(OutputBuilder toAdd, String before, String after);
 
     public default OutputBuilder appendString(String toAdd) {
         return this.appendString(toAdd, " ", null);
@@ -160,56 +164,84 @@ public interface OutputBuilder {
 
     public abstract OutputBuilder produceSubBuilder(String subName);
 
-    public final static class OutputSequenceElement implements Serializable {
+    public static interface OutputBuilderElement {
+        @Deprecated(forRemoval = false)
+        public CharSequence getCharSequence();
+
+        public String getCharSequenceAsString();
+
+        public Taggable getTaggable();
+
+        public Examinable getExaminable();
+
+        public OutputBuilder getOutputBuilder();
+
+        public String getMetaSignal();
+    }
+
+    public final static class OutputSequenceElement implements OutputBuilderElement, Serializable {
         private final CharSequence charSequence;
         private final BasicTaggable taggable;
         private final BasicExaminable examinable;
         private final OutputSequence outputSequence;
+        private final String metaSignal;
 
         private OutputSequenceElement(CharSequence charSequence, Taggable taggable, Examinable examinable,
-                OutputSequence outputSequence) {
+                OutputSequence outputSequence, String metaSignal) {
             this.charSequence = charSequence;
             this.taggable = Taggable.basicTaggable(taggable);
             this.examinable = Examinable.basicExaminable(examinable);
             this.outputSequence = outputSequence;
+            this.metaSignal = metaSignal != null ? new String(metaSignal) : null;
         }
 
-        public OutputSequenceElement(OutputSequenceElement other) {
+        public OutputSequenceElement(OutputBuilderElement other) {
             if (other != null) {
-                if (other.charSequence != null) {
-                    this.charSequence = other.charSequence.toString();
-                } else {
-                    this.charSequence = null;
-                }
-                this.taggable = Taggable.basicTaggable(other.taggable);
-                this.examinable = Examinable.basicExaminable(other.examinable);
-                this.outputSequence = new OutputSequence(other.outputSequence);
+                this.charSequence = other.getCharSequenceAsString();
+                this.taggable = Taggable.basicTaggable(other.getTaggable());
+                this.examinable = Examinable.basicExaminable(other.getExaminable());
+                this.outputSequence = new OutputSequence(other.getOutputBuilder());
+                this.metaSignal = other.getMetaSignal();
             } else {
                 this.charSequence = "";
                 this.taggable = null;
                 this.examinable = null;
                 this.outputSequence = null;
+                this.metaSignal = null;
             }
         }
 
         public static OutputSequenceElement ofCharSequence(CharSequence charSequence) {
-            return new OutputSequenceElement(charSequence, null, null, null);
+            return new OutputSequenceElement(charSequence, null, null, null, null);
         }
 
         public static OutputSequenceElement ofTaggable(Taggable taggable) {
-            return new OutputSequenceElement(null, taggable, null, null);
+            return new OutputSequenceElement(null, taggable, null, null, null);
         }
 
         public static OutputSequenceElement ofExaminable(Examinable examinable) {
-            return new OutputSequenceElement(null, null, examinable, null);
+            return new OutputSequenceElement(null, null, examinable, null, null);
         }
 
         public static OutputSequenceElement ofOutputSequence(OutputSequence sequence) {
-            return new OutputSequenceElement(null, null, null, sequence);
+            return new OutputSequenceElement(null, null, null, sequence, null);
         }
 
+        public static OutputSequenceElement ofOutputBuilder(OutputBuilder builder) {
+            return new OutputSequenceElement(null, null, null, new OutputSequence(builder), null);
+        }
+
+        public static OutputSequenceElement ofMetaSignal(String metaSignal) {
+            return new OutputSequenceElement(null, null, null, null, metaSignal);
+        }
+
+        @Deprecated(forRemoval = false)
         public CharSequence getCharSequence() {
             return charSequence;
+        }
+
+        public String getCharSequenceAsString() {
+            return charSequence != null ? charSequence.toString() : null;
         }
 
         public Taggable getTaggable() {
@@ -220,8 +252,13 @@ public interface OutputBuilder {
             return examinable;
         }
 
-        public OutputSequence getOutputSequence() {
+        public OutputSequence getOutputBuilder() {
             return outputSequence;
+        }
+
+        @Override
+        public String getMetaSignal() {
+            return metaSignal;
         }
 
         public String printString() {
@@ -246,7 +283,7 @@ public interface OutputBuilder {
 
         @Override
         public int hashCode() {
-            return Objects.hash(charSequence, taggable, examinable, outputSequence);
+            return Objects.hash(charSequence, taggable, examinable, outputSequence, metaSignal);
         }
 
         @Override
@@ -258,7 +295,8 @@ public interface OutputBuilder {
             OutputSequenceElement other = (OutputSequenceElement) obj;
             return Objects.equals(charSequence, other.charSequence) && Objects.equals(taggable, other.taggable)
                     && Objects.equals(examinable, other.examinable)
-                    && Objects.equals(outputSequence, other.outputSequence);
+                    && Objects.equals(outputSequence, other.outputSequence)
+                    && Objects.equals(metaSignal, other.metaSignal);
         }
 
         @Override
@@ -266,7 +304,7 @@ public interface OutputBuilder {
             StringBuilder builder = new StringBuilder();
             builder.append("OutputSequenceElement [charSequence=").append(charSequence).append(", taggable=")
                     .append(taggable).append(", examinable=").append(examinable).append(", outputSequence=")
-                    .append(outputSequence).append("]");
+                    .append(outputSequence).append(", metaSignal=").append(metaSignal).append("]");
             return builder.toString();
         }
 
@@ -287,9 +325,9 @@ public interface OutputBuilder {
             this.elements = new ArrayList<>();
         }
 
-        public OutputSequence(OutputSequence sequence) {
+        public OutputSequence(OutputBuilder sequence) {
             if (sequence != null) {
-                this.sequenceName = sequence.getSequenceName();
+                this.sequenceName = sequence.getBuilderName();
                 this.elements = new ArrayList<>();
                 sequence.getElements().forEach(other -> new OutputSequenceElement(other));
             } else {
@@ -298,21 +336,21 @@ public interface OutputBuilder {
             }
         }
 
-        public final String getSequenceName() {
+        public final String getBuilderName() {
             return sequenceName;
         }
 
-        public final List<OutputSequenceElement> getElements() {
+        public final List<OutputBuilderElement> getElements() {
             return Collections.unmodifiableList(elements);
         }
 
         @Override
-        public OutputSequence appendOutputSequenceElement(OutputSequenceElement toAdd, String before, String after) {
+        public OutputSequence appendOutputBuilderElement(OutputBuilderElement toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
                     this.elements.add(OutputSequenceElement.ofCharSequence(before));
                 }
-                this.elements.add(toAdd);
+                this.elements.add(new OutputSequenceElement(toAdd));
                 if (after != null) {
                     this.elements.add(OutputSequenceElement.ofCharSequence(after));
                 }
@@ -321,12 +359,12 @@ public interface OutputBuilder {
         }
 
         @Override
-        public OutputSequence appendOutputSequence(OutputSequence toAdd, String before, String after) {
+        public OutputSequence appendOutputBuilder(OutputBuilder toAdd, String before, String after) {
             if (toAdd != null) {
                 if (before != null) {
                     this.elements.add(OutputSequenceElement.ofCharSequence(before));
                 }
-                this.elements.add(OutputSequenceElement.ofOutputSequence(toAdd));
+                this.elements.add(OutputSequenceElement.ofOutputBuilder(toAdd));
                 if (after != null) {
                     this.elements.add(OutputSequenceElement.ofCharSequence(after));
                 }
@@ -467,7 +505,7 @@ public interface OutputBuilder {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newDefaultInstance();
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
         Document document = documentBuilder.newDocument();
-        Element root = document.createElement(sequence.getSequenceName());
+        Element root = document.createElement(sequence.getBuilderName());
         if (tagAttributes != null) {
             for (final Entry<String, String> entry : tagAttributes.entrySet()) {
                 final String key = entry.getKey();
@@ -478,7 +516,7 @@ public interface OutputBuilder {
             }
         }
 
-        OutputBuilder.acceptOutputSequence(document, root, sequence);
+        OutputBuilder.acceptOutputBuilder(document, root, sequence);
 
         return document;
     }
@@ -541,18 +579,18 @@ public interface OutputBuilder {
         }
     }
 
-    private static void acceptOutputSequence(Document document, Element element, OutputSequence toAdd) {
-        if (document == null || element == null || toAdd == null) {
+    private static void acceptOutputBuilder(Document document, Element element, OutputBuilder outputBuilder) {
+        if (document == null || element == null || outputBuilder == null) {
             return;
         }
         Element myElement = element;
-        final String sequenceName = toAdd.getSequenceName();
+        final String sequenceName = outputBuilder.getBuilderName();
         if (sequenceName != null) {
             myElement = document.createElement(sequenceName);
             element.appendChild(myElement);
         }
-        final List<OutputSequenceElement> elementList = toAdd.getElements();
-        for (final OutputSequenceElement sequenceMember : elementList) {
+        final List<OutputBuilderElement> elementList = outputBuilder.getElements();
+        for (final OutputBuilderElement sequenceMember : elementList) {
             if (sequenceMember == null) {
                 continue;
             } else if (sequenceMember.getCharSequence() != null) {
@@ -561,8 +599,8 @@ public interface OutputBuilder {
                 OutputBuilder.acceptTaggable(document, myElement, sequenceMember.getTaggable());
             } else if (sequenceMember.getExaminable() != null) {
                 OutputBuilder.acceptExaminable(document, myElement, sequenceMember.getExaminable());
-            } else if (sequenceMember.getOutputSequence() != null) {
-                OutputBuilder.acceptOutputSequence(document, myElement, sequenceMember.getOutputSequence());
+            } else if (sequenceMember.getOutputBuilder() != null) {
+                OutputBuilder.acceptOutputBuilder(document, myElement, sequenceMember.getOutputBuilder());
             }
         }
     }
@@ -579,7 +617,7 @@ public interface OutputBuilder {
                     if (arg0 == null || arg1 == null) {
                         return;
                     }
-                    arg0.appendOutputSequenceElement(arg1);
+                    arg0.appendOutputBuilderElement(arg1);
                 }
 
             };
@@ -597,7 +635,7 @@ public interface OutputBuilder {
                 @Override
                 public OutputSequence apply(OutputSequence arg0, OutputSequence arg1) {
                     OutputSequence sequence = new OutputSequence();
-                    sequence.appendOutputSequence(arg0).appendOutputSequence(arg1);
+                    sequence.appendOutputBuilder(arg0).appendOutputBuilder(arg1);
                     return sequence;
                 }
 
