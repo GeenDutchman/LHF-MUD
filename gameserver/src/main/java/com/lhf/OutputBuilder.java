@@ -360,6 +360,24 @@ public interface OutputBuilder {
             return sb.toString();
         }
 
+        @Override
+        public int hashCode() {
+            if (sequenceName == null) {
+                return super.hashCode();
+            }
+            return Objects.hash(sequenceName);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof OutputSequence))
+                return false;
+            OutputSequence other = (OutputSequence) obj;
+            return Objects.equals(sequenceName, other.sequenceName);
+        }
+
     }
 
     public static void writeDocument(Document document, Writer writer) throws TransformerException {
