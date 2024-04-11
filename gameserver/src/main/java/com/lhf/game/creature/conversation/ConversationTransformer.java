@@ -13,14 +13,14 @@ import com.lhf.Taggable;
 import com.lhf.OutputBuilder.OutputBuilderElement;
 import com.lhf.OutputBuilder.OutputSequenceElement;
 
-public interface Transformer extends Function<OutputBuilderElement, OutputBuilderElement> {
+public interface ConversationTransformer extends Function<OutputBuilderElement, OutputBuilderElement> {
 
     public String describePlainOutput();
 
     public String getOutputBody();
 
-    public static Transformer ofBuilderElement(OutputBuilderElement toOut) {
-        return new Transformer() {
+    public static ConversationTransformer ofBuilderElement(OutputBuilderElement toOut) {
+        return new ConversationTransformer() {
 
             @Override
             public OutputBuilderElement apply(OutputBuilderElement arg0) {
@@ -45,16 +45,16 @@ public interface Transformer extends Function<OutputBuilderElement, OutputBuilde
         };
     }
 
-    public static Transformer ofString(String body) {
-        return Transformer.ofBuilderElement(OutputSequenceElement.ofCharSequence(body));
+    public static ConversationTransformer ofString(String body) {
+        return ConversationTransformer.ofBuilderElement(OutputSequenceElement.ofCharSequence(body));
     }
 
-    public static Transformer ofTaggable(Taggable taggable) {
-        return Transformer.ofBuilderElement(OutputSequenceElement.ofTaggable(taggable));
+    public static ConversationTransformer ofTaggable(Taggable taggable) {
+        return ConversationTransformer.ofBuilderElement(OutputSequenceElement.ofTaggable(taggable));
     }
 
-    public static Transformer ofMapping(Map<String, OutputBuilderElement> mapping) {
-        return new Transformer() {
+    public static ConversationTransformer ofMapping(Map<String, OutputBuilderElement> mapping) {
+        return new ConversationTransformer() {
 
             @Override
             public OutputBuilderElement apply(OutputBuilderElement arg0) {
@@ -82,15 +82,16 @@ public interface Transformer extends Function<OutputBuilderElement, OutputBuilde
         };
     }
 
-    public static Transformer ofTransformerMapping(Map<String, Transformer> mapping) {
-        return new Transformer() {
+    public static ConversationTransformer ofTransformerMapping(Map<String, ConversationTransformer> mapping) {
+        return new ConversationTransformer() {
 
             @Override
             public OutputBuilderElement apply(OutputBuilderElement arg0) {
                 if (arg0 == null || mapping == null) {
                     return arg0;
                 }
-                Transformer located = mapping.getOrDefault(arg0.getMetaSignal(), Transformer.ofBuilderElement(arg0));
+                ConversationTransformer located = mapping.getOrDefault(arg0.getMetaSignal(),
+                        ConversationTransformer.ofBuilderElement(arg0));
                 if (located == null) {
                     return arg0;
                 }
@@ -115,17 +116,24 @@ public interface Transformer extends Function<OutputBuilderElement, OutputBuilde
         };
     }
 
-    public static class ConversationContext implements Transformer, Map<String, Transformer> {
+    public static class ConversationContext implements ConversationTransformer, Map<String, ConversationTransformer> {
         public enum ConversationContextKey {
             TALKER_NAME, TALKER_TAGGED_NAME, LISTENER_NAME, LISTENER_TAGGED_NAME;
         }
 
         private List<UUID> trail;
-        private Map<String, Transformer> contextBag;
+        private Map<String, ConversationTransformer> contextBag;
 
         public ConversationContext() {
             this.trail = new ArrayList<>();
             this.contextBag = new TreeMap<>();
+            this.contextBag.put(ConversationContextKey.TALKER_NAME.name(), ConversationTransformer.ofString("Someone"));
+            this.contextBag.put(ConversationContextKey.TALKER_TAGGED_NAME.name(),
+                    ConversationTransformer.ofTaggable(Taggable.BasicTaggable.customTaggable("Creature", "Someone")));
+            this.contextBag.put(ConversationContextKey.LISTENER_NAME.name(),
+                    ConversationTransformer.ofString("Somebody"));
+            this.contextBag.put(ConversationContextKey.LISTENER_TAGGED_NAME.name(),
+                    ConversationTransformer.ofTaggable(Taggable.BasicTaggable.customTaggable("Creature", "Somebody")));
         }
 
         public boolean addTrail(UUID nodeID) {
@@ -169,16 +177,16 @@ public interface Transformer extends Function<OutputBuilderElement, OutputBuilde
         }
 
         @Override
-        public Set<Entry<String, Transformer>> entrySet() {
+        public Set<Entry<String, ConversationTransformer>> entrySet() {
             return this.contextBag.entrySet();
         }
 
-        public Transformer get(ConversationContextKey key) {
+        public ConversationTransformer get(ConversationContextKey key) {
             return this.get(key.name());
         }
 
         @Override
-        public Transformer get(Object key) {
+        public ConversationTransformer get(Object key) {
             return this.contextBag.get(key);
         }
 
@@ -192,26 +200,26 @@ public interface Transformer extends Function<OutputBuilderElement, OutputBuilde
             return this.contextBag.keySet();
         }
 
-        public Transformer put(ConversationContextKey arg0, Transformer arg1) {
+        public ConversationTransformer put(ConversationContextKey arg0, ConversationTransformer arg1) {
             return this.put(arg0.name(), arg1);
         }
 
         @Override
-        public Transformer put(String arg0, Transformer arg1) {
+        public ConversationTransformer put(String arg0, ConversationTransformer arg1) {
             return this.contextBag.put(arg0, arg1);
         }
 
         @Override
-        public void putAll(Map<? extends String, ? extends Transformer> m) {
+        public void putAll(Map<? extends String, ? extends ConversationTransformer> m) {
             this.contextBag.putAll(m);
         }
 
-        public Transformer remove(ConversationContextKey key) {
+        public ConversationTransformer remove(ConversationContextKey key) {
             return this.remove(key.name());
         }
 
         @Override
-        public Transformer remove(Object key) {
+        public ConversationTransformer remove(Object key) {
             return this.contextBag.remove(key);
         }
 
@@ -221,7 +229,7 @@ public interface Transformer extends Function<OutputBuilderElement, OutputBuilde
         }
 
         @Override
-        public Collection<Transformer> values() {
+        public Collection<ConversationTransformer> values() {
             return this.contextBag.values();
         }
 

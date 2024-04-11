@@ -7,8 +7,8 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.regex.Matcher;
 
-import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
-import com.lhf.game.creature.conversation.ConversationContext.Transformer;
+import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
+import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext.ConversationContextKey;
 
 public class ConversationTreeBranch implements Serializable, Comparable<ConversationTreeBranch> {
     private final ConversationPattern regex;
@@ -59,7 +59,7 @@ public class ConversationTreeBranch implements Serializable, Comparable<Conversa
         for (String key : this.blacklist.keySet()) {
             if (ctx.containsKey(key)) {
                 Matcher matcher = this.blacklist.get(key)
-                        .matcher(ctx.getOrDefault(key, Transformer.ofString("")).getOutputBody());
+                        .matcher(ctx.getOrDefault(key, ConversationTransformer.ofString("")).getOutputBody());
                 if (matcher.find()) {
                     return false;
                 }

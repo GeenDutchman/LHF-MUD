@@ -15,8 +15,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.lhf.OutputBuilder.OutputSequence;
-import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
-import com.lhf.game.creature.conversation.ConversationContext.Transformer;
+import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
+import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext.ConversationContextKey;
 import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
@@ -158,8 +158,8 @@ public class ConversationTree implements Serializable {
                 Matcher matcher = greet.getRegex().matcher(message);
                 if (matcher.find()) {
                     ConversationContext ctx = new ConversationContext();
-                    ctx.put(ConversationContextKey.TALKER_NAME, Transformer.ofString(talker.getName()));
-                    ctx.put(ConversationContextKey.TALKER_TAGGED_NAME, Transformer.ofTaggable(talker));
+                    ctx.put(ConversationContextKey.TALKER_NAME, ConversationTransformer.ofString(talker.getName()));
+                    ctx.put(ConversationContextKey.TALKER_TAGGED_NAME, ConversationTransformer.ofTaggable(talker));
                     ctx.addTrail(this.start.getNodeID());
                     this.bookmarks.put(talker.getClientID(), ctx);
                     return this.tagIt(ctx, this.start);
@@ -205,7 +205,7 @@ public class ConversationTree implements Serializable {
         this.bookmarks.remove(talker.getClientID());
     }
 
-    public boolean store(CommandInvoker talker, String key, Transformer transformer) {
+    public boolean store(CommandInvoker talker, String key, ConversationTransformer transformer) {
         if (this.bookmarks.containsKey(talker.getClientID())) {
             this.bookmarks.get(talker.getClientID()).put(key, transformer);
             return true;
@@ -238,7 +238,7 @@ public class ConversationTree implements Serializable {
     }
 
     @Deprecated
-    public String getAGreeting() {
+    public String getAGreeting(Map<String, ConversationTransformer> transforms) {
         if (this.greetings == null || this.greetings.size() == 0) {
             return null;
         }

@@ -23,6 +23,7 @@ import com.lhf.OutputBuilder.OutputBuilderElement;
 import com.lhf.OutputBuilder.OutputSequence;
 import com.lhf.OutputBuilder.OutputSequenceElement;
 import com.lhf.Taggable.BasicTaggable;
+import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
 
 public class ConversationTreeNodeResult {
     private final static String BRANCH_TAG = "convo";
@@ -60,7 +61,7 @@ public class ConversationTreeNodeResult {
                     if (element == null) {
                         continue;
                     }
-                    sequence.appendOutputBuilderElement(ctx.transform(element), null, null);
+                    sequence.appendOutputBuilderElement(ctx.apply(element), null, null);
                 }
                 promptResults.add(sequence);
             }
@@ -78,7 +79,7 @@ public class ConversationTreeNodeResult {
 
                 CharSequence chars = current.getCharSequenceAsString();
                 if (chars == null || chars.length() == 0) {
-                    bodyResult.appendOutputBuilderElement(ctx.transform(current), null, null);
+                    bodyResult.appendOutputBuilderElement(ctx.apply(current), null, null);
                     continue processNext;
                 }
 
@@ -99,11 +100,11 @@ public class ConversationTreeNodeResult {
                         continue processNext; // ********** NOTE THE LABEL JUMP!! **********
                     }
                 }
-                bodyResult.appendOutputBuilderElement(ctx.transform(current), null, null);
+                bodyResult.appendOutputBuilderElement(ctx.apply(current), null, null);
             }
         }
         while (!toProcess.isEmpty()) {
-            bodyResult.appendOutputBuilderElement(ctx.transform(toProcess.pop()), null, null);
+            bodyResult.appendOutputBuilderElement(ctx.apply(toProcess.pop()), null, null);
         }
         return new ConversationTreeNodeResult(bodyResult, promptResults);
     }
