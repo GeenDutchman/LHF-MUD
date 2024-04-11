@@ -204,7 +204,7 @@ public class ConversationTreeTest {
         tree.addNode(start.getNodeID(),
                 new ConversationPattern("I'm a traveller?", "\\btraveller\\b", Pattern.CASE_INSENSITIVE), second);
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.printString()).contains("<convo>traveller</convo>");
+        Truth.assertThat(response.print()).contains("<convo>traveller</convo>");
     }
 
     @Test
