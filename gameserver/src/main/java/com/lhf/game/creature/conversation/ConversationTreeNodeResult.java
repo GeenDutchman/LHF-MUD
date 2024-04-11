@@ -28,6 +28,19 @@ public class ConversationTreeNodeResult {
     private final OutputSequence bodySequence;
     private final List<OutputSequence> prompts;
 
+    public static ConversationTreeNodeResult fromString(ConversationContext ctx, String body, List<String> prompts,
+            SortedSet<ConversationPattern> branchPatterns) {
+        if (ctx == null) {
+            throw new IllegalArgumentException("Must have a context to create a result!");
+        }
+        return ConversationTreeNodeResult
+                .create(ctx, new OutputSequence().appendChild(body),
+                        prompts == null ? null
+                                : prompts.stream().filter(p -> p != null)
+                                        .map(p -> new OutputSequence().appendString(p, null, null)).toList(),
+                        branchPatterns);
+    }
+
     public static ConversationTreeNodeResult create(ConversationContext ctx, OutputBuilder bodySequence,
             List<OutputSequence> prompts, SortedSet<ConversationPattern> branchPatterns) {
         if (ctx == null) {
