@@ -123,4 +123,16 @@ public class ConversationContext implements Map<String, Function<OutputBuilderEl
         return this.contextBag.values();
     }
 
+    public OutputBuilderElement mapping(OutputBuilderElement input) {
+        if (input == null) {
+            return input;
+        }
+        String meta = input.getMetaSignal();
+        Function<OutputBuilderElement, OutputBuilderElement> function = this.contextBag.getOrDefault(meta, null);
+        if (function != null) {
+            return function.apply(input);
+        }
+        return input;
+    }
+
 }

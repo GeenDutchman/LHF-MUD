@@ -28,6 +28,10 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
         return new OutputSequence(bodySequence);
     }
 
+    public String getBodyAsString() {
+        return this.getBodySequence().printString();
+    }
+
     public boolean addPrompt(OutputSequence prompt) {
         return this.prompts.add(prompt);
     }
