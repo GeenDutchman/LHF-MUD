@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collector;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
@@ -18,6 +17,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -30,6 +30,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.lhf.Examinable.BasicExaminable;
 import com.lhf.Taggable.BasicTaggable;
@@ -480,12 +481,33 @@ public interface OutputBuilder {
 
     }
 
-    public static void writeDocument(Document document, Writer writer) throws TransformerException {
+    public static void writeDocument(Document document, Writer writer, Map<String, String> transformerProperties)
+            throws TransformerException {
         if (document == null || writer == null) {
             throw new IllegalArgumentException("Cannot write null document or to null writer");
         }
         Transformer transformer = TransformerFactory.newDefaultInstance().newTransformer();
+        if (transformerProperties != null) {
+            for (Map.Entry<String, String> entry : transformerProperties.entrySet()) {
+                if (entry == null) {
+                    continue;
+                }
+                final String key = entry.getKey();
+                final String value = entry.getValue();
+                if (key == null || value == null) {
+                    continue;
+                }
+                transformer.setOutputProperty(key, value);
+            }
+        }
         transformer.transform(new DOMSource(document), new StreamResult(writer));
+    }
+
+    public static void writeDocument(Document document, Writer writer) throws TransformerException {
+        if (document == null || writer == null) {
+            throw new IllegalArgumentException("Cannot write null document or to null writer");
+        }
+        OutputBuilder.writeDocument(document, writer, Map.of());
     }
 
     public static String printDocument(Document document) throws TransformerException {
@@ -521,14 +543,14 @@ public interface OutputBuilder {
         return document;
     }
 
-    private static void acceptTaggable(Document document, Element element, Taggable toAdd) {
-        if (document == null || element == null || toAdd == null) {
+    private static void acceptTaggable(Document document, Node node, Taggable toAdd) {
+        if (document == null || node == null || toAdd == null) {
             return;
         }
         final String tagName = toAdd.getTagName();
         Element myElement = document
                 .createElement(tagName != null && !tagName.isEmpty() && !tagName.isBlank() ? tagName : "Taggable");
-        element.appendChild(myElement);
+        node.appendChild(myElement);
         myElement.appendChild(document.createTextNode(toAdd.getSimpleContent()));
         final Map<String, String> tagAttributes = toAdd.getTagAttributes();
         if (tagAttributes != null) {
@@ -544,14 +566,14 @@ public interface OutputBuilder {
 
     public final static String XML_DESCRIPTION = "description";
 
-    private static void acceptExaminable(Document document, Element element, Examinable toAdd) {
-        if (document == null || element == null || toAdd == null) {
+    private static void acceptExaminable(Document document, Node node, Examinable toAdd) {
+        if (document == null || node == null || toAdd == null) {
             return;
         }
         final String tagName = toAdd.getTagName();
         Element myElement = document
                 .createElement(tagName != null && !tagName.isEmpty() && !tagName.isBlank() ? tagName : "Examinable");
-        element.appendChild(myElement);
+        node.appendChild(myElement);
         final String name = toAdd.getName();
         final String simpleContent = toAdd.getSimpleContent();
         if (name != null && !name.equals(simpleContent)) {
@@ -579,28 +601,28 @@ public interface OutputBuilder {
         }
     }
 
-    private static void acceptOutputBuilder(Document document, Element element, OutputBuilder outputBuilder) {
-        if (document == null || element == null || outputBuilder == null) {
+    private static void acceptOutputBuilder(Document document, Node node, OutputBuilder outputBuilder) {
+        if (document == null || node == null || outputBuilder == null) {
             return;
         }
-        Element myElement = element;
+        Node myNode = node;
         final String sequenceName = outputBuilder.getBuilderName();
         if (sequenceName != null) {
-            myElement = document.createElement(sequenceName);
-            element.appendChild(myElement);
+            myNode = document.createElement(sequenceName);
+            node.appendChild(myNode);
         }
         final List<OutputBuilderElement> elementList = outputBuilder.getElements();
         for (final OutputBuilderElement sequenceMember : elementList) {
             if (sequenceMember == null) {
                 continue;
             } else if (sequenceMember.getCharSequence() != null) {
-                myElement.appendChild(document.createTextNode(sequenceMember.getCharSequence().toString()));
+                myNode.appendChild(document.createTextNode(sequenceMember.getCharSequence().toString()));
             } else if (sequenceMember.getTaggable() != null) {
-                OutputBuilder.acceptTaggable(document, myElement, sequenceMember.getTaggable());
+                OutputBuilder.acceptTaggable(document, myNode, sequenceMember.getTaggable());
             } else if (sequenceMember.getExaminable() != null) {
-                OutputBuilder.acceptExaminable(document, myElement, sequenceMember.getExaminable());
+                OutputBuilder.acceptExaminable(document, myNode, sequenceMember.getExaminable());
             } else if (sequenceMember.getOutputBuilder() != null) {
-                OutputBuilder.acceptOutputBuilder(document, myElement, sequenceMember.getOutputBuilder());
+                OutputBuilder.acceptOutputBuilder(document, myNode, sequenceMember.getOutputBuilder());
             }
         }
     }
