@@ -116,10 +116,25 @@ public interface ConversationTransformer extends Function<OutputBuilderElement, 
         };
     }
 
+    public static ConversationTransformer ofTalkerAndListener(Taggable talker, Taggable listener) {
+        return ConversationTransformer.ofTransformerMapping(Map.of(ConversationContextKey.TALKER_NAME.name(),
+                ConversationTransformer.ofString(talker.getSimpleContent()),
+                ConversationContextKey.TALKER_TAGGED_NAME.name(), ConversationTransformer.ofTaggable(talker),
+                ConversationContextKey.LISTENER_NAME.name(),
+                ConversationTransformer.ofString(listener.getSimpleContent()),
+                ConversationContextKey.LISTENER_TAGGED_NAME.name(), ConversationTransformer.ofTaggable(listener)));
+    }
+
+    public static ConversationTransformer ofTalkerAndListener(String talker, String listener) {
+        return ConversationTransformer.ofTalkerAndListener(Taggable.BasicTaggable.customTaggable("Creature", talker),
+                Taggable.BasicTaggable.customTaggable("Creature", listener));
+    }
+
+    public enum ConversationContextKey {
+        TALKER_NAME, TALKER_TAGGED_NAME, LISTENER_NAME, LISTENER_TAGGED_NAME;
+    }
+
     public static class ConversationContext implements ConversationTransformer, Map<String, ConversationTransformer> {
-        public enum ConversationContextKey {
-            TALKER_NAME, TALKER_TAGGED_NAME, LISTENER_NAME, LISTENER_TAGGED_NAME;
-        }
 
         private List<UUID> trail;
         private Map<String, ConversationTransformer> contextBag;

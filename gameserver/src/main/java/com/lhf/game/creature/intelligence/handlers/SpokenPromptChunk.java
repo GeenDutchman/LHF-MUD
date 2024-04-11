@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
+import com.lhf.game.creature.conversation.ConversationTransformer;
 import com.lhf.game.creature.conversation.ConversationTree;
 import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
 import com.lhf.game.creature.intelligence.AIHandler;
@@ -42,10 +43,11 @@ public class SpokenPromptChunk extends AIHandler {
     private void basicHandle(BasicAI bai, SpeakingEvent sm) {
         ConversationTree tree = bai.getNpc().getConvoTree();
         if (tree != null) {
-            ConversationTreeNodeResult result = tree.listen(sm.getSayer(), sm.getMessage());
-            if (result != null && result.getBody() != null) {
+            final ConversationTreeNodeResult result = tree.listen(sm.getSayer(), sm.getMessage());
+            final String body = result.print();
+            if (result != null && body != null) {
                 String name = Taggable.extract(sm.getSayer());
-                Command say = Command.parse("say \"" + result.getBody() + "\" to " + name);
+                Command say = Command.parse("say \"" + body + "\" to " + name);
                 bai.handleChain(null, say);
             }
             if (result != null && result.getPrompts() != null) {
@@ -58,7 +60,7 @@ public class SpokenPromptChunk extends AIHandler {
                         if (splits.length < 2) {
                             continue;
                         }
-                        tree.store(sm.getSayer(), splits[0], splits[1]);
+                        tree.store(sm.getSayer(), splits[0], ConversationTransformer.ofString(splits[1]));
                         continue;
                     }
                     if (prompt.startsWith("PROMPT")) {

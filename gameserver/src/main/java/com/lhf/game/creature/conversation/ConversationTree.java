@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 
 import com.lhf.OutputBuilder.OutputSequence;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
-import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext.ConversationContextKey;
+import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.CommandInvoker;
 import com.lhf.server.interfaces.NotNull;
@@ -237,8 +237,7 @@ public class ConversationTree implements Serializable {
         this.greetings = new TreeSet<>(greetings);
     }
 
-    @Deprecated
-    public String getAGreeting(Map<String, ConversationTransformer> transforms) {
+    public ConversationTreeNodeResult getAGreeting(ConversationTransformer transformer) {
         if (this.greetings == null || this.greetings.size() == 0) {
             return null;
         }
@@ -246,10 +245,9 @@ public class ConversationTree implements Serializable {
         if (pattern == null) {
             return null;
         }
-        String output = pattern.getExample();
-        Matcher matcher = pattern.getRegex().matcher(output);
-        output = matcher.replaceFirst("<convo>$0</convo>");
-        return output;
+        TreeSet<ConversationPattern> patterns = new TreeSet<>();
+        patterns.add(pattern);
+        return ConversationTreeNodeResult.fromString(transformer, pattern.getExample(), null, patterns);
     }
 
     public void setRepeats(Set<ConversationPattern> repeats) {

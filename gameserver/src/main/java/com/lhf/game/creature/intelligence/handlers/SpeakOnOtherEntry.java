@@ -1,6 +1,8 @@
 package com.lhf.game.creature.intelligence.handlers;
 
 import com.lhf.Taggable;
+import com.lhf.game.creature.conversation.ConversationTransformer;
+import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
 import com.lhf.messages.Command;
@@ -35,17 +37,19 @@ public class SpeakOnOtherEntry extends AIHandler {
         if (GameEventType.ROOM_ENTERED.equals(event.getXmlEventType())) {
             RoomEnteredEvent reom = (RoomEnteredEvent) event;
             if (reom.getNewbie() != null) {
-                String sayit = null;
+                ConversationTransformer transformer = ConversationTransformer.ofTalkerAndListener(bai.getNpc(),
+                        reom.getNewbie());
+                ConversationTreeNodeResult sayit = null;
                 if (this.greeting != null) {
-                    sayit = this.greeting;
+                    sayit = ConversationTreeNodeResult.fromString(transformer, this.greeting, null, null);
                 } else if (bai.getNpc().getConvoTree() != null) {
-                    sayit = bai.getNpc().getConvoTree().getAGreeting();
+                    sayit = bai.getNpc().getConvoTree().getAGreeting(transformer);
                 }
                 if (sayit == null) {
-                    sayit = "Hello There!";
+                    sayit = ConversationTreeNodeResult.fromString(transformer, "Hello There!", null, null);
                 }
                 String name = Taggable.extract(reom.getNewbie());
-                Command say = Command.parse("say \"" + sayit + "\" to " + name);
+                Command say = Command.parse("say \"" + sayit.print() + "\" to " + name);
                 bai.handleChain(null, say);
             }
         }

@@ -23,7 +23,6 @@ import com.lhf.OutputBuilder.OutputBuilderElement;
 import com.lhf.OutputBuilder.OutputSequence;
 import com.lhf.OutputBuilder.OutputSequenceElement;
 import com.lhf.Taggable.BasicTaggable;
-import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
 
 public class ConversationTreeNodeResult {
     private final static String BRANCH_TAG = "convo";
@@ -31,22 +30,22 @@ public class ConversationTreeNodeResult {
     private final OutputSequence bodySequence;
     private final List<OutputSequence> prompts;
 
-    public static ConversationTreeNodeResult fromString(ConversationContext ctx, String body, List<String> prompts,
-            SortedSet<ConversationPattern> branchPatterns) {
-        if (ctx == null) {
+    public static ConversationTreeNodeResult fromString(ConversationTransformer transformer, String body,
+            List<String> prompts, SortedSet<ConversationPattern> branchPatterns) {
+        if (transformer == null) {
             throw new IllegalArgumentException("Must have a context to create a result!");
         }
         return ConversationTreeNodeResult
-                .create(ctx, new OutputSequence().appendChild(body),
+                .create(transformer, new OutputSequence().appendChild(body),
                         prompts == null ? null
                                 : prompts.stream().filter(p -> p != null)
                                         .map(p -> new OutputSequence().appendString(p, null, null)).toList(),
                         branchPatterns);
     }
 
-    public static ConversationTreeNodeResult create(ConversationContext ctx, OutputBuilder bodySequence,
+    public static ConversationTreeNodeResult create(ConversationTransformer transformer, OutputBuilder bodySequence,
             List<OutputSequence> prompts, SortedSet<ConversationPattern> branchPatterns) {
-        if (ctx == null) {
+        if (transformer == null) {
             throw new IllegalArgumentException("Must have a context to create a result!");
         }
         List<OutputSequence> promptResults = List.of();
@@ -61,7 +60,7 @@ public class ConversationTreeNodeResult {
                     if (element == null) {
                         continue;
                     }
-                    sequence.appendOutputBuilderElement(ctx.apply(element), null, null);
+                    sequence.appendOutputBuilderElement(transformer.apply(element), null, null);
                 }
                 promptResults.add(sequence);
             }
@@ -79,7 +78,7 @@ public class ConversationTreeNodeResult {
 
                 CharSequence chars = current.getCharSequenceAsString();
                 if (chars == null || chars.length() == 0) {
-                    bodyResult.appendOutputBuilderElement(ctx.apply(current), null, null);
+                    bodyResult.appendOutputBuilderElement(transformer.apply(current), null, null);
                     continue processNext;
                 }
 
@@ -100,11 +99,11 @@ public class ConversationTreeNodeResult {
                         continue processNext; // ********** NOTE THE LABEL JUMP!! **********
                     }
                 }
-                bodyResult.appendOutputBuilderElement(ctx.apply(current), null, null);
+                bodyResult.appendOutputBuilderElement(transformer.apply(current), null, null);
             }
         }
         while (!toProcess.isEmpty()) {
-            bodyResult.appendOutputBuilderElement(ctx.apply(toProcess.pop()), null, null);
+            bodyResult.appendOutputBuilderElement(transformer.apply(toProcess.pop()), null, null);
         }
         return new ConversationTreeNodeResult(bodyResult, promptResults);
     }

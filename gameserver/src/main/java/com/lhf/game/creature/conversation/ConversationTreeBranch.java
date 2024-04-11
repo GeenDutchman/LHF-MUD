@@ -8,7 +8,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext;
-import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContext.ConversationContextKey;
+import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 
 public class ConversationTreeBranch implements Serializable, Comparable<ConversationTreeBranch> {
     private final ConversationPattern regex;
