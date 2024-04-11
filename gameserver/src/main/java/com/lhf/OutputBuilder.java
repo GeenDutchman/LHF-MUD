@@ -28,6 +28,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -514,15 +515,30 @@ public interface OutputBuilder {
         return writer.toString();
     }
 
+    public final static class OutputBuilderConversionError extends RuntimeException {
+        public OutputBuilderConversionError(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
     public static Document documentFromOutputSequence(OutputSequence sequence, Map<String, String> tagAttributes)
-            throws ParserConfigurationException {
+            throws ParserConfigurationException, OutputBuilderConversionError {
         if (sequence == null) {
             throw new IllegalArgumentException("Cannot generate document from null sequence");
         }
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newDefaultInstance();
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
         Document document = documentBuilder.newDocument();
-        Element root = document.createElement(sequence.getBuilderName());
+        Element root = null;
+        try {
+            root = document.createElement(sequence.getBuilderName());
+            document.appendChild(root);
+        } catch (DOMException e) {
+            throw new OutputBuilderConversionError(String.format(
+                    "Error either creating root element (with the OutputSequence name of '%s') or appending it to the document",
+                    sequence.getBuilderName()), e);
+        }
+
         if (tagAttributes != null) {
             for (final Entry<String, String> entry : tagAttributes.entrySet()) {
                 final String key = entry.getKey();
@@ -538,22 +554,43 @@ public interface OutputBuilder {
         return document;
     }
 
-    private static void acceptTaggable(Document document, Node node, Taggable toAdd) {
+    private static void acceptTaggable(Document document, Node node, Taggable toAdd)
+            throws OutputBuilderConversionError {
         if (document == null || node == null || toAdd == null) {
             return;
         }
         final String tagName = toAdd.getTagName();
-        Element myElement = document
-                .createElement(tagName != null && !tagName.isEmpty() && !tagName.isBlank() ? tagName : "Taggable");
-        node.appendChild(myElement);
-        myElement.appendChild(document.createTextNode(toAdd.getSimpleContent()));
+        Element myElement = null;
+        try {
+            myElement = document
+                    .createElement(tagName != null && !tagName.isEmpty() && !tagName.isBlank() ? tagName : "Taggable");
+            node.appendChild(myElement);
+        } catch (DOMException e) {
+            throw new OutputBuilderConversionError(String.format(
+                    "Error either creating element (with the Taggable TagName of '%s') or appending it to the current node",
+                    tagName), e);
+        }
+
+        try {
+            myElement.appendChild(document.createTextNode(toAdd.getSimpleContent()));
+        } catch (DOMException e) {
+            throw new OutputBuilderConversionError(
+                    String.format("Error appending child text node for Taggable %s", toAdd.getSimpleContent()), e);
+        }
         final Map<String, String> tagAttributes = toAdd.getTagAttributes();
         if (tagAttributes != null) {
             for (final Entry<String, String> entry : tagAttributes.entrySet()) {
                 final String key = entry.getKey();
                 final String value = entry.getValue();
                 if (key != null && value != null) {
-                    myElement.setAttribute(key, value);
+                    try {
+                        myElement.setAttribute(key, value);
+                    } catch (DOMException e) {
+                        throw new OutputBuilderConversionError(
+                                String.format("Error setting attribute '%s=%s' for Taggable %s", key, value,
+                                        toAdd.getSimpleContent()),
+                                e);
+                    }
                 }
             }
         }
@@ -561,21 +598,41 @@ public interface OutputBuilder {
 
     public final static String XML_DESCRIPTION = "description";
 
-    private static void acceptExaminable(Document document, Node node, Examinable toAdd) {
+    private static void acceptExaminable(Document document, Node node, Examinable toAdd)
+            throws OutputBuilderConversionError {
         if (document == null || node == null || toAdd == null) {
             return;
         }
         final String tagName = toAdd.getTagName();
-        Element myElement = document
-                .createElement(tagName != null && !tagName.isEmpty() && !tagName.isBlank() ? tagName : "Examinable");
-        node.appendChild(myElement);
+        Element myElement = null;
+        try {
+            myElement = document.createElement(
+                    tagName != null && !tagName.isEmpty() && !tagName.isBlank() ? tagName : "Examinable");
+            node.appendChild(myElement);
+        } catch (DOMException e) {
+            throw new OutputBuilderConversionError(String.format(
+                    "Error either creating element (with the Examinable TagName of '%s') or appending it to the current node",
+                    tagName), e);
+        }
         final String name = toAdd.getName();
         final String simpleContent = toAdd.getSimpleContent();
         if (name != null && !name.equals(simpleContent)) {
-            OutputBuilder.acceptTaggable(document, myElement, BasicTaggable.customTaggable("name", name, Map.of()));
+            final BasicTaggable nameTaggable = BasicTaggable.customTaggable("name", name, Map.of());
+            try {
+                OutputBuilder.acceptTaggable(document, myElement, nameTaggable);
+            } catch (OutputBuilderConversionError e) {
+                throw new OutputBuilderConversionError(
+                        String.format("Error accepting name Taggable '%s' for the Examinable", nameTaggable), e);
+            }
         }
         if (simpleContent != null && !simpleContent.isEmpty() && !simpleContent.isBlank()) {
-            myElement.appendChild(document.createTextNode(simpleContent));
+            try {
+                myElement.appendChild(document.createTextNode(simpleContent));
+            } catch (DOMException e) {
+                throw new OutputBuilderConversionError(
+                        String.format("Error appending simplecontent '%s' for the Examinable %s", simpleContent, name),
+                        e);
+            }
         }
         final Map<String, String> tagAttributes = toAdd.getTagAttributes();
         if (tagAttributes != null) {
@@ -583,7 +640,13 @@ public interface OutputBuilder {
                 final String key = entry.getKey();
                 final String value = entry.getValue();
                 if (key != null && value != null) {
-                    myElement.setAttribute(key, value);
+                    try {
+                        myElement.setAttribute(key, value);
+                    } catch (DOMException e) {
+                        throw new OutputBuilderConversionError(
+                                String.format("Error setting attribute '%s=%s' for Examinable %s", key, value, name),
+                                e);
+                    }
                 }
             }
         }
@@ -591,33 +654,75 @@ public interface OutputBuilder {
         final String description = toAdd.getDescription();
         if (description != null && !description.isEmpty() && !description.isBlank()) {
             Element descriptionElement = document.createElement(XML_DESCRIPTION);
-            descriptionElement.setTextContent(description.trim());
-            myElement.appendChild(descriptionElement);
+            try {
+                descriptionElement.setTextContent(description.trim());
+                myElement.appendChild(descriptionElement);
+            } catch (DOMException e) {
+                throw new OutputBuilderConversionError(String
+                        .format("Error creating or appending Examinable '%s' description: '%s'", name, description), e);
+            }
         }
     }
 
-    private static void acceptOutputBuilder(Document document, Node node, OutputBuilder outputBuilder) {
+    private static void acceptOutputBuilder(Document document, Node node, OutputBuilder outputBuilder)
+            throws OutputBuilderConversionError {
         if (document == null || node == null || outputBuilder == null) {
             return;
         }
         Node myNode = node;
         final String sequenceName = outputBuilder.getBuilderName();
         if (sequenceName != null) {
-            myNode = document.createElement(sequenceName);
-            node.appendChild(myNode);
+            try {
+                myNode = document.createElement(sequenceName);
+                node.appendChild(myNode);
+            } catch (DOMException e) {
+                throw new RuntimeException(String.format(
+                        "Error either creating element (with the OutputBuilder name of '%s') or appending it to the current node",
+                        outputBuilder.getBuilderName()), e);
+            }
         }
         final List<OutputBuilderElement> elementList = outputBuilder.getElements();
-        for (final OutputBuilderElement sequenceMember : elementList) {
+        for (int i = 0; i < elementList.size(); i++) {
+            final OutputBuilderElement sequenceMember = elementList.get(i);
             if (sequenceMember == null) {
                 continue;
             } else if (sequenceMember.getCharSequence() != null) {
-                myNode.appendChild(document.createTextNode(sequenceMember.getCharSequence().toString()));
+                try {
+                    myNode.appendChild(document.createTextNode(sequenceMember.getCharSequence().toString()));
+                } catch (DOMException e) {
+                    throw new OutputBuilderConversionError(
+                            String.format("Error for OutputBuilder '%s' element %d while appending text '%s'",
+                                    sequenceName, i, sequenceMember.getCharSequenceAsString()),
+                            e);
+                }
             } else if (sequenceMember.getTaggable() != null) {
-                OutputBuilder.acceptTaggable(document, myNode, sequenceMember.getTaggable());
+                try {
+                    OutputBuilder.acceptTaggable(document, myNode, sequenceMember.getTaggable());
+                } catch (OutputBuilderConversionError e) {
+                    throw new OutputBuilderConversionError(String.format(
+                            "Error for OutputBuilder '%s' element %d while appending Taggable", sequenceName, i), e);
+                }
             } else if (sequenceMember.getExaminable() != null) {
-                OutputBuilder.acceptExaminable(document, myNode, sequenceMember.getExaminable());
+                try {
+                    OutputBuilder.acceptExaminable(document, myNode, sequenceMember.getExaminable());
+                } catch (OutputBuilderConversionError e) {
+                    throw new OutputBuilderConversionError(String.format(
+                            "Error for OutputBuilder '%s' element %d while appending Examinable", sequenceName, i), e);
+                }
             } else if (sequenceMember.getOutputBuilder() != null) {
-                OutputBuilder.acceptOutputBuilder(document, myNode, sequenceMember.getOutputBuilder());
+                try {
+                    OutputBuilder.acceptOutputBuilder(document, myNode, sequenceMember.getOutputBuilder());
+                } catch (OutputBuilderConversionError e) {
+                    throw new OutputBuilderConversionError(
+                            String.format("Error for OutputBuilder '%s' element %d while appending OutputBuilder",
+                                    sequenceName, i),
+                            e);
+                } catch (DOMException e) {
+                    throw new OutputBuilderConversionError(
+                            String.format("DOM Error for OutputBuilder '%s' element %d while appending OutputBuilder",
+                                    sequenceName, i),
+                            e);
+                }
             }
         }
     }
