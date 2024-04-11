@@ -313,7 +313,7 @@ public interface OutputBuilder {
     public static final class OutputSequence implements OutputBuilder, Iterable<OutputSequenceElement>, Serializable {
 
         private final String sequenceName;
-        public final List<OutputSequenceElement> elements;
+        private final List<OutputSequenceElement> elements;
 
         public OutputSequence() {
             this.sequenceName = null;
