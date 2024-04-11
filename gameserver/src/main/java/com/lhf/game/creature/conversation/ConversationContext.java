@@ -7,14 +7,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.function.Function;
 
-public class ConversationContext implements Map<String, String> {
+import com.lhf.OutputBuilder.OutputBuilderElement;
+
+public class ConversationContext implements Map<String, Function<OutputBuilderElement, OutputBuilderElement>> {
     public enum ConversationContextKey {
         TALKER_NAME, TALKER_TAGGED_NAME, LISTENER_NAME, LISTENER_TAGGED_NAME;
     }
 
     private List<UUID> trail;
-    private Map<String, String> contextBag;
+    private Map<String, Function<OutputBuilderElement, OutputBuilderElement>> contextBag;
 
     public ConversationContext() {
         this.trail = new ArrayList<>();
@@ -62,16 +65,16 @@ public class ConversationContext implements Map<String, String> {
     }
 
     @Override
-    public Set<Entry<String, String>> entrySet() {
+    public Set<Entry<String, Function<OutputBuilderElement, OutputBuilderElement>>> entrySet() {
         return this.contextBag.entrySet();
     }
 
-    public String get(ConversationContextKey key) {
+    public Function<OutputBuilderElement, OutputBuilderElement> get(ConversationContextKey key) {
         return this.get(key.name());
     }
 
     @Override
-    public String get(Object key) {
+    public Function<OutputBuilderElement, OutputBuilderElement> get(Object key) {
         return this.contextBag.get(key);
     }
 
@@ -85,26 +88,28 @@ public class ConversationContext implements Map<String, String> {
         return this.contextBag.keySet();
     }
 
-    public String put(ConversationContextKey arg0, String arg1) {
+    public Function<OutputBuilderElement, OutputBuilderElement> put(ConversationContextKey arg0,
+            Function<OutputBuilderElement, OutputBuilderElement> arg1) {
         return this.put(arg0.name(), arg1);
     }
 
     @Override
-    public String put(String arg0, String arg1) {
+    public Function<OutputBuilderElement, OutputBuilderElement> put(String arg0,
+            Function<OutputBuilderElement, OutputBuilderElement> arg1) {
         return this.contextBag.put(arg0, arg1);
     }
 
     @Override
-    public void putAll(Map<? extends String, ? extends String> m) {
+    public void putAll(Map<? extends String, ? extends Function<OutputBuilderElement, OutputBuilderElement>> m) {
         this.contextBag.putAll(m);
     }
 
-    public String remove(ConversationContextKey key) {
+    public Function<OutputBuilderElement, OutputBuilderElement> remove(ConversationContextKey key) {
         return this.remove(key.name());
     }
 
     @Override
-    public String remove(Object key) {
+    public Function<OutputBuilderElement, OutputBuilderElement> remove(Object key) {
         return this.contextBag.remove(key);
     }
 
@@ -114,7 +119,7 @@ public class ConversationContext implements Map<String, String> {
     }
 
     @Override
-    public Collection<String> values() {
+    public Collection<Function<OutputBuilderElement, OutputBuilderElement>> values() {
         return this.contextBag.values();
     }
 
