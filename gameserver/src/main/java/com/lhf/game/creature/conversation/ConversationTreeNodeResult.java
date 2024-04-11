@@ -43,15 +43,12 @@ public class ConversationTreeNodeResult {
                         branchPatterns);
     }
 
-    public static ConversationTreeNodeResult create(ConversationTransformer transformer, OutputBuilder bodySequence,
-            List<OutputSequence> prompts, SortedSet<ConversationPattern> branchPatterns) {
-        if (transformer == null) {
-            throw new IllegalArgumentException("Must have a context to create a result!");
-        }
+    private static List<OutputSequence> transformPrompts(ConversationTransformer transformer,
+            List<OutputSequence> providedPrompts) {
         List<OutputSequence> promptResults = List.of();
-        if (prompts != null) {
+        if (providedPrompts != null) {
             promptResults = new ArrayList<>();
-            for (final OutputSequence prompt : prompts) {
+            for (final OutputSequence prompt : providedPrompts) {
                 if (prompt == null) {
                     continue;
                 }
@@ -65,46 +62,82 @@ public class ConversationTreeNodeResult {
                 promptResults.add(sequence);
             }
         }
+        return promptResults;
+    }
 
-        OutputSequence bodyResult = new OutputSequence();
-        Deque<OutputSequenceElement> toProcess = new ArrayDeque<>();
-        toProcess.add(OutputSequenceElement.ofOutputBuilder(bodySequence));
+    private static boolean transformForBranches(Deque<OutputBuilderElement> toProcess, String chars,
+            SortedSet<ConversationPattern> branchPatterns) {
         if (branchPatterns != null) {
-            processNext: while (!toProcess.isEmpty()) {
-                OutputSequenceElement current = toProcess.pop();
-                if (current == null) {
-                    continue;
-                }
-
-                CharSequence chars = current.getCharSequenceAsString();
-                if (chars == null || chars.length() == 0) {
-                    bodyResult.appendOutputBuilderElement(transformer.apply(current), null, null);
-                    continue processNext;
-                }
-
-                for (ConversationPattern pattern : branchPatterns) {
-                    Matcher matcher = pattern.getRegex().matcher(chars);
-                    if (matcher.find()) {
-                        final int starting = matcher.start();
-                        final int ending = matcher.end();
-                        if (ending != chars.length()) {
-                            toProcess.addFirst(
-                                    OutputSequenceElement.ofCharSequence(chars.subSequence(ending, chars.length())));
-                        }
-                        toProcess.addFirst(OutputSequenceElement
-                                .ofTaggable(BasicTaggable.customTaggable(BRANCH_TAG, matcher.group())));
-                        if (0 != starting) {
-                            toProcess.addFirst(OutputSequenceElement.ofCharSequence(chars.subSequence(0, starting)));
-                        }
-                        continue processNext; // ********** NOTE THE LABEL JUMP!! **********
+            for (ConversationPattern pattern : branchPatterns) {
+                Matcher matcher = pattern.getRegex().matcher(chars);
+                if (matcher.find()) {
+                    final int starting = matcher.start();
+                    final int ending = matcher.end();
+                    if (ending != chars.length()) {
+                        toProcess.addFirst(
+                                OutputSequenceElement.ofCharSequence(chars.subSequence(ending, chars.length())));
                     }
+                    toProcess.addFirst(OutputSequenceElement
+                            .ofTaggable(BasicTaggable.customTaggable(BRANCH_TAG, matcher.group())));
+                    if (0 != starting) {
+                        toProcess.addFirst(OutputSequenceElement.ofCharSequence(chars.subSequence(0, starting)));
+                    }
+                    return true;
                 }
-                bodyResult.appendOutputBuilderElement(transformer.apply(current), null, null);
             }
         }
-        while (!toProcess.isEmpty()) {
-            bodyResult.appendOutputBuilderElement(transformer.apply(toProcess.pop()), null, null);
+        return false;
+    }
+
+    private static OutputSequence transformOutputBuilder(ConversationTransformer transformer,
+            OutputBuilder bodySequence, SortedSet<ConversationPattern> branchPatterns) {
+        if (bodySequence == null) {
+            return null;
         }
+        OutputSequence bodyResult = new OutputSequence(bodySequence.getBuilderName());
+        final List<OutputBuilderElement> elements = bodySequence.getElements();
+        if (elements == null) {
+            return bodyResult;
+        }
+        Deque<OutputBuilderElement> toProcess = new ArrayDeque<>(elements);
+        while (!toProcess.isEmpty()) {
+            final OutputBuilderElement current = toProcess.pop();
+            if (current == null) {
+                continue;
+            }
+            OutputBuilder sub = current.getOutputBuilder();
+            if (sub != null) {
+                bodyResult.appendOutputBuilder(
+                        ConversationTreeNodeResult.transformOutputBuilder(transformer, sub, branchPatterns), null,
+                        null); // recursion
+                continue;
+            }
+
+            CharSequence chars = current.getCharSequenceAsString();
+            if (chars == null || chars.length() == 0) {
+                bodyResult.appendOutputBuilderElement(transformer.apply(current), null, null);
+                continue;
+            }
+
+            if (branchPatterns != null
+                    && ConversationTreeNodeResult.transformForBranches(toProcess, BRANCH_TAG, branchPatterns)) {
+                continue;
+            }
+
+            bodyResult.appendOutputBuilderElement(transformer.apply(current), null, null);
+        }
+        return bodyResult;
+    }
+
+    public static ConversationTreeNodeResult create(ConversationTransformer transformer, OutputBuilder bodySequence,
+            List<OutputSequence> prompts, SortedSet<ConversationPattern> branchPatterns) {
+        if (transformer == null) {
+            throw new IllegalArgumentException("Must have a context to create a result!");
+        }
+        List<OutputSequence> promptResults = ConversationTreeNodeResult.transformPrompts(transformer, prompts);
+
+        OutputSequence bodyResult = ConversationTreeNodeResult.transformOutputBuilder(transformer, bodySequence,
+                branchPatterns);
         return new ConversationTreeNodeResult(bodyResult, promptResults);
     }
 

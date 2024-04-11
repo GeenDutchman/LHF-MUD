@@ -196,20 +196,12 @@ public interface OutputBuilder {
             this.metaSignal = metaSignal != null ? new String(metaSignal) : null;
         }
 
-        public OutputSequenceElement(OutputBuilderElement other) {
-            if (other != null) {
-                this.charSequence = other.getCharSequenceAsString();
-                this.taggable = Taggable.basicTaggable(other.getTaggable());
-                this.examinable = Examinable.basicExaminable(other.getExaminable());
-                this.outputSequence = new OutputSequence(other.getOutputBuilder());
-                this.metaSignal = other.getMetaSignal();
-            } else {
-                this.charSequence = "";
-                this.taggable = null;
-                this.examinable = null;
-                this.outputSequence = null;
-                this.metaSignal = null;
+        public static final OutputSequenceElement copy(OutputBuilderElement other) {
+            if (other == null) {
+                return null;
             }
+            return new OutputSequenceElement(other.getCharSequenceAsString(), other.getTaggable(),
+                    other.getExaminable(), OutputSequence.copy(other.getOutputBuilder()), other.getMetaSignal());
         }
 
         public static OutputSequenceElement ofCharSequence(CharSequence charSequence) {
@@ -229,7 +221,7 @@ public interface OutputBuilder {
         }
 
         public static OutputSequenceElement ofOutputBuilder(OutputBuilder builder) {
-            return new OutputSequenceElement(null, null, null, new OutputSequence(builder), null);
+            return new OutputSequenceElement(null, null, null, OutputSequence.copy(builder), null);
         }
 
         public static OutputSequenceElement ofMetaSignal(String metaSignal) {
@@ -266,7 +258,8 @@ public interface OutputBuilder {
             if (this.charSequence != null) {
                 return this.charSequence.toString();
             } else if (this.taggable != null) {
-                return this.taggable.getSimpleContent();
+                return new StringBuilder().append("**").append(this.taggable.getSimpleContent()).append("**")
+                        .toString();
             } else if (this.examinable != null) {
                 StringBuilder sb = new StringBuilder();
                 sb.append("**").append(this.examinable.getName()).append("**");
@@ -326,15 +319,17 @@ public interface OutputBuilder {
             this.elements = new ArrayList<>();
         }
 
-        public OutputSequence(OutputBuilder sequence) {
-            if (sequence != null) {
-                this.sequenceName = sequence.getBuilderName();
-                this.elements = new ArrayList<>();
-                sequence.getElements().forEach(other -> new OutputSequenceElement(other));
-            } else {
-                this.sequenceName = null;
-                this.elements = new ArrayList<>();
+        public static final OutputSequence copy(OutputBuilder sequence) {
+            if (sequence == null) {
+                return null;
             }
+            OutputSequence next = new OutputSequence(sequence.getBuilderName());
+            List<OutputBuilderElement> oldElements = sequence.getElements();
+            if (oldElements != null) {
+                oldElements.stream().filter(element -> element != null)
+                        .forEach(element -> next.elements.add(OutputSequenceElement.copy(element)));
+            }
+            return next;
         }
 
         public final String getBuilderName() {
@@ -351,7 +346,7 @@ public interface OutputBuilder {
                 if (before != null) {
                     this.elements.add(OutputSequenceElement.ofCharSequence(before));
                 }
-                this.elements.add(new OutputSequenceElement(toAdd));
+                this.elements.add(OutputSequenceElement.copy(toAdd));
                 if (after != null) {
                     this.elements.add(OutputSequenceElement.ofCharSequence(after));
                 }

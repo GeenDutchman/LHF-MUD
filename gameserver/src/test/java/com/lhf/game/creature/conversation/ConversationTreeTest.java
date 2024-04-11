@@ -14,7 +14,7 @@ import com.google.common.truth.Truth;
 import com.google.gson.Gson;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
-import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
+import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 import com.lhf.game.serialization.GsonBuilderFactory;
 import com.lhf.server.client.Client.ClientID;
 
@@ -63,9 +63,9 @@ public class ConversationTreeTest {
                 new ConversationTreeNode(secondBody));
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.getBody()).isEqualTo(start.getBody());
+        Truth.assertThat(response.printString()).isEqualTo(start.getBodyAsString());
         response = tree.listen(talker, "Are you sure?");
-        Truth.assertThat(response.getBody()).isEqualTo(secondBody);
+        Truth.assertThat(response.printString()).isEqualTo(secondBody);
     }
 
     @Test
@@ -86,13 +86,13 @@ public class ConversationTreeTest {
                 new ConversationTreeNode(thirdBody));
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.getBody()).isEqualTo(start.getBody());
+        Truth.assertThat(response.printString()).isEqualTo(start.getBodyAsString());
         response = tree.listen(talker, "Are you sure?");
-        Truth.assertThat(response.getBody()).isEqualTo(secondBody);
+        Truth.assertThat(response.printString()).isEqualTo(secondBody);
 
         response = tree.listen(talker, "fine!");
-        Truth.assertThat(response.getBody()).isNotEqualTo(thirdBody);
-        Truth.assertThat(response.getBody()).isEqualTo(tree.getEndOfConvo());
+        Truth.assertThat(response.printString()).isNotEqualTo(thirdBody);
+        Truth.assertThat(response.printString()).isEqualTo(tree.getEndOfConvo());
     }
 
     @Test
@@ -113,21 +113,21 @@ public class ConversationTreeTest {
                 new ConversationTreeNode(thirdBody));
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.getBody()).isEqualTo(start.getBody());
+        Truth.assertThat(response.printString()).isEqualTo(start.getBodyAsString());
         response = tree.listen(talker, "Are you sure?");
-        Truth.assertThat(response.getBody()).isEqualTo(secondBody);
+        Truth.assertThat(response.printString()).isEqualTo(secondBody);
 
         response = tree.listen(talker, "fine!");
-        Truth.assertThat(response.getBody()).isNotEqualTo(thirdBody);
-        Truth.assertThat(response.getBody()).isEqualTo(tree.getEndOfConvo());
+        Truth.assertThat(response.printString()).isNotEqualTo(thirdBody);
+        Truth.assertThat(response.printString()).isEqualTo(tree.getEndOfConvo());
 
         response = tree.listen(talker, "fine!");
-        Truth.assertThat(response.getBody()).isEqualTo(thirdBody);
-        Truth.assertThat(response.getBody()).isNotEqualTo(tree.getEndOfConvo());
+        Truth.assertThat(response.printString()).isEqualTo(thirdBody);
+        Truth.assertThat(response.printString()).isNotEqualTo(tree.getEndOfConvo());
 
         response = tree.listen(talker, "Are you sure?");
-        Truth.assertThat(response.getBody()).isNotEqualTo(secondBody);
-        Truth.assertThat(response.getBody()).isEqualTo(tree.getEndOfConvo());
+        Truth.assertThat(response.printString()).isNotEqualTo(secondBody);
+        Truth.assertThat(response.printString()).isEqualTo(tree.getEndOfConvo());
     }
 
     @Test
@@ -148,18 +148,18 @@ public class ConversationTreeTest {
                 new ConversationTreeNode(thirdBody));
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.getBody()).isEqualTo(start.getBody());
+        Truth.assertThat(response.printString()).isEqualTo(start.getBodyAsString());
         response = tree.listen(talker, "zippity doo dah");
-        Truth.assertThat(response.getBody()).doesNotContain(tree.getEndOfConvo());
-        Truth.assertThat(response.getBody()).isEqualTo(tree.getNotRecognized());
+        Truth.assertThat(response.printString()).doesNotContain(tree.getEndOfConvo());
+        Truth.assertThat(response.printString()).isEqualTo(tree.getNotRecognized());
         response = tree.listen(talker, "what was that again?");
-        Truth.assertThat(response.getBody()).isEqualTo(start.getBody());
+        Truth.assertThat(response.printString()).isEqualTo(start.getBodyAsString());
         response = tree.listen(talker, "Are you sure?");
-        Truth.assertThat(response.getBody()).isEqualTo(secondNode.getBody());
+        Truth.assertThat(response.printString()).isEqualTo(secondNode.getBodyAsString());
         response = tree.listen(talker, "zippity eh");
-        Truth.assertThat(response.getBody()).isEqualTo(tree.getNotRecognized());
+        Truth.assertThat(response.printString()).isEqualTo(tree.getNotRecognized());
         response = tree.listen(talker, "what was that again?");
-        Truth.assertThat(response.getBody()).isEqualTo(secondNode.getBody());
+        Truth.assertThat(response.printString()).isEqualTo(secondNode.getBodyAsString());
 
     }
 
@@ -180,12 +180,12 @@ public class ConversationTreeTest {
                 new ConversationTreeNode(thirdBody));
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.getBody()).isEqualTo(start.getBody());
+        Truth.assertThat(response.printString()).isEqualTo(start.getBodyAsString());
         response = tree.listen(talker, "Are you sure?");
-        Truth.assertThat(response.getBody()).isEqualTo(secondBody);
+        Truth.assertThat(response.printString()).isEqualTo(secondBody);
 
         response = tree.listen(talker, "what was that again?");
-        Truth.assertThat(response.getBody()).isEqualTo(secondBody);
+        Truth.assertThat(response.printString()).isEqualTo(secondBody);
     }
 
     @Test
@@ -204,7 +204,7 @@ public class ConversationTreeTest {
         tree.addNode(start.getNodeID(),
                 new ConversationPattern("I'm a traveller?", "\\btraveller\\b", Pattern.CASE_INSENSITIVE), second);
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.getBody()).contains("<convo>traveller</convo>");
+        Truth.assertThat(response.printString()).contains("<convo>traveller</convo>");
     }
 
     @Test
@@ -214,12 +214,12 @@ public class ConversationTreeTest {
         Mockito.when(this.talker.getTagName()).thenReturn("npc");
         Mockito.when(this.talker.getSimpleContent()).thenCallRealMethod();
 
-        ConversationTreeNode start = new ConversationTreeNode(
-                "I greet you back " + ConversationContextKey.TALKER_TAGGED_NAME);
+        ConversationTreeNode start = new ConversationTreeNode("I greet you back")
+                .addMetaSignal(ConversationContextKey.TALKER_TAGGED_NAME);
         ConversationTree tree = new ConversationTree(start);
 
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.getBody()).contains(talker.getName());
+        Truth.assertThat(response.printString()).contains(talker.getName());
     }
 
     @Test
@@ -256,25 +256,25 @@ public class ConversationTreeTest {
 
         // welcome
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.getBody()).ignoringCase().contains("<convo>welcome</convo>");
-        Truth.assertThat(response.getBody()).ignoringCase().contains("<convo>unwelcome</convo>");
+        Truth.assertThat(response.printString()).ignoringCase().contains("<convo>welcome</convo>");
+        Truth.assertThat(response.printString()).ignoringCase().contains("<convo>unwelcome</convo>");
 
         response = tree.listen(talker, "I think I'm welcome");
-        Truth.assertThat(response.getBody()).isEqualTo(oneWay.getBody());
+        Truth.assertThat(response.printString()).isEqualTo(oneWay.getBodyAsString());
         response = tree.listen(talker, "But I'll start over");
-        Truth.assertThat(response.getBody()).contains(tree.getEndOfConvo());
+        Truth.assertThat(response.printString()).contains(tree.getEndOfConvo());
         response = tree.listen(talker, "Am I unwelcome?");
-        Truth.assertThat(response.getBody()).isEqualTo(otherWay.getBody());
+        Truth.assertThat(response.printString()).isEqualTo(otherWay.getBodyAsString());
 
         // unwelcome
         response = tree.listen(unwelcome, "hello there!");
-        Truth.assertThat(response.getBody()).ignoringCase().doesNotContain("<convo>welcome</convo>");
-        Truth.assertThat(response.getBody()).ignoringCase().contains("<convo>unwelcome</convo>");
+        Truth.assertThat(response.printString()).ignoringCase().doesNotContain("<convo>welcome</convo>");
+        Truth.assertThat(response.printString()).ignoringCase().contains("<convo>unwelcome</convo>");
 
         response = tree.listen(unwelcome, "Am I welcome?");
-        Truth.assertThat(response.getBody()).ignoringCase().isEqualTo(tree.getNotRecognized());
+        Truth.assertThat(response.printString()).ignoringCase().isEqualTo(tree.getNotRecognized());
         response = tree.listen(unwelcome, "Am I unwelcome?");
-        Truth.assertThat(response.getBody()).isEqualTo(otherWay.getBody());
+        Truth.assertThat(response.printString()).isEqualTo(otherWay.getBodyAsString());
 
     }
 
@@ -313,15 +313,15 @@ public class ConversationTreeTest {
 
         // welcome
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.getBody()).ignoringCase().contains("<convo>both</convo>");
+        Truth.assertThat(response.printString()).ignoringCase().contains("<convo>both</convo>");
         response = tree.listen(talker, "You test both?");
-        Truth.assertThat(response.getBody()).isEqualTo(oneWay.getBody());
+        Truth.assertThat(response.printString()).isEqualTo(oneWay.getBodyAsString());
 
         // unwelcome
         response = tree.listen(unwelcome, "hello there!");
-        Truth.assertThat(response.getBody()).ignoringCase().contains("<convo>both</convo>");
+        Truth.assertThat(response.printString()).ignoringCase().contains("<convo>both</convo>");
         response = tree.listen(unwelcome, "You test both?");
-        Truth.assertThat(response.getBody()).isEqualTo(otherWay.getBody());
+        Truth.assertThat(response.printString()).isEqualTo(otherWay.getBodyAsString());
     }
 
     @Test

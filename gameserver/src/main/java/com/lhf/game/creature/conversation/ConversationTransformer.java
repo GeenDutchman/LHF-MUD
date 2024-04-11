@@ -61,7 +61,11 @@ public interface ConversationTransformer extends Function<OutputBuilderElement, 
                 if (arg0 == null || mapping == null) {
                     return arg0;
                 }
-                return mapping.getOrDefault(arg0.getMetaSignal(), arg0);
+                String meta = arg0.getMetaSignal();
+                if (meta == null) {
+                    return arg0;
+                }
+                return mapping.getOrDefault(meta, arg0);
             }
 
             @Override
@@ -90,7 +94,11 @@ public interface ConversationTransformer extends Function<OutputBuilderElement, 
                 if (arg0 == null || mapping == null) {
                     return arg0;
                 }
-                ConversationTransformer located = mapping.getOrDefault(arg0.getMetaSignal(),
+                String meta = arg0.getMetaSignal();
+                if (meta == null) {
+                    return arg0;
+                }
+                ConversationTransformer located = mapping.getOrDefault(meta,
                         ConversationTransformer.ofBuilderElement(arg0));
                 if (located == null) {
                     return arg0;
@@ -254,6 +262,9 @@ public interface ConversationTransformer extends Function<OutputBuilderElement, 
                 return input;
             }
             String meta = input.getMetaSignal();
+            if (meta == null) {
+                return input;
+            }
             Function<OutputBuilderElement, OutputBuilderElement> function = this.contextBag.getOrDefault(meta, null);
             if (function != null) {
                 return function.apply(input);

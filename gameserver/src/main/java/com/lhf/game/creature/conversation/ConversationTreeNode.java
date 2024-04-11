@@ -7,6 +7,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 import com.lhf.OutputBuilder.OutputSequence;
+import com.lhf.OutputBuilder.OutputSequenceElement;
+import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 
 public class ConversationTreeNode implements Comparable<ConversationTreeNode>, Serializable {
     public static final String EMPTY = "...";
@@ -17,7 +19,7 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
     public ConversationTreeNode(String someBody) {
         this.nodeID = UUID.randomUUID();
         this.bodySequence = new OutputSequence();
-        this.bodySequence.appendString(someBody);
+        this.bodySequence.appendString(someBody, null, null);
         this.prompts = new ArrayList<>();
     }
 
@@ -26,11 +28,25 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
         return this;
     }
 
+    public ConversationTreeNode addMetaSignal(ConversationContextKey meta) {
+        if (meta != null) {
+            return this.addMetaSignal(meta.name());
+        }
+        return this;
+    }
+
+    public ConversationTreeNode addMetaSignal(String meta) {
+        if (meta != null) {
+            this.bodySequence.appendOutputBuilderElement(OutputSequenceElement.ofMetaSignal(meta));
+        }
+        return this;
+    }
+
     public OutputSequence getBodySequence() {
         if (bodySequence == null || bodySequence.getElements().size() == 0) {
             return new OutputSequence().appendString(EMPTY, null, null);
         }
-        return new OutputSequence(bodySequence);
+        return OutputSequence.copy(bodySequence);
     }
 
     public String getBodyAsString() {

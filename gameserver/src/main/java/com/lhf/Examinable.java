@@ -109,7 +109,7 @@ public interface Examinable extends Taggable {
             }
             for (final OutputSequenceElement thing : this.extraDescription) {
                 if (thing != null) {
-                    builder.appendOutputBuilderElement(new OutputSequenceElement(thing), null, null);
+                    builder.appendOutputBuilderElement(OutputSequenceElement.copy(thing), null, null);
                 }
             }
         }
