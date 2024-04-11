@@ -3,6 +3,7 @@ package com.lhf.game.creature.conversation;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.truth.Truth;
+import com.lhf.OutputBuilder.OutputBuilderElement;
 
 public class ConversationTreeNodeTest {
 
@@ -11,7 +12,7 @@ public class ConversationTreeNodeTest {
     @Test
     void testEmptyNode() {
         ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
-        Truth.assertThat(node.getBody()).contains("nothing");
+        Truth.assertThat(node.getBodyAsString()).contains("nothing");
     }
 
     @Test
@@ -19,7 +20,7 @@ public class ConversationTreeNodeTest {
         ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
         String body = "I have something for you";
         node.addBody(body);
-        Truth.assertThat(node.getBody()).contains(body);
+        Truth.assertThat(node.getBodyAsString()).contains(body);
     }
 
     @Test
@@ -32,8 +33,8 @@ public class ConversationTreeNodeTest {
         String body2 = "and it should be useful";
         node.addBody(body2);
 
-        Truth.assertThat(node.getBody()).contains(body1);
-        Truth.assertThat(node.getBody()).contains(body2);
+        Truth.assertThat(node.getBodyAsString()).contains(body1);
+        Truth.assertThat(node.getBodyAsString()).contains(body2);
     }
 
     @Test
@@ -41,8 +42,27 @@ public class ConversationTreeNodeTest {
         ConversationTreeNode node = new ConversationTreeNode(basicEmpty);
         node.addPrompt("PROMPT say cheese to anna");
 
-        ConversationTreeNodeResult result = node.getResult();
-        Truth.assertThat(result.getBody()).isEqualTo(node.getBody());
+        ConversationTransformer transformer = new ConversationTransformer() {
+
+            @Override
+            public OutputBuilderElement apply(OutputBuilderElement arg0) {
+                return arg0;
+            }
+
+            @Override
+            public String describePlainOutput() {
+                return "Identity";
+            }
+
+            @Override
+            public String getOutputBody() {
+                return "Identity";
+            }
+
+        };
+        ConversationTreeNodeResult result = ConversationTreeNodeResult.create(transformer, node.getBodySequence(),
+                node.getPrompts(), null);
+        Truth.assertThat(result.printString()).isEqualTo(node.getBodyAsString());
         Truth.assertThat(result.getPrompts()).containsAtLeastElementsIn(node.getPrompts());
     }
 
