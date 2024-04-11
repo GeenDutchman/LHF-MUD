@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 
 import com.lhf.game.creature.conversation.ConversationContext.ConversationContextKey;
+import com.lhf.game.creature.conversation.ConversationContext.Transformer;
 
 public class ConversationTreeBranch implements Serializable, Comparable<ConversationTreeBranch> {
     private final ConversationPattern regex;
@@ -57,7 +58,8 @@ public class ConversationTreeBranch implements Serializable, Comparable<Conversa
     public boolean canAccess(ConversationContext ctx) {
         for (String key : this.blacklist.keySet()) {
             if (ctx.containsKey(key)) {
-                Matcher matcher = this.blacklist.get(key).matcher(ctx.get(key));
+                Matcher matcher = this.blacklist.get(key)
+                        .matcher(ctx.getOrDefault(key, Transformer.ofString("")).getOutputBody());
                 if (matcher.find()) {
                     return false;
                 }

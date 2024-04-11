@@ -25,6 +25,8 @@ import com.lhf.OutputBuilder.OutputSequenceElement;
 import com.lhf.Taggable.BasicTaggable;
 
 public class ConversationTreeNodeResult {
+    private final static String BRANCH_TAG = "convo";
+    private final static String NPC_CONVERSATION_TAG = "NPCConversation";
     private final OutputSequence bodySequence;
     private final List<OutputSequence> prompts;
 
@@ -58,7 +60,7 @@ public class ConversationTreeNodeResult {
                     if (element == null) {
                         continue;
                     }
-                    sequence.appendOutputBuilderElement(ctx.mapping(element), null, null);
+                    sequence.appendOutputBuilderElement(ctx.transform(element), null, null);
                 }
                 promptResults.add(sequence);
             }
@@ -76,7 +78,7 @@ public class ConversationTreeNodeResult {
 
                 CharSequence chars = current.getCharSequenceAsString();
                 if (chars == null || chars.length() == 0) {
-                    bodyResult.appendOutputBuilderElement(ctx.mapping(current), null, null);
+                    bodyResult.appendOutputBuilderElement(ctx.transform(current), null, null);
                     continue processNext;
                 }
 
@@ -90,18 +92,18 @@ public class ConversationTreeNodeResult {
                                     OutputSequenceElement.ofCharSequence(chars.subSequence(ending, chars.length())));
                         }
                         toProcess.addFirst(OutputSequenceElement
-                                .ofTaggable(BasicTaggable.customTaggable("convo", matcher.group())));
+                                .ofTaggable(BasicTaggable.customTaggable(BRANCH_TAG, matcher.group())));
                         if (0 != starting) {
                             toProcess.addFirst(OutputSequenceElement.ofCharSequence(chars.subSequence(0, starting)));
                         }
                         continue processNext; // ********** NOTE THE LABEL JUMP!! **********
                     }
                 }
-                bodyResult.appendOutputBuilderElement(ctx.mapping(current), null, null);
+                bodyResult.appendOutputBuilderElement(ctx.transform(current), null, null);
             }
         }
         while (!toProcess.isEmpty()) {
-            bodyResult.appendOutputBuilderElement(ctx.mapping(toProcess.pop()), null, null);
+            bodyResult.appendOutputBuilderElement(ctx.transform(toProcess.pop()), null, null);
         }
         return new ConversationTreeNodeResult(bodyResult, promptResults);
     }
@@ -124,7 +126,7 @@ public class ConversationTreeNodeResult {
         if (result == null) {
             throw new IllegalArgumentException("Cannot generate document from null result!");
         }
-        OutputSequence sequence = new OutputSequence("Conversation");
+        OutputSequence sequence = new OutputSequence(NPC_CONVERSATION_TAG);
         sequence.appendOutputBuilder(result.bodySequence, null, null);
 
         return OutputBuilder.documentFromOutputSequence(sequence, null);

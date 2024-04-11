@@ -9,15 +9,55 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.function.Function;
 
+import com.lhf.Taggable;
 import com.lhf.OutputBuilder.OutputBuilderElement;
+import com.lhf.OutputBuilder.OutputSequenceElement;
 
-public class ConversationContext implements Map<String, Function<OutputBuilderElement, OutputBuilderElement>> {
+public class ConversationContext
+        implements Map<String, com.lhf.game.creature.conversation.ConversationContext.Transformer> {
     public enum ConversationContextKey {
         TALKER_NAME, TALKER_TAGGED_NAME, LISTENER_NAME, LISTENER_TAGGED_NAME;
     }
 
+    public static interface Transformer extends Function<OutputBuilderElement, OutputBuilderElement> {
+
+        public String describePlainOutput();
+
+        public String getOutputBody();
+
+        public static Transformer ofBuilderElement(OutputBuilderElement toOut) {
+            return new Transformer() {
+
+                @Override
+                public OutputBuilderElement apply(OutputBuilderElement arg0) {
+                    return toOut;
+                }
+
+                @Override
+                public String describePlainOutput() {
+                    return toOut != null ? toOut.toString() : null;
+                }
+
+                @Override
+                public String getOutputBody() {
+                    return toOut != null ? toOut.getCharSequenceAsString() : null;
+                }
+
+            };
+        }
+
+        public static Transformer ofString(String body) {
+            return Transformer.ofBuilderElement(OutputSequenceElement.ofCharSequence(body));
+        }
+
+        public static Transformer ofTaggable(Taggable taggable) {
+            return Transformer.ofBuilderElement(OutputSequenceElement.ofTaggable(taggable));
+        }
+
+    }
+
     private List<UUID> trail;
-    private Map<String, Function<OutputBuilderElement, OutputBuilderElement>> contextBag;
+    private Map<String, Transformer> contextBag;
 
     public ConversationContext() {
         this.trail = new ArrayList<>();
@@ -65,16 +105,16 @@ public class ConversationContext implements Map<String, Function<OutputBuilderEl
     }
 
     @Override
-    public Set<Entry<String, Function<OutputBuilderElement, OutputBuilderElement>>> entrySet() {
+    public Set<Entry<String, Transformer>> entrySet() {
         return this.contextBag.entrySet();
     }
 
-    public Function<OutputBuilderElement, OutputBuilderElement> get(ConversationContextKey key) {
+    public Transformer get(ConversationContextKey key) {
         return this.get(key.name());
     }
 
     @Override
-    public Function<OutputBuilderElement, OutputBuilderElement> get(Object key) {
+    public Transformer get(Object key) {
         return this.contextBag.get(key);
     }
 
@@ -88,19 +128,17 @@ public class ConversationContext implements Map<String, Function<OutputBuilderEl
         return this.contextBag.keySet();
     }
 
-    public Function<OutputBuilderElement, OutputBuilderElement> put(ConversationContextKey arg0,
-            Function<OutputBuilderElement, OutputBuilderElement> arg1) {
+    public Transformer put(ConversationContextKey arg0, Transformer arg1) {
         return this.put(arg0.name(), arg1);
     }
 
     @Override
-    public Function<OutputBuilderElement, OutputBuilderElement> put(String arg0,
-            Function<OutputBuilderElement, OutputBuilderElement> arg1) {
+    public Transformer put(String arg0, Transformer arg1) {
         return this.contextBag.put(arg0, arg1);
     }
 
     @Override
-    public void putAll(Map<? extends String, ? extends Function<OutputBuilderElement, OutputBuilderElement>> m) {
+    public void putAll(Map<? extends String, ? extends Transformer> m) {
         this.contextBag.putAll(m);
     }
 
@@ -109,7 +147,7 @@ public class ConversationContext implements Map<String, Function<OutputBuilderEl
     }
 
     @Override
-    public Function<OutputBuilderElement, OutputBuilderElement> remove(Object key) {
+    public Transformer remove(Object key) {
         return this.contextBag.remove(key);
     }
 
@@ -119,11 +157,11 @@ public class ConversationContext implements Map<String, Function<OutputBuilderEl
     }
 
     @Override
-    public Collection<Function<OutputBuilderElement, OutputBuilderElement>> values() {
+    public Collection<Transformer> values() {
         return this.contextBag.values();
     }
 
-    public OutputBuilderElement mapping(OutputBuilderElement input) {
+    public OutputBuilderElement transform(OutputBuilderElement input) {
         if (input == null) {
             return input;
         }
