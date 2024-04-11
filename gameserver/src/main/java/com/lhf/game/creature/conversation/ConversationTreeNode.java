@@ -21,6 +21,11 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
         this.prompts = new ArrayList<>();
     }
 
+    public ConversationTreeNode addBody(String moreBody) {
+        this.bodySequence.appendString(moreBody);
+        return this;
+    }
+
     public OutputSequence getBodySequence() {
         if (bodySequence == null || bodySequence.getElements().size() == 0) {
             return new OutputSequence().appendString(EMPTY, null, null);
@@ -30,6 +35,10 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
 
     public String getBodyAsString() {
         return this.getBodySequence().printString();
+    }
+
+    public boolean addPrompt(String promptBody) {
+        return this.addPrompt(new OutputSequence().appendString(promptBody, null, null));
     }
 
     public boolean addPrompt(OutputSequence prompt) {
