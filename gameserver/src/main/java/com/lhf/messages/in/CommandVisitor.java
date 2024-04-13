@@ -3,6 +3,11 @@ package com.lhf.messages.in;
 import com.lhf.messages.CommandContext;
 
 public interface CommandVisitor {
+
+    public static interface CommandVisitorAcceptor {
+        public abstract CommandContext.Reply acceptCommandVisitor(CommandContext ctx, CommandVisitor visitor);
+    }
+
     public abstract CommandContext.Reply visit(CommandContext ctx, AttackMessage command);
 
     public abstract CommandContext.Reply visit(CommandContext ctx, CastMessage command);

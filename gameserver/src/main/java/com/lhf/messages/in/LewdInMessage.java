@@ -15,6 +15,8 @@ import com.lhf.game.creature.ICreatureBuildInfo;
 import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.serialization.GsonBuilderFactory;
 import com.lhf.messages.Command;
+import com.lhf.messages.CommandContext;
+import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.grammar.PhraseList;
 import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.grammar.Prepositions;
@@ -25,6 +27,11 @@ public class LewdInMessage extends Command {
     public LewdInMessage(AMessageType command, String whole, Boolean isValid, PhraseList phrases,
             PrepositionalPhrases prepositional) {
         super(command, whole, isValid, phrases, prepositional);
+    }
+
+    @Override
+    public Reply acceptCommandVisitor(CommandContext ctx, CommandVisitor visitor) {
+        return visitor.visit(ctx, this);
     }
 
     public Set<String> getPartners() {

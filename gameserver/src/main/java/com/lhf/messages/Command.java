@@ -19,8 +19,9 @@ import com.lhf.messages.grammar.PhraseList;
 import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.grammar.Prepositions;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.CommandVisitor;
 
-public abstract class Command implements ICommand {
+public abstract class Command implements ICommand, CommandVisitor.CommandVisitorAcceptor {
     protected final String whole;
     protected Boolean isValid;
     protected final AMessageType command;
