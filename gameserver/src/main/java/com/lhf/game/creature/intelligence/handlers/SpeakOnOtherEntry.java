@@ -2,15 +2,14 @@ package com.lhf.game.creature.intelligence.handlers;
 
 import java.util.logging.Level;
 
-import com.lhf.Taggable;
 import com.lhf.game.creature.conversation.ConversationTransformer;
 import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
 import com.lhf.game.creature.intelligence.AIHandler;
 import com.lhf.game.creature.intelligence.BasicAI;
-import com.lhf.messages.Command;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.RoomEnteredEvent;
+import com.lhf.messages.in.SayMessage;
 
 public class SpeakOnOtherEntry extends AIHandler {
     protected String greeting;
@@ -52,8 +51,7 @@ public class SpeakOnOtherEntry extends AIHandler {
                             () -> String.format("Using fallback \"Hello There!\" for AI %s", bai.toString()));
                     sayit = ConversationTreeNodeResult.fromString(transformer, "Hello There!", null, null);
                 }
-                String name = Taggable.extract(reom.getNewbie());
-                Command say = Command.parse("say \"" + sayit.print() + "\" to " + name);
+                SayMessage say = SayMessage.fromOutputBuilder(sayit.getBodySequence(), reom.getNewbie().getName());
                 bai.applyChain(null, say);
             }
         }

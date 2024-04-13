@@ -3,6 +3,7 @@ package com.lhf.messages.in;
 import java.util.List;
 import java.util.StringJoiner;
 
+import com.lhf.OutputBuilder;
 import com.lhf.OutputBuilder.OutputSequence;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -21,6 +22,20 @@ public class ShoutMessage extends Command {
         if (retrieved != null && retrieved.size() > 0) {
             this.sequence.appendString(retrieved.get(0), null, null);
         }
+    }
+
+    private ShoutMessage(OutputBuilder builder, Boolean isValid) {
+        super(AMessageType.SHOUT, new StringBuilder("SHOUT \"").append(builder.printString()).append("\"").toString(),
+                isValid);
+        this.sequence = OutputSequence.copy(builder);
+        this.addDirect(builder.printString());
+    }
+
+    public static ShoutMessage fromOutputBuilder(OutputBuilder builder) {
+        if (builder == null) {
+            throw new IllegalArgumentException("Cannot create ShoutMessage from null OutputBuilder");
+        }
+        return new ShoutMessage(builder, true);
     }
 
     @Override

@@ -14,7 +14,6 @@ import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 import com.lhf.messages.grammar.GrammaredCommandPhrase;
-import com.lhf.messages.grammar.Phrase;
 import com.lhf.messages.grammar.PhraseList;
 import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.grammar.Prepositions;
@@ -65,24 +64,19 @@ public abstract class Command implements ICommand, CommandVisitor.CommandVisitor
         }
     }
 
-    protected Command(AMessageType command, String whole, Boolean isValid, PhraseList phrases,
-            PrepositionalPhrases prepositional) {
+    protected Command(AMessageType command, String whole, Boolean isValid, List<String> phrases,
+            EnumMap<Prepositions, List<String>> prepositional) {
         this.command = command;
         this.whole = whole;
         this.isValid = isValid;
-        this.directs = new ArrayList<>();
-        if (phrases != null) {
-            for (Phrase direct : phrases) {
-                this.directs.add(direct.getResult());
-            }
-        }
-        this.indirects = new EnumMap<>(Prepositions.class);
-        if (prepositional != null) {
-            for (final Prepositions preposition : prepositional) {
-                this.addIndirectList(preposition,
-                        prepositional.getPhraseListByPreposition(preposition).getListResult());
-            }
-        }
+        this.directs = phrases != null ? new ArrayList<>(phrases) : new ArrayList<>();
+        this.indirects = prepositional != null ? new EnumMap<>(prepositional) : new EnumMap<>(Prepositions.class);
+    }
+
+    protected Command(AMessageType command, String whole, Boolean isValid, PhraseList phrases,
+            PrepositionalPhrases prepositional) {
+        this(command, whole, isValid, phrases != null ? phrases.getListResult() : null,
+                prepositional != null ? prepositional.getMappedPhraseLists() : null);
     }
 
     protected Command(AMessageType command, String whole, Boolean isValid) {

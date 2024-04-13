@@ -3,6 +3,7 @@ package com.lhf.messages.in;
 import java.util.List;
 import java.util.StringJoiner;
 
+import com.lhf.OutputBuilder;
 import com.lhf.OutputBuilder.OutputSequence;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
@@ -22,6 +23,23 @@ public class SayMessage extends Command {
         if (retrieved != null && retrieved.size() > 0) {
             this.sequence.appendString(retrieved.get(0), null, null);
         }
+    }
+
+    private SayMessage(OutputBuilder output, String target, Boolean isValid) {
+        super(AMessageType.SAY, new StringBuilder("SAY \"").append(output.printString()).append("\"")
+                .append(target != null ? " to " + target : "").toString(), isValid);
+        this.sequence = OutputSequence.copy(output);
+        this.addDirect(output.printString());
+        if (target != null) {
+            this.addIndirect(Prepositions.TO, target);
+        }
+    }
+
+    public static SayMessage fromOutputBuilder(OutputBuilder output, String target) {
+        if (output == null) {
+            throw new IllegalArgumentException("Cannot create SayMessage from null OutputBuilder");
+        }
+        return new SayMessage(output, target, true);
     }
 
     @Override
