@@ -42,41 +42,46 @@ public class SpokenPromptChunk extends AIHandler {
 
     private void basicHandle(BasicAI bai, SpeakingEvent sm) {
         ConversationTree tree = bai.getNpc().getConvoTree();
-        if (tree != null) {
-            final ConversationTreeNodeResult result = tree.listen(sm.getSayer(), sm.getMessage());
-            final String body = result.print();
-            if (result != null && body != null) {
-                String name = Taggable.extract(sm.getSayer());
-                Command say = Command.parse("say \"" + body + "\" to " + name);
-                bai.handleChain(null, say);
-            }
-            if (result != null && result.getPromptsAsStrings() != null) {
-                for (String prompt : result.getPromptsAsStrings()) {
-                    if (prompt.startsWith("STORE")) {
-                        this.logger.log(Level.FINE,
-                                String.format("Result has storage prompt \"%s\" for %s", prompt, bai.toString()));
-                        prompt = prompt.replaceFirst("STORE", "").trim();
-                        String[] splits = prompt.split("\\b+", 2);
-                        if (splits.length < 2) {
-                            continue;
-                        }
-                        tree.store(sm.getSayer(), splits[0], ConversationTransformer.ofString(splits[1]));
+        if (tree == null) {
+            this.logger.log(Level.WARNING, () -> String.format("no convo tree found for %s", bai.toString()));
+            return;
+        }
+        final ConversationTreeNodeResult result = tree.listen(sm.getSayer(), sm.getMessage());
+        if (result == null) {
+            this.logger.log(Level.WARNING,
+                    () -> String.format("%s has no noderesult for message '%s'", bai.toString(), sm.getMessage()));
+            return;
+        }
+        final String body = result.print();
+        if (body != null) {
+            String name = Taggable.extract(sm.getSayer());
+            Command say = Command.parse("say \"" + body + "\" to " + name);
+            bai.handleChain(null, say);
+        }
+        if (result.getPromptsAsStrings() != null) {
+            for (String prompt : result.getPromptsAsStrings()) {
+                if (prompt.startsWith("STORE")) {
+                    this.logger.log(Level.FINE,
+                            String.format("Result has storage prompt \"%s\" for %s", prompt, bai.toString()));
+                    prompt = prompt.replaceFirst("STORE", "").trim();
+                    String[] splits = prompt.split("\\b+", 2);
+                    if (splits.length < 2) {
                         continue;
                     }
-                    if (prompt.startsWith("PROMPT")) {
-                        prompt = prompt.replaceFirst("PROMPT", "").trim();
-                    }
-                    this.logger.log(Level.FINE,
-                            String.format("Result has prompt \"%s\" for %s", prompt, bai.toString()));
-                    Command cmd = Command.parse(prompt);
-                    CommandContext.Reply handled = bai.handleChain(null, cmd);
-                    this.logger.log(Level.FINER, () -> String.format("%s: prompted command \"%s\" handled: %s",
-                            bai.toString(), cmd.toString(), handled));
+                    tree.store(sm.getSayer(), splits[0], ConversationTransformer.ofString(splits[1]));
+                    continue;
                 }
+                if (prompt.startsWith("PROMPT")) {
+                    prompt = prompt.replaceFirst("PROMPT", "").trim();
+                }
+                this.logger.log(Level.FINE, String.format("Result has prompt \"%s\" for %s", prompt, bai.toString()));
+                Command cmd = Command.parse(prompt);
+                CommandContext.Reply handled = bai.handleChain(null, cmd);
+                this.logger.log(Level.FINER, () -> String.format("%s: prompted command \"%s\" handled: %s",
+                        bai.toString(), cmd.toString(), handled));
             }
-        } else {
-            this.logger.log(Level.WARNING, () -> String.format("no convo tree found for %s", bai.toString()));
         }
+
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.lhf.game.creature.intelligence.handlers;
 
+import java.util.logging.Level;
+
 import com.lhf.Taggable;
 import com.lhf.game.creature.conversation.ConversationTransformer;
 import com.lhf.game.creature.conversation.ConversationTreeNodeResult;
@@ -46,6 +48,8 @@ public class SpeakOnOtherEntry extends AIHandler {
                     sayit = bai.getNpc().getConvoTree().getAGreeting(transformer);
                 }
                 if (sayit == null) {
+                    this.logger.log(Level.WARNING,
+                            () -> String.format("Using fallback \"Hello There!\" for AI %s", bai.toString()));
                     sayit = ConversationTreeNodeResult.fromString(transformer, "Hello There!", null, null);
                 }
                 String name = Taggable.extract(reom.getNewbie());
