@@ -68,7 +68,7 @@ public class BasicAITest {
 
         sendMsgAndWait(sm, listener);
 
-        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
+        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).apply(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains(body)));
     }
 
@@ -106,7 +106,7 @@ public class BasicAITest {
                 .that(victim.getNPC().getHarmMemories().getLastAttackerName().get())
                 .isEqualTo(attacker.getNPC().getName());
         // verify that both attack effects got handled before reaching the final handler
-        Mockito.verify(victim.mockedWrappedHandler, Mockito.after(100).never()).handle(Mockito.any(), Mockito.any());
+        Mockito.verify(victim.mockedWrappedHandler, Mockito.after(100).never()).apply(Mockito.any(), Mockito.any());
 
     }
 

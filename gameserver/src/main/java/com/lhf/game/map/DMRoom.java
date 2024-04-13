@@ -28,8 +28,8 @@ import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.INonPlayerCharacter.INonPlayerCharacterBuildInfo;
 import com.lhf.game.creature.Player;
-import com.lhf.game.creature.QuestEffect;
 import com.lhf.game.creature.Player.PlayerBuildInfo;
+import com.lhf.game.creature.QuestEffect;
 import com.lhf.game.creature.QuestSource;
 import com.lhf.game.creature.conversation.ConversationManager;
 import com.lhf.game.creature.intelligence.AIRunner;
@@ -48,7 +48,6 @@ import com.lhf.game.map.SubArea.ISubAreaBuildInfo;
 import com.lhf.game.map.SubArea.SubAreaCasting;
 import com.lhf.game.map.commandHandlers.AreaCastHandler;
 import com.lhf.game.map.commandHandlers.AreaSayHandler;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -163,8 +162,7 @@ public class DMRoom extends Room {
         }
 
         private List<Land> buildLands(AIRunner aiRunner, DMRoom dmRoom, Game game,
-                ConversationManager conversationManager,
-                boolean fallbackNoConversation) {
+                ConversationManager conversationManager, boolean fallbackNoConversation) {
             List<Land.LandBuilder> toBuild = this.getLandBuilders();
             if (toBuild == null) {
                 return List.of();
@@ -181,8 +179,7 @@ public class DMRoom extends Room {
 
         @Override
         public DMRoom build(CommandChainHandler successor, Land land, AIRunner aiRunner,
-                ConversationManager conversationManager,
-                boolean fallbackNoConversation) {
+                ConversationManager conversationManager, boolean fallbackNoConversation) {
             this.logger.log(Level.INFO, () -> String.format("Building DM room '%s'", this.getName()));
             return DMRoom.fromBuilder(this, () -> land, () -> successor, () -> (room) -> {
                 final Set<INonPlayerCharacter> creaturesBuilt = this.delegate.buildCreatures(aiRunner, room,
@@ -192,8 +189,8 @@ public class DMRoom extends Room {
                     room.addSubArea(subAreaBuilder);
                 }
             }, () -> (dmRoom) -> {
-                final List<Land> landsBuilt = this.buildLands(aiRunner, dmRoom, null,
-                        conversationManager, fallbackNoConversation);
+                final List<Land> landsBuilt = this.buildLands(aiRunner, dmRoom, null, conversationManager,
+                        fallbackNoConversation);
                 for (Land toAdd : landsBuilt) {
                     dmRoom.addLand(toAdd);
                 }
@@ -206,13 +203,11 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public DMRoom build(Land land, AIRunner aiRunner,
-                ConversationManager conversationManager) {
+        public DMRoom build(Land land, AIRunner aiRunner, ConversationManager conversationManager) {
             return this.build(land, land, aiRunner, conversationManager, true);
         }
 
-        public static DMRoomBuilder buildDefault(AIRunner aiRunner,
-                ConversationManager conversationManager)
+        public static DMRoomBuilder buildDefault(AIRunner aiRunner, ConversationManager conversationManager)
                 throws FileNotFoundException {
             DMRoomBuilder builder = DMRoomBuilder.getInstance();
             builder.setName("Control Room")
@@ -290,8 +285,7 @@ public class DMRoom extends Room {
     }
 
     static DMRoom fromBuilder(DMRoomBuilder builder, Supplier<Land> landSupplier,
-            Supplier<CommandChainHandler> successorSupplier,
-            Supplier<Consumer<? super Room>> postRoomOperations,
+            Supplier<CommandChainHandler> successorSupplier, Supplier<Consumer<? super Room>> postRoomOperations,
             Supplier<Consumer<? super DMRoom>> postDMRoomOperations) {
         DMRoom dmRoom = new DMRoom(builder, landSupplier, successorSupplier);
         if (postRoomOperations != null) {
@@ -309,8 +303,7 @@ public class DMRoom extends Room {
         return dmRoom;
     }
 
-    DMRoom(DMRoomBuilder builder, Supplier<Land> landSupplier,
-            Supplier<CommandChainHandler> successorSupplier) {
+    DMRoom(DMRoomBuilder builder, Supplier<Land> landSupplier, Supplier<CommandChainHandler> successorSupplier) {
         super(builder.delegate, landSupplier, successorSupplier);
         this.lands = new ArrayList<>();
         this.users = new HashSet<>();
@@ -383,8 +376,7 @@ public class DMRoom extends Room {
     public Collection<GameEventProcessor> getGameEventProcessors() {
         Collection<GameEventProcessor> messengers = new TreeSet<>(GameEventProcessor.getComparator());
         messengers.addAll(super.getGameEventProcessors());
-        this.users.stream().filter(userThing -> userThing != null)
-                .forEach(userThing -> messengers.add(userThing));
+        this.users.stream().filter(userThing -> userThing != null).forEach(userThing -> messengers.add(userThing));
         return messengers;
     }
 
@@ -409,9 +401,8 @@ public class DMRoom extends Room {
                 if (maybeCorpse.isEmpty() || !(maybeCorpse.get() instanceof Corpse)) {
                     this.logger.log(Level.FINEST, () -> String.format("No corpse was found with the name '%s'", name));
                     if (effect.creatureResponsible() != null) {
-                        ICreature.eventAccepter.accept(dmRoomEffect.creatureResponsible(),
-                                BadTargetSelectedEvent.getBuilder()
-                                        .setBde(BadTargetOption.DNE).setBadTarget(name).Build());
+                        ICreature.eventAccepter.accept(dmRoomEffect.creatureResponsible(), BadTargetSelectedEvent
+                                .getBuilder().setBde(BadTargetOption.DNE).setBadTarget(name).Build());
                         return null;
                     }
                 }
@@ -450,32 +441,31 @@ public class DMRoom extends Room {
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == this.getHandleType()) {
-                final SayMessage sayMessage = new SayMessage(cmd);
-                if (sayMessage.getTarget() != null && !sayMessage.getTarget().isBlank()) {
-                    boolean sent = false;
-                    for (User u : DMRoom.this.users) {
-                        if (u.getUsername().equals(sayMessage.getTarget())) {
-                            CommandInvoker sayer = ctx.getClient();
-                            if (ctx.getCreature() != null) {
-                                sayer = ctx.getCreature();
-                            } else if (ctx.getUser() != null) {
-                                sayer = ctx.getUser();
-                            }
-                            User.eventAccepter.accept(u,
-                                    SpeakingEvent.getBuilder().setSayer(sayer).setMessage(sayMessage.getMessage())
-                                            .setHearer(u).Build());
-                            sent = true;
-                            break;
+        public Reply visit(CommandContext ctx, SayMessage sayMessage) {
+            if (sayMessage == null) {
+                return ctx.failhandle();
+            }
+            if (sayMessage.getTarget() != null && !sayMessage.getTarget().isBlank()) {
+                boolean sent = false;
+                for (User u : DMRoom.this.users) {
+                    if (u.getUsername().equals(sayMessage.getTarget())) {
+                        CommandInvoker sayer = ctx.getClient();
+                        if (ctx.getCreature() != null) {
+                            sayer = ctx.getCreature();
+                        } else if (ctx.getUser() != null) {
+                            sayer = ctx.getUser();
                         }
-                    }
-                    if (sent) {
-                        return ctx.handled();
+                        User.eventAccepter.accept(u, SpeakingEvent.getBuilder().setSayer(sayer)
+                                .setMessage(sayMessage.getMessage()).setHearer(u).Build());
+                        sent = true;
+                        break;
                     }
                 }
+                if (sent) {
+                    return ctx.handled();
+                }
             }
-            return super.handleCommand(ctx, cmd);
+            return super.visit(ctx, sayMessage);
         }
 
         @Override

@@ -30,9 +30,8 @@ public class AreaInteractHandler implements AreaCommandHandler {
         if (ctx == null || ctx.getCreature() == null) {
             return Optional.empty();
         }
-        return Optional
-                .of(ctx.getCreature().isInBattle() ? AreaInteractHandler.inBattleString
-                        : AreaInteractHandler.helpString);
+        return Optional.of(
+                ctx.getCreature().isInBattle() ? AreaInteractHandler.inBattleString : AreaInteractHandler.helpString);
     }
 
     @Override
@@ -46,33 +45,32 @@ public class AreaInteractHandler implements AreaCommandHandler {
     }
 
     @Override
-    public Reply handleCommand(CommandContext ctx, Command cmd) {
-        if (cmd != null && cmd.getType() == this.getHandleType()) {
-            InteractMessage intMessage = new InteractMessage(cmd);
-            if (ctx.getCreature() == null) {
-                ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(ctx.getHelps()).setCommand(cmd).Build());
-                return ctx.handled();
-            }
-            String name = intMessage.getObject();
-            ItemPartitionCollectionVisitor partitionVisitor = new ItemPartitionCollectionVisitor();
-            ctx.getArea().getItems().stream().filter(item -> item != null)
-                    .forEach(item -> item.acceptItemVisitor(partitionVisitor));
-            ItemNameSearchVisitor nameSearchVisitor = new ItemNameSearchVisitor(name, 3);
-            nameSearchVisitor.copyFrom(partitionVisitor);
-            Collection<InteractObject> matches = nameSearchVisitor.getInteractObjects();
-
-            if (matches.size() == 1) {
-                InteractObject ro = matches.stream().findFirst().get();
-                ro.doAction(ctx);
-                return ctx.handled();
-            }
-            Collection<InteractObject> interactables = partitionVisitor.getInteractObjects();
-            ctx.receive(BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR).setBadTarget(name)
-                    .setPossibleTargets(interactables).Build());
+    public Reply visit(CommandContext ctx, InteractMessage intMessage) {
+        if (intMessage == null) {
+            return ctx.failhandle();
+        }
+        if (ctx.getCreature() == null) {
+            ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                    .setHelps(ctx.getHelps()).setCommand(intMessage).Build());
             return ctx.handled();
         }
-        return ctx.failhandle();
+        String name = intMessage.getObject();
+        ItemPartitionCollectionVisitor partitionVisitor = new ItemPartitionCollectionVisitor();
+        ctx.getArea().getItems().stream().filter(item -> item != null)
+                .forEach(item -> item.acceptItemVisitor(partitionVisitor));
+        ItemNameSearchVisitor nameSearchVisitor = new ItemNameSearchVisitor(name, 3);
+        nameSearchVisitor.copyFrom(partitionVisitor);
+        Collection<InteractObject> matches = nameSearchVisitor.getInteractObjects();
+
+        if (matches.size() == 1) {
+            InteractObject ro = matches.stream().findFirst().get();
+            ro.doAction(ctx);
+            return ctx.handled();
+        }
+        Collection<InteractObject> interactables = partitionVisitor.getInteractObjects();
+        ctx.receive(BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR).setBadTarget(name)
+                .setPossibleTargets(interactables).Build());
+        return ctx.handled();
     }
 
 }

@@ -31,21 +31,19 @@ public class RestingGoHandler implements RestingCommandHandler {
     }
 
     @Override
-    public Reply handleCommand(CommandContext ctx, Command cmd) {
-        final SubArea ra = this.firstSubArea(ctx);
-        if (cmd != null && cmd.getType() == this.getHandleType()) {
-            final GoMessage goMessage = new GoMessage(cmd);
-            if (Directions.UP.equals(goMessage.getDirection())) {
-                ra.removeCreature(ctx.getCreature());
-                return ctx.handled();
-            } else {
-                ctx.receive(
-                        BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(goMessage.getDirection())
-                                .setAvailable(EnumSet.of(Directions.UP)).Build());
-                return ctx.handled();
-            }
+    public Reply visit(CommandContext ctx, GoMessage command) {
+        if (command == null) {
+            return ctx.failhandle();
         }
-        return ctx.failhandle();
+        final SubArea ra = this.firstSubArea(ctx);
+        if (Directions.UP.equals(command.getDirection())) {
+            ra.removeCreature(ctx.getCreature());
+            return ctx.handled();
+        } else {
+            ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(goMessage.getDirection())
+                    .setAvailable(EnumSet.of(Directions.UP)).Build());
+            return ctx.handled();
+        }
     }
 
 }

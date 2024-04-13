@@ -54,6 +54,7 @@ import com.lhf.messages.events.FactionReinforcementsCallEvent;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.StatsInMessage;
 import com.lhf.server.client.user.UserID;
 
 public class BattleManager extends SubArea {
@@ -347,7 +348,7 @@ public class BattleManager extends SubArea {
                 while (poolEntries.size() > 0 && ordering.creature.isAlive() && ordering.creature.isInBattle()) {
                     IPoolEntry poolEntry = poolEntries.pollFirst();
                     if (poolEntry != null) {
-                        this.handleFlushChain(poolEntry.getContext(), poolEntry.getCommand());
+                        this.applyFlushChain(poolEntry.getContext(), poolEntry.getCommand());
                         poolEntry.getContext()
                                 .receive(BattleRoundEvent.getBuilder().setNeedSubmission(RoundAcceptance.PERFORMED));
                     }
@@ -723,7 +724,7 @@ public class BattleManager extends SubArea {
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
+        public Reply visit(CommandContext ctx, StatsInMessage command) {
             ctx.receive(BattleStatsRequestedEvent.getBuilder()
                     .addRecords(BattleManager.this.battleStats.getBattleStatSet(BattleStatsQuery.ONLY_LIVING))
                     .setNotBroadcast());

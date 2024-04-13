@@ -9,6 +9,7 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.SayMessage;
 
 public class SubAreaSayHandler implements SubAreaCommandHandler {
     private static final String helpString = "Says stuff to the people in the area.";
@@ -27,18 +28,18 @@ public class SubAreaSayHandler implements SubAreaCommandHandler {
     }
 
     @Override
-    public Reply handleCommand(CommandContext ctx, Command cmd) {
-        if (cmd != null && cmd.getType() == AMessageType.SAY) {
-            final SubArea first = this.firstSubArea(ctx);
-            if (first == null) {
-                return ctx.failhandle();
-            }
-            if (first.getArea() != null) {
-                return first.getArea().handleChain(ctx, cmd);
-            }
-            return CommandChainHandler.passUpChain(first, ctx, cmd);
+    public Reply visit(CommandContext ctx, SayMessage command) {
+        if (command == null) {
+            return ctx.failhandle();
         }
-        return ctx.failhandle();
+        final SubArea first = this.firstSubArea(ctx);
+        if (first == null) {
+            return ctx.failhandle();
+        }
+        if (first.getArea() != null) {
+            return first.getArea().applyChain(ctx, command);
+        }
+        return CommandChainHandler.passUpChain(first, ctx, command);
     }
 
 }

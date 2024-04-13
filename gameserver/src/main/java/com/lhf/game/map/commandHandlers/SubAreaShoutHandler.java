@@ -9,6 +9,7 @@ import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.ShoutMessage;
 
 public class SubAreaShoutHandler implements SubAreaCommandHandler {
     private static final String helpString = "Shouts stuff to the people in the land.";
@@ -24,18 +25,18 @@ public class SubAreaShoutHandler implements SubAreaCommandHandler {
     }
 
     @Override
-    public Reply handleCommand(CommandContext ctx, Command cmd) {
-        if (cmd != null && cmd.getType() == AMessageType.SHOUT) {
-            final SubArea first = this.firstSubArea(ctx);
-            if (first == null) {
-                return ctx.failhandle();
-            }
-            if (first.getArea() != null) {
-                return first.getArea().handleChain(ctx, cmd);
-            }
-            return CommandChainHandler.passUpChain(first, ctx, cmd);
+    public Reply visit(CommandContext ctx, ShoutMessage command) {
+        if (command == null) {
+            return ctx.failhandle();
         }
-        return ctx.failhandle();
+        final SubArea first = this.firstSubArea(ctx);
+        if (first == null) {
+            return ctx.failhandle();
+        }
+        if (first.getArea() != null) {
+            return first.getArea().applyChain(ctx, command);
+        }
+        return CommandChainHandler.passUpChain(first, ctx, command);
     }
 
 }

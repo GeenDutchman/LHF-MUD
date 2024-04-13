@@ -2,13 +2,16 @@ package com.lhf.messages;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.CommandVisitor;
 
-public interface CommandChainHandler extends GameEventProcessorHub {
+public interface CommandChainHandler
+        extends GameEventProcessorHub, BiFunction<CommandContext, Command, CommandContext.Reply> {
 
     public void setSuccessor(CommandChainHandler successor);
 
@@ -26,7 +29,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
      * care of commands *for* retrieved from the context to allow for static
      * classes.
      */
-    public interface CommandHandler extends Comparable<CommandHandler> {
+    public interface CommandHandler extends Comparable<CommandHandler>, CommandVisitor.Blank {
 
         /**
          * Gets what type of command we're meant to handle
@@ -50,18 +53,6 @@ public interface CommandChainHandler extends GameEventProcessorHub {
          * @return
          */
         public abstract Optional<String> getHelp(CommandContext ctx);
-
-        /**
-         * Handles a Command by internally adapting it to the expected shape.
-         * <p>
-         * 
-         * @throws IllegalArgumentException if the adaptation results in a null
-         * @param ctx
-         * @param command
-         * @return reply.handled() if it was handled, reply.failHandle() if it isn't our
-         *         problem
-         */
-        public abstract CommandContext.Reply handleCommand(CommandContext ctx, Command command);
 
         /**
          * Gets the chainHandler that we want to deal with from the context
@@ -88,7 +79,8 @@ public interface CommandChainHandler extends GameEventProcessorHub {
 
     public abstract Map<AMessageType, CommandHandler> getCommands(CommandContext ctx);
 
-    public default CommandContext.Reply handle(CommandContext ctx, Command cmd) {
+    @Override
+    public default CommandContext.Reply apply(CommandContext ctx, Command cmd) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
@@ -101,7 +93,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
                 this.log(Level.FINEST,
                         () -> String.format("No CommandHandler for type %s at this level", cmd.getType()));
             } else if (handler.isEnabled(ctx)) {
-                CommandContext.Reply reply = handler.handleCommand(ctx, cmd);
+                CommandContext.Reply reply = handler.apply(ctx, cmd);
                 if (reply == null) {
                     this.log(Level.SEVERE,
                             () -> String.format("No reply for handler of type %s", handler.getHandleType()));
@@ -114,8 +106,8 @@ public interface CommandChainHandler extends GameEventProcessorHub {
         return ctx.failhandle();
     }
 
-    public default CommandContext.Reply handleChain(CommandContext ctx, Command cmd) {
-        CommandContext.Reply thisLevelReply = this.handle(ctx, cmd);
+    public default CommandContext.Reply applyChain(CommandContext ctx, Command cmd) {
+        CommandContext.Reply thisLevelReply = this.apply(ctx, cmd);
         if (thisLevelReply != null && thisLevelReply.isHandled()) {
             return thisLevelReply;
         }
@@ -152,7 +144,7 @@ public interface CommandChainHandler extends GameEventProcessorHub {
 
         CommandChainHandler currentChainHandler = presentChainHandler.getSuccessor();
         while (currentChainHandler != null) {
-            CommandContext.Reply thisLevelReply = currentChainHandler.handle(ctx, msg);
+            CommandContext.Reply thisLevelReply = currentChainHandler.apply(ctx, msg);
             if (thisLevelReply != null && thisLevelReply.isHandled()) {
                 return thisLevelReply;
             }

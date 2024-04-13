@@ -2,10 +2,19 @@ package com.lhf.game.creature.commandHandlers;
 
 import java.util.Optional;
 import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import com.lhf.game.creature.ICreature.CreatureCommandHandler;
+import com.lhf.game.creature.CreatureVisitor;
+import com.lhf.game.creature.DungeonMaster;
+import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
+import com.lhf.game.creature.Monster;
+import com.lhf.game.creature.NonPlayerCharacter;
+import com.lhf.game.creature.Player;
+import com.lhf.game.creature.SummonedMonster;
+import com.lhf.game.creature.SummonedNPC;
 import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
@@ -51,13 +60,52 @@ public class FollowHandler implements CreatureCommandHandler {
     }
 
     @Override
-    public Reply handleCommand(CommandContext ctx, Command cmd) {
-        if (cmd != null && cmd.getType() == this.getHandleType()
-                && ctx.getCreature() instanceof INonPlayerCharacter npc) {
-            FollowMessage followMessage = new FollowMessage(cmd);
-            return this.handleFor(ctx, npc, followMessage);
+    public Reply visit(CommandContext ctx, FollowMessage command) {
+        if (command == null) {
+            return ctx.failhandle();
         }
-        return ctx.failhandle();
+        ICreature creature = ctx.getCreature();
+        if (creature == null) {
+            return ctx.failhandle();
+        }
+
+        AtomicReference<Reply> reply = new AtomicReference<>(ctx.failhandle());
+
+        CreatureVisitor followfilter = new CreatureVisitor() {
+
+            @Override
+            public void visit(Player player) {
+                reply.set(ctx.failhandle());
+            }
+
+            @Override
+            public void visit(NonPlayerCharacter npc) {
+                reply.set(FollowHandler.this.handleFor(ctx, npc, command));
+            }
+
+            @Override
+            public void visit(DungeonMaster dungeonMaster) {
+                reply.set(FollowHandler.this.handleFor(ctx, dungeonMaster, command));
+            }
+
+            @Override
+            public void visit(SummonedNPC sNpc) {
+                reply.set(FollowHandler.this.handleFor(ctx, sNpc, command));
+            }
+
+            @Override
+            public void visit(Monster monster) {
+                reply.set(FollowHandler.this.handleFor(ctx, monster, command));
+            }
+
+            @Override
+            public void visit(SummonedMonster sMonster) {
+                reply.set(FollowHandler.this.handleFor(ctx, sMonster, command));
+            }
+
+        };
+        followfilter.accept(creature);
+        return reply.get();
     }
 
 }

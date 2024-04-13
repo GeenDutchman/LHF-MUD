@@ -28,9 +28,9 @@ public class SpokenPromptChunkTest {
         AIComBundle.eventAccepter.accept(listener.getNPC(), sm);
 
         Mockito.verify(listener.sssb, Mockito.timeout(1000)).send(sm);
-        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
+        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).apply(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains(body)));
-        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
+        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).apply(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains(sayMessage)));
 
     }
@@ -47,7 +47,7 @@ public class SpokenPromptChunkTest {
                 .setHearer(listener.getNPC()).Build();
         AIComBundle.eventAccepter.accept(listener.getNPC(), sm);
 
-        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
+        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).apply(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains(prompt)));
 
     }

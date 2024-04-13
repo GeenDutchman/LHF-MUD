@@ -24,20 +24,19 @@ public class SubAreaSeeHandler implements SubAreaCommandHandler {
     }
 
     @Override
-    public Reply handleCommand(CommandContext ctx, Command cmd) {
-        if (cmd != null && cmd.getType() == this.getHandleType()) {
-            final SeeMessage seeMessage = new SeeMessage(cmd);
-            final SubArea first = this.firstSubArea(ctx);
-            if (first == null) {
-                return ctx.failhandle();
-            }
-            if (first.getArea() != null && seeMessage.getThing() != null) {
-                return first.getArea().handleChain(ctx, cmd);
-            }
-            ctx.receive(first.produceMessage());
-            return ctx.handled();
+    public Reply visit(CommandContext ctx, SeeMessage command) {
+        if (command == null) {
+            return ctx.failhandle();
         }
-        return ctx.failhandle();
+        final SubArea first = this.firstSubArea(ctx);
+        if (first == null) {
+            return ctx.failhandle();
+        }
+        if (first.getArea() != null && command.getThing() != null) {
+            return first.getArea().applyChain(ctx, command);
+        }
+        ctx.receive(first.produceMessage());
+        return ctx.handled();
     }
 
 }

@@ -10,6 +10,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.CreatureStatusRequestedEvent;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.StatusMessage;
 
 public class StatusHandler implements CreatureCommandHandler {
     private final static String helpString = "\"status\" Show you how much HP you currently have, among other things.";
@@ -25,15 +26,14 @@ public class StatusHandler implements CreatureCommandHandler {
     }
 
     @Override
-    public Reply handleCommand(CommandContext ctx, Command cmd) {
-        if (cmd != null && cmd.getType() == this.getHandleType()) {
-            ICreature creature = ctx.getCreature();
-            ctx.receive(
-                    CreatureStatusRequestedEvent.getStatusBuilder().setNotBroadcast().setFromCreature(creature, true)
-                            .Build());
-            return ctx.handled();
+    public Reply visit(CommandContext ctx, StatusMessage command) {
+        if (command == null) {
+            return ctx.failhandle();
         }
-        return ctx.failhandle();
+        ICreature creature = ctx.getCreature();
+        ctx.receive(CreatureStatusRequestedEvent.getStatusBuilder().setNotBroadcast().setFromCreature(creature, true)
+                .Build());
+        return ctx.handled();
     }
 
     @Override

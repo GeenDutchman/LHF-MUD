@@ -15,11 +15,12 @@ import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.AttackMessage;
 
 public class AreaAttackHandler implements AreaCommandHandler {
-    private final static String helpString = new StringJoiner(" ")
-            .add("\"attack [name]\"").add("Attacks a creature").add("\r\n")
-            .add("\"attack [name] with [weapon]\"").add("Attack the named creature with a weapon that you have.")
+    private final static String helpString = new StringJoiner(" ").add("\"attack [name]\"").add("Attacks a creature")
+            .add("\r\n").add("\"attack [name] with [weapon]\"")
+            .add("Attack the named creature with a weapon that you have.")
             .add("In the unlikely event that either the creature or the weapon's name contains 'with', enclose the name in quotation marks.")
             .toString();
 
@@ -47,14 +48,14 @@ public class AreaAttackHandler implements AreaCommandHandler {
     }
 
     @Override
-    public Reply handleCommand(CommandContext ctx, Command cmd) {
-        if (cmd == null || cmd.getType() != this.getHandleType()) {
+    public Reply visit(CommandContext ctx, AttackMessage command) {
+        if (command == null) {
             return ctx.failhandle();
         }
         ctx = ctx.getArea().addSelfToContext(ctx);
         if (ctx.getCreature() == null) {
             ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                    .setHelps(ctx.getHelps()).setCommand(cmd).Build());
+                    .setHelps(ctx.getHelps()).setCommand(command).Build());
             return ctx.handled();
         }
         final SubArea subArea = ctx.getArea().getSubAreaForSort(SubAreaSort.BATTLE);
@@ -62,7 +63,7 @@ public class AreaAttackHandler implements AreaCommandHandler {
             this.log(Level.WARNING, "No battle sub area found!");
             return ctx.failhandle();
         }
-        return subArea.handleChain(ctx, cmd);
+        return subArea.applyChain(ctx, command);
     }
 
     @Override

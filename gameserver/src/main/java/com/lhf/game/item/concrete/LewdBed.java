@@ -32,6 +32,7 @@ import com.lhf.messages.events.LewdEvent;
 import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.LewdInMessage;
+import com.lhf.messages.in.PassMessage;
 
 public class LewdBed extends Bed {
 
@@ -95,8 +96,7 @@ public class LewdBed extends Bed {
     }
 
     public void clear() {
-        LewdEvent.Builder deniedMessage = LewdEvent.getBuilder().setSubType(LewdOutMessageType.DENIED)
-                .setBroacast();
+        LewdEvent.Builder deniedMessage = LewdEvent.getBuilder().setSubType(LewdOutMessageType.DENIED).setBroacast();
         for (VrijPartij party : this.vrijPartijen.values()) {
             party.messageParticipants(deniedMessage.setParty(party.getParty()).Build());
         }
@@ -122,8 +122,8 @@ public class LewdBed extends Bed {
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd == null || !AMessageType.PASS.equals(cmd.getType())) {
+        public Reply visit(CommandContext ctx, PassMessage command) {
+            if (command == null) {
                 return ctx.failhandle();
             }
             Iterator<VrijPartij> it = LewdBed.this.vrijPartijen.values().iterator();
@@ -157,11 +157,12 @@ public class LewdBed extends Bed {
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            LewdEvent.Builder lewdOutMessage = LewdEvent.getBuilder();
-            if (cmd == null || cmd.getType() != this.getHandleType()) {
+        public Reply visit(CommandContext ctx, LewdInMessage command) {
+            if (command == null) {
                 return ctx.failhandle();
             }
+
+            LewdEvent.Builder lewdOutMessage = LewdEvent.getBuilder();
             if (ctx.getCreature() == null) {
                 return ctx.failhandle();
             }
@@ -184,18 +185,15 @@ public class LewdBed extends Bed {
                 return ctx.failhandle();
             }
 
-            final LewdInMessage lewdInMessage = new LewdInMessage(cmd);
-
-            if (lewdInMessage.getPartners().size() > 0) {
+            if (command.getPartners().size() > 0) {
                 try {
-                    return LewdBed.this.handlePopulatedJoin(ctx.getCreature(), lewdInMessage.getPartners(),
-                            lewdInMessage.getBasicBuildInfos(), lewdInMessage.getJSONBuildInfos())
-                                    ? ctx.handled()
+                    return LewdBed.this.handlePopulatedJoin(ctx.getCreature(), command.getPartners(),
+                            command.getBasicBuildInfos(), command.getJSONBuildInfos()) ? ctx.handled()
                                     : ctx.failhandle();
                 } catch (JsonParseException e) {
                     LewdBed.this.logger.log(Level.WARNING, e.toString());
                     ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.OTHER).setNotBroadcast()
-                            .setNotBroadcast().setCommand(cmd));
+                            .setNotBroadcast().setCommand(command));
                     return ctx.failhandle();
                 }
             } else {
@@ -255,8 +253,7 @@ public class LewdBed extends Bed {
     }
 
     protected boolean handlePopulatedJoin(ICreature joiner, Set<String> possPartners,
-            Collection<CreatureBuildInfo> templateBuildInfos,
-            Collection<ICreatureBuildInfo> buildInfos) {
+            Collection<CreatureBuildInfo> templateBuildInfos, Collection<ICreatureBuildInfo> buildInfos) {
         LewdEvent.Builder lewdOutMessage = LewdEvent.getBuilder().setCreature(joiner);
         if (!this.isInBed(joiner)) {
             ICreature.eventAccepter.accept(joiner,
@@ -270,17 +267,15 @@ public class LewdBed extends Bed {
                 if (possibles.size() == 0) {
                     this.logger.log(Level.WARNING,
                             String.format("%s wanted to lewd someone named %s, but DNE", joiner.getName(), possName));
-                    ICreature.eventAccepter.accept(joiner,
-                            BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.DNE)
-                                    .setBadTarget(possName).setPossibleTargets(possibles).Build());
+                    ICreature.eventAccepter.accept(joiner, BadTargetSelectedEvent.getBuilder()
+                            .setBde(BadTargetOption.DNE).setBadTarget(possName).setPossibleTargets(possibles).Build());
                     return true;
                 } else if (possibles.size() > 1) {
-                    this.logger.log(Level.WARNING,
-                            String.format("%s wanted to lewd someone named %s, but UNCLEAR", joiner.getName(),
-                                    possName));
+                    this.logger.log(Level.WARNING, String.format("%s wanted to lewd someone named %s, but UNCLEAR",
+                            joiner.getName(), possName));
                     ICreature.eventAccepter.accept(joiner,
-                            BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR)
-                                    .setBadTarget(possName).setPossibleTargets(possibles).Build());
+                            BadTargetSelectedEvent.getBuilder().setBde(BadTargetOption.UNCLEAR).setBadTarget(possName)
+                                    .setPossibleTargets(possibles).Build());
                     return true;
                 }
                 invited.add(possibles.get(0));

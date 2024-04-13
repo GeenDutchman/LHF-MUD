@@ -28,24 +28,22 @@ public class LandShoutHandler implements LandCommandHandler {
     }
 
     @Override
-    public Reply handleCommand(CommandContext ctx, Command cmd) {
-        if (cmd != null && cmd.getType() == this.getHandleType()) {
-            if (ctx.getCreature() == null) {
-                ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(ctx.getHelps()).setCommand(cmd).Build());
-                return ctx.handled();
-            }
-            final ShoutMessage shoutMessage = new ShoutMessage(cmd);
-            final Land land = ctx.getLand();
-            land.announceDirect(
-                    SpeakingEvent.getBuilder().setSayer(ctx.getCreature()).setShouting(true)
-                            .setMessage(shoutMessage.getMessage()).Build(),
-                    land.getPlayers().stream().filter(player -> player != null)
-                            .map(player -> (GameEventProcessor) player)
-                            .toList());
+    public Reply visit(CommandContext ctx, ShoutMessage command) {
+        if (command == null) {
+            return ctx.failhandle();
+        }
+        if (ctx.getCreature() == null) {
+            ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                    .setHelps(ctx.getHelps()).setCommand(command).Build());
             return ctx.handled();
         }
-        return ctx.failhandle();
+        final Land land = ctx.getLand();
+        land.announceDirect(
+                SpeakingEvent.getBuilder().setSayer(ctx.getCreature()).setShouting(true)
+                        .setMessage(command.getMessage()).Build(),
+                land.getPlayers().stream().filter(player -> player != null).map(player -> (GameEventProcessor) player)
+                        .toList());
+        return ctx.handled();
     }
 
 }

@@ -28,6 +28,7 @@ import com.lhf.messages.events.UserLeftEvent;
 import com.lhf.messages.events.WelcomeEvent;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.CreateInMessage;
+import com.lhf.messages.in.ExitMessage;
 import com.lhf.server.client.Client;
 import com.lhf.server.client.Client.ClientID;
 import com.lhf.server.client.ClientManager;
@@ -209,31 +210,31 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == AMessageType.EXIT) {
-                Server.this.logger.log(Level.INFO, "client " + ctx.getClient().toString() + " is exiting");
-                Client ch = Server.this.clientManager.getConnection(ctx.getClient().getClientID());
-                UserLeftEvent.Builder leftEvent = UserLeftEvent.getBuilder();
-                if (ctx.getUserID() != null) {
-                    Server.this.game.userLeft(ctx.getUserID());
-                    User leaving = Server.this.userManager.getUser(ctx.getUserID());
-                    Server.this.userManager.removeUser(ctx.getUserID());
-                    ctx.receive(leftEvent.setUser(leaving).setNotBroadcast().Build());
-                } else {
-                    if (ch != null) {
-                        ctx.receive(leftEvent.setNotBroadcast().Build());
-                    }
-                }
-
-                try {
-                    Server.this.clientManager.removeClient(ctx.getClient().getClientID()); // ch is killed in
-                                                                                           // here
-                } catch (IOException e) {
-                    Server.this.logger.log(Level.WARNING, "While removing client", e);
-                }
-                return ctx.handled();
+        public Reply visit(CommandContext ctx, ExitMessage command) {
+            if (command == null) {
+                return ctx.failhandle();
             }
-            return ctx.failhandle();
+            Server.this.logger.log(Level.INFO, "client " + ctx.getClient().toString() + " is exiting");
+            Client ch = Server.this.clientManager.getConnection(ctx.getClient().getClientID());
+            UserLeftEvent.Builder leftEvent = UserLeftEvent.getBuilder();
+            if (ctx.getUserID() != null) {
+                Server.this.game.userLeft(ctx.getUserID());
+                User leaving = Server.this.userManager.getUser(ctx.getUserID());
+                Server.this.userManager.removeUser(ctx.getUserID());
+                ctx.receive(leftEvent.setUser(leaving).setNotBroadcast().Build());
+            } else {
+                if (ch != null) {
+                    ctx.receive(leftEvent.setNotBroadcast().Build());
+                }
+            }
+
+            try {
+                Server.this.clientManager.removeClient(ctx.getClient().getClientID()); // ch is killed in
+                                                                                       // here
+            } catch (IOException e) {
+                Server.this.logger.log(Level.WARNING, "While removing client", e);
+            }
+            return ctx.handled();
         }
 
         @Override
@@ -262,36 +263,35 @@ public class Server implements ServerInterface, ConnectionListener {
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == this.getHandleType()) {
-                CreateInMessage msg = new CreateInMessage(cmd);
-                if (Server.this.userManager.getForbiddenUsernames().contains(msg.getUsername())) {
-                    ctx.receive(BadUserDuplicationEvent.getBuilder().Build());
-                    return ctx.handled();
-                }
-                User user = Server.this.userManager.addUser(msg, ctx.getClient());
-                if (user == null) {
-                    ctx.receive(BadUserDuplicationEvent.getBuilder().Build());
-                    return ctx.handled();
-                }
-                user.setSuccessor(Server.this);
-                Client client = Server.this.clientManager.getConnection(ctx.getClient().getClientID());
-                client.updateLoggerSuffix(user.getUsername());
-                Server.this.clientManager.addUserForClient(client.getClientID(), user.getUserID());
-                client.setSuccessor(user);
-                ctx.setUser(user);
-                try {
-                    Player.PlayerBuildInfo buildInfo = msg.getBuildInfo();
-                    Server.this.game.addNewPlayerToGame(user, buildInfo);
-                    return ctx.handled();
-                } catch (JsonParseException e) {
-                    Server.this.log(Level.WARNING, () -> e.toString());
-                    ctx.receive(BadFatalEvent.getBuilder().setException(e).setNotBroadcast()
-                            .setExtraInfo("Cannot build a player with that information."));
-                    return ctx.failhandle();
-                }
+        public Reply visit(CommandContext ctx, CreateInMessage command) {
+            if (command == null) {
+                return ctx.failhandle();
             }
-            return ctx.failhandle();
+            if (Server.this.userManager.getForbiddenUsernames().contains(command.getUsername())) {
+                ctx.receive(BadUserDuplicationEvent.getBuilder().Build());
+                return ctx.handled();
+            }
+            User user = Server.this.userManager.addUser(command, ctx.getClient());
+            if (user == null) {
+                ctx.receive(BadUserDuplicationEvent.getBuilder().Build());
+                return ctx.handled();
+            }
+            user.setSuccessor(Server.this);
+            Client client = Server.this.clientManager.getConnection(ctx.getClient().getClientID());
+            client.updateLoggerSuffix(user.getUsername());
+            Server.this.clientManager.addUserForClient(client.getClientID(), user.getUserID());
+            client.setSuccessor(user);
+            ctx.setUser(user);
+            try {
+                Player.PlayerBuildInfo buildInfo = command.getBuildInfo();
+                Server.this.game.addNewPlayerToGame(user, buildInfo);
+                return ctx.handled();
+            } catch (JsonParseException e) {
+                Server.this.log(Level.WARNING, () -> e.toString());
+                ctx.receive(BadFatalEvent.getBuilder().setException(e).setNotBroadcast()
+                        .setExtraInfo("Cannot build a player with that information."));
+                return ctx.failhandle();
+            }
         }
 
         @Override

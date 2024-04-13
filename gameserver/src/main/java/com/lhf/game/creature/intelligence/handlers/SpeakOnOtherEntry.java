@@ -54,7 +54,7 @@ public class SpeakOnOtherEntry extends AIHandler {
                 }
                 String name = Taggable.extract(reom.getNewbie());
                 Command say = Command.parse("say \"" + sayit.print() + "\" to " + name);
-                bai.handleChain(null, say);
+                bai.applyChain(null, say);
             }
         }
 

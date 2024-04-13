@@ -35,6 +35,7 @@ import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.PlayersListedEvent;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.ListPlayersMessage;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
@@ -268,7 +269,7 @@ public class Game implements UserListener, CommandChainHandler {
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
+        public Reply visit(CommandContext ctx, ListPlayersMessage command) {
             ctx.receive(PlayersListedEvent.getBuilder().setPlayerNames(Game.this.userManager.getAllUsernames()));
             return ctx.handled();
         }

@@ -15,6 +15,7 @@ import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BattleCreatureFledEvent;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.GoMessage;
 
 public class BattleGoHandler implements PooledBattleManagerCommandHandler {
     private final static String helpString = "\"go [direction]\" Try to move in the desired direction and flee the battle, if that direction exists.  Like \"go east\"";
@@ -55,36 +56,36 @@ public class BattleGoHandler implements PooledBattleManagerCommandHandler {
     }
 
     @Override
-    public Reply flushHandle(CommandContext ctx, Command cmd) {
-        if (cmd != null && cmd.getType() == this.getHandleType()) {
-            final SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
-            Integer check = 10 + bm.getCreatures().size();
-            MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
-            BattleCreatureFledEvent.Builder builder = BattleCreatureFledEvent.getBuilder().setRunner(ctx.getCreature())
-                    .setRoll(result);
-            Reply reply = null;
-            if (result.getRoll() >= check) {
-                reply = bm.getArea().handleChain(ctx, cmd);
-            }
-            if (bm.hasCreature(ctx.getCreature())) { // if it is still here, it failed to flee
-                builder.setFled(false);
-                ctx.receive(builder.setFled(false).setNotBroadcast().Build());
-                if (bm.getArea() != null) {
-                    bm.getArea().announce(builder.setBroacast().Build(), ctx.getCreature());
-                } else {
-                    bm.announce(builder.setBroacast().Build(), ctx.getCreature());
-                }
-            } else {
-                builder.setFled(true).setBroacast();
-                if (bm.getArea() != null) {
-                    bm.getArea().announce(builder.Build(), ctx.getCreature());
-                } else {
-                    bm.announce(builder.Build(), ctx.getCreature());
-                }
-            }
-            return reply != null ? reply.resolve() : ctx.handled();
+    public Reply visit(CommandContext ctx, GoMessage command) {
+        if (command == null) {
+            return ctx.failhandle();
         }
-        return ctx.failhandle();
+        final SubArea bm = ctx.getSubAreaForSort(SubAreaSort.BATTLE);
+        Integer check = 10 + bm.getCreatures().size();
+        MultiRollResult result = ctx.getCreature().check(Attributes.DEX);
+        BattleCreatureFledEvent.Builder builder = BattleCreatureFledEvent.getBuilder().setRunner(ctx.getCreature())
+                .setRoll(result);
+        Reply reply = null;
+        if (result.getRoll() >= check) {
+            reply = bm.getArea().applyChain(ctx, command);
+        }
+        if (bm.hasCreature(ctx.getCreature())) { // if it is still here, it failed to flee
+            builder.setFled(false);
+            ctx.receive(builder.setFled(false).setNotBroadcast().Build());
+            if (bm.getArea() != null) {
+                bm.getArea().announce(builder.setBroacast().Build(), ctx.getCreature());
+            } else {
+                bm.announce(builder.setBroacast().Build(), ctx.getCreature());
+            }
+        } else {
+            builder.setFled(true).setBroacast();
+            if (bm.getArea() != null) {
+                bm.getArea().announce(builder.Build(), ctx.getCreature());
+            } else {
+                bm.announce(builder.Build(), ctx.getCreature());
+            }
+        }
+        return reply != null ? reply.resolve() : ctx.handled();
     }
 
 }
