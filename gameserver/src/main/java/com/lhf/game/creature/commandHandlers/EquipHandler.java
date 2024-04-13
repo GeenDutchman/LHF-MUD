@@ -6,7 +6,6 @@ import java.util.StringJoiner;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreature.CreatureCommandHandler;
 import com.lhf.game.item.Equipable;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -51,14 +50,6 @@ public class EquipHandler implements CreatureCommandHandler {
         ICreature creature = ctx.getCreature();
         creature.equipItem(equipMessage.getItemName(), equipMessage.getEquipSlot());
         return ctx.handled();
-    }
-
-    @Override
-    public Reply apply(CommandContext ctx, Command cmd) {
-        if (cmd != null && cmd.getType() == this.getHandleType()) {
-
-        }
-        return ctx.failhandle();
     }
 
     @Override

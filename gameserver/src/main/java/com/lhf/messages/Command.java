@@ -43,22 +43,25 @@ public abstract class Command implements ICommand, CommandVisitor.CommandVisitor
             AMessageType commandWord = parser.getCommandWord().getCommand();
             if (commandWord == null) {
                 Logger.getLogger(Command.class.getName()).log(Level.WARNING, "Bad parsing, converting to help");
-                return AMessageType.HELP.generateCommand(toParse, false, parser.getWhat().get(),
-                        parser.getPreps().get());
+                return AMessageType.HELP.generateCommand(toParse, false, parser.getWhat().orElse(null),
+                        parser.getPreps().orElse(null));
             }
-            Command parsed = commandWord.generateCommand(toParse, accepted && parser.isValid(), parser.getWhat().get(),
-                    parser.getPreps().get());
+            Command parsed = commandWord.generateCommand(toParse, accepted && parser.isValid(),
+                    parser.getWhat().orElse(null), parser.getPreps().orElse(null));
             parsed.setValid(parsed.isValid() && commandWord.checkValidity(parsed));
             return parsed;
         } catch (PatternSyntaxException e) {
             Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, e);
-            return AMessageType.HELP.generateCommand(toParse, false, parser.getWhat().get(), parser.getPreps().get());
+            return AMessageType.HELP.generateCommand(toParse, false, parser.getWhat().orElse(null),
+                    parser.getPreps().orElse(null));
         } catch (IllegalArgumentException iae) {
             Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, iae);
-            return AMessageType.HELP.generateCommand(toParse, false, parser.getWhat().get(), parser.getPreps().get());
+            return AMessageType.HELP.generateCommand(toParse, false, parser.getWhat().orElse(null),
+                    parser.getPreps().orElse(null));
         } catch (NullPointerException npe) {
             Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, npe);
-            return AMessageType.HELP.generateCommand(toParse, false, parser.getWhat().get(), parser.getPreps().get());
+            return AMessageType.HELP.generateCommand(toParse, false, parser.getWhat().orElse(null),
+                    parser.getPreps().orElse(null));
         }
     }
 

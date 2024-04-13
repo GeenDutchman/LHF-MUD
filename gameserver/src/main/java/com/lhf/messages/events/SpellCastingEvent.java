@@ -123,7 +123,9 @@ public class SpellCastingEvent extends GameEvent {
             if (this.targets == null) {
                 this.targets = new LinkedHashSet<>();
             }
-            this.targets.addAll(targets2);
+            if (targets2 != null) {
+                this.targets.addAll(targets2);
+            }
             return this;
         }
 

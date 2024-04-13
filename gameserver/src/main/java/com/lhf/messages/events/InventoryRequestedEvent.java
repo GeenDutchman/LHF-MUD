@@ -107,6 +107,8 @@ public class InventoryRequestedEvent extends GameEvent {
                     equipped.appendString("empty");
                 }
             }
+        } else {
+            builder.appendString("You have nothing equipped.");
         }
     }
 

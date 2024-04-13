@@ -349,10 +349,11 @@ public class ServerTest {
     void testAttackMonster() {
         this.comm.create("AttackTester");
         String extract = this.comm.handleCommand("go east", GameEventType.SEE);
-        Truth.assertThat(extract).ignoringCase().contains("<monster>");
-        int creature_index = extract.indexOf("<monster>");
-        int endcreature_index = extract.indexOf("</monster>");
-        extract = extract.substring(creature_index + "<monster>".length(), endcreature_index);
+        Truth.assertThat(extract).ignoringCase().contains("Monsters that you can see:");
+        int monsters_list_index = extract.indexOf("Monsters that you can see:");
+        int creature_index = extract.indexOf("**", monsters_list_index);
+        int endcreature_index = extract.indexOf("**", creature_index);
+        extract = extract.substring(creature_index + "**".length(), endcreature_index);
         System.out.println(extract);
         String room = this.comm.handleCommand("see", GameEventType.SEE);
         ArgumentMatcher<GameEvent> battleTurn = new MessageMatcher(GameEventType.BATTLE_ROUND,
@@ -437,14 +438,14 @@ public class ServerTest {
                 break;
             }
             battleTurn = new MessageMatcher(GameEventType.BATTLE_ROUND,
-                    List.of("should enter an action to take for the round", String.format("It is round %d", i)),
+                    List.of("should enter an action to take for the round", "It is round", Integer.toString(i)),
                     List.of());
             Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis)).send(Mockito.argThat(battleTurn));
             Mockito.verify(attacker.sssb, Mockito.timeout(waitMillis)).send(Mockito.argThat(battleTurn));
             attacker.handleCommand("attack Tester");
             this.comm.handleCommand("PASS");
             battleTurnAccepted = new MessageMatcher(GameEventType.BATTLE_ROUND,
-                    List.of("action has been submitted for the round", String.format("It is round %d", i)), List.of());
+                    List.of("action has been submitted for the round", "It is round", Integer.toString(i)), List.of());
             Mockito.verify(this.comm.sssb, Mockito.timeout(waitMillis)).send(Mockito.argThat(battleTurnAccepted));
             Mockito.verify(attacker.sssb, Mockito.timeout(waitMillis)).send(Mockito.argThat(battleTurnAccepted));
 
