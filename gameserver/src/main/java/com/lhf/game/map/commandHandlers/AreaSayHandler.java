@@ -37,7 +37,7 @@ public class AreaSayHandler implements AreaCommandHandler {
             return ctx.failhandle();
         }
         SpeakingEvent.Builder speakMessage = SpeakingEvent.getBuilder().setSayer(ctx.getCreature())
-                .setMessage(sMessage.getMessage());
+                .setMessage(sMessage.getSequence());
         if (sMessage.getTarget() != null) {
             boolean sent = false;
             Optional<ICreature> optTarget = ctx.getArea().getCreature(sMessage.getTarget());

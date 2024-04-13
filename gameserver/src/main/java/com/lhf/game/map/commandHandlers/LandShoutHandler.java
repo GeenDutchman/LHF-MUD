@@ -39,7 +39,7 @@ public class LandShoutHandler implements LandCommandHandler {
         final Land land = ctx.getLand();
         land.announceDirect(
                 SpeakingEvent.getBuilder().setSayer(ctx.getCreature()).setShouting(true)
-                        .setMessage(command.getMessage()).Build(),
+                        .setMessage(command.getSequence()).Build(),
                 land.getPlayers().stream().filter(player -> player != null).map(player -> (GameEventProcessor) player)
                         .toList());
         return ctx.handled();

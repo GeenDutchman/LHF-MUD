@@ -46,7 +46,7 @@ public class SpokenPromptChunk extends AIHandler {
             this.logger.log(Level.WARNING, () -> String.format("no convo tree found for %s", bai.toString()));
             return;
         }
-        final ConversationTreeNodeResult result = tree.listen(sm.getSayer(), sm.getMessage());
+        final ConversationTreeNodeResult result = tree.listen(sm.getSayer(), sm.getMessageAsString());
         if (result == null) {
             this.logger.log(Level.WARNING,
                     () -> String.format("%s has no noderesult for message '%s'", bai.toString(), sm.getMessage()));
@@ -90,10 +90,10 @@ public class SpokenPromptChunk extends AIHandler {
             SpeakingEvent sm = (SpeakingEvent) event;
             if (!sm.getShouting() && sm.getHearer() != null && sm.getHearer() instanceof INonPlayerCharacter) {
                 if (sm.getSayer() instanceof ICreature || (this.allowUsers && sm.getSayer() instanceof User)) {
-                    if (sm.getMessage().startsWith("PROMPT")
+                    if (sm.getMessageAsString().startsWith("PROMPT")
                             && (this.prompters.contains(sm.getSayer().getEventProcessorID())
                                     || sm.getSayer().getEventProcessorID().equals(bai.getEventProcessorID()))) {
-                        String prompt = sm.getMessage().replaceFirst("PROMPT", "").trim();
+                        String prompt = sm.getMessageAsString().replaceFirst("PROMPT", "").trim();
                         this.logger.log(Level.INFO,
                                 String.format("Prompt \"%s\" received from %s for %s", prompt, sm.getSayer().getName(),
                                         bai.getNpc() != null ? bai.getNpc().getName() : bai.getName()));

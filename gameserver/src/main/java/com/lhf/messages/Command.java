@@ -22,11 +22,11 @@ import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.CommandVisitor;
 
 public abstract class Command implements ICommand, CommandVisitor.CommandVisitorAcceptor {
-    protected final String whole;
-    protected Boolean isValid;
-    protected final AMessageType command;
-    protected final List<String> directs;
-    protected final EnumMap<Prepositions, List<String>> indirects;
+    private final String whole;
+    private Boolean isValid;
+    private final AMessageType command;
+    private final List<String> directs;
+    private final EnumMap<Prepositions, List<String>> indirects;
 
     public static Command parse(String messageIn) {
         String toParse = messageIn.trim();

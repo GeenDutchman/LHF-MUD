@@ -456,7 +456,7 @@ public class DMRoom extends Room {
                             sayer = ctx.getUser();
                         }
                         User.eventAccepter.accept(u, SpeakingEvent.getBuilder().setSayer(sayer)
-                                .setMessage(sayMessage.getMessage()).setHearer(u).Build());
+                                .setMessage(sayMessage.getSequence()).setHearer(u).Build());
                         sent = true;
                         break;
                     }
