@@ -225,7 +225,7 @@ public interface OutputBuilder {
     }
 
     public final static class OutputSequenceElement implements OutputBuilderElement, Serializable {
-        private final CharSequence charSequence;
+        private final String charSequence;
         private final BasicTaggable taggable;
         private final BasicExaminable examinable;
         private final OutputSequence outputSequence;
@@ -233,7 +233,7 @@ public interface OutputBuilder {
 
         private OutputSequenceElement(CharSequence charSequence, Taggable taggable, Examinable examinable,
                 OutputSequence outputSequence, String metaSignal) {
-            this.charSequence = charSequence;
+            this.charSequence = charSequence != null ? charSequence.toString() : null;
             this.taggable = Taggable.basicTaggable(taggable);
             this.examinable = Examinable.basicExaminable(examinable);
             this.outputSequence = outputSequence;

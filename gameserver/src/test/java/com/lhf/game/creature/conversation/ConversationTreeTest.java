@@ -1,8 +1,12 @@
 package com.lhf.game.creature.conversation;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.regex.Pattern;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -204,7 +208,12 @@ public class ConversationTreeTest {
         tree.addNode(start.getNodeID(),
                 new ConversationPattern("I'm a traveller?", "\\btraveller\\b", Pattern.CASE_INSENSITIVE), second);
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.print()).contains("<convo colored=\"true\">traveller</convo>");
+        try {
+            String xml = response.printXML();
+            Truth.assertThat(xml).contains("<convo colored=\"true\">traveller</convo>");
+        } catch (ParserConfigurationException | TransformerException e) {
+            fail(e);
+        }
     }
 
     @Test
@@ -233,8 +242,8 @@ public class ConversationTreeTest {
         ClientID id = new ClientID();
         Mockito.when(unwelcome.getClientID()).thenReturn(id);
         Mockito.when(unwelcome.getName()).thenReturn("Unwelcome Bob");
-        Mockito.when(this.talker.getTagName()).thenReturn("npc");
-        Mockito.when(this.talker.getSimpleContent()).thenCallRealMethod();
+        Mockito.when(unwelcome.getTagName()).thenReturn("npc");
+        Mockito.when(unwelcome.getSimpleContent()).thenCallRealMethod();
 
         Truth.assertThat(unwelcome.getName()).isNotEqualTo(talker.getName());
 
@@ -256,8 +265,13 @@ public class ConversationTreeTest {
 
         // welcome
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.printString()).ignoringCase().contains("<convo colored=\"true\">welcome</convo>");
-        Truth.assertThat(response.printString()).ignoringCase().contains("<convo colored=\"true\">unwelcome</convo>");
+        try {
+            String xml = response.printXML();
+            Truth.assertThat(xml).ignoringCase().contains("<convo colored=\"true\">welcome</convo>");
+            Truth.assertThat(xml).ignoringCase().contains("<convo colored=\"true\">unwelcome</convo>");
+        } catch (ParserConfigurationException | TransformerException e) {
+            fail(e);
+        }
 
         response = tree.listen(talker, "I think I'm welcome");
         Truth.assertThat(response.printString()).isEqualTo(oneWay.getBodyAsString());
@@ -268,9 +282,13 @@ public class ConversationTreeTest {
 
         // unwelcome
         response = tree.listen(unwelcome, "hello there!");
-        Truth.assertThat(response.printString()).ignoringCase()
-                .doesNotContain("<convo colored=\"true\">welcome</convo>");
-        Truth.assertThat(response.printString()).ignoringCase().contains("<convo colored=\"true\">unwelcome</convo>");
+        try {
+            String xml = response.printXML();
+            Truth.assertThat(xml).ignoringCase().doesNotContain("<convo colored=\"true\">welcome</convo>");
+            Truth.assertThat(xml).ignoringCase().contains("<convo colored=\"true\">unwelcome</convo>");
+        } catch (ParserConfigurationException | TransformerException e) {
+            fail(e);
+        }
 
         response = tree.listen(unwelcome, "Am I welcome?");
         Truth.assertThat(response.printString()).ignoringCase().isEqualTo(tree.getNotRecognized());
@@ -290,8 +308,8 @@ public class ConversationTreeTest {
         ClientID id = new ClientID();
         Mockito.when(unwelcome.getClientID()).thenReturn(id);
         Mockito.when(unwelcome.getName()).thenReturn("Unwelcome Bob");
-        Mockito.when(this.talker.getTagName()).thenReturn("npc");
-        Mockito.when(this.talker.getSimpleContent()).thenCallRealMethod();
+        Mockito.when(unwelcome.getTagName()).thenReturn("npc");
+        Mockito.when(unwelcome.getSimpleContent()).thenCallRealMethod();
 
         Truth.assertThat(unwelcome.getName()).isNotEqualTo(talker.getName());
 
@@ -314,13 +332,23 @@ public class ConversationTreeTest {
 
         // welcome
         ConversationTreeNodeResult response = tree.listen(talker, "hello there!");
-        Truth.assertThat(response.printString()).ignoringCase().contains("<convo colored=\"true\">both</convo>");
+        try {
+            String xml = response.printXML();
+            Truth.assertThat(xml).ignoringCase().contains("<convo colored=\"true\">both</convo>");
+        } catch (ParserConfigurationException | TransformerException e) {
+            fail(e);
+        }
         response = tree.listen(talker, "You test both?");
         Truth.assertThat(response.printString()).isEqualTo(oneWay.getBodyAsString());
 
         // unwelcome
         response = tree.listen(unwelcome, "hello there!");
-        Truth.assertThat(response.printString()).ignoringCase().contains("<convo colored=\"true\">both</convo>");
+        try {
+            String xml = response.printXML();
+            Truth.assertThat(xml).ignoringCase().contains("<convo colored=\"true\">both</convo>");
+        } catch (ParserConfigurationException | TransformerException e) {
+            fail(e);
+        }
         response = tree.listen(unwelcome, "You test both?");
         Truth.assertThat(response.printString()).isEqualTo(otherWay.getBodyAsString());
     }
