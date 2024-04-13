@@ -5,12 +5,15 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
+import com.lhf.messages.grammar.PhraseList;
+import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.grammar.Prepositions;
 
-public class AttackMessage extends CommandAdapter {
+public class AttackMessage extends Command {
 
-    public AttackMessage(Command command) {
-        super(command);
+    public AttackMessage(AMessageType command, String whole, Boolean isValid, PhraseList phrases,
+            PrepositionalPhrases prepositional) {
+        super(command, whole, isValid, phrases, prepositional);
     }
 
     public String getWeapon() {

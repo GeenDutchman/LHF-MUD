@@ -1,11 +1,14 @@
 package com.lhf.messages.in;
 
 import com.lhf.messages.Command;
+import com.lhf.messages.grammar.PhraseList;
+import com.lhf.messages.grammar.PrepositionalPhrases;
 
-public class StatusMessage extends CommandAdapter {
+public class StatusMessage extends Command {
 
-    public StatusMessage(Command command) {
-        super(command);
+    public StatusMessage(AMessageType command, String whole, Boolean isValid, PhraseList phrases,
+            PrepositionalPhrases prepositional) {
+        super(command, whole, isValid, phrases, prepositional);
     }
 
 }

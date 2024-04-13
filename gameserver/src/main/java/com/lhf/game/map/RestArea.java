@@ -655,7 +655,7 @@ public class RestArea extends SubArea {
             } catch (JsonParseException e) {
                 RestArea.this.log(Level.WARNING, e.toString());
                 ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.OTHER).setNotBroadcast()
-                        .setNotBroadcast().setCommand(lewdInMessage.getCommand()));
+                        .setNotBroadcast().setCommand(lewdInMessage));
                 return ctx.failhandle();
             }
             VrijPartij party = new VrijPartij(ctx.getCreature(), invites);

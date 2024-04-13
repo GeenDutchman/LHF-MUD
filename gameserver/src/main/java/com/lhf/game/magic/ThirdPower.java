@@ -212,7 +212,7 @@ public class ThirdPower implements CommandChainHandler {
                     && spell.isOffensive()) {
                 this.log(Level.INFO, () -> String.format("Starting battle with offensive spell %s", spell));
                 bm.instigate(caster, possTargets);
-                return bm.handleChain(ctx, casting.getCommand()); // loop back
+                return bm.handleChain(ctx, casting); // loop back
             }
 
             this.log(Level.FINE, "Casting creature targeting spell");
@@ -271,7 +271,7 @@ public class ThirdPower implements CommandChainHandler {
                     && spell.isOffensive()) {
                 this.log(Level.INFO, () -> String.format("Starting battle with offensive AOE spell %s", spell));
                 bm.instigate(caster, targets);
-                return bm.handleChain(ctx, casting.getCommand()); // loop back
+                return bm.handleChain(ctx, casting); // loop back
             }
 
             this.log(Level.FINE, "Casting AOE creature targeting spell");
@@ -484,7 +484,7 @@ public class ThirdPower implements CommandChainHandler {
                     SubArea bm = area.getSubAreaForSort(SubAreaSort.BATTLE);
                     bm.addCreature(attempter);
                     ctx.addSubArea(bm);
-                    return bm.handleChain(ctx, castmessage.getCommand()); // delegate back to the nearby battle
+                    return bm.handleChain(ctx, castmessage); // delegate back to the nearby battle
                 } else {
                     return this.handleCast(ctx, castmessage);
                 }

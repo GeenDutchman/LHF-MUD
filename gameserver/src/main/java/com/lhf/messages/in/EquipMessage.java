@@ -4,11 +4,14 @@ import java.util.StringJoiner;
 
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.messages.Command;
+import com.lhf.messages.grammar.PhraseList;
+import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.grammar.Prepositions;
 
-public class EquipMessage extends CommandAdapter {
-    public EquipMessage(Command command) {
-        super(command);
+public class EquipMessage extends Command {
+    public EquipMessage(AMessageType command, String whole, Boolean isValid, PhraseList phrases,
+            PrepositionalPhrases prepositional) {
+        super(command, whole, isValid, phrases, prepositional);
     }
 
     public String getItemName() {

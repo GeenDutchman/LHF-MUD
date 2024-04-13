@@ -4,10 +4,13 @@ import java.util.StringJoiner;
 
 import com.lhf.game.map.Directions;
 import com.lhf.messages.Command;
+import com.lhf.messages.grammar.PhraseList;
+import com.lhf.messages.grammar.PrepositionalPhrases;
 
-public class GoMessage extends CommandAdapter {
-    public GoMessage(Command command) {
-        super(command);
+public class GoMessage extends Command {
+    public GoMessage(AMessageType command, String whole, Boolean isValid, PhraseList phrases,
+            PrepositionalPhrases prepositional) {
+        super(command, whole, isValid, phrases, prepositional);
     }
 
     public Directions getDirection() {

@@ -8,13 +8,16 @@ import com.lhf.game.creature.Player;
 import com.lhf.game.creature.vocation.VocationFactory;
 import com.lhf.game.serialization.GsonBuilderFactory;
 import com.lhf.messages.Command;
+import com.lhf.messages.grammar.PhraseList;
+import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.grammar.Prepositions;
 
-public class CreateInMessage extends CommandAdapter {
+public class CreateInMessage extends Command {
     private Player.PlayerBuildInfo cachedBuild = null;
 
-    public CreateInMessage(Command command) {
-        super(command);
+    public CreateInMessage(AMessageType command, String whole, Boolean isValid, PhraseList phrases,
+            PrepositionalPhrases prepositional) {
+        super(command, whole, isValid, phrases, prepositional);
     }
 
     public String getUsername() {

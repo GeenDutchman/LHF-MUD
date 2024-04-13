@@ -22,19 +22,11 @@ public interface CommandChainHandler extends GameEventProcessorHub {
     public abstract CommandContext addSelfToContext(CommandContext ctx);
 
     /**
-     * An interface meant to handle commands, with the issue of who
-     * it is taking care
-     * of commands *for* retrieved from the context to allow for static classes.
+     * An interface meant to handle commands, with the issue of who it is taking
+     * care of commands *for* retrieved from the context to allow for static
+     * classes.
      */
     public interface CommandHandler extends Comparable<CommandHandler> {
-
-        /**
-         * Adapt the command to the type of lens we expect
-         * 
-         * @param command
-         * @return
-         */
-        // public abstract CommandAdapter adaptCommand(Command command);
 
         /**
          * Gets what type of command we're meant to handle

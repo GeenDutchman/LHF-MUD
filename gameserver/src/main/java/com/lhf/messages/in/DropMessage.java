@@ -5,11 +5,14 @@ import java.util.Optional;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
+import com.lhf.messages.grammar.PhraseList;
+import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.grammar.Prepositions;
 
-public class DropMessage extends CommandAdapter {
-    public DropMessage(Command command) {
-        super(command);
+public class DropMessage extends Command {
+    public DropMessage(AMessageType command, String whole, Boolean isValid, PhraseList phrases,
+            PrepositionalPhrases prepositional) {
+        super(command, whole, isValid, phrases, prepositional);
     }
 
     public String getTarget() {

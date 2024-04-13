@@ -5,12 +5,15 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
+import com.lhf.messages.grammar.PhraseList;
+import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.grammar.Prepositions;
 
-public class SpellbookMessage extends CommandAdapter {
+public class SpellbookMessage extends Command {
 
-    public SpellbookMessage(Command command) {
-        super(command);
+    public SpellbookMessage(AMessageType command, String whole, Boolean isValid, PhraseList phrases,
+            PrepositionalPhrases prepositional) {
+        super(command, whole, isValid, phrases, prepositional);
     }
 
     public String getSpellName() {

@@ -15,11 +15,12 @@ import java.util.stream.Collectors;
 
 import com.lhf.messages.grammar.GrammaredCommandPhrase;
 import com.lhf.messages.grammar.Phrase;
+import com.lhf.messages.grammar.PhraseList;
 import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.grammar.Prepositions;
 import com.lhf.messages.in.AMessageType;
 
-public final class Command implements ICommand {
+public abstract class Command implements ICommand {
     protected final String whole;
     protected Boolean isValid;
     protected final AMessageType command;
@@ -41,36 +42,46 @@ public final class Command implements ICommand {
             AMessageType commandWord = parser.getCommandWord().getCommand();
             if (commandWord == null) {
                 Logger.getLogger(Command.class.getName()).log(Level.WARNING, "Bad parsing, converting to help");
-                return new Command(AMessageType.HELP, toParse, false);
+                return AMessageType.HELP.generateCommand(toParse, false, parser.getWhat().get(),
+                        parser.getPreps().get());
             }
-            Command parsed = new Command(commandWord, toParse, accepted);
-            parsed.setValid(accepted && parser.isValid());
-            if (parser.getWhat().isPresent()) {
-                for (Phrase direct : parser.getWhat().get()) {
-                    parsed.addDirect(direct.getResult());
-                }
-            }
-            if (parser.getPreps().isPresent()) {
-                PrepositionalPhrases pp = parser.getPreps().get();
-                for (final Prepositions preposition : pp) {
-                    parsed.addIndirectList(preposition, pp.getPhraseListByPreposition(preposition).getListResult());
-                }
-            }
+            Command parsed = commandWord.generateCommand(toParse, accepted && parser.isValid(), parser.getWhat().get(),
+                    parser.getPreps().get());
             parsed.setValid(parsed.isValid() && commandWord.checkValidity(parsed));
             return parsed;
         } catch (PatternSyntaxException e) {
             Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, e);
-            return new Command(AMessageType.HELP, toParse, false);
+            return AMessageType.HELP.generateCommand(toParse, false, parser.getWhat().get(), parser.getPreps().get());
         } catch (IllegalArgumentException iae) {
             Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, iae);
-            return new Command(AMessageType.HELP, toParse, false);
+            return AMessageType.HELP.generateCommand(toParse, false, parser.getWhat().get(), parser.getPreps().get());
         } catch (NullPointerException npe) {
             Logger.getLogger(Command.class.getName()).log(Level.WARNING, toParse, npe);
-            return new Command(AMessageType.HELP, toParse, false);
+            return AMessageType.HELP.generateCommand(toParse, false, parser.getWhat().get(), parser.getPreps().get());
         }
     }
 
-    private Command(AMessageType command, String whole, Boolean isValid) {
+    protected Command(AMessageType command, String whole, Boolean isValid, PhraseList phrases,
+            PrepositionalPhrases prepositional) {
+        this.command = command;
+        this.whole = whole;
+        this.isValid = isValid;
+        this.directs = new ArrayList<>();
+        if (phrases != null) {
+            for (Phrase direct : phrases) {
+                this.directs.add(direct.getResult());
+            }
+        }
+        this.indirects = new EnumMap<>(Prepositions.class);
+        if (prepositional != null) {
+            for (final Prepositions preposition : prepositional) {
+                this.addIndirectList(preposition,
+                        prepositional.getPhraseListByPreposition(preposition).getListResult());
+            }
+        }
+    }
+
+    protected Command(AMessageType command, String whole, Boolean isValid) {
         this.command = command;
         this.whole = whole;
         this.isValid = isValid;

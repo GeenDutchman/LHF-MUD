@@ -3,11 +3,14 @@ package com.lhf.messages.in;
 import java.util.StringJoiner;
 
 import com.lhf.messages.Command;
+import com.lhf.messages.grammar.PhraseList;
+import com.lhf.messages.grammar.PrepositionalPhrases;
 
-public class HelpInMessage extends CommandAdapter {
+public class HelpInMessage extends Command {
 
-    public HelpInMessage(Command command) {
-        super(command);
+    public HelpInMessage(AMessageType command, String whole, Boolean isValid, PhraseList phrases,
+            PrepositionalPhrases prepositional) {
+        super(command, whole, isValid, phrases, prepositional);
     }
 
     @Override
