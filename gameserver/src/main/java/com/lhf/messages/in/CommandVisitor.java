@@ -17,175 +17,175 @@ public interface CommandVisitor extends BiFunction<CommandContext, Command, Comm
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, CastMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, CreateInMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, DropMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, EquipMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, ExitMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, FollowMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, GoMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, HelpInMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, InteractMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, InventoryMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, LewdInMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, ListPlayersMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, PassMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, RepeatInMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, RestMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, SayMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, SeeMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, ShoutMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, SpellbookMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, StatsInMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, StatusMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, TakeMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, UnequipMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
 
         public default CommandContext.Reply visit(CommandContext ctx, UseMessage command) {
             if (ctx == null) {
                 ctx = new CommandContext();
             }
-            return this.ensurePopulatedContext(ctx).failhandle();
+            return ctx.failhandle();
         }
     }
 
@@ -195,7 +195,6 @@ public interface CommandVisitor extends BiFunction<CommandContext, Command, Comm
             return command.acceptCommandVisitor(ctx, this);
         } else {
             ctx = new CommandContext();
-            this.ensurePopulatedContext(ctx);
             return ctx.failhandle();
         }
     }
@@ -249,7 +248,5 @@ public interface CommandVisitor extends BiFunction<CommandContext, Command, Comm
     public abstract CommandContext.Reply visit(CommandContext ctx, UnequipMessage command);
 
     public abstract CommandContext.Reply visit(CommandContext ctx, UseMessage command);
-
-    public abstract CommandContext ensurePopulatedContext(CommandContext ctx);
 
 }
