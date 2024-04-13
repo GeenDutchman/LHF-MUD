@@ -26,7 +26,6 @@ import com.lhf.Taggable.BasicTaggable;
 
 public class ConversationTreeNodeResult {
     private final static String BRANCH_TAG = "convo";
-    private final static String NPC_CONVERSATION_TAG = "NPCConversation";
     private final OutputSequence bodySequence;
     private final List<OutputSequence> prompts;
 
@@ -36,7 +35,7 @@ public class ConversationTreeNodeResult {
             throw new IllegalArgumentException("Must have a context to create a result!");
         }
         return ConversationTreeNodeResult
-                .create(transformer, new OutputSequence().appendChild(body),
+                .create(transformer, new OutputSequence(ConversationTreeNode.NPC_CONVERSATION_TAG).appendChild(body),
                         prompts == null ? null
                                 : prompts.stream().filter(p -> p != null)
                                         .map(p -> new OutputSequence().appendString(p, null, null)).toList(),
@@ -113,14 +112,14 @@ public class ConversationTreeNodeResult {
                 continue;
             }
 
-            CharSequence chars = current.getCharSequenceAsString();
+            String chars = current.getCharSequenceAsString();
             if (chars == null || chars.length() == 0) {
                 bodyResult.appendOutputBuilderElement(transformer.apply(current), null, null);
                 continue;
             }
 
             if (branchPatterns != null
-                    && ConversationTreeNodeResult.transformForBranches(toProcess, BRANCH_TAG, branchPatterns)) {
+                    && ConversationTreeNodeResult.transformForBranches(toProcess, chars, branchPatterns)) {
                 continue;
             }
 
@@ -133,6 +132,10 @@ public class ConversationTreeNodeResult {
             List<OutputSequence> prompts, SortedSet<ConversationPattern> branchPatterns) {
         if (transformer == null) {
             throw new IllegalArgumentException("Must have a context to create a result!");
+        }
+        if (bodySequence == null || bodySequence.getBuilderName() == null) {
+            throw new IllegalArgumentException(
+                    "Must have an OutputBuilder with a non-null BuilderName to create a result!");
         }
         List<OutputSequence> promptResults = ConversationTreeNodeResult.transformPrompts(transformer, prompts);
 
@@ -159,10 +162,8 @@ public class ConversationTreeNodeResult {
         if (result == null) {
             throw new IllegalArgumentException("Cannot generate document from null result!");
         }
-        OutputSequence sequence = new OutputSequence(NPC_CONVERSATION_TAG);
-        sequence.appendOutputBuilder(result.bodySequence, null, null);
 
-        return OutputBuilder.documentFromOutputSequence(sequence, null);
+        return OutputBuilder.documentFromOutputSequence(result.bodySequence, null);
     }
 
     public final String printXML() throws ParserConfigurationException, TransformerException {

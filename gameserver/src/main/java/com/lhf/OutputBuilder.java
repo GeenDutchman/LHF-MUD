@@ -549,7 +549,12 @@ public interface OutputBuilder {
             }
         }
 
-        OutputBuilder.acceptOutputBuilder(document, root, sequence);
+        try {
+            OutputBuilder.acceptOutputBuilderElements(document, root, sequence.getElements());
+        } catch (OutputBuilderConversionError e) {
+            throw new OutputBuilderConversionError(
+                    String.format("Error for OutputBuilder '%s'", sequence.getBuilderName()), e);
+        }
 
         return document;
     }
@@ -664,6 +669,52 @@ public interface OutputBuilder {
         }
     }
 
+    private static void acceptOutputBuilderElements(final Document document, final Node node,
+            final List<OutputBuilderElement> elementList) throws OutputBuilderConversionError {
+        if (document == null || node == null || elementList == null) {
+            return;
+        }
+        for (int i = 0; i < elementList.size(); i++) {
+            final OutputBuilderElement sequenceMember = elementList.get(i);
+            if (sequenceMember == null) {
+                continue;
+            } else if (sequenceMember.getCharSequence() != null) {
+                try {
+                    node.appendChild(document.createTextNode(sequenceMember.getCharSequence().toString()));
+                } catch (DOMException e) {
+                    throw new OutputBuilderConversionError(
+                            String.format("Error for element %d while appending text '%s'", i,
+                                    sequenceMember.getCharSequenceAsString()),
+                            e);
+                }
+            } else if (sequenceMember.getTaggable() != null) {
+                try {
+                    OutputBuilder.acceptTaggable(document, node, sequenceMember.getTaggable());
+                } catch (OutputBuilderConversionError e) {
+                    throw new OutputBuilderConversionError(
+                            String.format("Error for element %d while appending Taggable", i), e);
+                }
+            } else if (sequenceMember.getExaminable() != null) {
+                try {
+                    OutputBuilder.acceptExaminable(document, node, sequenceMember.getExaminable());
+                } catch (OutputBuilderConversionError e) {
+                    throw new OutputBuilderConversionError(
+                            String.format("Error for element %d while appending Examinable", i), e);
+                }
+            } else if (sequenceMember.getOutputBuilder() != null) {
+                try {
+                    OutputBuilder.acceptOutputBuilder(document, node, sequenceMember.getOutputBuilder());
+                } catch (OutputBuilderConversionError e) {
+                    throw new OutputBuilderConversionError(
+                            String.format("Error for element %d while appending OutputBuilder", i), e);
+                } catch (DOMException e) {
+                    throw new OutputBuilderConversionError(
+                            String.format("DOM Error for element %d while appending OutputBuilder", i), e);
+                }
+            }
+        }
+    }
+
     private static void acceptOutputBuilder(Document document, Node node, OutputBuilder outputBuilder)
             throws OutputBuilderConversionError {
         if (document == null || node == null || outputBuilder == null) {
@@ -676,55 +727,18 @@ public interface OutputBuilder {
                 myNode = document.createElement(sequenceName);
                 node.appendChild(myNode);
             } catch (DOMException e) {
-                throw new RuntimeException(String.format(
+                throw new OutputBuilderConversionError(String.format(
                         "Error either creating element (with the OutputBuilder name of '%s') or appending it to the current node",
-                        outputBuilder.getBuilderName()), e);
+                        sequenceName), e);
             }
         }
         final List<OutputBuilderElement> elementList = outputBuilder.getElements();
-        for (int i = 0; i < elementList.size(); i++) {
-            final OutputBuilderElement sequenceMember = elementList.get(i);
-            if (sequenceMember == null) {
-                continue;
-            } else if (sequenceMember.getCharSequence() != null) {
-                try {
-                    myNode.appendChild(document.createTextNode(sequenceMember.getCharSequence().toString()));
-                } catch (DOMException e) {
-                    throw new OutputBuilderConversionError(
-                            String.format("Error for OutputBuilder '%s' element %d while appending text '%s'",
-                                    sequenceName, i, sequenceMember.getCharSequenceAsString()),
-                            e);
-                }
-            } else if (sequenceMember.getTaggable() != null) {
-                try {
-                    OutputBuilder.acceptTaggable(document, myNode, sequenceMember.getTaggable());
-                } catch (OutputBuilderConversionError e) {
-                    throw new OutputBuilderConversionError(String.format(
-                            "Error for OutputBuilder '%s' element %d while appending Taggable", sequenceName, i), e);
-                }
-            } else if (sequenceMember.getExaminable() != null) {
-                try {
-                    OutputBuilder.acceptExaminable(document, myNode, sequenceMember.getExaminable());
-                } catch (OutputBuilderConversionError e) {
-                    throw new OutputBuilderConversionError(String.format(
-                            "Error for OutputBuilder '%s' element %d while appending Examinable", sequenceName, i), e);
-                }
-            } else if (sequenceMember.getOutputBuilder() != null) {
-                try {
-                    OutputBuilder.acceptOutputBuilder(document, myNode, sequenceMember.getOutputBuilder());
-                } catch (OutputBuilderConversionError e) {
-                    throw new OutputBuilderConversionError(
-                            String.format("Error for OutputBuilder '%s' element %d while appending OutputBuilder",
-                                    sequenceName, i),
-                            e);
-                } catch (DOMException e) {
-                    throw new OutputBuilderConversionError(
-                            String.format("DOM Error for OutputBuilder '%s' element %d while appending OutputBuilder",
-                                    sequenceName, i),
-                            e);
-                }
-            }
+        try {
+            OutputBuilder.acceptOutputBuilderElements(document, myNode, elementList);
+        } catch (OutputBuilderConversionError e) {
+            throw new OutputBuilderConversionError(String.format("Error for OutputBuilder '%s'", sequenceName), e);
         }
+
     }
 
     public static final class OutputSequenceElementCollector

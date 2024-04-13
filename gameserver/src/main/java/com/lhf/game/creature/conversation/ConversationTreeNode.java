@@ -11,6 +11,7 @@ import com.lhf.OutputBuilder.OutputSequenceElement;
 import com.lhf.game.creature.conversation.ConversationTransformer.ConversationContextKey;
 
 public class ConversationTreeNode implements Comparable<ConversationTreeNode>, Serializable {
+    public final static String NPC_CONVERSATION_TAG = "NPCConversation";
     public static final String EMPTY = "...";
     private final UUID nodeID;
     private final OutputSequence bodySequence;
@@ -18,7 +19,7 @@ public class ConversationTreeNode implements Comparable<ConversationTreeNode>, S
 
     public ConversationTreeNode(String someBody) {
         this.nodeID = UUID.randomUUID();
-        this.bodySequence = new OutputSequence();
+        this.bodySequence = new OutputSequence(NPC_CONVERSATION_TAG);
         this.bodySequence.appendString(someBody, null, null);
         this.prompts = new ArrayList<>();
     }
