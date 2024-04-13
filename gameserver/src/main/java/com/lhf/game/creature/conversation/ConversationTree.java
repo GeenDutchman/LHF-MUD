@@ -2,11 +2,12 @@ package com.lhf.game.creature.conversation;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -24,8 +25,9 @@ import com.lhf.server.interfaces.NotNull;
 public class ConversationTree implements Serializable {
     private String treeName;
     private ConversationTreeNode start;
-    private SortedMap<UUID, ConversationTreeNode> nodes;
-    private SortedMap<UUID, List<ConversationTreeBranch>> branches;
+    // TODO: wait for `SequencedCollection` from Java21
+    private Map<UUID, ConversationTreeNode> nodes;
+    private Map<UUID, List<ConversationTreeBranch>> branches;
     private transient Map<ClientID, ConversationContext> bookmarks;
     private SortedSet<ConversationTreeBranch> greetings;
     private SortedSet<ConversationPattern> repeatWords;
@@ -35,8 +37,8 @@ public class ConversationTree implements Serializable {
 
     public ConversationTree(@NotNull ConversationTreeNode startNode) {
         this.treeName = UUID.randomUUID().toString();
-        this.nodes = new TreeMap<>();
-        this.branches = new TreeMap<>();
+        this.nodes = new LinkedHashMap<>();
+        this.branches = new LinkedHashMap<>();
         this.start = startNode;
         this.nodes.put(startNode.getNodeID(), startNode);
         this.init();
@@ -138,8 +140,8 @@ public class ConversationTree implements Serializable {
         return this.nodes.get(nodeID);
     }
 
-    protected SortedMap<UUID, ConversationTreeNode> getNodes() {
-        return this.nodes;
+    protected Map<UUID, ConversationTreeNode> getNodes() {
+        return Collections.unmodifiableMap(this.nodes);
     }
 
     protected ConversationTreeNode getCurrentNode(CommandInvoker talker) {
