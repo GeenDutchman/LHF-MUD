@@ -17,10 +17,11 @@ public class XMLPrintWriterSendStrategy extends PrintWriterSendStrategy {
     }
 
     @Override
-    public void send(GameEvent toSend) {
+    public synchronized void send(GameEvent toSend) {
         if (toSend != null) {
             try {
                 toSend.writeXML(writer);
+                writer.println("");
             } catch (ParserConfigurationException | TransformerException e) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, e, () -> {
                     StringJoiner sj = new StringJoiner("\r\n");
@@ -30,6 +31,7 @@ public class XMLPrintWriterSendStrategy extends PrintWriterSendStrategy {
                 this.writer.println("XML ERROR!  XML ERROR!  Ask an Administrator to view the log!");
                 this.writer.println(toSend.printString());
                 this.writer.println("XML ERROR!  XML ERROR!  Ask an Administrator to view the log!");
+            } finally {
                 this.writer.flush();
             }
         }
