@@ -28,13 +28,13 @@ import com.lhf.game.map.DMRoom.DMRoomBuilder;
 import com.lhf.game.map.Land;
 import com.lhf.game.map.Land.LandBuilder;
 import com.lhf.game.map.StandardDungeonProducer;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.GameEventProcessor;
 import com.lhf.messages.events.PlayersListedEvent;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.ListPlayersMessage;
 import com.lhf.server.client.user.User;
 import com.lhf.server.client.user.UserID;
 import com.lhf.server.client.user.UserManager;
@@ -268,7 +268,7 @@ public class Game implements UserListener, CommandChainHandler {
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
+        public Reply visit(CommandContext ctx, ListPlayersMessage command) {
             ctx.receive(PlayersListedEvent.getBuilder().setPlayerNames(Game.this.userManager.getAllUsernames()));
             return ctx.handled();
         }

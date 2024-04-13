@@ -5,16 +5,15 @@ import java.util.StringJoiner;
 
 import com.lhf.game.battle.BattleManager.PooledBattleManagerCommandHandler;
 import com.lhf.game.item.Usable;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.UseMessage;
 
 public class BattleUseHandler implements PooledBattleManagerCommandHandler {
-    private final static String helpString = new StringJoiner(" ")
-            .add("\"use [itemname]\"").add("Uses an item that you have on yourself, if applicable.")
-            .add("Like \"use potion\"").add("\r\n")
+    private final static String helpString = new StringJoiner(" ").add("\"use [itemname]\"")
+            .add("Uses an item that you have on yourself, if applicable.").add("Like \"use potion\"").add("\r\n")
             .add("\"use [itemname] on [otherthing]\"")
             .add("Uses an item that you have on something or someone else, if applicable.")
             .add("Like \"use potion on Bob\"").toString();
@@ -36,13 +35,13 @@ public class BattleUseHandler implements PooledBattleManagerCommandHandler {
     }
 
     @Override
-    public Reply flushHandle(CommandContext ctx, Command cmd) {
+    public Reply visit(CommandContext ctx, UseMessage command) {
         // TODO: #127 test me!
-        if (cmd != null && cmd.getType() == this.getHandleType()) {
-            Reply reply = CommandChainHandler.passUpChain(this.firstSubArea(ctx), ctx, cmd);
-            return reply;
+        if (command == null) {
+            return ctx.failhandle();
         }
-        return ctx.failhandle();
+        Reply reply = CommandChainHandler.passUpChain(this.firstSubArea(ctx), ctx, command);
+        return reply;
     }
 
 }

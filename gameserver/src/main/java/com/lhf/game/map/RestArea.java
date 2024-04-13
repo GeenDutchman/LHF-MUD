@@ -26,7 +26,6 @@ import com.lhf.game.lewd.LewdProduct;
 import com.lhf.game.lewd.VrijPartij;
 import com.lhf.game.map.commandHandlers.RestingGoHandler;
 import com.lhf.game.map.commandHandlers.RestingRestHandler;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -39,6 +38,8 @@ import com.lhf.messages.events.LewdEvent.LewdOutMessageType;
 import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.LewdInMessage;
+import com.lhf.messages.in.PassMessage;
+import com.lhf.messages.in.StatsInMessage;
 
 public class RestArea extends SubArea {
     public enum LewdStyle {
@@ -383,7 +384,7 @@ public class RestArea extends SubArea {
                             && creature.getSubAreaSorts().contains(SubAreaSort.RECUPERATION)) {
                         final IPoolEntry poolEntry = poolEntries.pollFirst();
                         if (poolEntry != null) {
-                            this.handleFlushChain(poolEntry.getContext(), poolEntry.getCommand());
+                            this.applyFlushChain(poolEntry.getContext(), poolEntry.getCommand());
                         }
                     }
                 }
@@ -525,7 +526,7 @@ public class RestArea extends SubArea {
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
+        public Reply visit(CommandContext ctx, StatsInMessage command) {
             synchronized (RestArea.this.parties) {
                 final VrijPartij first = RestArea.this.parties.peekFirst();
                 LewdEvent.Builder builder = LewdEvent.getBuilder().setNotBroadcast()
@@ -655,7 +656,7 @@ public class RestArea extends SubArea {
             } catch (JsonParseException e) {
                 RestArea.this.log(Level.WARNING, e.toString());
                 ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.OTHER).setNotBroadcast()
-                        .setNotBroadcast().setCommand(lewdInMessage.getCommand()));
+                        .setNotBroadcast().setCommand(lewdInMessage));
                 return ctx.failhandle();
             }
             VrijPartij party = new VrijPartij(ctx.getCreature(), invites);
@@ -687,35 +688,34 @@ public class RestArea extends SubArea {
         }
 
         @Override
-        public Reply flushHandle(CommandContext ctx, Command cmd) {
-            if (cmd != null && AMessageType.LEWD.equals(cmd.getType())) {
-                final LewdInMessage lewdInMessage = new LewdInMessage(cmd);
-                Set<String> partners = lewdInMessage.getPartners();
-                if (partners != null && partners.size() > 0) {
-                    return this.handlePartnered(ctx, lewdInMessage, partners);
-                }
-                synchronized (RestArea.this.parties) {
-                    final ArrayDeque<VrijPartij> parties = RestArea.this.parties;
-                    final VrijPartij first = parties.peekFirst();
-                    if (first != null) {
-                        first.accept(ctx.getCreature());
-                        if (LewdStyle.QUICKIE.equals(RestArea.this.lewd) && first.check()) {
-                            parties.pollFirst(); // take it off the queue
-                            if (RestArea.this.lewdProduct != null) {
-                                final Consumer<Area> onLewd = RestArea.this.lewdProduct.onLewdAreaChanges(first);
-                                if (onLewd != null) {
-                                    onLewd.accept(RestArea.this.area);
-                                }
+        public Reply visit(CommandContext ctx, LewdInMessage command) {
+            if (command == null) {
+                return ctx.failhandle();
+            }
+            Set<String> partners = command.getPartners();
+            if (partners != null && partners.size() > 0) {
+                return this.handlePartnered(ctx, command, partners);
+            }
+            synchronized (RestArea.this.parties) {
+                final ArrayDeque<VrijPartij> parties = RestArea.this.parties;
+                final VrijPartij first = parties.peekFirst();
+                if (first != null) {
+                    first.accept(ctx.getCreature());
+                    if (LewdStyle.QUICKIE.equals(RestArea.this.lewd) && first.check()) {
+                        parties.pollFirst(); // take it off the queue
+                        if (RestArea.this.lewdProduct != null) {
+                            final Consumer<Area> onLewd = RestArea.this.lewdProduct.onLewdAreaChanges(first);
+                            if (onLewd != null) {
+                                onLewd.accept(RestArea.this.area);
                             }
                         }
-                    } else {
-                        ctx.receive(LewdEvent.getBuilder().setCreature(ctx.getCreature()).setNotBroadcast()
-                                .setSubType(LewdOutMessageType.SOLO_UNSUPPORTED));
                     }
+                } else {
+                    ctx.receive(LewdEvent.getBuilder().setCreature(ctx.getCreature()).setNotBroadcast()
+                            .setSubType(LewdOutMessageType.SOLO_UNSUPPORTED));
                 }
-                return ctx.handled();
             }
-            return ctx.failhandle();
+            return ctx.handled();
         }
 
         @Override
@@ -748,8 +748,8 @@ public class RestArea extends SubArea {
         }
 
         @Override
-        public Reply flushHandle(CommandContext ctx, Command cmd) {
-            if (cmd == null || !AMessageType.PASS.equals(cmd.getType())) {
+        public Reply visit(CommandContext ctx, PassMessage command) {
+            if (command == null) {
                 return ctx.failhandle();
             }
             synchronized (RestArea.this.parties) {

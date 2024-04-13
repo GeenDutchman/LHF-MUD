@@ -6,12 +6,11 @@ import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.ItemContainer;
 import com.lhf.game.LockableItemContainer;
-import com.lhf.game.item.IItem;
 import com.lhf.game.item.AItem;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemPartitionCollectionVisitor;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.map.Area.AreaCommandHandler;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -26,8 +25,7 @@ public class AreaTakeHandler implements AreaCommandHandler {
     private final static String helpString = new StringJoiner(" ").add("\"take [item]\"")
             .add("Take an item from the room and add it to your inventory.\n")
             .add("\"take [item] from \"[someone]'s corpse\"")
-            .add("Take an item from a container of some kind, just double-quote the container name")
-            .toString();
+            .add("Take an item from a container of some kind, just double-quote the container name").toString();
 
     @Override
     public AMessageType getHandleType() {
@@ -54,88 +52,85 @@ public class AreaTakeHandler implements AreaCommandHandler {
     }
 
     @Override
-    public Reply handleCommand(CommandContext ctx, Command cmd) {
-        if (cmd != null && cmd.getType() == AMessageType.TAKE) {
-            if (ctx.getCreature() == null) {
-                ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                        .setHelps(ctx.getHelps()).setCommand(cmd).Build());
-                return ctx.handled();
-            }
-            TakeMessage tMessage = new TakeMessage(cmd);
-
-            ItemTakenEvent.Builder takeOutMessage = ItemTakenEvent.getBuilder();
-
-            ItemContainer container = ctx.getArea();
-            takeOutMessage.setSource(container);
-            Optional<String> containerName = tMessage.fromContainer();
-            if (containerName.isPresent()) {
-                takeOutMessage.setSource(containerName.orElse(null));
-                Optional<ItemContainer> foundContainer = container.getItems().stream()
-                        .filter(item -> item != null && item instanceof ItemContainer
-                                && item.checkName(containerName.get().replaceAll("^\"|\"$", "")))
-                        .map(item -> (ItemContainer) item).findAny();
-                if (foundContainer.isEmpty()) {
-                    ctx.receive(takeOutMessage.setSubType(TakeOutType.BAD_CONTAINER).Build());
-                    return ctx.handled();
-                }
-                if (foundContainer.get() instanceof LockableItemContainer liCon) {
-                    if (!liCon.canAccess(ctx.getCreature())) {
-                        ctx.receive(takeOutMessage.setSubType(TakeOutType.LOCKED_CONTAINER).Build());
-                        return ctx.handled();
-                    }
-                    container = liCon.getBypass();
-                } else {
-                    container = foundContainer.get();
-                }
-            }
-
-            for (String thing : tMessage.getTargets()) {
-                takeOutMessage.setAttemptedName(thing);
-                if (thing.length() < 3) {
-                    ctx.receive(takeOutMessage.setSubType(TakeOutType.SHORT).Build());
-                    continue;
-                }
-                if (thing.matches("[^ a-zA-Z_-]+") || thing.contains("*")) {
-                    ctx.receive(takeOutMessage.setSubType(TakeOutType.INVALID).Build());
-                    continue;
-                }
-                try {
-                    Optional<IItem> maybeItem = container.getItems().stream()
-                            .filter(item -> item.CheckNameRegex(thing, 3))
-                            .findAny();
-                    if (maybeItem.isEmpty()) {
-                        if (thing.equalsIgnoreCase("all") || thing.equalsIgnoreCase("everything")) {
-                            ctx.receive(takeOutMessage.setSubType(TakeOutType.GREEDY).Build());
-                        } else {
-                            ctx.receive(takeOutMessage.setSubType(TakeOutType.NOT_FOUND).Build());
-                        }
-                        continue;
-                    }
-                    IItem item = maybeItem.get();
-                    takeOutMessage.setItem(item);
-                    if (item instanceof Takeable takeableItem) {
-                        ctx.getCreature().addItem(takeableItem);
-                        container.removeItem(takeableItem);
-                        ctx.receive(takeOutMessage.setSubType(TakeOutType.FOUND_TAKEN).Build());
-                        continue;
-                    }
-                    ctx.receive(takeOutMessage.setSubType(TakeOutType.NOT_TAKEABLE).Build());
-                } catch (PatternSyntaxException pse) {
-                    pse.printStackTrace();
-                    ctx.receive(takeOutMessage.setSubType(TakeOutType.UNCLEVER).Build());
-                }
-            }
-            while (container instanceof LockableItemContainer.Bypass bypass) {
-                container = bypass.getOrigin();
-            }
-            if (container instanceof LockableItemContainer liCon && liCon instanceof AItem liConItem) {
-                if (liCon.isRemoveOnEmpty() && liCon.isEmpty()) {
-                    ctx.getArea().removeItem(liConItem);
-                }
-            }
+    public Reply visit(CommandContext ctx, TakeMessage tMessage) {
+        if (tMessage == null) {
+            return ctx.failhandle();
+        }
+        if (ctx.getCreature() == null) {
+            ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                    .setHelps(ctx.getHelps()).setCommand(tMessage).Build());
             return ctx.handled();
         }
-        return ctx.failhandle();
+        ItemTakenEvent.Builder takeOutMessage = ItemTakenEvent.getBuilder();
+
+        ItemContainer container = ctx.getArea();
+        takeOutMessage.setSource(container);
+        Optional<String> containerName = tMessage.fromContainer();
+        if (containerName.isPresent()) {
+            takeOutMessage.setSource(containerName.orElse(null));
+            Optional<ItemContainer> foundContainer = container.getItems().stream()
+                    .filter(item -> item != null && item instanceof ItemContainer
+                            && item.checkName(containerName.get().replaceAll("^\"|\"$", "")))
+                    .map(item -> (ItemContainer) item).findAny();
+            if (foundContainer.isEmpty()) {
+                ctx.receive(takeOutMessage.setSubType(TakeOutType.BAD_CONTAINER).Build());
+                return ctx.handled();
+            }
+            if (foundContainer.get() instanceof LockableItemContainer liCon) {
+                if (!liCon.canAccess(ctx.getCreature())) {
+                    ctx.receive(takeOutMessage.setSubType(TakeOutType.LOCKED_CONTAINER).Build());
+                    return ctx.handled();
+                }
+                container = liCon.getBypass();
+            } else {
+                container = foundContainer.get();
+            }
+        }
+
+        for (String thing : tMessage.getTargets()) {
+            takeOutMessage.setAttemptedName(thing);
+            if (thing.length() < 3) {
+                ctx.receive(takeOutMessage.setSubType(TakeOutType.SHORT).Build());
+                continue;
+            }
+            if (thing.matches("[^ a-zA-Z_-]+") || thing.contains("*")) {
+                ctx.receive(takeOutMessage.setSubType(TakeOutType.INVALID).Build());
+                continue;
+            }
+            try {
+                Optional<IItem> maybeItem = container.getItems().stream().filter(item -> item.CheckNameRegex(thing, 3))
+                        .findAny();
+                if (maybeItem.isEmpty()) {
+                    if (thing.equalsIgnoreCase("all") || thing.equalsIgnoreCase("everything")) {
+                        ctx.receive(takeOutMessage.setSubType(TakeOutType.GREEDY).Build());
+                    } else {
+                        ctx.receive(takeOutMessage.setSubType(TakeOutType.NOT_FOUND).Build());
+                    }
+                    continue;
+                }
+                IItem item = maybeItem.get();
+                takeOutMessage.setItem(item);
+                if (item instanceof Takeable takeableItem) {
+                    ctx.getCreature().addItem(takeableItem);
+                    container.removeItem(takeableItem);
+                    ctx.receive(takeOutMessage.setSubType(TakeOutType.FOUND_TAKEN).Build());
+                    continue;
+                }
+                ctx.receive(takeOutMessage.setSubType(TakeOutType.NOT_TAKEABLE).Build());
+            } catch (PatternSyntaxException pse) {
+                pse.printStackTrace();
+                ctx.receive(takeOutMessage.setSubType(TakeOutType.UNCLEVER).Build());
+            }
+        }
+        while (container instanceof LockableItemContainer.Bypass bypass) {
+            container = bypass.getOrigin();
+        }
+        if (container instanceof LockableItemContainer liCon && liCon instanceof AItem liConItem) {
+            if (liCon.isRemoveOnEmpty() && liCon.isEmpty()) {
+                ctx.getArea().removeItem(liConItem);
+            }
+        }
+        return ctx.handled();
     }
 
     @Override

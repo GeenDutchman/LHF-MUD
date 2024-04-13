@@ -155,6 +155,10 @@ public class ConversationTreeNodeResult {
         return this.bodySequence.printString();
     }
 
+    public OutputSequence getBodySequence() {
+        return OutputSequence.copy(bodySequence);
+    }
+
     public List<String> getPromptsAsStrings() {
         return this.prompts.stream().map(prompt -> prompt.printString()).toList();
     }

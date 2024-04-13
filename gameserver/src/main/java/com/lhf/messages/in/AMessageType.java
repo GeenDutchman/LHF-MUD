@@ -10,11 +10,21 @@ import com.lhf.game.creature.vocation.Vocation.VocationName;
 import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.map.Directions;
 import com.lhf.game.serialization.GsonBuilderFactory;
+import com.lhf.messages.Command;
 import com.lhf.messages.ICommand;
+import com.lhf.messages.grammar.PhraseList;
+import com.lhf.messages.grammar.PrepositionalPhrases;
 import com.lhf.messages.grammar.Prepositions;
 
 public enum AMessageType implements Taggable {
     HELP {
+
+        @Override
+        public AttackMessage generateCommand(String whole, Boolean accepted, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new AttackMessage(this, whole, accepted, phrases, prepositional);
+        }
+
         @Override
         public boolean checkValidity(ICommand command) {
             return command != null && this.equals(command.getType());
@@ -26,6 +36,12 @@ public enum AMessageType implements Taggable {
         }
     },
     SAY {
+        @Override
+        public SayMessage generateCommand(String whole, Boolean accepted, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new SayMessage(this, whole, accepted, phrases, prepositional);
+        }
+
         @Override
         public boolean checkValidity(ICommand command) {
             if (command == null) {
@@ -45,6 +61,13 @@ public enum AMessageType implements Taggable {
 
     },
     SEE {
+
+        @Override
+        public SeeMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new SeeMessage(this, whole, isValid, phrases, prepositional);
+        }
+
         @Override
         public boolean checkValidity(ICommand command) {
             if (command == null) {
@@ -61,6 +84,12 @@ public enum AMessageType implements Taggable {
     },
     GO {
         @Override
+        public GoMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new GoMessage(this, whole, isValid, phrases, prepositional);
+        }
+
+        @Override
         public boolean checkValidity(ICommand command) {
             return command != null && command.getDirects().size() == 1
                     && Directions.isDirections(command.getDirects().get(0)) && command.getIndirects().isEmpty();
@@ -74,6 +103,12 @@ public enum AMessageType implements Taggable {
     },
     ATTACK {
         @Override
+        public AttackMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new AttackMessage(this, whole, isValid, phrases, prepositional);
+        }
+
+        @Override
         public boolean checkValidity(ICommand command) {
             return command != null && command.getDirects().size() >= 1 && command.getIndirects().size() <= 1;
         }
@@ -85,6 +120,12 @@ public enum AMessageType implements Taggable {
 
     },
     CAST {
+        @Override
+        public CastMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new CastMessage(this, whole, isValid, phrases, prepositional);
+        }
+
         @Override
         public boolean checkValidity(ICommand command) {
             if (command == null) {
@@ -107,6 +148,12 @@ public enum AMessageType implements Taggable {
     },
     DROP {
         @Override
+        public DropMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new DropMessage(this, whole, isValid, phrases, prepositional);
+        }
+
+        @Override
         public boolean checkValidity(ICommand command) {
             if (command == null) {
                 return false;
@@ -127,6 +174,12 @@ public enum AMessageType implements Taggable {
 
     },
     EQUIP {
+        @Override
+        public EquipMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new EquipMessage(this, whole, isValid, phrases, prepositional);
+        }
+
         @Override
         public boolean checkValidity(ICommand command) {
             if (command == null) {
@@ -156,6 +209,12 @@ public enum AMessageType implements Taggable {
     },
     UNEQUIP {
         @Override
+        public UnequipMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new UnequipMessage(this, whole, isValid, phrases, prepositional);
+        }
+
+        @Override
         public boolean checkValidity(ICommand command) {
             return command != null && command.getDirects().size() == 1 && command.getIndirects().isEmpty();
         }
@@ -167,6 +226,12 @@ public enum AMessageType implements Taggable {
 
     },
     INTERACT {
+        @Override
+        public InteractMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new InteractMessage(this, whole, isValid, phrases, prepositional);
+        }
+
         @Override
         public boolean checkValidity(ICommand command) {
             return command != null && command.getIndirects().isEmpty() && command.getDirects().size() >= 1;
@@ -180,6 +245,12 @@ public enum AMessageType implements Taggable {
     },
     INVENTORY {
         @Override
+        public InventoryMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new InventoryMessage(this, whole, isValid, phrases, prepositional);
+        }
+
+        @Override
         public boolean checkValidity(ICommand command) {
             return command != null && command.getDirects().isEmpty() && command.getIndirects().isEmpty();
         }
@@ -190,6 +261,12 @@ public enum AMessageType implements Taggable {
         }
     },
     TAKE {
+        @Override
+        public TakeMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new TakeMessage(this, whole, isValid, phrases, prepositional);
+        }
+
         @Override
         public boolean checkValidity(ICommand command) {
             if (command == null) {
@@ -212,6 +289,12 @@ public enum AMessageType implements Taggable {
     },
     USE {
         @Override
+        public UseMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new UseMessage(this, whole, isValid, phrases, prepositional);
+        }
+
+        @Override
         public boolean checkValidity(ICommand command) {
             if (command == null) {
                 return false;
@@ -231,6 +314,12 @@ public enum AMessageType implements Taggable {
     },
     STATUS {
         @Override
+        public StatusMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new StatusMessage(this, whole, isValid, phrases, prepositional);
+        }
+
+        @Override
         public boolean checkValidity(ICommand command) {
             return command != null && command.getDirects().isEmpty() && command.getIndirects().isEmpty();
         }
@@ -242,6 +331,12 @@ public enum AMessageType implements Taggable {
 
     },
     PLAYERS {
+        @Override
+        public ListPlayersMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new ListPlayersMessage(this, whole, isValid, phrases, prepositional);
+        }
+
         @Override
         public boolean checkValidity(ICommand command) {
             return command != null && command.getDirects().isEmpty() && command.getIndirects().isEmpty();
@@ -255,6 +350,12 @@ public enum AMessageType implements Taggable {
     },
     EXIT {
         @Override
+        public ExitMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new ExitMessage(this, whole, isValid, phrases, prepositional);
+        }
+
+        @Override
         public boolean checkValidity(ICommand command) {
             return command != null;
         }
@@ -266,6 +367,12 @@ public enum AMessageType implements Taggable {
 
     },
     CREATE {
+        @Override
+        public CreateInMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new CreateInMessage(this, whole, isValid, phrases, prepositional);
+        }
+
         @Override
         public boolean checkValidity(ICommand command) {
             if (command == null) {
@@ -306,6 +413,12 @@ public enum AMessageType implements Taggable {
     },
     SHOUT {
         @Override
+        public ShoutMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new ShoutMessage(this, whole, isValid, phrases, prepositional);
+        }
+
+        @Override
         public boolean checkValidity(ICommand command) {
             return command != null && command.getDirects().size() >= 1 && command.getIndirects().isEmpty();
         }
@@ -318,6 +431,12 @@ public enum AMessageType implements Taggable {
     },
     PASS {
         @Override
+        public PassMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new PassMessage(this, whole, isValid, phrases, prepositional);
+        }
+
+        @Override
         public boolean checkValidity(ICommand command) {
             return command != null && command.getDirects().isEmpty() && command.getIndirects().isEmpty();
         }
@@ -329,6 +448,12 @@ public enum AMessageType implements Taggable {
 
     },
     LEWD {
+        @Override
+        public LewdInMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new LewdInMessage(this, whole, isValid, phrases, prepositional);
+        }
+
         @Override
         public boolean checkValidity(ICommand command) {
             if (command == null) {
@@ -381,6 +506,12 @@ public enum AMessageType implements Taggable {
     },
     SPELLBOOK {
         @Override
+        public SpellbookMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new SpellbookMessage(this, whole, isValid, phrases, prepositional);
+        }
+
+        @Override
         public boolean checkValidity(ICommand command) {
             return command != null && command.getDirects().size() >= 0
                     && (command.getIndirects().size() >= 1
@@ -396,6 +527,12 @@ public enum AMessageType implements Taggable {
     },
     STATS {
         @Override
+        public StatsInMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new StatsInMessage(this, whole, isValid, phrases, prepositional);
+        }
+
+        @Override
         public boolean checkValidity(ICommand command) {
             return command != null;
         }
@@ -408,6 +545,12 @@ public enum AMessageType implements Taggable {
     },
     REPEAT {
         @Override
+        public RepeatInMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new RepeatInMessage(this, whole, isValid, phrases, prepositional);
+        }
+
+        @Override
         public boolean checkValidity(ICommand command) {
             return command != null && command.getDirects().isEmpty() && command.getIndirects().isEmpty();
         }
@@ -419,6 +562,12 @@ public enum AMessageType implements Taggable {
 
     },
     FOLLOW {
+        @Override
+        public FollowMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new FollowMessage(this, whole, isValid, phrases, prepositional);
+        }
+
         @Override
         public boolean checkValidity(ICommand command) {
             if (command == null || command.getDirects().size() != 1) {
@@ -451,6 +600,12 @@ public enum AMessageType implements Taggable {
     },
     REST {
         @Override
+        public RestMessage generateCommand(String whole, Boolean isValid, PhraseList phrases,
+                PrepositionalPhrases prepositional) {
+            return new RestMessage(this, whole, isValid, phrases, prepositional);
+        }
+
+        @Override
         public boolean checkValidity(ICommand command) {
             return command != null;
         }
@@ -479,6 +634,9 @@ public enum AMessageType implements Taggable {
         }
         return false;
     }
+
+    public abstract Command generateCommand(String whole, Boolean isValid, PhraseList phrases,
+            PrepositionalPhrases prepositional);
 
     public abstract boolean checkValidity(ICommand command);
 

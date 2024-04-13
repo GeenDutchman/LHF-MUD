@@ -46,7 +46,7 @@ public class SpokenPromptChunk extends AIHandler {
             this.logger.log(Level.WARNING, () -> String.format("no convo tree found for %s", bai.toString()));
             return;
         }
-        final ConversationTreeNodeResult result = tree.listen(sm.getSayer(), sm.getMessage());
+        final ConversationTreeNodeResult result = tree.listen(sm.getSayer(), sm.getMessageAsString());
         if (result == null) {
             this.logger.log(Level.WARNING,
                     () -> String.format("%s has no noderesult for message '%s'", bai.toString(), sm.getMessage()));
@@ -56,7 +56,7 @@ public class SpokenPromptChunk extends AIHandler {
         if (body != null) {
             String name = Taggable.extract(sm.getSayer());
             Command say = Command.parse("say \"" + body + "\" to " + name);
-            bai.handleChain(null, say);
+            bai.applyChain(null, say);
         }
         if (result.getPromptsAsStrings() != null) {
             for (String prompt : result.getPromptsAsStrings()) {
@@ -76,7 +76,7 @@ public class SpokenPromptChunk extends AIHandler {
                 }
                 this.logger.log(Level.FINE, String.format("Result has prompt \"%s\" for %s", prompt, bai.toString()));
                 Command cmd = Command.parse(prompt);
-                CommandContext.Reply handled = bai.handleChain(null, cmd);
+                CommandContext.Reply handled = bai.applyChain(null, cmd);
                 this.logger.log(Level.FINER, () -> String.format("%s: prompted command \"%s\" handled: %s",
                         bai.toString(), cmd.toString(), handled));
             }
@@ -90,15 +90,15 @@ public class SpokenPromptChunk extends AIHandler {
             SpeakingEvent sm = (SpeakingEvent) event;
             if (!sm.getShouting() && sm.getHearer() != null && sm.getHearer() instanceof INonPlayerCharacter) {
                 if (sm.getSayer() instanceof ICreature || (this.allowUsers && sm.getSayer() instanceof User)) {
-                    if (sm.getMessage().startsWith("PROMPT")
+                    if (sm.getMessageAsString().startsWith("PROMPT")
                             && (this.prompters.contains(sm.getSayer().getEventProcessorID())
                                     || sm.getSayer().getEventProcessorID().equals(bai.getEventProcessorID()))) {
-                        String prompt = sm.getMessage().replaceFirst("PROMPT", "").trim();
+                        String prompt = sm.getMessageAsString().replaceFirst("PROMPT", "").trim();
                         this.logger.log(Level.INFO,
                                 String.format("Prompt \"%s\" received from %s for %s", prompt, sm.getSayer().getName(),
                                         bai.getNpc() != null ? bai.getNpc().getName() : bai.getName()));
                         Command cmd = Command.parse(prompt);
-                        bai.handleChain(null, cmd);
+                        bai.applyChain(null, cmd);
                     } else {
                         basicHandle(bai, sm);
                     }

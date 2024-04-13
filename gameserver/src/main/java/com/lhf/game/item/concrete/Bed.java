@@ -28,7 +28,6 @@ import com.lhf.game.enums.Attributes;
 import com.lhf.game.item.InteractObject;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.Directions;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -37,8 +36,11 @@ import com.lhf.messages.events.BadGoEvent.BadGoType;
 import com.lhf.messages.events.ItemInteractionEvent;
 import com.lhf.messages.events.ItemInteractionEvent.InteractOutMessageType;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.ExitMessage;
 import com.lhf.messages.in.GoMessage;
 import com.lhf.messages.in.InteractMessage;
+import com.lhf.messages.in.SayMessage;
+import com.lhf.messages.in.ShoutMessage;
 import com.lhf.server.client.user.UserID;
 
 public class Bed extends InteractObject implements CreatureContainer, CommandChainHandler {
@@ -430,19 +432,18 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == this.getHandleType()) {
-                final GoMessage goMessage = new GoMessage(cmd);
-                if (Directions.UP.equals(goMessage.getDirection())) {
-                    Bed.this.removeCreature(ctx.getCreature());
-                    return ctx.handled();
-                } else {
-                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(goMessage.getDirection())
-                            .setAvailable(EnumSet.of(Directions.UP)).Build());
-                    return ctx.handled();
-                }
+        public Reply visit(CommandContext ctx, GoMessage command) {
+            if (command == null) {
+                return ctx.failhandle();
             }
-            return ctx.failhandle();
+            if (Directions.UP.equals(command.getDirection())) {
+                Bed.this.removeCreature(ctx.getCreature());
+                return ctx.handled();
+            } else {
+                ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(command.getDirection())
+                        .setAvailable(EnumSet.of(Directions.UP)).Build());
+                return ctx.handled();
+            }
         }
 
         @Override
@@ -466,15 +467,15 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == AMessageType.EXIT) {
-                Bed.this.removeCreature(ctx.getCreature());
-                if (Bed.this.area != null) {
-                    return Bed.this.area.handleChain(ctx, cmd);
-                }
-                return CommandChainHandler.passUpChain(Bed.this, ctx, cmd);
+        public Reply visit(CommandContext ctx, ExitMessage command) {
+            if (command == null) {
+                return ctx.failhandle();
             }
-            return ctx.failhandle();
+            Bed.this.removeCreature(ctx.getCreature());
+            if (Bed.this.area != null) {
+                return Bed.this.area.applyChain(ctx, command);
+            }
+            return CommandChainHandler.passUpChain(Bed.this, ctx, command);
         }
 
         @Override
@@ -499,13 +500,13 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == this.getHandleType()) {
-                final InteractMessage interactMessage = new InteractMessage(cmd);
-                if (Bed.this.getName().equalsIgnoreCase(interactMessage.getObject())) {
-                    Bed.this.removeCreature(ctx.getCreature());
-                    return ctx.handled();
-                }
+        public Reply visit(CommandContext ctx, InteractMessage command) {
+            if (command == null) {
+                return ctx.failhandle();
+            }
+            if (Bed.this.getName().equalsIgnoreCase(command.getObject())) {
+                Bed.this.removeCreature(ctx.getCreature());
+                return ctx.handled();
             }
             return ctx.failhandle();
         }
@@ -531,14 +532,14 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == AMessageType.SAY) {
-                if (Bed.this.area != null) {
-                    return Bed.this.area.handleChain(ctx, cmd);
-                }
-                return CommandChainHandler.passUpChain(Bed.this, ctx, cmd);
+        public Reply visit(CommandContext ctx, SayMessage command) {
+            if (command == null) {
+                return ctx.failhandle();
             }
-            return ctx.failhandle();
+            if (Bed.this.area != null) {
+                return Bed.this.area.applyChain(ctx, command);
+            }
+            return CommandChainHandler.passUpChain(Bed.this, ctx, command);
         }
 
         @Override
@@ -562,14 +563,14 @@ public class Bed extends InteractObject implements CreatureContainer, CommandCha
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == AMessageType.SHOUT) {
-                if (Bed.this.area != null) {
-                    return Bed.this.area.handleChain(ctx, cmd);
-                }
-                return CommandChainHandler.passUpChain(Bed.this, ctx, cmd);
+        public Reply visit(CommandContext ctx, ShoutMessage command) {
+            if (command == null) {
+                return ctx.failhandle();
             }
-            return ctx.failhandle();
+            if (Bed.this.area != null) {
+                return Bed.this.area.applyChain(ctx, command);
+            }
+            return CommandChainHandler.passUpChain(Bed.this, ctx, command);
         }
 
         @Override

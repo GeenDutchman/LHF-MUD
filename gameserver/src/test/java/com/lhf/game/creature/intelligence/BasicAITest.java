@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.truth.Truth;
 import com.google.common.truth.Truth8;
+import com.lhf.OutputBuilder.OutputSequence;
 import com.lhf.Taggable;
 import com.lhf.game.battle.Attack;
 import com.lhf.game.creature.CreatureEffect;
@@ -63,12 +64,12 @@ public class BasicAITest {
 
         listener.getNPC().setConvoTree(tree);
 
-        SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker).setMessage("hello").setHearer(listener.getNPC())
-                .Build();
+        SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker)
+                .setMessage(new OutputSequence().appendChild("hello")).setHearer(listener.getNPC()).Build();
 
         sendMsgAndWait(sm, listener);
 
-        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).handle(Mockito.any(),
+        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).apply(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains(body)));
     }
 
@@ -106,7 +107,7 @@ public class BasicAITest {
                 .that(victim.getNPC().getHarmMemories().getLastAttackerName().get())
                 .isEqualTo(attacker.getNPC().getName());
         // verify that both attack effects got handled before reaching the final handler
-        Mockito.verify(victim.mockedWrappedHandler, Mockito.after(100).never()).handle(Mockito.any(), Mockito.any());
+        Mockito.verify(victim.mockedWrappedHandler, Mockito.after(100).never()).apply(Mockito.any(), Mockito.any());
 
     }
 

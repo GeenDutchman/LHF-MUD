@@ -11,10 +11,8 @@ import com.lhf.messages.in.AMessageType;
 
 /**
  * Meant to hold a buffer of {@link com.lhf.messages.Command Command}s for a
- * time.
- * These pooled commands remain until {@link #flush() flushed}.
- * The pools are Keyed by something {@link java.lang.Comparable Comparable} to
- * other Keys.
+ * time. These pooled commands remain until {@link #flush() flushed}. The pools
+ * are Keyed by something {@link java.lang.Comparable Comparable} to other Keys.
  */
 public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends CommandChainHandler {
 
@@ -202,11 +200,9 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
         /**
          * If the result of {@link #isPoolingEnabled(CommandContext)} is true and a
          * {@link com.lhf.messages.PooledMessageChainHandler PooledMessageChainHandler}
-         * is available, then it
-         * will call {@link #empool(CommandContext, Command)} and return a handled
-         * reply.
-         * Otherwise, then it will call
-         * {@link #flushHandle(CommandContext, Command)} which should hold the actual
+         * is available, then it will call {@link #empool(CommandContext, Command)} and
+         * return a handled reply. Otherwise, then it will call
+         * {@link #flushApply(CommandContext, Command)} which should hold the actual
          * logic for processing the command and return that resulting reply.
          * 
          * @param ctx
@@ -214,7 +210,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
          * @return a Reply
          */
         @Override
-        public default Reply handleCommand(CommandContext ctx, Command cmd) {
+        public default Reply apply(CommandContext ctx, Command cmd) {
             if (this.isPoolingEnabled(ctx)) {
                 PooledMessageChainHandler<?> pooledChainHandler = this.getPooledChainHandler(ctx);
                 if (pooledChainHandler != null) {
@@ -224,7 +220,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
                 this.log(Level.FINE, () -> String.format("No PooledChainHandler available per context: %s", ctx));
             }
             this.log(Level.FINE, "Proceeding from handle() -> flushHandle()");
-            return this.flushHandle(ctx, cmd);
+            return this.flushApply(ctx, cmd);
         }
 
         /**
@@ -235,7 +231,14 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
          * @param cmd
          * @return
          */
-        public abstract CommandContext.Reply flushHandle(CommandContext ctx, Command cmd);
+        public default CommandContext.Reply flushApply(CommandContext ctx, Command command) {
+            if (command != null) {
+                return command.acceptCommandVisitor(ctx, this);
+            } else {
+                ctx = new CommandContext();
+                return ctx.failhandle();
+            }
+        }
 
         /**
          * Retrieves the PooledChainHandler, using the context
@@ -262,7 +265,7 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
         return ctx;
     }
 
-    public default Reply flushHandle(CommandContext ctx, Command cmd) {
+    public default Reply flushApply(CommandContext ctx, Command cmd) {
         if (ctx == null) {
             ctx = new CommandContext();
         }
@@ -277,9 +280,9 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
             } else if (handler.isEnabled(ctx)) {
                 CommandContext.Reply reply = null;
                 if (handler instanceof PooledCommandHandler pooledCommandHandler) {
-                    reply = pooledCommandHandler.flushHandle(ctx, cmd);
+                    reply = pooledCommandHandler.flushApply(ctx, cmd);
                 } else {
-                    reply = handler.handleCommand(ctx, cmd);
+                    reply = cmd.acceptCommandVisitor(ctx, handler);
                 }
                 if (reply == null) {
                     this.log(Level.SEVERE,
@@ -293,8 +296,8 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
         return ctx.failhandle();
     }
 
-    default Reply handleFlushChain(CommandContext ctx, Command cmd) {
-        CommandContext.Reply thisLevelReply = this.flushHandle(ctx, cmd);
+    default Reply applyFlushChain(CommandContext ctx, Command cmd) {
+        CommandContext.Reply thisLevelReply = this.flushApply(ctx, cmd);
         if (thisLevelReply != null && thisLevelReply.isHandled()) {
             return thisLevelReply;
         }
@@ -315,9 +318,9 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
         while (currentChainHandler != null) {
             CommandContext.Reply thisLevelReply = null;
             if (currentChainHandler instanceof PooledMessageChainHandler<?> pooledChainHandler) {
-                thisLevelReply = pooledChainHandler.flushHandle(ctx, msg);
+                thisLevelReply = pooledChainHandler.flushApply(ctx, msg);
             } else {
-                thisLevelReply = currentChainHandler.handle(ctx, msg);
+                thisLevelReply = currentChainHandler.apply(ctx, msg);
             }
             if (thisLevelReply != null && thisLevelReply.isHandled()) {
                 return thisLevelReply;

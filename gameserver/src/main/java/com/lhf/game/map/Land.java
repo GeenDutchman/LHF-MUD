@@ -30,7 +30,6 @@ import com.lhf.game.map.Atlas.AtlasMappingItem;
 import com.lhf.game.map.Atlas.TargetedTester;
 import com.lhf.game.map.commandHandlers.LandSeeHandler;
 import com.lhf.game.map.commandHandlers.LandShoutHandler;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -284,54 +283,53 @@ public interface Land extends CreatureContainer, CommandChainHandler, Affectable
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
-            if (cmd != null && cmd.getType() == this.getHandleType()) {
-                final GoMessage goMessage = new GoMessage(cmd);
-                final Land land = ctx.getLand();
-                if (ctx.getCreature() == null) {
-                    ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                            .setHelps(ctx.getHelps()).setCommand(cmd).Build());
+        public Reply visit(CommandContext ctx, GoMessage command) {
+            if (command == null) {
+                return ctx.failhandle();
+            }
+            final Land land = ctx.getLand();
+            if (ctx.getCreature() == null) {
+                ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
+                        .setHelps(ctx.getHelps()).setCommand(command).Build());
+                return ctx.handled();
+            }
+            Directions toGo = command.getDirection();
+            if (ctx.getArea() == null) {
+                ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(toGo).Build());
+                return ctx.handled();
+            }
+            Area presentRoom = ctx.getArea();
+            final AtlasMappingItem<Area, UUID> mappingItem = land.getAtlas().getAtlasMappingItem(presentRoom.getUuid());
+            if (mappingItem != null) {
+                Map<Directions, TargetedTester<UUID>> exits = mappingItem.getDirections();
+                if (exits == null || exits.size() == 0 || !exits.containsKey(toGo) || exits.get(toGo) == null) {
+                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
                     return ctx.handled();
                 }
-                Directions toGo = goMessage.getDirection();
-                if (ctx.getArea() == null) {
-                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(toGo).Build());
+                TargetedTester<UUID> doorway = exits.get(toGo);
+                final Area nextRoom = land.getAtlas().getAtlasMember(doorway.getTargetId());
+                if (nextRoom == null) {
+                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
+                            .setAvailable(exits.keySet()).Build());
                     return ctx.handled();
                 }
-                Area presentRoom = ctx.getArea();
-                final AtlasMappingItem<Area, UUID> mappingItem = land.getAtlas()
-                        .getAtlasMappingItem(presentRoom.getUuid());
-                if (mappingItem != null) {
-                    Map<Directions, TargetedTester<UUID>> exits = mappingItem.getDirections();
-                    if (exits == null || exits.size() == 0 || !exits.containsKey(toGo) || exits.get(toGo) == null) {
-                        ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo).Build());
-                        return ctx.handled();
-                    }
-                    TargetedTester<UUID> doorway = exits.get(toGo);
-                    final Area nextRoom = land.getAtlas().getAtlasMember(doorway.getTargetId());
-                    if (nextRoom == null) {
-                        ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(toGo)
-                                .setAvailable(exits.keySet()).Build());
-                        return ctx.handled();
-                    }
-                    Doorway tester = doorway.getPredicate();
-                    if (tester != null && !tester.testTraversal(ctx.getCreature(), toGo, presentRoom, presentRoom)) {
-                        ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo)
-                                .setAvailable(exits.keySet()).Build());
-                        return ctx.handled();
-                    }
+                Doorway tester = doorway.getPredicate();
+                if (tester != null && !tester.testTraversal(ctx.getCreature(), toGo, presentRoom, presentRoom)) {
+                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.BLOCKED).setAttempted(toGo)
+                            .setAvailable(exits.keySet()).Build());
+                    return ctx.handled();
+                }
 
-                    if (presentRoom.removeCreature(ctx.getCreature(), toGo)) {
-                        ICreature.eventAccepter.accept(ctx.getCreature(),
-                                TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
-                        nextRoom.addCreature(ctx.getCreature());
-                        return ctx.handled();
-                    }
-                } else {
-                    ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM)
-                            .setAttempted(goMessage.getDirection()).Build());
+                if (presentRoom.removeCreature(ctx.getCreature(), toGo)) {
+                    ICreature.eventAccepter.accept(ctx.getCreature(),
+                            TickEvent.getBuilder().setTickType(TickType.ROOM).Build());
+                    nextRoom.addCreature(ctx.getCreature());
                     return ctx.handled();
                 }
+            } else {
+                ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.NO_ROOM).setAttempted(command.getDirection())
+                        .Build());
+                return ctx.handled();
             }
             return ctx.failhandle();
         }

@@ -10,12 +10,12 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadFatalEvent;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.RepeatInMessage;
 import com.lhf.server.interfaces.ConnectionListener;
 
 public class ClientHandle extends Client implements Runnable {
@@ -72,7 +72,7 @@ public class ClientHandle extends Client implements Runnable {
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
+        public Reply visit(CommandContext ctx, RepeatInMessage command) {
             Client client = ctx.getClient();
             if (client != null && client instanceof ClientHandle cHandle) {
                 String repeater = cHandle.getRepeatCommand();

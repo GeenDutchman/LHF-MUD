@@ -6,12 +6,12 @@ import java.util.logging.Level;
 import com.lhf.game.map.Area.AreaCommandHandler;
 import com.lhf.game.map.SubArea;
 import com.lhf.game.map.SubArea.SubAreaSort;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadMessageEvent;
 import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.RestMessage;
 
 public class AreaRestHandler implements AreaCommandHandler {
 
@@ -33,14 +33,14 @@ public class AreaRestHandler implements AreaCommandHandler {
     }
 
     @Override
-    public Reply handleCommand(CommandContext ctx, Command cmd) {
-        if (cmd == null || cmd.getType() != AMessageType.REST) {
+    public Reply visit(CommandContext ctx, RestMessage command) {
+        if (command == null) {
             return ctx.failhandle();
         }
         ctx = ctx.getArea().addSelfToContext(ctx);
         if (ctx.getCreature() == null) {
             ctx.receive(BadMessageEvent.getBuilder().setBadMessageType(BadMessageType.CREATURES_ONLY)
-                    .setHelps(ctx.getHelps()).setCommand(cmd).Build());
+                    .setHelps(ctx.getHelps()).setCommand(command).Build());
             return ctx.handled();
         }
         final SubArea subArea = ctx.getArea().getSubAreaForSort(SubAreaSort.RECUPERATION);
@@ -48,7 +48,7 @@ public class AreaRestHandler implements AreaCommandHandler {
             this.log(Level.WARNING, "No rest sub area found!");
             return ctx.failhandle();
         }
-        return subArea.handleChain(ctx, cmd);
+        return subArea.applyChain(ctx, command);
     }
 
 }

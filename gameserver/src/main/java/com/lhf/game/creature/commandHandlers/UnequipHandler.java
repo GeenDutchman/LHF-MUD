@@ -6,7 +6,6 @@ import java.util.StringJoiner;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.ICreature.CreatureCommandHandler;
 import com.lhf.game.enums.EquipmentSlots;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -14,9 +13,8 @@ import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.UnequipMessage;
 
 public class UnequipHandler implements CreatureCommandHandler {
-    private static String helpString = new StringJoiner(" ")
-            .add("\"unequip [item]\"").add("Unequips the item (if equipped) and places it in your inventory")
-            .add("\r\n")
+    private static String helpString = new StringJoiner(" ").add("\"unequip [item]\"")
+            .add("Unequips the item (if equipped) and places it in your inventory").add("\r\n")
             .add("\"unequip [slot]\"")
             .add("Unequips the item that is in the specified slot (if equipped) and places it in your inventory")
             .toString();
@@ -44,15 +42,13 @@ public class UnequipHandler implements CreatureCommandHandler {
     }
 
     @Override
-    public Reply handleCommand(CommandContext ctx, Command cmd) {
-        if (cmd != null && cmd.getType() == this.getHandleType()) {
-            UnequipMessage unequipMessage = new UnequipMessage(cmd);
-            ICreature creature = ctx.getCreature();
-            creature.unequipItem(EquipmentSlots.getEquipmentSlot(unequipMessage.getUnequipWhat()),
-                    unequipMessage.getUnequipWhat());
-            return ctx.handled();
+    public Reply visit(CommandContext ctx, UnequipMessage command) {
+        if (command == null) {
+            return ctx.failhandle();
         }
-        return ctx.failhandle();
+        ICreature creature = ctx.getCreature();
+        creature.unequipItem(EquipmentSlots.getEquipmentSlot(command.getUnequipWhat()), command.getUnequipWhat());
+        return ctx.handled();
     }
 
     @Override

@@ -23,6 +23,7 @@ import com.lhf.messages.events.BadMessageEvent.BadMessageType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.HelpNeededEvent;
 import com.lhf.messages.in.AMessageType;
+import com.lhf.messages.in.HelpInMessage;
 
 public class Client implements CommandInvoker {
     public final static class ClientID implements Comparable<ClientID> {
@@ -103,7 +104,7 @@ public class Client implements CommandInvoker {
         CommandContext.Reply accepted = ctx.failhandle();
         if (cmd.isValid()) {
             this.log(Level.FINER, "Post Processing:" + cmd);
-            accepted = this.handleChain(ctx, cmd);
+            accepted = this.applyChain(ctx, cmd);
             if (!accepted.isHandled()) {
                 this.log(Level.WARNING, "Command not accepted:" + cmd.getWhole());
                 accepted = this.handleHelpMessage(cmd, BadMessageType.UNHANDLED, accepted);
@@ -200,7 +201,20 @@ public class Client implements CommandInvoker {
         }
 
         @Override
-        public Reply handleCommand(CommandContext ctx, Command cmd) {
+        public Reply visit(CommandContext ctx, HelpInMessage command) {
+            Reply reply = CommandChainHandler.passUpChain(this.getChainHandler(ctx), ctx, null); // this will collect
+                                                                                                 // all the helps
+            Client.eventAccepter.accept(this.getChainHandler(ctx),
+                    HelpNeededEvent.getHelpBuilder().setHelps(reply.getHelps()).Build());
+            return reply.resolve();
+        }
+
+        /**
+         * This HelpHandler really should override the main apply, because it doesn't
+         * matter what command is passed for help
+         */
+        @Override
+        public Reply apply(CommandContext ctx, Command cmd) {
             Reply reply = CommandChainHandler.passUpChain(this.getChainHandler(ctx), ctx, null); // this will collect
                                                                                                  // all the helps
             Client.eventAccepter.accept(this.getChainHandler(ctx),
