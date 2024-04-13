@@ -41,13 +41,21 @@ public interface OutputBuilder {
 
     public List<OutputBuilderElement> getElements();
 
+    public enum PrintingInstructions {
+        TAGS, BUILDER_NAME, META_SIGNAL;
+    }
+
     public default String printString() {
+        return this.printString(Set.of());
+    }
+
+    public default String printString(Set<PrintingInstructions> instructions) {
         StringBuilder sb = new StringBuilder();
-        // // Normally the buildername is also a tag, so we don't want to present it as
-        // // part of the String
-        // if (this.getBuilderName() != null) {
-        // sb.append("\r\n").append(this.getBuilderName()).append(":\r\n");
-        // }
+        final String builderName = this.getBuilderName();
+        if (instructions != null && instructions.contains(PrintingInstructions.BUILDER_NAME) && builderName != null) {
+            sb.append(builderName).append("- ");
+        }
+
         final List<OutputBuilderElement> elements = this.getElements();
         if (elements != null) {
             for (final OutputBuilderElement outputSequenceElement : elements) {
@@ -199,25 +207,40 @@ public interface OutputBuilder {
         public String getMetaSignal();
 
         public default String printString() {
+            return this.printString(Set.of());
+        }
+
+        public default String printString(Set<PrintingInstructions> instructions) {
             final String charSequence = this.getCharSequenceAsString();
             final Taggable taggable = this.getTaggable();
             final Examinable examinable = this.getExaminable();
             final OutputBuilder builder = this.getOutputBuilder();
+            final String meta = this.getMetaSignal();
 
             if (charSequence != null) {
                 return charSequence;
             } else if (taggable != null) {
-                return new StringBuilder().append("**").append(taggable.getSimpleContent()).append("**").toString();
+                StringBuilder sb = new StringBuilder().append("**");
+                if (instructions != null && instructions.contains(PrintingInstructions.TAGS)) {
+                    sb.append(taggable.getTagName()).append("-");
+                }
+                return sb.append(taggable.getSimpleContent()).append("**").toString();
             } else if (examinable != null) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("**").append(examinable.getName()).append("**");
+                StringBuilder sb = new StringBuilder().append("**");
+                if (instructions != null && instructions.contains(PrintingInstructions.TAGS)) {
+                    sb.append(examinable.getTagName()).append("-");
+                }
+                sb.append(examinable.getName()).append("**");
                 final String description = examinable.getDescription();
                 if (description != null && !description.isBlank()) {
-                    sb.append(" Description: ").append(description).append(" ");
+                    sb.append(" Description - ").append(description).append(" ");
                 }
                 return sb.toString();
             } else if (builder != null) {
-                return builder.printString();
+                return builder.printString(instructions);
+            } else if (meta != null && instructions != null
+                    && instructions.contains(PrintingInstructions.META_SIGNAL)) {
+                return new StringBuilder(" ").append(meta).append(" ").toString();
             } else {
                 return "";
             }
