@@ -6,7 +6,6 @@ import java.util.Optional;
 import com.lhf.game.map.Directions;
 import com.lhf.game.map.RestArea.RestingCommandHandler;
 import com.lhf.game.map.SubArea;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadGoEvent;
@@ -40,7 +39,7 @@ public class RestingGoHandler implements RestingCommandHandler {
             ra.removeCreature(ctx.getCreature());
             return ctx.handled();
         } else {
-            ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(goMessage.getDirection())
+            ctx.receive(BadGoEvent.getBuilder().setSubType(BadGoType.DNE).setAttempted(command.getDirection())
                     .setAvailable(EnumSet.of(Directions.UP)).Build());
             return ctx.handled();
         }

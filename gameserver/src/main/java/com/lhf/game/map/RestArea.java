@@ -26,7 +26,6 @@ import com.lhf.game.lewd.LewdProduct;
 import com.lhf.game.lewd.VrijPartij;
 import com.lhf.game.map.commandHandlers.RestingGoHandler;
 import com.lhf.game.map.commandHandlers.RestingRestHandler;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
@@ -40,7 +39,6 @@ import com.lhf.messages.events.SeeEvent;
 import com.lhf.messages.in.AMessageType;
 import com.lhf.messages.in.LewdInMessage;
 import com.lhf.messages.in.PassMessage;
-import com.lhf.messages.in.RestMessage;
 import com.lhf.messages.in.StatsInMessage;
 
 public class RestArea extends SubArea {

@@ -14,7 +14,6 @@ import com.lhf.game.item.Usable;
 import com.lhf.game.map.Area.AreaCommandHandler;
 import com.lhf.game.map.SubArea;
 import com.lhf.game.map.SubArea.SubAreaSort;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadMessageEvent;
@@ -88,7 +87,7 @@ public class AreaUseHandler implements AreaCommandHandler {
                     return ctx.failhandle();
                 }
                 subArea.addCreature(ctx.getCreature());
-                return subArea.applyChain(ctx, cmd);
+                return subArea.applyChain(ctx, useMessage);
             }
             usable.useOn(ctx, creatureList.get(0));
             return ctx.handled();

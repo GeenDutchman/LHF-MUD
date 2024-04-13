@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import com.lhf.game.map.SubArea;
 import com.lhf.game.map.SubArea.SubAreaCommandHandler;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;

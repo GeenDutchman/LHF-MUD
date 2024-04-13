@@ -3,7 +3,6 @@ package com.lhf.game.battle.commandHandlers;
 import java.util.Optional;
 
 import com.lhf.game.battle.BattleManager.PooledBattleManagerCommandHandler;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.in.AMessageType;

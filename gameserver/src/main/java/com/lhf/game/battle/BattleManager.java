@@ -38,7 +38,6 @@ import com.lhf.game.enums.Stats;
 import com.lhf.game.map.Area;
 import com.lhf.game.map.ISubAreaBuildInfoVisitor;
 import com.lhf.game.map.SubArea;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;

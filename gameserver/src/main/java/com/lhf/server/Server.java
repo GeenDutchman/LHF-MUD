@@ -17,7 +17,6 @@ import com.google.gson.JsonParseException;
 import com.lhf.game.Game;
 import com.lhf.game.Game.GameBuilder;
 import com.lhf.game.creature.Player;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;

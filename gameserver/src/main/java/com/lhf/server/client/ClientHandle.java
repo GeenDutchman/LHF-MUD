@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;

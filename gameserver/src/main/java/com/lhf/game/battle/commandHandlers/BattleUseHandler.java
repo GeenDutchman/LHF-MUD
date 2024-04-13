@@ -5,7 +5,6 @@ import java.util.StringJoiner;
 
 import com.lhf.game.battle.BattleManager.PooledBattleManagerCommandHandler;
 import com.lhf.game.item.Usable;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;

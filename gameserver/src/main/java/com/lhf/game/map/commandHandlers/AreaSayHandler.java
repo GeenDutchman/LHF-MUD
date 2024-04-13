@@ -5,7 +5,6 @@ import java.util.StringJoiner;
 
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.map.Area.AreaCommandHandler;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadSpeakingTargetEvent;

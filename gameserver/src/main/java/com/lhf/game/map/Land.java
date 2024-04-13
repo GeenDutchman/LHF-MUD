@@ -30,7 +30,6 @@ import com.lhf.game.map.Atlas.AtlasMappingItem;
 import com.lhf.game.map.Atlas.TargetedTester;
 import com.lhf.game.map.commandHandlers.LandSeeHandler;
 import com.lhf.game.map.commandHandlers.LandShoutHandler;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;

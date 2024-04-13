@@ -7,7 +7,6 @@ import com.lhf.game.item.InteractObject;
 import com.lhf.game.item.ItemNameSearchVisitor;
 import com.lhf.game.item.ItemPartitionCollectionVisitor;
 import com.lhf.game.map.Area.AreaCommandHandler;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
 import com.lhf.messages.events.BadMessageEvent;

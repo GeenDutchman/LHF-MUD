@@ -6,12 +6,11 @@ import java.util.regex.PatternSyntaxException;
 
 import com.lhf.game.ItemContainer;
 import com.lhf.game.LockableItemContainer;
-import com.lhf.game.item.IItem;
 import com.lhf.game.item.AItem;
+import com.lhf.game.item.IItem;
 import com.lhf.game.item.ItemPartitionCollectionVisitor;
 import com.lhf.game.item.Takeable;
 import com.lhf.game.map.Area.AreaCommandHandler;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;

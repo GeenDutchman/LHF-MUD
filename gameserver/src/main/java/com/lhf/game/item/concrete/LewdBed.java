@@ -20,7 +20,6 @@ import com.lhf.game.enums.EquipmentSlots;
 import com.lhf.game.lewd.LewdProduct;
 import com.lhf.game.lewd.VrijPartij;
 import com.lhf.game.map.Area;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;

@@ -236,7 +236,6 @@ public interface PooledMessageChainHandler<Key extends Comparable<Key>> extends 
                 return command.acceptCommandVisitor(ctx, this);
             } else {
                 ctx = new CommandContext();
-                this.ensurePopulatedContext(ctx);
                 return ctx.failhandle();
             }
         }

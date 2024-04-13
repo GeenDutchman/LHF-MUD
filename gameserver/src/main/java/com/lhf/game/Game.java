@@ -28,7 +28,6 @@ import com.lhf.game.map.DMRoom.DMRoomBuilder;
 import com.lhf.game.map.Land;
 import com.lhf.game.map.Land.LandBuilder;
 import com.lhf.game.map.StandardDungeonProducer;
-import com.lhf.messages.Command;
 import com.lhf.messages.CommandChainHandler;
 import com.lhf.messages.CommandContext;
 import com.lhf.messages.CommandContext.Reply;
