@@ -50,8 +50,8 @@ public class SpokenPromptChunk extends AIHandler {
                 Command say = Command.parse("say \"" + body + "\" to " + name);
                 bai.handleChain(null, say);
             }
-            if (result != null && result.getPrompts() != null) {
-                for (String prompt : result.getPrompts()) {
+            if (result != null && result.getPromptsAsStrings() != null) {
+                for (String prompt : result.getPromptsAsStrings()) {
                     if (prompt.startsWith("STORE")) {
                         this.logger.log(Level.FINE,
                                 String.format("Result has storage prompt \"%s\" for %s", prompt, bai.toString()));

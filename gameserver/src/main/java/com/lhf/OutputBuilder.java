@@ -41,6 +41,24 @@ public interface OutputBuilder {
 
     public List<OutputBuilderElement> getElements();
 
+    public default String printString() {
+        StringBuilder sb = new StringBuilder();
+        // // Normally the buildername is also a tag, so we don't want to present it as
+        // // part of the String
+        // if (this.getBuilderName() != null) {
+        // sb.append("\r\n").append(this.getBuilderName()).append(":\r\n");
+        // }
+        final List<OutputBuilderElement> elements = this.getElements();
+        if (elements != null) {
+            for (final OutputBuilderElement outputSequenceElement : elements) {
+                if (outputSequenceElement != null) {
+                    sb.append(outputSequenceElement.printString());
+                }
+            }
+        }
+        return sb.toString();
+    }
+
     public default OutputBuilder appendOutputBuilderElement(OutputBuilderElement toAdd) {
         return this.appendOutputBuilderElement(toAdd, " ", null);
     }
@@ -179,6 +197,31 @@ public interface OutputBuilder {
         public OutputBuilder getOutputBuilder();
 
         public String getMetaSignal();
+
+        public default String printString() {
+            final String charSequence = this.getCharSequenceAsString();
+            final Taggable taggable = this.getTaggable();
+            final Examinable examinable = this.getExaminable();
+            final OutputBuilder builder = this.getOutputBuilder();
+
+            if (charSequence != null) {
+                return charSequence;
+            } else if (taggable != null) {
+                return new StringBuilder().append("**").append(taggable.getSimpleContent()).append("**").toString();
+            } else if (examinable != null) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("**").append(examinable.getName()).append("**");
+                final String description = examinable.getDescription();
+                if (description != null && !description.isBlank()) {
+                    sb.append(" Description: ").append(description).append(" ");
+                }
+                return sb.toString();
+            } else if (builder != null) {
+                return builder.printString();
+            } else {
+                return "";
+            }
+        }
     }
 
     public final static class OutputSequenceElement implements OutputBuilderElement, Serializable {
@@ -253,27 +296,6 @@ public interface OutputBuilder {
         @Override
         public String getMetaSignal() {
             return metaSignal;
-        }
-
-        public String printString() {
-            if (this.charSequence != null) {
-                return this.charSequence.toString();
-            } else if (this.taggable != null) {
-                return new StringBuilder().append("**").append(this.taggable.getSimpleContent()).append("**")
-                        .toString();
-            } else if (this.examinable != null) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("**").append(this.examinable.getName()).append("**");
-                final String description = this.examinable.getDescription();
-                if (description != null && !description.isBlank()) {
-                    sb.append(" Description: ").append(description).append(" ");
-                }
-                return sb.toString();
-            } else if (this.outputSequence != null) {
-                return this.outputSequence.printString();
-            } else {
-                return "";
-            }
         }
 
         @Override
@@ -429,19 +451,6 @@ public interface OutputBuilder {
                 }
             }
             return this;
-        }
-
-        public String printString() {
-            StringBuilder sb = new StringBuilder();
-            if (this.sequenceName != null) {
-                sb.append("\r\n").append(this.sequenceName).append(":\r\n");
-            }
-            for (final OutputSequenceElement outputSequenceElement : elements) {
-                if (outputSequenceElement != null) {
-                    sb.append(outputSequenceElement.printString());
-                }
-            }
-            return sb.toString();
         }
 
         @Override

@@ -3,6 +3,7 @@ package com.lhf.game.creature.conversation;
 import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,8 @@ public class ConversationTreeNodeResult {
             throw new IllegalArgumentException("Must have a context to create a result!");
         }
         return ConversationTreeNodeResult
-                .create(transformer, new OutputSequence(ConversationTreeNode.NPC_CONVERSATION_TAG).appendChild(body),
+                .create(transformer,
+                        new OutputSequence(ConversationTreeNode.NPC_CONVERSATION_TAG).appendString(body, null, null),
                         prompts == null ? null
                                 : prompts.stream().filter(p -> p != null)
                                         .map(p -> new OutputSequence().appendString(p, null, null)).toList(),
@@ -153,8 +155,12 @@ public class ConversationTreeNodeResult {
         return this.bodySequence.printString();
     }
 
-    public List<String> getPrompts() {
+    public List<String> getPromptsAsStrings() {
         return this.prompts.stream().map(prompt -> prompt.printString()).toList();
+    }
+
+    public List<OutputSequence> getPrompts() {
+        return Collections.unmodifiableList(prompts);
     }
 
     public final static Document documentFromConversationTreeNodeResult(ConversationTreeNodeResult result)
