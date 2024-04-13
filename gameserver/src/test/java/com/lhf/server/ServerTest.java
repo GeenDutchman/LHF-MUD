@@ -352,7 +352,7 @@ public class ServerTest {
         Truth.assertThat(extract).ignoringCase().contains("Monsters that you can see:");
         int monsters_list_index = extract.indexOf("Monsters that you can see:");
         int creature_index = extract.indexOf("**", monsters_list_index);
-        int endcreature_index = extract.indexOf("**", creature_index);
+        int endcreature_index = extract.indexOf("**", creature_index + 1);
         extract = extract.substring(creature_index + "**".length(), endcreature_index);
         System.out.println(extract);
         String room = this.comm.handleCommand("see", GameEventType.SEE);
