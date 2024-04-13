@@ -3,32 +3,82 @@
   "start": {
     "nodeID": "876ae9d8-8c55-43c8-a3d5-ede57116d1cf",
     "body": "Hello TALKER_TAGGED_NAME",
+    "bodySequence": {
+      "sequenceName": "NPCConversation",
+      "elements": [
+        {
+          "charSequence": "Hello "
+        },
+        {
+          "metaSignal": "TALKER_TAGGED_NAME"
+        }
+      ]
+    },
     "prompts": []
   },
   "nodes": {
     "876ae9d8-8c55-43c8-a3d5-ede57116d1cf": {
       "nodeID": "876ae9d8-8c55-43c8-a3d5-ede57116d1cf",
       "body": "Hello TALKER_TAGGED_NAME",
+      "bodySequence": {
+        "sequenceName": "NPCConversation",
+        "elements": [
+          {
+            "charSequence": "Hello "
+          },
+          {
+            "metaSignal": "TALKER_TAGGED_NAME"
+          }
+        ]
+      },
       "prompts": []
     },
     "d9d4dba4-178d-4b56-b595-6f8630b37cfb": {
       "nodeID": "d9d4dba4-178d-4b56-b595-6f8630b37cfb",
-      "body": "This dungeon has secrets, if you look.",
+      "bodySequence": {
+        "sequenceName": "NPCConversation",
+        "elements": [
+          {
+            "charSequence": "This dungeon has secrets, if you look."
+          }
+        ]
+      },
       "prompts": []
     },
     "e6c1df87-4705-4d96-a1ea-4e475dc7960e": {
       "nodeID": "e6c1df87-4705-4d96-a1ea-4e475dc7960e",
-      "body": "*Mysterious Smile* I have said enough.",
+      "bodySequence": {
+        "sequenceName": "NPCConversation",
+        "elements": [
+          {
+            "charSequence": "*Mysterious Smile* I have said enough."
+          }
+        ]
+      },
       "prompts": []
     },
     "e6d244d5-8cb7-4e7e-a9e8-44269b6fad0d": {
       "nodeID": "e6d244d5-8cb7-4e7e-a9e8-44269b6fad0d",
-      "body": "Greetings",
+      "bodySequence": {
+        "sequenceName": "NPCConversation",
+        "elements": [
+          {
+            "charSequence": "Greetings"
+          }
+        ]
+      },
       "prompts": []
     },
     "3f432397-ca0b-4081-b690-e7136291c686": {
       "nodeID": "3f432397-ca0b-4081-b690-e7136291c686",
-      "body": "May the Dungeon Mistress and Dungeon Master watch over and forgive you.",
+      "bodySequence": {
+        "sequenceName": "NPCConversation",
+        "elements": [
+          {
+            "charSequence": "May the Dungeon Mistress and Dungeon Master watch over and forgive you."
+          }
+        ]
+      },
       "prompts": []
     }
   },
