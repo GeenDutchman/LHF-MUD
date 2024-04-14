@@ -20,6 +20,7 @@ import com.lhf.server.interfaces.ConnectionListener;
 
 public class ClientHandle extends Client implements Runnable {
     private Socket socket;
+    private boolean useXML = true;
 
     private boolean connected;
     private boolean killIt;
@@ -93,7 +94,9 @@ public class ClientHandle extends Client implements Runnable {
     protected ClientHandle(Socket socket, ConnectionListener cl) throws IOException {
         super();
         this.socket = socket;
-        this.out = new XMLPrintWriterSendStrategy(socket.getOutputStream());
+        this.out = new ModalSendStrategy().addStrategy("xml", new XMLPrintWriterSendStrategy(socket.getOutputStream()))
+                .addStrategy("plain", new PrintWriterSendStrategy(socket.getOutputStream()));
+        this.out.metaControl("xml");
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         connected = true;
         killIt = false;
@@ -107,8 +110,14 @@ public class ClientHandle extends Client implements Runnable {
         String value;
         try {
             while (!this.killIt && ((value = in.readLine()) != null)) {
-                this.ProcessString(value);
-                this.setRepeatCommand(value);
+                if (value.equals("meta:xml=on")) {
+                    this.out.metaControl("xml");
+                } else if (value.equals("meta:xml=off")) {
+                    this.out.metaControl("plain");
+                } else {
+                    this.ProcessString(value);
+                    this.setRepeatCommand(value);
+                }
             }
         } catch (IOException e) {
             final BadFatalEvent fatal = BadFatalEvent.getBuilder().setException(e).setExtraInfo("recoverable").Build();
