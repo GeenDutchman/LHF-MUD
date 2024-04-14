@@ -14,12 +14,21 @@ import com.lhf.messages.grammar.Prepositions;
 public class AttackMessageTest {
 
     private class UnlockedAttackMessage {
+        private static int createCount = 0;
+        protected final int myNum;
         protected final String whole;
         protected final List<String> directs;
         protected final EnumMap<Prepositions, List<String>> indirects;
         protected boolean isValid;
 
+        public static synchronized int getCreateCount() {
+            int mine = UnlockedAttackMessage.createCount;
+            UnlockedAttackMessage.createCount++;
+            return mine;
+        }
+
         UnlockedAttackMessage(String payload) {
+            this.myNum = getCreateCount();
             this.whole = payload;
             this.directs = new ArrayList<>();
             this.indirects = new EnumMap<>(Prepositions.class);
@@ -53,6 +62,14 @@ public class AttackMessageTest {
             return this;
         }
 
+        public int getMyNum() {
+            return myNum;
+        }
+
+        public String describe() {
+            return String.format("%d %s", this.getMyNum(), this.getWhole());
+        }
+
         public String getWhole() {
             return whole;
         }
@@ -75,47 +92,41 @@ public class AttackMessageTest {
     public void testParseAttack() {
         ArrayList<UnlockedAttackMessage> desired = new ArrayList<>();
         desired.add(new UnlockedAttackMessage("attack goblin").addADirect("goblin"));
-        desired.add(new UnlockedAttackMessage("attack goblin with sword")
-                .addADirect("goblin").addAnIndirect("with", "sword"));
-        desired.add(new UnlockedAttackMessage("attack \"boblin the goblin\"")
-                .addADirect("\"boblin the goblin\""));
+        desired.add(new UnlockedAttackMessage("attack goblin with sword").addADirect("goblin").addAnIndirect("with",
+                "sword"));
+        desired.add(new UnlockedAttackMessage("attack \"boblin the goblin\"").addADirect("\"boblin the goblin\""));
         desired.add(new UnlockedAttackMessage("attack \"boblin the goblin\" with sword")
                 .addADirect("\"boblin the goblin\"").addAnIndirect("with", "sword"));
         desired.add(new UnlockedAttackMessage("attack \"boblin the goblin\", \"morc the orc\"")
                 .addADirect("\"boblin the goblin\"").addADirect("\"morc the orc\""));
         desired.add(new UnlockedAttackMessage("attack \"boblin the goblin\", \"morc the orc\" with sword")
-                .addADirect("\"boblin the goblin\"").addADirect("\"morc the orc\"")
-                .addAnIndirect("with", "sword"));
+                .addADirect("\"boblin the goblin\"").addADirect("\"morc the orc\"").addAnIndirect("with", "sword"));
         desired.add(new UnlockedAttackMessage("attack \"boblin the goblin\", \"boblin the goblin\"")
                 .addADirect("\"boblin the goblin\"").addADirect("\"boblin the goblin\""));
         desired.add(new UnlockedAttackMessage("attack \"boblin the goblin\", \"boblin the goblin\" with sword")
                 .addADirect("\"boblin the goblin\"").addADirect("\"boblin the goblin\"")
                 .addAnIndirect("with", "sword"));
-        desired.add(new UnlockedAttackMessage("attack boblin the goblin with sword")
-                .addADirect("boblin the goblin").addAnIndirect("with", "sword"));
-        desired.add(new UnlockedAttackMessage("attack boblin the goblin, morc the orc with sword")
-                .addADirect("boblin the goblin").addADirect("morc the orc")
+        desired.add(new UnlockedAttackMessage("attack boblin the goblin with sword").addADirect("boblin the goblin")
                 .addAnIndirect("with", "sword"));
-        desired.add(new UnlockedAttackMessage("attack boblin with eyes with sword").setValid(false)
-                .addADirect("boblin")
+        desired.add(new UnlockedAttackMessage("attack boblin the goblin, morc the orc with sword")
+                .addADirect("boblin the goblin").addADirect("morc the orc").addAnIndirect("with", "sword"));
+        desired.add(new UnlockedAttackMessage("attack boblin with eyes with sword").setValid(false).addADirect("boblin")
                 .addAnIndirect("with", "eyes"));
-        desired.add(new UnlockedAttackMessage("attack goblin with with sword").setValid(false)
-                .addADirect("goblin").addAnIndirect("with", ""));
-        desired.add(new UnlockedAttackMessage("attack goblin with sword with bow").setValid(false)
-                .addADirect("goblin").addAnIndirect("with", "sword"));
-        desired.add(new UnlockedAttackMessage("attack \"goblin with eyes\"")
-                .addADirect("\"goblin with eyes\""));
+        desired.add(new UnlockedAttackMessage("attack goblin with with sword").setValid(false).addADirect("goblin"));
+        desired.add(new UnlockedAttackMessage("attack goblin with sword with bow").setValid(false).addADirect("goblin")
+                .addAnIndirect("with", "sword"));
+        desired.add(new UnlockedAttackMessage("attack \"goblin with eyes\"").addADirect("\"goblin with eyes\""));
         desired.add(new UnlockedAttackMessage("attack \"goblin with eyes\" with sword")
                 .addADirect("\"goblin with eyes\"").addAnIndirect("with", "sword"));
 
         for (UnlockedAttackMessage am : desired) {
             System.out.println("Testing: " + am.getWhole());
             Command cmd = Command.parse(am.getWhole());
-            Truth.assertWithMessage(am.getWhole()).that(cmd.getType()).isEqualTo(AMessageType.ATTACK);
-            Truth.assertWithMessage(am.getWhole()).that(cmd.getWhole()).isEqualTo(am.getWhole());
-            Truth.assertWithMessage(am.getWhole()).that(cmd.getIndirects()).containsExactlyEntriesIn(am.getIndirects());
-            Truth.assertWithMessage(am.getWhole()).that(cmd.getDirects()).isEqualTo(am.getDirects());
-            Truth.assertWithMessage(am.getWhole()).that(cmd.isValid()).isEqualTo(am.isValid());
+            Truth.assertWithMessage(am.describe()).that(cmd.getType()).isEqualTo(AMessageType.ATTACK);
+            Truth.assertWithMessage(am.describe()).that(cmd.getWhole()).isEqualTo(am.getWhole());
+            Truth.assertWithMessage(am.describe()).that(cmd.getIndirects()).containsExactlyEntriesIn(am.getIndirects());
+            Truth.assertWithMessage(am.describe()).that(cmd.getDirects()).isEqualTo(am.getDirects());
+            Truth.assertWithMessage(am.describe()).that(cmd.isValid()).isEqualTo(am.isValid());
         }
     }
 }

@@ -71,8 +71,8 @@ public class ConversationTree implements Serializable {
         if (this.greetings == null) {
             this.greetings = new TreeSet<>();
         }
-        this.addGreeting(new ConversationPattern("hello", "^hello\\b", Pattern.CASE_INSENSITIVE));
-        this.addGreeting(new ConversationPattern("hi", "^hi\\b", Pattern.CASE_INSENSITIVE));
+        this.addGreeting(new ConversationPattern("hello", "^\\s*hello\\b", Pattern.CASE_INSENSITIVE));
+        this.addGreeting(new ConversationPattern("hi", "^\\s*hi\\b", Pattern.CASE_INSENSITIVE));
         return this;
     }
 

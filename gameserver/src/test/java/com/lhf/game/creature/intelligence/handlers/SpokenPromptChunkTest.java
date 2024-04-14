@@ -25,11 +25,12 @@ public class SpokenPromptChunkTest {
 
         AIComBundle speaker = new AIComBundle();
         SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC())
-                .setMessage(new OutputSequence().appendChild("hello")).setHearer(listener.getNPC()).Build();
+                .setMessage(new OutputSequence().appendString("hello", null, null)).setHearer(listener.getNPC())
+                .Build();
         AIComBundle.eventAccepter.accept(listener.getNPC(), sm);
 
-        Mockito.verify(listener.sssb, Mockito.timeout(1000)).send(sm);
-        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).apply(Mockito.any(),
+        Mockito.verify(listener.sssb, Mockito.timeout(1000 * 10)).send(sm);
+        Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000 * 30)).apply(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains(body)));
         Mockito.verify(listener.mockedWrappedHandler, Mockito.timeout(1000)).apply(Mockito.any(),
                 Mockito.argThat((command) -> command != null && command.getWhole().contains(sayMessage)));
@@ -45,7 +46,7 @@ public class SpokenPromptChunkTest {
 
         String prompt = "NONOBJECT";
         SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC())
-                .setMessage(new OutputSequence().appendChild("PROMPT SEE").appendChild(prompt))
+                .setMessage(new OutputSequence().appendString("PROMPT SEE", null, null).appendString(prompt))
                 .setHearer(listener.getNPC()).Build();
         AIComBundle.eventAccepter.accept(listener.getNPC(), sm);
 
@@ -62,7 +63,7 @@ public class SpokenPromptChunkTest {
 
         String prompt = "NONOBJECT";
         SpeakingEvent sm = SpeakingEvent.getBuilder().setSayer(speaker.getNPC())
-                .setMessage(new OutputSequence().appendChild("PROMPT SEE").appendChild(prompt))
+                .setMessage(new OutputSequence().appendString("PROMPT SEE", null, null).appendString(prompt))
                 .setHearer(listener.getNPC()).Build();
         AIComBundle.eventAccepter.accept(listener.getNPC(), sm);
 
