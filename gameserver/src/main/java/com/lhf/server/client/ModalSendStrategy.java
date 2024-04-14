@@ -20,7 +20,7 @@ public class ModalSendStrategy implements SendStrategy {
 
     public ModalSendStrategy(Logger logger, Level level) {
         this.strategies = new LinkedHashMap<>();
-        this.strategies.put("default", new LoggerSendStrategy(logger, level));
+        this.strategies.put("default", logger != null ? new LoggerSendStrategy(logger, level) : fallbackStrategy);
     }
 
     public ModalSendStrategy addStrategy(String code, SendStrategy strategy) {

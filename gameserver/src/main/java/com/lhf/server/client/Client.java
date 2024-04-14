@@ -145,6 +145,10 @@ public class Client implements CommandInvoker {
         }
     }
 
+    protected Logger getLogger() {
+        return this.logger;
+    }
+
     @Override
     public synchronized void log(Level logLevel, String logMessage) {
         this.logger.log(logLevel, logMessage);

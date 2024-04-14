@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 
-import com.lhf.Taggable;
 import com.lhf.game.creature.ICreature;
 import com.lhf.game.creature.INonPlayerCharacter;
 import com.lhf.game.creature.conversation.ConversationTransformer;
@@ -18,6 +17,7 @@ import com.lhf.messages.GameEventProcessor.GameEventProcessorID;
 import com.lhf.messages.GameEventType;
 import com.lhf.messages.events.GameEvent;
 import com.lhf.messages.events.SpeakingEvent;
+import com.lhf.messages.in.SayMessage;
 import com.lhf.server.client.user.User;
 
 public class SpokenPromptChunk extends AIHandler {
@@ -52,12 +52,9 @@ public class SpokenPromptChunk extends AIHandler {
                     () -> String.format("%s has no noderesult for message '%s'", bai.toString(), sm.getMessage()));
             return;
         }
-        final String body = result.print();
-        if (body != null) {
-            String name = Taggable.extract(sm.getSayer());
-            Command say = Command.parse("say \"" + body + "\" to " + name);
-            bai.applyChain(null, say);
-        }
+        SayMessage say = SayMessage.fromOutputBuilder(result.getBodySequence(), sm.getSayer().getName());
+        bai.applyChain(null, say);
+
         if (result.getPromptsAsStrings() != null) {
             for (String prompt : result.getPromptsAsStrings()) {
                 if (prompt.startsWith("STORE")) {

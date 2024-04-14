@@ -20,7 +20,6 @@ import com.lhf.server.interfaces.ConnectionListener;
 
 public class ClientHandle extends Client implements Runnable {
     private Socket socket;
-    private boolean useXML = true;
 
     private boolean connected;
     private boolean killIt;
@@ -94,7 +93,8 @@ public class ClientHandle extends Client implements Runnable {
     protected ClientHandle(Socket socket, ConnectionListener cl) throws IOException {
         super();
         this.socket = socket;
-        this.out = new ModalSendStrategy().addStrategy("xml", new XMLPrintWriterSendStrategy(socket.getOutputStream()))
+        this.out = new ModalSendStrategy(this.getLogger(), Level.INFO)
+                .addStrategy("xml", new XMLPrintWriterSendStrategy(socket.getOutputStream()))
                 .addStrategy("plain", new PrintWriterSendStrategy(socket.getOutputStream()));
         this.out.metaControl("xml");
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
